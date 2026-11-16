@@ -38,6 +38,9 @@ Nine weeks and unit labels are typed in `data/library.js`. Leave them out when n
 `data.html` (teacher sign-in): paste or load a CSV of results (Magma Math, a quiz, an exit ticket), pick the student and score columns, and see class averages and who needs help, by skill and by student.
 Student results save only under `teacher/{uid}/data/...` in the private account. NEVER commit student names or results to this repo, including in tests or examples. Roster numbers can be saved instead of names.
 
+## Design rules and the queue
+Read `DESIGN.md` before changing how anything looks or behaves, and `QUEUE.md` for what is next. Scout before building.
+
 ## Two build lanes
 Two Claude threads (school account and personal account) push to `main`. Fetch and check the head of `main` before every push, and re-read any file you are about to overwrite.
 

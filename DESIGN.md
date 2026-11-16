@@ -1,0 +1,59 @@
+# Steers Class Board — design rules
+
+Adopted Nov 16, 2026. The principles and the spacing, radius, type and motion numbers come from
+Eddie's other project's design system. Only the method was brought over: none of its colours,
+branding or content. The colours and fonts below are the ones this site already uses.
+
+## The idea: premium is calm
+One quick glance, one clear action. The reader is a teacher mid-lesson, one hand on the
+Chromebook, with students watching the board. If something makes the teacher pause, cut it.
+The site works for the teacher; the teacher never works for the site. When in doubt: calmer,
+simpler, one less thing.
+
+## Rules
+- **One screen, one job.** One main thing to look at, one primary action, at most one secondary.
+- **Nothing covers the lesson.** Tools sit on the shelf beside the stage. Only something the
+  teacher chose to float may sit over lesson content. Nothing ever covers a control.
+- **Never show the wrong thing while loading.** Show the shape of the screen (a skeleton) until
+  the real state arrives. No spinners, and never a flash of another day or period.
+- **Never claim what the site cannot know.** No "current period" without bell times. If the
+  board is showing a day that is not today, say so and offer one tap back to today.
+- **Never a bare screen, never a dead end.** Every empty state says what to do next and has a
+  button for it.
+- **Phone first for the teacher pages.** Check at 390px wide and on desktop. Single column,
+  no sideways scroll. Tap targets at least 44px. Text at least 12px. A label on every field.
+- **Restraint.** No new fonts, colours, shadows, gradients or corner styles without asking Eddie.
+- **Motion is quick and quiet.** About 240–260ms, never bouncy, and off for reduced-motion.
+- **Student privacy.** Nothing a student could be identified by goes on the board unless the
+  teacher puts it there (name picker, groups). No student data in this public repo, ever.
+
+## Colours and fonts in use (the source of truth is the CSS)
+- Stage (what students see), `css/board.css`: navy `#081B45`, deep `#0B2559`, blue `#10358A`,
+  sky `#7FAEDD`, paper `#F6F9FD`, on-navy text `#F4F7FB`.
+- Teacher console, `css/console.css`: background `#EEF1F6`, surface `#FFFFFF`, ink `#0E1B3A`,
+  muted `#55627F`, line `#D5DCE9`. Amber `#F2B33D` marks the one primary action and "today".
+  Green means live or saved, red means a problem or a test day.
+- Fonts: Instrument Sans (text) and Bricolage Grotesque (headings). Printed sheets use Calibri.
+- Colour by meaning: amber = do this next, green = fine, red = stop or look. Not decoration.
+
+## Numbers to use on teacher pages
+- Radius: card 16–20px, large button 16px, input 10–12px.
+- Type: page title 32px on a phone, up to 44px on desktop, line height 1.1; heading 20px/1.3;
+  body 16px/1.6; small 13px/1.5; never under 12px.
+- Spacing: card padding 16px on a phone, 24px on desktop; gaps 16px / 32px; buttons 44–48px tall.
+- Shadow: one soft card shadow, `0 8px 32px` at about 12% of the navy.
+- The stage is different: it scales with the board, so its sizes are in `em`, not pixels.
+
+## Open questions for Eddie
+- The transfer notes named navy `#0E2A47`, light blue `#A8CCE8` / `#7FB3D5` and the Fredoka font.
+  The live site uses the colours and fonts listed above, and amber as the action colour. Nothing
+  was restyled. Say if the older palette or a single light-blue accent should replace them.
+- The teacher pages have not yet been checked page by page against these rules (see QUEUE.md).
+
+## How work gets done here
+1. Read this file and `QUEUE.md`. Fetch `main` and check its head: two Claude threads push here.
+2. **Scout first.** Look at the live page and the code, write down what is wrong and what will
+   change, before building. For a design choice, show Eddie options and build what he picks.
+3. Build, then test in a real browser (every page has a `?demo` or guest mode that needs no sign-in).
+4. Re-check the head of `main`, push, and confirm the change on the live site.
+5. Update `QUEUE.md` when an item moves.

@@ -214,3 +214,4 @@ body.board #stage{border-radius:0;box-shadow:none}
 .nw{font-size:.74em;font-weight:500;color:#3A4C74;line-height:1.3}
 .ncount{font-size:.68em;color:var(--soft)}
 .nans{align-self:flex-start;font-family:var(--display);font-size:1.25em;font-weight:700;background:#E3F5EC;color:#0F6B40;border-radius:.4em;padding:.1em .7em}
+.nowfacts[hidden]{display:none}

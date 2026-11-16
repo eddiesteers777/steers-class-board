@@ -5,9 +5,9 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=16";
+import { WEEKS } from "../data/weeks.js?v=17";
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=16";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=17";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -54,8 +54,13 @@ let skew = 0; // this device's clock vs the shared clock, in ms
 const now = () => Date.now() + skew;
 const blankTimer = () => ({ running: false, t0: 0, elapsed: 0 });
 
+const localIso = () => { const d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); };
+const isSchoolDay = () => { const n = new Date().getDay(); return n >= 1 && n <= 5; };
+const realDay = () => (isSchoolDay() ? new Date().getDay() - 1 : 0);   // today's weekday, 0 = Monday
+const FULL = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+let synced = false;   // false until the saved board state has arrived, so the wrong day is never drawn first
 function defaultWeek() {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localIso();
     let pick = WEEKS[0];
     for (const w of WEEKS) if (!w.monday || w.monday <= today) pick = w;
     return pick.id;
@@ -79,7 +84,7 @@ function writer(path) {
     return w;
 }
 function setStatus(t) { const s = $("status"); if (s) { s.textContent = t; s.dataset.state = (t === "Live" || t === "This device only") ? "ok" : (t.startsWith("Connecting") || t.startsWith("Still") ? "wait" : "bad"); } }
-function push() { render(); if (writeState) writeState(JSON.parse(JSON.stringify(S))); }
+function push() { S.stamp = localIso(); render(); if (writeState) writeState(JSON.parse(JSON.stringify(S))); }
 let quietTimer = 0;
 function quiet() { clearTimeout(quietTimer); quietTimer = setTimeout(() => { if (writeState) writeState(JSON.parse(JSON.stringify(S))); }, 500); } // save typing without redrawing
 let ROSTERS = {};
@@ -105,6 +110,16 @@ function buildControls() {
     PERIODS.filter((p) => w.classes[p[1]]).forEach((p) => { const o = el("option", null, p[0] + " period, " + w.classes[p[1]].label); o.value = p[0]; ps.appendChild(o); });
     ps.value = S.period;
     seg($("days"), DK.map((k, i) => [i, k]), S.day, (i) => { S.day = i; resetPos(); push(); });
+    {   // Mark the real day, and say so plainly whenever the board is showing a different one.
+        const rd = realDay(), thisWeek = S.week === defaultWeek(), btn = $("days").children[rd];
+        if (isSchoolDay() && thisWeek && btn) btn.classList.add("istoday");
+        let nt = $("notToday"); if (!nt) { nt = el("div", "nottoday"); nt.id = "notToday"; nt.setAttribute("role", "status"); $("days").after(nt); }
+        nt.hidden = !isSchoolDay() || (thisWeek && S.day === rd); nt.textContent = "";
+        if (!nt.hidden) {
+            nt.appendChild(el("span", null, "Showing " + (thisWeek ? "" : W().label + ", ") + FULL[S.day] + ". Today is " + FULL[rd] + "."));
+            const b = el("button", null, "Go to today"); b.type = "button"; b.onclick = () => { S.week = defaultWeek(); S.day = rd; resetPos(); push(); }; nt.appendChild(b);
+        }
+    }
     seg($("screens"), SCREENS, S.screen, (id) => { S.screen = id; S.show = false; push(); });
     const sel = $("weekSel"); sel.textContent = "";
     WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + x.dates); o.value = x.id; sel.appendChild(o); });
@@ -122,12 +137,23 @@ function buildControls() {
 }
 
 /* ---------- stage ---------- */
+/* Tools sit on a shelf beside the lesson, so they never cover it. The stage gets a little
+   smaller to make room. A tool the teacher drags out floats over the lesson by choice. */
+const SHELF_EM = 14.5, SHELF_WIDE_EM = 22.5;
+const narrowWrap = () => { const w = $("wrap"); return !w || w.clientWidth - 16 < 700; };
+function shelfKeys() { return narrowWrap() ? [] : TOOL_LIST.map((x) => x[0]).filter((k) => S.tools.on[k] && !S.tools.pos[k] && k !== "groups"); }
+function shelfEm() { const ks = shelfKeys(); return !ks.length ? 0 : (ks.includes("score") ? SHELF_WIDE_EM : SHELF_EM); }
+function shelfEl() { let sh = $("toolShelf"); if (!sh) { sh = el("div", "toolshelf"); sh.id = "toolShelf"; sh.hidden = true; $("wrap").appendChild(sh); } return sh; }
+let shelfApplied = "";
 function fit() {
     const w = $("wrap"), st = $("stage"), Wd = w.clientWidth - 16, H = w.clientHeight - 16;
     if (Wd < 50 || H < 50) return;
-    let sw = Math.min(Wd, H * 16 / 9), sh = sw * 9 / 16;
+    const se = synced ? shelfEm() : 0;
+    let sw = Math.min(Wd / (1 + se / 52), H * 16 / 9), sh = sw * 9 / 16;
     if (Wd < 700) { sw = Wd; sh = H; }
     st.style.width = sw + "px"; st.style.height = sh + "px"; st.style.fontSize = Math.max(9, sw / 52) + "px";
+    { const shelf = shelfEl(), f = Math.max(9, sw / 52); shelf.hidden = !se; shelf.style.fontSize = f + "px"; shelf.style.width = ((se - 0.6) * f) + "px"; shelf.style.maxHeight = sh + "px"; } fitShelf();
+    { const key = se + "|" + narrowWrap(); if (key !== shelfApplied) { shelfApplied = key; layerSig = ""; setTimeout(renderLayer, 0); } }
     sizeCanvas();
 }
 
@@ -186,7 +212,12 @@ function tick() {
     $("tgo").textContent = t.running ? "Pause" : (t.elapsed > 0 ? "Resume" : "Start");
 }
 
+function skeleton() {
+    const k = el("div", "skel"); k.setAttribute("aria-busy", "true"); k.setAttribute("aria-label", "Getting today's lesson");
+    k.appendChild(el("div", "skb hd")); const b = el("div", "skbody"); ["w70", "w90", "w55"].forEach((c) => b.appendChild(el("div", "skb " + c))); k.appendChild(b); return k;
+}
 function render() {
+    if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
     buildControls();
     const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, signedIn]);
     renderDock();
@@ -304,16 +335,26 @@ function renderLayer() {
     const layer = $("toolLayer"); if (!layer || dragging) return;
     const ns = toolSig(); if (ns === layerSig) return; layerSig = ns;
     const typing = document.activeElement && document.activeElement.id === "toolMsgIn", caret = typing ? document.activeElement.selectionStart : 0;
-    layer.textContent = "";
+    layer.textContent = ""; const shelf = shelfEl(), docked = shelfKeys(), canDock = !narrowWrap(); shelf.textContent = "";
     TOOL_LIST.forEach(([k]) => {
         if (!S.tools.on[k]) return;
+        if (docked.includes(k)) {   // on the shelf: beside the lesson, never over it
+            const w = buildWidget(k, toolApi), h = w.querySelector("h3"); w.classList.add("docked");
+            const out = el("button", "close pop", "↗"); out.type = "button"; out.title = "Float this tool over the lesson"; out.setAttribute("aria-label", "Float this tool over the lesson");
+            out.onclick = () => { const d = DEFAULT_POS[k] || [10, 30]; S.tools.pos[k] = { x: d[0], y: d[1], s: 1 }; push(); };
+            const x = el("button", "close", "×"); x.type = "button"; x.setAttribute("aria-label", "Hide this tool"); x.onclick = () => { delete S.tools.on[k]; push(); };
+            const tail = el("span", "hbtns"); tail.appendChild(out); tail.appendChild(x); h.appendChild(tail); shelf.appendChild(w); return;
+        }
         const w = buildWidget(k, toolApi), p = posOf(k); w.classList.add("float");
         w.style.left = p.x + "%"; w.style.top = p.y + "%"; w.style.fontSize = p.s + "em";
-        const h = w.querySelector("h3"), x = el("button", "close", "×"); x.type = "button"; x.setAttribute("aria-label", "Hide this tool"); x.onclick = () => { delete S.tools.on[k]; push(); }; h.appendChild(x);
+        const h = w.querySelector("h3"), x = el("button", "close", "×"); x.type = "button"; x.setAttribute("aria-label", "Hide this tool"); x.onclick = () => { delete S.tools.on[k]; push(); };
+        const tail = el("span", "hbtns");
+        if (canDock && k !== "groups") { const back = el("button", "close pop", "↘"); back.type = "button"; back.title = "Put this tool back on the shelf"; back.setAttribute("aria-label", "Put this tool back on the shelf"); back.onclick = () => { delete S.tools.pos[k]; push(); }; tail.appendChild(back); }
+        tail.appendChild(x); h.appendChild(tail);
         const grip = el("span", "grip"); grip.setAttribute("aria-hidden", "true"); w.appendChild(grip);
         const stage = $("stage");
         const start = (e, kind) => {
-            if (e.target === x) return; e.preventDefault(); dragging = true;
+            if (e.target.closest && e.target.closest("button")) return; e.preventDefault(); dragging = true;
             const r = stage.getBoundingClientRect(), p0 = Object.assign({}, posOf(k)), sx = e.clientX, sy = e.clientY, w0 = w.getBoundingClientRect().width; let cur = Object.assign({}, p0);
             const move = (ev) => {
                 if (kind === "move") { cur.x = Math.min(95, Math.max(0, p0.x + (ev.clientX - sx) / r.width * 100)); cur.y = Math.min(92, Math.max(0, p0.y + (ev.clientY - sy) / r.height * 100)); w.style.left = cur.x + "%"; w.style.top = cur.y + "%"; }
@@ -328,6 +369,14 @@ function renderLayer() {
     });
     if (typing) { const t = $("toolMsgIn"); if (t) { t.focus(); try { t.setSelectionRange(caret, caret); } catch (e) { /* ok */ } } }
     tickTools(toolApi);
+    if ((shelfEm() + "|" + narrowWrap()) !== shelfApplied) fit();   // the shelf appeared, went away or changed width
+    fitShelf();
+}
+/* The board cannot scroll, so a full shelf shrinks its tools to fit instead of cutting one off. */
+function fitShelf() {
+    const sh = shelfEl(); if (sh.hidden) return; const base = parseFloat($("stage").style.fontSize) || 12;
+    sh.style.fontSize = base + "px";
+    if (sh.scrollHeight > sh.clientHeight + 2) sh.style.fontSize = Math.max(base * 0.6, base * sh.clientHeight / sh.scrollHeight * 0.98) + "px";
 }
 
 /* ---------- whiteboard ink ---------- */
@@ -448,7 +497,7 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
-    store = (opts && opts.store) || await import("./boardStore.js?v=16");
+    store = (opts && opts.store) || await import("./boardStore.js?v=17");
     const guest = mode === "sub";
     document.body.classList.toggle("board", mode === "board");
     $("periodSel").onchange = function () { S.period = this.value; S.cls = classOf(this.value); resetPos(); push(); };
@@ -463,7 +512,9 @@ export async function startApp(opts) {
     $("flowNext").onclick = () => flow(1); $("flowBack").onclick = () => flow(-1);
     keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
     document.addEventListener("keydown", (e) => { if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); flow(1); } else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); flow(-1); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
-    setInterval(() => { tick(); tickTools(toolApi); }, 250);
+    setInterval(() => { if (!synced) return; tick(); tickTools(toolApi); }, 250);
+    document.body.classList.add("syncing");
+    const arrived = () => { if (synced) return; synced = true; document.body.classList.remove("syncing"); sig = ""; };
     fit(); render();
 
     const user = await store.ready();
@@ -472,16 +523,19 @@ export async function startApp(opts) {
     writeState = writer("board/state");
     store.watch("rosters/all", (snap) => { const p = (snap.exists && snap.data && snap.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); renderLayer(); }, () => {});
     store.clockSkew().then((ms) => { skew = ms; tick(); });
-    const slow = setTimeout(() => setStatus("Still connecting…"), 10000);
+    const slow = setTimeout(() => { setStatus("Still connecting…"); arrived(); render(); }, 10000);   // never leave the teacher on a blank board
     let first = true;
     store.watch("board/state", (snap) => {
         if (snap.pending || (writeState && writeState.busy())) return;
         clearTimeout(slow); setStatus(guest ? "This device only" : "Live");
         if (snap.exists) applyState(snap.data);
+        arrived();
         if (first) {
             first = false;
             const q = new URLSearchParams(location.search), c = q.get("class"), dy = q.get("day"), di = DK.map((k) => k.toLowerCase()).indexOf((dy || "").toLowerCase());
             let changed = !snap.exists;
+            // A board left on another day must not come back on that day tomorrow: on a new calendar day, start on the real day.
+            if (!guest && snap.exists && snap.data.stamp !== localIso()) { S.week = defaultWeek(); S.day = realDay(); S.screen = "today"; resetPos(); changed = true; }
             const pq = q.get("period"), sq = q.get("screen");
             if (guest) { const pp = q.get("period"); if (pp && PERIODS.some((p) => p[0] === pp)) { S.period = pp; S.cls = classOf(pp); } if (di >= 0) S.day = di; S.screen = "today"; resetPos(); push(); return; }
             const wq = q.get("week");   // the Library opens a chosen week: remote.html?week=week5&class=8th&day=mon
@@ -493,6 +547,6 @@ export async function startApp(opts) {
             if (changed) { push(); return; }
         }
         render();
-    }, (e) => { clearTimeout(slow); setStatus("Sync is off (" + ((e && e.code) || "error") + ")"); });
+    }, (e) => { clearTimeout(slow); setStatus("Sync is off (" + ((e && e.code) || "error") + ")"); arrived(); render(); });
     render();
 }

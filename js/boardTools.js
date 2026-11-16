@@ -15,7 +15,7 @@ const PERIODS = ["1st", "2nd", "4th", "5th", "6th"];
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
 
 export function defaultTools() {
-    return { on: {}, pos: {}, traffic: "green", work: "silent", text: "",
+    return { v: 2, on: {}, pos: {}, traffic: "green", work: "silent", text: "",
         dice: { n: 2, vals: [3, 5], roll: 0 }, score: { teams: [{ n: "Team 1", s: 0 }, { n: "Team 2", s: 0 }] },
         sw: { running: false, t0: 0, elapsed: 0 },
         pick: { period: "", cur: -1, used: [] }, groups: { period: "", size: 3, order: [] }, absent: { day: "", periods: {} } };
@@ -23,7 +23,8 @@ export function defaultTools() {
 export function mergeTools(d) {
     const t = defaultTools(); if (!d || typeof d !== "object") return t;
     if (d.on && typeof d.on === "object") { t.on = {}; TOOL_LIST.forEach(([k]) => { if (d.on[k]) t.on[k] = true; }); }
-    if (d.pos && typeof d.pos === "object") TOOL_LIST.forEach(([k]) => { const q = d.pos[k]; if (q) t.pos[k] = { x: Math.min(95, Math.max(0, +q.x || 0)), y: Math.min(92, Math.max(0, +q.y || 0)), s: Math.min(3, Math.max(0.5, +q.s || 1)) }; });
+    // v 2: tools sit on a shelf unless the teacher floats them. Positions saved before that are dropped once.
+    if (d.v === 2 && d.pos && typeof d.pos === "object") TOOL_LIST.forEach(([k]) => { const q = d.pos[k]; if (q) t.pos[k] = { x: Math.min(95, Math.max(0, +q.x || 0)), y: Math.min(92, Math.max(0, +q.y || 0)), s: Math.min(3, Math.max(0.5, +q.s || 1)) }; });
     if (["green", "yellow", "red"].includes(d.traffic)) t.traffic = d.traffic;
     if (WORK.some((w) => w[0] === d.work)) t.work = d.work;
     if (typeof d.text === "string") t.text = d.text.slice(0, 600);

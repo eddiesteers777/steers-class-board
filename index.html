@@ -14,8 +14,8 @@
     <meta property="og:url" content="https://eddiesteers777.github.io/steers-class-board/">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=16">
-    <link rel="stylesheet" href="css/console.css?v=16">
+    <link rel="stylesheet" href="css/board.css?v=17">
+    <link rel="stylesheet" href="css/console.css?v=17">
     <meta name="theme-color" content="#081B45">
     </head>
 <body class="console page">
@@ -61,8 +61,8 @@
         </details>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=16";
-        import * as store from "./js/boardStore.js?v=16";
+        import { WEEKS } from "./data/weeks.js?v=17";
+        import * as store from "./js/boardStore.js?v=17";
         const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
         const DAYKEYS = ["mon", "tue", "wed", "thu", "fri"], $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -77,25 +77,28 @@
         // Which period should the top panel show: the one in session, else the next one today, else the first.
         function current() {
             const n = new Date(), now = n.getHours() * 60 + n.getMinutes(), timed = PERIODS.map(([p]) => ({ p, s: mins(bells[p] && bells[p].start), e: mins(bells[p] && bells[p].end) })).filter((x) => x.s != null && x.e != null);
-            if (!isSchoolDay) return { p: PERIODS[0][0], label: "Next school day" };
-            if (!timed.length) return { p: PERIODS[0][0], label: "Today" };
+            // Never claim a period the clock cannot back up: no period on a weekend, with no bell times, or after school.
+            if (!isSchoolDay) return { p: null, label: "No school today", note: "The plan below is for Monday.", go: ["Open Remote", "remote.html"] };
+            if (!timed.length) return { p: null, label: "Today", note: "Bell times are not set yet, so this page cannot tell which period you are in. Set them once and this panel will follow the clock. Until then, pick your period below.", go: ["Set bell times", "#bells"] };
             const live = timed.find((x) => now >= x.s && now < x.e); if (live) return { p: live.p, label: "Right now, until " + nice(bells[live.p].end) };
             const next = timed.filter((x) => x.s > now).sort((a, b) => a.s - b.s)[0]; if (next) return { p: next.p, label: "Up next at " + nice(bells[next.p].start) };
-            return { p: timed[timed.length - 1].p, label: "School day is over" };
+            return { p: null, label: "School day is over", note: "Every period for today is below.", go: ["Open Remote", "remote.html"] };
         }
         const classOf = (p) => (PERIODS.find((x) => x[0] === p) || PERIODS[0])[1];
         const startUrl = (p) => "remote.html?period=" + encodeURIComponent(p) + "&day=" + DAYKEYS[di];
         function fileLinks(host, links) { host.textContent = ""; (links || []).forEach((k, i) => { if (i) host.appendChild(document.createTextNode("  ")); const a = el("a", null, k.t); a.href = k.u; a.target = "_blank"; a.rel = "noopener"; host.appendChild(a); }); }
 
         function render() {
-            const cur = current(), c = week.classes[classOf(cur.p)], d = c.days[di];
-            $("nowWhen").textContent = cur.label + " · " + cur.p + " period · " + c.label;
-            $("nowTitle").textContent = d.agendaLine;
-            $("nowLT").textContent = d.lt;
+            const cur = current(), c = week.classes[classOf(cur.p || PERIODS[0][0])], d = c.days[di];
+            document.querySelector(".nowfacts").hidden = !cur.p;
+            $("nowWhen").textContent = cur.p ? cur.label + " · " + cur.p + " period · " + c.label : cur.label;
+            $("nowTitle").textContent = cur.p ? d.agendaLine : d.name + ", " + d.date;
+            $("nowLT").textContent = cur.p ? d.lt : cur.note;
             $("nowSup").textContent = (d.supplies || []).join(", ");
             $("nowRem").textContent = (d.reminders || []).join(". ");
             fileLinks($("nowFiles"), c.links); $("nowFilesBox").hidden = !(c.links && c.links.length);
-            $("nowStart").textContent = "Start " + cur.p + " period"; $("nowStart").href = startUrl(cur.p);
+            if (cur.p) { $("nowStart").textContent = "Start " + cur.p + " period"; $("nowStart").href = startUrl(cur.p); $("nowStart").onclick = null; }
+            else { $("nowStart").textContent = cur.go[0]; $("nowStart").href = cur.go[1]; $("nowStart").onclick = cur.go[1] === "#bells" ? () => { $("bells").open = true; } : null; }
             $("todayTitle").textContent = (isSchoolDay ? d.name + ", " + d.date : "Monday, " + d.date) + ", period by period";
             const host = $("periods"); host.textContent = "";
             PERIODS.forEach(([p, cls]) => {

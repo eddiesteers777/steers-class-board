@@ -198,3 +198,32 @@ body.board .float .close{display:none}
 .outlist .vsub{width:100%}
 .outlist button{font-size:.6em;background:transparent;border:.13em solid var(--blue);color:var(--ink);border-radius:2em;padding:.15em .7em}
 .outlist button[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#fff;text-decoration:line-through}
+
+/* ---- waiting for the saved board: show the shape, never the wrong day ---- */
+.skel{flex:1;display:flex;flex-direction:column;gap:1em;padding:1em}
+.skb{background:rgba(244,247,251,.16);border-radius:.6em;animation:skpulse 1.4s ease-in-out infinite}
+.skb.hd{height:4.4em}
+.skbody{flex:1;background:rgba(244,247,251,.08);border-radius:.8em;padding:1.4em;display:flex;flex-direction:column;gap:1em}
+.skbody .skb{height:1.6em}.skb.w70{width:70%}.skb.w90{width:90%}.skb.w55{width:55%}
+@keyframes skpulse{50%{opacity:.5}}
+body.syncing .rail,body.syncing .flowbar,body.syncing .cbar .field{opacity:.45;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.skb{animation:none}}
+
+/* ---- which day is on the board ---- */
+.seg.days button.istoday{position:relative}
+.seg.days button.istoday::after{content:"";position:absolute;left:50%;bottom:-7px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--amber,#F2B33D)}
+.nottoday{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#FFF1CC;color:#3A2A00;border:1.5px solid #F2B33D;border-radius:12px;padding:6px 8px 6px 14px;font-weight:600;font-size:.92rem}
+.nottoday[hidden]{display:none}
+.nottoday button{background:#F2B33D;color:#3A2A00;border:0;border-radius:9px;padding:8px 14px;font-weight:700;min-height:40px;cursor:pointer}
+
+/* ---- tool shelf: tools sit beside the lesson, not on top of it ---- */
+.toolshelf{flex:none;align-self:center;margin-left:.6em;display:flex;flex-direction:column;gap:.6em;overflow-y:auto;overflow-x:hidden;padding:.1em;color:var(--on)}
+.toolshelf[hidden]{display:none}
+.toolshelf .docked{flex:none;width:auto}
+.toolshelf .docked .in{padding:.6em .7em .8em}
+.toolshelf .docked .lights{height:9em;max-height:none}
+.hbtns{display:inline-flex;align-items:center;gap:.1em;margin-left:auto}
+.card h3 .close{background:transparent;border:0;color:var(--on);font-size:1.2em;line-height:1;padding:0 .25em;opacity:.8;cursor:pointer}
+.card h3 .close.pop{font-size:.95em}
+.docked h3{display:flex;align-items:center;justify-content:space-between}
+body.board .docked .close,body.board .float .close{display:none}
