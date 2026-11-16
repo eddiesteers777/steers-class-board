@@ -6,7 +6,7 @@
     <title>Board — Calera Math — Steers</title>
     <meta name="robots" content="noindex">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=5">
+    <link rel="stylesheet" href="css/board.css?v=6">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="board">
@@ -16,6 +16,7 @@
         <span class="status" id="status" role="status">Connecting…</span>
         <select id="weekSel" aria-label="Week" hidden></select>
         <a class="home" href="index.html">Home</a>
+        <a class="home" href="rosters.html">Rosters</a>
         <button class="plain" id="signOut" type="button">Sign out</button>
         <button class="pillbtn" id="boardBtn" type="button">Board view</button>
     </div>
@@ -29,7 +30,7 @@
     <div class="wrap" id="wrap"><div id="stage"><div id="screenHost"></div><div id="toolLayer" class="toollayer"></div></div></div>
     <button id="exit" type="button">Show controls</button>
     <script type="module">
-        import { startApp } from "./js/boardApp.js?v=5";
+        import { startApp } from "./js/boardApp.js?v=6";
         startApp({ mode: "board" });
     </script>
 </body>

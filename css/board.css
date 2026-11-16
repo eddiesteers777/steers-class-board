@@ -177,3 +177,13 @@ body.board .float .close{display:none}
 .seg button:active,.pillbtn:active,.toolchips button:active,.minis button:active,.tbtns button:active,.probs button:active,.q button:active{transform:scale(.95)}
 .card{box-shadow:0 .25em .9em rgba(4,12,34,.28)}
 @media (prefers-reduced-motion:reduce){#screenHost,.float{animation:none}*{transition:none!important}}
+
+/* ---------- name picker + group maker ---------- */
+.float.tool-pick{width:17em}.float.tool-groups{width:30em}
+.picked{font-size:1.9em;font-weight:700;line-height:1.1;min-height:1.2em;overflow-wrap:anywhere}
+.minis button.primary{background:var(--blue);color:var(--on);font-size:.8em;padding:.3em 1.1em}
+.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(6.4em,1fr));gap:.35em;width:100%}
+.group{background:var(--blue);color:var(--on);border-radius:.5em;padding:.25em .4em;text-align:left}
+.gname{font-size:.62em;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.04em}
+.gmem{font-size:.72em;font-weight:500;line-height:1.25}
+body.board .tool-pick .minis:last-child,body.board .tool-groups .minis:last-child{display:none}

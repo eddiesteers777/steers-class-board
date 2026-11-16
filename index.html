@@ -14,7 +14,7 @@
     <meta property="og:url" content="https://eddiesteers777.github.io/steers-class-board/">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=5">
+    <link rel="stylesheet" href="css/board.css?v=6">
     <meta name="theme-color" content="#081B45">
     <style>
         body{overflow:auto;display:block}
@@ -41,6 +41,7 @@
     <div class="top">
         <img src="brand/calera-seal.webp" alt="Calera Middle School seal">
         <div class="brand"><b>Steers Classroom Board</b><span id="who">Calera Middle School</span></div>
+        <a class="home" href="rosters.html">Rosters</a>
         <button class="plain" id="signOut" type="button">Sign out</button>
     </div>
     <main>
@@ -57,7 +58,7 @@
         <p class="tip">Teacher only. Students never sign in. Keys while a bellringer is on screen: right and left arrows change the problem, A shows or hides the answer.</p>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=5";
+        import { WEEKS } from "./data/weeks.js?v=6";
         import { waitForUser, logout } from "./js/auth.js";
         const today = new Date().toISOString().slice(0, 10);
         let week = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= today) week = w;

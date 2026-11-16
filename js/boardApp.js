@@ -5,9 +5,9 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=5";
-import * as store from "./boardStore.js?v=5";
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=5";
+import { WEEKS } from "../data/weeks.js?v=6";
+import * as store from "./boardStore.js?v=6";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=6";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -79,8 +79,9 @@ function setStatus(t) { const s = $("status"); if (s) s.textContent = t; }
 function push() { render(); if (writeState) writeState(JSON.parse(JSON.stringify(S))); }
 let quietTimer = 0;
 function quiet() { clearTimeout(quietTimer); quietTimer = setTimeout(() => { if (writeState) writeState(JSON.parse(JSON.stringify(S))); }, 500); } // save typing without redrawing
-const toolApi = { S, el, push, quiet, now, card };
-function toolSig() { const t = Object.assign({}, S.tools); delete t.text; return JSON.stringify(t); }
+let ROSTERS = {};
+const toolApi = { S, el, push, quiet, now, card, rosters: () => ROSTERS };
+function toolSig() { const t = Object.assign({}, S.tools); delete t.text; return JSON.stringify([t, S.cls, Object.keys(ROSTERS).map((k) => k + ROSTERS[k].length)]); }
 const W = () => WEEKS.find((w) => w.id === S.week) || WEEKS[WEEKS.length - 1];
 const L = () => { const w = W(); return (w && w.classes[S.cls]) || null; };
 const D = () => { const l = L(); return (l && l.days && l.days[S.day]) || null; };
@@ -236,7 +237,7 @@ function render() {
 }
 
 /* ---------- floating tools (shown over every screen) ---------- */
-const DEFAULT_POS = { traffic: [2, 23], work: [20, 23], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40] };
+const DEFAULT_POS = { pick: [34, 30], groups: [10, 24],  traffic: [2, 23], work: [20, 23], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40] };
 let topZ = 1;
 let layerSig = "", dragging = false;
 function posOf(k) { const p = S.tools.pos[k]; if (p) return p; const d = DEFAULT_POS[k] || [10, 30]; return { x: d[0], y: d[1], s: 1 }; }
@@ -358,6 +359,7 @@ export async function startApp(opts) {
     if (!user) { location.replace("login.html"); return; }
     signedIn = true; $("who").textContent = user.name ? "Signed in as " + user.name : "Signed in";
     writeState = writer("board/state");
+    store.watch("rosters/all", (snap) => { const p = (snap.exists && snap.data && snap.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); renderLayer(); }, () => {});
     store.clockSkew().then((ms) => { skew = ms; tick(); });
     const slow = setTimeout(() => setStatus("Still connecting…"), 10000);
     let first = true;
