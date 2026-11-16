@@ -1,0 +1,233 @@
+/* ==========================================
+   Calera Math — shared UI feedback
+
+   One look for everything the app says back to a person, instead of
+   the browser's grey alert()/confirm()/prompt() boxes and scattered
+   one-off status text:
+
+     toast(message, { type, duration })     "Saved" / "Couldn't save" pop-up
+     sbAlert(message, { title })            -> Promise<void>
+     sbConfirm(message, { title, confirmLabel, cancelLabel, danger })
+                                            -> Promise<boolean>
+     sbPrompt(message, { title, defaultValue, placeholder, confirmLabel,
+                         multiline, maxLength })
+                                            -> Promise<string | null>
+     friendlyError(error, action)           plain-English message for a
+                                            failed request (details stay
+                                            in the console)
+     loadingHtml(label) / emptyHtml({...})  designed loading / empty states
+
+   Dialogs use the native <dialog> element (focus trap, Esc to close,
+   always above every overlay). Styles: "UI FEEDBACK" in css/style.css.
+   Inline (non-module) page scripts reach the same functions through
+   window.SchoolBoard, set up by js/loadHeader.js.
+========================================== */
+
+import { icon } from "./icons.js";
+
+const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+// ---------- Toasts ----------
+
+let toastHost = null;
+let dialogId = 0;
+
+function host() {
+    if (toastHost && document.body.contains(toastHost)) return toastHost;
+    toastHost = document.createElement("div");
+    toastHost.className = "school-toast-host";
+    toastHost.setAttribute("role", "status");
+    toastHost.setAttribute("aria-live", "polite");
+    document.body.appendChild(toastHost);
+    return toastHost;
+}
+
+const TOAST_ICONS = { success: "checkCircle", error: "alertTriangle", info: "info" };
+
+// `action: { label, onClick }` adds a button (e.g. Undo); the toast then stays up longer.
+export function toast(message, { type = "success", duration = 3200, action = null } = {}) {
+    const el = document.createElement("div");
+    el.className = `school-toast is-${type}`;
+    el.innerHTML = `<span class="school-toast-icon">${icon(TOAST_ICONS[type] || "info")}</span><span class="school-toast-text">${esc(message)}</span>${action ? `<button type="button" class="school-toast-action">${esc(action.label)}</button>` : ""}`;
+    host().appendChild(el);
+    requestAnimationFrame(() => el.classList.add("is-in"));
+    const remove = () => {
+        el.classList.remove("is-in");
+        setTimeout(() => el.remove(), 250);
+    };
+    const timer = setTimeout(remove, type === "error" ? Math.max(duration, 5000) : action ? Math.max(duration, 7000) : duration);
+    el.addEventListener("click", event => {
+        clearTimeout(timer);
+        remove();
+        if (action && event.target.closest(".school-toast-action")) action.onClick?.();
+    });
+    return el;
+}
+
+// ---------- Dialogs ----------
+
+function openDialog({ title, message, body = "", actions, danger = false, onOpen }) {
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const id = ++dialogId;
+    const titleId = `school-dialog-title-${id}`;
+    const messageId = `school-dialog-message-${id}`;
+    return new Promise(resolve => {
+        const dialog = document.createElement("dialog");
+        dialog.className = `school-dialog${danger ? " is-danger" : ""}`;
+        if (title) dialog.setAttribute("aria-labelledby", titleId);
+        else if (message) dialog.setAttribute("aria-label", message);
+        if (message) dialog.setAttribute("aria-describedby", messageId);
+        dialog.innerHTML = `
+            <form method="dialog" class="school-dialog-form">
+                ${title ? `<h2 class="school-dialog-title" id="${titleId}">${esc(title)}</h2>` : ""}
+                ${message ? `<p class="school-dialog-message" id="${messageId}">${esc(message)}</p>` : ""}
+                ${body}
+                <div class="school-dialog-actions">
+                    ${actions.map(a => `<button type="${a.submit ? "submit" : "button"}" value="${a.value}" class="school-btn ${a.className}">${esc(a.label)}</button>`).join("")}
+                </div>
+            </form>`;
+        document.body.appendChild(dialog);
+
+        let result;
+        dialog.querySelectorAll(".school-dialog-actions button").forEach(btn => {
+            btn.addEventListener("click", event => {
+                event.preventDefault();
+                result = btn.value;
+                dialog.close();
+            });
+        });
+        dialog.querySelector("form").addEventListener("submit", event => {
+            event.preventDefault();
+            result = "ok";
+            dialog.close();
+        });
+        dialog.addEventListener("close", () => {
+            const input = dialog.querySelector(".school-dialog-input");
+            resolve({ action: result || dialog.returnValue || "cancel", value: input ? input.value : undefined });
+            dialog.remove();
+            opener?.focus();
+        });
+        // Tapping the dimmed backdrop cancels, like a native sheet.
+        dialog.addEventListener("click", event => {
+            if (event.target === dialog) { result = "cancel"; dialog.close(); }
+        });
+
+        dialog.showModal();
+        onOpen?.(dialog);
+        if (!onOpen) dialog.querySelector(".school-dialog-actions button")?.focus();
+    });
+}
+
+// A few labelled choices ("This week" / "Whole plan"). Resolves to the
+// chosen value, or null when cancelled.
+export async function sbChoose(message, { title = "", choices = [], cancelLabel = "Cancel" } = {}) {
+    const { action } = await openDialog({
+        title, message,
+        actions: [
+            { value: "cancel", label: cancelLabel, className: "school-btn-tertiary" },
+            ...choices.map((c, i) => ({ value: `choice:${i}`, label: c.label, className: c.primary ? "school-btn-primary" : "school-btn-secondary" }))
+        ]
+    });
+    return action.startsWith("choice:") ? choices[Number(action.slice(7))].value : null;
+}
+
+// A 1–10 tap scale ("How hard was it?"). Resolves to the number, "skip",
+// or null when closed without an answer (Esc, the backdrop).
+export async function sbScale(message, { title = "", words = {}, current = null, hint = "", skipLabel = "Skip" } = {}) {
+    const buttons = Array.from({ length: 10 }, (_, i) => i + 1).map(n =>
+        `<button type="button" class="school-scale-btn${n === current ? " is-current" : ""}" data-scale="${n}" title="${esc(words[n] || "")}" aria-label="${n}${words[n] ? `: ${esc(words[n])}` : ""}">${n}</button>`).join("");
+    const { action } = await openDialog({
+        title, message,
+        body: `<div class="school-scale" role="group" aria-label="${esc(title || message)}">${buttons}</div>${hint ? `<p class="school-scale-hint">${esc(hint)}</p>` : ""}`,
+        actions: [{ label: skipLabel, value: "skip", className: "school-btn-tertiary" }],
+        onOpen: d => d.querySelectorAll("[data-scale]").forEach(btn => btn.addEventListener("click", event => {
+            event.preventDefault();
+            d.close(`scale:${btn.dataset.scale}`);
+        }))
+    });
+    if (action.startsWith("scale:")) return Number(action.slice(6));
+    return action === "skip" ? "skip" : null;
+}
+
+export async function sbAlert(message, { title = "", okLabel = "OK" } = {}) {
+    await openDialog({
+        title, message,
+        actions: [{ label: okLabel, value: "ok", className: "school-btn-primary", submit: true }],
+        onOpen: d => d.querySelector(".school-btn-primary").focus()
+    });
+}
+
+export async function sbConfirm(message, { title = "", confirmLabel = "OK", cancelLabel = "Cancel", danger = false } = {}) {
+    const { action } = await openDialog({
+        title, message, danger,
+        actions: [
+            { label: cancelLabel, value: "cancel", className: "school-btn-secondary" },
+            { label: confirmLabel, value: "ok", className: danger ? "school-btn-danger" : "school-btn-primary", submit: true }
+        ],
+        onOpen: d => d.querySelector(danger ? ".school-btn-secondary" : ".school-btn-primary").focus()
+    });
+    return action === "ok";
+}
+
+export async function sbPrompt(message, { title = "", defaultValue = "", placeholder = "", confirmLabel = "Save", cancelLabel = "Cancel", multiline = false, maxLength = 500 } = {}) {
+    const field = multiline
+        ? `<textarea class="school-dialog-input" rows="3" maxlength="${maxLength}" placeholder="${esc(placeholder)}" aria-label="${esc(title || message)}">${esc(defaultValue)}</textarea>`
+        : `<input class="school-dialog-input" type="text" maxlength="${maxLength}" value="${esc(defaultValue)}" placeholder="${esc(placeholder)}" aria-label="${esc(title || message)}">`;
+    const { action, value } = await openDialog({
+        title, message, body: field,
+        actions: [
+            { label: cancelLabel, value: "cancel", className: "school-btn-secondary" },
+            { label: confirmLabel, value: "ok", className: "school-btn-primary", submit: true }
+        ],
+        onOpen: d => { const input = d.querySelector(".school-dialog-input"); input.focus(); input.select?.(); }
+    });
+    return action === "ok" ? value : null;
+}
+
+// ---------- Messages ----------
+
+// A failed request, in words a client understands. The raw error still
+// goes to the console for debugging.
+export function friendlyError(error, action = "save that") {
+    const code = String(error?.code || error?.message || "");
+    if (!navigator.onLine || /unavailable|network|offline|timeout/i.test(code)) {
+        return `Couldn't ${action} — you look offline. Check your connection and try again.`;
+    }
+    if (/permission-denied|unauthenticated/i.test(code)) {
+        return `Couldn't ${action} — this isn't switched on for your account yet.`;
+    }
+    return `Couldn't ${action}. Try again in a moment.`;
+}
+
+// ---------- Loading / empty states ----------
+
+// Card-shaped shimmer lines, sized like the content they stand in for.
+export function loadingHtml(label = "Loading", { lines = 3 } = {}) {
+    return `
+        <div class="school-loading" role="status" aria-live="polite">
+            <span class="sr-only">${esc(label)}…</span>
+            ${Array.from({ length: lines }, (_, i) => `<span class="school-skeleton" style="width:${[92, 76, 58, 84][i % 4]}%"></span>`).join("")}
+        </div>`;
+}
+
+export function emptyHtml({ iconName = "info", title = "", text = "", actionHref = "", actionLabel = "", primary = false } = {}) {
+    return `
+        <div class="school-empty">
+            <span class="school-empty-icon">${icon(iconName)}</span>
+            ${title ? `<strong class="school-empty-title">${esc(title)}</strong>` : ""}
+            ${text ? `<p class="school-empty-text">${text}</p>` : ""}
+            ${actionHref ? `<a class="school-btn ${primary ? "school-btn-primary" : "school-btn-secondary"}" href="${esc(actionHref)}">${esc(actionLabel)}</a>` : ""}
+        </div>`;
+}
+
+// The one "not connected to a coach yet" card, the same on My Plan, Messages, From Your Coach and Homework.
+// `what` finishes the sentence "Connect with your coach and ...".
+export function notConnectedHtml(what) {
+    return `<div class="clients-card school-empty-card">${emptyHtml({ iconName: "link", title: "Not connected to a coach yet",
+        text: `Connect with your coach and ${what}`, actionHref: "clients.html?tab=share", actionLabel: "Connect with your coach", primary: true })}</div>`;
+}
+
+// For inline (non-module) page scripts.
+if (typeof window !== "undefined") {
+    window.SchoolBoard = { toast, alert: sbAlert, confirm: sbConfirm, prompt: sbPrompt, friendlyError };
+}

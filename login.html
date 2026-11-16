@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in — Calera Math — Steers</title>
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/calera.css">
+    <meta name="theme-color" content="#0E2A47">
+</head>
+<body>
+    <main class="school-home">
+        <p class="school-eyebrow">Calera Middle School</p>
+        <h1 class="school-title">Sign in</h1>
+        <p class="school-sub">Teacher-only. Sign in with Google to open the class board home screen.</p>
+        <div class="remote-controls">
+            <button id="loginBtnPage" class="btn" type="button">Sign In with Google</button>
+        </div>
+        <p id="loginNote" class="school-sub" role="status"></p>
+        <p class="school-sub"><a href="home.html">Back to the signed-out home page</a></p>
+    </main>
+    <script type="module">
+        import { login } from "./js/auth.js";
+        document.getElementById("loginBtnPage").addEventListener("click", async () => {
+            const note = document.getElementById("loginNote");
+            note.textContent = "Signing you in…";
+            try {
+                await login();
+                note.textContent = "";
+                location.replace("index.html");
+            } catch (e) {
+                note.textContent = "Sign-in didn't finish. " + (e?.code || e?.message || "Try again.");
+            }
+        });
+    </script>
+</body>
+</html>

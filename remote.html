@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remote — Calera Math — Steers</title>
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/calera.css">
+    <meta name="theme-color" content="#0E2A47">
+</head>
+<body>
+    <div id="header"></div>
+    <main class="remote-view">
+        <p class="school-eyebrow">Teacher remote — Chromebook</p>
+        <h1 id="remoteTitle">Remote</h1>
+        <p id="remoteSub" class="school-sub"></p>
+        <p id="remoteStatus" role="status">Opening the live session…</p>
+
+        <h2>Now showing</h2>
+        <div id="remoteItem" class="day-row"><span class="day-title">—</span></div>
+
+        <div id="remoteTimer" class="class-timer" style="color: var(--calera-ink);">
+            <div class="timer-digits">5:00</div>
+            <div class="timer-bar-wrap" style="background: #DCE8F5;"><div class="timer-bar"></div></div>
+            <p class="timer-state">Click to start</p>
+        </div>
+        <div class="remote-controls" role="group" aria-label="Timer">
+            <button id="timerStart" class="btn" type="button">Start timer</button>
+            <button id="timerPause" class="btn secondary" type="button">Pause</button>
+            <button id="timerReset" class="btn secondary" type="button">Reset</button>
+            <button id="timerSpeedDating" class="btn secondary" type="button">Speed Dating 4:00</button>
+            <button id="timerBellringer" class="btn secondary" type="button">Bellringer 5:00</button>
+        </div>
+
+        <div class="remote-controls" role="group" aria-label="Lesson controls">
+            <button id="prevItem" class="btn secondary" type="button">← Previous</button>
+            <button id="nextItem" class="btn secondary" type="button">Next →</button>
+            <button id="toggleAnswer" class="btn" type="button" aria-pressed="false">Show answer</button>
+            <button id="toggleWhiteboard" class="btn secondary" type="button" aria-pressed="false">Whiteboard</button>
+        </div>
+
+        <h2>Day items</h2>
+        <div class="day-list" id="remoteItems"></div>
+
+        <div class="school-note">
+            Everything here writes to one Firestore doc (<code>live/<span id="remoteSessionId">…</span></code>).
+            The board subscribes to that doc — never sync via localStorage, the board and Chromebook are different devices.
+            If Firebase is not configured yet, controls update this page only and the board will not follow.
+        </div>
+    </main>
+
+    <script src="js/loadHeader.js"></script>
+    <script type="module">
+        import { WEEK5, dayItems } from "./data/week5.js";
+        import { openLiveSession, publishLiveSession, watchLiveSession, sessionIdFor } from "./js/liveSession.js";
+        import { newTimer, startTimer, pauseTimer, resetTimer, renderTimer, BELLRINGER_SEC, SPEED_DATING_SEC } from "./js/classTimer.js";
+        const q = new URLSearchParams(location.search);
+        const classId = q.get("class") || "8th";
+        const weekId = q.get("week") || "week5";
+        const dayId = q.get("day") || "mon";
+        const sessionId = sessionIdFor(classId, weekId, dayId);
+        const cls = WEEK5.classes[classId];
+        const day = cls?.days[dayId];
+        const items = dayItems(classId, dayId);
+        document.getElementById("remoteTitle").textContent = `${cls?.label || classId} — ${day?.day || ""} ${day?.date || ""}`;
+        document.getElementById("remoteSub").textContent = day?.title || "";
+        document.getElementById("remoteSessionId").textContent = sessionId;
+        const statusEl = document.getElementById("remoteStatus");
+        const itemEl = document.getElementById("remoteItem");
+        const timerEl = document.getElementById("remoteTimer");
+        const itemsEl = document.getElementById("remoteItems");
+        const answerBtn = document.getElementById("toggleAnswer");
+        const wbBtn = document.getElementById("toggleWhiteboard");
+        let current = null;
+        let live = false;
+        let tick = null;
+        function draw(session) {
+            current = session;
+            const item = items[Math.min(session.itemIndex || 0, items.length - 1)];
+            itemEl.innerHTML = `<span class="day-title"><strong>${item?.label || ""}:</strong> ${item?.text || ""}</span>`;
+            renderTimer(timerEl, session.timer || newTimer(BELLRINGER_SEC));
+            answerBtn.setAttribute("aria-pressed", String(!!session.answerVisible));
+            answerBtn.textContent = session.answerVisible ? "Hide answer" : "Show answer";
+            wbBtn.setAttribute("aria-pressed", String(!!session.whiteboardOpen));
+            itemsEl.replaceChildren();
+            items.forEach((it, i) => {
+                const row = document.createElement("div");
+                row.className = "day-row";
+                row.innerHTML = `<span class="day-name">${i + 1}. ${it.label}</span><span class="day-title">${it.text}</span>`;
+                if (i === (session.itemIndex || 0)) row.style.border = "2px solid var(--calera-navy)";
+                row.addEventListener("click", () => publish({ itemIndex: i }));
+                itemsEl.appendChild(row);
+            });
+        }
+        async function publish(patch) {
+            if (!live) { // Local-only fallback: update this page, board will not follow.
+                current = { ...(current || { itemIndex: 0, answerVisible: false, whiteboardOpen: false, timer: newTimer(BELLRINGER_SEC) }), ...patch };
+                draw(current);
+                return;
+            }
+            try { await publishLiveSession(sessionId, patch); }
+            catch (e) { statusEl.textContent = "Could not write to the live session: " + (e?.code || e?.message || e); }
+        }
+        document.getElementById("prevItem").addEventListener("click", () => publish({ itemIndex: Math.max(0, (current?.itemIndex || 0) - 1) }));
+        document.getElementById("nextItem").addEventListener("click", () => publish({ itemIndex: Math.min(items.length - 1, (current?.itemIndex || 0) + 1) }));
+        answerBtn.addEventListener("click", () => publish({ answerVisible: !current?.answerVisible }));
+        wbBtn.addEventListener("click", () => publish({ whiteboardOpen: !current?.whiteboardOpen }));
+        document.getElementById("timerStart").addEventListener("click", () => publish({ timer: startTimer(current?.timer || newTimer(BELLRINGER_SEC)) }));
+        document.getElementById("timerPause").addEventListener("click", () => publish({ timer: pauseTimer(current?.timer || newTimer(BELLRINGER_SEC)) }));
+        document.getElementById("timerReset").addEventListener("click", () => publish({ timer: resetTimer(current?.timer || newTimer(BELLRINGER_SEC)) }));
+        document.getElementById("timerSpeedDating").addEventListener("click", () => publish({ timer: newTimer(SPEED_DATING_SEC) }));
+        document.getElementById("timerBellringer").addEventListener("click", () => publish({ timer: newTimer(BELLRINGER_SEC) }));
+        try {
+            await openLiveSession(classId, weekId, dayId);
+            live = true;
+            statusEl.textContent = `Live: ${sessionId} — the board follows this remote.`;
+            watchLiveSession(sessionId, (session) => {
+                draw(session);
+                clearInterval(tick);
+                tick = setInterval(() => { if (current) draw(current); }, 250);
+            }, (err) => { statusEl.textContent = "Live sync unavailable: " + (err?.code || err?.message || "check Firebase config"); });
+        } catch (e) {
+            live = false;
+            statusEl.textContent = "Firebase not configured yet — local-only mode. Fill in js/firebase.js, then reload. (" + (e?.code || e?.message || e) + ")";
+            draw({ itemIndex: 0, answerVisible: false, whiteboardOpen: false, timer: newTimer(BELLRINGER_SEC) });
+            tick = setInterval(() => { if (current) draw(current); }, 250);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,5072 @@
+/* ==========================================================
+   CALERA FOUNDATION
+
+   Canonical design tokens for the whole site. Every page loads
+   this file first — page-specific stylesheets should only add
+   page-unique rules, not redeclare :root. (They used to; that's
+   what caused three different background shades and two
+   different accent blues across the site. Consolidated here.)
+========================================================== */
+
+/* Fonts are hosted with the site (fonts/, SIL Open Font License) instead
+   of Google Fonts, so the installed app looks the same offline and no
+   request leaves for a third party. Latin subset; the variable fonts give
+   every weight from one file. */
+@font-face{
+    font-family:'Inter';
+    font-style:normal;
+    font-weight:100 900;
+    font-display:swap;
+    src:url('../fonts/inter-latin-var.woff2') format('woff2');
+}
+@font-face{
+    font-family:'Saira';
+    font-style:normal;
+    font-weight:800;
+    font-display:swap;
+    src:url('../fonts/saira-latin-800.woff2') format('woff2');
+}
+@font-face{
+    font-family:'Saira';
+    font-style:italic;
+    font-weight:900;
+    font-display:swap;
+    src:url('../fonts/saira-latin-900-italic.woff2') format('woff2');
+}
+/* Calera Math look, direction A (2026-10-14, Eddie: "more like A, keep my
+   palette"): Big Shoulders Display headlines (always uppercase), Instrument
+   Sans text, IBM Plex Mono for numbers and small labels. Self-hosted like
+   the rest; the share images and the fueling PDF use them too (A5).
+   Inter stays as the body fallback (scripts/build-icons.mjs uses it). */
+@font-face{
+    font-family:'Big Shoulders Display';
+    font-style:normal;
+    font-weight:700 900;
+    font-display:swap;
+    src:url('../fonts/big-shoulders-display-latin-var.woff2') format('woff2');
+}
+@font-face{
+    font-family:'Instrument Sans';
+    font-style:normal;
+    font-weight:400 700;
+    font-display:swap;
+    src:url('../fonts/instrument-sans-latin-var.woff2') format('woff2');
+}
+@font-face{
+    font-family:'IBM Plex Mono';
+    font-style:normal;
+    font-weight:500;
+    font-display:swap;
+    src:url('../fonts/ibm-plex-mono-latin-500.woff2') format('woff2');
+}
+@font-face{
+    font-family:'IBM Plex Mono';
+    font-style:normal;
+    font-weight:600;
+    font-display:swap;
+    src:url('../fonts/ibm-plex-mono-latin-600.woff2') format('woff2');
+}
+
+*,
+*::before,
+*::after{
+
+    margin:0;
+
+    padding:0;
+
+    box-sizing:border-box;
+
+}
+
+/* Quick taps never zoom the page: "manipulation" turns off double-tap
+   zoom but keeps scrolling and pinch zoom (pinch stays for people who
+   need bigger text). Elements that set their own touch-action
+   (swipe rows, the muscle map) still win: this has no specificity. */
+*{ touch-action:manipulation; }
+
+html{
+
+    scroll-behavior:smooth;
+
+    /* iOS Safari's rubber-band overscroll (and Android's over-scroll
+       glow) scrolls past the body's own box, exposing whatever the
+       html element's background is -- without this it's the browser
+       default white, flashing behind every page at the top/bottom
+       edge of a scroll. Match body's base color here too. */
+    background:#0E2A47;
+
+}
+
+:root{
+
+    --bg:#17212B;
+
+    --surface:#1D2A36;
+
+    --surface-light:#27394A;
+
+    --border:rgba(214,228,240,.1);
+
+    --text:#F2EDE1;
+
+    --text-secondary:#C6CBBC;
+
+    --muted:#9DAA99;
+
+    --primary:#C7D6E4;
+
+    --primary-light:#E0E9F1;
+
+    --primary-dark:#8FA6BC;
+
+    /* Calera Math brand palette (from the brand board). --primary is
+       the tan; text sitting on a tan fill uses --on-primary. */
+    --forest:#213242;
+
+    --sage:#A0BB9C;
+
+    --stone:#E3DDD0;
+
+    --cream:#F2EDE1;
+
+    --on-primary:#13202B;
+
+    /* Muted status colors that sit well on forest: on target / good day
+       (--good) and off target / rough day (--bad). Analytics, Readiness. */
+    --good:#8FB39B;
+    --bad:#D08466;
+
+    --green:#94B89D;
+
+    --yellow:#D6C07C;
+
+    --orange:#D29470;
+
+    --red:#D27A62;
+
+    --purple:#A89FC6;
+
+    --purple-light:#9C94BE;
+
+    --pink:#CC939D;
+
+    --pink-light:#D6A5AD;
+
+    --cyan:#87B5AE;
+
+    --cyan-light:#9CC6BF;
+
+    --amber:#D4AA62;
+
+    --amber-light:#DDBA7A;
+
+    --teal:#87B5AE;
+
+    --indigo:#9C9CC4;
+
+    --radius:12px;
+
+    --shadow:0 18px 40px rgba(0,0,0,.22);
+
+    --font-body:'Albert Sans','Instrument Sans','Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+
+    --font-display:'Big Shoulders Display','Arial Narrow',Impact,sans-serif;
+
+    --font-brand:'Saira',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+
+    --font-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+    /* ---- Controls: one shape and one set of states everywhere ---- */
+
+    --radius-sm:6px;           /* small tool buttons, inputs, chips */
+    --radius-md:8px;           /* inputs, list rows */
+    --radius-pill:6px;         /* every main action button (direction A: squared, not pills; the name stays) */
+    --control-height:44px;
+    --focus-ring:0 0 0 3px rgba(201,173,132,.45);
+    --danger:#D9705A;
+    --danger-bg:color-mix(in srgb, var(--danger) 14%, transparent);
+    --success:var(--green);
+    --success-bg:color-mix(in srgb, var(--green) 14%, transparent);
+    --warning:var(--amber);
+    --warning-bg:color-mix(in srgb, var(--amber) 14%, transparent);
+
+    /* Native pickers, scrollbars and dropdown menus render dark. */
+    color-scheme:dark;
+
+}
+body{
+
+    font-family:var(--font-body);
+
+    background:
+        linear-gradient(180deg,#1e2b37 0%,#33475a 46%,#1d2a36 100%);
+
+    color:var(--text);
+
+    min-height:100vh;
+
+    overflow-x:hidden;
+
+    line-height:1.6;
+
+}
+
+a{
+
+    color:inherit;
+
+}
+
+img{
+
+    max-width:100%;
+
+    display:block;
+
+}
+
+/* ==========================================================
+   FORM CONTROLS -- every page
+
+   Native controls otherwise fall back to the browser's own font,
+   colors and focus ring, which is what made forms look like a
+   different app. Page stylesheets still size and lay them out;
+   these are the shared defaults and states underneath.
+========================================================== */
+
+button,
+input,
+select,
+textarea,
+optgroup,
+option{
+    font-family:inherit;
+    font-size:inherit;
+    line-height:inherit;
+    color:inherit;
+    letter-spacing:inherit;
+}
+
+button{
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled{
+    cursor:not-allowed;
+    opacity:.55;
+}
+
+select option,
+select optgroup{
+    background:var(--surface);
+    color:var(--text);
+}
+
+input::placeholder,
+textarea::placeholder{
+    color:var(--muted);
+    opacity:1;
+}
+
+input[type="checkbox"],
+input[type="radio"],
+input[type="range"],
+progress{
+    accent-color:var(--primary);
+}
+
+/* Browser autofill paints inputs pale yellow/blue; keep them forest. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill{
+    -webkit-text-fill-color:var(--text);
+    -webkit-box-shadow:0 0 0 1000px var(--surface-light) inset;
+    caret-color:var(--text);
+    transition:background-color 9999s ease-out 0s;
+}
+
+/* One focus treatment for keyboard users; no ring on mouse/touch. */
+:focus-visible{
+    outline:2px solid var(--primary);
+    outline-offset:2px;
+}
+:focus:not(:focus-visible){
+    outline:none;
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible{
+    outline:none;
+    border-color:var(--primary) !important;
+    box-shadow:var(--focus-ring);
+}
+
+a{
+    -webkit-tap-highlight-color:transparent;
+}
+
+html{
+    scrollbar-color:rgba(201,173,132,.35) transparent;
+}
+
+@media (prefers-reduced-motion:reduce){
+    *,
+    *::before,
+    *::after{
+        scroll-behavior:auto !important;
+        transition-duration:.01ms !important;
+        animation-duration:.01ms !important;
+        animation-iteration-count:1 !important;
+    }
+}
+
+.container{
+
+    width:min(1450px,94%);
+
+    margin:0 auto;
+
+    padding:40px 0 80px;
+
+}
+
+h1,
+h2,
+h3,
+h4{
+
+    color:var(--text);
+
+    font-weight:800;
+
+    line-height:1.1;
+
+}
+
+p{
+
+    color:var(--text-secondary);
+
+}
+
+section{
+
+    margin-bottom:55px;
+
+}
+
+::selection{
+
+    background:var(--primary);
+
+    color:var(--on-primary);
+
+}
+
+/* ==========================================================
+   PAGE TRANSITIONS
+
+   This is a static multi-page site -- every nav tap or card
+   click is a real full-document navigation, not a client-side
+   route change. Cross-Document View Transitions turn that from
+   an instant white-flash reload into a soft animated handoff,
+   with zero JavaScript: the browser snapshots the outgoing page,
+   snapshots the incoming one once it's ready, and cross-fades
+   between them. It has to be opted into on every participating
+   page (source AND destination), which is why this lives in the
+   one stylesheet every page already loads rather than being
+   added per-page. Supported same-origin only, on Safari 18.2+
+   (iOS 18.2+) and Chromium 126+; unsupported browsers just get
+   today's instant navigation, no breakage either way.
+========================================================== */
+
+@view-transition{
+    navigation:auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root){
+    animation-duration:.36s;
+    /* Apple's own sheet-presentation curve -- an ease-out with a
+       flat landing, reads as calm rather than snappy/bouncy. */
+    animation-timing-function:cubic-bezier(.32,.72,0,1);
+}
+
+::view-transition-old(root){
+    animation-name:eos-page-out;
+}
+
+::view-transition-new(root){
+    animation-name:eos-page-in;
+}
+
+@keyframes eos-page-out{
+    from{ opacity:1; transform:scale(1); }
+    to{ opacity:0; transform:scale(.99); }
+}
+
+@keyframes eos-page-in{
+    from{ opacity:0; transform:scale(1.01); }
+    to{ opacity:1; transform:scale(1); }
+}
+
+@media (prefers-reduced-motion:reduce){
+    @view-transition{
+        navigation:none;
+    }
+}
+
+/* ==========================================================
+   NAVIGATION
+   Clean Calera Math dropdown header
+========================================================== */
+
+.navbar{
+    position:relative;
+    z-index:1000;
+    width:min(1450px,94%);
+    margin:25px auto;
+    padding:14px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+    background:rgba(17,31,24,.82);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:22px;
+    box-shadow:0 15px 45px rgba(0,0,0,.28);
+}
+
+.nav-left{
+    display:flex;
+    align-items:center;
+    gap:24px;
+    min-width:0;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex:0 0 auto;
+    color:white;
+    text-decoration:none;
+    font-size:1.45rem;
+    font-weight:800;
+    white-space:nowrap;
+}
+
+
+/* Calera Math logo: the SB mark (brand/school-mark.svg) plus the squared
+   heavy wordmark from the brand board. Used by every header. */
+.brand-mark{
+    display:block;
+    height:34px;
+    width:auto;
+    flex:0 0 auto;
+}
+
+.brand-word{
+    font-family:var(--font-brand);
+    font-weight:800;
+    font-style:normal;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+    line-height:1;
+    color:var(--cream);
+}
+
+.eos-logo .brand-word{
+    font-size:1.2rem;
+}
+
+.nav-links{
+    display:flex;
+    align-items:center;
+    gap:3px;
+    min-width:0;
+}
+
+.nav-links > a,
+.nav-dropdown-trigger,
+.nav-dropdown > summary{
+    appearance:none;
+    -webkit-appearance:none;
+    border:0;
+    font-family:inherit;
+}
+
+.eos-navbar .eos-nav-item,
+.eos-navbar .eos-dropdown-trigger{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    min-height:40px;
+    padding:9px 12px;
+    border-radius:10px;
+    color:#C3C9BD;
+    background:transparent;
+    font-size:.92rem;
+    font-weight:650;
+    line-height:1;
+    text-decoration:none;
+    white-space:nowrap;
+    cursor:pointer;
+    transition:background .2s ease,color .2s ease;
+}
+
+.eos-navbar .eos-nav-item:hover,
+.eos-navbar .eos-dropdown-trigger:hover,
+.eos-navbar .eos-dropdown[open] > .eos-dropdown-trigger{
+    background:rgba(255,255,255,.055);
+    color:#fff;
+}
+
+.eos-navbar .eos-dropdown-trigger.section-active{
+    background:rgba(201,173,132,.14);
+    color:#fff;
+}
+
+.eos-navbar .eos-nav-item.active{
+    background:#A8CCE8;
+    color:var(--on-primary);
+}
+
+/* Nav items get [hidden] toggled by js/loadHeader.js based on
+   account entitlements (see js/navAccess.js) -- .eos-dropdown,
+   .eos-dropdown-menu and .eos-dropdown-link all set their own
+   display below, and an author display rule always outranks the
+   browser's native [hidden]{display:none} at equal specificity/
+   origin. One blanket rule instead of chasing it per element. */
+.eos-navbar [hidden]{
+    display:none !important;
+}
+
+.eos-navbar .eos-dropdown{
+    position:relative;
+    display:block;
+    flex:0 0 auto;
+}
+
+.eos-navbar .eos-dropdown > summary{
+    list-style:none;
+}
+
+.eos-navbar .eos-dropdown > summary::-webkit-details-marker{
+    display:none;
+}
+
+.eos-navbar .eos-chevron{
+    display:inline-block;
+    font-size:.72rem;
+    opacity:.65;
+    line-height:1;
+    transform:translateY(-1px);
+    transition:transform .2s ease;
+}
+
+.eos-navbar .eos-dropdown[open] .eos-chevron{
+    transform:rotate(180deg) translateY(1px);
+}
+
+/* Important: menu is hidden until its dropdown is actually opened,
+   via opacity/visibility rather than display, so open/close can
+   animate smoothly instead of snapping on and off. */
+.eos-navbar .eos-dropdown-menu{
+    display:block;
+    position:absolute;
+    z-index:1100;
+    top:calc(100% + 8px);
+    left:50%;
+    width:max-content;
+    min-width:190px;
+    padding:6px;
+    transform:translateX(-50%) translateY(-6px);
+    background:#1A2E23;
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:14px;
+    box-shadow:0 18px 42px rgba(0,0,0,.38);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition:opacity .16s ease, transform .16s ease, visibility .16s;
+}
+
+.eos-navbar .eos-dropdown[open] > .eos-dropdown-menu{
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+    transform:translateX(-50%) translateY(0);
+}
+
+.eos-navbar .eos-dropdown-menu::before{
+    content:"";
+    position:absolute;
+    top:-5px;
+    left:50%;
+    width:9px;
+    height:9px;
+    transform:translateX(-50%) rotate(45deg);
+    background:#1A2E23;
+    border-left:1px solid rgba(255,255,255,.10);
+    border-top:1px solid rgba(255,255,255,.10);
+}
+
+.eos-navbar .eos-dropdown-link{
+    display:flex;
+    align-items:center;
+    width:100%;
+    min-height:38px;
+    padding:9px 11px;
+    border-radius:9px;
+    color:#E3DDD0;
+    background:transparent;
+    font-size:.90rem;
+    font-weight:600;
+    line-height:1.2;
+    text-decoration:none;
+    white-space:nowrap;
+    transition:background .18s ease,color .18s ease;
+}
+
+.eos-navbar .eos-dropdown-link:hover,
+.eos-navbar .eos-dropdown-link.active{
+    background:rgba(201,173,132,.13);
+    color:#fff;
+}
+
+.nav-right{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:10px;
+    flex:0 0 auto;
+    white-space:nowrap;
+}
+
+.search-btn{
+    width:40px;
+    height:40px;
+    border:none;
+    border-radius:11px;
+    background:rgba(255,255,255,.05);
+    color:white;
+    cursor:pointer;
+    transition:.2s ease;
+}
+
+.search-btn:hover{
+    background:#A8CCE8;
+}
+
+.sync-status-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    min-height:40px;
+    padding:8px 12px;
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:999px;
+    background:rgba(255,255,255,.04);
+    color:#C3C9BD;
+    font-size:.76rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:.2s ease;
+}
+
+.sync-status-btn:hover{
+    border-color:#A8CCE8;
+    color:white;
+}
+
+.sync-status-btn.sync-syncing{
+    opacity:.7;
+    cursor:default;
+}
+
+.sync-status-btn.sync-error{
+    border-color:var(--red);
+    color:var(--red);
+}
+
+.sync-status-btn.sync-error:hover{
+    background:color-mix(in srgb, var(--red) 12%, transparent);
+}
+
+#user-name{
+    max-width:105px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    color:#C3C9BD;
+    font-weight:600;
+    font-size:.92rem;
+}
+
+#loginBtn,
+#logoutBtn{
+    padding:10px 16px;
+    border:none;
+    border-radius:11px;
+    background:#A8CCE8;
+    color:var(--on-primary);
+    font-weight:650;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:.2s ease;
+}
+
+#loginBtn:hover,
+#logoutBtn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 10px 25px rgba(201,173,132,.30);
+}
+
+@media (max-width:1200px){
+    .navbar{
+        gap:14px;
+        padding:13px 16px;
+    }
+}
+
+/* The coach nav has seven menus. What gives way is decided by the
+   header's own width (a container query), not the window's: the
+   header is capped to the page column (PAGE WIDTHS), so a wide window
+   doesn't mean a wide header, and window-based rules let the menus
+   slide under the search / sync / account controls (2026-09-26).
+   First the sync pill's text (it keeps its icon + title), then the
+   name, then the wordmark. */
+.eos-navbar{
+    container:sbnav / inline-size;
+}
+
+@container sbnav (max-width:1340px){
+    .sync-status-btn #syncStatusText{
+        display:none;
+    }
+}
+
+@container sbnav (max-width:1130px){
+    .nav-left{
+        gap:16px;
+    }
+
+    .eos-navbar .eos-nav-item,
+    .eos-navbar .eos-dropdown-trigger{
+        padding-left:9px;
+        padding-right:9px;
+        font-size:.86rem;
+    }
+
+    #user-name{
+        display:none;
+    }
+}
+
+@container sbnav (max-width:1055px){
+    .eos-logo .brand-word{
+        display:none;
+    }
+}
+
+/* Narrow laptop windows (header under ~960px): tighter menus. */
+@container sbnav (max-width:960px){
+    .nav-left{
+        gap:10px;
+    }
+
+    .nav-right{
+        gap:6px;
+    }
+
+    .eos-navbar .eos-nav-item,
+    .eos-navbar .eos-dropdown-trigger{
+        padding-left:6px;
+        padding-right:6px;
+        font-size:.8rem;
+    }
+
+    #loginBtn,
+    #logoutBtn{
+        padding:10px 12px;
+    }
+}
+
+/* ==========================================================
+   MOBILE APP SHELL
+
+   Below 900px the desktop dropdown navbar gives way to a
+   Fitbod-style shell: a slim top bar (just the logo + account/
+   sync controls) plus a fixed 4-tab bottom bar for Today/Train/
+   Health/More. A page whose "tab" actually covers several real
+   pages (Train, Health) also gets a horizontally-scrolling pill
+   row under the top bar to move between its siblings, since
+   those pages are no longer reachable via the (now hidden)
+   dropdown menu. Both the bottom bar and the pill row are built
+   and injected by loadHeader.js, not present in each page's own
+   markup.
+========================================================== */
+
+@media (max-width:900px){
+    /* The desktop dropdown navbar is fully replaced on mobile by
+       .eos-mobile-topbar below -- not just restyled, since account/
+       sync controls moved to the More page and the remaining three
+       actions (quick add, logo, search) don't fit that structure. */
+    .eos-navbar{
+        display:none;
+    }
+
+    body{
+        padding-bottom:calc(64px + env(safe-area-inset-bottom));
+    }
+
+    /* .grid.eos-dashboard-grid (not just .eos-dashboard-grid) --
+       the generic .grid{display:grid} rule sits much further down
+       this file at equal specificity, so it was winning on source
+       order and this never actually hid on mobile. */
+    .grid.eos-dashboard-grid{
+        display:none;
+    }
+}
+
+.eos-mobile-topbar,
+.eos-search-overlay{
+    display:none;
+}
+
+@media (max-width:900px){
+
+    .eos-mobile-topbar{
+        display:grid;
+        grid-template-columns:44px 1fr 44px;
+        align-items:center;
+        width:min(1450px,94%);
+        margin:14px auto;
+        position:sticky;
+        top:0;
+        z-index:1200;
+        padding:10px 14px;
+        background:rgba(17,31,24,.82);
+        backdrop-filter:blur(18px);
+        -webkit-backdrop-filter:blur(18px);
+        border:1px solid rgba(255,255,255,.08);
+        border-radius:22px;
+        box-shadow:0 15px 45px rgba(0,0,0,.28);
+    }
+
+    .eos-mobile-icon-btn{
+        width:40px;
+        height:40px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        border:1px solid rgba(255,255,255,.14);
+        border-radius:50%;
+        background:rgba(255,255,255,.05);
+        color:var(--text);
+        cursor:pointer;
+        transition:background-color .15s ease,border-color .15s ease;
+    }
+
+    .eos-mobile-icon-btn:active{
+        background:rgba(201,173,132,.16);
+        border-color:var(--primary);
+    }
+
+    .eos-mobile-quickadd{
+        position:relative;
+        justify-self:start;
+    }
+
+    .eos-mobile-topbar-logo{
+        justify-self:center;
+        display:flex;
+        align-items:center;
+        gap:9px;
+        color:white;
+        text-decoration:none;
+        font-size:1.15rem;
+        font-weight:800;
+        white-space:nowrap;
+    }
+
+    .eos-mobile-topbar-logo .brand-mark{
+        height:28px;
+    }
+
+    /* The logo steps down with the bar's own width (a page with body
+       padding, or a very small phone, makes the bar narrower than the
+       window): smaller first, then the mark alone. It never runs under
+       the buttons. */
+    .eos-mobile-topbar{
+        container:sbmtop / inline-size;
+        grid-template-columns:44px minmax(0,1fr) 44px;
+    }
+
+    /* Each in its own column: someone without quick add (a soccer-only
+       client) has no + button, and the logo and search used to slide
+       left a column, the logo half off the screen (2026-10-03). */
+    .eos-mobile-quickadd{ grid-column:1; grid-row:1; }
+    .eos-mobile-topbar-logo{ grid-column:2; grid-row:1; }
+
+    #mobileSearchBtn{
+        grid-column:3;
+        grid-row:1;
+        justify-self:end;
+    }
+
+    .eos-mobile-quickadd-menu{
+        position:absolute;
+        top:calc(100% + 10px);
+        left:0;
+        z-index:1250;
+        min-width:200px;
+        padding:6px;
+        background:#1A2E23;
+        border:1px solid rgba(255,255,255,.10);
+        border-radius:14px;
+        box-shadow:0 18px 42px rgba(0,0,0,.38);
+        opacity:0;
+        visibility:hidden;
+        transform:translateY(-6px);
+        pointer-events:none;
+        transition:opacity .16s ease,transform .16s ease,visibility .16s;
+    }
+
+    .eos-mobile-quickadd.open .eos-mobile-quickadd-menu{
+        opacity:1;
+        visibility:visible;
+        transform:translateY(0);
+        pointer-events:auto;
+    }
+
+    .eos-mobile-quickadd-link{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        padding:11px 12px;
+        border-radius:9px;
+        color:#E3DDD0;
+        font-size:.92rem;
+        font-weight:650;
+        text-decoration:none;
+        white-space:nowrap;
+    }
+
+    .eos-mobile-quickadd-link:active{
+        background:rgba(201,173,132,.13);
+        color:#fff;
+    }
+
+    .eos-mobile-quickadd-icon{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        width:28px;
+        height:28px;
+        border-radius:8px;
+        flex-shrink:0;
+        background:color-mix(in srgb, currentColor 16%, transparent);
+    }
+
+    .eos-mobile-quickadd-icon .ui-icon{
+        width:15px;
+        height:15px;
+    }
+
+    .eos-search-overlay{
+        display:flex;
+        flex-direction:column;
+        position:fixed;
+        inset:0;
+        z-index:4000;
+        padding:14px 14px calc(14px + env(safe-area-inset-bottom));
+        background:var(--bg);
+        opacity:0;
+        visibility:hidden;
+        transform:translateY(-8px);
+        transition:opacity .2s ease,transform .2s ease,visibility .2s;
+    }
+
+    .eos-search-overlay.open{
+        opacity:1;
+        visibility:visible;
+        transform:translateY(0);
+    }
+
+    .eos-search-bar{
+        flex:0 0 auto;
+        display:flex;
+        align-items:center;
+        gap:10px;
+        padding:12px 14px;
+        margin-top:env(safe-area-inset-top);
+        background:var(--surface);
+        border:1px solid var(--border);
+        border-radius:14px;
+    }
+
+    .eos-search-bar-icon{
+        flex-shrink:0;
+        color:var(--muted);
+    }
+
+    .eos-search-input{
+        flex:1;
+        min-width:0;
+        background:none;
+        border:none;
+        outline:none;
+        color:var(--text);
+        font-size:16px;
+        font-family:inherit;
+    }
+
+    .eos-search-input::placeholder{
+        color:var(--muted);
+    }
+
+    .eos-search-close{
+        flex-shrink:0;
+        width:30px;
+        height:30px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        border:none;
+        border-radius:50%;
+        background:rgba(255,255,255,.06);
+        color:var(--text-secondary);
+        cursor:pointer;
+    }
+
+    .eos-search-results{
+        flex:1;
+        overflow-y:auto;
+        margin-top:14px;
+        display:flex;
+        flex-direction:column;
+        gap:4px;
+    }
+
+    .eos-search-result{
+        display:flex;
+        align-items:center;
+        gap:14px;
+        padding:14px 12px;
+        border-radius:12px;
+        color:var(--text);
+        text-decoration:none;
+        font-size:15px;
+        font-weight:650;
+    }
+
+    .eos-search-result:active{
+        background:var(--surface-light);
+    }
+
+    .eos-search-result-icon{
+        flex-shrink:0;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        width:34px;
+        height:34px;
+        border-radius:10px;
+        background:color-mix(in srgb, currentColor 16%, transparent);
+    }
+
+    .eos-search-result-icon .ui-icon{
+        width:18px;
+        height:18px;
+    }
+
+    .eos-search-empty{
+        padding:14px 12px;
+        color:var(--muted);
+        font-size:14px;
+    }
+
+}
+
+/* ==========================================================
+   SIGN-IN PROMPT
+
+   Unlike the bottom bar/search above, this isn't mobile-only --
+   guests land on every form factor. Shown once per browser
+   session (loadHeader.js gates it via sessionStorage), on
+   whichever page happens to load first.
+========================================================== */
+
+.eos-signin-overlay{
+    position:fixed;
+    inset:0;
+    z-index:4500;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:rgba(4,10,7,.72);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    opacity:0;
+    transition:opacity .2s ease;
+}
+
+.eos-signin-overlay.open{
+    opacity:1;
+}
+
+.eos-signin-modal{
+    width:100%;
+    max-width:400px;
+    background:linear-gradient(160deg,rgba(26,42,33,.98),rgba(14,26,20,.98));
+    border:1px solid var(--border);
+    border-radius:22px;
+    padding:30px 26px;
+    text-align:center;
+    box-shadow:0 30px 70px rgba(0,0,0,.5);
+    transform:translateY(10px);
+    transition:transform .2s ease;
+}
+
+.eos-signin-overlay.open .eos-signin-modal{
+    transform:translateY(0);
+}
+
+.eos-signin-icon{
+    width:56px;
+    height:56px;
+    margin:0 auto 16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:16px;
+    background:rgba(201,173,132,.14);
+    color:var(--primary);
+}
+
+.eos-signin-icon .ui-icon{
+    width:26px;
+    height:26px;
+}
+
+.eos-signin-modal h2{
+    font-size:19px;
+    margin-bottom:10px;
+}
+
+.eos-signin-modal p{
+    color:var(--text-secondary);
+    font-size:14px;
+    line-height:1.6;
+    margin-bottom:24px;
+}
+
+.eos-signin-actions{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.eos-signin-btn{
+    padding:13px 18px;
+    border-radius:var(--radius-pill);
+    font-weight:700;
+    font-size:14.5px;
+    cursor:pointer;
+    border:none;
+    font-family:inherit;
+    transition:.2s ease;
+}
+
+.eos-signin-btn.primary{
+    background:var(--primary);
+    color:var(--on-primary);
+}
+
+.eos-signin-btn.primary:hover{
+    background:var(--primary-light);
+}
+
+.eos-signin-btn.primary:disabled{
+    opacity:.7;
+    cursor:default;
+}
+
+.eos-signin-btn.secondary{
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text-secondary);
+}
+
+.eos-signin-btn.secondary:hover{
+    border-color:rgba(255,255,255,.2);
+    color:var(--text);
+}
+
+.eos-bottomnav{
+    display:none;
+}
+
+.eos-subnav{
+    display:none;
+}
+
+@media (max-width:900px){
+    .eos-bottomnav{
+        display:flex;
+        align-items:stretch;
+        position:fixed;
+        left:0;
+        right:0;
+        bottom:0;
+        z-index:1300;
+        padding:6px 6px calc(6px + env(safe-area-inset-bottom));
+        background:rgba(22,34,46,.94);
+        backdrop-filter:blur(20px);
+        -webkit-backdrop-filter:blur(20px);
+        border-top:1px solid rgba(255,255,255,.08);
+        box-shadow:0 -12px 30px rgba(0,0,0,.35);
+    }
+
+    .eos-bottomnav-item{
+        flex:1 1 0;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:3px;
+        padding:7px 2px;
+        border-radius:14px;
+        color:var(--muted);
+        text-decoration:none;
+        font-size:.6875rem;
+        font-weight:700;
+        letter-spacing:.01em;
+        transition:color .15s ease,background-color .15s ease;
+    }
+
+    .eos-bottomnav-item .ui-icon{
+        width:22px;
+        height:22px;
+    }
+
+    .eos-bottomnav-item.active{
+        color:var(--tab-color, var(--primary));
+        background:color-mix(in srgb, var(--tab-color, var(--primary)) 16%, transparent);
+    }
+}
+
+/* Below 900px the dropdown nav-links are hidden entirely (see the
+   max-width:900px block above) in favor of the bottom tab bar, so
+   the old sub-560px fallback layout for them no longer applies. */
+
+/* ==========================================================
+   HERO
+========================================================== */
+
+.hero{
+
+    display:grid;
+
+    grid-template-columns:1.7fr .9fr;
+
+    gap:40px;
+
+    align-items:center;
+
+    margin-bottom:55px;
+
+    position:relative;
+
+    overflow:hidden;
+
+}
+
+
+.hero-left{
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+}
+
+.welcome{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    width:max-content;
+
+    padding:8px 16px;
+
+    margin-bottom:20px;
+
+    border-radius:999px;
+
+    background:rgba(201,173,132,.10);
+
+    border:1px solid rgba(201,173,132,.20);
+
+    color:#A8CCE8;
+
+    font-weight:700;
+
+    font-size:.9rem;
+
+}
+
+.hero h1{
+
+    margin-bottom:20px;
+
+    font-size:3.2rem;
+
+    font-weight:900;
+
+    line-height:1.05;
+
+    letter-spacing:-1px;
+
+}
+
+.hero-text{
+
+    max-width:600px;
+
+    color:#C3C9BD;
+
+    font-size:1.08rem;
+
+    line-height:1.8;
+
+    margin-bottom:30px;
+
+}
+
+.hero-actions{
+
+    display:flex;
+
+    gap:16px;
+
+    flex-wrap:wrap;
+
+}
+.primary-btn{
+
+    display:inline-block;
+
+    text-decoration:none;
+
+    padding:14px 26px;
+
+    border:none;
+
+    border-radius:var(--radius-pill);
+
+    background:var(--primary);
+
+    color:var(--on-primary);
+
+    font-weight:700;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+    box-shadow:0 8px 20px rgba(201,173,132,.22);
+
+}
+
+.primary-btn:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:0 18px 40px rgba(201,173,132,.40);
+
+}
+
+.secondary-btn{
+
+    display:inline-block;
+
+    text-decoration:none;
+
+    padding:14px 26px;
+
+    border-radius:var(--radius-pill);
+
+    border:1px solid var(--border);
+
+    background:var(--surface-light);
+
+    color:var(--text);
+
+    font-weight:700;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+.secondary-btn:hover{
+
+    background:rgba(255,255,255,.08);
+
+}
+
+.hero-right{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+}
+.goal-card{
+
+    position:relative;
+
+    overflow:hidden;
+
+    width:100%;
+
+    padding:36px;
+
+    border-radius:28px;
+
+    background:linear-gradient(
+        135deg,
+        #2E4A3A 0%,
+        #1F3A2C 55%,
+        #173226 100%
+    );
+
+    color:white;
+
+    box-shadow:0 28px 60px rgba(0,0,0,.35);
+
+    border:1px solid rgba(201,173,132,.25);
+
+    transition:.35s;
+
+}
+
+.goal-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:0 38px 80px rgba(166,138,98,.45);
+
+}
+
+.goal-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    top:-120px;
+
+    right:-90px;
+
+    width:240px;
+
+    height:240px;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.10);
+
+}
+
+.goal-card span{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    padding:8px 14px;
+
+    border-radius:999px;
+
+    background:rgba(255,255,255,.15);
+
+    font-size:.82rem;
+
+    font-weight:700;
+
+    text-transform:uppercase;
+
+    letter-spacing:.5px;
+
+}
+
+.goal-card h2{
+
+    margin-top:24px;
+
+    margin-bottom:12px;
+
+    font-size:2rem;
+
+}
+
+.goal-card p{
+
+    color:rgba(255,255,255,.80);
+
+    margin-bottom:8px;
+
+}
+.goal-card h1{
+
+    font-size:3.6rem;
+
+    font-weight:900;
+
+    line-height:1;
+
+    letter-spacing:-2px;
+
+    margin-bottom:24px;
+
+}
+
+.goal-divider{
+
+    width:100%;
+
+    height:1px;
+
+    margin:24px 0;
+
+    background:rgba(255,255,255,.20);
+
+}
+
+.goal-stats{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:24px;
+
+}
+
+.goal-stats small{
+
+    display:block;
+
+    margin-bottom:8px;
+
+    color:rgba(255,255,255,.75);
+
+    font-size:.8rem;
+
+    text-transform:uppercase;
+
+    letter-spacing:.6px;
+
+}
+
+.goal-stats strong{
+
+    font-size:1.2rem;
+
+    font-weight:800;
+
+    color:white;
+
+}
+
+@media (max-width:1200px){
+
+    .hero{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .hero-right{
+
+        justify-content:flex-start;
+
+    }
+
+}
+
+@media (max-width:700px){
+
+    .hero{
+
+        gap:30px;
+
+    }
+
+    .hero h1{
+
+        font-size:2.4rem;
+
+    }
+
+    .goal-card h1{
+
+        font-size:2.9rem;
+
+    }
+
+    .goal-stats{
+
+        grid-template-columns:1fr;
+
+        gap:16px;
+
+    }
+
+}
+/* ==========================================================
+   QUICK STATS
+========================================================== */
+
+.stats{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+
+    gap:24px;
+
+    margin-bottom:55px;
+
+}
+
+.stat-card{
+
+    position:relative;
+
+    overflow:hidden;
+
+    padding:28px;
+
+    border-radius:24px;
+
+    background:linear-gradient(
+        180deg,
+        rgba(24,41,31,.95),
+        rgba(17,31,24,.95)
+    );
+
+    border:1px solid rgba(255,255,255,.08);
+
+    transition:.3s;
+
+    box-shadow:0 12px 35px rgba(0,0,0,.20);
+
+}
+
+.stat-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+
+    top:0;
+
+    width:100%;
+
+    height:4px;
+
+    background:#A8CCE8;
+
+    transform:scaleX(0);
+
+    transform-origin:left;
+
+    transition:.3s;
+
+}
+
+.stat-card:hover{
+
+    transform:translateY(-8px);
+
+    border-color:rgba(201,173,132,.25);
+
+    box-shadow:0 24px 55px rgba(0,0,0,.30);
+
+}
+
+.stat-card:hover::before{
+
+    transform:scaleX(1);
+
+}
+.stat-card span{
+
+    display:block;
+
+    margin-bottom:14px;
+
+    color:#8E9A89;
+
+    font-size:.85rem;
+
+    font-weight:700;
+
+    text-transform:uppercase;
+
+    letter-spacing:.7px;
+
+}
+
+.stat-card h2{
+
+    font-size:2.8rem;
+
+    font-weight:900;
+
+    line-height:1;
+
+    letter-spacing:-1px;
+
+    color:white;
+
+    margin-bottom:10px;
+
+}
+
+.stat-card p{
+
+    color:#C3C9BD;
+
+    line-height:1.6;
+
+}
+
+.stat-card:nth-child(1)::before{
+
+    background:linear-gradient(
+        90deg,
+        var(--primary),
+        var(--primary-light)
+    );
+
+}
+
+.stat-card:nth-child(2)::before{
+
+    background:linear-gradient(
+        90deg,
+        var(--green),
+        var(--green)
+    );
+
+}
+
+.stat-card:nth-child(3)::before{
+
+    background:linear-gradient(
+        90deg,
+        var(--amber),
+        var(--amber-light)
+    );
+
+}
+
+.stat-card:nth-child(4)::before{
+
+    background:linear-gradient(
+        90deg,
+        var(--red),
+        var(--pink)
+    );
+
+}
+/* ==========================================================
+   AI COACH
+========================================================== */
+
+.coach-card{
+
+    position:relative;
+
+    overflow:hidden;
+
+    padding:38px;
+
+    margin-bottom:55px;
+
+    border-radius:30px;
+
+    background:linear-gradient(
+        180deg,
+        rgba(21,36,28,.96),
+        rgba(13,26,20,.96)
+    );
+
+    border:1px solid rgba(201,173,132,.15);
+
+    box-shadow:0 24px 60px rgba(0,0,0,.30);
+
+}
+
+.coach-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    top:-180px;
+
+    right:-140px;
+
+    width:360px;
+
+    height:360px;
+
+    border-radius:50%;
+
+    background:radial-gradient(
+        circle,
+        rgba(201,173,132,.18),
+        transparent 70%
+    );
+
+}
+
+.coach-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:34px;
+
+}
+
+.coach-label{
+
+    color:#A8CCE8;
+
+    font-size:.85rem;
+
+    font-weight:800;
+
+    letter-spacing:1px;
+
+    text-transform:uppercase;
+
+    margin-bottom:10px;
+
+}
+
+.coach-header h2{
+
+    font-size:2.2rem;
+
+    font-weight:800;
+
+}
+
+.coach-status{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    padding:10px 18px;
+
+    border-radius:999px;
+
+    background:color-mix(in srgb, var(--green) 14%, transparent);
+
+    border:1px solid color-mix(in srgb, var(--green) 30%, transparent);
+
+    color:var(--green);
+
+    font-weight:700;
+
+    font-size:.85rem;
+
+}
+
+.coach-status::before{
+
+    content:"";
+
+    width:10px;
+
+    height:10px;
+
+    border-radius:50%;
+
+    background:var(--green);
+
+    box-shadow:0 0 12px var(--green);
+
+}
+.coach-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(4,1fr);
+
+    gap:18px;
+
+    margin-bottom:30px;
+
+}
+
+.coach-stat{
+
+    padding:24px;
+
+    border-radius:20px;
+
+    text-align:center;
+
+    background:rgba(255,255,255,.03);
+
+    border:1px solid rgba(255,255,255,.06);
+
+    transition:.3s;
+
+}
+
+.coach-stat:hover{
+
+    transform:translateY(-6px);
+
+    background:rgba(201,173,132,.08);
+
+    border-color:rgba(201,173,132,.25);
+
+}
+
+.coach-stat span{
+
+    display:block;
+
+    color:#8E9A89;
+
+    font-size:.85rem;
+
+    text-transform:uppercase;
+
+    letter-spacing:.6px;
+
+    margin-bottom:12px;
+
+}
+
+.coach-stat strong{
+
+    font-size:1.7rem;
+
+    font-weight:800;
+
+    color:white;
+
+}
+
+.coach-message{
+
+    padding:24px 28px;
+
+    margin-bottom:28px;
+
+    border-radius:20px;
+
+    background:rgba(255,255,255,.03);
+
+    border-left:4px solid #A8CCE8;
+
+}
+
+.coach-message h3{
+
+    margin-bottom:14px;
+
+}
+
+.coach-message ul{
+
+    padding-left:20px;
+
+}
+
+.coach-message li{
+
+    margin-bottom:10px;
+
+    color:#C3C9BD;
+
+    line-height:1.7;
+
+}
+
+.coach-message li a{
+
+    color:inherit;
+
+    text-decoration:underline;
+
+    text-decoration-color:rgba(201,173,132,.5);
+
+    text-underline-offset:3px;
+
+    transition:.2s;
+
+}
+
+.coach-message li a:hover{
+
+    color:#A8CCE8;
+
+}
+.coach-button{
+
+    display:block;
+
+    text-align:center;
+
+    text-decoration:none;
+
+    width:100%;
+
+    padding:18px;
+
+    border:none;
+
+    border-radius:var(--radius-pill);
+
+    background:var(--primary);
+
+    color:var(--on-primary);
+
+    font-size:1rem;
+
+    font-weight:800;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+    box-shadow:0 8px 20px rgba(201,173,132,.22);
+
+}
+
+.coach-button:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:0 22px 50px rgba(201,173,132,.40);
+
+}
+
+@media (max-width:900px){
+
+    .coach-grid{
+
+        grid-template-columns:repeat(2,1fr);
+
+    }
+
+}
+
+@media (max-width:700px){
+
+    .coach-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+/* ==========================================================
+   DASHBOARD APPS
+========================================================== */
+
+.grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+
+    gap:28px;
+
+    margin-bottom:55px;
+
+}
+
+/* Cards gated by data-requires (js/navAccess.js) -- .card's
+   display:flex would otherwise beat the native [hidden]. */
+.card[hidden]{ display:none !important; }
+
+.card{
+
+    position:relative;
+
+    overflow:hidden;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+
+    padding:32px;
+
+    border-radius:28px;
+
+    background:linear-gradient(
+        180deg,
+        rgba(24,41,31,.95),
+        rgba(14,27,21,.95)
+    );
+
+    border:1px solid rgba(255,255,255,.08);
+
+    text-decoration:none;
+
+    color:white;
+
+    transition:.35s;
+
+    box-shadow:0 18px 40px rgba(0,0,0,.22);
+
+}
+
+.card::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    background:radial-gradient(
+        circle at top right,
+        rgba(201,173,132,.12),
+        transparent 60%
+    );
+
+    opacity:0;
+
+    transition:.35s;
+
+}
+
+.card::after{
+
+    content:"→";
+
+    position:absolute;
+
+    right:28px;
+
+    bottom:24px;
+
+    font-size:1.3rem;
+
+    color:rgba(255,255,255,.20);
+
+    transition:.3s;
+
+}
+
+.card:hover{
+
+    transform:translateY(-10px);
+
+    border-color:rgba(201,173,132,.25);
+
+    box-shadow:0 28px 60px rgba(0,0,0,.35);
+
+}
+
+.card:hover::before{
+
+    opacity:1;
+
+}
+
+.card:hover::after{
+
+    color:#A8CCE8;
+
+    transform:translateX(6px);
+
+}
+.card-icon{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    width:72px;
+
+    height:72px;
+
+    border-radius:22px;
+
+    font-size:1.75rem;
+
+    /* Accent tile (ACCENT TILES below): its card's earthy tone, gold on hover. */
+    color:var(--accent, var(--primary));
+
+    background:color-mix(in srgb, var(--accent, var(--primary)) 16%, transparent);
+
+    border:1px solid color-mix(in srgb, var(--accent, var(--primary)) 32%, transparent);
+
+    transition:.35s;
+
+}
+
+.card:hover .card-icon{
+
+    transform:scale(1.08) rotate(-6deg);
+
+    color:var(--primary-light);
+
+    background:color-mix(in srgb, var(--primary) 22%, transparent);
+
+    border-color:var(--primary);
+
+    box-shadow:0 12px 30px rgba(201,173,132,.22);
+
+}
+
+.card h2{
+
+    font-size:1.55rem;
+
+    font-weight:800;
+
+    color:white;
+
+    letter-spacing:-.5px;
+
+}
+
+.card p{
+
+    color:#C3C9BD;
+
+    line-height:1.75;
+
+    flex:1;
+
+}
+
+.card:hover h2{
+
+    color:#A8CCE8;
+
+}
+
+/* ACCENT TILES: one earthy tone per area, the same everywhere (Today's cards,
+   More, the menus): running gold, strength clay, cross-training slate teal,
+   nutrition sage, fueling ochre, habits dusk, health rose. Tiles are tinted
+   with their tone and turn gold on hover. */
+.card[href*="strength"] .card-icon{ --accent:var(--orange); }
+.card[href*="cross-training"] .card-icon{ --accent:var(--cyan); }
+.card[href*="nutrition"] .card-icon{ --accent:var(--green); }
+.card[href*="fueling"] .card-icon{ --accent:var(--amber); }
+.card[href*="habits"] .card-icon{ --accent:var(--purple); }
+.card[href*="planner"] .card-icon{ --accent:var(--cyan-light); }
+.card[href*="gear"] .card-icon{ --accent:var(--pink); }
+.card[href*="weekly-review"] .card-icon{ --accent:var(--purple-light); }
+.card[href*="analytics"] .card-icon{ --accent:var(--amber); }
+.card[href*="settings"] .card-icon{ --accent:var(--stone); }
+
+@media (max-width:700px){
+
+    .grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+/* ==========================================================
+   TRAINING PANELS
+========================================================== */
+
+.training-panel{
+
+    position:relative;
+
+    overflow:hidden;
+
+    margin-bottom:55px;
+
+    padding:34px;
+
+    border-radius:30px;
+
+    background:linear-gradient(
+        180deg,
+        rgba(21,36,28,.97),
+        rgba(13,25,19,.97)
+    );
+
+    border:1px solid rgba(255,255,255,.08);
+
+    box-shadow:0 22px 55px rgba(0,0,0,.28);
+
+}
+
+.training-panel::before{
+
+    content:"";
+
+    position:absolute;
+
+    top:0;
+
+    left:0;
+
+    width:100%;
+
+    height:5px;
+
+    background:linear-gradient(
+        90deg,
+        var(--primary),
+        var(--primary-light)
+    );
+
+}
+
+.panel-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:30px;
+
+}
+
+.panel-header h2{
+
+    font-size:2rem;
+
+    font-weight:800;
+
+}
+
+.training-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+
+    gap:22px;
+
+}
+.training-card{
+
+    position:relative;
+
+    overflow:hidden;
+
+    padding:24px;
+
+    border-radius:22px;
+
+    background:linear-gradient(
+        180deg,
+        rgba(255,255,255,.04),
+        rgba(255,255,255,.02)
+    );
+
+    border:1px solid rgba(255,255,255,.06);
+
+    transition:.3s;
+
+}
+
+.training-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    top:0;
+
+    left:0;
+
+    width:4px;
+
+    height:100%;
+
+    background:#A8CCE8;
+
+    transform:scaleY(0);
+
+    transform-origin:top;
+
+    transition:.3s;
+
+}
+
+.training-card:hover{
+
+    transform:translateY(-8px);
+
+    border-color:rgba(201,173,132,.25);
+
+    box-shadow:0 18px 35px rgba(0,0,0,.25);
+
+}
+
+.training-card:hover::before{
+
+    transform:scaleY(1);
+
+}
+
+.training-card span{
+
+    display:inline-block;
+
+    margin-bottom:14px;
+
+    padding:6px 12px;
+
+    border-radius:999px;
+
+    background:rgba(201,173,132,.10);
+
+    color:#A8CCE8;
+
+    font-size:.82rem;
+
+    font-weight:700;
+
+    text-transform:uppercase;
+
+    letter-spacing:.6px;
+
+}
+
+.training-card h3{
+
+    margin-bottom:10px;
+
+    font-size:1.45rem;
+
+    font-weight:800;
+
+    color:white;
+
+}
+
+.training-card p{
+
+    color:#C3C9BD;
+
+    line-height:1.7;
+
+}
+/* ==========================================================
+   SHOE PANEL
+========================================================== */
+
+.shoe-panel{
+
+    position:relative;
+
+    overflow:hidden;
+
+    margin-bottom:55px;
+
+    padding:34px;
+
+    border-radius:30px;
+
+    background:linear-gradient(
+        180deg,
+        rgba(21,36,28,.97),
+        rgba(13,25,19,.97)
+    );
+
+    border:1px solid rgba(255,255,255,.08);
+
+    box-shadow:0 22px 55px rgba(0,0,0,.28);
+
+}
+
+.shoe-panel::before{
+
+    content:"";
+
+    position:absolute;
+
+    top:0;
+
+    left:0;
+
+    width:100%;
+
+    height:5px;
+
+    background:linear-gradient(
+        90deg,
+        var(--green),
+        var(--green)
+    );
+
+}
+
+.progress-bar{
+
+    width:100%;
+
+    height:8px;
+
+    margin-top:18px;
+
+    border-radius:999px;
+
+    overflow:hidden;
+
+    background:rgba(255,255,255,.08);
+
+}
+
+.progress-fill{
+
+    height:100%;
+
+    border-radius:999px;
+
+    background:linear-gradient(
+        90deg,
+        var(--green),
+        var(--green)
+    );
+
+    transition:width .6s ease;
+
+}
+
+.training-panel:hover,
+.shoe-panel:hover{
+
+    box-shadow:0 28px 70px rgba(0,0,0,.34);
+
+}
+/* ==========================================================
+   ANIMATIONS & RESPONSIVE
+========================================================== */
+
+@keyframes fadeUp{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(30px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+
+.hero{
+
+    animation:fadeUp .5s ease forwards;
+
+}
+
+.stats{
+
+    animation:fadeUp .65s ease forwards;
+
+}
+
+.coach-card{
+
+    animation:fadeUp .8s ease forwards;
+
+}
+
+.grid{
+
+    animation:fadeUp .95s ease forwards;
+
+}
+
+.training-panel{
+
+    animation:fadeUp 1.1s ease forwards;
+
+}
+
+.shoe-panel{
+
+    animation:fadeUp 1.25s ease forwards;
+
+}
+
+@media (max-width:1200px){
+
+    .hero{
+
+        grid-template-columns:1fr;
+
+        gap:30px;
+
+    }
+
+    .hero-right{
+
+        justify-content:flex-start;
+
+    }
+
+}
+
+/* .navbar/.nav-left/.nav-links used to get re-stacked here too --
+   a leftover duplicate of the rules in the MOBILE APP SHELL block
+   above that fought with them for the cascade. That block now owns
+   the navbar's mobile layout; this one keeps only what's actually
+   unique to it. */
+@media (max-width:900px){
+
+    .coach-grid{
+
+        grid-template-columns:repeat(2,1fr);
+
+    }
+
+}
+
+@media (max-width:700px){
+
+    .container{
+
+        width:94%;
+
+    }
+
+    .hero h1{
+
+        font-size:2.4rem;
+
+    }
+
+    .stats{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .training-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .coach-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .goal-stats{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+
+@media (max-width:500px){
+
+    .goal-card,
+    .coach-card,
+    .training-panel,
+    .shoe-panel{
+
+        padding:24px;
+
+    }
+
+    .card{
+
+        padding:24px;
+
+    }
+
+    .card-icon{
+
+        width:60px;
+
+        height:60px;
+
+        font-size:1.6rem;
+
+    }
+
+    .hero-actions{
+
+        flex-direction:column;
+
+    }
+
+    .primary-btn,
+    .secondary-btn{
+
+        width:100%;
+
+    }
+
+}
+
+/* ==========================================
+   Shared icons (js/icons.js) -- inline SVGs
+   used in place of raw emoji/ASCII symbols.
+   Sized in em by default so an icon matches
+   the font-size of whatever it sits inside;
+   a context that needs a specific pixel size
+   can still set width/height directly.
+========================================== */
+
+.ui-icon{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:1em;
+    height:1em;
+    flex-shrink:0;
+    vertical-align:-0.125em;
+}
+
+.ui-icon svg{
+    display:block;
+    width:100%;
+    height:100%;
+}
+
+/* ==========================================
+   Phone polish
+   - iOS Safari zooms the whole page when a
+     focused field's text is under 16px, so every
+     form field is at least 16px on phones (the
+     big fueling-target and record inputs are
+     already larger and keep their own size).
+   - Small buttons get a ~40px touch target.
+========================================== */
+
+@media (max-width:900px){
+
+    /* Room for the fixed bottom tab bar (~72px). Several pages' own
+       CSS sets body{padding:20px} on phones, which wiped out the
+       padding-bottom above and left their last card under the bar. */
+    body.has-bottomnav{
+        padding-bottom:calc(92px + env(safe-area-inset-bottom)) !important;
+    }
+
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not(.record-input):not(.fuel-target-value input):not(.st-big-input),
+    select,
+    textarea{
+        font-size:16px !important;
+    }
+}
+
+/* iOS zooms into any field under 16px when it's tapped. The rule above
+   only covers screens up to 900px, and a big iPhone on its side is
+   wider than that, so every touch screen gets it too. */
+@media (pointer:coarse){
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not(.record-input):not(.fuel-target-value input):not(.st-big-input),
+    select,
+    textarea{
+        font-size:16px !important;
+    }
+}
+
+@media (max-width:900px){
+
+    /* Page stylesheets load after this file, so these need !important
+       to win at equal specificity. */
+    .running-nav-btn,
+    .day-btn,
+    #habitsPrevDay, #habitsNextDay,
+    #strengthCalendarPrev, #strengthCalendarNext,
+    .fuel-week-tab,
+    .clients-btn-icon{ min-width:44px !important; min-height:44px !important; }
+
+    .running-view-btn,
+    .habits-view-btn,
+    .clients-tab,
+    .eos-today-complete-btn,
+    .meal-tab,
+    .programs-tab,
+    .programs-primary-btn,
+    .fuel-tab,
+    .mode-btn,
+    .ct-filter-chip,
+    .pc-tool-tab,
+    #runningToday,
+    #strengthCalendarToday,
+    #strengthAgendaAdd,
+    .coach-inq-btn,
+    #moreLogoutBtn,
+    #installCopyBtn,
+    .fuel-lib-actions button,
+    #autoFillDrinkBtn,
+    #addLibraryItemBtn{ min-height:44px !important; }
+
+    .eos-nutrition-snap-header a{ display:inline-flex; align-items:center; min-height:44px; }
+    #saveBtn, #exportBtn, #resetBtn, .manage-toggle{ min-height:44px !important; padding:0 8px !important; }
+    .sched-blackout-chip button{ min-width:44px; min-height:44px; align-items:center; justify-content:center; }
+
+    .controls{ grid-template-columns:44px minmax(0,1fr) 44px !important; }
+    .adjust-btn{ width:44px !important; height:44px !important; }
+    .goal-btn{ min-height:44px; padding:9px 14px !important; font-size:12px !important; }
+}
+
+/* ==========================================================
+   BUTTONS -- the canonical set (new code uses these)
+
+   .school-btn + one of: -primary (tan, the main action), -secondary
+   (quiet surface), -tertiary (text only), -danger (delete/remove),
+   and .school-btn-icon for a square icon button. Older page buttons
+   were brought to the same shape (pill) and the same flat tan.
+========================================================== */
+
+.school-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    min-height:var(--control-height);
+    padding:0 20px;
+    border:1px solid transparent;
+    border-radius:var(--radius-pill);
+    font:700 14px/1 var(--font-body);
+    text-decoration:none;
+    white-space:nowrap;
+    cursor:pointer;
+    transition:background-color .15s ease,border-color .15s ease,color .15s ease,transform .15s ease;
+}
+.school-btn:active:not(:disabled){ transform:scale(.98); }
+.school-btn-primary{ background:var(--primary); color:var(--on-primary); border-color:var(--primary); }
+.school-btn-primary:hover:not(:disabled){ background:var(--primary-light); border-color:var(--primary-light); }
+.school-btn-secondary{ background:var(--surface-light); color:var(--text); border-color:var(--border); }
+.school-btn-secondary:hover:not(:disabled){ border-color:var(--primary); }
+.school-btn-tertiary{ background:transparent; color:var(--text-secondary); padding:0 12px; }
+.school-btn-tertiary:hover:not(:disabled){ color:var(--primary); }
+.school-btn-danger{ background:var(--danger); color:var(--on-primary); border-color:var(--danger); }
+.school-btn-danger:hover:not(:disabled){ filter:brightness(1.08); }
+.school-btn-icon{ width:var(--control-height); padding:0; border-radius:var(--radius-sm); background:var(--surface-light); color:var(--text); border-color:var(--border); }
+
+.sr-only{
+    position:absolute !important;
+    width:1px;
+    height:1px;
+    overflow:hidden;
+    clip:rect(0 0 0 0);
+    white-space:nowrap;
+}
+
+/* ==========================================================
+   UI FEEDBACK -- js/ui.js (toasts, dialogs, loading, empty)
+========================================================== */
+
+.school-toast-host{
+    position:fixed;
+    left:50%;
+    bottom:24px;
+    z-index:6000;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    width:min(440px, calc(100vw - 32px));
+    transform:translateX(-50%);
+    pointer-events:none;
+}
+body.has-bottomnav .school-toast-host{ bottom:96px; }
+.school-toast{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    width:100%;
+    padding:13px 16px;
+    background:var(--forest);
+    border:1px solid rgba(201,173,132,.35);
+    border-radius:16px;
+    box-shadow:0 16px 40px rgba(0,0,0,.4);
+    color:var(--text);
+    font-size:14.5px;
+    font-weight:600;
+    line-height:1.45;
+    pointer-events:auto;
+    cursor:pointer;
+    opacity:0;
+    transform:translateY(12px);
+    transition:opacity .22s ease,transform .22s ease;
+}
+.school-toast.is-in{ opacity:1; transform:none; }
+.school-toast-text{ flex:1; }
+.school-toast-action{
+    flex-shrink:0;
+    margin:-5px -6px -5px 4px;
+    padding:5px 12px;
+    background:transparent;
+    border:1px solid rgba(201,173,132,.55);
+    border-radius:var(--radius-pill);
+    color:var(--primary);
+    font:800 13.5px var(--font-body);
+    cursor:pointer;
+}
+.school-toast-icon{ flex-shrink:0; display:flex; margin-top:1px; color:var(--primary); }
+.school-toast.is-success .school-toast-icon{ color:var(--success); }
+.school-toast.is-error{ border-color:color-mix(in srgb, var(--red) 45%, transparent); }
+.school-toast.is-error .school-toast-icon{ color:var(--danger); }
+
+.school-dialog{
+    width:min(420px, calc(100vw - 32px));
+    max-height:calc(100dvh - 48px);
+    margin:auto;
+    padding:0;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:20px;
+    box-shadow:0 30px 80px rgba(0,0,0,.55);
+    color:var(--text);
+}
+.school-dialog::backdrop{
+    background:rgba(8,14,20,.66);
+    backdrop-filter:blur(3px);
+    -webkit-backdrop-filter:blur(3px);
+}
+.school-dialog[open]{ animation:school-dialog-in .2s cubic-bezier(.32,.72,0,1); }
+@keyframes school-dialog-in{
+    from{ opacity:0; transform:translateY(10px) scale(.98); }
+    to{ opacity:1; transform:none; }
+}
+.school-dialog-form{ display:flex; flex-direction:column; gap:12px; padding:22px; }
+.school-dialog-title{ font-size:18px; line-height:1.3; }
+.school-dialog-message{
+    color:var(--text-secondary);
+    font-size:15px;
+    line-height:1.55;
+    white-space:pre-line;
+}
+.school-dialog-input{
+    width:100%;
+    min-height:var(--control-height);
+    padding:10px 14px;
+    background:var(--surface-light);
+    border:1px solid var(--border);
+    border-radius:var(--radius-md);
+    color:var(--text);
+    font-size:16px;
+    resize:vertical;
+}
+.school-dialog-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:6px;
+}
+@media (max-width:480px){
+    .school-dialog-actions .school-btn{ flex:1 1 0; }
+}
+
+.school-loading{ display:flex; flex-direction:column; gap:10px; padding:4px 0; }
+.school-skeleton{
+    display:block;
+    height:14px;
+    border-radius:8px;
+    background:linear-gradient(90deg, rgba(255,255,255,.05) 0%, rgba(255,255,255,.11) 50%, rgba(255,255,255,.05) 100%);
+    background-size:200% 100%;
+    animation:school-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes school-shimmer{
+    from{ background-position:100% 0; }
+    to{ background-position:-100% 0; }
+}
+
+.school-empty{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    padding:28px 18px;
+    text-align:center;
+}
+.school-empty-icon{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:48px;
+    height:48px;
+    margin-bottom:4px;
+    border-radius:50%;
+    background:rgba(201,173,132,.12);
+    color:var(--primary);
+}
+.school-empty-title{ font-size:16px; color:var(--text); }
+.school-empty-text{ max-width:360px; font-size:14px; line-height:1.55; color:var(--text-secondary); }
+.school-empty-text a{ color:var(--primary); }
+.school-empty .school-btn{ margin-top:6px; }
+
+/* Text that fills in a moment after load (a heading, a date label):
+   an empty .school-wait element shows a shimmer bar instead of "Loading...",
+   and disappears as soon as a script writes its text. */
+.school-wait:empty::before{
+    content:"";
+    display:inline-block;
+    width:min(12ch, 70%);
+    height:.8em;
+    border-radius:8px;
+    vertical-align:middle;
+    background:linear-gradient(90deg, rgba(255,255,255,.05) 0%, rgba(255,255,255,.11) 50%, rgba(255,255,255,.05) 100%);
+    background-size:200% 100%;
+    animation:school-shimmer 1.3s ease-in-out infinite;
+}
+
+/* ==========================================================
+   PAGE HEADER — one system on every app page
+   eyebrow (small tan caps) · title (display face) · one-line subtitle.
+
+   New pages use:
+     <section class="eos-today-hero"><div>
+       <div class="eos-today-eyebrow">Section</div>
+       <h1>Title</h1>
+       <p class="eos-today-phase">What this page is for.</p>
+     </div></section>
+   Older pages keep their own hero wrappers (some hold stats or a
+   watermark); the grouped selectors below give them the same type.
+   `html body` lifts these above the page stylesheets, which load later.
+   Exceptions on purpose: the Client Hub's profile header, and the
+   coach's own Marathon / Analytics feature heroes.
+========================================================== */
+
+.eos-today-hero{
+    position:relative;
+    overflow:hidden;
+    margin-bottom:28px;
+    padding:6px 0 8px;
+}
+
+.eos-today-hero::before{
+    content:"";
+    position:absolute;
+    top:-120px;
+    right:-80px;
+    width:360px;
+    height:280px;
+    border-radius:50%;
+    background:radial-gradient(circle,rgba(201,173,132,.10) 0%,rgba(201,173,132,.025) 45%,transparent 72%);
+    pointer-events:none;
+}
+
+
+.eos-today-hero{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+}
+
+.eos-today-hero > div{
+    position:relative;
+    z-index:1;
+    flex:1 1 auto;
+    min-width:0;
+}
+
+/* ==========================================================
+   BRAND TILE: the SB mark (brand/school-mark.svg) in its own rounded
+   box, wherever the logo is decoration (page headers, Programs).
+   It's part of the layout, never behind text; the whole mark
+   always shows (contain, inside padding); --school-tile sizes it.
+     <div class="school-brand-tile" aria-hidden="true"></div>
+   Where it goes:
+     .eos-today-hero        the header's own ::after, right of the title
+     .school-hero-tiled         a flex header with stats / a button on the
+                            right: the tile comes last on computers and
+                            sits beside the title on phones
+     .school-hero-corner        a block header: top-right corner, and the
+                            text keeps clear of it
+========================================================== */
+
+@container sbmtop (max-width:300px){
+    .eos-mobile-topbar-logo{ gap:7px; font-size:1rem; }
+    .eos-mobile-topbar-logo .brand-mark{ height:24px; }
+}
+@container sbmtop (max-width:240px){
+    .eos-mobile-topbar-logo .brand-word{ display:none; }
+    .eos-mobile-topbar-logo .brand-mark{ height:28px; }
+}
+
+:root{ --school-tile:96px; }
+
+.school-brand-tile,
+html body .eos-today-hero::after{
+    content:"";
+    box-sizing:border-box;
+    display:block;
+    position:relative;
+    width:var(--school-tile);
+    height:var(--school-tile);
+    flex:0 0 var(--school-tile);
+    padding:calc(var(--school-tile) * .17);
+    border-radius:26%;
+    border:1px solid rgba(201,173,132,.22);
+    background:
+        url('../brand/school-mark.svg') center / contain no-repeat content-box,
+        linear-gradient(150deg, rgba(201,173,132,.14), rgba(201,173,132,.04) 55%, rgba(0,0,0,.16)) border-box;
+    box-shadow:inset 0 1px 0 rgba(243,239,230,.06), 0 12px 30px rgba(0,0,0,.18);
+    opacity:.78;
+    pointer-events:none;
+}
+
+html body .eos-today-hero::after{
+    z-index:1;
+}
+
+.school-hero-tiled{
+    position:relative;
+    justify-content:flex-start !important;
+}
+
+.school-hero-tiled > :first-child{
+    margin-right:auto;
+}
+
+.school-hero-corner{
+    position:relative;
+    min-height:var(--school-tile);
+    padding-right:calc(var(--school-corner-right, 0px) + var(--school-tile) + 20px) !important;
+}
+
+.school-hero-corner > .school-brand-tile{
+    position:absolute;
+    top:var(--school-corner-top, 0px);
+    right:var(--school-corner-right, 0px);
+}
+
+@media (max-width:900px){
+    :root{ --school-tile:80px; }
+}
+
+@media (max-width:600px){
+    :root{ --school-tile:58px; }
+    .school-hero-tiled > .school-brand-tile{
+        position:absolute;
+        top:0;
+        right:0;
+    }
+    .school-hero-tiled > :first-child{
+        padding-right:calc(var(--school-tile) + 14px);
+        margin-right:0;
+        flex:1 1 100%;
+    }
+}
+
+html body :is(.eos-today-eyebrow, .school-eyebrow, .ct-eyebrow, .pc-eyebrow, .programs-kicker){
+    display:block;
+    width:auto;
+    margin:0 0 8px;
+    padding:0;
+    border:0;
+    border-radius:0;
+    background:none;
+    color:var(--primary);
+    font-family:var(--font-body);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.14em;
+    line-height:1.3;
+    text-transform:uppercase;
+}
+
+html body :is(
+    .eos-today-hero h1, .school-page-title,
+    .running-hero h1, .strength-hero h1, .habits-hero h1, .programs-hero h1,
+    .gear-hero h1, .wr-hero h1, .settings-page .hero h1, .planner-page > h1,
+    .nutrition-page .page-title h1, .fueling-page .page-title h1,
+    .ct-hero .ct-title, .pc-hero .pc-title
+){
+    margin:0 0 8px;
+    color:var(--text);
+    font-family:var(--font-display);
+    font-size:46px;
+    font-weight:400;
+    letter-spacing:.5px;
+    line-height:1;
+    text-transform:uppercase;
+    background:none;
+    -webkit-text-fill-color:currentColor;
+}
+
+html body :is(
+    .eos-today-phase, .school-page-sub,
+    .running-plan-context, .strength-week-context, .habits-hero-sub, .programs-hero p,
+    .gear-hero-sub, .wr-week-range, .settings-page .hero p, .planner-intro,
+    .nutrition-page .page-title > p, .fueling-page .page-subtitle,
+    .ct-hero .ct-sub, .pc-hero .pc-sub
+){
+    max-width:62ch;
+    color:var(--text-secondary);
+    font-family:var(--font-body);
+    font-size:15px;
+    font-weight:400;
+    line-height:1.5;
+}
+
+@media (max-width:900px){
+    .eos-today-hero{
+        margin-bottom:18px;
+        padding:2px 0 4px;
+    }
+}
+
+
+@media (max-width:640px){
+    html body :is(
+        .eos-today-hero h1, .school-page-title,
+        .running-hero h1, .strength-hero h1, .habits-hero h1, .programs-hero h1,
+        .gear-hero h1, .wr-hero h1, .settings-page .hero h1, .planner-page > h1,
+        .nutrition-page .page-title h1, .fueling-page .page-title h1,
+        .ct-hero .ct-title, .pc-hero .pc-title
+    ){
+        font-size:38px;
+    }
+    html body :is(
+        .eos-today-phase, .school-page-sub,
+        .running-plan-context, .strength-week-context, .habits-hero-sub, .programs-hero p,
+        .gear-hero-sub, .wr-week-range, .settings-page .hero p, .planner-intro,
+        .nutrition-page .page-title > p, .fueling-page .page-subtitle,
+        .ct-hero .ct-sub, .pc-hero .pc-sub
+    ){
+        font-size:14px;
+    }
+}
+
+/* Phone header budget (redesign step 1, 2026-10-14). On a phone the
+   header took 26-33% of the first screen (half of a 320x568 one), so
+   the day's plan started below it. Under 600px: no brand tile in page
+   headers (the top bar already shows the logo), a smaller one-line
+   title, tighter spacing, and no extra container padding above a
+   header that starts the page. Other uses of the tile (Programs,
+   package cards) are untouched. */
+@media (max-width:600px){
+    html body .eos-today-hero::after,
+    .school-hero-tiled > .school-brand-tile,
+    .school-hero-corner > .school-brand-tile{
+        display:none;
+    }
+    .school-hero-corner{
+        min-height:0;
+        padding-right:0 !important;
+    }
+    .school-hero-tiled > :first-child{
+        padding-right:0;
+    }
+    .eos-today-hero{
+        margin-bottom:14px;
+    }
+    /* Today's "Good evening, <br>Sam" fits on one line here. */
+    #welcomeHeading br{
+        display:none;
+    }
+    :is(main.container, .clients-page):has(> .eos-today-hero:first-child){
+        padding-top:4px;
+    }
+    html body :is(.eos-today-eyebrow, .school-eyebrow, .ct-eyebrow, .pc-eyebrow, .programs-kicker){
+        margin-bottom:5px;
+    }
+    html body :is(
+        .eos-today-hero h1, .school-page-title,
+        .running-hero h1, .strength-hero h1, .habits-hero h1, .programs-hero h1,
+        .gear-hero h1, .wr-hero h1, .settings-page .hero h1, .planner-page > h1,
+        .nutrition-page .page-title h1, .fueling-page .page-title h1,
+        .ct-hero .ct-title, .pc-hero .pc-title
+    ){
+        font-size:34px;
+        margin-bottom:4px;
+    }
+}
+
+/* ==========================================================
+   CALERA REACTIONS (js/emoji.js, js/emojiPicker.js)
+   Personal reactions only; working icons stay in js/icons.js.
+========================================================== */
+
+.school-emoji{
+    display:inline-block;
+    width:1.5em;
+    height:1.5em;
+    margin:0 .08em;
+    vertical-align:-.4em;
+    user-select:none;
+}
+.school-emoji.is-big{ width:40px; height:40px; margin:2px 4px 2px 0; vertical-align:middle; }
+
+.school-emoji-bar{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:6px;
+    margin-top:6px;
+}
+.school-emoji-bar [hidden]{ display:none !important; }
+.school-emoji-quick,
+.school-emoji-open{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    min-width:36px;
+    height:36px;
+    padding:0 6px;
+    border:1px solid var(--border);
+    border-radius:var(--radius-pill);
+    background:rgba(255,255,255,.03);
+    color:var(--text-secondary);
+    font:600 13px var(--font-body);
+    cursor:pointer;
+    transition:background-color .15s ease,border-color .15s ease,transform .1s ease;
+}
+.school-emoji-open{ padding:0 12px 0 7px; }
+.school-emoji-quick:hover,
+.school-emoji-open:hover{ border-color:rgba(201,173,132,.45); background:rgba(201,173,132,.08); color:var(--text); }
+.school-emoji-quick:active{ transform:scale(.92); }
+.school-emoji-quick .school-emoji,
+.school-emoji-open .school-emoji{ width:24px; height:24px; margin:0; vertical-align:0; }
+.school-emoji-open .school-emoji{ width:22px; height:22px; }
+.school-emoji-preview{
+    flex:0 0 100%;
+    color:var(--text);
+    font-size:14px;
+    line-height:1.5;
+    overflow-wrap:anywhere;
+}
+.school-emoji-preview-label{
+    margin-right:4px;
+    color:var(--muted);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+}
+
+.school-emoji-pop{
+    position:fixed;
+    inset:auto;
+    width:min(372px, calc(100vw - 24px));
+    max-height:min(420px, 80vh);
+    margin:0;
+    padding:12px 12px 14px;
+    overflow:auto;
+    background:var(--surface);
+    color:var(--text);
+    border:1px solid var(--border);
+    border-radius:18px;
+    box-shadow:0 18px 50px rgba(0,0,0,.5);
+}
+.school-emoji-pop::backdrop{ background:rgba(8,16,12,.35); }
+.school-emoji-pop.is-sheet{
+    left:0; right:0; bottom:0; top:auto;
+    width:100%;
+    max-width:100%;
+    max-height:70vh;
+    border-radius:20px 20px 0 0;
+    padding-bottom:calc(16px + env(safe-area-inset-bottom));
+}
+.school-emoji-pop-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:4px;
+}
+.school-emoji-pop-title{
+    font-family:var(--font-display);
+    font-size:22px;
+    letter-spacing:.5px;
+    text-transform:uppercase;
+}
+.school-emoji-pop-close{
+    width:40px;
+    height:36px;
+    border:0;
+    border-radius:var(--radius-sm);
+    background:transparent;
+    color:var(--muted);
+    font-size:22px;
+    cursor:pointer;
+}
+.school-emoji-pop-close:hover{ background:rgba(255,255,255,.06); color:var(--text); }
+.school-emoji-pop-close:focus-visible,
+.school-emoji-choice:focus-visible,
+.school-emoji-quick:focus-visible,
+.school-emoji-open:focus-visible{
+    outline:2px solid var(--primary);
+    outline-offset:2px;
+}
+.school-emoji-cat{ margin-top:8px; }
+.school-emoji-cat-label{
+    margin:0 0 4px 2px;
+    color:var(--primary);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+}
+.school-emoji-grid{
+    display:grid;
+    grid-template-columns:repeat(7, minmax(0, 1fr));
+    gap:2px;
+}
+.school-emoji-choice{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    height:46px;
+    border:0;
+    border-radius:12px;
+    background:transparent;
+    cursor:pointer;
+    transition:background-color .12s ease,transform .1s ease;
+}
+.school-emoji-choice:hover,
+.school-emoji-choice:focus-visible{ background:rgba(201,173,132,.12); }
+.school-emoji-choice:active{ transform:scale(.9); }
+.school-emoji-choice .school-emoji{ width:32px; height:32px; margin:0; vertical-align:0; }
+
+/* ==========================================================
+   PROFILE CHECK ("Still right?", js/profileCheckCard.js)
+   One quick question on Today and the weekly check-in.
+========================================================== */
+.school-pcheck{
+    margin:0 0 18px;
+    padding:18px 20px 14px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-left:3px solid var(--primary);
+    border-radius:var(--radius, 18px);
+}
+.school-pcheck[hidden], .school-pcheck [hidden]{ display:none !important; }
+.school-pcheck-eyebrow{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    color:var(--primary);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+}
+.school-pcheck-eyebrow .ui-icon{ width:14px; height:14px; }
+.school-pcheck-title{ margin:8px 0 0; font-size:18px; font-weight:700; line-height:1.3; color:var(--text); }
+.school-pcheck-detail{ margin:6px 0 0; color:var(--text-secondary); font-size:14.5px; line-height:1.5; overflow-wrap:anywhere; }
+.school-pcheck-actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+.school-pcheck-status{ min-height:0; margin:8px 0 0; color:var(--muted); font-size:12.5px; }
+.school-pcheck-status:empty{ display:none; }
+@media (max-width:600px){
+    .school-pcheck{ padding:16px 16px 12px; }
+    .school-pcheck-actions .school-btn{ flex:1 1 auto; }
+}
+
+/* ==========================================================
+   HABIT ICONS (js/habitIconPicker.js, drawings in habit-icons/)
+   The tile a habit shows, the chips under "New habit" and the
+   picker. Used by the Habits page and the 75-Day page.
+========================================================== */
+.school-habit-img{ display:block; width:28px; height:28px; }
+.school-habit-icon{
+    position:relative;
+    flex-shrink:0;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:40px;
+    height:40px;
+    border-radius:11px;
+    background:rgba(243,239,230,.06);
+    vertical-align:middle;
+}
+.school-habit-icon.is-edit{
+    padding:0;
+    border:1px dashed rgba(201,173,132,.45);
+    cursor:pointer;
+    color:inherit;
+    transition:border-color .15s ease,background-color .15s ease;
+}
+.school-habit-icon.is-edit:hover{ border-color:var(--primary); background:rgba(201,173,132,.12); }
+.school-habit-icon-pen{
+    position:absolute;
+    right:-5px;
+    bottom:-5px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:16px;
+    height:16px;
+    border-radius:50%;
+    background:var(--primary);
+    color:var(--on-primary);
+    box-shadow:0 0 0 2px var(--surface);
+}
+.school-habit-icon-pen .ui-icon{ width:10px; height:10px; }
+
+.school-habit-suggest{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:6px;
+    margin-top:10px;
+}
+.school-habit-suggest[hidden]{ display:none !important; }
+.school-habit-suggest-label{ color:var(--muted); font-size:13px; margin-right:2px; }
+.school-habit-chip{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:44px;
+    height:44px;
+    padding:0;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:rgba(243,239,230,.04);
+    cursor:pointer;
+    transition:border-color .15s ease,background-color .15s ease,transform .1s ease;
+}
+.school-habit-chip .school-habit-img{ width:28px; height:28px; }
+.school-habit-chip:hover{ border-color:rgba(201,173,132,.6); }
+.school-habit-chip.is-on{ border:2px solid var(--primary); background:rgba(201,173,132,.16); }
+.school-habit-chip:active{ transform:scale(.94); }
+.school-habit-more{
+    min-height:40px;
+    padding:0 12px;
+    border:0;
+    border-radius:var(--radius-pill);
+    background:transparent;
+    color:var(--primary);
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+}
+.school-habit-more:hover{ background:rgba(201,173,132,.1); }
+.school-habit-more.is-strong{ background:var(--primary); color:var(--on-primary); }
+
+.school-hip{
+    width:min(520px, calc(100vw - 24px));
+    max-height:min(640px, 86vh);
+    margin:auto;
+    padding:16px 16px 12px;
+    display:flex;
+    flex-direction:column;
+    background:var(--surface);
+    color:var(--text);
+    border:1px solid var(--border);
+    border-radius:18px;
+    box-shadow:0 18px 50px rgba(0,0,0,.5);
+    overflow:hidden;
+}
+.school-hip:not([open]){ display:none; }
+.school-hip::backdrop{ background:rgba(8,16,12,.55); }
+.school-hip.is-sheet{
+    inset:auto 0 0 0;
+    width:100%;
+    max-width:100%;
+    max-height:82vh;
+    margin:0;
+    border-radius:20px 20px 0 0;
+    padding-bottom:calc(12px + env(safe-area-inset-bottom));
+}
+.school-hip [hidden]{ display:none !important; }
+.school-hip-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.school-hip-title{ font-family:var(--font-display); font-size:26px; letter-spacing:.5px; line-height:1.1; text-transform:uppercase; }
+.school-hip-sub{ margin-top:2px; color:var(--muted); font-size:14px; }
+.school-hip-close{
+    flex-shrink:0;
+    width:40px;
+    height:40px;
+    border:0;
+    border-radius:var(--radius-sm);
+    background:transparent;
+    color:var(--muted);
+    font-size:24px;
+    cursor:pointer;
+}
+.school-hip-close:hover{ background:rgba(255,255,255,.06); color:var(--text); }
+.school-hip .school-hip-search{
+    width:100%;
+    margin:12px 0 4px;
+    padding:11px 14px;
+    background:var(--surface-light);
+    border:1px solid var(--border);
+    border-radius:12px;
+    color:var(--text);
+    font:inherit;
+    font-size:15px;
+}
+.school-hip .school-hip-search::placeholder{ color:var(--muted); }
+.school-hip .school-hip-search:focus{ border-color:var(--primary); outline:none; }
+.school-hip-body{ flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:2px 2px 6px; }
+.school-hip-cat{ margin-top:10px; }
+.school-hip-cat-label{
+    margin:0 0 4px 2px;
+    color:var(--primary);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+}
+.school-hip-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(76px, 1fr));
+    gap:4px;
+}
+.school-hip-choice{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    min-width:0;
+    padding:8px 2px 6px;
+    border:1px solid transparent;
+    border-radius:12px;
+    background:transparent;
+    color:var(--text-secondary);
+    font-size:11.5px;
+    cursor:pointer;
+    transition:background-color .12s ease,transform .1s ease;
+}
+.school-hip-choice span{ max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.school-hip-choice .school-habit-img{ width:34px; height:34px; }
+.school-hip-choice:hover,
+.school-hip-choice:focus-visible{ background:rgba(201,173,132,.12); color:var(--text); }
+.school-hip-choice:active{ transform:scale(.94); }
+.school-hip-choice.is-current{ border-color:var(--primary); background:rgba(201,173,132,.14); color:var(--text); }
+.school-hip-none{ margin:10px 2px; color:var(--muted); font-size:14px; }
+.school-hip-foot{ display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid var(--border); }
+@media (max-width:600px){
+    .school-hip-grid{ grid-template-columns:repeat(4, minmax(0, 1fr)); }
+}
+
+/* ==========================================================
+   PAGE WIDTHS — two columns on a computer, and the header lines
+   up with the wide one on every page:
+     wide (1200px)   dashboards and tools: Today, Running, Strength,
+                     Cross-Training, Nutrition, Fueling, Programs,
+                     Settings, More, the coach's own tools
+     narrow (900px)  coaching, forms and feeds (every .clients-page,
+                     Habits, Pace Calculator), for comfortable reading
+   A new page picks one by using .container or .clients-page.
+   Phones keep their own gutters (below 901px nothing here applies).
+========================================================== */
+
+@media (min-width:901px){
+    :root{
+        --page-wide:1200px;
+        --page-narrow:900px;
+    }
+
+    html body .navbar{
+        width:min(var(--page-wide), 94%);
+    }
+
+    html body :is(
+        main.container, .running-page, .strength-page, .nutrition-page, .fueling-page,
+        .programs-page, .planner-page, .analytics-page, .wr-page, .gear-page,
+        #ct-root, #mp-root, #app.wrap
+    ){
+        width:min(var(--page-wide), 94%);
+        max-width:none;
+        margin-left:auto;
+        margin-right:auto;
+        padding-left:0;
+        padding-right:0;
+    }
+
+    html body :is(main.clients-page, .habits-page, #pc-root){
+        width:min(var(--page-narrow), 94%);
+        max-width:none;
+        margin-left:auto;
+        margin-right:auto;
+        padding-left:0;
+        padding-right:0;
+    }
+}
+
+/* ==========================================================
+   SEND TO COROS BAR — the coach's own marathon plan (Today and
+   the Marathon page), js/marathonCorosButton.js
+========================================================== */
+.school-coros-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-top:14px;
+    padding:12px 14px;
+    border:1px solid var(--border);
+    border-radius:var(--radius-md, 14px);
+    background:rgba(255,255,255,.03);
+}
+
+.school-coros-bar[hidden]{
+    display:none !important;
+}
+
+.school-coros-bar-text{
+    margin:0;
+    color:var(--muted);
+    font-size:.88rem;
+    line-height:1.4;
+}
+
+.school-coros-bar-text svg{
+    width:16px;
+    height:16px;
+    vertical-align:-3px;
+    color:var(--primary);
+}
+
+.school-coros-bar-btn{
+    flex:0 0 auto;
+    white-space:nowrap;
+}
+
+@media (max-width:560px){
+    .school-coros-bar{
+        flex-direction:column;
+        align-items:stretch;
+    }
+}
+
+/* ==========================================================
+   CONNECTION / VERSION PILL (js/netStatus.js)
+   Offline, back online → syncing → synced, and "a new version
+   is available". Sits where toasts appear; toasts move up while
+   it's showing. Compact ("Offline") after a few seconds.
+========================================================== */
+
+.school-net{
+    position:fixed;
+    left:50%;
+    bottom:24px;
+    z-index:6000;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    max-width:min(460px, calc(100vw - 32px));
+    padding:10px 14px;
+    background:var(--forest);
+    border:1px solid rgba(201,173,132,.35);
+    border-radius:var(--radius-pill);
+    box-shadow:0 12px 32px rgba(0,0,0,.4);
+    color:var(--text);
+    font:600 13.5px/1.35 var(--font-body);
+    opacity:0;
+    transform:translate(-50%, 12px);
+    pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+}
+.school-net.is-on{ opacity:1; transform:translate(-50%, 0); pointer-events:auto; }
+body.has-bottomnav .school-net{ bottom:calc(86px + env(safe-area-inset-bottom)); }
+body.school-net-on .school-toast-host{ bottom:80px; }
+body.has-bottomnav.school-net-on .school-toast-host{ bottom:calc(142px + env(safe-area-inset-bottom)); }
+.school-net-dot{
+    flex:0 0 8px;
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--primary);
+}
+.school-net[data-state="offline"] .school-net-dot{ background:var(--muted); }
+.school-net[data-state="synced"] .school-net-dot{ background:var(--good); }
+.school-net[data-state="syncing"] .school-net-dot{ animation:school-net-pulse 1.1s ease-in-out infinite; }
+@keyframes school-net-pulse{ 50%{ opacity:.3; } }
+.school-net-text{ min-width:0; }
+.school-net.is-compact{ cursor:pointer; padding:8px 14px; }
+.school-net.is-compact .school-net-text{ display:none; }
+.school-net.is-compact::after{ content:attr(data-short); }
+.school-net [hidden]{ display:none !important; }
+.school-net-action{
+    flex-shrink:0;
+    min-height:32px;
+    padding:0 14px;
+    border:0;
+    border-radius:var(--radius-pill);
+    background:var(--primary);
+    color:var(--on-primary);
+    font:700 13px/1 var(--font-body);
+    cursor:pointer;
+}
+.school-net-close{
+    flex-shrink:0;
+    width:32px;
+    height:32px;
+    border:0;
+    border-radius:50%;
+    background:transparent;
+    color:var(--text-secondary);
+    font-size:20px;
+    line-height:1;
+    cursor:pointer;
+}
+
+/* ==========================================
+   NOT ENTITLED — a section of Today this client's services don't
+   cover (js/todayLayout.js). Separate from [hidden], which each
+   section's own script uses for "nothing to show right now".
+========================================== */
+.school-off{ display:none !important; }
+
+/* Today's stat row for clients: as many columns as boxes (js/app.js),
+   and the link to My Progress across the row. */
+.stats.stats-client{ grid-template-columns:repeat(var(--stat-count, 3), minmax(0, 1fr)) !important; }
+.stats .stats-more{
+    grid-column:1 / -1;
+    justify-self:end;
+    color:var(--primary);
+    font-size:14px;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:2px;
+}
+.stats .stats-more .ui-icon{ width:16px; height:16px; }
+.stats [hidden]{ display:none !important; }
+
+/* ==========================================================
+   EFFORT AFTER A WATCH RUN — coach's Today, js/effortCard.js
+========================================================== */
+.school-effort{ margin-top:14px; padding:12px 14px; border:1px solid var(--border); border-radius:var(--radius-md, 14px); background:color-mix(in srgb, var(--primary) 6%, transparent); }
+.school-effort[hidden]{ display:none !important; }
+.school-effort-title{ margin:0 0 8px; font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--primary); font-weight:700; }
+.school-effort-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+.school-effort-list li{ display:flex; flex-direction:column; gap:6px; }
+.school-effort-run{ font-size:14px; color:var(--text-secondary); }
+.school-effort-run strong{ color:var(--text); }
+.school-effort-scale{ display:flex; flex-wrap:wrap; gap:4px; }
+.school-effort-scale button{ min-width:36px; height:36px; padding:0 6px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--text); font-weight:700; cursor:pointer; }
+.school-effort-scale button:hover{ border-color:var(--primary); color:var(--primary-light); }
+.school-effort-scale .school-effort-skip{ font-weight:500; color:var(--muted); background:transparent; }
+.school-effort-hint{ margin:8px 0 0; font-size:12px; color:var(--muted); }
+/* The 1–10 scale dialog (sbScale in js/ui.js): two rows of five, big enough to tap. */
+.school-scale{ display:grid; grid-template-columns:repeat(5, 1fr); gap:8px; margin:4px 0 0; }
+.school-scale-btn{ min-height:48px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--text); font-size:18px; font-weight:700; cursor:pointer; }
+.school-scale-btn:hover, .school-scale-btn:focus-visible{ border-color:var(--primary); color:var(--primary-light); }
+.school-scale-btn.is-current{ background:var(--primary); border-color:var(--primary); color:var(--on-primary); }
+.school-scale-hint{ margin:10px 0 0; font-size:13px; color:var(--muted); }
+@media (max-width:600px){
+    .school-effort-scale{ display:grid; grid-template-columns:repeat(5, 1fr); }
+    .school-effort-scale button{ min-height:40px; }
+    .school-effort-scale .school-effort-skip{ grid-column:1 / -1; }
+}
+
+
+/* CALERA PERFORMANCE SHELL — floating capsule navigation */
+@media (min-width:901px){
+  .eos-navbar{
+    display:grid;grid-template-columns:minmax(125px,1fr) auto minmax(150px,1fr);
+    align-items:center;gap:clamp(12px,1.8vw,28px);width:min(1600px,96%);
+    margin:18px auto 30px;padding:0;background:transparent;border:0;border-radius:0;
+    box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;
+  }
+  .eos-nav-left{display:contents}
+  .eos-navbar .eos-logo{grid-column:1;grid-row:1;justify-self:start;gap:10px;min-width:0;padding-left:2px}
+  .eos-navbar .brand-mark{height:32px}
+  .eos-navbar .eos-nav-links{
+    grid-column:2;grid-row:1;justify-self:center;display:flex;align-items:center;justify-content:center;
+    gap:2px;min-width:0;padding:5px;border:1px solid rgba(235,232,220,.13);border-radius:999px;
+    background:linear-gradient(135deg,rgba(25,39,31,.86),rgba(9,18,13,.76));
+    box-shadow:0 12px 34px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter:blur(24px) saturate(135%);-webkit-backdrop-filter:blur(24px) saturate(135%);
+  }
+  .eos-navbar .eos-nav-item,.eos-navbar .eos-dropdown-trigger{
+    min-height:38px;padding:0 10px;gap:4px;border-radius:999px;color:rgba(227,221,208,.78);
+    font-size:.81rem;font-weight:650;letter-spacing:.005em;transition:background-color .18s ease,color .18s ease;
+  }
+  .eos-navbar .eos-nav-item:hover,.eos-navbar .eos-dropdown-trigger:hover,
+  .eos-navbar .eos-dropdown[open]>.eos-dropdown-trigger{background:rgba(255,255,255,.07);color:var(--cream)}
+  .eos-navbar .eos-nav-item.active,.eos-navbar .eos-dropdown-trigger.section-active{
+    background:rgba(201,173,132,.17);color:var(--cream);box-shadow:inset 0 0 0 1px rgba(201,173,132,.16)
+  }
+  .eos-navbar .eos-nav-right{grid-column:3;grid-row:1;justify-self:end;display:flex;align-items:center;gap:8px;min-width:0}
+  .eos-navbar .search-btn{
+    flex:0 0 40px;width:40px;height:40px;border:1px solid rgba(235,232,220,.14);border-radius:50%;
+    background:rgba(15,28,20,.52);color:var(--cream)
+  }
+  .eos-navbar .search-btn:hover{border-color:rgba(201,173,132,.55);background:rgba(201,173,132,.12);color:var(--cream)}
+  .eos-navbar .sync-status-btn{min-height:38px;padding:7px 10px;border-radius:999px;background:rgba(15,28,20,.48)}
+  .eos-navbar #loginBtn,.eos-navbar #logoutBtn{min-height:38px;padding:9px 14px;border-radius:999px}
+  .eos-navbar .eos-dropdown-menu{
+    border-radius:16px;background:rgba(18,34,24,.97);border-color:rgba(235,232,220,.12);
+    box-shadow:0 20px 46px rgba(0,0,0,.46);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)
+  }
+}
+@media (min-width:901px) and (max-width:1140px){
+  .eos-navbar{grid-template-columns:44px minmax(0,1fr) auto;gap:12px}
+  .eos-navbar .eos-logo .brand-word,.eos-navbar #user-name{display:none}
+  .eos-navbar .eos-nav-links{max-width:100%}
+  .eos-navbar .eos-nav-item,.eos-navbar .eos-dropdown-trigger{padding-left:7px;padding-right:7px;font-size:.76rem}
+}
+@media (max-width:900px){
+  .eos-mobile-topbar{
+    grid-template-columns:38px minmax(0,1fr) 38px;width:min(560px,calc(100% - 24px));min-height:52px;
+    margin:10px auto 18px;padding:5px 7px;position:sticky;top:9px;
+    border:1px solid rgba(235,232,220,.13);border-radius:999px;
+    background:linear-gradient(135deg,rgba(25,39,31,.91),rgba(9,18,13,.86));
+    box-shadow:0 12px 32px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.05);
+    backdrop-filter:blur(24px) saturate(135%);-webkit-backdrop-filter:blur(24px) saturate(135%);
+  }
+  .eos-mobile-icon-btn{width:36px;height:36px;border-color:rgba(235,232,220,.12);background:rgba(255,255,255,.035)}
+  .eos-mobile-topbar-logo{gap:8px;min-width:0}
+  .eos-mobile-topbar-logo .brand-mark{height:25px}
+  .eos-mobile-topbar-logo .brand-word{font-size:.88rem;letter-spacing:.06em}
+  body.has-bottomnav{padding-bottom:calc(108px + env(safe-area-inset-bottom)) !important}
+  .eos-bottomnav{
+    display:flex;align-items:stretch;justify-content:center;gap:2px;position:fixed;
+    left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));
+    bottom:calc(9px + env(safe-area-inset-bottom));width:auto;margin:0 auto;padding:5px 7px;
+    border:1px solid rgba(235,232,220,.14);border-radius:999px;
+    background:linear-gradient(135deg,rgba(25,39,31,.94),rgba(8,17,12,.91));
+    box-shadow:0 14px 36px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter:blur(26px) saturate(145%);-webkit-backdrop-filter:blur(26px) saturate(145%);
+  }
+  .eos-bottomnav-item{
+    flex:1 1 0;min-width:0;min-height:47px;gap:3px;padding:5px 2px;border-radius:999px;
+    color:rgba(227,221,208,.68);font-size:.72rem;font-weight:650;letter-spacing:0
+  }
+  .eos-bottomnav-item .ui-icon{width:18px;height:18px}
+  .eos-bottomnav-item.active{color:var(--on-primary);background:var(--primary);box-shadow:0 4px 16px rgba(201,173,132,.16)}
+  .eos-bottomnav-item.active .ui-icon{color:var(--on-primary)}
+}
+@media (max-width:380px){
+  .eos-bottomnav{left:8px;right:8px;padding:4px 5px}
+  .eos-bottomnav-item{font-size:.6875rem}
+}
+@media (prefers-reduced-motion:reduce){
+  .eos-navbar .eos-nav-item,.eos-navbar .eos-dropdown-trigger,.eos-bottomnav-item{transition:none}
+}
+
+/* ==========================================================
+   PHONE TAP TARGETS + SMALL TEXT (redesign step 9, 2026-10-14)
+   Measured at 390px: every control people tap gets at least a 44px tall
+   hit area, and no reading text is under 11px. Inline text links keep
+   their look; an invisible ::after grows what a finger can hit.
+   !important because page stylesheets load after this file.
+   ========================================================== */
+@media (max-width:600px){
+    /* Buttons and tabs: 44px tall (square ones 44x44). */
+    .eos-mobile-icon-btn,
+    .adjust-btn, .day-btn, .food-scan-btn, .hb-nav{ min-width:44px !important; min-height:44px !important; }
+    .eos-mobile-icon-btn{ width:44px !important; height:44px !important; }
+    .wk-feel, .th-all, .goal-btn, .meal-tab, .eos-subnav-link, .eos-more-account-btn,
+    .coach-view-btn, .coach-inq-btn, .clients-btn-secondary, .clients-tab, .clients-filter, .hub-back,
+    .hub-services-edit, .eos-today-complete-btn, .school-effort-scale button, .rd-ver,
+    .tw-disclosure, .ft-manage-btn, .rc-chip, .an-nav a,
+    .myplan-details > summary, .rd-more > summary, .rc-details > summary, .hb-how > summary, .rd-insights > summary, .clients-secondary-card > summary{
+        min-height:44px !important;
+    }
+    :is(.wk-feel, .th-all, .goal-btn, .meal-tab, .eos-subnav-link, .coach-view-btn, .hub-services-edit,
+        .tw-disclosure, .ft-manage-btn, .rc-chip, .an-nav a){ display:inline-flex; align-items:center; justify-content:center; }
+    .myplan-details > summary, .rd-more > summary, .rc-details > summary, .hb-how > summary, .rd-insights > summary, .clients-secondary-card > summary{ box-sizing:border-box; padding-block:11px !important; }
+    .an-nav input[type=number], .an-section input[type=number]{ min-height:44px !important; }
+
+    /* Inline text links: same look, a taller invisible hit area. */
+    :is(.wk-see-all, .stats .stats-more, .pg-link, .wk-item-link, .ig-link, .eos-more-sync-btn,
+        .coach-clients-all, .hub-see-all, .rd-link, .rd-link-btn, .eos-snap-link, .eos-mobile-topbar-logo){ position:relative; }
+    /* My Plan's small row buttons keep their 40px look (bigger squeezed the
+       workout text); a 2px ring brings the hit area to 44. */
+    :is(.wk-change, .wk-done).is-compact{ position:relative; }
+    :is(.wk-change, .wk-done).is-compact::after{ content:""; position:absolute; inset:-2px; }
+    :is(.wk-see-all, .stats .stats-more, .pg-link, .wk-item-link, .ig-link, .eos-more-sync-btn,
+        .coach-clients-all, .hub-see-all, .rd-link, .rd-link-btn, .eos-snap-link, .eos-mobile-topbar-logo)::after{
+        content:""; position:absolute; inset:-14px -4px;
+    }
+
+    /* Reading text: nothing under 11px; nutrition's numbers at 12.5px. */
+    .stat-card p{ font-size:12px !important; }
+    .wk-day-date small, .ft-type{ font-size:11px !important; }
+    html body .school-eyebrow{ font-size:11px !important; }
+    .metric-display .label, .remaining, .stat-name, .stat-value, .meal-tab{ font-size:12.5px !important; }
+}
+
+
+/* ==========================================================
+   PREMIUM SHELL (redesign, step 1, 2026-10-15)
+   Eddie approved the lab direction (calera-math-premium-lab) and asked for
+   three changes on the way in: a notification bell at the top right, the
+   Calera Math mark and name slightly bigger, and a glossier floating
+   toolbar. This block also brings the new text face and refined colours
+   (the :root values above), in the same palette: forest, sand, cream, sage.
+   ========================================================== */
+
+/* Albert Sans: the new text face (variable weight, Latin subset, OFL). */
+@font-face{
+    font-family:'Albert Sans';
+    font-style:normal;
+    font-weight:100 900;
+    font-display:swap;
+    src:url('../fonts/albert-sans-latin-var.woff2') format('woff2');
+}
+
+/* ---- The mark and the name, slightly bigger ---- */
+.brand-mark{ height:38px; }
+.eos-logo .brand-word{ font-size:1.32rem; }
+.eos-navbar .brand-mark{ height:38px; }
+
+/* ---- The bell ---- */
+.bell-btn{ position:relative; }
+.bell-btn:not(.eos-mobile-icon-btn){
+    width:40px;
+    height:40px;
+    border:none;
+    border-radius:11px;
+    background:rgba(255,255,255,.05);
+    color:var(--cream);
+    cursor:pointer;
+    transition:.2s ease;
+}
+.bell-btn:not(.eos-mobile-icon-btn):hover{ background:var(--primary); color:var(--on-primary); }
+.bell-btn .ui-icon{ width:20px; height:20px; }
+.bell-dot{
+    position:absolute;
+    top:-5px;
+    right:-5px;
+    min-width:19px;
+    height:19px;
+    padding:0 5px;
+    display:grid;
+    place-items:center;
+    border-radius:999px;
+    background:var(--primary);
+    color:var(--on-primary);
+    border:2px solid var(--bg);
+    font:700 11px/1 var(--font-body);
+    font-style:normal;
+}
+.bell-dot[hidden]{ display:none; }
+
+/* The dialog the bell opens (built in js/notifications.js, on the shared .school-dialog) */
+.school-notes{ width:min(440px, calc(100vw - 32px)); }
+.school-notes-list{ display:flex; flex-direction:column; border-top:1px solid var(--border); margin-top:4px; }
+.school-note{
+    display:grid;
+    grid-template-columns:40px minmax(0,1fr) 20px;
+    gap:12px;
+    align-items:center;
+    min-height:64px;
+    padding:10px 2px;
+    border-bottom:1px solid var(--border);
+    color:var(--text);
+    text-decoration:none;
+}
+.school-note-icon{
+    width:40px;
+    height:40px;
+    display:grid;
+    place-items:center;
+    border-radius:50%;
+    background:var(--surface-light);
+    color:var(--primary-light);
+}
+.school-note-icon .ui-icon, .school-note-chevron .ui-icon{ width:20px; height:20px; }
+.school-note-text{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+.school-note-text strong{ font-size:15px; font-weight:650; }
+.school-note-text span{ font-size:14px; color:var(--text-secondary); overflow-wrap:anywhere; }
+.school-note-chevron{ color:var(--muted); display:grid; }
+.school-note:hover strong, .school-note:focus-visible strong{ color:var(--primary-light); }
+
+@media (max-width:900px){
+    /* The bar keeps the mark and name centred whatever sits on either side:
+       a + on the left, search and the bell on the right. */
+    .eos-mobile-topbar{ grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); }
+    .eos-mobile-quickadd{ grid-column:1; grid-row:1; justify-self:start; }
+    .eos-mobile-topbar-logo{ grid-column:2; grid-row:1; }
+    .eos-mobile-actions{ grid-column:3; grid-row:1; justify-self:end; display:flex; align-items:center; gap:4px; }
+    .eos-mobile-topbar-logo .brand-mark{ height:28px; }
+    .eos-mobile-topbar-logo .brand-word{ font-size:.88rem; letter-spacing:.04em; }
+
+    /* The glossier toolbar: a lit top edge, a soft specular band, a deeper
+       tone underneath, and stronger blur with a colour lift so what scrolls
+       beneath shows through. The open tab is a lit glass lens. */
+    .eos-bottomnav{
+        background:linear-gradient(180deg,rgba(150,178,204,.34) 0%,rgba(52,78,104,.5) 46%,rgba(22,34,46,.7) 100%);
+        backdrop-filter:blur(28px) saturate(1.9) brightness(1.12);
+        -webkit-backdrop-filter:blur(28px) saturate(1.9) brightness(1.12);
+        border:1px solid rgba(255,246,226,.24);
+        box-shadow:inset 0 1px 0 rgba(255,250,238,.5),inset 0 -1px 0 rgba(0,0,0,.3),inset 0 0 22px rgba(255,244,222,.05),0 20px 44px -16px rgba(0,0,0,.78),0 2px 8px rgba(0,0,0,.32);
+        overflow:hidden;
+    }
+    .eos-bottomnav::before{
+        content:"";
+        position:absolute;
+        left:5%;
+        right:5%;
+        top:1px;
+        height:48%;
+        border-radius:999px 999px 70% 70% / 999px 999px 100% 100%;
+        background:linear-gradient(180deg,rgba(255,250,238,.26),rgba(255,250,238,.05) 72%,transparent);
+        pointer-events:none;
+    }
+    .eos-bottomnav-item{ position:relative; z-index:1; color:rgba(238,232,216,.8); }
+    .eos-bottomnav-item.active{
+        color:#FFF3D6;
+        background:linear-gradient(180deg,rgba(255,240,208,.44),rgba(214,185,142,.22) 56%,rgba(214,185,142,.15));
+        box-shadow:inset 0 1px 0 rgba(255,250,238,.6),inset 0 0 0 1px rgba(236,214,176,.36),0 4px 10px -4px rgba(0,0,0,.5);
+    }
+    .eos-bottomnav-item.active .ui-icon{ color:#FFF3D6; }
+}
+
+/* The name steps away before it can touch the buttons (the bar now holds two on the right). */
+@container sbmtop (max-width:344px){
+    .eos-mobile-topbar-logo .brand-word{ display:none; }
+    .eos-mobile-topbar-logo .brand-mark{ height:30px; }
+}
+@container sbmtop (max-width:300px){
+    .eos-mobile-topbar-logo .brand-mark{ height:28px; }
+}
+
+/* ==========================================================
+   TODAY: THE WORKOUT CONTOUR (premium shell, step 2, 2026-10-15)
+   A structured run is drawn as its effort profile under the title
+   (js/workoutContour.js). The buttons and the fuel line stay as they were.
+   ========================================================== */
+.wk-contour{ margin:12px 0 4px; }
+.wk-contour-svg{ display:block; width:100%; height:112px; overflow:visible; }
+@media (min-width:901px){ .wk-contour-svg{ height:140px; } }
+.wk-card.is-done .wk-contour-svg{ opacity:.7; }
+
+/* ==========================================================
+   TODAY, PREMIUM (redesign step 2, 2026-10-15). Scoped to
+   body.page-today so the same classes on Coach, Progress and Train keep
+   their look until their own steps. The workout is the one raised surface
+   (a layered card with a lit edge); everything else is a quiet section
+   under a hairline. Headings are plain, not small capitals.
+   ========================================================== */
+
+/* The greeting stands alone: no "Welcome Back" label above it, no glow behind it. */
+body.page-today .eos-today-eyebrow{ display:none; }
+body.page-today .eos-today-hero::before{ display:none; }
+
+/* Plain section headings and dates (no mono capitals above content). */
+html body.page-today .eos-today-card-header h2{
+    font:650 18px/1.25 var(--font-body);
+    letter-spacing:0;
+    text-transform:none;
+    color:var(--text);
+}
+body.page-today .eos-today-date{
+    font:500 14px/1.3 var(--font-body);
+    letter-spacing:0;
+    text-transform:none;
+    color:var(--text-secondary);
+}
+body.page-today .wk-kicker{
+    font:600 13px/1.3 var(--font-body);
+    letter-spacing:0;
+    text-transform:none;
+    color:var(--text-secondary);
+}
+body.page-today .wk-card.is-done .wk-kicker{ color:var(--sage); }
+
+/* The workout: one raised, layered surface with a lit top edge. */
+body.page-today #todayCard{
+    background:linear-gradient(180deg,var(--surface-light),var(--surface) 58%);
+    border:1px solid rgba(236,230,212,.09);
+    border-radius:30px;
+    padding:20px 20px 22px;
+    box-shadow:inset 0 1px 0 rgba(255,244,222,.07),0 2px 6px rgba(0,0,0,.26),0 28px 56px -28px rgba(0,0,0,.75);
+}
+body.page-today .wk-card,
+body.page-today .wk-card.is-done{ border-top:0; padding-top:6px; }
+
+/* Everything else on Today: a quiet section under a hairline. */
+body.page-today .eos-today-card:not(#todayCard),
+body.page-today .eos-nutrition-snap,
+body.page-today .rd-card,
+body.page-today .tw-card{
+    background:none;
+    border:0;
+    border-top:1px solid var(--border);
+    border-radius:0;
+    box-shadow:none;
+    padding:22px 0 0;
+    margin:30px 0 0;
+}
+body.page-today .today-col > section:first-child{ margin-top:0; border-top:0; padding-top:0; }
+
+/* This week: today's row is a soft tinted lens, not a coloured side line. */
+body.page-today .wk-day.is-today{
+    background:linear-gradient(180deg,rgba(214,185,142,.09),rgba(214,185,142,.02));
+    border-left:0;
+    border-radius:16px;
+    padding-left:12px;
+    padding-right:8px;
+}
+
+/* The three numbers: a row with dividers, not three boxes. */
+body.page-today .stats{ gap:0; margin-top:30px; border-top:1px solid var(--border); }
+body.page-today .stats .stat-card{
+    background:none;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    transform:none;
+    padding:16px 12px 6px 0;
+}
+body.page-today .stats .stat-card::before{ display:none; }
+body.page-today .stats .stat-card + .stat-card{ border-left:1px solid var(--border); padding-left:16px; }
+body.page-today .stats .stat-card:hover{ transform:none; box-shadow:none; border-color:var(--border); }
+
+/* ==========================================================
+   HEADER, PREMIUM (after step 3, 2026-10-15): the logo on the left, then
+   three glass circles on the right: search, the bell, and the account (the
+   person's Google photo or their initials). The account circle opens a sheet
+   (#accountDialog) that holds the name, Profile, Settings, quick add, sync and
+   Sign in / Sign out, which used to sit in the bar as text. On the phone the
+   bar is an open row (no capsule), like the demo; on a computer the menus stay.
+   ========================================================== */
+
+/* The circles: one look for search, bell and account. */
+.eos-navbar .search-btn,
+.eos-navbar .bell-btn,
+.eos-navbar .account-btn,
+.eos-mobile-topbar .eos-mobile-icon-btn,
+.eos-mobile-topbar .account-btn{
+    position:relative;
+    flex:0 0 44px;
+    width:44px;
+    height:44px;
+    padding:0;
+    display:grid;
+    place-items:center;
+    border:1px solid rgba(236,230,212,.18);
+    border-radius:50%;
+    background:linear-gradient(180deg,var(--surface-light),var(--surface));
+    color:var(--text);
+    box-shadow:inset 0 1px 0 rgba(255,244,222,.08),0 6px 14px -8px rgba(0,0,0,.6);
+    cursor:pointer;
+    transition:color .2s ease,border-color .2s ease;
+}
+.eos-navbar .search-btn:hover,
+.eos-navbar .bell-btn:hover,
+.eos-navbar .account-btn:hover,
+.eos-mobile-topbar .eos-mobile-icon-btn:hover,
+.eos-mobile-topbar .account-btn:hover{
+    background:linear-gradient(180deg,var(--surface-light),var(--surface));
+    color:var(--text);
+    border-color:rgba(236,230,212,.34);
+}
+.eos-navbar .search-btn .ui-icon,
+.eos-navbar .bell-btn .ui-icon,
+.eos-mobile-topbar .eos-mobile-icon-btn .ui-icon{ width:21px; height:21px; }
+.eos-navbar .nav-right{ gap:10px; }
+
+/* The account circle's face: photo, initials, or the person icon for a guest. */
+.account-btn{ overflow:visible; }
+.account-avatar{
+    width:100%;
+    height:100%;
+    display:grid;
+    place-items:center;
+    border-radius:50%;
+    overflow:hidden;
+    line-height:1;
+}
+.account-avatar .ui-icon{ width:21px; height:21px; color:var(--text-secondary); }
+.account-avatar .avatar-initials{ font:700 19px/1 var(--font-display); letter-spacing:.02em; text-transform:uppercase; color:var(--text); }
+.account-avatar .avatar-photo{ width:100%; height:100%; object-fit:cover; display:block; }
+.account-btn:focus-visible{ outline:2px solid var(--primary); outline-offset:3px; }
+
+/* ---- Phone: an open row. Logo on the left, circles on the right. ---- */
+@media (max-width:900px){
+    .eos-mobile-topbar{
+        container:sbmtop / inline-size;
+        display:grid;
+        grid-template-columns:minmax(0,1fr) auto;
+        align-items:center;
+        gap:10px;
+        width:auto;
+        max-width:1240px;
+        min-height:0;
+        margin:0 auto 6px;
+        padding:max(14px,env(safe-area-inset-top)) 16px 0;
+        position:relative;
+        top:auto;
+        background:none;
+        border:0;
+        border-radius:0;
+        box-shadow:none;
+        backdrop-filter:none;
+        -webkit-backdrop-filter:none;
+    }
+    .eos-mobile-topbar-logo{ grid-column:1; grid-row:1; justify-self:start; gap:10px; min-height:44px; }
+    .eos-mobile-topbar-logo .brand-mark{ height:30px; }
+    .eos-mobile-topbar-logo .brand-word{ font-size:1.12rem; letter-spacing:.03em; }
+    .eos-mobile-actions{ grid-column:2; grid-row:1; justify-self:end; display:flex; align-items:center; gap:8px; }
+    .eos-mobile-topbar .eos-mobile-icon-btn{ width:44px !important; height:44px !important; }
+}
+/* The name steps aside only when the bar is really narrow (three circles are 148px). */
+@container sbmtop (max-width:344px){
+    .eos-mobile-topbar-logo .brand-word{ display:inline; }
+    .eos-mobile-topbar-logo .brand-mark{ height:28px; }
+}
+@container sbmtop (max-width:290px){
+    .eos-mobile-topbar-logo .brand-word{ display:none; }
+}
+@container sbmtop (max-width:240px){
+    .eos-mobile-topbar .eos-mobile-actions{ gap:6px; }
+}
+
+/* ---- The account sheet ---- */
+.school-account{
+    width:min(380px,calc(100vw - 32px));
+    background:linear-gradient(180deg,rgba(60,88,114,.94),rgba(20,30,42,.96));
+    border:1px solid rgba(214,228,240,.26);
+    border-radius:28px;
+    box-shadow:inset 0 1px 0 rgba(235,244,252,.28),0 2px 8px rgba(0,0,0,.3),0 40px 90px -24px rgba(0,0,0,.8);
+    -webkit-backdrop-filter:blur(28px) saturate(1.7);
+    backdrop-filter:blur(28px) saturate(1.7);
+}
+.school-account::backdrop{ background:rgba(8,14,20,.6); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
+.school-account [hidden]{ display:none !important; }
+.school-account-body{ display:flex; flex-direction:column; gap:14px; padding:22px; }
+.school-account-who{ display:flex; align-items:center; gap:14px; }
+.account-avatar-lg{
+    flex:0 0 60px;
+    width:60px;
+    height:60px;
+    border:1px solid rgba(214,228,240,.3);
+    background:linear-gradient(180deg,var(--surface-light),var(--surface));
+    box-shadow:inset 0 1px 0 rgba(255,244,222,.08),0 6px 14px -8px rgba(0,0,0,.6);
+}
+.account-avatar-lg .avatar-initials{ font-size:26px; }
+.account-avatar-lg .ui-icon{ width:26px; height:26px; }
+.school-account-name{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+/* The old bar styles on these ids are for the bar; inside the sheet they are plain text and buttons. */
+.school-account #user-name{ display:block !important; max-width:none; color:var(--text); font:650 20px/1.2 var(--font-body); overflow-wrap:anywhere; }
+.school-account-name span{ color:var(--text-secondary); font-size:14px; }
+.school-account-links{ display:flex; flex-direction:column; border-top:1px solid var(--border); }
+.school-account .school-account-link{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-height:52px;
+    padding:6px 2px;
+    background:none;
+    border:0;
+    border-bottom:1px solid var(--border);
+    border-radius:0;
+    color:var(--text);
+    font:500 16px/1.2 var(--font-body);
+    text-align:left;
+    text-decoration:none;
+    cursor:pointer;
+}
+.school-account .school-account-link .ui-icon{ width:20px; height:20px; color:var(--text-secondary); flex:0 0 20px; }
+.school-account .school-account-link:hover,
+.school-account .school-account-link:focus-visible{ color:var(--primary-light); }
+.school-account .school-account-link[style*="display:none"]{ display:none !important; }
+.school-account .sync-status-btn #syncStatusText{ display:inline !important; }
+.school-account .sync-status-btn.sync-error{ color:var(--red); }
+.school-account .school-account-btn,
+.school-account #loginBtn,
+.school-account #logoutBtn{
+    min-height:48px;
+    padding:12px 18px;
+    border:0;
+    border-radius:14px;
+    background:linear-gradient(180deg,#DCE8F2,var(--primary));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 10px 26px -12px rgba(150,190,226,.6);
+    color:var(--on-primary);
+    font:650 16px/1 var(--font-body);
+    cursor:pointer;
+}
+.school-account .school-account-btn.is-quiet,
+.school-account #logoutBtn.is-quiet{
+    background:linear-gradient(180deg,rgba(236,230,212,.1),rgba(236,230,212,.035));
+    border:1px solid rgba(236,230,212,.16);
+    box-shadow:inset 0 1px 0 rgba(255,244,222,.1);
+    color:var(--text);
+}
+.school-account .school-account-btn:hover,
+.school-account #loginBtn:hover,
+.school-account #logoutBtn:hover{ transform:none; }
+.school-account .school-account-btn[style*="display:none"]{ display:none !important; }
+
+/* ==========================================================
+   THE SMALL DETAILS FROM THE DEMO (after step 7, 2026-10-15):
+   what each stretch of the workout is, the coach's line as a quote, the week as
+   a trail of dated check nodes, and the habits as small chips.
+   ========================================================== */
+
+/* Under the workout picture: each stretch named, as wide as the stretch (js/workoutContour.js). */
+.wk-contour-labels{ display:grid; margin-top:8px; font:500 13px/1.3 var(--font-body); color:var(--text-secondary); }
+.wk-contour-labels span{ min-width:0; padding-right:6px; }
+.wk-contour-labels b{ display:block; color:var(--text); font-weight:650; }
+.wk-contour-labels .is-last{ padding:0 0 0 6px; text-align:right; }
+
+/* The coach's one line for the workout, as a quote. */
+.wk-cue{ margin:14px 0 4px; padding:0 0 0 14px; border-left:2px solid rgba(214,185,142,.5); color:var(--text); font:italic 400 15.5px/1.5 var(--font-body); }
+.wk-cue cite{ display:block; margin-top:4px; font:500 13px/1.3 var(--font-body); font-style:normal; color:var(--text-secondary); }
+
+/* This week as bars (js/weekTrail.js, round two W4, 2026-10-15): seven bars, each as tall as that day's
+   planned miles, the miles above it and the day under. A done bar is sand with a check. */
+.trail.bars{ display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; list-style:none; margin:16px 0 0; padding:0; align-items:end; }
+.trail.bars .day{ display:grid; justify-items:center; gap:6px; min-width:0; }
+.trail.bars .bar-well{ display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:5px; height:104px; width:100%; }
+.trail.bars .bar-val{ min-height:14px; font:650 12.5px/1 var(--font-body); color:var(--text-secondary); }
+.trail.bars .bar{
+    position:relative; display:grid; place-items:center; width:100%; max-width:40px; min-height:14px; padding:0;
+    border:1px solid color-mix(in srgb, var(--sage) 40%, transparent); border-bottom:0; border-radius:10px 10px 4px 4px;
+    background:linear-gradient(180deg, color-mix(in srgb, var(--sage) 38%, transparent), color-mix(in srgb, var(--sage) 12%, transparent));
+    color:var(--on-primary); font:inherit; cursor:default;
+}
+.trail.bars button.bar{ cursor:pointer; }
+/* A tappable bar has a 44px-plus hit area, though it is drawn only as wide as the bar. */
+.trail.bars button.bar::after{ content:""; position:absolute; left:-6px; right:-6px; top:-16px; bottom:-16px; }
+.trail.bars .trail-ic{ width:12px; height:12px; }
+.trail.bars .rest .bar{ background:color-mix(in srgb, var(--text) 10%, transparent); border-color:color-mix(in srgb, var(--text) 16%, transparent); }
+.trail.bars .missed .bar{ background:color-mix(in srgb, var(--orange) 22%, transparent); border-color:color-mix(in srgb, var(--orange) 42%, transparent); }
+.trail.bars .done .bar{ background:linear-gradient(180deg, color-mix(in srgb, var(--primary) 90%, var(--text)), color-mix(in srgb, var(--primary) 50%, transparent)); border-color:color-mix(in srgb, var(--primary) 60%, transparent); }
+.trail.bars .today .bar{ outline:1.5px solid var(--primary); outline-offset:2px; }
+.trail.bars .day b{ font:650 13px/1.2 var(--font-body); color:var(--text); }
+.trail.bars .trail-date{ font:500 12.5px/1.2 var(--font-body); color:var(--text-secondary); }
+.trail.bars .today b, .trail.bars .today .trail-date{ color:var(--primary-light); }
+.wk-miles{ margin-left:auto; font:600 22px/1 var(--font-display); letter-spacing:.01em; color:var(--text); white-space:nowrap; }
+.eos-today-card-header:has(#weekMiles){ flex-wrap:wrap; row-gap:8px; }
+.eos-today-card-header:has(#weekMiles) .wk-see-all{ margin-left:14px; }
+.wk-miles[hidden]{ display:none; }
+
+/* Today's habits (js/todayHabits.js, round two D, 2026-10-15): a five-across grid of round glass buttons, the
+   habit's icon in each and its name under. A done one lights sage. */
+body.page-today .th-list{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px 6px; list-style:none; margin:0; padding:0; }
+body.page-today .th-list li{ min-width:0; }
+body.page-today .th-row{
+    width:100%; min-height:44px; padding:0; gap:7px;
+    flex-direction:column; align-items:center; justify-content:flex-start;
+    border:0; background:none; color:var(--text-secondary); font:600 11.5px/1.2 var(--font-body); text-align:center; cursor:pointer;
+    -webkit-user-select:none; user-select:none;
+}
+/* The keyboard ring follows the round icon, not the whole (wider) button. */
+body.page-today .th-row:focus-visible{ outline:none; }
+body.page-today .th-row:focus-visible .school-habit-icon{ outline:2px solid var(--primary); outline-offset:3px; }
+body.page-today .th-row .th-name{ display:block; min-width:0; }
+body.page-today .th-row .school-habit-icon{
+    flex:0 0 52px; width:52px; height:52px; padding:0; border-radius:50%; display:grid; place-items:center;
+    background:linear-gradient(180deg, rgba(236,230,212,.15), rgba(236,230,212,.04));
+    border:1px solid rgba(236,230,212,.22);
+    box-shadow:inset 0 1px 0 rgba(255,244,222,.3), inset 0 -8px 12px -8px rgba(0,0,0,.35), 0 8px 16px -10px rgba(0,0,0,.7);
+    -webkit-backdrop-filter:blur(8px) saturate(1.3); backdrop-filter:blur(8px) saturate(1.3);
+}
+body.page-today .th-row .school-habit-img{ width:22px; height:22px; }
+body.page-today .th-row .th-check{ display:none; }
+body.page-today .th-row.is-on{ color:var(--text); background:none; border:0; }
+body.page-today .th-row.is-on .school-habit-icon{
+    background:linear-gradient(180deg, color-mix(in srgb, var(--sage) 60%, transparent), color-mix(in srgb, var(--sage) 26%, transparent));
+    border-color:color-mix(in srgb, var(--sage) 60%, transparent);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.4), inset 0 -8px 12px -8px rgba(0,0,0,.3), 0 0 18px color-mix(in srgb, var(--sage) 30%, transparent), 0 8px 16px -10px rgba(0,0,0,.7);
+}
+
+/* A habit just ticked on Today (js/todayHabits.js): the icon presses in, one soft ring leaves it, the count nudges. About a quarter of a second,
+   the same every day, no overlay. Reduced motion: none of it. */
+body.page-today .th-row.just-on .school-habit-icon{ position:relative; animation:th-press .28s cubic-bezier(.2,.8,.2,1) both; }
+body.page-today .th-row.just-on .school-habit-icon::after{ content:""; position:absolute; inset:-2px; border-radius:50%; border:1.5px solid var(--primary); opacity:0; pointer-events:none; animation:th-ring .5s .05s ease-out both; }
+body.page-today .th-count.is-bump{ display:inline-block; animation:th-bump .28s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes th-press{ 0%{ transform:scale(.88); } 55%{ transform:scale(1.07); } 100%{ transform:none; } }
+@keyframes th-ring{ 0%{ opacity:.75; transform:scale(1); } 100%{ opacity:0; transform:scale(1.5); } }
+@keyframes th-bump{ from{ transform:translateY(-45%); opacity:.3; } to{ transform:none; opacity:1; } }
+@media (prefers-reduced-motion:reduce){
+    body.page-today .th-row.just-on .school-habit-icon, body.page-today .th-row.just-on .school-habit-icon::after, body.page-today .th-count.is-bump{ animation:none; }
+}
+
+/* Featured Runs and Today's nutrition as two lighter bubbles (js/todayLayout.js, F2; the lighter tone since round three). A tile
+   on its own (a client has no Featured Runs) takes the whole row. */
+body.page-today .today-tiles{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:30px; }
+body.page-today .today-tiles:has(> #featuredTraining[hidden]) > #nutritionSnap{ grid-column:1 / -1; }
+body.page-today .today-tiles > .ft-card,
+body.page-today .today-tiles > .eos-nutrition-snap{
+    margin:0; min-width:0; padding:16px; border-radius:22px; border-top:0;
+    background:linear-gradient(180deg,var(--surface-light),var(--surface) 58%);
+    border:1px solid rgba(236,230,212,.09);
+    box-shadow:inset 0 1px 0 rgba(255,244,222,.07),0 2px 6px rgba(0,0,0,.26),0 18px 36px -22px rgba(0,0,0,.7);
+}
+body.page-today .ft-tile{ display:flex; flex-direction:column; gap:4px; margin-top:10px; min-width:0; }
+body.page-today .today-tiles h2{ font:650 17px/1.2 var(--font-body); letter-spacing:0; text-transform:none; color:var(--text); }
+body.page-today .today-tiles .eos-nutrition-snap-header{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; }
+body.page-today .today-tiles .eos-nutrition-snap-bars{ display:block; min-width:0; }
+body.page-today .today-tiles .eos-nutrition-snap-empty{ white-space:normal; font-size:14px; line-height:1.4; color:var(--text-secondary); margin-top:6px; }
+body.page-today .ft-big{ font:600 40px/1 var(--font-display); text-transform:uppercase; letter-spacing:.01em; color:var(--text); }
+body.page-today .ft-big small{ font:600 13px var(--font-body); color:var(--text-secondary); margin-left:3px; }
+body.page-today .ft-name{ font:650 14px/1.25 var(--font-body); color:var(--text); overflow-wrap:anywhere; }
+body.page-today .ft-note{ font:500 12.5px/1.3 var(--font-body); color:var(--text-secondary); }
+body.page-today .ft-header{ flex-direction:column; align-items:flex-start; gap:6px; }
+body.page-today .ft-header .tr-sub{ display:none; }
+body.page-today .ft-header .ft-manage-btn{ display:inline-flex; align-items:center; min-height:44px; margin:-12px 0; padding:0; border:0; background:none; font:650 13px var(--font-body); color:var(--primary); }
+body.page-today .eos-nutrition-ring{ position:relative; width:64px; height:64px; margin:10px 0 4px; }
+body.page-today .eos-nutrition-ring svg{ width:100%; height:100%; transform:rotate(-90deg); }
+body.page-today .eos-nutrition-ring circle{ fill:none; stroke-width:5; }
+body.page-today .eos-nutrition-ring .track{ stroke:rgba(236,230,212,.1); }
+body.page-today .eos-nutrition-ring .fill{ stroke:var(--primary); stroke-linecap:round; }
+body.page-today .eos-nutrition-ring b{ position:absolute; inset:0; display:grid; place-items:center; font:600 15px var(--font-body); color:var(--text); }
+body.page-today .eos-nutrition-num{ display:flex; flex-direction:column; margin-top:6px; }
+body.page-today .eos-nutrition-num b{ font:600 38px/1 var(--font-display); color:var(--text); }
+body.page-today .eos-nutrition-num small{ margin-top:4px; font:500 12.5px/1.3 var(--font-body); color:var(--text-secondary); }
+/* Round three (2026-10-15): the week and the habits are dark bubbles, the readiness keeps its own glass, and
+   Featured Runs and Today's nutrition are the lighter bubbles above. */
+body.page-today .eos-today-card.wk-week-card:not(#todayCard),
+body.page-today .eos-today-card.th-card:not(#todayCard){
+    margin:20px 0 0; padding:18px; border:1px solid rgba(236,230,212,.07); border-radius:28px;
+    background:linear-gradient(180deg, rgba(4,11,8,.62), rgba(7,17,12,.42));
+    box-shadow:inset 0 2px 8px rgba(0,0,0,.4), 0 1px 0 rgba(255,244,222,.06);
+}
+/* Details sits inside the readiness bubble: no spare strip of space under it. */
+.rd-body .rd-more{ margin-top:12px; }
+.rd-card{ margin-bottom:0; }
+
+/* Send to COROS: small, with no sentence beside it. The hit area stays 44px. */
+#todayCard .school-coros-bar-btn{ position:relative; align-self:flex-start; min-height:34px; padding:0 12px; font-size:13px; gap:6px; }
+#todayCard .school-coros-bar-btn::after{ content:""; position:absolute; inset:-5px -2px; }
+#todayCard .school-coros-bar-btn svg, #todayCard .school-coros-bar-btn .ui-icon{ width:14px; height:14px; }
+
+/* The header has no logo or wordmark (2026-10-15): search sits alone on the left. */
+.eos-navbar .eos-nav-left > .search-btn{ grid-column:1; grid-row:1; justify-self:start; }
+.eos-mobile-topbar > #mobileSearchBtn{ grid-column:1; grid-row:1; justify-self:start; }
+
+/* ==========================================================
+   TODAY, THE DEMO'S CARD (after step 7, 2026-10-15): the picture and its labels
+   first, then the name with the miles beside it, the summary, the coach's quote,
+   one full-width Start, and "Mark done" and the ⋮ quiet underneath. The date
+   moved up into the greeting, so the card has no header. The week row's nodes
+   tick a run off.
+   ========================================================== */
+
+body.page-today .eos-today-hero-date{ margin:12px 0 0; font:650 16px/1.3 var(--font-body); color:var(--text); }
+body.page-today .eos-today-hero-date + .eos-today-phase{ margin-top:2px; }
+
+body.page-today #todayCard{ padding:20px 20px 10px; }
+.wk-card.has-contour .wk-contour{ margin:2px 0 0; }
+.wk-card.has-contour .wk-card-top{ margin-top:18px; }
+.wk-actions-stack{ margin-top:16px; }
+.wk-card .wk-actions.wk-actions-stack .school-btn{ flex:1 1 100%; width:100%; max-width:none; min-height:56px; font-size:16px; gap:8px; }
+.wk-actions-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:4px; }
+.wk-actions-row .wk-done.is-secondary{
+    flex:0 0 auto;
+    min-height:44px;
+    padding:0 4px;
+    background:none;
+    border:0;
+    box-shadow:none;
+    color:var(--text-secondary);
+    font-weight:650;
+}
+.wk-actions-row .wk-change.is-compact{ margin-left:auto; width:44px; height:44px; }
+
+/* Today's workout card, the ribbon version (chosen 2026-10-15, "glass pills"): the title and the miles, the run as
+   three glass pills (js/workoutRibbon.js), one quiet glass Mark done and the ⋮. No Start: the title opens the workout. */
+.wk-card-open{ display:flex; align-items:center; min-width:0; min-height:44px; color:inherit; text-decoration:none; }
+.wk-card-open strong{ font:700 22px/1 var(--font-display); letter-spacing:.02em; text-transform:uppercase; color:var(--text); overflow-wrap:anywhere; }
+.wk-card.has-ribbon .wk-card-top{ align-items:center; margin-top:0; }
+.wk-card.has-ribbon .wk-big{ font:600 22px/1 var(--font-display); }
+.wk-card.has-ribbon .wk-big small{ font:600 12px/1 var(--font-body); letter-spacing:0; }
+.wk-ribbon{ margin-top:8px; }
+.wk-ribbon-bar, .wk-ribbon-names{ display:flex; gap:4px; }
+.wk-ribbon-bar{ height:10px; }
+.wk-ribbon-pill{ min-width:0; border-radius:999px; background:linear-gradient(180deg, color-mix(in srgb, var(--sage) 55%, transparent), color-mix(in srgb, var(--sage) 20%, transparent)); border:1px solid color-mix(in srgb, var(--sage) 35%, transparent); box-shadow:inset 0 1px 0 color-mix(in srgb, var(--text) 30%, transparent); }
+.wk-ribbon-pill.is-hard{ background:linear-gradient(180deg, color-mix(in srgb, var(--primary) 90%, var(--text)), color-mix(in srgb, var(--primary) 50%, transparent)); border-color:color-mix(in srgb, var(--primary) 60%, transparent); box-shadow:inset 0 1px 0 color-mix(in srgb, var(--text) 40%, transparent), 0 0 14px color-mix(in srgb, var(--primary) 30%, transparent); }
+.wk-ribbon-names{ margin-top:7px; font-size:12px; line-height:1.3; color:var(--text-secondary); }
+.wk-ribbon-name{ min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wk-ribbon-name.is-hard{ text-align:center; color:var(--text); font-weight:650; }
+.wk-card.has-ribbon .wk-actions-row{ margin-top:12px; }
+.wk-card.has-ribbon .wk-done.is-glass{ position:relative; isolation:isolate; overflow:hidden; flex:1 1 0; min-width:0; min-height:48px; padding:0 20px; border-radius:999px; font:650 15px/1 var(--font-body); color:var(--text); background:linear-gradient(180deg, color-mix(in srgb, var(--text) 12%, transparent), color-mix(in srgb, var(--text) 3%, transparent)); border:1px solid color-mix(in srgb, var(--text) 20%, transparent); box-shadow:inset 0 1px 0 color-mix(in srgb, var(--text) 18%, transparent), 0 8px 18px -12px rgba(0,0,0,.7); -webkit-backdrop-filter:blur(10px) saturate(1.2); backdrop-filter:blur(10px) saturate(1.2); transition:transform .2s var(--ease); }
+.wk-card.has-ribbon .wk-done.is-glass:active{ transform:scale(.98); }
+.wk-card.has-ribbon .wk-done.is-glass.is-done{ background:var(--success-bg); border-color:color-mix(in srgb, var(--green) 45%, transparent); color:var(--success); }
+
+
+/* ==========================================================
+   THE HEADER'S BUTTONS, IN GLASS (after step 7, 2026-10-15): search, the bell
+   and the account circle use the same glass as the bottom bar: a gradient from
+   a lit top to a deep bottom, a lit edge, blur and colour lift, and a soft
+   specular band across the top half. Phone and computer.
+   ========================================================== */
+.eos-navbar .search-btn,
+.eos-navbar .bell-btn,
+.eos-navbar .account-btn,
+.eos-mobile-topbar .eos-mobile-icon-btn,
+.eos-mobile-topbar .account-btn,
+.eos-navbar .search-btn:hover,
+.eos-navbar .bell-btn:hover,
+.eos-navbar .account-btn:hover,
+.eos-mobile-topbar .eos-mobile-icon-btn:hover,
+.eos-mobile-topbar .account-btn:hover{
+    background:linear-gradient(180deg,rgba(150,178,204,.34) 0%,rgba(52,78,104,.5) 46%,rgba(22,34,46,.7) 100%);
+    -webkit-backdrop-filter:blur(28px) saturate(1.9) brightness(1.12);
+    backdrop-filter:blur(28px) saturate(1.9) brightness(1.12);
+    border:1px solid rgba(255,246,226,.24);
+    box-shadow:inset 0 1px 0 rgba(255,250,238,.5),inset 0 -1px 0 rgba(0,0,0,.3),inset 0 0 14px rgba(255,244,222,.05),0 10px 22px -10px rgba(0,0,0,.7),0 2px 6px rgba(0,0,0,.3);
+    color:#F6F0E2;
+}
+.eos-navbar .search-btn:hover,
+.eos-navbar .bell-btn:hover,
+.eos-navbar .account-btn:hover,
+.eos-mobile-topbar .eos-mobile-icon-btn:hover,
+.eos-mobile-topbar .account-btn:hover{ border-color:rgba(255,246,226,.42); }
+.eos-navbar .search-btn::before,
+.eos-navbar .bell-btn::before,
+.eos-navbar .account-btn::before,
+.eos-mobile-topbar .eos-mobile-icon-btn::before,
+.eos-mobile-topbar .account-btn::before{
+    content:"";
+    position:absolute;
+    left:14%;
+    right:14%;
+    top:2px;
+    height:46%;
+    border-radius:999px 999px 70% 70% / 999px 999px 100% 100%;
+    background:linear-gradient(180deg,rgba(255,250,238,.3),rgba(255,250,238,.05) 72%,transparent);
+    pointer-events:none;
+}
+/* The icon, the initials or the photo sit above the shine; the bell's count stays pinned to its corner. */
+.eos-navbar .search-btn > :not(.bell-dot),
+.eos-navbar .bell-btn > :not(.bell-dot),
+.eos-navbar .account-btn > :not(.bell-dot),
+.eos-mobile-topbar .eos-mobile-icon-btn > :not(.bell-dot),
+.eos-mobile-topbar .account-btn > :not(.bell-dot){ position:relative; z-index:1; }
+
+/* A guest on a page open to everyone (the Fueling calculator, js/loadHeader.js GUEST_PAGES, 2026-10-15):
+   no app tabs, menus, search or bell, which would only lead to sign-in; a Home link back to the site. */
+.school-guest-home{ display:none; }
+html.school-guest .school-guest-home{
+    display:inline-flex; align-items:center; gap:7px; min-height:44px; padding:0 16px; border-radius:999px;
+    font:650 14px var(--font-body); color:var(--text); text-decoration:none;
+    background:linear-gradient(180deg, rgba(236,230,212,.12), rgba(236,230,212,.03));
+    border:1px solid rgba(236,230,212,.2); box-shadow:inset 0 1px 0 rgba(255,244,222,.18);
+}
+html.school-guest .school-guest-home .ui-icon{ width:16px; height:16px; }
+html.school-guest .eos-mobile-topbar > .school-guest-home,
+html.school-guest .eos-navbar .eos-nav-left > .school-guest-home{ grid-column:1; grid-row:1; justify-self:start; }
+html.school-guest .eos-bottomnav,
+html.school-guest .eos-subnav,
+html.school-guest .eos-nav-links,
+html.school-guest .search-btn,
+html.school-guest #mobileSearchBtn,
+html.school-guest .bell-btn{ display:none !important; }
+html.school-guest body.has-bottomnav{ padding-bottom:32px !important; }
+/* ==========================================================
+   PREMIUM SURFACES (2026-10-17): the bubbles, glass and lens the premium
+   steps drew page by page, as tokens, so the remaining screens (Progress,
+   the Client Hub, Strength, Check-in, Sessions, Messages, From Your Coach)
+   share one recipe instead of copying it.
+     dark bubble   what you fill in or scan (a list, a form)
+     raised bubble the one thing to read first on the page
+     glass         quiet secondary buttons and chips
+     lens          the chosen tab or chip, and the main action
+========================================================== */
+:root{
+    --school-bubble-dark-bg:linear-gradient(180deg, rgba(4,11,8,.62), rgba(7,17,12,.42));
+    --school-bubble-dark-border:rgba(236,230,212,.07);
+    --school-bubble-dark-shadow:inset 0 2px 8px rgba(0,0,0,.4), 0 1px 0 rgba(255,244,222,.06);
+    --school-bubble-raised-bg:linear-gradient(180deg, var(--surface-light), var(--surface) 58%);
+    --school-bubble-raised-border:rgba(236,230,212,.09);
+    --school-bubble-raised-shadow:inset 0 1px 0 rgba(255,244,222,.07), 0 2px 6px rgba(0,0,0,.26), 0 28px 56px -28px rgba(0,0,0,.75);
+    --school-glass-bg:linear-gradient(180deg, rgba(236,230,212,.1), rgba(236,230,212,.035));
+    --school-glass-border:rgba(236,230,212,.14);
+    --school-glass-shadow:inset 0 1px 0 rgba(255,244,222,.08);
+    --school-lens-bg:linear-gradient(180deg, #E8CFA6, var(--primary));
+    --school-lens-shadow:inset 0 1px 0 rgba(255,255,255,.45), 0 4px 12px -6px rgba(214,185,142,.6);
+    --school-inset-bg:rgba(4,11,8,.5);
+    --school-inset-border:rgba(236,230,212,.12);
+    --school-inset-shadow:inset 0 2px 6px rgba(0,0,0,.3);
+    --school-hairline:rgba(236,230,212,.09);
+}
+
+/* ==========================================
+   COMPLETION MOMENTS (js/celebrate.js, 2026-10-17; Bloom + per-habit scenes)
+   A run: a full-screen blue moment (.school-cr): the check draws, blue Calera Math emojis burst and fall, then the summary and one next step.
+   A habit: a full-page moment made for that habit (its icon, name, line and a scene for its family).
+   The effects never take taps (pointer-events:none); the run summary has real buttons. Reduced motion: the run summary with no motion; habits show nothing.
+========================================== */
+@keyframes school-cel-fadeout{ to{ opacity:0; } }
+@keyframes school-cel-fade{ from{ opacity:0; } to{ opacity:1; } }
+@keyframes school-cel-draw{ to{ stroke-dashoffset:0; } }
+@keyframes school-cel-rise{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+
+/* ---- run and day: full-screen light celebration (2026-11-02, Eddie picked "A, Burst") ----
+   The opposite of the dark app on purpose, so it stands out: an ice-white screen wipes in from the check (iris),
+   a navy check pops, Calera Math emojis in deep blue burst out and squash where they land, the title drops in
+   letter by letter and the numbers count up. The effects never take a tap; the buttons do. Tap anywhere else skips
+   the animation (.is-skip). Reduced motion (.is-still): the summary with no motion. Counting needs @property
+   (.can-count); without it the real numbers just show. */
+@property --c1{ syntax:"<integer>"; inherits:true; initial-value:0; }
+@property --c2{ syntax:"<integer>"; inherits:true; initial-value:0; }
+.school-cr{
+    /* a light palette of its own, from the app's blue; it does not follow the dark app tokens */
+    --cr-ink:#0E1B27; --cr-navy:#13202B; --cr-deep:#2F5B86; --cr-blue:#4F86B8; --cr-ice:#EAF3FB; --cr-sub:#3C5368; --cr-line:rgba(19,32,43,.14);
+    position:fixed; inset:0; z-index:4800; overflow:hidden auto; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:max(24px, env(safe-area-inset-top, 0px)) 24px max(24px, env(safe-area-inset-bottom, 0px)); color:var(--cr-ink);
+}
+.school-cr.is-out{ animation:school-cel-fadeout .38s ease-in both; }
+.school-cr [hidden]{ display:none !important; }
+.cr-wash{ position:fixed; inset:0; pointer-events:none; background:radial-gradient(90% 60% at 50% 34%, #fff, var(--cr-ice) 45%, #C9DDF0 100%); animation:cr-iris .62s cubic-bezier(.65,0,.25,1) both; }
+.cr-wash::after{ content:""; position:absolute; inset:0; background:radial-gradient(70% 40% at 50% 100%, rgba(79,134,184,.28), transparent 70%); animation:school-cel-fade 1s .5s both; }
+@keyframes cr-iris{ from{ clip-path:circle(0 at 50% var(--cy)); } to{ clip-path:circle(150% at 50% var(--cy)); } }
+.cr-edge{ position:fixed; left:50%; top:var(--cy); width:20px; height:20px; margin:-10px; border-radius:50%; border:3px solid var(--cr-blue); opacity:0; pointer-events:none; animation:cr-edge .62s cubic-bezier(.65,0,.25,1) both; }
+@keyframes cr-edge{ 0%{ opacity:.9; transform:scale(0); } 100%{ opacity:0; transform:scale(160); } }
+.cr-fx{ position:fixed; inset:0; pointer-events:none; z-index:1; overflow:hidden; }
+.cr-core{ position:relative; z-index:2; width:100%; max-width:460px; margin:auto; display:flex; flex-direction:column; align-items:center; text-align:center; }
+.cr-lens{ position:relative; width:132px; height:132px; margin-bottom:22px; flex:0 0 auto; display:grid; place-items:center; }
+.cr-lens > i{ position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle at 35% 30%, #3F78AD, var(--cr-navy) 70%); box-shadow:0 18px 40px -10px rgba(19,32,43,.55), inset 0 2px 0 rgba(255,255,255,.35); animation:cr-pop .55s .35s cubic-bezier(.3,1.6,.4,1) both; }
+.cr-lens::before{ content:""; position:absolute; inset:-70px; border-radius:50%; background:radial-gradient(circle, rgba(79,134,184,.45), transparent 65%); animation:cr-glow 1.6s .5s ease-out both; }
+@keyframes cr-pop{ from{ transform:scale(0); } }
+@keyframes cr-glow{ 0%{ opacity:0; transform:scale(.4); } 40%{ opacity:1; } 100%{ opacity:.5; transform:scale(1); } }
+.cr-lens > svg{ position:relative; width:70px; height:70px; overflow:visible; }
+.cr-lens > svg polyline{ fill:none; stroke:#fff; stroke-width:6; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:40; stroke-dashoffset:40; animation:school-cel-draw .4s .75s cubic-bezier(.2,.8,.2,1) forwards; }
+.cr-ring{ position:absolute; left:50%; top:50%; width:132px; height:132px; margin:-66px; border-radius:50%; border:2px solid var(--cr-blue); opacity:0; animation:cr-ring 1.5s var(--d) ease-out both; }
+@keyframes cr-ring{ 0%{ opacity:.8; transform:scale(.8); } 100%{ opacity:0; transform:scale(5.5); } }
+.cr-kick{ margin:0; font:600 12px/1.3 var(--font-mono); letter-spacing:.18em; text-transform:uppercase; color:var(--cr-deep); animation:school-cel-rise .5s .9s both; }
+.cr-title{ margin:6px 0 0; max-width:100%; font:800 clamp(44px, 15vw, 64px)/.95 var(--font-display); text-transform:uppercase; letter-spacing:.012em; color:var(--cr-ink); }
+.cr-letters{ display:flex; justify-content:center; flex-wrap:wrap; column-gap:.26em; }
+/* words stay whole: a long custom habit name wraps between words, and js fitTitle shrinks it to two lines at most */
+.cr-w{ display:inline-flex; white-space:nowrap; }
+.cr-w > span{ display:inline-block; animation:cr-drop .5s calc(1s + var(--k) * .035s) cubic-bezier(.3,1.6,.4,1) both; }
+.cr-letters .cr-sp{ width:.28em; }
+@keyframes cr-drop{ from{ opacity:0; transform:translateY(-.9em) scale(.8) rotate(-6deg); } }
+.cr-stats{ display:grid; grid-template-columns:repeat(var(--n), 1fr); gap:8px; width:100%; margin:26px 0 4px; animation:school-cel-rise .5s 1.35s both; }
+.cr-stats b{ display:block; font:600 28px/1.1 var(--font-mono); letter-spacing:-.01em; color:var(--cr-ink); }
+.cr-stats span{ font:600 11px/1.3 var(--font-mono); letter-spacing:.1em; text-transform:uppercase; color:var(--cr-sub); }
+.cr-stats b > .cr-txt{ font:inherit; letter-spacing:inherit; color:inherit; text-transform:none; }
+/* the numbers count up: the real text stays for screen readers, the counter draws in its place */
+.can-count .cr-cu{ counter-reset:c1 var(--c1) c2 var(--c2); animation:cr-count 1.1s 1.4s cubic-bezier(.2,.7,.2,1) both; }
+.can-count .cr-cu > .cr-txt{ font-size:0; }
+.can-count .cr-cu::after{ font:inherit; }
+.can-count .cr-cu-dec::after{ content:counter(c1) "." counter(c2); }
+.can-count .cr-cu-int::after{ content:counter(c1); }
+.can-count .cr-cu-clk::after{ content:counter(c1) ":" counter(c2, decimal-leading-zero); }
+@keyframes cr-count{ from{ --c1:0; --c2:0; } to{ --c1:var(--a); --c2:var(--b); } }
+.cr-week{ width:100%; margin-top:22px; padding-top:18px; border-top:1px solid var(--cr-line); animation:school-cel-rise .5s 1.6s both; }
+.cr-week small{ font:600 12px/1.3 var(--font-mono); letter-spacing:.16em; text-transform:uppercase; color:var(--cr-deep); }
+.cr-strip{ display:grid; grid-template-columns:repeat(var(--n), 1fr); gap:6px; margin-top:10px; }
+.cr-strip i{ display:block; height:8px; border-radius:4px; background:rgba(19,32,43,.12); position:relative; overflow:hidden; }
+.cr-strip i.is-on::after, .cr-strip i.is-now::after{ content:""; position:absolute; inset:0; background:var(--cr-blue); }
+.cr-strip i.is-now::after{ background:linear-gradient(90deg, var(--cr-blue), var(--cr-deep)); transform-origin:left; animation:cr-fillx .7s 1.9s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes cr-fillx{ from{ transform:scaleX(0); } }
+.cr-sl{ display:flex; justify-content:space-between; gap:12px; margin-top:10px; font:600 12.5px/1.3 var(--font-mono); color:var(--cr-sub); }
+.cr-sl b{ color:var(--cr-ink); font-weight:600; }
+.cr-line{ margin:14px 0 0; font:500 14px/1.4 var(--font-body); color:var(--cr-sub); animation:school-cel-fade .5s 2.3s both; }
+.cr-offline{ margin:16px 0 0; padding:11px 13px; width:100%; border-radius:10px; text-align:left; background:rgba(79,134,184,.12); border:1px solid var(--cr-line); font:500 13.5px/1.35 var(--font-body); color:var(--cr-ink); animation:school-cel-rise .5s 2.2s both; }
+.cr-actions{ width:100%; margin-top:22px; display:flex; flex-direction:column; gap:2px; animation:school-cel-rise .5s 2.4s both; }
+.cr-go{ width:100%; min-height:52px; border:0; border-radius:6px; font:700 16px var(--font-body); color:#fff; cursor:pointer; background:linear-gradient(180deg, #2c4358, var(--cr-navy)); box-shadow:0 10px 24px -8px rgba(19,32,43,.55), inset 0 1px 0 rgba(255,255,255,.2); }
+.cr-close{ min-height:46px; border:0; background:none; color:var(--cr-sub); font:600 14px var(--font-body); cursor:pointer; }
+.cr-go:focus-visible, .cr-close:focus-visible{ outline:2px solid var(--cr-blue); outline-offset:3px; }
+.cr-tap{ position:fixed; bottom:calc(12px + env(safe-area-inset-bottom, 0px)); left:0; right:0; margin:0; text-align:center; z-index:1; pointer-events:none; font:600 10.5px var(--font-mono); letter-spacing:.14em; text-transform:uppercase; color:rgba(19,32,43,.4); animation:school-cel-fade .6s 2.8s both; }
+.cr-burst, .cr-bit{ position:absolute; left:50%; top:var(--cy); will-change:transform, opacity; }
+.cr-burst{ width:var(--z); height:var(--z); margin:calc(var(--z) / -2) 0 0 calc(var(--z) / -2); opacity:0; animation:cr-burst 3s var(--d) cubic-bezier(.15,.8,.25,1) both; filter:drop-shadow(0 10px 12px rgba(19,32,43,.28)); }
+@keyframes cr-burst{ 0%{ opacity:0; transform:translate(0,0) scale(.2) rotate(0); } 8%{ opacity:1; } 30%{ transform:translate(var(--dx), var(--dy)) scale(1.25,.8) rotate(var(--r)); } 38%{ transform:translate(var(--dx), var(--dy)) scale(.9,1.1) rotate(var(--r)); } 46%{ transform:translate(var(--dx), var(--dy)) scale(1) rotate(var(--r)); } 82%{ opacity:1; } 100%{ opacity:0; transform:translate(calc(var(--dx) * 1.15), calc(var(--dy) - 40px)) scale(.8) rotate(calc(var(--r) * 1.6)); } }
+.cr-bit{ width:var(--w); height:calc(var(--w) * 2.4); margin-left:-3px; border-radius:2px; opacity:0; animation:cr-bit 2.8s var(--d) cubic-bezier(.2,.7,.3,1) both; }
+.cr-b0{ background:var(--cr-navy); } .cr-b1{ background:var(--cr-deep); } .cr-b2{ background:var(--cr-blue); } .cr-b3{ background:#6FA3D2; } .cr-b4{ background:#fff; }
+@keyframes cr-bit{ 0%{ opacity:0; transform:translate(0,0) rotate(0); } 8%{ opacity:1; } 100%{ opacity:0; transform:translate(var(--dx), var(--dy)) rotate(var(--r)); } }
+/* quick pop for an ordinary habit tick: same look, about two seconds, any tap closes it */
+.school-cr.is-quick .cr-lens{ width:104px; height:104px; margin-bottom:26px; }
+.school-cr.is-quick .cr-ring{ width:104px; height:104px; margin:-52px; animation-duration:1s; }
+.school-cr.is-quick .cr-wash{ animation-duration:.4s; } .school-cr.is-quick .cr-edge{ animation-duration:.4s; }
+.school-cr.is-quick .cr-lens > i{ animation-delay:.15s; } .school-cr.is-quick .cr-lens > svg polyline{ animation-delay:.4s; }
+.school-cr.is-quick .cr-kick{ animation-delay:.7s; }
+.school-cr.is-quick .cr-title{ font-size:clamp(34px, 11vw, 48px); }
+.school-cr.is-quick .cr-w > span{ animation-delay:calc(.75s + var(--k) * .03s); }
+.school-cr.is-quick .cr-stats{ margin-top:16px; animation-delay:1s; }
+.school-cr.is-quick .can-count .cr-cu, .school-cr.is-quick.can-count .cr-cu{ animation-delay:1s; animation-duration:.6s; }
+.school-cr.is-quick .cr-burst{ animation-duration:2s; } .school-cr.is-quick .cr-bit{ animation-duration:1.8s; }
+/* a habit's own scene (css/habitScenes.css): a bigger disc, the check waits until the scene is over (--ckd) */
+.school-cr.is-quick.has-scene .cr-lens{ width:132px; height:132px; margin-bottom:24px; }
+.school-cr.has-scene .cr-lens{ --blue:var(--cr-blue); --ice:var(--cr-ice); --navy:var(--cr-navy); --deep:var(--cr-deep); --sub:var(--cr-sub); }
+.school-cr .cr-lens .sc{ position:absolute; inset:0; z-index:2; pointer-events:none; }
+.school-cr.has-scene .cr-lens .sc{ animation:cr-scout .35s calc(var(--ckd) - .3s) both; }
+@keyframes cr-scout{ from{ opacity:1; } to{ opacity:0; transform:scale(.5); filter:blur(3px); } }
+.school-cr.has-scene .cr-lens > svg{ z-index:6; opacity:0; animation:cr-ckin .3s calc(var(--ckd) - .15s) both; }
+.school-cr.is-quick.has-scene .cr-lens > svg polyline{ stroke-width:8; animation-delay:calc(var(--ckd) - .12s); animation-duration:.35s; filter:drop-shadow(0 2px 3px rgba(19,32,43,.5)); }
+@keyframes cr-ckin{ from{ opacity:0; transform:scale(.6); } to{ opacity:1; transform:none; } }
+.school-cr.is-skip.has-scene .cr-lens > svg{ opacity:1; animation:none; }
+/* skip: jump to the finished summary */
+.school-cr.is-skip .cr-fx, .school-cr.is-skip .cr-ring, .school-cr.is-skip .cr-tap, .school-cr.is-skip .cr-edge{ display:none; }
+/* ---- 2026-11-02 audit pass ---- */
+/* pace fades in once the counted numbers land */
+.cr-late{ animation:school-cel-fade .5s 2.3s both; }
+/* a slow light sweep across the check while the full screen rests */
+.school-cr:not(.is-quick):not(.is-still) .cr-lens::after{ content:""; position:absolute; inset:0; z-index:7; border-radius:50%; pointer-events:none;
+    background:linear-gradient(115deg, transparent 38%, rgba(255,255,255,.32) 50%, transparent 62%) no-repeat; background-size:260% 100%; background-position:160% 0;
+    animation:cr-sheen 4.2s 3s ease-in-out infinite; }
+@keyframes cr-sheen{ 0%{ background-position:160% 0; } 60%, 100%{ background-position:-60% 0; } }
+/* sound on or off (shared with the water screen) */
+.cr-snd{ position:fixed; top:calc(12px + env(safe-area-inset-top, 0px)); right:calc(12px + env(safe-area-inset-right, 0px)); z-index:3; width:44px; height:44px; border-radius:12px;
+    border:1px solid rgba(19,32,43,.12); background:rgba(255,255,255,.6); color:var(--cr-sub); display:grid; place-items:center; cursor:pointer; animation:school-cel-fade .4s .6s both; }
+.cr-snd:focus-visible{ outline:2px solid var(--cr-blue); outline-offset:2px; }
+/* Day complete: the last seven days, today fills in last */
+.cr-days{ width:100%; margin-top:20px; animation:school-cel-rise .5s 1.7s both; }
+.cr-dots{ display:flex; justify-content:center; gap:12px; }
+.cr-dot{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+.cr-dot i{ position:relative; width:18px; height:18px; border-radius:50%; border:2px solid rgba(19,32,43,.2); }
+.cr-dot.is-done i{ background:var(--cr-blue); border-color:var(--cr-blue); }
+.cr-dot.is-today i{ background:none; border-color:var(--cr-navy); }
+.cr-dot.is-today i::after{ content:""; position:absolute; inset:-2px; border-radius:50%; background:var(--cr-navy); box-shadow:0 0 0 4px rgba(79,134,184,.25); animation:cr-dotin .45s 2.2s cubic-bezier(.3,1.6,.4,1) both; }
+@keyframes cr-dotin{ from{ transform:scale(0); } }
+.cr-dot small{ font:600 10px/1 var(--font-mono); letter-spacing:.06em; color:var(--cr-sub); }
+.cr-dot.is-today small{ color:var(--cr-ink); }
+/* quick pop: a thin ring around the check fills to how many are done today */
+.school-cr.school-cr .cr-lens > svg.cr-prog{ position:absolute; inset:-12px; width:calc(100% + 24px); height:calc(100% + 24px); transform:rotate(-90deg); z-index:0; opacity:1; animation:none; overflow:visible; }
+.cr-prog circle{ fill:none; }
+.cr-prog-bg{ stroke:rgba(19,32,43,.1); stroke-width:3; }
+.cr-prog-on{ stroke:var(--cr-blue); stroke-width:4; stroke-linecap:round; stroke-dasharray:100; stroke-dashoffset:calc(100 - var(--to)); animation:cr-prog .8s .5s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes cr-prog{ from{ stroke-dashoffset:calc(100 - var(--from)); } }
+/* phones: the buttons sit in thumb reach at the bottom */
+@media (max-width:699px){
+    .school-cr:not(.is-quick){ padding-bottom:calc(150px + env(safe-area-inset-bottom, 0px)); }
+    .school-cr:not(.is-quick) .cr-actions{ position:fixed; left:0; right:0; bottom:calc(34px + env(safe-area-inset-bottom, 0px)); margin:0 auto; width:calc(100% - 48px); max-width:460px; z-index:3; }
+}
+.school-cr.is-skip *, .school-cr.is-still *{ animation-duration:.01s !important; animation-delay:0s !important; }
+.school-cr.is-still .cr-lens::before, .school-cr.is-skip .cr-lens::before{ display:none; }
+@media (min-width:700px){ .cr-core{ max-width:520px; } }
+
+
+/* ==========================================================
+   COMPUTER SIDEBAR (2026-10-17, Eddie picked the full sidebar from three demos)
+   On a computer the menu runs down the left: wordmark, search, the sections
+   with their pages listed underneath (an accordion), the account at the bottom.
+   Below 901px nothing here applies: the phone top bar and bottom tabs are unchanged.
+   Sections open in place (no floating menus); js/loadHeader.js keeps them open.
+   ========================================================== */
+.school-side-brand,.school-side-ic,.school-side-search,.school-side-who{ display:none; }
+@media (min-width:901px){
+  body{ padding-left:256px; }
+  html body .eos-navbar{
+    position:fixed; inset:0 auto 0 0; z-index:1000; width:256px; height:100vh; margin:0; padding:22px 16px 18px;
+    overflow-y:auto; overscroll-behavior:contain;
+    display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; gap:16px;
+    background:linear-gradient(180deg,rgba(22,38,29,.97),rgba(10,20,14,.97));
+    border:0; border-right:1px solid rgba(235,232,220,.10); border-radius:0; box-shadow:none;
+    backdrop-filter:none; -webkit-backdrop-filter:none;
+  }
+  html body .eos-navbar .school-side-brand{
+    display:block; padding:2px 10px 0; font:800 19px/1 var(--font-brand); letter-spacing:.08em;
+    text-transform:uppercase; color:var(--text); text-decoration:none;
+  }
+  html body .eos-navbar .eos-nav-left{ display:flex; flex-direction:column; align-items:stretch; gap:18px; }
+  html body .eos-navbar .search-btn{
+    flex:none; width:100%; height:44px; padding:0 14px; justify-content:flex-start; gap:10px; border-radius:10px;
+    display:flex; align-items:center; background:rgba(15,28,20,.55); border:1px solid rgba(235,232,220,.14);
+    color:var(--muted); font:500 14px var(--font-body); box-shadow:none;
+  }
+  html body .eos-navbar .search-btn::before,
+  html body .eos-navbar .eos-nav-right .account-btn::before{ display:none; }
+  html body .eos-navbar .school-side-search{ display:inline; }
+  html body .eos-navbar .eos-nav-links{
+    display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; gap:2px; padding:0;
+    border:0; border-radius:0; background:none; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none;
+  }
+  html body .eos-navbar .eos-dropdown{ display:block; }
+  html body .eos-navbar .eos-nav-item,
+  html body .eos-navbar .eos-dropdown-trigger{
+    display:flex; align-items:center; justify-content:flex-start; width:100%; min-height:44px; padding:0 12px; gap:12px;
+    border-radius:10px; font-size:15px; font-weight:600;
+  }
+  html body .eos-navbar .school-side-ic{ display:block; flex:0 0 20px; width:20px; height:20px; opacity:.85; }
+  html body .eos-navbar .school-side-ic .ui-icon{ width:20px; height:20px; }
+  html body .eos-navbar .eos-chevron{ margin-left:auto; }
+  html body .eos-navbar .eos-nav-item.active,
+  html body .eos-navbar .eos-dropdown-trigger.section-active{
+    background:rgba(201,173,132,.16); color:var(--text); box-shadow:inset 3px 0 0 var(--primary);
+  }
+  html body .eos-navbar .eos-nav-item.active .school-side-ic,
+  html body .eos-navbar .eos-dropdown-trigger.section-active .school-side-ic{ color:var(--primary); opacity:1; }
+  html body .eos-navbar .eos-dropdown-menu{
+    position:static; display:none; min-width:0; margin:2px 0 6px 22px; padding:2px 0 2px 10px;
+    opacity:1; visibility:visible; transform:none;
+    border:0; border-left:1px solid rgba(235,232,220,.14); border-radius:0; background:none;
+    box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none;
+  }
+  html body .eos-navbar .eos-dropdown[open] > .eos-dropdown-menu{ display:block; transform:none; }
+  html body .eos-navbar .eos-dropdown-menu::before{ display:none; }
+  html body .eos-navbar .eos-dropdown-link{ display:flex; align-items:center; min-height:40px; padding:0 12px; font-size:14px; border-radius:8px; }
+  html body .eos-navbar .eos-nav-right{
+    margin-top:auto; display:flex; flex-direction:row; align-items:center; gap:10px; padding-top:14px;
+    border-top:1px solid rgba(235,232,220,.10);
+  }
+  html body .eos-navbar .eos-nav-right .account-btn{
+    flex:1; width:auto; height:auto; min-height:52px; display:flex; place-items:unset; justify-content:flex-start; gap:12px;
+    padding:4px; background:none; border:0; border-radius:12px; box-shadow:none; text-align:left;
+  }
+  html body .eos-navbar .eos-nav-right .account-avatar{
+    flex:0 0 44px; width:44px; height:44px; border:1px solid rgba(236,230,212,.18);
+    background:linear-gradient(180deg,var(--surface-light),var(--surface));
+  }
+  html body .eos-navbar .school-side-who{ display:flex; flex-direction:column; line-height:1.25; min-width:0; }
+  html body .eos-navbar .school-side-who strong{ font:600 14px var(--font-body); color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  html body .eos-navbar .school-side-who small{ font:500 11px var(--font-mono); letter-spacing:.12em; text-transform:uppercase; color:var(--muted); }
+  /* Guests on a page open to everyone keep their single Home link. */
+  html.school-guest body{ padding-left:0; }
+  html.school-guest body .eos-navbar{ position:relative; inset:auto; width:min(1600px,96%); height:auto; margin:18px auto 30px; padding:0; flex-direction:row; background:none; border:0; overflow:visible; }
+  html.school-guest .school-side-brand{ display:none !important; }
+}
+
+
+/* ==========================================================
+   SECTION TABS (option A, Eddie 2026-10-18): the pages of a section (Train,
+   Fuel, Coach) as one glass switch with a solid tan thumb on the current
+   page. It stays pinned under the phone's top edge while the page scrolls;
+   swiping the page sideways moves to the next tab (js/subnavSwipe.js).
+   Icons sit beside the labels when there's room and hide on narrow phones.
+   ========================================================== */
+@media (max-width:900px){
+  .eos-subnav{
+    display:flex;gap:2px;
+    position:sticky;top:calc(8px + env(safe-area-inset-top));z-index:1150;
+    width:min(560px,calc(100% - 24px));margin:0 auto 16px;padding:4px;
+    border-radius:999px;background:rgba(22,34,46,.9);border:1px solid rgba(214,228,240,.16);
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.35),0 10px 24px rgba(0,0,0,.25);
+    backdrop-filter:blur(18px) saturate(135%);-webkit-backdrop-filter:blur(18px) saturate(135%);
+    overflow:visible;
+  }
+  .eos-subnav-link{
+    flex:1 1 auto;display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:44px;padding:0 7px;
+    border:0;border-radius:999px;background:transparent;color:var(--text-secondary);
+    font-size:.78rem;font-weight:700;letter-spacing:0;text-decoration:none;white-space:nowrap;
+    transition:background-color .2s ease,color .2s ease,box-shadow .2s ease;
+  }
+  .eos-subnav-icon{display:inline-flex;flex:0 0 auto}
+  .eos-subnav-icon .ui-icon{width:15px;height:15px}
+  .eos-subnav-label{overflow:hidden;text-overflow:ellipsis}
+  .eos-subnav-link.active{
+    background:linear-gradient(180deg,#DCE8F2,var(--primary));color:var(--on-primary);
+    box-shadow:0 4px 14px rgba(150,190,226,.3);
+  }
+  /* The top bar scrolls away on these pages; the tabs take its place at the top. */
+  body:has(.eos-subnav) .eos-mobile-topbar{position:static}
+  /* Five tabs (Coach): icons only on the current one, so the labels fit. */
+  .eos-subnav[style*="--subnav-count:5"] .eos-subnav-link:not(.active) .eos-subnav-icon{display:none}
+  .eos-subnav[style*="--subnav-count:5"] .eos-subnav-link{font-size:.72rem;gap:4px}
+}
+@media (max-width:360px){
+  .eos-subnav-link:not(.active) .eos-subnav-icon{display:none}
+  .eos-subnav[style*="--subnav-count:5"] .eos-subnav-icon{display:none}
+  .eos-subnav[style*="--subnav-count:5"] .eos-subnav-link{font-size:.7rem;padding:0 5px}
+}
+
+/* The page you swiped to slides in from the side your finger came from. */
+@media (max-width:900px) and (prefers-reduced-motion:no-preference){
+  body[data-subnav-in] main{animation:school-subnav-in .28s cubic-bezier(.22,.8,.3,1) both}
+  body[data-subnav-in="prev"] main{--school-slide-from:-28px}
+  body[data-subnav-in="next"] main{--school-slide-from:28px}
+}
+@keyframes school-subnav-in{from{opacity:.0;transform:translateX(var(--school-slide-from,24px))}to{opacity:1;transform:none}}
+
+/* ==========================================================
+   RACE COUNTDOWN STRIP (client Today, 2026-10-18): a big "36 days to go"
+   and the training block as one bar, a segment per week. Only with a race
+   ahead (js/raceStrip.js). Tan = this week, sage = done weeks.
+========================================================== */
+.race-strip{ margin-top:16px; max-width:560px; }
+.race-strip[hidden]{ display:none !important; }
+.race-strip-top{ display:flex; align-items:flex-end; gap:12px; }
+.race-strip-big{ font:900 clamp(76px, 24vw, 112px)/.8 var(--font-display); color:var(--primary); letter-spacing:-.01em; text-transform:uppercase; }
+.race-strip-unit{ font:900 clamp(24px, 7vw, 34px)/.95 var(--font-display); text-transform:uppercase; color:var(--text); padding-bottom:3px; }
+.race-strip-bar{ display:flex; gap:3px; margin-top:14px; align-items:center; height:10px; }
+.race-strip-bar i{ flex:1; height:6px; border-radius:3px; background:rgba(236,230,212,.12); }
+.race-strip-bar i.is-done{ background:var(--sage); }
+.race-strip-bar i.is-now{ height:10px; background:var(--school-lens-bg); box-shadow:var(--school-lens-shadow); }
+.race-strip-foot{ display:flex; justify-content:space-between; gap:10px; margin-top:8px; font:500 11.5px/1.3 var(--font-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+
+/* Today's session is the one raised card; a tan rule marks it. */
+body.page-today #todayCard{
+    background:var(--school-bubble-raised-bg);
+    border:1px solid var(--school-bubble-raised-border);
+    border-top:2px solid var(--primary);
+    box-shadow:var(--school-bubble-raised-shadow);
+}
+
+/* ==========================================================
+   READABLE CHARTS (js/chartTips.js + js/svgCharts.js)
+   Tap, hover or arrow through a chart to read a point: a thin
+   crosshair, a dot and one mono line of text (Apache ECharts'
+   axis-tooltip idea, no library). Charts draw in once per visit.
+========================================================== */
+.school-chart{ position:relative; outline:none; touch-action:pan-y; -webkit-tap-highlight-color:transparent; cursor:crosshair; }
+.school-chart:focus-visible{ box-shadow:0 0 0 2px var(--primary); border-radius:var(--radius-sm); }
+.school-chart [hidden]{ display:none !important; }
+.school-cross, .school-dot, .school-tip{ position:absolute; pointer-events:none; opacity:0; transition:opacity .15s ease; z-index:2; }
+.school-chart.is-reading > .school-cross, .school-chart.is-reading > .school-dot, .school-chart.is-reading > .school-tip{ opacity:1; }
+.school-cross{ width:0; border-left:1px dashed color-mix(in srgb, var(--text) 45%, transparent); transform:translateX(-.5px); }
+.school-dot{ width:10px; height:10px; margin:-5px 0 0 -5px; border-radius:50%; background:var(--primary); box-shadow:0 0 0 3px var(--bg), 0 0 0 4px color-mix(in srgb, var(--primary) 50%, transparent); }
+.school-tip{ width:max-content; max-width:min(100%, 300px); padding:5px 8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface-light); color:var(--text); font-family:var(--font-mono); font-size:11px; font-weight:600; letter-spacing:.04em; line-height:1.3; box-shadow:var(--shadow); }
+.tr-bars.school-chart .tr-bar.is-picked .tr-bar-fill{ opacity:1; box-shadow:0 0 0 2px color-mix(in srgb, var(--primary) 55%, transparent); }
+.tr-bars.school-chart .tr-bar.is-picked small{ color:var(--text); }
+html:not(.school-charts-drawn) .school-chart > svg{ animation:sbChartDraw .9s cubic-bezier(.2,.7,.2,1) backwards; }
+html:not(.school-charts-drawn) .tr-bars.school-chart .tr-bar-fill, html:not(.school-charts-drawn) .tr-bars.school-chart .tr-bar-plan{ transform-origin:bottom; animation:sbChartGrow .7s cubic-bezier(.2,.7,.2,1) backwards; }
+@keyframes sbChartDraw{ from{ clip-path:inset(-20% 100% -20% -5%); } to{ clip-path:inset(-20% -5% -20% -5%); } }
+@keyframes sbChartGrow{ from{ transform:scaleY(0); } to{ transform:scaleY(1); } }
+@media (prefers-reduced-motion:reduce){
+    html .school-chart > svg, html .tr-bars.school-chart .tr-bar-fill, html .tr-bars.school-chart .tr-bar-plan{ animation:none !important; }
+    .school-cross, .school-dot, .school-tip{ transition:none; }
+}
+
+/* Bottom bars on a phone (js/viewportFix.js): hidden while a field has the keyboard or a picker open,
+   and moved back down when iOS 26 leaves them drawn up the page after the keyboard closes. */
+@media (max-width:900px){
+    html .eos-bottomnav{ translate:0 var(--school-vv-fix, 0px); }
+    html.school-typing .eos-bottomnav{ display:none !important; }
+}
+.school-empty-card{ margin-top:12px; }

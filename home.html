@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calera Math — Steers | Sign in</title>
+    <meta name="description" content="Calera Middle School math class board for Mr. Steers. Teacher-only — sign in with Google.">
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/calera.css">
+    <meta name="theme-color" content="#0E2A47">
+</head>
+<body>
+    <div id="header"></div>
+    <main class="school-home">
+        <p class="school-eyebrow">Calera Middle School — Home of the Eagles</p>
+        <h1 class="school-title">Calera Math — Steers</h1>
+        <p class="school-sub">Class library, board display, and teacher remote for Mr. Steers' 7th Grade, 8th Grade, and 8th Grade Accelerated classes.</p>
+        <p>This site is teacher-only. Students do not sign in and cannot type into it — the Promethean board is a display for the class.</p>
+        <div class="remote-controls">
+            <button id="homeSignIn" class="btn" type="button">Sign In with Google</button>
+            <a class="btn secondary" href="index.html">Go to Home</a>
+        </div>
+        <p id="homeSignInNote" class="school-sub" role="status"></p>
+        <div class="school-note">Sign in with the teacher's Google account. If Firebase is not configured yet, sign-in will show an error — fill in <code>js/firebase.js</code> from the new Firebase project first.</div>
+    </main>
+    <script src="js/loadHeader.js"></script>
+    <script type="module">
+        import { login } from "./js/auth.js";
+        document.getElementById("homeSignIn").addEventListener("click", async () => {
+            const note = document.getElementById("homeSignInNote");
+            note.textContent = "Signing you in…";
+            try {
+                await login();
+                note.textContent = "";
+                location.replace("index.html");
+            } catch (e) {
+                note.textContent = "Sign-in didn't finish. " + (e?.code || e?.message || "Try again.");
+            }
+        });
+    </script>
+</body>
+</html>

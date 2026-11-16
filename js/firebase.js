@@ -1,0 +1,87 @@
+// ==========================================
+// Calera Math v2.0 - Firebase Initialization
+// ==========================================
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {
+  getFirestore, initializeFirestore, persistentLocalCache, persistentSingleTabManager,
+  terminate, clearIndexedDbPersistence
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_FIREBASE_API_KEY",
+  // Rolled back 2026-10-26: auth.YOUR_SCHOOL_SITE broke Google sign-in.
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID",
+  measurementId: "YOUR_MEASUREMENT_ID"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Initialize services
+const auth = getAuth(app);
+
+// Firestore keeps a copy of what this account has read, and any writes
+// not yet sent, on this device (IndexedDB): pages still show the plan,
+// check-ins and coach replies they last loaded when the phone is
+// offline, and a workout logged offline is sent when the connection
+// comes back, even after the app was closed. Reads still go to the
+// server whenever it's reachable, so nothing is shown stale while
+// online. Only one tab owns the persistent cache; additional tabs fall
+// back to memory. This keeps another tab from holding the IndexedDB cache
+// open while an account transition clears it. If the browser won't allow
+// IndexedDB (private windows, strict tracking protection) the SDK falls
+// back to memory, as before. Signing out clears the persistent copy
+// (js/auth.js).
+// Some phones stall Firestore's streaming connection with no error (2026-11-07, iPhone Safari: the
+// sync read never answered). Auto-detect only helps when the stream fails; on a stall it waits forever,
+// and every screen that reads Firestore then sits empty (coach pages, 2026-11-12). So an iPhone/iPad,
+// or any device that has already seen a hang (js/cloudSync.js leaves the mark), skips the stream and
+// uses plain requests from the start. Slightly more traffic, but it answers.
+function streamLooksUnsafe() {
+  try {
+    if (Date.now() - Number(localStorage.getItem("__cloudSyncSdkHungAt") || 0) < 24 * 3600 * 1000) return true;
+  } catch { /* storage blocked */ }
+  const ua = navigator.userAgent || "";
+  return /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+}
+
+let db;
+try {
+  db = initializeFirestore(app, {
+    localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() }),
+    ...(streamLooksUnsafe() ? { experimentalForceLongPolling: true } : { experimentalAutoDetectLongPolling: true })
+  });
+} catch (error) {
+  console.warn("Calera Math: offline copy unavailable, using memory only.", error);
+  db = getFirestore(app);
+}
+
+// Auth defaults to IndexedDB-backed persistence, which browsers with
+// strict tracking/storage protections (e.g. Edge's Tracking Prevention)
+// can abort mid-open -- surfacing as an uncaught AbortError on every
+// page load. Plain localStorage persistence sidesteps that entirely.
+setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+// Sign-out wipes this device's offline copy of the account's Firestore
+// data (js/auth.js). Firestore can't be used again on this page after
+// it; every sign-out reloads the page.
+async function clearOfflineCopy() {
+  try {
+    await terminate(db);
+    await clearIndexedDbPersistence(db);
+  } catch (error) {
+    console.warn("Calera Math: couldn't clear the offline copy.", error);
+  }
+}
+
+// Plain HTTPS address for the one read js/cloudSync.js falls back to when the SDK's connection hangs.
+const firestoreRestBase = "https://firestore.googleapis.com/v1/projects/YOUR_PROJECT_ID/databases/(default)/documents";
+
+// Export for use in other files
+export { app, auth, db, clearOfflineCopy, firestoreRestBase };

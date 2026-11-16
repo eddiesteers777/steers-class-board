@@ -1,0 +1,13 @@
+# Calera Math — Steers Class Board
+# Never commit secrets. Firebase config lives in js/firebase.js as
+# YOUR_* placeholders until the real project is created — even then,
+# keep keys out of git history where possible (use the Firebase
+# console values directly; do not add a .env with real keys here).
+.env
+*.env
+*secret*
+*credentials*
+*.pem
+*.key
+node_modules/
+.DS_Store

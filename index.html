@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calera Math — Steers | Home</title>
+    <meta name="description" content="Calera Middle School math class library for Mr. Steers: Week 5, November 16–20, 2026. Teacher-only.">
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/calera.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0E2A47">
+</head>
+<body>
+    <div id="header"></div>
+    <main class="school-home">
+        <p class="school-eyebrow">Calera Middle School — Home of the Eagles</p>
+        <h1 class="school-title">Calera Math — Steers</h1>
+        <p class="school-sub">Week 5 · November 16–20, 2026 · Pick a class, then a day. Open the Board on the Promethean, and the Remote on your Chromebook — they stay in sync.</p>
+
+        <div id="firebaseWarn" class="school-warn" hidden>
+            Firebase is not configured yet — fill in the <code>YOUR_*</code> values in <code>js/firebase.js</code>
+            from the new Firebase project (personal account, project <code>Steers Class Board</code>) before sign-in and sync will work.
+            The class list below still loads from <code>data/week5.js</code>.
+        </div>
+
+        <div class="class-grid" id="classGrid" role="group" aria-label="Classes"></div>
+
+        <h2 id="weekHeading">Week 5 — 8th Grade</h2>
+        <p id="weekTarget" class="school-sub"></p>
+        <div class="day-list" id="dayList"></div>
+
+        <div class="school-note">
+            <strong>Teacher-only.</strong> Students never sign in and cannot type into this site.
+            Worksheets stay as paper or Google Docs. Nothing here is published or shared until Mr. Steers says so.
+        </div>
+    </main>
+
+    <script src="js/loadHeader.js"></script>
+    <script type="module">
+        import { WEEK5, dayIds } from "./data/week5.js";
+        let selected = "8th";
+        const grid = document.getElementById("classGrid");
+        const dayList = document.getElementById("dayList");
+        const heading = document.getElementById("weekHeading");
+        const target = document.getElementById("weekTarget");
+        // Firebase-not-configured banner: js/firebase.js still has YOUR_* placeholders.
+        try {
+            const cfg = await (await fetch("js/firebase.js")).text();
+            if (cfg.includes("YOUR_")) document.getElementById("firebaseWarn").hidden = false;
+        } catch { /* offline: leave the banner hidden */ }
+        function render() {
+            grid.replaceChildren();
+            for (const [id, cls] of Object.entries(WEEK5.classes)) {
+                const b = document.createElement("button");
+                b.type = "button"; b.className = "class-card";
+                b.setAttribute("aria-pressed", String(id === selected));
+                b.innerHTML = `<h2>${cls.label}</h2><p>${WEEK5.label} · ${WEEK5.dates}</p>`;
+                b.addEventListener("click", () => { selected = id; render(); });
+                grid.appendChild(b);
+            }
+            const cls = WEEK5.classes[selected];
+            heading.textContent = `${WEEK5.label} — ${cls.label}`;
+            target.textContent = WEEK5.targets[selected] ? `Weekly target: ${WEEK5.targets[selected]}` : "";
+            dayList.replaceChildren();
+            for (const dayId of dayIds()) {
+                const day = cls.days[dayId];
+                const row = document.createElement("div");
+                row.className = "day-row";
+                const links = `<a href="board.html?class=${selected}&week=week5&day=${dayId}">Board</a><a href="remote.html?class=${selected}&week=week5&day=${dayId}">Remote</a>`;
+                row.innerHTML = `<span class="day-name">${day.day} · ${day.date}</span><span class="day-title">${day.title}${day.note ? ` — ${day.note}` : ""}</span><span class="day-links">${links}</span>`;
+                dayList.appendChild(row);
+            }
+        }
+        render();
+    </script>
+    <script src="js/registerSW.js"></script>
+</body>
+</html>
