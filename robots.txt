@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /steers-class-board/
+Allow: /steers-class-board/index.html
+Allow: /steers-class-board/home.html
+Disallow: /steers-class-board/board.html
+Disallow: /steers-class-board/remote.html
+Disallow: /steers-class-board/login.html
+Disallow: /steers-class-board/auth-return.html
+Disallow: /steers-class-board/homework.html
+Disallow: /steers-class-board/planning.html
+Disallow: /steers-class-board/schedule.html
+Disallow: /steers-class-board/js/
+Disallow: /steers-class-board/css/
+Disallow: /steers-class-board/data/
+Disallow: /steers-class-board/components/
+
+Sitemap: https://eddiesteers777.github.io/steers-class-board/sitemap.xml
