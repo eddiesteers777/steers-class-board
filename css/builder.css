@@ -1,0 +1,57 @@
+/* Week Builder: the editor on screen, and the paper sheets it prints. */
+.page.builder{height:auto;min-height:100%;overflow:auto;display:block}
+.bpick{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;margin:6px 0 4px}
+.bnote{background:var(--c-surface);border:1.5px solid var(--c-line);border-left:5px solid var(--amber);border-radius:12px;padding:10px 14px;color:var(--c-ink);line-height:1.45;max-width:74ch;margin:14px 0}
+.bday{background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:14px;padding:14px 16px;margin:12px 0}
+.bday h3{font-family:var(--display);font-size:1.1rem;font-weight:700;display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:8px}
+.bday h3 input{flex:1;min-width:200px}
+.brow{display:grid;grid-template-columns:1.6rem minmax(0,2.2fr) minmax(0,1fr) minmax(0,1.6fr) auto;gap:8px;align-items:start;margin:6px 0}
+.brow>span{font-weight:700;padding-top:9px}
+.page.builder input[type=text],.page.builder textarea{width:100%;font:inherit;font-size:.93rem;color:var(--c-ink);background:#fff;border:1.5px solid var(--c-line);border-radius:10px;padding:8px 10px}
+.page.builder textarea{min-height:0;height:2.5rem;resize:vertical}
+.brow.changed input,.brow.changed textarea{border-color:var(--amber)}
+.bhead{font-size:.72rem;font-weight:600;color:var(--c-mute)}
+.bx{background:transparent;border:1.5px solid var(--c-line);border-radius:10px;padding:7px 11px;font-weight:700;color:var(--c-mute);cursor:pointer}
+.bx:hover{background:var(--c-bg);color:#8E1B21}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin:8px 0}
+.meta label{display:block;font-size:.72rem;font-weight:600;color:var(--c-mute);margin-bottom:3px}
+.papers{display:grid;gap:22px;margin-top:10px}
+.papers>div>h3{font-family:var(--display);font-size:1.05rem;margin-bottom:8px}
+@media (max-width:760px){.brow{grid-template-columns:1.4rem 1fr}.brow>*:nth-child(n+3){grid-column:2}}
+
+/* ---- the paper ---- */
+.sheet{background:#fff;color:#000;font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:11pt;line-height:1.25;width:8.5in;max-width:100%;padding:.7in;box-shadow:0 6px 24px rgba(14,27,58,.14);border-radius:4px;box-sizing:border-box}
+.sheet p{margin:0 0 3pt}
+.sheet .sh-title{font-family:inherit;font-size:20pt;font-weight:700;color:#1F3864;margin:0 0 1pt;letter-spacing:0;line-height:1.15}
+.sheet .sh-sub{font-size:10.5pt;font-style:italic;color:#555;margin-bottom:5pt}
+.sheet .sh-name{margin-bottom:5pt}
+.sheet .rule{display:inline-block;border-bottom:1px solid #000;height:1em;vertical-align:baseline;margin-right:14pt}
+.sheet .w30{width:2.5in}.sheet .w14{width:1.15in}.sheet .w8{width:.7in}.sheet .w22{width:1.9in;margin-right:0}
+.sheet .sh-dir{font-style:italic;margin-bottom:5pt}
+.sheet h2{font-family:inherit;font-size:12pt;font-weight:700;color:#1F3864;margin:9pt 0 3pt;break-after:avoid}
+.sheet .sh-prob{break-inside:avoid;margin-bottom:9pt}
+.sheet .roomy .sh-prob{margin-bottom:16pt}
+.sheet .sh-q{margin-bottom:2pt}
+.sheet .sh-day{break-inside:auto}
+.sheet .sh-table{border-collapse:collapse;width:100%;margin:4pt 0 8pt}
+.sheet .sh-table th,.sheet .sh-table td{border:1px solid #8EA9DB;padding:3pt 5pt;text-align:left;vertical-align:top;font-size:11pt}
+.sheet .sh-table th{background:#D9E3F2}
+.sheet .sh-table td.d{font-weight:700;width:1.1in}
+.sheet .sh-table tr{break-inside:avoid}
+.sheet .sh-wday{font-weight:700;margin:5pt 0 1pt}
+.sheet .sh-work{font-size:10.5pt;margin-bottom:1pt}
+.sheet .sh-verify{font-size:10pt;margin-top:10pt}
+.sheet .frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:.82em;line-height:1.05;margin:0 .12em}
+.sheet .frac>span:first-child{border-bottom:.09em solid currentColor;padding:0 .2em .04em}
+.sheet .frac>span:last-child{padding:.04em .2em 0}
+
+@page{size:letter;margin:.7in}
+@media print{
+    html,body,body.console.page.builder{height:auto!important;overflow:visible!important;display:block!important;background:#fff!important}
+    body.builder .cbar,body.builder main>*:not(.papers),body.builder .papers>div>h3{display:none!important}
+    body.builder main{max-width:none;padding:0;margin:0}
+    body.builder .papers{display:block;margin:0}
+    body.builder .papers>div{display:none}
+    body.builder[data-print="sheet"] #paperSheet,body.builder[data-print="key"] #paperKey{display:block}
+    .sheet{width:auto;padding:0;box-shadow:none;border-radius:0}
+}

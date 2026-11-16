@@ -25,6 +25,11 @@ A day with `notes` in the week file gets the step-by-step Guided Notes screen an
 `data/weekN.js` is generated. Add notes to the week file and rebuild with `tools/weekly_kit/build_week.py`; never edit the data file by hand.
 The real week files hold answer keys, so they live in the week's Drive folder, not here. Paper notes: step tables never split across pages, the exit ticket sits on its own page, and the build warns past 4 pages.
 
+## Week Builder (print from the site)
+`builder.html` (teacher sign-in): pick a week and class, edit bellringer problems, and print the student sheet and teacher key from the browser. `js/weekSheets.js` holds the print layouts, matching `tools/weekly_kit/docs.py`.
+Edits save to `teacher/{uid}/weekfiles/{weekId}` in the private account, never to this repo. The site cannot check math, so the key counts any problem changed on the site as not re-checked. `builder.html?demo` runs on one device with nothing saved.
+So far: bellringer sheet and key. Still built by the weekly kit: homework, study guide, speed dating, guided notes.
+
 ## Two build lanes
 Two Claude threads (school account and personal account) push to `main`. Fetch and check the head of `main` before every push, and re-read any file you are about to overwrite.
 

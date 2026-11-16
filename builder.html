@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week Builder — Calera Math — Steers</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=13">
+    <link rel="stylesheet" href="css/console.css?v=13">
+    <link rel="stylesheet" href="css/builder.css?v=13">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="console page builder">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/calera-seal.webp" alt=""><span><b>Steers Class Board</b><small id="who">Calera Middle School</small></span></a>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
+        <a class="btn" href="remote.html" style="text-decoration:none">Open Remote</a>
+    </header>
+    <main>
+        <h1>Week Builder</h1>
+        <p class="sub">Pick a week and a class, fix or add bellringer problems, then print the student sheet and the teacher key straight from this page. Your changes save only to your private account.</p>
+        <div class="bpick">
+            <label class="field"><span>Week</span><select id="weekSel" aria-label="Week"></select></label>
+            <label class="field"><span>Class</span><select id="classSel" aria-label="Class"></select></label>
+            <button class="btn go" id="printSheet" type="button">Print student sheet</button>
+            <button class="btn" id="printKey" type="button">Print teacher key</button>
+        </div>
+        <p class="bnote" id="note">Changes here are for the printed sheets. The board keeps showing the published week until the week is published again. The site cannot check math: any answer you change is marked on the key as not re-checked.</p>
+
+        <h2>Sheet heading</h2>
+        <div class="meta">
+            <div><label for="bTitle">Title</label><input type="text" id="bTitle"></div>
+            <div><label for="bSub">Subtitle</label><input type="text" id="bSub"></div>
+            <div><label for="bDir">Directions</label><input type="text" id="bDir"></div>
+        </div>
+
+        <h2>Bellringer problems</h2>
+        <p class="sub">Fractions: type {2/5}. Mixed numbers: 4{2/3}. Exponents: x^2. The "work" line prints only on the teacher key.</p>
+        <div id="days"></div>
+        <div class="rowx">
+            <button class="btn go" id="save" type="button">Save my changes</button>
+            <button class="btn ghost" id="reset" type="button">Go back to the published week</button>
+            <button class="btn ghost" id="export" type="button">Download week file</button>
+            <label class="btn ghost" style="cursor:pointer">Load week file<input type="file" id="import" accept=".json,application/json" hidden></label>
+            <span class="count2" id="saved"></span>
+        </div>
+
+        <h2>Preview</h2>
+        <div class="papers">
+            <div id="paperSheet"><h3>Student sheet</h3></div>
+            <div id="paperKey"><h3>Teacher key (never post or link)</h3></div>
+        </div>
+    </main>
+    <script type="module">
+        import { WEEKS } from "./data/weeks.js?v=13";
+        import { DAYS, dayDate, bellringerSheet, bellringerKey } from "./js/weekSheets.js?v=13";
+        // ?demo runs on this device only, like the guest teacher page: nothing is saved to any account.
+        const demo = new URLSearchParams(location.search).has("demo");
+        const store = await import(demo ? "./js/localStore.js?v=13" : "./js/boardStore.js?v=13");
+        const $ = (id) => document.getElementById(id);
+        function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+        const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
+        const copy = (x) => JSON.parse(JSON.stringify(x));
+
+        let week = null, cid = null, dirty = false, saved = {};   // saved: weekId -> week object from the private account
+        const published = (id) => WEEKS.find((w) => w.id === id);
+        const cls = () => week.classes[cid];
+
+        function fillPickers() {
+            const todayIso = new Date().toLocaleDateString("en-CA");
+            let cur = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= todayIso) cur = w;
+            $("weekSel").replaceChildren(...WEEKS.map((w) => { const o = el("option", null, w.label + " (" + w.dates + ")"); o.value = w.id; return o; }));
+            $("weekSel").value = cur.id;
+        }
+        function openWeek(id) {
+            week = copy(saved[id] || published(id)); dirty = false;
+            const keep = cid; $("classSel").replaceChildren(...Object.entries(week.classes).map(([k, c]) => { const o = el("option", null, c.label); o.value = k; return o; }));
+            cid = week.classes[keep] ? keep : Object.keys(week.classes)[0]; $("classSel").value = cid;
+            $("saved").textContent = saved[id] ? "Showing your saved changes for this week." : "Showing the published week.";
+            draw();
+        }
+        function touch() { dirty = true; $("saved").textContent = "Not saved yet."; preview(); }
+        function field(id, key, fallback) {
+            const b = cls().bellringer || {}; $(id).value = b[key] || ""; $(id).placeholder = fallback;
+            $(id).oninput = () => { (cls().bellringer = cls().bellringer || {})[key] = $(id).value; if (!$(id).value) delete cls().bellringer[key]; touch(); };
+        }
+        function draw() {
+            const c = cls();
+            field("bTitle", "title", "Weekly Bellringer: Week of " + String(week.dates || "").split("–")[0]);
+            field("bSub", "subtitle", c.label + " Mathematics");
+            field("bDir", "directions", "Do these problems at the start of class each day. Show your work.");
+            const host = $("days"); host.replaceChildren();
+            c.days.forEach((day, i) => {
+                const box = el("div", "bday"), h = el("h3", null, DAYS[i] + " " + dayDate(week, i));
+                const note = el("input"); note.type = "text"; note.value = day.bellNote || ""; note.placeholder = i === 4 ? "Note in the heading (blank = Review of Earlier Topics)" : "Note in the heading (optional)";
+                note.setAttribute("aria-label", DAYS[i] + " heading note");
+                note.oninput = () => { if (note.value) day.bellNote = note.value; else delete day.bellNote; touch(); };
+                h.appendChild(note); box.appendChild(h);
+                const heads = el("div", "brow bhead"); ["", "Problem", "Answer", "Work (key only)", ""].forEach((t) => heads.appendChild(el("span", null, t))); box.appendChild(heads);
+                const list = el("div"); box.appendChild(list);
+                const rows = () => {
+                    list.replaceChildren();
+                    (day.problems = day.problems || []).forEach((p, n) => {
+                        const row = el("div", "brow" + (p.edited ? " changed" : "")); row.appendChild(el("span", null, (n + 1) + "."));
+                        const mk = (tag, key, label) => {
+                            const x = el(tag); if (tag === "input") x.type = "text"; x.value = p[key] || ""; x.setAttribute("aria-label", DAYS[i] + " problem " + (n + 1) + " " + label);
+                            x.oninput = () => { if (x.value) p[key] = x.value; else delete p[key]; if (key !== "work") { p.edited = true; delete p.check; row.classList.add("changed"); } touch(); };
+                            row.appendChild(x);
+                        };
+                        mk("textarea", "q", "question"); mk("input", "a", "answer"); mk("input", "work", "work");
+                        const del = el("button", "bx", "✕"); del.type = "button"; del.title = "Remove this problem"; del.setAttribute("aria-label", "Remove " + DAYS[i] + " problem " + (n + 1));
+                        del.onclick = () => { day.problems.splice(n, 1); rows(); touch(); };
+                        row.appendChild(del); list.appendChild(row);
+                    });
+                };
+                rows();
+                const add = el("button", "btn ghost", "Add a problem"); add.type = "button";
+                add.onclick = () => { day.problems.push({ q: "", a: "", edited: true }); rows(); touch(); };
+                box.appendChild(add); host.appendChild(box);
+            });
+            preview();
+        }
+        function preview() {
+            for (const [id, fn] of [["paperSheet", bellringerSheet], ["paperKey", bellringerKey]]) { const box = $(id); while (box.children.length > 1) box.lastChild.remove(); box.appendChild(fn(week, cid)); }
+        }
+        function print(which) { document.body.dataset.print = which; document.title = (which === "key" ? "0 Weekly - TEACHER KEY - Bellringer (" : "0 Weekly - Bellringer (Mon-Fri) (") + cls().label + ")"; window.print(); }
+        window.addEventListener("afterprint", () => { document.title = "Week Builder — Calera Math — Steers"; });
+        function problemsReady() {
+            const empty = cls().days.some((d) => (d.problems || []).some((p) => !String(p.q || "").trim() || !String(p.a || "").trim()));
+            if (empty) status("A problem is missing its question or answer", "bad");
+            return !empty;
+        }
+
+        $("weekSel").onchange = () => openWeek($("weekSel").value);
+        $("classSel").onchange = () => { cid = $("classSel").value; draw(); };
+        $("printSheet").onclick = () => { if (problemsReady()) print("sheet"); };
+        $("printKey").onclick = () => { if (problemsReady()) print("key"); };
+        $("reset").onclick = () => { delete saved[week.id]; openWeek(week.id); $("saved").textContent = "Showing the published week. Your saved changes stay in your account until you save again."; };
+        $("export").onclick = () => {
+            const a = el("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(week, null, 1)], { type: "application/json" }));
+            a.download = week.id + "-week-file.json"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+        };
+        $("import").onchange = async (e) => {
+            const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+            try {
+                const w = JSON.parse(await f.text());
+                if (!w || !w.id || !w.classes || !Object.values(w.classes).every((c) => Array.isArray(c.days) && c.days.length === 5)) throw new Error("shape");
+                if (!published(w.id)) { status("That week is not on the site yet. Publish it first, then load its file.", "bad"); return; }
+                week = w; $("weekSel").value = w.id; cid = week.classes[cid] ? cid : Object.keys(week.classes)[0];
+                $("classSel").replaceChildren(...Object.entries(week.classes).map(([k, c]) => { const o = el("option", null, c.label); o.value = k; return o; })); $("classSel").value = cid;
+                draw(); touch(); status("Week file loaded. Save to keep it.", "ok");
+            } catch { status("That file is not a week file", "bad"); }
+        };
+        $("save").onclick = async () => {
+            status("Saving…");
+            try { await store.save("weekfiles/" + week.id, { json: JSON.stringify(week), at: Date.now() }); saved[week.id] = copy(week); dirty = false; status("Saved", "ok"); $("saved").textContent = demo ? "Kept on this device until you close this tab." : "Saved to your private account."; }
+            catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); }
+        };
+        window.addEventListener("beforeunload", (e) => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+
+        const user = await store.ready();
+        if (!user) location.replace("login.html");
+        else {
+            $("who").textContent = demo ? "This device only, nothing is saved" : "Signed in as " + user.name;
+            fillPickers();
+            // Load any saved copy of each published week once, then open the current week.
+            let left = WEEKS.length; const done = () => { if (--left === 0) { status(demo ? "This device only" : "Live", "ok"); openWeek($("weekSel").value); } };
+            WEEKS.forEach((w) => {
+                let got = false;
+                store.watch("weekfiles/" + w.id, (snap) => {
+                    if (got || snap.pending) return; got = true;
+                    try { if (snap.exists && snap.data && snap.data.json) saved[w.id] = JSON.parse(snap.data.json); } catch { /* ignore a damaged copy */ }
+                    done();
+                }, (e) => { if (got) return; got = true; status("Could not load saved changes (" + ((e && e.code) || "error") + ")", "bad"); if (--left === 0) openWeek($("weekSel").value); });
+            });
+        }
+    </script>
+</body>
+</html>

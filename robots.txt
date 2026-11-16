@@ -5,6 +5,9 @@ Allow: /steers-class-board/home.html
 Disallow: /steers-class-board/board.html
 Disallow: /steers-class-board/remote.html
 Disallow: /steers-class-board/login.html
+Disallow: /steers-class-board/builder.html
+Disallow: /steers-class-board/rosters.html
+Disallow: /steers-class-board/sub.html
 Disallow: /steers-class-board/auth-return.html
 Disallow: /steers-class-board/homework.html
 Disallow: /steers-class-board/planning.html
