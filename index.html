@@ -14,8 +14,8 @@
     <meta property="og:url" content="https://eddiesteers777.github.io/steers-class-board/">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=13">
-    <link rel="stylesheet" href="css/console.css?v=13">
+    <link rel="stylesheet" href="css/board.css?v=14">
+    <link rel="stylesheet" href="css/console.css?v=14">
     <meta name="theme-color" content="#081B45">
     </head>
 <body class="console page">
@@ -23,6 +23,7 @@
         <a class="cbrand" href="index.html"><img src="brand/calera-seal.webp" alt=""><span><b>Steers Class Board</b><small id="who">Calera Middle School</small></span></a>
         <a class="btn ghost" href="board.html" style="text-decoration:none">Open Board</a>
         <a class="btn ghost" href="rosters.html" style="text-decoration:none">Rosters</a>
+        <a class="btn ghost" href="library.html" style="text-decoration:none">Library</a>
         <a class="btn ghost" href="builder.html" style="text-decoration:none">Week Builder</a>
         <button class="btn ghost" id="signOut" type="button">Sign out</button>
     </header>
@@ -59,8 +60,8 @@
         </details>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=13";
-        import * as store from "./js/boardStore.js?v=13";
+        import { WEEKS } from "./data/weeks.js?v=14";
+        import * as store from "./js/boardStore.js?v=14";
         const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
         const DAYKEYS = ["mon", "tue", "wed", "thu", "fri"], $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }

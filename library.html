@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library — Calera Math — Steers</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=14">
+    <link rel="stylesheet" href="css/console.css?v=14">
+    <link rel="stylesheet" href="css/library.css?v=14">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="console page">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/calera-seal.webp" alt=""><span><b>Steers Class Board</b><small id="who">Calera Middle School</small></span></a>
+        <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
+        <a class="btn ghost" href="builder.html" style="text-decoration:none">Week Builder</a>
+        <a class="btn" href="remote.html" style="text-decoration:none">Open Remote</a>
+    </header>
+    <main>
+        <h1>Library</h1>
+        <p class="sub">Every week on the site, by class. Open any day on the board, jump to its guided notes, or print its sheets.</p>
+        <div class="libbar">
+            <div class="tabs" id="classTabs" role="group" aria-label="Class"></div>
+            <input type="search" id="find" placeholder="Search topics, for example: triangle, quiz, speed dating" aria-label="Search the library">
+        </div>
+        <p class="count2" id="count" role="status"></p>
+        <div id="shelf"></div>
+    </main>
+    <script type="module">
+        import { WEEKS } from "./data/weeks.js?v=14";
+        import { LIBRARY } from "./data/library.js?v=14";
+        const DK = ["mon", "tue", "wed", "thu", "fri"], $ = (id) => document.getElementById(id);
+        function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+        function link(cls, text, href) { const a = el("a", cls, text); a.href = href; return a; }
+        const todayIso = new Date().toLocaleDateString("en-CA");
+        const classes = []; WEEKS.forEach((w) => Object.entries(w.classes).forEach(([k, c]) => { if (!classes.some((x) => x[0] === k)) classes.push([k, c.label]); }));
+        let pick = new URLSearchParams(location.search).get("class"); if (!classes.some((c) => c[0] === pick)) pick = "all";
+
+        // What kind of day is it? Read from the agenda line, so nothing is typed twice.
+        function tags(day) {
+            const t = [], line = (day.agendaLine || "").toLowerCase();
+            if (/\btest\b/.test(line)) t.push(["Test", "hot"]); else if (/\bquiz\b/.test(line)) t.push(["Quiz", "hot"]);
+            if (/\bsub day\b/.test(line)) t.push(["Sub day", "subday"]);
+            if (day.notes) t.push(["Guided notes", ""]);
+            if (/speed dating/.test(line)) t.push(["Speed dating", ""]);
+            if (/study guide/.test(line)) t.push(["Study guide", ""]);
+            return t;
+        }
+        function dayDate(week, i) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(week.monday || ""); if (!m) return ""; const d = new Date(+m[1], +m[2] - 1, +m[3] + i); return (d.getMonth() + 1) + "/" + d.getDate(); }
+        function isoOf(week, i) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(week.monday || ""); if (!m) return ""; return new Date(+m[1], +m[2] - 1, +m[3] + i).toLocaleDateString("en-CA"); }
+
+        function draw() {
+            const words = $("find").value.toLowerCase().split(/\s+/).filter(Boolean), shelf = $("shelf"); shelf.replaceChildren(); let shown = 0;
+            [...$("classTabs").children].forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.k === pick)));
+            const groups = new Map();   // nine weeks -> weeks, newest first
+            [...WEEKS].reverse().forEach((w) => { const nw = (LIBRARY[w.id] || {}).nineWeeks || 0; if (!groups.has(nw)) groups.set(nw, []); groups.get(nw).push(w); });
+            [...groups.keys()].sort((a, b) => b - a).forEach((nw) => {
+                const sect = el("section", "nw"); if (nw) sect.appendChild(el("h2", null, "Nine weeks " + nw));
+                groups.get(nw).forEach((w) => {
+                    Object.entries(w.classes).forEach(([cid, c]) => {
+                        if (pick !== "all" && pick !== cid) return;
+                        const unit = ((LIBRARY[w.id] || {}).units || {})[cid] || "";
+                        const hay = [w.label, w.dates, c.label, unit, c.weekLT, ...c.days.flatMap((d) => [d.agendaLine, d.lt, ...(d.agenda || []), d.notes && d.notes.title])].join(" ").toLowerCase();
+                        if (!words.every((x) => hay.includes(x))) return;
+                        shown++;
+                        const card = el("article", "libwk"), head = el("header");
+                        const ttl = el("h3", null, c.label + " "); ttl.appendChild(el("span", null, w.label + " · " + w.dates)); head.appendChild(ttl);
+                        if (unit) head.appendChild(el("p", "libunit", unit));
+                        if (c.weekLT) head.appendChild(el("p", "liblt", c.weekLT));
+                        card.appendChild(head);
+                        const list = el("ol", "libdays");
+                        c.days.forEach((d, i) => {
+                            const li = el("li", isoOf(w, i) === todayIso ? "isnow" : ""), when = el("div", "lwhen");
+                            when.appendChild(el("b", null, d.name || DK[i])); when.appendChild(el("small", null, dayDate(w, i))); li.appendChild(when);
+                            const what = el("div", "lwhat"); what.appendChild(el("p", null, d.agendaLine || ""));
+                            const tg = el("p", "ltags"); tags(d).forEach(([t, k]) => tg.appendChild(el("span", "ltag " + k, t)));
+                            const n = (d.problems || []).length; if (n) tg.appendChild(el("span", "ltag quiet", n + " bellringer" + (n === 1 ? "" : "s")));
+                            what.appendChild(tg); li.appendChild(what);
+                            const go = el("div", "lgo"), base = "remote.html?week=" + w.id + "&class=" + encodeURIComponent(cid) + "&day=" + DK[i];
+                            go.appendChild(link("btn", "Open", base + "&screen=today"));
+                            if (d.notes) go.appendChild(link("btn ghost", "Notes", base + "&screen=notes"));
+                            if (n) go.appendChild(link("btn ghost", "Bellringer", base + "&screen=bell"));
+                            li.appendChild(go); list.appendChild(li);
+                        });
+                        card.appendChild(list);
+                        const foot = el("footer"); foot.appendChild(el("b", null, "Files: "));
+                        (c.links || []).forEach((f) => { const a = link("", f.t, f.u); a.target = "_blank"; a.rel = "noopener"; foot.appendChild(a); });
+                        foot.appendChild(link("libprint", "Print bellringer sheet and key", "builder.html?week=" + w.id + "&class=" + encodeURIComponent(cid)));
+                        card.appendChild(foot); sect.appendChild(card);
+                    });
+                });
+                if (sect.querySelector(".libwk")) shelf.appendChild(sect);
+            });
+            $("count").textContent = shown ? shown + (shown === 1 ? " class week" : " class weeks") + " shown, from " + WEEKS.length + (WEEKS.length === 1 ? " week" : " weeks") + " on the site." : "Nothing matches. Clear the search or pick All classes.";
+        }
+        [["all", "All classes"], ...classes].forEach(([k, label]) => { const b = el("button", null, label); b.type = "button"; b.dataset.k = k; b.onclick = () => { pick = k; draw(); }; $("classTabs").appendChild(b); });
+        $("find").oninput = draw;
+
+        const guest = new URLSearchParams(location.search).has("demo");   // ?demo: look without signing in (the week data is not private)
+        const user = guest ? { name: "" } : await (await import("./js/boardStore.js?v=14")).ready();
+        if (!user) location.replace("login.html");
+        else { if (user.name) $("who").textContent = "Signed in as " + user.name; draw(); }
+    </script>
+</body>
+</html>

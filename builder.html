@@ -7,9 +7,9 @@
     <meta name="robots" content="noindex">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=13">
-    <link rel="stylesheet" href="css/console.css?v=13">
-    <link rel="stylesheet" href="css/builder.css?v=13">
+    <link rel="stylesheet" href="css/board.css?v=14">
+    <link rel="stylesheet" href="css/console.css?v=14">
+    <link rel="stylesheet" href="css/builder.css?v=14">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page builder">
@@ -55,11 +55,11 @@
         </div>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=13";
-        import { DAYS, dayDate, bellringerSheet, bellringerKey } from "./js/weekSheets.js?v=13";
+        import { WEEKS } from "./data/weeks.js?v=14";
+        import { DAYS, dayDate, bellringerSheet, bellringerKey } from "./js/weekSheets.js?v=14";
         // ?demo runs on this device only, like the guest teacher page: nothing is saved to any account.
         const demo = new URLSearchParams(location.search).has("demo");
-        const store = await import(demo ? "./js/localStore.js?v=13" : "./js/boardStore.js?v=13");
+        const store = await import(demo ? "./js/localStore.js?v=14" : "./js/boardStore.js?v=14");
         const $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
         const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
@@ -73,7 +73,8 @@
             const todayIso = new Date().toLocaleDateString("en-CA");
             let cur = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= todayIso) cur = w;
             $("weekSel").replaceChildren(...WEEKS.map((w) => { const o = el("option", null, w.label + " (" + w.dates + ")"); o.value = w.id; return o; }));
-            $("weekSel").value = cur.id;
+            const q = new URLSearchParams(location.search), wq = q.get("week");   // the Library links here with ?week=&class=
+            $("weekSel").value = published(wq) ? wq : cur.id; if (q.get("class")) cid = q.get("class");
         }
         function openWeek(id) {
             week = copy(saved[id] || published(id)); dirty = false;

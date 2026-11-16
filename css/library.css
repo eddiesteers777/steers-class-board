@@ -1,0 +1,33 @@
+/* Library: every week on the site, by class. */
+.libbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:4px 0 10px}
+.libbar input[type=search]{flex:1;min-width:240px;font:inherit;font-size:.95rem;color:var(--c-ink);background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:12px;padding:9px 14px}
+.nw>h2{margin-top:22px}
+.libwk{background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:16px;margin:14px 0;overflow:hidden}
+.libwk>header{padding:16px 18px 10px}
+.libwk h3{font-family:var(--display);font-size:1.3rem;font-weight:700;line-height:1.2}
+.libwk h3 span{font-family:var(--ui);font-size:.9rem;font-weight:600;color:var(--c-mute);margin-left:6px}
+.libwk .libunit{font-weight:600;margin-top:4px}
+.libwk .liblt{color:var(--c-mute);margin-top:4px;line-height:1.45;max-width:78ch}
+.libdays{list-style:none;margin:0;padding:0}
+.libdays li{display:grid;grid-template-columns:7.5rem minmax(0,1fr) auto;gap:8px 16px;align-items:center;padding:10px 18px;border-top:1px solid var(--c-line)}
+.libdays li.isnow{background:#FFF6DF;box-shadow:inset 5px 0 0 var(--amber)}
+.libdays .lwhen b{display:block}.libdays .lwhen small{color:var(--c-mute)}
+.libdays .lwhat p{line-height:1.35;font-size:.98rem}
+.libdays .ltags{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}
+.ltags:empty{display:none}
+.ltag{font-size:.74rem;font-weight:600;padding:2px 9px;border-radius:999px;background:#E6EEFB;color:#1B3F8F}
+.ltag.hot{background:#FBE9EA;color:#8E1B21}
+.ltag.subday{background:#FFF1CC;color:#5A4200}
+.ltag.quiet{background:var(--c-bg);color:var(--c-mute)}
+.libdays .lgo{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.libdays .lgo a{text-decoration:none;padding:7px 13px;font-size:.86rem}
+.libwk>footer{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;padding:12px 18px;border-top:1px solid var(--c-line);background:#F7F9FC;font-size:.92rem}
+.libwk>footer a{color:#1B4FBF;font-weight:600;text-decoration:none}
+.libwk>footer a:hover{text-decoration:underline}
+.libwk>footer a.libprint{margin-left:auto}
+@media (max-width:720px){.libdays li{grid-template-columns:1fr}.libdays .lgo{justify-content:flex-start}.libwk>footer a.libprint{margin-left:0}}
+.libdays .ltag{display:inline-block;line-height:1.5;height:auto}
+.libdays li{font-size:.95rem}
+.libdays .ltags{align-items:center}
+.libdays .ltag{flex:none;white-space:nowrap}
+.libwk .liblt{font-size:.93rem}
