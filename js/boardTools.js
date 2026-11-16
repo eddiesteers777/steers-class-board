@@ -8,7 +8,8 @@
 
 export const TOOL_LIST = [["traffic", "Traffic light"], ["work", "Voice level"], ["clock", "Clock"], ["stopwatch", "Stopwatch"], ["text", "Message"], ["dice", "Dice"], ["score", "Scoreboard"], ["pick", "Name picker"], ["groups", "Group maker"]];
 export const PERIOD_KEYS = ["1st", "2nd", "4th", "5th", "6th"];
-const CLASS_PERIOD = { "8th": "1st", "7th": "5th", "8th-acc": "6th" };
+const today = () => { const d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); };
+let showOut = false; // the "Who is out" list is open on this device only
 const WORK = [["silent", "Silent", "Voices off", 0], ["whisper", "Whisper", "Only your partner can hear", 1], ["partner", "Partner Talk", "Table voices", 2], ["group", "Group Work", "Everyone shares the work", 4]];
 const PERIODS = ["1st", "2nd", "4th", "5th", "6th"];
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
@@ -17,7 +18,7 @@ export function defaultTools() {
     return { on: {}, pos: {}, traffic: "green", work: "silent", text: "",
         dice: { n: 2, vals: [3, 5], roll: 0 }, score: { teams: [{ n: "Team 1", s: 0 }, { n: "Team 2", s: 0 }] },
         sw: { running: false, t0: 0, elapsed: 0 },
-        pick: { period: "", cur: -1, used: [] }, groups: { period: "", size: 3, order: [] } };
+        pick: { period: "", cur: -1, used: [] }, groups: { period: "", size: 3, order: [] }, absent: { day: "", periods: {} } };
 }
 export function mergeTools(d) {
     const t = defaultTools(); if (!d || typeof d !== "object") return t;
@@ -31,6 +32,7 @@ export function mergeTools(d) {
     const idx = (a) => (Array.isArray(a) ? a.slice(0, 60).map((n) => Math.max(0, Math.floor(+n || 0))) : []);
     if (d.pick) t.pick = { period: PERIOD_KEYS.includes(d.pick.period) ? d.pick.period : "", cur: Number.isInteger(d.pick.cur) ? d.pick.cur : -1, used: idx(d.pick.used) };
     if (d.groups) t.groups = { period: PERIOD_KEYS.includes(d.groups.period) ? d.groups.period : "", size: Math.min(6, Math.max(2, +d.groups.size || 3)), order: idx(d.groups.order) };
+    if (d.absent && typeof d.absent.day === "string" && d.absent.periods) { t.absent.day = d.absent.day.slice(0, 10); PERIOD_KEYS.forEach((k) => { if (Array.isArray(d.absent.periods[k])) t.absent.periods[k] = idx(d.absent.periods[k]); }); }
     if (d.sw) t.sw = { running: !!d.sw.running, t0: +d.sw.t0 || 0, elapsed: +d.sw.elapsed || 0 };
     return t;
 }
@@ -101,27 +103,38 @@ export function buildWidget(k, api) {
             b.appendChild(ctl);
         }
         else if (k === "pick" || k === "groups") {
-            const st = k === "pick" ? T.pick : T.groups, period = st.period || CLASS_PERIOD[S.cls] || "1st", names = (api.rosters()[period]) || [];
-            const pr = el("div", "minis"); PERIOD_KEYS.forEach((pk) => { const m = el("button", null, pk); m.type = "button"; m.setAttribute("aria-pressed", String(pk === period)); m.onclick = () => { st.period = pk; if (k === "pick") { st.cur = -1; st.used = []; } else st.order = []; push(); }; pr.appendChild(m); });
+            const st = k === "pick" ? T.pick : T.groups, period = st.period || S.period || "1st", names = (api.rosters()[period]) || [];
+            if (T.absent.day !== today()) { T.absent.day = today(); T.absent.periods = {}; } // absences only last the day
+            const out = (T.absent.periods[period] || []).filter((i) => i < names.length), here = names.map((_, i) => i).filter((i) => !out.includes(i));
+            const pr = el("div", "minis setup"); PERIOD_KEYS.forEach((pk) => { const m = el("button", null, pk); m.type = "button"; m.setAttribute("aria-pressed", String(pk === period)); m.onclick = () => { st.period = pk; if (k === "pick") { st.cur = -1; st.used = []; } else st.order = []; push(); }; pr.appendChild(m); });
+            const ob = el("button", null, "Who is out (" + out.length + ")"); ob.type = "button"; ob.setAttribute("aria-pressed", String(showOut)); ob.onclick = () => { showOut = !showOut; api.redraw(); }; pr.appendChild(ob);
             if (!names.length) { b.appendChild(el("p", "vsub", "No names saved for " + period + " period yet. Add them on the Rosters page.")); b.appendChild(pr); }
-            else if (k === "pick") {
-                b.appendChild(el("p", "picked", st.cur >= 0 && names[st.cur] ? names[st.cur] : "Ready"));
-                const left = names.length - st.used.filter((i) => i < names.length).length;
-                b.appendChild(el("p", "vsub", left + " of " + names.length + " left"));
-                const ctl = el("div", "minis"), go = el("button", "primary", "Pick a name"), rs = el("button", null, "Start over"); go.type = rs.type = "button";
-                go.onclick = () => { let pool = names.map((_, i) => i).filter((i) => !st.used.includes(i)); if (!pool.length) { st.used = []; pool = names.map((_, i) => i); } st.cur = pool[Math.floor(Math.random() * pool.length)]; st.used.push(st.cur); st.period = period; push(); };
-                rs.onclick = () => { st.cur = -1; st.used = []; push(); };
-                ctl.appendChild(go); ctl.appendChild(rs); b.appendChild(ctl); b.appendChild(pr);
-            } else {
-                const order = st.order.filter((i) => i < names.length), box = el("div", "groups");
-                if (order.length) { for (let g = 0; g * st.size < order.length; g++) { const col = el("div", "group"); col.appendChild(el("p", "gname", "Group " + (g + 1))); order.slice(g * st.size, (g + 1) * st.size).forEach((i) => col.appendChild(el("p", "gmem", names[i]))); box.appendChild(col); } }
-                else box.appendChild(el("p", "vsub", "Tap Make groups."));
-                b.appendChild(box);
-                const ctl = el("div", "minis"), go = el("button", "primary", "Make groups"); go.type = "button";
-                go.onclick = () => { const a = names.map((_, i) => i); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } st.order = a; st.period = period; push(); };
-                ctl.appendChild(go);
-                [2, 3, 4, 5].forEach((n) => { const m = el("button", null, "Groups of " + n); m.type = "button"; m.setAttribute("aria-pressed", String(st.size === n)); m.onclick = () => { st.size = n; push(); }; ctl.appendChild(m); });
-                b.appendChild(ctl); b.appendChild(pr);
+            else {
+                if (k === "pick") {
+                    b.appendChild(el("p", "picked", st.cur >= 0 && names[st.cur] ? names[st.cur] : "Ready"));
+                    const left = here.filter((i) => !st.used.includes(i)).length;
+                    b.appendChild(el("p", "vsub", left + " of " + here.length + " left"));
+                    const ctl = el("div", "minis"), go = el("button", "primary", "Pick a name"), rs = el("button", null, "Start over"); go.type = rs.type = "button";
+                    go.onclick = () => { if (!here.length) return; let pool = here.filter((i) => !st.used.includes(i)); if (!pool.length) { st.used = []; pool = here.slice(); } st.cur = pool[Math.floor(Math.random() * pool.length)]; st.used.push(st.cur); st.period = period; push(); };
+                    rs.onclick = () => { st.cur = -1; st.used = []; push(); };
+                    ctl.appendChild(go); ctl.appendChild(rs); b.appendChild(ctl);
+                } else {
+                    const order = st.order.filter((i) => i < names.length && !out.includes(i)), box = el("div", "groups");
+                    if (order.length) { for (let g = 0; g * st.size < order.length; g++) { const col = el("div", "group"); col.appendChild(el("p", "gname", "Group " + (g + 1))); order.slice(g * st.size, (g + 1) * st.size).forEach((i) => col.appendChild(el("p", "gmem", names[i]))); box.appendChild(col); } }
+                    else box.appendChild(el("p", "vsub", "Tap Make groups."));
+                    b.appendChild(box);
+                    const ctl = el("div", "minis"), go = el("button", "primary", "Make groups"); go.type = "button";
+                    go.onclick = () => { const a = here.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } st.order = a; st.period = period; push(); };
+                    ctl.appendChild(go);
+                    [2, 3, 4, 5].forEach((n) => { const m = el("button", null, "Groups of " + n); m.type = "button"; m.setAttribute("aria-pressed", String(st.size === n)); m.onclick = () => { st.size = n; push(); }; ctl.appendChild(m); });
+                    b.appendChild(ctl);
+                }
+                b.appendChild(pr);
+                if (showOut) {
+                    const list = el("div", "outlist setup"); list.appendChild(el("p", "vsub", "Tap anyone who is out today."));
+                    names.forEach((n, i) => { const m = el("button", null, n); m.type = "button"; m.setAttribute("aria-pressed", String(out.includes(i))); m.onclick = () => { const cur = (T.absent.periods[period] || []).slice(), at = cur.indexOf(i); if (at >= 0) cur.splice(at, 1); else cur.push(i); T.absent.periods[period] = cur; push(); }; list.appendChild(m); });
+                    b.appendChild(list);
+                }
             }
         }
     }

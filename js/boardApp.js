@@ -5,9 +5,9 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=6";
-import * as store from "./boardStore.js?v=6";
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=6";
+import { WEEKS } from "../data/weeks.js?v=7";
+import * as store from "./boardStore.js?v=7";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=7";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -45,6 +45,9 @@ function richEl(tag, cls, text) { const e = el(tag, cls); e.appendChild(rich(tex
 
 const SCREENS = [["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["speed", "Speed Dating"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
 const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+// Each period and the class plan it follows.
+const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
+const classOf = (period) => (PERIODS.find((p) => p[0] === period) || PERIODS[0])[1];
 const ROUND = 240, GAP = 10;
 const PRESETS = [1, 2, 3, 5, 10, 15];
 let skew = 0; // this device's clock vs the shared clock, in ms
@@ -58,7 +61,7 @@ function defaultWeek() {
     return pick.id;
 }
 const wd = new Date().getDay();
-const S = { week: defaultWeek(), cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false,
+const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false,
     timers: { bell: blankTimer(), round: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, tools: defaultTools() };
 
 let mode = "remote", signedIn = false, sig = "", writeState = null, SEAL = "brand/calera-seal.webp";
@@ -80,8 +83,8 @@ function push() { render(); if (writeState) writeState(JSON.parse(JSON.stringify
 let quietTimer = 0;
 function quiet() { clearTimeout(quietTimer); quietTimer = setTimeout(() => { if (writeState) writeState(JSON.parse(JSON.stringify(S))); }, 500); } // save typing without redrawing
 let ROSTERS = {};
-const toolApi = { S, el, push, quiet, now, card, rosters: () => ROSTERS };
-function toolSig() { const t = Object.assign({}, S.tools); delete t.text; return JSON.stringify([t, S.cls, Object.keys(ROSTERS).map((k) => k + ROSTERS[k].length)]); }
+const toolApi = { S, el, push, quiet, now, card, rosters: () => ROSTERS, redraw: () => { layerSig = ""; renderLayer(); } };
+function toolSig() { const t = Object.assign({}, S.tools); delete t.text; return JSON.stringify([t, S.period, Object.keys(ROSTERS).map((k) => k + ROSTERS[k].length)]); }
 const W = () => WEEKS.find((w) => w.id === S.week) || WEEKS[WEEKS.length - 1];
 const L = () => { const w = W(); return (w && w.classes[S.cls]) || null; };
 const D = () => { const l = L(); return (l && l.days && l.days[S.day]) || null; };
@@ -97,12 +100,13 @@ function seg(host, items, current, onPick) {
 }
 function buildControls() {
     const w = W();
-    seg($("classes"), Object.entries(w.classes).map(([id, c]) => [id, c.label]), S.cls, (id) => { S.cls = id; S.prob = 0; S.show = false; push(); });
+    seg($("classes"), PERIODS.filter((p) => w.classes[p[1]]).map((p) => [p[0], p[0] + " · " + w.classes[p[1]].label]), S.period, (id) => { S.period = id; S.cls = classOf(id); S.prob = 0; S.show = false; push(); });
     seg($("days"), DK.map((k, i) => [i, k]), S.day, (i) => { S.day = i; S.prob = 0; S.show = false; push(); });
     seg($("screens"), SCREENS, S.screen, (id) => { S.screen = id; S.show = false; push(); });
     const sel = $("weekSel"); sel.textContent = "";
     WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + x.dates); o.value = x.id; sel.appendChild(o); });
     sel.value = w.id; sel.hidden = WEEKS.length < 2;
+    const fn = $("flowNext"); if (fn) { fn.textContent = flowLabel(); const dead = !["agenda", "today", "bell"].includes(S.screen) || fn.textContent === "Next"; fn.disabled = dead; $("flowBack").disabled = !["today", "bell", "speed"].includes(S.screen); }
     const files = $("files"), l = L();
     if (files) {
         files.textContent = "";
@@ -317,7 +321,7 @@ function saveInk() {
     note(""); inkWrite(JSON.parse(JSON.stringify(body)));
 }
 function watchInk() {
-    const key = canvas ? [S.week, S.cls, "d" + S.day, (S.screen === "bell" && D()) ? "p" + S.prob : "blank"].join("_") : "";
+    const key = canvas ? [S.week, S.period, "d" + S.day, (S.screen === "bell" && D()) ? "p" + S.prob : "blank"].join("_") : "";
     if (key === inkKey) return; inkKey = key; if (inkUnsub) { inkUnsub(); inkUnsub = null; } inkWrite = null; strokes = []; cur = null; redraw();
     if (!key || !signedIn) return;
     inkWrite = writer("ink/" + key);
@@ -329,14 +333,41 @@ function applyState(d) {
     if (!d) return;
     ["week", "cls", "screen"].forEach((k) => { if (typeof d[k] === "string") S[k] = d[k]; });
     if (!WEEKS.some((w) => w.id === S.week)) S.week = defaultWeek();
-    if (!W().classes[S.cls]) S.cls = Object.keys(W().classes)[0];
+    if (typeof d.period === "string" && PERIODS.some((p) => p[0] === d.period)) { S.period = d.period; S.cls = classOf(d.period); }
+    else { const m = PERIODS.find((p) => p[1] === S.cls); if (m && classOf(S.period) !== S.cls) S.period = m[0]; }
+    if (!W().classes[S.cls]) { S.cls = Object.keys(W().classes)[0]; const m = PERIODS.find((p) => p[1] === S.cls); if (m) S.period = m[0]; }
     if (!SCREENS.some((x) => x[0] === S.screen)) S.screen = "today";
     if (typeof d.day === "number" && d.day >= 0 && d.day < 5) S.day = d.day;
     if (typeof d.prob === "number") S.prob = d.prob; S.show = !!d.show;
     { const m = mergeTools(d.tools); Object.keys(S.tools).forEach((k) => delete S.tools[k]); Object.assign(S.tools, m); } // keep the same object: widgets hold a reference to it
     ["bell", "round", "free"].forEach((k) => { const t = d.timers && d.timers[k]; if (t) { S.timers[k] = { running: !!t.running, t0: +t.t0 || 0, elapsed: +t.elapsed || 0 }; if (k === "free") S.timers.free.dur = +t.dur || 300; } });
 }
-function step(n) { const d = D(), len = (d && d.problems && d.problems.length) || 0; if (S.screen !== "bell" || !len) return; S.prob = (S.prob + n + len) % len; S.show = false; push(); }
+/* One-tap lesson flow: Weekly Agenda -> Today -> each bellringer problem and its answer -> the day's activity. */
+function isSpeedDay() { const d = D(); return !!d && /speed dating/i.test((d.agendaLine || "") + " " + (d.agenda || []).join(" ")); }
+function flow(n) {
+    const d = D(), len = (d && d.problems && d.problems.length) || 0;
+    if (n > 0) {
+        if (S.screen === "agenda") S.screen = "today";
+        else if (S.screen === "today") { if (len) { S.screen = "bell"; S.prob = 0; S.show = false; } else if (isSpeedDay()) S.screen = "speed"; else return; }
+        else if (S.screen === "bell") { if (!S.show && len) S.show = true; else if (S.prob < len - 1) { S.prob++; S.show = false; } else if (isSpeedDay()) { S.screen = "speed"; S.show = false; } else { S.screen = "today"; S.show = false; } }
+        else return;
+    } else {
+        if (S.screen === "today") S.screen = "agenda";
+        else if (S.screen === "bell") { if (S.show) S.show = false; else if (S.prob > 0) { S.prob--; S.show = true; } else S.screen = "today"; }
+        else if (S.screen === "speed") { if (len) { S.screen = "bell"; S.prob = len - 1; S.show = true; } else S.screen = "today"; }
+        else return;
+    }
+    push();
+}
+function flowLabel() {
+    const d = D(), len = (d && d.problems && d.problems.length) || 0;
+    if (S.screen === "agenda") return "Next: Today";
+    if (S.screen === "today") return len ? "Next: Bellringer" : (isSpeedDay() ? "Next: Speed Dating" : "Next");
+    if (S.screen === "bell") { if (!S.show && len) return "Next: Show answer"; if (S.prob < len - 1) return "Next: Problem " + (S.prob + 2); return isSpeedDay() ? "Next: Speed Dating" : "Next: Back to Today"; }
+    return "Next";
+}
+let wake = null;
+async function keepAwake() { try { if ("wakeLock" in navigator && !wake && document.visibilityState === "visible") { wake = await navigator.wakeLock.request("screen"); wake.addEventListener("release", () => { wake = null; }); } } catch (e) { /* not supported or not allowed: the screen follows the device's own sleep setting */ } }
 
 window.addEventListener("error", (e) => setStatus("Error: " + (e.message || "script problem")));
 window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.reason && (e.reason.code || e.reason.message)) || "request failed")));
@@ -351,7 +382,9 @@ export async function startApp(opts) {
     window.addEventListener("resize", fit);
     if (window.ResizeObserver) new ResizeObserver(fit).observe($("wrap")); document.addEventListener("fullscreenchange", () => setTimeout(fit, 60));
     document.addEventListener("pointerdown", unlockSound, { once: true });
-    document.addEventListener("keydown", (e) => { if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; if (e.key === "ArrowRight") step(1); else if (e.key === "ArrowLeft") step(-1); else if (e.key === "a" || e.key === "A") { if (S.screen === "bell") { S.show = !S.show; push(); } } });
+    $("flowNext").onclick = () => flow(1); $("flowBack").onclick = () => flow(-1);
+    keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
+    document.addEventListener("keydown", (e) => { if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); flow(1); } else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); flow(-1); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell") { S.show = !S.show; push(); } } });
     setInterval(() => { tick(); tickTools(toolApi); }, 250);
     fit(); render();
 
@@ -371,7 +404,7 @@ export async function startApp(opts) {
             first = false;
             const q = new URLSearchParams(location.search), c = q.get("class"), dy = q.get("day"), di = DK.map((k) => k.toLowerCase()).indexOf((dy || "").toLowerCase());
             let changed = !snap.exists;
-            if (mode === "remote" && c && W().classes[c] && (c !== S.cls)) { S.cls = c; S.prob = 0; S.show = false; changed = true; }
+            if (mode === "remote" && c && W().classes[c] && (c !== S.cls)) { S.cls = c; S.period = (PERIODS.find((p) => p[1] === c) || [S.period])[0]; S.prob = 0; S.show = false; changed = true; }
             if (mode === "remote" && di >= 0 && di !== S.day) { S.day = di; S.prob = 0; S.show = false; changed = true; }
             if (changed) { push(); return; }
         }

@@ -6,7 +6,7 @@
     <title>Remote — Calera Math — Steers</title>
     <meta name="robots" content="noindex">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=6">
+    <link rel="stylesheet" href="css/board.css?v=7">
     <meta name="theme-color" content="#081B45">
 </head>
 <body>
@@ -21,7 +21,8 @@
         <button class="pillbtn" id="boardBtn" type="button">Board view</button>
     </div>
     <div class="strip">
-        <div class="seg klass" id="classes" role="group" aria-label="Class"></div>
+        <div class="flow"><button id="flowBack" type="button">Back</button><button id="flowNext" type="button">Next</button></div>
+        <div class="seg klass" id="classes" role="group" aria-label="Period"></div>
         <div class="seg" id="days" role="group" aria-label="Day"></div>
         <div class="seg scr" id="screens" role="group" aria-label="Screen"></div>
         <div class="files" id="files"></div>
@@ -30,7 +31,7 @@
     <div class="wrap" id="wrap"><div id="stage"><div id="screenHost"></div><div id="toolLayer" class="toollayer"></div></div></div>
     <button id="exit" type="button">Show controls</button>
     <script type="module">
-        import { startApp } from "./js/boardApp.js?v=6";
+        import { startApp } from "./js/boardApp.js?v=7";
         startApp({ mode: "remote" });
     </script>
 </body>

@@ -14,7 +14,7 @@
     <meta property="og:url" content="https://eddiesteers777.github.io/steers-class-board/">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=6">
+    <link rel="stylesheet" href="css/board.css?v=7">
     <meta name="theme-color" content="#081B45">
     <style>
         body{overflow:auto;display:block}
@@ -55,10 +55,10 @@
         <h2 id="classTitle"></h2>
         <p class="sub" id="classLT"></p>
         <div class="week" id="week"></div>
-        <p class="tip">Teacher only. Students never sign in. Keys while a bellringer is on screen: right and left arrows change the problem, A shows or hides the answer.</p>
+        <p class="tip">Teacher only. Students never sign in. Keys while a bellringer is on screen: the right arrow, space bar or a clicker steps to the next thing (answer, next problem, activity), the left arrow goes back, and A shows or hides the answer.</p>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=6";
+        import { WEEKS } from "./data/weeks.js?v=7";
         import { waitForUser, logout } from "./js/auth.js";
         const today = new Date().toISOString().slice(0, 10);
         let week = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= today) week = w;

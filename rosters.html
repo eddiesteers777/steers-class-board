@@ -6,7 +6,7 @@
     <title>Rosters — Calera Math — Steers</title>
     <meta name="robots" content="noindex">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=6">
+    <link rel="stylesheet" href="css/board.css?v=7">
     <meta name="theme-color" content="#081B45">
     <style>
         body{overflow:auto;display:block}
@@ -40,7 +40,7 @@
         <div class="row"><button class="plain" id="fill" type="button" style="background:transparent;border:2px solid var(--sky);border-radius:999px;padding:6px 16px;font-weight:600">Fill the boxes</button></div>
     </main>
     <script type="module">
-        import * as store from "./js/boardStore.js?v=6";
+        import * as store from "./js/boardStore.js?v=7";
         const KEYS = ["1st", "2nd", "4th", "5th", "6th"], $ = (id) => document.getElementById(id), boxes = {};
         const status = (t) => { $("status").textContent = t; };
         KEYS.forEach((k) => {
