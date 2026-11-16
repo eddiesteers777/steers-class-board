@@ -15,7 +15,7 @@
    tests/calendarExport.test.mjs.
 ========================================== */
 
-const DOMAIN = "YOUR_SCHOOL_SITE";
+const DOMAIN = "steers-class-board.firebaseapp.com";
 
 // RFC 5545 text: escape \ ; , and newlines.
 export const icsText = value => String(value ?? "")

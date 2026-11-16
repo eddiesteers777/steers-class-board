@@ -18,15 +18,25 @@ Worksheets stay as paper or Google Docs. No grades, no parent/public access.
   Analytics OFF, Spark free plan, Google sign-in enabled, Firestore
   production mode in us-central1. Console:
   https://console.firebase.google.com/project/steers-class-board/overview
-  Rules still need pasting (deny-all until then); no web app
-  registered yet.
-- **`js/firebase.js` still has `YOUR_*` placeholders on purpose.**
-  Fill in all 7 config keys from the new Firebase project, and put
-  the new project's web client ID in `js/googleSignIn.js`. Then add
-  the site origin to that OAuth client's Authorized JavaScript origins
-  and `https://YOUR_SCHOOL_SITE/auth-return.html` to its Authorized
-  redirect URIs. Start on the default `*.firebaseapp.com` auth domain
-  (a custom auth domain broke Google sign-in for Southbound in Oct 2026).
+  Teacher-only rules published Nov 16, 2026, 10:41 AM CST and read
+  back byte-identical. Web app "Steers Class Board" registered the
+  same day (appId `1:997357619072:web:8e47464df7c4e329fd2365`,
+  project number `997357619072`); no Analytics, no measurementId.
+- **Config is filled in.** `js/firebase.js` has the real config
+  (apiKey, authDomain `steers-class-board.firebaseapp.com`,
+  projectId, storageBucket, messagingSenderId, appId) and
+  `js/googleSignIn.js` has the project's web OAuth client ID
+  (`997357619072-er8lup54uo6g25ihtv920s2fomr11egj`).
+  Still open: the OAuth client's Authorized JavaScript origins
+  currently cover `http://localhost`, `http://localhost:5000`, and
+  `https://steers-class-board.firebaseapp.com` — add the real hosted
+  site origin once hosting is chosen, plus
+  `https://steers-class-board.firebaseapp.com/auth-return.html`
+  (or the real site's `/auth-return.html`) to its Authorized
+  redirect URIs before the PWA redirect flow is used. Start on the
+  default `*.firebaseapp.com` auth domain (a custom auth domain
+  broke Google sign-in for Southbound in Oct 2026). Hosting is NOT
+  set up yet.
 - **Do NOT deploy, publish, or share anything until Eddie says so.**
   District/IT approval is still needed for the site to load on the
   school network.
@@ -122,19 +132,22 @@ pattern reference only; there is no messaging in the school site.
 
 ## Verification (local, 2026-11-16)
 
-- File tree listed; no code file contains the old Southbound domain,
-  the old Southbound Firebase project ID, or a real Firebase key
-  (only `YOUR_*` placeholders). The word "Southbound" survives only
-  in code comments as provenance ("school rewrite of the Southbound
-  … module") — no user-facing Southbound name, logo, or copy remains.
+- File tree listed; no code file contains the old Southbound domain
+  or the old Southbound Firebase project ID. The word "Southbound"
+  survives only in code comments as provenance ("school rewrite of
+  the Southbound … module") — no user-facing Southbound name, logo,
+  or copy remains. The real Steers Class Board Firebase config is
+  now in `js/firebase.js` / `js/googleSignIn.js` (client-side
+  config, as Firebase intends; repo is private).
 - `node --check` passed on the new/edited JS (see the build report for
   the exact list). Not yet tested in a browser, on a Chromebook, or on
-  an ActivPanel — that test is still to do after Firebase is created.
+  an ActivPanel — that test is still to do; hosting is not set up yet.
 
 ## Build order (from the handoff §4)
 
 1. Create the Firebase project + GitHub repo — DONE Nov 16, 2026
-   (see above). 2. Fill in `YOUR_*` values.
+   (see above). 2. Fill in the Firebase config values — DONE Nov 16,
+   2026 (rules published, web app registered, OAuth client ID in).
 3. Test sign-in + home screen + board/remote sync + timers for
    8th Grade Week 5 only, on a Chromebook + the board browser.
 4. Only if that works in class: 7th + 8th ACC, then full-day

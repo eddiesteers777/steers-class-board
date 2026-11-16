@@ -10,14 +10,15 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  // Rolled back 2026-10-26: auth.YOUR_SCHOOL_SITE broke Google sign-in.
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
+  apiKey: "AIzaSyA8kAei_AJMU66EePYQyI8nlVJeLes5HLY",
+  // Rolled back 2026-10-26: a custom auth domain broke Google sign-in.
+  // Start on the default *.firebaseapp.com auth domain.
+  authDomain: "steers-class-board.firebaseapp.com",
+  projectId: "steers-class-board",
+  storageBucket: "steers-class-board.firebasestorage.app",
+  messagingSenderId: "997357619072",
+  appId: "1:997357619072:web:8e47464df7c4e329fd2365"
+  // No measurementId: Google Analytics is OFF for this project.
 };
 
 // Initialize Firebase
@@ -81,7 +82,7 @@ async function clearOfflineCopy() {
 }
 
 // Plain HTTPS address for the one read js/cloudSync.js falls back to when the SDK's connection hangs.
-const firestoreRestBase = "https://firestore.googleapis.com/v1/projects/YOUR_PROJECT_ID/databases/(default)/documents";
+const firestoreRestBase = "https://firestore.googleapis.com/v1/projects/steers-class-board/databases/(default)/documents";
 
 // Export for use in other files
 export { app, auth, db, clearOfflineCopy, firestoreRestBase };

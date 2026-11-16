@@ -41,7 +41,7 @@ const GUEST_PAGES = ["home.html"];
         trail("bounce", page);
         if (recentBounces(readTrail(), Date.now()) >= 3) {
             const { sbAlert } = await import("./ui.js");
-            await sbAlert("Sign-in didn't stick on this device. If this is the Home Screen app, open YOUR_SCHOOL_SITE in Safari and sign in there. Your data is safe in your account.", { title: "Still signed out" });
+            await sbAlert("Sign-in didn't stick on this device. If this is the Home Screen app, open the Calera Math site in Safari and sign in there. Your data is safe in your account.", { title: "Still signed out" });
         }
         window.location.replace("home.html");
     } catch {

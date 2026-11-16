@@ -19,7 +19,7 @@
         <p class="school-sub">Week 5 · November 16–20, 2026 · Pick a class, then a day. Open the Board on the Promethean, and the Remote on your Chromebook — they stay in sync.</p>
 
         <div id="firebaseWarn" class="school-warn" hidden>
-            Firebase is not configured yet — fill in the <code>YOUR_*</code> values in <code>js/firebase.js</code>
+            Firebase is not configured yet — fill in the config values in <code>js/firebase.js</code>
             from the new Firebase project (personal account, project <code>Steers Class Board</code>) before sign-in and sync will work.
             The class list below still loads from <code>data/week5.js</code>.
         </div>
@@ -44,7 +44,7 @@
         const dayList = document.getElementById("dayList");
         const heading = document.getElementById("weekHeading");
         const target = document.getElementById("weekTarget");
-        // Firebase-not-configured banner: js/firebase.js still has YOUR_* placeholders.
+        // Firebase-not-configured banner: js/firebase.js still has placeholder values.
         try {
             const cfg = await (await fetch("js/firebase.js")).text();
             if (cfg.includes("YOUR_")) document.getElementById("firebaseWarn").hidden = false;

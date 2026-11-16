@@ -10,11 +10,11 @@
    auth-return.html with the answer in the address, which that page reads
    when it loads. A reload can't lose it.
 
-   Needs https://YOUR_SCHOOL_SITE/auth-return.html in the Google
+   Needs https://steers-class-board.firebaseapp.com/auth-return.html in the Google
    Cloud web client's Authorized redirect URIs. Pure helpers: unit-tested.
    ========================================================== */
 
-export const RETURN_URL = "https://YOUR_SCHOOL_SITE/auth-return.html";
+export const RETURN_URL = "https://steers-class-board.firebaseapp.com/auth-return.html";
 const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 
 /** The Google address to send the whole page to. */
@@ -50,5 +50,5 @@ export function newState() {
 
 /** The Home Screen app, where the pop-up can't be trusted. Only on the real site (the redirect address is registered for it). */
 export function useRedirectSignIn({ standalone, origin }) {
-    return Boolean(standalone) && origin === "https://YOUR_SCHOOL_SITE";
+    return Boolean(standalone) && origin === "https://steers-class-board.firebaseapp.com";
 }

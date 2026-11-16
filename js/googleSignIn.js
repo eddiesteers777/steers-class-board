@@ -2,20 +2,20 @@
    googleSignIn.js -- Google sign-in that never opens the
    firebaseapp.com page.
 
-   Firebase's own pop-up finishes on YOUR_PROJECT_ID.firebaseapp.com.
+   Firebase's own pop-up finishes on steers-class-board.firebaseapp.com.
    iPhone Safari (and the home-screen app) keep that site's storage
-   apart from YOUR_SCHOOL_SITE, so the page says "missing initial
+   apart from the school site, so the page says "missing initial
    state" and sign-in dies. Google's sign-in script talks straight back
    to this page instead: it returns an access token, and js/auth.js
    hands that token to Firebase.
 
    Needs GOOGLE_CLIENT_ID (the Firebase project's web client ID, not a
-   secret) and YOUR_SCHOOL_SITE in that client's Authorized
+   secret) and the school site origin in that client's Authorized
    JavaScript origins. With no ID, or if Google's script can't load,
    js/auth.js falls back to the old pop-up.
    ========================================================== */
 
-export const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com";
+export const GOOGLE_CLIENT_ID = "997357619072-er8lup54uo6g25ihtv920s2fomr11egj.apps.googleusercontent.com";
 const SCRIPT_URL = "https://accounts.google.com/gsi/client";
 const SCOPES = "openid email profile";
 
