@@ -5,8 +5,8 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js";
-import * as store from "./boardStore.js";
+import { WEEKS } from "../data/weeks.js?v=3";
+import * as store from "./boardStore.js?v=3";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -46,6 +46,8 @@ const SCREENS = [["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bell
 const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 const ROUND = 240, GAP = 10;
 const PRESETS = [1, 2, 3, 5, 10, 15];
+let skew = 0; // this device's clock vs the shared clock, in ms
+const now = () => Date.now() + skew;
 const blankTimer = () => ({ running: false, t0: 0, elapsed: 0 });
 
 function defaultWeek() {
@@ -62,13 +64,15 @@ let mode = "remote", signedIn = false, sig = "", writeState = null, SEAL = "bran
 
 function writer(path) {
     let busy = false, next = null;
-    return function (d) {
+    const w = function (d) {
         next = d; if (busy) return; busy = true;
         (async function () {
-            while (next) { const x = next; next = null; try { await store.save(path, x); } catch (e) { setStatus("Could not save. Check the connection."); } }
+            while (next) { const x = next; next = null; try { await store.save(path, x); } catch (e) { setStatus("Could not save (" + ((e && e.code) || "connection") + ")"); } }
             busy = false;
         })();
     };
+    w.busy = () => busy || !!next;
+    return w;
 }
 function setStatus(t) { const s = $("status"); if (s) s.textContent = t; }
 function push() { render(); if (writeState) writeState(JSON.parse(JSON.stringify(S))); }
@@ -130,8 +134,8 @@ function timerParts(kind, host) {
     const tb = el("div", "tbtns"), go = el("button", null, "Start"), rs = el("button", "alt", "Reset"); go.id = "tgo"; go.type = rs.type = "button";
     go.onclick = () => {
         const t = S.timers[kind];
-        if (t.running) { t.elapsed = Date.now() - t.t0; t.running = false; }
-        else { if (kind !== "round" && t.elapsed >= secsFor(kind) * 1000) t.elapsed = 0; t.t0 = Date.now() - t.elapsed; t.running = true; unlockSound(); }
+        if (t.running) { t.elapsed = now() - t.t0; t.running = false; }
+        else { if (kind !== "round" && t.elapsed >= secsFor(kind) * 1000) t.elapsed = 0; t.t0 = now() - t.elapsed; t.running = true; unlockSound(); }
         push();
     };
     rs.onclick = () => { S.timers[kind] = Object.assign(blankTimer(), kind === "free" ? { dur: S.timers.free.dur || 300 } : {}); push(); };
@@ -153,7 +157,7 @@ function beep(times) {
 }
 function tick() {
     const tc = $("tcard"); if (!tc) { lastPhase = ""; return; }
-    const kind = tc.dataset.kind, t = S.timers[kind], ms = t.running ? Date.now() - t.t0 : t.elapsed, e = Math.max(0, Math.floor(ms / 1000));
+    const kind = tc.dataset.kind, t = S.timers[kind], ms = t.running ? now() - t.t0 : t.elapsed, e = Math.max(0, Math.floor(ms / 1000));
     const c = $("clock"), bar = $("tbar"); let txt, hot, frac, phase;
     if (kind === "round") {
         const x = e % (ROUND + GAP), n = Math.floor(e / (ROUND + GAP)) + 1;
@@ -267,7 +271,7 @@ function watchInk() {
     if (key === inkKey) return; inkKey = key; if (inkUnsub) { inkUnsub(); inkUnsub = null; } inkWrite = null; strokes = []; cur = null; redraw();
     if (!key || !signedIn) return;
     inkWrite = writer("ink/" + key);
-    inkUnsub = store.watch("ink/" + key, (snap) => { if (key !== inkKey || snap.pending || cur) return; const dd = snap.exists && snap.data; strokes = dd && Array.isArray(dd.strokes) ? JSON.parse(JSON.stringify(dd.strokes)) : []; redraw(); }, () => note("Saved drawings are not available right now."));
+    inkUnsub = store.watch("ink/" + key, (snap) => { if (key !== inkKey || snap.pending || cur || (inkWrite && inkWrite.busy())) return; const dd = snap.exists && snap.data; strokes = dd && Array.isArray(dd.strokes) ? JSON.parse(JSON.stringify(dd.strokes)) : []; redraw(); }, () => note("Saved drawings are not available right now."));
 }
 
 /* ---------- shared state ---------- */
@@ -282,6 +286,9 @@ function applyState(d) {
     ["bell", "round", "free"].forEach((k) => { const t = d.timers && d.timers[k]; if (t) { S.timers[k] = { running: !!t.running, t0: +t.t0 || 0, elapsed: +t.elapsed || 0 }; if (k === "free") S.timers.free.dur = +t.dur || 300; } });
 }
 function step(n) { const d = D(), len = (d && d.problems && d.problems.length) || 0; if (S.screen !== "bell" || !len) return; S.prob = (S.prob + n + len) % len; S.show = false; push(); }
+
+window.addEventListener("error", (e) => setStatus("Error: " + (e.message || "script problem")));
+window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.reason && (e.reason.code || e.reason.message)) || "request failed")));
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
@@ -301,10 +308,11 @@ export async function startApp(opts) {
     if (!user) { location.replace("login.html"); return; }
     signedIn = true; $("who").textContent = user.name ? "Signed in as " + user.name : "Signed in";
     writeState = writer("board/state");
+    store.clockSkew().then((ms) => { skew = ms; tick(); });
     const slow = setTimeout(() => setStatus("Still connecting…"), 10000);
     let first = true;
     store.watch("board/state", (snap) => {
-        if (snap.pending) return;
+        if (snap.pending || (writeState && writeState.busy())) return;
         clearTimeout(slow); setStatus("In sync");
         if (snap.exists) applyState(snap.data);
         if (first) {
@@ -316,6 +324,6 @@ export async function startApp(opts) {
             if (changed) { push(); return; }
         }
         render();
-    }, () => { clearTimeout(slow); setStatus("Sync is not available right now"); });
+    }, (e) => { clearTimeout(slow); setStatus("Sync is off (" + ((e && e.code) || "error") + ")"); });
     render();
 }
