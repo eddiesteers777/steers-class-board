@@ -5,9 +5,9 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=7";
-import * as store from "./boardStore.js?v=7";
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=7";
+import { WEEKS } from "../data/weeks.js?v=8";
+import * as store from "./boardStore.js?v=8";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=8";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -78,7 +78,7 @@ function writer(path) {
     w.busy = () => busy || !!next;
     return w;
 }
-function setStatus(t) { const s = $("status"); if (s) s.textContent = t; }
+function setStatus(t) { const s = $("status"); if (s) { s.textContent = t; s.dataset.state = t === "Live" ? "ok" : (t.startsWith("Connecting") || t.startsWith("Still") ? "wait" : "bad"); } }
 function push() { render(); if (writeState) writeState(JSON.parse(JSON.stringify(S))); }
 let quietTimer = 0;
 function quiet() { clearTimeout(quietTimer); quietTimer = setTimeout(() => { if (writeState) writeState(JSON.parse(JSON.stringify(S))); }, 500); } // save typing without redrawing
@@ -100,19 +100,21 @@ function seg(host, items, current, onPick) {
 }
 function buildControls() {
     const w = W();
-    seg($("classes"), PERIODS.filter((p) => w.classes[p[1]]).map((p) => [p[0], p[0] + " · " + w.classes[p[1]].label]), S.period, (id) => { S.period = id; S.cls = classOf(id); S.prob = 0; S.show = false; push(); });
+    const ps = $("periodSel"); ps.textContent = "";
+    PERIODS.filter((p) => w.classes[p[1]]).forEach((p) => { const o = el("option", null, p[0] + " period, " + w.classes[p[1]].label); o.value = p[0]; ps.appendChild(o); });
+    ps.value = S.period;
     seg($("days"), DK.map((k, i) => [i, k]), S.day, (i) => { S.day = i; S.prob = 0; S.show = false; push(); });
     seg($("screens"), SCREENS, S.screen, (id) => { S.screen = id; S.show = false; push(); });
     const sel = $("weekSel"); sel.textContent = "";
     WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + x.dates); o.value = x.id; sel.appendChild(o); });
-    sel.value = w.id; sel.hidden = WEEKS.length < 2;
+    sel.value = w.id; $("weekField").hidden = WEEKS.length < 2;
     const fn = $("flowNext"); if (fn) { fn.textContent = flowLabel(); const dead = !["agenda", "today", "bell"].includes(S.screen) || fn.textContent === "Next"; fn.disabled = dead; $("flowBack").disabled = !["today", "bell", "speed"].includes(S.screen); }
     const files = $("files"), l = L();
     if (files) {
         files.textContent = "";
         const links = (l && l.links) || [];
+        $("filesMenu").hidden = !links.length;
         if (links.length) {
-            files.appendChild(el("span", null, "Files:"));
             links.forEach((k) => { const a = el("a", null, k.t); a.href = k.u; a.target = "_blank"; a.rel = "noopener"; files.appendChild(a); });
         }
     }
@@ -246,7 +248,7 @@ let topZ = 1;
 let layerSig = "", dragging = false;
 function posOf(k) { const p = S.tools.pos[k]; if (p) return p; const d = DEFAULT_POS[k] || [10, 30]; return { x: d[0], y: d[1], s: 1 }; }
 function renderDock() {
-    const dock = $("dock"); if (!dock) return; dock.textContent = ""; dock.appendChild(el("span", null, "Tools:"));
+    const dock = $("dock"); if (!dock) return; dock.textContent = ""; { const n = Object.keys(S.tools.on).length, tc = $("toolCount"); if (tc) tc.textContent = n ? n + " on" : ""; }
     TOOL_LIST.forEach(([k, label]) => { const b = el("button", null, label); b.type = "button"; b.setAttribute("aria-pressed", String(!!S.tools.on[k])); b.onclick = () => { if (S.tools.on[k]) delete S.tools.on[k]; else S.tools.on[k] = true; push(); }; dock.appendChild(b); });
     if (Object.keys(S.tools.on).length) { const c = el("button", "clear", "Hide all"); c.type = "button"; c.onclick = () => { S.tools.on = {}; push(); }; dock.appendChild(c); }
 }
@@ -375,6 +377,8 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
     document.body.classList.toggle("board", mode === "board");
+    $("periodSel").onchange = function () { S.period = this.value; S.cls = classOf(this.value); S.prob = 0; S.show = false; push(); };
+    document.addEventListener("click", (e) => { document.querySelectorAll("details.acct[open]").forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });
     $("weekSel").onchange = function () { S.week = this.value; S.prob = 0; S.show = false; push(); };
     $("boardBtn").onclick = () => { document.body.classList.add("board"); unlockSound(); try { const p = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ok */ } fit(); };
     $("exit").onclick = () => { document.body.classList.remove("board"); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* ok */ } fit(); };
@@ -398,7 +402,7 @@ export async function startApp(opts) {
     let first = true;
     store.watch("board/state", (snap) => {
         if (snap.pending || (writeState && writeState.busy())) return;
-        clearTimeout(slow); setStatus("In sync");
+        clearTimeout(slow); setStatus("Live");
         if (snap.exists) applyState(snap.data);
         if (first) {
             first = false;

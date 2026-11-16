@@ -5,49 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rosters — Calera Math — Steers</title>
     <meta name="robots" content="noindex">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=7">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=8">
+    <link rel="stylesheet" href="css/console.css?v=8">
     <meta name="theme-color" content="#081B45">
-    <style>
-        body{overflow:auto;display:block}
-        main{max-width:1100px;margin:0 auto;padding:20px 16px 48px}
-        h1{font-size:2rem;font-weight:700;margin-top:8px}
-        .sub{color:var(--soft);margin:4px 0 16px;line-height:1.45}
-        .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
-        .col label{display:block;font-weight:600;margin-bottom:4px}
-        textarea{width:100%;min-height:330px;font:inherit;font-size:.95rem;color:#10358A;background:#F6F9FD;border:2px solid var(--sky);border-radius:12px;padding:10px;resize:vertical}
-        #all{min-height:120px}
-        .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
-        .count{font-size:.85rem;color:var(--soft)}
-    </style>
-</head>
-<body>
-    <div class="top">
-        <img src="brand/calera-seal.webp" alt="Calera Middle School seal">
-        <div class="brand"><b>Class Rosters</b><span id="who">Calera Middle School</span></div>
-        <span class="status" id="status" role="status">Connecting…</span>
-        <a class="home" href="index.html">Home</a>
-        <a class="home" href="remote.html">Remote</a>
-    </div>
+    </head>
+<body class="console page">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/calera-seal.webp" alt=""><span><b>Steers Class Board</b><small id="who">Calera Middle School</small></span></a>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
+        <a class="btn" href="remote.html" style="text-decoration:none">Open Remote</a>
+    </header>
     <main>
         <h1>Rosters</h1>
-        <p class="sub">One name per line for each period. These names are saved only to your private account. They are never part of the site's public code. The Name picker and Group maker tools use them.</p>
+        <p class="sub">One name per line for each period. Names are saved only to your private account and are never part of the site's public code. The Name picker and Group maker use them.</p>
         <div class="cols" id="cols"></div>
-        <div class="row"><button class="pillbtn" id="save" type="button">Save rosters</button><span class="count" id="saved"></span></div>
-        <h2 style="font-size:1.2rem;margin-top:22px">Paste everything at once</h2>
-        <p class="sub">Paste a full list here with a line such as "1st period" above each class, then tap Fill the boxes. Check the boxes, then tap Save rosters.</p>
+        <div class="rowx"><button class="btn go" id="save" type="button">Save rosters</button><span class="count2" id="saved"></span></div>
+        <h2>Paste everything at once</h2>
+        <p class="sub">Paste a full list with a line such as "1st period" above each class, then choose Fill the boxes. Check the boxes, then Save rosters.</p>
         <textarea id="all" aria-label="Paste all rosters"></textarea>
-        <div class="row"><button class="plain" id="fill" type="button" style="background:transparent;border:2px solid var(--sky);border-radius:999px;padding:6px 16px;font-weight:600">Fill the boxes</button></div>
+        <div class="rowx"><button class="btn ghost" id="fill" type="button">Fill the boxes</button></div>
     </main>
     <script type="module">
-        import * as store from "./js/boardStore.js?v=7";
+        import * as store from "./js/boardStore.js?v=8";
         const KEYS = ["1st", "2nd", "4th", "5th", "6th"], $ = (id) => document.getElementById(id), boxes = {};
-        const status = (t) => { $("status").textContent = t; };
+        const status = (t) => { const s = $("status"); s.textContent = t; s.dataset.state = /^(Live|Saved|Filled)/.test(t) ? "ok" : (/Could not|No period/.test(t) ? "bad" : "wait"); };
         KEYS.forEach((k) => {
             const col = document.createElement("div"); col.className = "col";
             const lab = document.createElement("label"); lab.htmlFor = "r-" + k; lab.textContent = k + " period";
             const ta = document.createElement("textarea"); ta.id = "r-" + k; ta.spellcheck = false;
-            const n = document.createElement("span"); n.className = "count";
+            const n = document.createElement("span"); n.className = "count2";
             const count = () => { n.textContent = clean(ta.value).length + " students"; }; ta.addEventListener("input", count);
             col.append(lab, ta, n); $("cols").appendChild(col); boxes[k] = { ta, count };
         });
@@ -64,7 +52,7 @@
             $("who").textContent = "Signed in as " + user.name;
             let loaded = false;
             store.watch("rosters/all", (snap) => {
-                if (snap.pending || loaded) return; loaded = true; status("In sync");
+                if (snap.pending || loaded) return; loaded = true; status("Live");
                 const p = (snap.exists && snap.data && snap.data.periods) || {};
                 KEYS.forEach((k) => { boxes[k].ta.value = (p[k] || []).join("\n"); boxes[k].count(); });
             }, (e) => status("Could not load rosters (" + ((e && e.code) || "error") + ")"));
