@@ -153,3 +153,27 @@ body.board .toolchips,body.board .msgin,body.board .minis.setup{display:none}
 .toolgrid[data-count="7"] .bigtime{font-size:2.2em}
 .toolgrid[data-count="5"] .voice svg,.toolgrid[data-count="6"] .voice svg,.toolgrid[data-count="7"] .voice svg{height:1.8em}
 .tool-work .in{gap:.3em;padding:.4em .6em}
+
+/* ---------- floating tools + polish ---------- */
+#screenHost{flex:1;min-height:0;display:flex;flex-direction:column;animation:screenIn .28s ease-out}
+@keyframes screenIn{from{opacity:.4;transform:translateY(.4em)}}
+.toollayer{position:absolute;inset:0;pointer-events:none;z-index:3}
+.float{position:absolute;pointer-events:auto;width:14em;box-shadow:0 .5em 1.6em rgba(4,12,34,.45);animation:pop .18s ease-out}
+.float.tool-score{width:22em}.float.tool-text{width:18em}.float.tool-traffic{width:9em}
+@keyframes pop{from{opacity:0;transform:scale(.92)}}
+.float h3{display:flex;align-items:center;justify-content:space-between;cursor:grab;touch-action:none;user-select:none}
+.float h3:active{cursor:grabbing}
+.float .close{background:transparent;border:0;color:var(--on);font-size:1.2em;line-height:1;padding:0 .2em;opacity:.8}
+.float .grip{position:absolute;right:0;bottom:0;width:1.4em;height:1.4em;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 55%,var(--sky) 55%,var(--sky) 65%,transparent 65%,transparent 75%,var(--sky) 75%,var(--sky) 85%,transparent 85%);border-bottom-right-radius:.7em}
+.float .in{padding:.6em .7em .9em}
+.float .lights{height:11em;max-height:none}
+.strip .toolchips{font-size:.85rem}
+.strip .toolchips button{color:var(--on);padding:3px 12px;border-width:1px;border-color:var(--soft)}
+.strip .toolchips button[aria-pressed="true"]{background:var(--soft);color:var(--navy)}
+.strip .toolchips .clear{border-style:dashed}
+body.board .float .close{display:none}
+.seg button,.pillbtn,.toolchips button,.minis button,.tbtns button,.probs button,.q button,.tools button{transition:background .15s,color .15s,transform .08s}
+.seg button:hover,.toolchips button:hover{background:rgba(127,174,221,.22)}
+.seg button:active,.pillbtn:active,.toolchips button:active,.minis button:active,.tbtns button:active,.probs button:active,.q button:active{transform:scale(.95)}
+.card{box-shadow:0 .25em .9em rgba(4,12,34,.28)}
+@media (prefers-reduced-motion:reduce){#screenHost,.float{animation:none}*{transition:none!important}}

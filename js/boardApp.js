@@ -5,9 +5,9 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=4";
-import * as store from "./boardStore.js?v=4";
-import { renderTools, tickTools, defaultTools, mergeTools } from "./boardTools.js?v=4";
+import { WEEKS } from "../data/weeks.js?v=5";
+import * as store from "./boardStore.js?v=5";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=5";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -180,10 +180,11 @@ function tick() {
 
 function render() {
     buildControls();
-    const l = L(), d = D(), ns = JSON.stringify([S.week, S.cls, S.day, S.screen, S.prob, S.show, S.timers.free.dur, signedIn, S.screen === "tools" ? toolSig() : ""]);
-    if (ns === sig) { tick(); tickTools(toolApi); return; }
+    const l = L(), d = D(), ns = JSON.stringify([S.week, S.cls, S.day, S.screen, S.prob, S.show, S.timers.free.dur, signedIn]);
+    renderDock();
+    if (ns === sig) { renderLayer(); tick(); tickTools(toolApi); return; }
     sig = ns; lastPhase = "";
-    const st = $("stage"); st.textContent = ""; canvas = null; ctx = null;
+    const st = $("screenHost"); st.textContent = ""; canvas = null; ctx = null;
     if (!l) { st.appendChild(el("div", "empty", "No lesson found for this class and week.")); watchInk(); return; }
     const w = W();
     if (S.screen === "agenda") {
@@ -213,7 +214,7 @@ function render() {
         box.appendChild(pr); st.appendChild(box);
     } else if (S.screen === "tools") {
         st.appendChild(header("Classroom Tools", (d ? d.name + " · " : "") + ((d && d.date) || "")));
-        const box = el("div", "toolsbody"); renderTools(box, toolApi); st.appendChild(box); tickTools(toolApi);
+        const box = el("div", "toolsbody"); box.appendChild(el("p", "toolempty", Object.keys(S.tools.on).length ? "" : "Turn tools on from the Tools row on the Remote. Drag a tool by its title to move it, and drag its corner to resize it.")); st.appendChild(box);
     } else { /* bellringer or blank whiteboard */
         const blank = S.screen === "blank" || !d, ps = (d && d.problems) || [];
         st.appendChild(header(blank ? "Whiteboard" : "Bellringer", blank ? "Work it out" : (d.name + " · " + (d.date || ""))));
@@ -231,7 +232,47 @@ function render() {
         const cv = el("div", "cv" + (gridOn ? " grid" : "")); cv.id = "cv"; canvas = el("canvas"); cv.appendChild(canvas);
         wk.appendChild(cv); wk.appendChild(toolbar()); st.appendChild(wk); bindCanvas(); sizeCanvas();
     }
-    watchInk(); tick();
+    renderLayer(); watchInk(); tick();
+}
+
+/* ---------- floating tools (shown over every screen) ---------- */
+const DEFAULT_POS = { traffic: [2, 23], work: [20, 23], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40] };
+let topZ = 1;
+let layerSig = "", dragging = false;
+function posOf(k) { const p = S.tools.pos[k]; if (p) return p; const d = DEFAULT_POS[k] || [10, 30]; return { x: d[0], y: d[1], s: 1 }; }
+function renderDock() {
+    const dock = $("dock"); if (!dock) return; dock.textContent = ""; dock.appendChild(el("span", null, "Tools:"));
+    TOOL_LIST.forEach(([k, label]) => { const b = el("button", null, label); b.type = "button"; b.setAttribute("aria-pressed", String(!!S.tools.on[k])); b.onclick = () => { if (S.tools.on[k]) delete S.tools.on[k]; else S.tools.on[k] = true; push(); }; dock.appendChild(b); });
+    if (Object.keys(S.tools.on).length) { const c = el("button", "clear", "Hide all"); c.type = "button"; c.onclick = () => { S.tools.on = {}; push(); }; dock.appendChild(c); }
+}
+function renderLayer() {
+    const layer = $("toolLayer"); if (!layer || dragging) return;
+    const ns = toolSig(); if (ns === layerSig) return; layerSig = ns;
+    const typing = document.activeElement && document.activeElement.id === "toolMsgIn", caret = typing ? document.activeElement.selectionStart : 0;
+    layer.textContent = "";
+    TOOL_LIST.forEach(([k]) => {
+        if (!S.tools.on[k]) return;
+        const w = buildWidget(k, toolApi), p = posOf(k); w.classList.add("float");
+        w.style.left = p.x + "%"; w.style.top = p.y + "%"; w.style.fontSize = p.s + "em";
+        const h = w.querySelector("h3"), x = el("button", "close", "×"); x.type = "button"; x.setAttribute("aria-label", "Hide this tool"); x.onclick = () => { delete S.tools.on[k]; push(); }; h.appendChild(x);
+        const grip = el("span", "grip"); grip.setAttribute("aria-hidden", "true"); w.appendChild(grip);
+        const stage = $("stage");
+        const start = (e, kind) => {
+            if (e.target === x) return; e.preventDefault(); dragging = true;
+            const r = stage.getBoundingClientRect(), p0 = Object.assign({}, posOf(k)), sx = e.clientX, sy = e.clientY, w0 = w.getBoundingClientRect().width; let cur = Object.assign({}, p0);
+            const move = (ev) => {
+                if (kind === "move") { cur.x = Math.min(95, Math.max(0, p0.x + (ev.clientX - sx) / r.width * 100)); cur.y = Math.min(92, Math.max(0, p0.y + (ev.clientY - sy) / r.height * 100)); w.style.left = cur.x + "%"; w.style.top = cur.y + "%"; }
+                else { cur.s = Math.min(3, Math.max(0.5, p0.s * (w0 + ev.clientX - sx) / w0)); w.style.fontSize = cur.s + "em"; }
+            };
+            const end = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", end); window.removeEventListener("pointercancel", end); dragging = false; S.tools.pos[k] = { x: Math.round(cur.x * 10) / 10, y: Math.round(cur.y * 10) / 10, s: Math.round(cur.s * 100) / 100 }; layerSig = toolSig(); if (writeState) writeState(JSON.parse(JSON.stringify(S))); };
+            window.addEventListener("pointermove", move); window.addEventListener("pointerup", end); window.addEventListener("pointercancel", end);
+        };
+        h.addEventListener("pointerdown", (e) => start(e, "move")); grip.addEventListener("pointerdown", (e) => start(e, "size"));
+        w.addEventListener("pointerdown", () => { w.style.zIndex = String(++topZ); });
+        layer.appendChild(w);
+    });
+    if (typing) { const t = $("toolMsgIn"); if (t) { t.focus(); try { t.setSelectionRange(caret, caret); } catch (e) { /* ok */ } } }
+    tickTools(toolApi);
 }
 
 /* ---------- whiteboard ink ---------- */

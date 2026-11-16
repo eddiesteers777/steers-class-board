@@ -6,7 +6,7 @@
     <title>Calera Math — Steers | Home</title>
     <meta name="robots" content="noindex">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=4">
+    <link rel="stylesheet" href="css/board.css?v=5">
     <meta name="theme-color" content="#081B45">
     <style>
         body{overflow:auto;display:block}
@@ -49,7 +49,7 @@
         <p class="tip">Teacher only. Students never sign in. Keys while a bellringer is on screen: right and left arrows change the problem, A shows or hides the answer.</p>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=4";
+        import { WEEKS } from "./data/weeks.js?v=5";
         import { waitForUser, logout } from "./js/auth.js";
         const today = new Date().toISOString().slice(0, 10);
         let week = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= today) week = w;

@@ -12,13 +12,14 @@ const PERIODS = ["1st", "2nd", "4th", "5th", "6th"];
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
 
 export function defaultTools() {
-    return { on: { traffic: true, work: true, clock: true }, traffic: "green", work: "silent", text: "",
+    return { on: {}, pos: {}, traffic: "green", work: "silent", text: "",
         dice: { n: 2, vals: [3, 5], roll: 0 }, score: { teams: [{ n: "Team 1", s: 0 }, { n: "Team 2", s: 0 }] },
         sw: { running: false, t0: 0, elapsed: 0 } };
 }
 export function mergeTools(d) {
     const t = defaultTools(); if (!d || typeof d !== "object") return t;
     if (d.on && typeof d.on === "object") { t.on = {}; TOOL_LIST.forEach(([k]) => { if (d.on[k]) t.on[k] = true; }); }
+    if (d.pos && typeof d.pos === "object") TOOL_LIST.forEach(([k]) => { const q = d.pos[k]; if (q) t.pos[k] = { x: Math.min(95, Math.max(0, +q.x || 0)), y: Math.min(92, Math.max(0, +q.y || 0)), s: Math.min(3, Math.max(0.5, +q.s || 1)) }; });
     if (["green", "yellow", "red"].includes(d.traffic)) t.traffic = d.traffic;
     if (WORK.some((w) => w[0] === d.work)) t.work = d.work;
     if (typeof d.text === "string") t.text = d.text.slice(0, 600);
@@ -40,18 +41,11 @@ function people(n) {
     return svg;
 }
 
-/** Build the tools screen into `host`. api = { S, el, push, quiet, now, card } */
-export function renderTools(host, api) {
-    const { S, el, push } = api, T = S.tools;
-    const chips = el("div", "toolchips"); chips.appendChild(el("span", null, "Show:"));
-    TOOL_LIST.forEach(([k, label]) => { const b = el("button", null, label); b.type = "button"; b.setAttribute("aria-pressed", String(!!T.on[k])); b.onclick = () => { if (T.on[k]) delete T.on[k]; else T.on[k] = true; push(); }; chips.appendChild(b); });
-    host.appendChild(chips);
-    const grid = el("div", "toolgrid"); host.appendChild(grid);
-    const shown = TOOL_LIST.filter(([k]) => T.on[k]);
-    grid.dataset.count = String(shown.length);
-    if (!shown.length) { grid.appendChild(el("p", "toolempty", "Pick a tool above to put it on the board.")); return; }
-    shown.forEach(([k, label]) => {
-        const c = api.card(label, "tool tool-" + k), b = c.i; grid.appendChild(c.c);
+/** Build one widget as a floating window. api = { S, el, push, quiet, now, card } */
+export function buildWidget(k, api) {
+    const { S, el, push } = api, T = S.tools, label = (TOOL_LIST.find((x) => x[0] === k) || [k, k])[1];
+    const c = api.card(label, "tool tool-" + k), b = c.i;
+    {
         if (k === "traffic") {
             const box = el("div", "lights");
             [["red", "Stop"], ["yellow", "Slow down"], ["green", "Go"]].forEach(([col, name]) => { const l = el("button", "light " + col + (T.traffic === col ? " lit" : "")); l.type = "button"; l.setAttribute("aria-label", name); l.setAttribute("aria-pressed", String(T.traffic === col)); l.onclick = () => { T.traffic = col; push(); }; box.appendChild(l); });
@@ -100,7 +94,8 @@ export function renderTools(host, api) {
             mk("Reset scores", () => { T.score.teams.forEach((x) => { x.s = 0; }); });
             b.appendChild(ctl);
         }
-    });
+    }
+    return c.c;
 }
 
 /** Called 4 times a second: clock, stopwatch, and the message text on the board. */
