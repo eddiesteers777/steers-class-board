@@ -14,8 +14,8 @@
     <meta property="og:url" content="https://eddiesteers777.github.io/steers-class-board/">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=9">
-    <link rel="stylesheet" href="css/console.css?v=9">
+    <link rel="stylesheet" href="css/board.css?v=10">
+    <link rel="stylesheet" href="css/console.css?v=10">
     <meta name="theme-color" content="#081B45">
     </head>
 <body class="console page">
@@ -58,8 +58,8 @@
         </details>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=9";
-        import * as store from "./js/boardStore.js?v=9";
+        import { WEEKS } from "./data/weeks.js?v=10";
+        import * as store from "./js/boardStore.js?v=10";
         const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
         const DAYKEYS = ["mon", "tue", "wed", "thu", "fri"], $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -101,6 +101,7 @@
                 const a = el("div", "pwho"); a.appendChild(el("b", null, p + " period")); a.appendChild(el("span", null, k.label + (when ? " · " + when : ""))); row.appendChild(a);
                 const b = el("div", "pwhat"); b.appendChild(el("b", null, day.agendaLine)); b.appendChild(el("span", null, day.lt)); row.appendChild(b);
                 const f = el("div", "pfiles"); fileLinks(f, k.links); row.appendChild(f);
+                const sl = el("a", "sublink", "Sub link"); sl.href = "sub.html?period=" + encodeURIComponent(p) + "&day=" + DAYKEYS[di]; sl.title = "A no-sign-in view of this period for a guest teacher"; f.appendChild(sl);
                 const go = el("a", "btn" + (p === cur.p ? " go" : " ghost"), "Start"); go.href = startUrl(p); go.setAttribute("aria-label", "Start " + p + " period"); row.appendChild(go);
                 host.appendChild(row);
             });

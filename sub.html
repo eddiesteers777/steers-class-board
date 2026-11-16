@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guest teacher board — Calera Math — Steers</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=10">
+    <link rel="stylesheet" href="css/console.css?v=10">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="console">
+    <header class="cbar">
+        <a class="cbrand" href="#"><img src="brand/calera-seal.webp" alt=""><span><b>Steers Class Board</b><small id="who">Calera Middle School</small></span></a>
+        <label class="field"><span>Period</span><select id="periodSel" aria-label="Period"></select></label>
+        <label class="field" id="weekField" hidden><span>Week</span><select id="weekSel" aria-label="Week"></select></label>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <button class="btn" id="boardBtn" type="button">Board view</button>
+        <button id="signOut" type="button" hidden>Sign out</button>
+    </header>
+    <div class="cbody">
+        <nav class="rail" aria-label="Board controls">
+            <p class="railh">Screens</p>
+            <div class="seg scr" id="screens" role="group" aria-label="Screen"></div>
+            <details class="menu fold" id="toolsMenu" open><summary>Tools <span class="count" id="toolCount"></span></summary><div class="toolchips" id="dock" role="group" aria-label="Tools"></div></details>
+            <details class="menu fold" id="filesMenu"><summary>Files</summary><div class="files" id="files"></div></details>
+        </nav>
+        <main class="deck">
+            <div class="wrap" id="wrap"><div id="stage"><div id="screenHost"></div><div id="toolLayer" class="toollayer"></div></div></div>
+            <div class="flowbar">
+                <div class="seg days" id="days" role="group" aria-label="Day"></div>
+                <div class="flow"><button id="flowBack" type="button">Back</button><button id="flowNext" type="button">Next</button></div>
+            </div>
+        </main>
+    </div>
+    <button id="exit" type="button">Show controls</button>
+    <script type="module">
+        import { startApp } from "./js/boardApp.js?v=10";
+        import * as store from "./js/localStore.js?v=10";
+        startApp({ mode: "sub", store });
+    </script>
+</body>
+</html>

@@ -192,3 +192,5 @@ body.board #stage{border-radius:0;box-shadow:none}
 .bellrow input{font:inherit;color:var(--c-ink);border:1.5px solid var(--c-line);border-radius:8px;padding:5px 8px;background:#fff}
 @media (max-width:760px){.now{grid-template-columns:1fr}.prow{grid-template-columns:1fr auto}.pwhat,.pfiles{grid-column:1/-1}}
 .pfiles a,.nowfacts a{display:inline-block;margin-right:14px}
+
+.sublink{color:var(--c-mute)!important;font-weight:500!important}

@@ -5,9 +5,9 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=9";
-import * as store from "./boardStore.js?v=9";
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=9";
+import { WEEKS } from "../data/weeks.js?v=10";
+let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=10";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -78,7 +78,7 @@ function writer(path) {
     w.busy = () => busy || !!next;
     return w;
 }
-function setStatus(t) { const s = $("status"); if (s) { s.textContent = t; s.dataset.state = t === "Live" ? "ok" : (t.startsWith("Connecting") || t.startsWith("Still") ? "wait" : "bad"); } }
+function setStatus(t) { const s = $("status"); if (s) { s.textContent = t; s.dataset.state = (t === "Live" || t === "This device only") ? "ok" : (t.startsWith("Connecting") || t.startsWith("Still") ? "wait" : "bad"); } }
 function push() { render(); if (writeState) writeState(JSON.parse(JSON.stringify(S))); }
 let quietTimer = 0;
 function quiet() { clearTimeout(quietTimer); quietTimer = setTimeout(() => { if (writeState) writeState(JSON.parse(JSON.stringify(S))); }, 500); } // save typing without redrawing
@@ -249,7 +249,7 @@ let layerSig = "", dragging = false;
 function posOf(k) { const p = S.tools.pos[k]; if (p) return p; const d = DEFAULT_POS[k] || [10, 30]; return { x: d[0], y: d[1], s: 1 }; }
 function renderDock() {
     const dock = $("dock"); if (!dock) return; dock.textContent = ""; { const n = Object.keys(S.tools.on).length, tc = $("toolCount"); if (tc) tc.textContent = n ? n + " on" : ""; }
-    TOOL_LIST.forEach(([k, label]) => { const b = el("button", null, label); b.type = "button"; b.setAttribute("aria-pressed", String(!!S.tools.on[k])); b.onclick = () => { if (S.tools.on[k]) delete S.tools.on[k]; else S.tools.on[k] = true; push(); }; dock.appendChild(b); });
+    TOOL_LIST.filter(([k]) => !(mode === "sub" && (k === "pick" || k === "groups"))).forEach(([k, label]) => { const b = el("button", null, label); b.type = "button"; b.setAttribute("aria-pressed", String(!!S.tools.on[k])); b.onclick = () => { if (S.tools.on[k]) delete S.tools.on[k]; else S.tools.on[k] = true; push(); }; dock.appendChild(b); });
     if (Object.keys(S.tools.on).length) { const c = el("button", "clear", "Hide all"); c.type = "button"; c.onclick = () => { S.tools.on = {}; push(); }; dock.appendChild(c); }
 }
 function renderLayer() {
@@ -376,6 +376,8 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
+    store = (opts && opts.store) || await import("./boardStore.js?v=10");
+    const guest = mode === "sub";
     document.body.classList.toggle("board", mode === "board");
     $("periodSel").onchange = function () { S.period = this.value; S.cls = classOf(this.value); S.prob = 0; S.show = false; push(); };
     document.addEventListener("click", (e) => { document.querySelectorAll("details.acct[open]").forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });
@@ -394,7 +396,7 @@ export async function startApp(opts) {
 
     const user = await store.ready();
     if (!user) { location.replace("login.html"); return; }
-    signedIn = true; $("who").textContent = user.name ? "Signed in as " + user.name : "Signed in";
+    signedIn = true; $("who").textContent = guest ? "Guest teacher view, no sign-in" : (user.name ? "Signed in as " + user.name : "Signed in");
     writeState = writer("board/state");
     store.watch("rosters/all", (snap) => { const p = (snap.exists && snap.data && snap.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); renderLayer(); }, () => {});
     store.clockSkew().then((ms) => { skew = ms; tick(); });
@@ -402,13 +404,14 @@ export async function startApp(opts) {
     let first = true;
     store.watch("board/state", (snap) => {
         if (snap.pending || (writeState && writeState.busy())) return;
-        clearTimeout(slow); setStatus("Live");
+        clearTimeout(slow); setStatus(guest ? "This device only" : "Live");
         if (snap.exists) applyState(snap.data);
         if (first) {
             first = false;
             const q = new URLSearchParams(location.search), c = q.get("class"), dy = q.get("day"), di = DK.map((k) => k.toLowerCase()).indexOf((dy || "").toLowerCase());
             let changed = !snap.exists;
             const pq = q.get("period"), sq = q.get("screen");
+            if (guest) { const pp = q.get("period"); if (pp && PERIODS.some((p) => p[0] === pp)) { S.period = pp; S.cls = classOf(pp); } if (di >= 0) S.day = di; S.screen = "today"; S.prob = 0; S.show = false; push(); return; }
             if (mode === "remote" && sq && SCREENS.some((x) => x[0] === sq) && sq !== S.screen) { S.screen = sq; changed = true; }
             if (mode === "remote" && pq && PERIODS.some((p) => p[0] === pq) && pq !== S.period) { S.period = pq; S.cls = classOf(pq); S.prob = 0; S.show = false; S.screen = "today"; changed = true; }
             else if (mode === "remote" && c && W().classes[c] && (c !== S.cls)) { S.cls = c; S.period = (PERIODS.find((p) => p[1] === c) || [S.period])[0]; S.prob = 0; S.show = false; changed = true; }
