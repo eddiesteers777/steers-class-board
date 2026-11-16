@@ -19,9 +19,7 @@ try {
     if (sessionStorage.getItem("school-loadcheck") === "1") import("./loadCheck.js").catch(() => {});
 } catch { /* storage unavailable */ }
 // The tab dock and other bottom bars stay off the form on a phone (js/viewportFix.js).
-import("./viewportFix.js").catch(() => {});
 // The Calera navy app look (js/appLook.js).
-if (!document.documentElement.classList.contains("pb-app")) import("./appLook.js").then(m => m.applyAppLook()).catch(() => {});
 
 const GUEST_PAGES = ["home.html"];
 
@@ -209,7 +207,6 @@ fetch("components/header.html")
         hydrate();
 
         // Calera Math reactions on every <textarea data-emoji> (js/emojiPicker.js).
-        import("./emojiPicker.js").then(m => m.enableEmojiPickers()).catch(() => {});
 
         const page = window.location.pathname.split("/").pop() || "index.html";
 
@@ -376,10 +373,8 @@ fetch("components/header.html")
 
         // The bell: what needs attention from the coach and the plan (js/notifications.js).
         // Its buttons carry data-requires="client+updates", so the coach never sees one.
-        import("./notifications.js").then(m => m.initNotifications()).catch(() => {});
 
         // The account circle: opens the account sheet (js/account.js). Its photo or initials are painted by the auth listener below.
-        import("./account.js").then(m => m.initAccount()).catch(() => {});
 
         document.addEventListener("keydown", event => {
             if (event.key !== "Escape") return;
@@ -600,7 +595,6 @@ fetch("components/header.html")
             listenForAuth((user) => {
 
                 // The avatar (Google photo or initials) and the account sheet's guest / signed-in parts.
-                import("./account.js").then(m => m.paintAccount(user)).catch(() => {});
 
                 if (user) {
 

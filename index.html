@@ -4,76 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calera Math — Steers | Home</title>
-    <meta name="description" content="Calera Middle School math class library for Mr. Steers: Week 5, November 16–20, 2026. Teacher-only.">
     <meta name="robots" content="noindex">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/calera.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0E2A47">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=2">
+    <meta name="theme-color" content="#081B45">
+    <style>
+        body{overflow:auto;display:block}
+        main{max-width:1100px;margin:0 auto;padding:20px 16px 48px}
+        h1{font-size:2rem;font-weight:700;margin-top:8px}
+        .sub{color:var(--soft);margin:4px 0 18px}
+        .launch{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:26px}
+        .launch a{display:block;background:var(--navy);border:3px solid var(--sky);border-radius:18px;padding:18px 20px;text-decoration:none}
+        .launch a b{display:block;font-size:1.35rem}
+        .launch a span{color:var(--soft)}
+        .launch a.main{background:var(--sky);color:var(--navy)}
+        .launch a.main span{color:var(--navy)}
+        h2{font-size:1.25rem;margin:18px 0 8px}
+        .week{display:grid;gap:8px}
+        .dayrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;background:var(--paper);color:var(--ink);border-radius:14px;padding:10px 16px}
+        .dayrow.now{outline:4px solid var(--sky)}
+        .dayrow b{min-width:150px}
+        .dayrow span{flex:1;min-width:180px;font-weight:500}
+        .dayrow a{background:var(--blue);color:var(--on);border-radius:999px;padding:4px 14px;text-decoration:none;font-weight:600}
+        .tip{margin-top:26px;color:var(--soft);line-height:1.5}
+    </style>
 </head>
 <body>
-    <div id="header"></div>
-    <main class="school-home">
-        <p class="school-eyebrow">Calera Middle School — Home of the Eagles</p>
-        <h1 class="school-title">Calera Math — Steers</h1>
-        <p class="school-sub">Week 5 · November 16–20, 2026 · Pick a class, then a day. Open the Board on the Promethean, and the Remote on your Chromebook — they stay in sync.</p>
-
-        <div id="firebaseWarn" class="school-warn" hidden>
-            Firebase is not configured yet — fill in the config values in <code>js/firebase.js</code>
-            from the new Firebase project (personal account, project <code>Steers Class Board</code>) before sign-in and sync will work.
-            The class list below still loads from <code>data/week5.js</code>.
+    <div class="top">
+        <img src="brand/calera-seal.webp" alt="Calera Middle School seal">
+        <div class="brand"><b>Steers Classroom Board</b><span id="who">Calera Middle School</span></div>
+        <button class="plain" id="signOut" type="button">Sign out</button>
+    </div>
+    <main>
+        <h1 id="weekTitle">This week</h1>
+        <p class="sub">Open the Board on the Promethean and the Remote on your Chromebook. Sign in with the same Google account on both and they stay in sync.</p>
+        <div class="launch">
+            <a class="main" href="remote.html"><b>Open Remote</b><span>On this Chromebook: pick the class, day and screen</span></a>
+            <a href="board.html"><b>Open Board</b><span>On the Promethean: full screen, follows the Remote</span></a>
         </div>
-
-        <div class="class-grid" id="classGrid" role="group" aria-label="Classes"></div>
-
-        <h2 id="weekHeading">Week 5 — 8th Grade</h2>
-        <p id="weekTarget" class="school-sub"></p>
-        <div class="day-list" id="dayList"></div>
-
-        <div class="school-note">
-            <strong>Teacher-only.</strong> Students never sign in and cannot type into this site.
-            Worksheets stay as paper or Google Docs. Nothing here is published or shared until Mr. Steers says so.
-        </div>
+        <div class="seg klass" id="classes" role="group" aria-label="Class"></div>
+        <h2 id="classTitle"></h2>
+        <p class="sub" id="classLT"></p>
+        <div class="week" id="week"></div>
+        <p class="tip">Teacher only. Students never sign in. Keys while a bellringer is on screen: right and left arrows change the problem, A shows or hides the answer.</p>
     </main>
-
-    <script src="js/loadHeader.js"></script>
     <script type="module">
-        import { WEEK5, dayIds } from "./data/week5.js";
-        let selected = "8th";
-        const grid = document.getElementById("classGrid");
-        const dayList = document.getElementById("dayList");
-        const heading = document.getElementById("weekHeading");
-        const target = document.getElementById("weekTarget");
-        // Firebase-not-configured banner: js/firebase.js still has placeholder values.
-        try {
-            const cfg = await (await fetch("js/firebase.js")).text();
-            if (cfg.includes("YOUR_")) document.getElementById("firebaseWarn").hidden = false;
-        } catch { /* offline: leave the banner hidden */ }
+        import { WEEKS } from "./data/weeks.js";
+        import { waitForUser, logout } from "./js/auth.js";
+        const today = new Date().toISOString().slice(0, 10);
+        let week = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= today) week = w;
+        const wd = new Date().getDay(), now = (wd >= 1 && wd <= 5) ? wd - 1 : -1, keys = ["mon", "tue", "wed", "thu", "fri"];
+        let sel = "8th";
+        const $ = (id) => document.getElementById(id);
+        function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
         function render() {
-            grid.replaceChildren();
-            for (const [id, cls] of Object.entries(WEEK5.classes)) {
-                const b = document.createElement("button");
-                b.type = "button"; b.className = "class-card";
-                b.setAttribute("aria-pressed", String(id === selected));
-                b.innerHTML = `<h2>${cls.label}</h2><p>${WEEK5.label} · ${WEEK5.dates}</p>`;
-                b.addEventListener("click", () => { selected = id; render(); });
-                grid.appendChild(b);
-            }
-            const cls = WEEK5.classes[selected];
-            heading.textContent = `${WEEK5.label} — ${cls.label}`;
-            target.textContent = WEEK5.targets[selected] ? `Weekly target: ${WEEK5.targets[selected]}` : "";
-            dayList.replaceChildren();
-            for (const dayId of dayIds()) {
-                const day = cls.days[dayId];
-                const row = document.createElement("div");
-                row.className = "day-row";
-                const links = `<a href="board.html?class=${selected}&week=week5&day=${dayId}">Board</a><a href="remote.html?class=${selected}&week=week5&day=${dayId}">Remote</a>`;
-                row.innerHTML = `<span class="day-name">${day.day} · ${day.date}</span><span class="day-title">${day.title}${day.note ? ` — ${day.note}` : ""}</span><span class="day-links">${links}</span>`;
-                dayList.appendChild(row);
-            }
+            $("weekTitle").textContent = week.label + " · " + week.dates;
+            const host = $("classes"); host.textContent = "";
+            for (const [id, c] of Object.entries(week.classes)) { const b = el("button", null, c.label); b.type = "button"; b.setAttribute("aria-pressed", String(id === sel)); b.onclick = () => { sel = id; render(); }; host.appendChild(b); }
+            const c = week.classes[sel];
+            $("classTitle").textContent = c.cls; $("classLT").textContent = "Learning target: " + c.weekLT;
+            const list = $("week"); list.textContent = "";
+            c.days.forEach((d, i) => {
+                const r = el("div", "dayrow" + (i === now ? " now" : ""));
+                r.appendChild(el("b", null, d.name + " · " + d.date)); r.appendChild(el("span", null, d.agendaLine));
+                const a = el("a", null, "Open on Remote"); a.href = "remote.html?class=" + encodeURIComponent(sel) + "&day=" + keys[i]; r.appendChild(a);
+                list.appendChild(r);
+            });
         }
         render();
+        $("signOut").onclick = async () => { try { await logout(); } finally { location.replace("login.html"); } };
+        const user = await waitForUser();
+        if (!user) location.replace("login.html");
+        else $("who").textContent = "Signed in as " + (user.displayName || user.email || "teacher");
     </script>
-    <script src="js/registerSW.js"></script>
 </body>
 </html>

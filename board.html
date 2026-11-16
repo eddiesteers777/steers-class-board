@@ -5,88 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Board — Calera Math — Steers</title>
     <meta name="robots" content="noindex">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/calera.css">
-    <meta name="theme-color" content="#0A1F36">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=2">
+    <meta name="theme-color" content="#081B45">
 </head>
-<body class="board-view">
-    <div id="header"></div>
-    <main>
-        <p class="board-label" id="boardLabel">Calera Math — Steers</p>
-        <h1 id="boardTitle">Loading…</h1>
-        <div id="boardItem" class="board-item"></div>
-
-        <div id="boardTimer" class="class-timer" hidden>
-            <div class="timer-digits">5:00</div>
-            <div class="timer-bar-wrap"><div class="timer-bar"></div></div>
-            <p class="timer-state">Click to start</p>
-        </div>
-
-        <div id="boardAnswer" class="board-answer" hidden></div>
-
-        <div id="boardWhiteboard" class="board-answer" hidden>
-            <strong>Whiteboard open.</strong>
-            Draw on the Work-It-Out Board from the Week 5 thread (the full board — pens, colours, eraser, undo, grid — lives there and is wired in next; this Step 1 board shows the live lesson and timer only).
-        </div>
-
-        <p id="boardStatus" class="board-label" role="status">Connecting to the live session…</p>
-    </main>
-
-    <script src="js/loadHeader.js"></script>
+<body class="board">
+    <div class="top">
+        <img src="brand/calera-seal.webp" alt="Calera Middle School seal">
+        <div class="brand"><b>Steers Classroom Board</b><span id="who">Calera Middle School</span></div>
+        <span class="status" id="status" role="status">Connecting…</span>
+        <select id="weekSel" aria-label="Week" hidden></select>
+        <a class="home" href="index.html">Home</a>
+        <button class="plain" id="signOut" type="button">Sign out</button>
+        <button class="pillbtn" id="boardBtn" type="button">Board view</button>
+    </div>
+    <div class="strip">
+        <div class="seg klass" id="classes" role="group" aria-label="Class"></div>
+        <div class="seg" id="days" role="group" aria-label="Day"></div>
+        <div class="seg scr" id="screens" role="group" aria-label="Screen"></div>
+        <div class="files" id="files"></div>
+    </div>
+    <div class="wrap" id="wrap"><div id="stage"></div></div>
+    <button id="exit" type="button">Show controls</button>
     <script type="module">
-        import { WEEK5, dayItems } from "./data/week5.js";
-        import { watchLiveSession, sessionIdFor } from "./js/liveSession.js";
-        import { renderTimer } from "./js/classTimer.js";
-        const q = new URLSearchParams(location.search);
-        const classId = q.get("class") || "8th";
-        const weekId = q.get("week") || "week5";
-        const dayId = q.get("day") || "mon";
-        const sessionId = sessionIdFor(classId, weekId, dayId);
-        const cls = WEEK5.classes[classId];
-        const day = cls?.days[dayId];
-        const label = document.getElementById("boardLabel");
-        const title = document.getElementById("boardTitle");
-        const itemEl = document.getElementById("boardItem");
-        const timerEl = document.getElementById("boardTimer");
-        const answerEl = document.getElementById("boardAnswer");
-        const wbEl = document.getElementById("boardWhiteboard");
-        const statusEl = document.getElementById("boardStatus");
-        label.textContent = `${cls?.label || classId} · ${WEEK5.label} · ${day?.day || ""} ${day?.date || ""}`;
-        title.textContent = day?.title || "No lesson for this day yet";
-        let current = null;
-        let tick = null;
-        function draw(session) {
-            current = session;
-            const items = dayItems(classId, dayId);
-            const item = items[Math.min(session.itemIndex || 0, items.length - 1)] || items[0];
-            itemEl.textContent = item ? `${item.label}: ${item.text}` : "";
-            // Timer: show on the bellringer item, or whenever the remote started one.
-            const t = session.timer;
-            if (t && (item?.key === "bellringer" || t.state !== "idle")) {
-                timerEl.hidden = false;
-                renderTimer(timerEl, t);
-            } else {
-                timerEl.hidden = true;
-            }
-            answerEl.hidden = !session.answerVisible;
-            if (session.answerVisible) answerEl.textContent = "Answer: shown by the teacher — see the worked board.";
-            wbEl.hidden = !session.whiteboardOpen;
-            statusEl.textContent = `Live: ${sessionId} · item ${(session.itemIndex || 0) + 1} of ${items.length}`;
-        }
-        try {
-            const stop = watchLiveSession(sessionId, (session) => {
-                statusEl.textContent = `Live: ${sessionId}`;
-                draw(session);
-                clearInterval(tick);
-                tick = setInterval(() => { if (current) draw(current); }, 250);
-            }, (err) => {
-                statusEl.textContent = "Live sync unavailable: " + (err?.code || err?.message || "check Firebase config in js/firebase.js");
-            });
-            window.addEventListener("beforeunload", stop);
-        } catch (e) {
-            statusEl.textContent = "Live sync unavailable: " + (e?.message || e);
-            draw({ itemIndex: 0, answerVisible: false, whiteboardOpen: false, timer: { durationSec: 300, endsAt: null, state: "idle", remainingSec: 300 } });
-        }
+        import { startApp } from "./js/boardApp.js?v=2";
+        startApp({ mode: "board" });
     </script>
 </body>
 </html>

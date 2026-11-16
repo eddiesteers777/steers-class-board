@@ -1,17 +1,14 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // STARTER ONLY - teacher-only school site. Replace with the real rules
-    // before any student device touches this project.
-    // Only the signed-in teacher (Eddie, teacher Google account) can read/write.
-    // Students never sign in; the board is a display, not a login.
+    // Teacher-only school site. Each signed-in account can read and write
+    // ONLY its own documents under teacher/{uid}/...:
+    //   teacher/{uid}/board/state   what the board is showing
+    //   teacher/{uid}/ink/{key}     whiteboard drawings
+    // Another Google account that signs in gets its own empty space and can
+    // never see or change the teacher's board. Students never sign in.
     match /teacher/{uid}/{doc=**} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
-    }
-    match /live/{sessionId} {
-      // Board + Chromebook remote sync doc. Teacher-only write.
-      // Board reads it signed in as the teacher on the board browser.
-      allow read, write: if request.auth != null;
     }
     match /{document=**} {
       allow read, write: if false;

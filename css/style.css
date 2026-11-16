@@ -19,20 +19,6 @@
     font-display:swap;
     src:url('../fonts/inter-latin-var.woff2') format('woff2');
 }
-@font-face{
-    font-family:'Saira';
-    font-style:normal;
-    font-weight:800;
-    font-display:swap;
-    src:url('../fonts/saira-latin-800.woff2') format('woff2');
-}
-@font-face{
-    font-family:'Saira';
-    font-style:italic;
-    font-weight:900;
-    font-display:swap;
-    src:url('../fonts/saira-latin-900-italic.woff2') format('woff2');
-}
 /* Calera Math look, direction A (2026-10-14, Eddie: "more like A, keep my
    palette"): Big Shoulders Display headlines (always uppercase), Instrument
    Sans text, IBM Plex Mono for numbers and small labels. Self-hosted like
