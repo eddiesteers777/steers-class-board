@@ -1,0 +1,739 @@
+{
+ "id": "week5",
+ "label": "Week 5",
+ "dates": "November 16–20",
+ "monday": "2026-11-16",
+ "classes": {
+  "8th": {
+   "label": "8th Grade",
+   "cls": "Steers - 8th Grade",
+   "bellSeconds": 300,
+   "weekLT": "I can find a missing angle in a triangle and solve equations to find all 3 angles.",
+   "days": [
+    {
+     "name": "Monday",
+     "title": "Monday",
+     "date": "November 16",
+     "agendaLine": "Triangle Angle Sum: Guided Notes",
+     "short": "Triangle angle sum",
+     "bell": "Bellringer Sheet",
+     "agenda": [
+      "Triangle Angle Sum: Guided Notes"
+     ],
+     "supplies": [
+      "Bellringer",
+      "Guided Notes",
+      "Homework",
+      "Pencil"
+     ],
+     "reminders": [
+      "Speed Dating tomorrow",
+      "Homework Packet due Thursday"
+     ],
+     "lt": "I can find a missing angle in a triangle.",
+     "problems": [
+      {
+       "q": "Solve: 3x + 7 = 22",
+       "a": "x = 5",
+       "check": "3*5+7==22"
+      },
+      {
+       "q": "Solve: 2(x − 4) = 10",
+       "a": "x = 9",
+       "check": "2*(9-4)==10"
+      },
+      {
+       "q": "Solve: 5x − 3 = 2x + 12",
+       "a": "x = 5",
+       "check": "5*5-3==2*5+12"
+      },
+      {
+       "q": "Find: 180 − 47 − 68",
+       "a": "65",
+       "check": "180-47-68==65"
+      }
+     ]
+    },
+    {
+     "name": "Tuesday",
+     "title": "Tuesday",
+     "date": "November 17",
+     "agendaLine": "Speed Dating Activity",
+     "short": "Speed dating",
+     "bell": "Bellringer Sheet",
+     "agenda": [
+      "Speed Dating Activity"
+     ],
+     "supplies": [
+      "Bellringer",
+      "Recording Sheet",
+      "Homework",
+      "Pencil"
+     ],
+     "reminders": [
+      "Test Thursday",
+      "Homework Packet due Thursday"
+     ],
+     "lt": "I can solve equations and explain my steps.",
+     "problems": [
+      {
+       "q": "Solve: 4x − 9 = 3x + 2",
+       "a": "x = 11",
+       "check": "4*11-9==3*11+2"
+      },
+      {
+       "q": "Solve: 3(x + 2) = 21",
+       "a": "x = 5",
+       "check": "3*(5+2)==21"
+      },
+      {
+       "q": "Two angles of a triangle are 35° and 80°. Find the third angle.",
+       "a": "65°",
+       "check": "180-35-80==65"
+      },
+      {
+       "q": "How many solutions? 2(x + 3) = 2x + 6",
+       "a": "Infinitely many solutions",
+       "check": "2*(7+3)==2*7+6 and 2*(0+3)==2*0+6"
+      }
+     ],
+     "bellNote": "Speed Dating"
+    },
+    {
+     "name": "Wednesday",
+     "title": "Wednesday",
+     "date": "November 18",
+     "agendaLine": "Triangle Practice + Study Guide",
+     "short": "Practice + study guide",
+     "bell": "Bellringer Sheet",
+     "agenda": [
+      "Triangle Practice",
+      "Study Guide"
+     ],
+     "supplies": [
+      "Bellringer",
+      "Study Guide",
+      "Homework",
+      "Pencil"
+     ],
+     "reminders": [
+      "Test tomorrow",
+      "Bring your Homework Packet"
+     ],
+     "lt": "I can solve for x to find all 3 angles.",
+     "problems": [
+      {
+       "q": "The angles of a triangle are x°, (x + 20)°, and 60°. Find x.",
+       "a": "x = 50",
+       "check": "50+(50+20)+60==180"
+      },
+      {
+       "q": "Solve: 6x − 5 = 2x + 15",
+       "a": "x = 5",
+       "check": "6*5-5==2*5+15"
+      },
+      {
+       "q": "A right triangle has an acute angle of 37°. Find the other acute angle.",
+       "a": "53°",
+       "check": "90-37==53"
+      },
+      {
+       "q": "Solve: 0.5x + 3 = 11",
+       "a": "x = 16",
+       "check": "0.5*16+3==11"
+      }
+     ]
+    },
+    {
+     "name": "Thursday",
+     "title": "Thursday",
+     "date": "November 19",
+     "agendaLine": "Magma Math Test (Homework Packet due)",
+     "short": "Magma Math test",
+     "bell": "Bellringer Sheet",
+     "agenda": [
+      "Magma Math Test"
+     ],
+     "supplies": [
+      "Calculator",
+      "Chromebook",
+      "Homework",
+      "Pencil"
+     ],
+     "reminders": [
+      "Test today",
+      "Turn in your Homework Packet"
+     ],
+     "lt": "I can show what I know about equations.",
+     "problems": [
+      {
+       "q": "Solve: 2x + 6 = 18",
+       "a": "x = 6",
+       "check": "2*6+6==18"
+      },
+      {
+       "q": "A triangle has angles of 90° and 40°. Find the third angle.",
+       "a": "50°",
+       "check": "180-90-40==50"
+      }
+     ],
+     "bellNote": "Test Day"
+    },
+    {
+     "name": "Friday",
+     "title": "FriYay",
+     "date": "November 20",
+     "agendaLine": "Sub Day: Review Worksheet",
+     "short": "Sub day review",
+     "bell": "Bellringer Sheet",
+     "agenda": [
+      "Sub Day: Review Worksheet"
+     ],
+     "supplies": [
+      "Bellringer",
+      "Worksheet",
+      "Calculator",
+      "Pencil"
+     ],
+     "reminders": [
+      "Sub day",
+      "Complete the paper assignment"
+     ],
+     "lt": "I can review equations and triangle angles.",
+     "problems": [
+      {
+       "q": "Find the hypotenuse of a right triangle with legs 6 and 8.",
+       "a": "10",
+       "check": "sqrt(6**2+8**2)==10"
+      },
+      {
+       "q": "Multiply: (2 × 10³)(4 × 10²)",
+       "a": "8 × 10⁵",
+       "check": "(2*10**3)*(4*10**2)==8*10**5"
+      },
+      {
+       "q": "Between which two whole numbers is √40?",
+       "a": "6 and 7",
+       "check": "6**2<40<7**2"
+      },
+      {
+       "q": "Write 3⁵ ÷ 3² as one power.",
+       "a": "3³",
+       "check": "F(3**5,3**2)==3**3"
+      }
+     ],
+     "bellNote": "Review of Earlier Topics, Substitute Day"
+    }
+   ],
+   "speed": {
+    "motto": "Show your work. Explain WHY. Write down mistakes!",
+    "lt": "I can solve equations and explain my steps.",
+    "steps": [
+     "Your card is your master problem. Solve it and be ready to teach it.",
+     "Meet your partner and show your card.",
+     "Solve your partner’s problem on your recording sheet.",
+     "Explain your steps and check each other’s work.",
+     "Switch roles. On YOUR card, write each partner’s mistake in the Errors section.",
+     "When the timer ends, the moving side goes one seat clockwise.",
+     "Last 10 minutes: share your most common error. We fix the top cards together."
+    ]
+   },
+   "links": [
+    {
+     "t": "Bellringer sheet",
+     "u": "https://docs.google.com/document/d/1mR94J9KJdAbSteOusw7kdfklb6sWOGEh8PVgS5l2ANs/edit?usp=sharing"
+    },
+    {
+     "t": "Homework packet",
+     "u": "https://docs.google.com/document/d/1fTeeR_CQuaIGzAz-exMVjJ3AMSdGevcMlgEG3FBo3xU/edit?usp=sharing"
+    },
+    {
+     "t": "Study guide",
+     "u": "https://docs.google.com/document/d/12R3UNm9QnlVxrn2jA8wjT0DXUjJcmoXyDyWl7ctP6Gs/edit?usp=sharing"
+    }
+   ],
+   "greeting": "8th grade",
+   "topic": "finding missing angles in triangles and solving equations",
+   "homeworkLine": "Homework: Homework Packet, Monday, Tuesday, and Wednesday problems, due Thursday. No homework Friday.",
+   "assessment": {
+    "type": "test",
+    "day": "Thursday",
+    "name": "Magma Math Test"
+   },
+   "bellringer": {
+    "title": "Weekly Bellringer: Week of November 16",
+    "subtitle": "8th Grade Mathematics • Equations and Triangle Angle Sum",
+    "directions": "Do these problems at the start of class each day. Show your work. Thursday is test day, so only two quick problems."
+   }
+  },
+  "7th": {
+   "label": "7th Grade",
+   "cls": "Steers - 7th Grade",
+   "weekLT": "I can solve real-world and mathematical problems involving the four operations with rational numbers.",
+   "bellSeconds": 300,
+   "days": [
+    {
+     "name": "Monday",
+     "title": "Monday",
+     "date": "November 16",
+     "agendaLine": "Guided Notes: Problem Solving",
+     "short": "Guided notes",
+     "bell": "Warmup: Bellringer Sheet",
+     "agenda": [
+      "Guided Notes: Problem Solving"
+     ],
+     "supplies": [
+      "Chromebook",
+      "Pencil"
+     ],
+     "reminders": [
+      "Quiz Thursday 11/19",
+      "Extra Practice: Monday"
+     ],
+     "lt": "I can solve real-world and mathematical problems involving the four operations with rational numbers.",
+     "problems": [
+      {
+       "q": "Find −{2/5} + {3/10}.",
+       "a": "−{1/10}",
+       "check": "F(-2,5)+F(3,10)==F(-1,10)"
+      },
+      {
+       "q": "Find 5.6 − (−2.4).",
+       "a": "8",
+       "check": "F('5.6')+F('2.4')==8"
+      },
+      {
+       "q": "Find (−6)(−{7/9}).",
+       "a": "{14/3} = 4{2/3}",
+       "check": "(-6)*(-F(7,9))==F(14,3) and F(14,3)==4+F(2,3)"
+      }
+     ]
+    },
+    {
+     "name": "Tuesday",
+     "title": "Tuesday",
+     "date": "November 17",
+     "agendaLine": "Speed Dating Review",
+     "short": "Speed dating",
+     "bell": "Warmup: Bellringer Sheet",
+     "agenda": [
+      "Speed Dating Review"
+     ],
+     "supplies": [
+      "Pencil"
+     ],
+     "reminders": [
+      "Extra Practice: Tuesday problems"
+     ],
+     "lt": "I can solve real-world and mathematical problems involving the four operations with rational numbers.",
+     "problems": [
+      {
+       "q": "Find −{3/4} ÷ (−{9/8}).",
+       "a": "{2/3}",
+       "check": "F(-3,4)/F(-9,8)==F(2,3)"
+      },
+      {
+       "q": "Find (−1.5)(4).",
+       "a": "−6",
+       "check": "F('-1.5')*4==-6"
+      },
+      {
+       "q": "Simplify {{1/2}/{1/4}}.",
+       "a": "2",
+       "check": "F(1,2)/F(1,4)==2"
+      }
+     ]
+    },
+    {
+     "name": "Wednesday",
+     "title": "Wednesday",
+     "date": "November 18",
+     "agendaLine": "Magma Math Whole-Class Review",
+     "short": "Magma Math review",
+     "bell": "Warmup: Bellringer Sheet",
+     "agenda": [
+      "Magma Math Review"
+     ],
+     "supplies": [
+      "Chromebook",
+      "Pencil"
+     ],
+     "reminders": [
+      "Quiz tomorrow",
+      "Extra Practice: Wednesday"
+     ],
+     "lt": "I can solve real-world and mathematical problems involving the four operations with rational numbers.",
+     "problems": [
+      {
+       "q": "Find 2{1/2} − 4.",
+       "a": "−1{1/2}",
+       "check": "F(5,2)-4==-(1+F(1,2))"
+      },
+      {
+       "q": "Find −0.8 ÷ 0.2.",
+       "a": "−4",
+       "check": "F('-0.8')/F('0.2')==-4"
+      },
+      {
+       "q": "Find 6(−{1/3} + {1/2}).",
+       "a": "1",
+       "check": "6*(-F(1,3)+F(1,2))==1"
+      }
+     ]
+    },
+    {
+     "name": "Thursday",
+     "title": "Thursday",
+     "date": "November 19",
+     "agendaLine": "Quiz: Problem Solving",
+     "short": "Quiz",
+     "bell": "Warmup: Bellringer Sheet",
+     "agenda": [
+      "Quiz: Problem Solving"
+     ],
+     "supplies": [
+      "Pencil"
+     ],
+     "reminders": [
+      "Quiz today, no calculator"
+     ],
+     "lt": "I can solve real-world and mathematical problems involving the four operations with rational numbers.",
+     "problems": [
+      {
+       "q": "Find −{1/3} + {1/6}.",
+       "a": "−{1/6}",
+       "check": "-F(1,3)+F(1,6)==-F(1,6)"
+      },
+      {
+       "q": "Find 3.5 − 6.",
+       "a": "−2.5",
+       "check": "F('3.5')-6==F('-2.5')"
+      },
+      {
+       "q": "Find (−{2/5})({5/6}).",
+       "a": "−{1/3}",
+       "check": "-F(2,5)*F(5,6)==-F(1,3)"
+      }
+     ]
+    },
+    {
+     "name": "Friday",
+     "title": "Friday",
+     "date": "November 20",
+     "agendaLine": "Sub Day: Review Worksheet",
+     "short": "Sub day review",
+     "bell": "Warmup: Bellringer Sheet",
+     "agenda": [
+      "Review Sheet",
+      "Sudoku"
+     ],
+     "supplies": [
+      "Pencil"
+     ],
+     "reminders": [
+      "Be kind to our guest teacher"
+     ],
+     "lt": "I can solve real-world and mathematical problems involving the four operations with rational numbers.",
+     "problems": [
+      {
+       "q": "Find |−7| + |3|.",
+       "a": "10",
+       "check": "abs(-7)+abs(3)==10"
+      },
+      {
+       "q": "Write {3/8} as a decimal.",
+       "a": "0.375",
+       "check": "F(3,8)==F('0.375')"
+      },
+      {
+       "q": "Compare −{3/4} and −0.8. Use < or >.",
+       "a": "−{3/4} > −0.8",
+       "check": "-F(3,4)>F('-0.8')"
+      }
+     ],
+     "bellNote": "Cumulative Review, earlier topics"
+    }
+   ],
+   "speed": {
+    "motto": "Show your work. Explain WHY. This is not a race!",
+    "lt": "I can solve real-world and mathematical problems involving the four operations with rational numbers.",
+    "steps": [
+     "Your card is your master problem. Solve it and be ready to teach it.",
+     "Meet your partner and show your card.",
+     "Solve your partner’s problem on your recording sheet.",
+     "Explain your steps and check each other’s work.",
+     "Write mistakes partners make on YOUR card in the Errors section.",
+     "When the timer ends, the moving side goes one seat clockwise.",
+     "At the end, share your most common error for the class error review."
+    ]
+   },
+   "links": [],
+   "greeting": "7th grade",
+   "topic": "solving problems with rational numbers",
+   "homeworkLine": "Extra Practice: Monday, Tuesday, and Wednesday. No Extra Practice Thursday or Friday.",
+   "assessment": {
+    "type": "quiz",
+    "day": "Thursday",
+    "name": "Quiz"
+   },
+   "bellringer": {
+    "title": "Weekly Bellringers: Rational Number Problem Solving",
+    "subtitle": "Week of November 16 | 7th Grade Math | No calculator"
+   }
+  },
+  "8th-acc": {
+   "label": "8th Accelerated",
+   "cls": "Steers - 8th Grade Accelerated",
+   "weekLT": "I can solve and graph inequalities and find a missing angle in a triangle.",
+   "bellSeconds": 300,
+   "days": [
+    {
+     "name": "Monday",
+     "title": "Monday",
+     "date": "November 16",
+     "agendaLine": "Inequalities: Guided Notes",
+     "short": "Inequalities",
+     "bell": "Bellringer Sheet",
+     "agenda": [
+      "Inequalities: Guided Notes"
+     ],
+     "supplies": [
+      "Bellringer",
+      "Guided Notes",
+      "Homework",
+      "Pencil"
+     ],
+     "reminders": [
+      "Speed Dating tomorrow",
+      "Homework Packet due Thursday"
+     ],
+     "lt": "I can solve and graph inequalities.",
+     "problems": [
+      {
+       "q": "Solve: 3x − 4 > 11",
+       "a": "x > 5",
+       "check": "3*5-4==11 and 3*6-4>11"
+      },
+      {
+       "q": "Solve: −2x ≤ 10",
+       "a": "x ≥ −5",
+       "check": "-2*(-5)==10 and -2*(-4)<=10 and not -2*(-6)<=10"
+      },
+      {
+       "q": "How many solutions? 2(x + 1) = 2x + 5",
+       "a": "No solution",
+       "check": "2*(0+1)!=2*0+5 and 2!=5"
+      },
+      {
+       "q": "Solve: 5x + 2 = 3x + 12",
+       "a": "x = 5",
+       "check": "5*5+2==3*5+12"
+      }
+     ]
+    },
+    {
+     "name": "Tuesday",
+     "title": "Tuesday",
+     "date": "November 17",
+     "agendaLine": "Speed Dating Activity",
+     "short": "Speed dating",
+     "bell": "Bellringer Sheet",
+     "agenda": [
+      "Speed Dating Activity"
+     ],
+     "supplies": [
+      "Bellringer",
+      "Recording Sheet",
+      "Homework",
+      "Pencil"
+     ],
+     "reminders": [
+      "Test Thursday",
+      "Homework Packet due Thursday"
+     ],
+     "lt": "I can solve equations and inequalities.",
+     "problems": [
+      {
+       "q": "Solve: 4(x − 2) = 2x + 6",
+       "a": "x = 7",
+       "check": "4*(7-2)==2*7+6"
+      },
+      {
+       "q": "Solve: {x/3} + 4 < 7",
+       "a": "x < 9",
+       "check": "F(9,3)+4==7 and F(8,3)+4<7"
+      },
+      {
+       "q": "Solve: −3 < x + 1 < 5",
+       "a": "−4 < x < 4",
+       "check": "-4+1==-3 and 4+1==5"
+      },
+      {
+       "q": "Solve: {2/3}x − 1 = 5",
+       "a": "x = 9",
+       "check": "F(2,3)*9-1==5"
+      }
+     ],
+     "bellNote": "Speed Dating"
+    },
+    {
+     "name": "Wednesday",
+     "title": "Wednesday",
+     "date": "November 18",
+     "agendaLine": "Triangle Angle Sum Notes + Study Guide",
+     "short": "Triangle angle sum + study guide",
+     "bell": "Bellringer Sheet",
+     "agenda": [
+      "Triangle Angle Sum Notes",
+      "Study Guide"
+     ],
+     "supplies": [
+      "Bellringer",
+      "Guided Notes",
+      "Study Guide",
+      "Pencil"
+     ],
+     "reminders": [
+      "Test tomorrow",
+      "Bring your Homework Packet"
+     ],
+     "lt": "I can find a missing angle in a triangle.",
+     "problems": [
+      {
+       "q": "The angles of a triangle are x°, 2x°, and 3x°. Find x.",
+       "a": "x = 30",
+       "check": "30+2*30+3*30==180"
+      },
+      {
+       "q": "Solve: 5 − 2x ≥ 1",
+       "a": "x ≤ 2",
+       "check": "5-2*2==1 and 5-2*1>=1 and not 5-2*3>=1"
+      },
+      {
+       "q": "How many solutions? 3(x − 1) = 3x + 4",
+       "a": "No solution",
+       "check": "3*(0-1)!=3*0+4 and -3!=4"
+      },
+      {
+       "q": "Two angles of a triangle are 58° and 67°. Find the third angle.",
+       "a": "55°",
+       "check": "180-58-67==55"
+      }
+     ]
+    },
+    {
+     "name": "Thursday",
+     "title": "Thursday",
+     "date": "November 19",
+     "agendaLine": "Magma Math Test (Homework Packet due)",
+     "short": "Magma Math test",
+     "bell": "Bellringer Sheet",
+     "agenda": [
+      "Magma Math Test"
+     ],
+     "supplies": [
+      "Calculator",
+      "Chromebook",
+      "Homework",
+      "Pencil"
+     ],
+     "reminders": [
+      "Test today",
+      "Turn in your Homework Packet"
+     ],
+     "lt": "I can show what I know about equations and inequalities.",
+     "problems": [
+      {
+       "q": "Solve: 7x − 5 = 4x + 10",
+       "a": "x = 5",
+       "check": "7*5-5==4*5+10"
+      },
+      {
+       "q": "Solve: 2x + 1 > 9",
+       "a": "x > 4",
+       "check": "2*4+1==9 and 2*5+1>9"
+      }
+     ],
+     "bellNote": "Test Day"
+    },
+    {
+     "name": "Friday",
+     "title": "FriYay",
+     "date": "November 20",
+     "agendaLine": "Sub Day: Review Worksheet",
+     "short": "Sub day review",
+     "bell": "Bellringer Sheet",
+     "agenda": [
+      "Sub Day: Review Worksheet"
+     ],
+     "supplies": [
+      "Bellringer",
+      "Worksheet",
+      "Calculator",
+      "Pencil"
+     ],
+     "reminders": [
+      "Sub day",
+      "Complete the paper assignment"
+     ],
+     "lt": "I can review equations, inequalities, and triangle angles.",
+     "problems": [
+      {
+       "q": "Find the missing leg: the hypotenuse is 17 and one leg is 8.",
+       "a": "15",
+       "check": "sqrt(17**2-8**2)==15"
+      },
+      {
+       "q": "Multiply: (4 × 10⁻³)(5 × 10⁶)",
+       "a": "2 × 10⁴",
+       "check": "F(4,1000)*5*10**6==2*10**4"
+      },
+      {
+       "q": "Between which two whole numbers is √90?",
+       "a": "9 and 10",
+       "check": "9**2<90<10**2"
+      },
+      {
+       "q": "Simplify: (2³)²",
+       "a": "2⁶ = 64",
+       "check": "(2**3)**2==64 and 2**6==64"
+      }
+     ],
+     "bellNote": "Review of Earlier Topics, Substitute Day"
+    }
+   ],
+   "speed": {
+    "motto": "Show your work. Explain WHY. Write down mistakes!",
+    "lt": "I can solve equations and inequalities.",
+    "steps": [
+     "Your card is your master problem. Solve it and be ready to teach it.",
+     "Meet your partner and show your card.",
+     "Solve your partner’s problem on your recording sheet.",
+     "Explain your steps and check each other’s work.",
+     "Switch roles. On YOUR card, write each partner’s mistake in the Errors section.",
+     "When the timer ends, the moving side goes one seat clockwise.",
+     "Last 10 minutes: share your most common error. We fix the top cards together."
+    ]
+   },
+   "links": [
+    {
+     "t": "Bellringer sheet",
+     "u": "https://docs.google.com/document/d/1XwDvJX6U18bSIWxEMS5DeDh-wYpU2OwPk3ZnK3bWa68/edit?usp=sharing"
+    }
+   ],
+   "greeting": "8th grade accelerated",
+   "topic": "solving equations and inequalities and finding missing angles in triangles",
+   "homeworkLine": "Homework: Homework Packet, Monday, Tuesday, and Wednesday problems, due Thursday. No homework Friday.",
+   "assessment": {
+    "type": "test",
+    "day": "Thursday",
+    "name": "Magma Math Test"
+   },
+   "bellringer": {
+    "title": "Weekly Bellringer: Week of November 16",
+    "subtitle": "8th Grade Accelerated Mathematics • Equations, Inequalities, and Triangle Angle Sum",
+    "directions": "Do these problems at the start of class each day. Show your work. Thursday is test day, so only two quick problems."
+   }
+  }
+ }
+}
