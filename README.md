@@ -16,6 +16,18 @@ Live at https://eddiesteers777.github.io/steers-class-board/
 
 Teacher only. Students never sign in.
 
+## Guest teacher (sub days)
+`sub.html` runs the board on one device with no sign-in: https://eddiesteers777.github.io/steers-class-board/sub.html
+Nothing is saved and it never touches the teacher's account or rosters. Put this link in the sub plan.
+
+## Guided Notes
+A day with `notes` in the week file gets the step-by-step Guided Notes screen and the paper notes from the same content.
+`data/weekN.js` is generated. Add notes to the week file and rebuild with `tools/weekly_kit/build_week.py`; never edit the data file by hand.
+The real week files hold answer keys, so they live in the week's Drive folder, not here. Paper notes: step tables never split across pages, the exit ticket sits on its own page, and the build warns past 4 pages.
+
+## Two build lanes
+Two Claude threads (school account and personal account) push to `main`. Fetch and check the head of `main` before every push, and re-read any file you are about to overwrite.
+
 ## Hosting + Google
 
 - Live: https://eddiesteers777.github.io/steers-class-board/ via GitHub Pages (repo public, main branch, root folder). No custom domain — the `github.io` address is the official address unless Eddie buys a domain later.
