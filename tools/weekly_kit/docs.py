@@ -208,3 +208,69 @@ def speed_dating_key(week, cid, path):
     k.h2("Verification", size=12)
     k.p("%d of 40 card answers were recomputed by a written check when this file was built, and every listed wrong answer was confirmed to differ from the correct answer." % checked, size=9.5)
     k.save(path)
+
+
+# ---------- guided notes ----------
+import re as _re
+
+
+def _blank(text, key=False):
+    """[word] -> a blank for students, the bold word for the key."""
+    return _re.sub(r"\[([^\]]+)\]", lambda m: ("**" + m.group(1) + "**") if key else "______________", text)
+
+
+def guided_notes(week, cid, i, path, key=False):
+    """One day's guided notes. The same content drives the board's Guided Notes screen,
+    so the paper in front of students matches what is revealed on the board, step for step."""
+    c = week["classes"][cid]; day = c["days"][i]; n = day["notes"]
+    d = Doc(margins=0.65, base=11)
+    d.title(("TEACHER KEY: " if key else "") + n["title"], ("Teacher only. Never post or link. " if key else "") + (n.get("subtitle") or c["label"]))
+    if not key: d.namerow()
+    head = []
+    if n.get("standard"): head.append("**Standard:** " + n["standard"])
+    if n.get("targets"): head.append("**Learning Targets:** I can… " + "  •  ".join(to_word(t) for t in n["targets"]))
+    if head: d.box(head, size=10.5)
+    if n.get("warmup"):
+        d.h2("Warm-Up", size=13)
+        d.p("   ".join("**W%d.** %s%s" % (k, to_word(p["q"]), ("  →  **" + to_word(p["a"]) + "**") if key else "") for k, p in enumerate(n["warmup"], 1)))
+        if not key: d.space(3)
+    v = n.get("vocab")
+    if v:
+        d.h2("Vocabulary: fill in the blanks", size=13)
+        if v.get("bank"): d.p("**Word bank:** " + "  •  ".join(v["bank"]), size=10.5, after=3)
+        for k, item in enumerate(v["items"], 1): d.p("%d. %s" % (k, to_word(_blank(item, key))), after=4)
+    if n.get("bigIdea"):
+        d.h2("The Big Idea", size=13)
+        d.box(["**" + to_word(n["bigIdea"][0]) + "**"] + [to_word(t) for t in n["bigIdea"][1:]] + (["**Steps:**"] + ["%d. %s" % (k, to_word(t)) for k, t in enumerate(n["steps"], 1)] if n.get("steps") else []), size=10.5)
+    blanks = n.get("blankExamples") and not key
+    if n.get("examples"):
+        d.h2("Worked Examples", size=13)
+        for k, e in enumerate(n["examples"], 1):
+            d.p("**Example %d%s** %s" % (k, (": " + e["title"] + ".") if e.get("title") else ".", to_word(e["q"])), keep=True, after=2)
+            d.steps([("" if blanks else to_word(x["m"]), to_word(x.get("why", ""))) for x in e["steps"]], size=10.5)
+    g = n.get("guided")
+    if g:
+        d.h2("Guided Practice: your turn with help", size=13)
+        d.p(to_word(g["q"]), keep=True, after=2)
+        d.steps([(to_word(x.get("full") if key else x["m"]), to_word(x.get("why", ""))) for x in g["steps"]], size=10.5)
+    if n.get("practice"):
+        d.h2("Practice", size=13).paragraph_format.page_break_before = bool(n.get("practicePageBreak", True))
+        if n.get("practiceDirections"): d.p(to_word(n["practiceDirections"]), italic=True, after=3)
+        for part in n["practice"]:
+            if part.get("label"): d.p("**" + part["label"] + "**", before=4, after=2)
+            for p in part["problems"]:
+                d.p("**%s.** %s%s" % (p.get("n", ""), to_word(p["q"]), ("  →  **" + to_word(p["a"]) + "**") if key else ""), keep=not key, after=2)
+                if not key: d.space(part.get("space", 2))
+    if n.get("errors"):
+        d.h2("Error Detectives", size=13)
+        if not key: d.p("One of these students is correct! Decide: Correct or Mistake? If it is a mistake, explain it and give the right answer.", italic=True, after=3)
+        for k, e in enumerate(n["errors"], 1):
+            d.p("**E%d.** %s" % (k, to_word(e["q"])), after=2)
+            d.p(("**%s.** %s" % ("Correct" if e["correct"] else "Mistake", to_word(e["fix"]))) if key else "Correct or Mistake? ______   Explain: ______________________________________________", after=6)
+    if n.get("exit"):
+        d.h2("Exit Ticket (individual check)", size=13).paragraph_format.page_break_before = bool(n.get("exitOwnPage", True)) and not key
+        for k, p in enumerate(n["exit"], 1):
+            d.p("**X%d.** %s%s" % (k, to_word(p["q"]), ("  →  **" + to_word(p["a"]) + "**") if key else ""), after=2)
+            if not key: d.space(3)
+        if not key: d.p("Confidence: ☐ Got it   ☐ Mostly   ☐ Need help")
+    d.save(path)

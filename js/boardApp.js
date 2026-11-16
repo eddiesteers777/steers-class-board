@@ -5,9 +5,9 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=10";
+import { WEEKS } from "../data/weeks.js?v=11";
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=10";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=11";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -43,7 +43,7 @@ function rich(text) {
 }
 function richEl(tag, cls, text) { const e = el(tag, cls); e.appendChild(rich(text)); return e; }
 
-const SCREENS = [["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["speed", "Speed Dating"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
+const SCREENS = [["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["speed", "Speed Dating"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
 const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 // Each period and the class plan it follows.
 const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
@@ -61,7 +61,7 @@ function defaultWeek() {
     return pick.id;
 }
 const wd = new Date().getDay();
-const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false,
+const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0,
     timers: { bell: blankTimer(), round: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, tools: defaultTools() };
 
 let mode = "remote", signedIn = false, sig = "", writeState = null, SEAL = "brand/calera-seal.webp";
@@ -85,6 +85,7 @@ function quiet() { clearTimeout(quietTimer); quietTimer = setTimeout(() => { if 
 let ROSTERS = {};
 const toolApi = { S, el, push, quiet, now, card, rosters: () => ROSTERS, redraw: () => { layerSig = ""; renderLayer(); } };
 function toolSig() { const t = Object.assign({}, S.tools); delete t.text; return JSON.stringify([t, S.period, Object.keys(ROSTERS).map((k) => k + ROSTERS[k].length)]); }
+function resetPos() { S.prob = 0; S.show = false; S.note = 0; S.step = 0; }
 const W = () => WEEKS.find((w) => w.id === S.week) || WEEKS[WEEKS.length - 1];
 const L = () => { const w = W(); return (w && w.classes[S.cls]) || null; };
 const D = () => { const l = L(); return (l && l.days && l.days[S.day]) || null; };
@@ -103,12 +104,12 @@ function buildControls() {
     const ps = $("periodSel"); ps.textContent = "";
     PERIODS.filter((p) => w.classes[p[1]]).forEach((p) => { const o = el("option", null, p[0] + " period, " + w.classes[p[1]].label); o.value = p[0]; ps.appendChild(o); });
     ps.value = S.period;
-    seg($("days"), DK.map((k, i) => [i, k]), S.day, (i) => { S.day = i; S.prob = 0; S.show = false; push(); });
+    seg($("days"), DK.map((k, i) => [i, k]), S.day, (i) => { S.day = i; resetPos(); push(); });
     seg($("screens"), SCREENS, S.screen, (id) => { S.screen = id; S.show = false; push(); });
     const sel = $("weekSel"); sel.textContent = "";
     WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + x.dates); o.value = x.id; sel.appendChild(o); });
     sel.value = w.id; $("weekField").hidden = WEEKS.length < 2;
-    const fn = $("flowNext"); if (fn) { fn.textContent = flowLabel(); const dead = !["agenda", "today", "bell"].includes(S.screen) || fn.textContent === "Next"; fn.disabled = dead; $("flowBack").disabled = !["today", "bell", "speed"].includes(S.screen); }
+    const fn = $("flowNext"); if (fn) { fn.textContent = flowLabel(); const dead = !["agenda", "today", "bell", "notes"].includes(S.screen) || fn.textContent === "Next"; fn.disabled = dead; $("flowBack").disabled = !["today", "bell", "notes", "speed"].includes(S.screen); }
     const files = $("files"), l = L();
     if (files) {
         files.textContent = "";
@@ -187,7 +188,7 @@ function tick() {
 
 function render() {
     buildControls();
-    const l = L(), d = D(), ns = JSON.stringify([S.week, S.cls, S.day, S.screen, S.prob, S.show, S.timers.free.dur, signedIn]);
+    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, signedIn]);
     renderDock();
     if (ns === sig) { renderLayer(); tick(); tickTools(toolApi); return; }
     sig = ns; lastPhase = "";
@@ -219,6 +220,28 @@ function render() {
         const pr = el("div", "presets");
         PRESETS.forEach((m) => { const b = el("button", null, m + " min"); b.type = "button"; b.setAttribute("aria-pressed", String((S.timers.free.dur || 300) === m * 60)); b.onclick = () => { S.timers.free = Object.assign(blankTimer(), { dur: m * 60 }); push(); }; pr.appendChild(b); });
         box.appendChild(pr); st.appendChild(box);
+    } else if (S.screen === "notes") {
+        const frames = notesFrames(d), n = d && d.notes;
+        st.appendChild(header("Guided Notes", n ? n.title : (d ? d.name + " · " + (d.date || "") : "")));
+        if (!frames.length) { const e = el("div", "toolsbody"); e.appendChild(el("p", "toolempty", "No guided notes are loaded for this day.")); st.appendChild(e); }
+        else {
+            if (S.note >= frames.length) S.note = frames.length - 1;
+            const f = frames[S.note], shown = f.open ? f.lines.length : Math.min(S.step, f.lines.length);
+            const body = el("div", "notes"), left = el("div", "nleft"), right = el("div", "nright");
+            const dots = el("div", "ndots"); frames.forEach((x, i) => { const b = el("button", i === S.note ? "on" : (i < S.note ? "done" : "")); b.type = "button"; b.title = x.kind; b.setAttribute("aria-label", "Go to " + x.kind); b.onclick = () => { S.note = i; S.step = 0; S.show = false; push(); }; dots.appendChild(b); });
+            left.appendChild(dots);
+            left.appendChild(el("p", "nkind", f.kind));
+            if (f.blanks) left.appendChild(blanked(f.q, S.show)); else left.appendChild(richEl("p", "nq", f.q));
+            const list = el("div", "nlines");
+            f.lines.slice(0, shown).forEach((ln, i) => { const row = el("div", "nline" + (i === shown - 1 && !f.open ? " new" : "")); row.appendChild(richEl("p", "nm", ln.m)); if (ln.why) row.appendChild(richEl("p", "nw", ln.why)); list.appendChild(row); });
+            left.appendChild(list);
+            if (!f.open && f.lines.length) left.appendChild(el("p", "ncount", shown < f.lines.length ? "Step " + shown + " of " + f.lines.length : "All " + f.lines.length + " steps shown"));
+            if (f.ans && S.show && !f.blanks) left.appendChild(richEl("p", "nans", f.ans));
+            body.appendChild(left);
+            const cv = el("div", "cv" + (gridOn ? " grid" : "")); cv.id = "cv"; canvas = el("canvas"); cv.appendChild(canvas);
+            right.appendChild(cv); right.appendChild(toolbar()); body.appendChild(right); st.appendChild(body); bindCanvas(); sizeCanvas();
+            list.scrollTop = list.scrollHeight; // keep the newest step in view
+        }
     } else if (S.screen === "tools") {
         st.appendChild(header("Classroom Tools", (d ? d.name + " · " : "") + ((d && d.date) || "")));
         const box = el("div", "toolsbody"); box.appendChild(el("p", "toolempty", Object.keys(S.tools.on).length ? "" : "Turn tools on from the Tools row on the Remote. Drag a tool by its title to move it, and drag its corner to resize it.")); st.appendChild(box);
@@ -240,6 +263,31 @@ function render() {
         wk.appendChild(cv); wk.appendChild(toolbar()); st.appendChild(wk); bindCanvas(); sizeCanvas();
     }
     renderLayer(); watchInk(); tick();
+}
+
+/* ---------- guided notes ---------- */
+// The day's notes become a list of frames. Each frame is one thing on screen: a question, lines
+// that are revealed one tap at a time, and sometimes an answer. The whiteboard sits beside it.
+function notesFrames(d) {
+    const n = d && d.notes; if (!n) return [];
+    const F = [];
+    if (n.targets && n.targets.length) F.push({ kind: "Learning targets", q: "I can…", lines: n.targets.map((t) => ({ m: t })), open: true });
+    (n.warmup || []).forEach((p, i, a) => F.push({ kind: "Warm-up " + (i + 1) + " of " + a.length, q: p.q, lines: [], ans: p.a }));
+    ((n.vocab && n.vocab.items) || []).forEach((v, i, a) => F.push({ kind: "Vocabulary " + (i + 1) + " of " + a.length, q: v, lines: [], ans: "fill", blanks: true }));
+    if (n.bigIdea && n.bigIdea.length) F.push({ kind: "The big idea", q: n.bigIdea[0], lines: n.bigIdea.slice(1).concat(n.steps || []).map((t) => ({ m: t })) });
+    (n.examples || []).forEach((e, i, a) => F.push({ kind: "Example " + (i + 1) + " of " + a.length + (e.title ? ": " + e.title : ""), q: e.q, lines: e.steps || [] }));
+    if (n.guided) F.push({ kind: "Your turn, with help", q: n.guided.q, lines: n.guided.steps || [] });
+    (n.practice || []).forEach((part) => (part.problems || []).forEach((p) => F.push({ kind: "Practice " + (p.n || ""), q: p.q, lines: [], ans: p.a })));
+    if (n.exit && n.exit.length) F.push({ kind: "Exit ticket", q: "On your own. Show every step.", lines: n.exit.map((p, i) => ({ m: (i + 1) + ". " + p.q })), open: true });
+    return F;
+}
+// A sentence with [blanks]: shown as empty lines until revealed, then the word appears.
+function blanked(text, reveal) {
+    const p = el("p", "nq"); String(text).split(/(\[[^\]]+\])/).forEach((part) => {
+        if (/^\[.*\]$/.test(part)) { const w = part.slice(1, -1), sp = el("span", reveal ? "fill" : "blank", reveal ? w : ""); if (!reveal) sp.style.minWidth = Math.max(3, w.length * 0.62) + "em"; p.appendChild(sp); }
+        else p.appendChild(rich(part));
+    });
+    return p;
 }
 
 /* ---------- floating tools (shown over every screen) ---------- */
@@ -323,7 +371,7 @@ function saveInk() {
     note(""); inkWrite(JSON.parse(JSON.stringify(body)));
 }
 function watchInk() {
-    const key = canvas ? [S.week, S.period, "d" + S.day, (S.screen === "bell" && D()) ? "p" + S.prob : "blank"].join("_") : "";
+    const key = canvas ? [S.week, S.period, "d" + S.day, S.screen === "notes" ? "n" + S.note : ((S.screen === "bell" && D()) ? "p" + S.prob : "blank")].join("_") : "";
     if (key === inkKey) return; inkKey = key; if (inkUnsub) { inkUnsub(); inkUnsub = null; } inkWrite = null; strokes = []; cur = null; redraw();
     if (!key || !signedIn) return;
     inkWrite = writer("ink/" + key);
@@ -341,31 +389,55 @@ function applyState(d) {
     if (!SCREENS.some((x) => x[0] === S.screen)) S.screen = "today";
     if (typeof d.day === "number" && d.day >= 0 && d.day < 5) S.day = d.day;
     if (typeof d.prob === "number") S.prob = d.prob; S.show = !!d.show;
+    S.note = Math.max(0, Math.floor(+d.note || 0)); S.step = Math.max(0, Math.floor(+d.step || 0));
     { const m = mergeTools(d.tools); Object.keys(S.tools).forEach((k) => delete S.tools[k]); Object.assign(S.tools, m); } // keep the same object: widgets hold a reference to it
     ["bell", "round", "free"].forEach((k) => { const t = d.timers && d.timers[k]; if (t) { S.timers[k] = { running: !!t.running, t0: +t.t0 || 0, elapsed: +t.elapsed || 0 }; if (k === "free") S.timers.free.dur = +t.dur || 300; } });
 }
 /* One-tap lesson flow: Weekly Agenda -> Today -> each bellringer problem and its answer -> the day's activity. */
 function isSpeedDay() { const d = D(); return !!d && /speed dating/i.test((d.agendaLine || "") + " " + (d.agenda || []).join(" ")); }
 function flow(n) {
-    const d = D(), len = (d && d.problems && d.problems.length) || 0;
+    const d = D(), len = (d && d.problems && d.problems.length) || 0, frames = notesFrames(d), hasNotes = frames.length > 0;
+    const afterBell = () => { if (hasNotes) { S.screen = "notes"; S.note = 0; S.step = 0; S.show = false; } else if (isSpeedDay()) { S.screen = "speed"; S.show = false; } else { S.screen = "today"; S.show = false; } };
     if (n > 0) {
         if (S.screen === "agenda") S.screen = "today";
-        else if (S.screen === "today") { if (len) { S.screen = "bell"; S.prob = 0; S.show = false; } else if (isSpeedDay()) S.screen = "speed"; else return; }
-        else if (S.screen === "bell") { if (!S.show && len) S.show = true; else if (S.prob < len - 1) { S.prob++; S.show = false; } else if (isSpeedDay()) { S.screen = "speed"; S.show = false; } else { S.screen = "today"; S.show = false; } }
+        else if (S.screen === "today") { if (len) { S.screen = "bell"; S.prob = 0; S.show = false; } else if (hasNotes || isSpeedDay()) afterBell(); else return; }
+        else if (S.screen === "bell") { if (!S.show && len) S.show = true; else if (S.prob < len - 1) { S.prob++; S.show = false; } else afterBell(); }
+        else if (S.screen === "notes" && hasNotes) {
+            const f = frames[Math.min(S.note, frames.length - 1)];
+            if (!f.open && S.step < f.lines.length) S.step++;
+            else if (f.ans && !S.show) S.show = true;
+            else if (S.note < frames.length - 1) { S.note++; S.step = 0; S.show = false; }
+            else if (isSpeedDay()) { S.screen = "speed"; S.show = false; } else return;
+        }
         else return;
     } else {
         if (S.screen === "today") S.screen = "agenda";
         else if (S.screen === "bell") { if (S.show) S.show = false; else if (S.prob > 0) { S.prob--; S.show = true; } else S.screen = "today"; }
-        else if (S.screen === "speed") { if (len) { S.screen = "bell"; S.prob = len - 1; S.show = true; } else S.screen = "today"; }
+        else if (S.screen === "notes" && hasNotes) {
+            const f = frames[Math.min(S.note, frames.length - 1)];
+            if (S.show) S.show = false;
+            else if (!f.open && S.step > 0) S.step--;
+            else if (S.note > 0) { S.note--; const g = frames[S.note]; S.step = g.lines.length; S.show = !!g.ans; }
+            else if (len) { S.screen = "bell"; S.prob = len - 1; S.show = true; } else S.screen = "today";
+        }
+        else if (S.screen === "speed") { if (hasNotes) { S.screen = "notes"; S.note = frames.length - 1; S.step = frames[S.note].lines.length; S.show = false; } else if (len) { S.screen = "bell"; S.prob = len - 1; S.show = true; } else S.screen = "today"; }
         else return;
     }
     push();
 }
 function flowLabel() {
-    const d = D(), len = (d && d.problems && d.problems.length) || 0;
+    const d = D(), len = (d && d.problems && d.problems.length) || 0, frames = notesFrames(d), hasNotes = frames.length > 0;
+    const after = hasNotes ? "Next: Guided Notes" : (isSpeedDay() ? "Next: Speed Dating" : "Next: Back to Today");
     if (S.screen === "agenda") return "Next: Today";
-    if (S.screen === "today") return len ? "Next: Bellringer" : (isSpeedDay() ? "Next: Speed Dating" : "Next");
-    if (S.screen === "bell") { if (!S.show && len) return "Next: Show answer"; if (S.prob < len - 1) return "Next: Problem " + (S.prob + 2); return isSpeedDay() ? "Next: Speed Dating" : "Next: Back to Today"; }
+    if (S.screen === "today") return len ? "Next: Bellringer" : (hasNotes ? "Next: Guided Notes" : (isSpeedDay() ? "Next: Speed Dating" : "Next"));
+    if (S.screen === "bell") { if (!S.show && len) return "Next: Show answer"; if (S.prob < len - 1) return "Next: Problem " + (S.prob + 2); return after; }
+    if (S.screen === "notes" && hasNotes) {
+        const f = frames[Math.min(S.note, frames.length - 1)];
+        if (!f.open && S.step < f.lines.length) return S.step === 0 ? "Next: First step" : "Next: Step " + (S.step + 1);
+        if (f.ans && !S.show) return f.blanks ? "Next: Fill the blanks" : "Next: Show answer";
+        if (S.note < frames.length - 1) return "Next: " + frames[S.note + 1].kind.split(":")[0];
+        return isSpeedDay() ? "Next: Speed Dating" : "Next";
+    }
     return "Next";
 }
 let wake = null;
@@ -376,12 +448,12 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
-    store = (opts && opts.store) || await import("./boardStore.js?v=10");
+    store = (opts && opts.store) || await import("./boardStore.js?v=11");
     const guest = mode === "sub";
     document.body.classList.toggle("board", mode === "board");
-    $("periodSel").onchange = function () { S.period = this.value; S.cls = classOf(this.value); S.prob = 0; S.show = false; push(); };
+    $("periodSel").onchange = function () { S.period = this.value; S.cls = classOf(this.value); resetPos(); push(); };
     document.addEventListener("click", (e) => { document.querySelectorAll("details.acct[open]").forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });
-    $("weekSel").onchange = function () { S.week = this.value; S.prob = 0; S.show = false; push(); };
+    $("weekSel").onchange = function () { S.week = this.value; resetPos(); push(); };
     $("boardBtn").onclick = () => { document.body.classList.add("board"); unlockSound(); try { const p = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ok */ } fit(); };
     $("exit").onclick = () => { document.body.classList.remove("board"); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* ok */ } fit(); };
     $("signOut").onclick = async () => { try { await store.signOut(); } finally { location.replace("login.html"); } };
@@ -390,7 +462,7 @@ export async function startApp(opts) {
     document.addEventListener("pointerdown", unlockSound, { once: true });
     $("flowNext").onclick = () => flow(1); $("flowBack").onclick = () => flow(-1);
     keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
-    document.addEventListener("keydown", (e) => { if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); flow(1); } else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); flow(-1); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell") { S.show = !S.show; push(); } } });
+    document.addEventListener("keydown", (e) => { if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); flow(1); } else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); flow(-1); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
     setInterval(() => { tick(); tickTools(toolApi); }, 250);
     fit(); render();
 
@@ -411,11 +483,11 @@ export async function startApp(opts) {
             const q = new URLSearchParams(location.search), c = q.get("class"), dy = q.get("day"), di = DK.map((k) => k.toLowerCase()).indexOf((dy || "").toLowerCase());
             let changed = !snap.exists;
             const pq = q.get("period"), sq = q.get("screen");
-            if (guest) { const pp = q.get("period"); if (pp && PERIODS.some((p) => p[0] === pp)) { S.period = pp; S.cls = classOf(pp); } if (di >= 0) S.day = di; S.screen = "today"; S.prob = 0; S.show = false; push(); return; }
+            if (guest) { const pp = q.get("period"); if (pp && PERIODS.some((p) => p[0] === pp)) { S.period = pp; S.cls = classOf(pp); } if (di >= 0) S.day = di; S.screen = "today"; resetPos(); push(); return; }
             if (mode === "remote" && sq && SCREENS.some((x) => x[0] === sq) && sq !== S.screen) { S.screen = sq; changed = true; }
-            if (mode === "remote" && pq && PERIODS.some((p) => p[0] === pq) && pq !== S.period) { S.period = pq; S.cls = classOf(pq); S.prob = 0; S.show = false; S.screen = "today"; changed = true; }
-            else if (mode === "remote" && c && W().classes[c] && (c !== S.cls)) { S.cls = c; S.period = (PERIODS.find((p) => p[1] === c) || [S.period])[0]; S.prob = 0; S.show = false; changed = true; }
-            if (mode === "remote" && di >= 0 && di !== S.day) { S.day = di; S.prob = 0; S.show = false; changed = true; }
+            if (mode === "remote" && pq && PERIODS.some((p) => p[0] === pq) && pq !== S.period) { S.period = pq; S.cls = classOf(pq); resetPos(); S.screen = "today"; changed = true; }
+            else if (mode === "remote" && c && W().classes[c] && (c !== S.cls)) { S.cls = c; S.period = (PERIODS.find((p) => p[1] === c) || [S.period])[0]; resetPos(); changed = true; }
+            if (mode === "remote" && di >= 0 && di !== S.day) { S.day = di; resetPos(); changed = true; }
             if (changed) { push(); return; }
         }
         render();

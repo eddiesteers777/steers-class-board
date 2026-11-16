@@ -13,6 +13,7 @@ fractions, and each with its teacher key:
 - the homework packet or extra practice (`homework`)
 - the study guide, 4 pages (`studyGuide`)
 - the speed dating set: 40 cards on page 1, recording sheet, early finishers (`speedDating`)
+- guided notes for any day that has `notes` (the same content drives the board's step-by-step Guided Notes screen)
 
 plus the parent message text and the slide text. With `--site .` it also
 writes `data/<id>.js` for the board site. A section a class does not have that
@@ -42,6 +43,9 @@ Python expression that recomputes the answer (`F` is Fraction).
 - `studyGuide`: `title`, `subtitle`, `ican`, `examples: [{heading, boxes: [[line, ...]]}]`,
   `practice: [{title, directions, height, parts: [{label, height, problems[]}]}]`,
   `errors: [{name, q, shown, correct, fix}]`, `checklist[]`
+- a day's `notes`: `title`, `subtitle`, `standard`, `targets[]`, `warmup[]`, `vocab: {bank[], items[]}` with `[blanks]` in brackets,
+  `bigIdea[]`, `steps[]`, `examples: [{title, q, steps: [{m, why}]}]`, `guided: {q, steps: [{m, full, why}]}`,
+  `practice: [{label, space, problems[]}]` (each problem has `n`, such as "A1"), `errors[]`, `exit[]`
 - `speedDating`: `title`, `prefix` (for example "2 Tuesday"), `cards[40]` each with
   `skill` and `wrong: [{a, why}]`, `example: {q, steps[]}`, `early[]`, `errorItem: {q, a, work}`,
   `setup: [[item, plan]]`, `reviewNotes[]`, `standardNote`

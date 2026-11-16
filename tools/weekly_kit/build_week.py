@@ -37,6 +37,11 @@ def main():
             pre = (c[key].get("prefix") or "0 Weekly")
             s = os.path.join(a.out, "%s - %s (%s).docx" % (pre, title, tag)); k = os.path.join(a.out, "%s - TEACHER KEY - %s (%s).docx" % (pre, title, tag))
             fn(week, cid, s); keyfn(week, cid, k); made += [s, k]; expect[s] = {"studyGuide": 4, "speedDating": 3}.get(key)
+        for i, d in enumerate(c["days"]):
+            if not d.get("notes"): continue
+            base = "%d %s - %%sGuided Notes - %s (%s).docx" % (i + 1, weekfile.DAYS[i], d["notes"]["title"], tag)
+            s = os.path.join(a.out, base % ""); k = os.path.join(a.out, base % "TEACHER KEY - ")
+            docs.guided_notes(week, cid, i, s); docs.guided_notes(week, cid, i, k, key=True); made += [s, k]
         for name, text in (("Parent Message (%s).txt" % tag, outputs.parent_message(week, cid)), ("Slide Text (%s).md" % tag, outputs.slide_text(week, cid))):
             p = os.path.join(a.out, name); open(p, "w", encoding="utf-8").write(text + "\n"); made.append(p)
     if not a.no_pdf:

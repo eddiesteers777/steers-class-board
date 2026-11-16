@@ -185,6 +185,17 @@ def validate(week):
             for e in g.get("errors") or []:
                 if "correct" not in e or not e.get("fix"): err.append(tag + "study guide error item '%s' needs 'correct' and 'fix'" % e.get("name"))
             if g.get("errors") and not any(e.get("correct") for e in g["errors"]): warn.append(tag + "Error Detectives has no correct example (the rule is to include one)")
+        for i, d in enumerate(days[:5]):
+            n = d.get("notes")
+            if not n: continue
+            nt = "notes %s " % DAYS[i]
+            if not n.get("title"): err.append(tag + nt + "needs a title")
+            probs(nt + "warm-up", n.get("warmup")); probs(nt + "exit ticket", n.get("exit"))
+            for part in n.get("practice") or []: probs(nt + "practice", part.get("problems"))
+            for e in n.get("examples") or []:
+                if not e.get("q") or not e.get("steps"): err.append(tag + nt + "example needs q and steps")
+            for v in (n.get("vocab") or {}).get("items") or []:
+                if "[" not in v: warn.append(tag + nt + "vocabulary line has no [blank]: " + v[:40])
         sd = c.get("speedDating")
         if sd:
             n = len(sd.get("cards") or [])

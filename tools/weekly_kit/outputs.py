@@ -16,10 +16,26 @@ def board_week(week):
             day = {f: d.get(f, [] if f in ("agenda", "supplies", "reminders") else "") for f in BOARD_DAY}
             day["title"] = d.get("title") or d["name"]
             day["problems"] = [{"q": to_board(p["q"]), "a": to_board(p["a"])} for p in d.get("problems") or []]
+            if d.get("notes"): day["notes"] = board_notes(d["notes"])
             k["days"].append(day)
         if c.get("speed"): k["speed"] = c["speed"]
         k["links"] = c.get("links") or []
         out["classes"][cid] = k
+    return out
+
+
+def board_notes(n):
+    """Guided notes for the board's step-by-step screen. Exit ticket answers are left out."""
+    b = to_board; out = {"title": n["title"]}
+    if n.get("targets"): out["targets"] = [b(t) for t in n["targets"]]
+    if n.get("warmup"): out["warmup"] = [{"q": b(p["q"]), "a": b(p["a"])} for p in n["warmup"]]
+    if n.get("vocab"): out["vocab"] = {"items": [b(v) for v in n["vocab"]["items"]]}
+    if n.get("bigIdea"): out["bigIdea"] = [b(t) for t in n["bigIdea"]]
+    if n.get("steps"): out["steps"] = [b(t) for t in n["steps"]]
+    if n.get("examples"): out["examples"] = [{"title": e.get("title", ""), "q": b(e["q"]), "steps": [{"m": b(x["m"]), "why": b(x.get("why", ""))} for x in e["steps"]]} for e in n["examples"]]
+    if n.get("guided"): out["guided"] = {"q": b(n["guided"]["q"]), "steps": [{"m": b(x.get("full") or x["m"]), "why": b(x.get("why", ""))} for x in n["guided"]["steps"]]}
+    if n.get("practice"): out["practice"] = [{"label": part.get("label", ""), "problems": [{"n": p.get("n", ""), "q": b(p["q"]), "a": b(p["a"])} for p in part["problems"]]} for part in n["practice"]]
+    if n.get("exit"): out["exit"] = [{"q": b(p["q"])} for p in n["exit"]]
     return out
 
 
