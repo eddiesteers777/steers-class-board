@@ -23,7 +23,7 @@ def main():
     if err:
         for e in err: print("ERROR:", e)
         print("\nStopped: fix the %d error(s) in the week file first. Nothing was built." % len(err)); sys.exit(1)
-    os.makedirs(a.out, exist_ok=True); made = []; expect = {}
+    os.makedirs(a.out, exist_ok=True); made = []; expect = {}; notes = []
     for cid, c in week["classes"].items():
         tag = NAMES.get(cid, c["label"])
         if any(d.get("problems") for d in c["days"]):
@@ -41,7 +41,7 @@ def main():
             if not d.get("notes"): continue
             base = "%d %s - %%sGuided Notes - %s (%s).docx" % (i + 1, weekfile.DAYS[i], d["notes"]["title"], tag)
             s = os.path.join(a.out, base % ""); k = os.path.join(a.out, base % "TEACHER KEY - ")
-            docs.guided_notes(week, cid, i, s); docs.guided_notes(week, cid, i, k, key=True); made += [s, k]
+            docs.guided_notes(week, cid, i, s); docs.guided_notes(week, cid, i, k, key=True); made += [s, k]; notes.append(s)
         for name, text in (("Parent Message (%s).txt" % tag, outputs.parent_message(week, cid)), ("Slide Text (%s).md" % tag, outputs.slide_text(week, cid))):
             p = os.path.join(a.out, name); open(p, "w", encoding="utf-8").write(text + "\n"); made.append(p)
     if not a.no_pdf:
@@ -55,6 +55,10 @@ def main():
             if pages == 3:
                 p1 = subprocess.run(["pdftotext", "-f", "1", "-l", "1", pdf, "-"], capture_output=True, text=True).stdout
                 if "#40" not in p1: print("WARNING: card #40 is not on page 1 of %s. Shrink cardSize or cardHeight." % os.path.basename(pdf))
+        for path in notes:   # guided notes: 4 pages at most (notes, practice, exit ticket on its own page)
+            info = subprocess.run(["pdfinfo", path[:-5] + ".pdf"], capture_output=True, text=True).stdout
+            got = int(next((l.split()[1] for l in info.splitlines() if l.startswith("Pages:")), 0))
+            if got > 4: print("WARNING: %s is %d pages; guided notes should be 4 or fewer. Trim an example or the practice space." % (os.path.basename(path), got))
     if a.site:
         p = os.path.join(a.site, "data", week["id"] + ".js"); open(p, "w", encoding="utf-8").write(outputs.board_js(week)); made.append(p)
         print("Board site: wrote %s. Add it to data/weeks.js and raise the ?v= numbers." % p)

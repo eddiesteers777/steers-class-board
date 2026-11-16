@@ -131,6 +131,12 @@ class Doc:
         return self.p(t,size=size,bold=True,color=BLUE,before=before,after=3,keep=True)
     def space(self,n=1,size=None):
         for _ in range(n): self.p("",size=size or 11,after=0)
+    def newpage(self,para):
+        """Start para on a new page. Drops an empty spacer just before it, so a table that
+        ends at the foot of a page cannot push the spacer over and leave a blank page."""
+        prev=para._p.getprevious()
+        if prev is not None and prev.tag==qn("w:p") and not "".join(prev.itertext()).strip(): prev.getparent().remove(prev)
+        para.paragraph_format.page_break_before=True; return para
     def pagebreak(self):
         self.d.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
     def _shade(self,cell,hexfill):
@@ -158,7 +164,7 @@ class Doc:
         self._borders(t,color=border,sz=12); self._cellmargins(t,80,80,120,120)
         c=t.rows[0].cells[0]; self._shade(c,fill); self._fill_cell(c,paras,size)
         self.p("",size=4,after=0); return t
-    def table(self,rows,widths=None,header=True,size=None,hdrfill="D9E3F2",align_cols=None,rowheight=None,border="8EA9DB",cant_split=True):
+    def table(self,rows,widths=None,header=True,size=None,hdrfill="D9E3F2",align_cols=None,rowheight=None,border="8EA9DB",cant_split=True,keep=False):
         n=len(rows[0]); t=self.d.add_table(rows=len(rows),cols=n); t.alignment=WD_TABLE_ALIGNMENT.CENTER
         t.autofit=False; self._borders(t,color=border); self._cellmargins(t)
         for i,r in enumerate(rows):
@@ -173,10 +179,15 @@ class Doc:
                 trPr=t.rows[i]._tr.get_or_add_trPr(); trPr.append(parse_xml(f'<w:trHeight {nsdecls("w")} w:val="{int(rowheight*1440)}" w:hRule="atLeast"/>'))
         if widths:
             for j,wd in enumerate(widths): t.columns[j].width=Inches(wd)
+        if keep:   # keep the whole table on one page: every row but the last stays with the next
+            for r in t.rows[:-1]:
+                for cell in r.cells:
+                    for q in cell.paragraphs: q.paragraph_format.keep_with_next=True
         self.p("",size=4,after=0); return t
-    def steps(self,lines,size=None):
+    def steps(self,lines,size=None,split=0.42):
+        """Two-column worked steps (math | why). Never breaks across a page."""
         rows=[[f"**{a}**",b] for a,b in lines]
-        return self.table(rows,widths=[self.w*0.5,self.w*0.5],header=False,size=size)
+        return self.table(rows,widths=[self.w*split,self.w*(1-split)],header=False,size=size,keep=True)
     def namerow(self,period=True):
         self.p("**Name:** ______________________________   **Date:** ______________   **Class/Period:** ________",after=4)
     def save(self,path): self.d.save(path)

@@ -233,7 +233,7 @@ def guided_notes(week, cid, i, path, key=False):
     if n.get("warmup"):
         d.h2("Warm-Up", size=13)
         d.p("   ".join("**W%d.** %s%s" % (k, to_word(p["q"]), ("  →  **" + to_word(p["a"]) + "**") if key else "") for k, p in enumerate(n["warmup"], 1)))
-        if not key: d.space(3)
+        if not key: d.space(2)
     v = n.get("vocab")
     if v:
         d.h2("Vocabulary: fill in the blanks", size=13)
@@ -254,7 +254,8 @@ def guided_notes(week, cid, i, path, key=False):
         d.p(to_word(g["q"]), keep=True, after=2)
         d.steps([(to_word(x.get("full") if key else x["m"]), to_word(x.get("why", ""))) for x in g["steps"]], size=10.5)
     if n.get("practice"):
-        d.h2("Practice", size=13).paragraph_format.page_break_before = bool(n.get("practicePageBreak", True))
+        h = d.h2("Practice", size=13)
+        if n.get("practicePageBreak", True): d.newpage(h)
         if n.get("practiceDirections"): d.p(to_word(n["practiceDirections"]), italic=True, after=3)
         for part in n["practice"]:
             if part.get("label"): d.p("**" + part["label"] + "**", before=4, after=2)
@@ -268,7 +269,8 @@ def guided_notes(week, cid, i, path, key=False):
             d.p("**E%d.** %s" % (k, to_word(e["q"])), after=2)
             d.p(("**%s.** %s" % ("Correct" if e["correct"] else "Mistake", to_word(e["fix"]))) if key else "Correct or Mistake? ______   Explain: ______________________________________________", after=6)
     if n.get("exit"):
-        d.h2("Exit Ticket (individual check)", size=13).paragraph_format.page_break_before = bool(n.get("exitOwnPage", True)) and not key
+        h = d.h2("Exit Ticket (individual check)", size=13)
+        if n.get("exitOwnPage", True) and not key: d.newpage(h)   # own page, so it can be collected separately
         for k, p in enumerate(n["exit"], 1):
             d.p("**X%d.** %s%s" % (k, to_word(p["q"]), ("  →  **" + to_word(p["a"]) + "**") if key else ""), after=2)
             if not key: d.space(3)

@@ -804,7 +804,215 @@ export default {
        "q": "Two angles of a triangle are 58° and 67°. Find the third angle.",
        "a": "55°"
       }
-     ]
+     ],
+     "notes": {
+      "title": "Triangle Angle Sum",
+      "targets": [
+       "explain why a triangle's interior angles add up to 180°.",
+       "find an unknown angle of a triangle when I know the other two.",
+       "write and solve an equation to find angles that are written like 2x + 5 and 3x − 10."
+      ],
+      "warmup": [
+       {
+        "q": "5x − 20 = 180",
+        "a": "x = 40"
+       },
+       {
+        "q": "2x + (x + 15) = 180",
+        "a": "x = 55"
+       },
+       {
+        "q": "4x + 12 = 180",
+        "a": "x = 42"
+       }
+      ],
+      "vocab": {
+       "items": [
+        "A [triangle] is a closed shape with 3 straight sides and 3 angles.",
+        "An [interior angle] is an angle on the INSIDE of a shape.",
+        "The [sum] is the answer when you add numbers together.",
+        "An [acute] triangle has all three angles less than 90°. A [right] triangle has one 90° angle. An [obtuse] triangle has one angle greater than 90°."
+       ]
+      },
+      "bigIdea": [
+       "The three interior angles of ANY triangle add up to 180°.",
+       "Why? Draw any triangle on paper. Tear off the three corners. Put the three points together side by side. The three angles make a straight line, and a straight line is 180°."
+      ],
+      "steps": [
+       "Write: angle + angle + angle = 180.",
+       "Put in the angles you know. Use x for the missing one.",
+       "Combine like terms.",
+       "Solve for x with inverse operations.",
+       "Find each angle. Check: do the three angles add to 180°?"
+      ],
+      "examples": [
+       {
+        "title": "Find the missing angle",
+        "q": "A triangle has angles 64° and 39°. Find x.",
+        "steps": [
+         {
+          "m": "64 + 39 + x = 180",
+          "why": "Write: three angles add to 180."
+         },
+         {
+          "m": "103 + x = 180",
+          "why": "Add 64 + 39."
+         },
+         {
+          "m": "x = 77°",
+          "why": "Subtract 103 from both sides. Check: 64 + 39 + 77 = 180 ✔"
+         }
+        ]
+       },
+       {
+        "title": "Three expressions",
+        "q": "The angles are (x + 12), (2x − 7), and (3x + 1). Find x and each angle.",
+        "steps": [
+         {
+          "m": "(x + 12) + (2x − 7) + (3x + 1) = 180",
+          "why": "Write: the three angles add to 180."
+         },
+         {
+          "m": "6x + 6 = 180",
+          "why": "Combine: x + 2x + 3x = 6x, and 12 − 7 + 1 = 6."
+         },
+         {
+          "m": "6x = 174",
+          "why": "Subtract 6 from both sides."
+         },
+         {
+          "m": "x = 29",
+          "why": "Divide both sides by 6."
+         },
+         {
+          "m": "Angles: 41°, 51°, 88°",
+          "why": "x + 12 = 41, 2x − 7 = 51, 3x + 1 = 88. Check: 41 + 51 + 88 = 180 ✔"
+         }
+        ]
+       },
+       {
+        "title": "Two angles the same size",
+        "q": "Two angles of a triangle are each (2x + 5). The third angle is 50°. Find x and each angle.",
+        "steps": [
+         {
+          "m": "(2x + 5) + (2x + 5) + 50 = 180",
+          "why": "Write: the three angles add to 180."
+         },
+         {
+          "m": "4x + 60 = 180",
+          "why": "Combine: 2x + 2x = 4x, and 5 + 5 + 50 = 60."
+         },
+         {
+          "m": "4x = 120",
+          "why": "Subtract 60 from both sides."
+         },
+         {
+          "m": "x = 30",
+          "why": "Divide both sides by 4."
+         },
+         {
+          "m": "Angles: 65°, 65°, 50°",
+          "why": "2x + 5 = 2(30) + 5 = 65. Check: 65 + 65 + 50 = 180 ✔"
+         }
+        ]
+       }
+      ],
+      "guided": {
+       "q": "The angles are (3x − 10), (x + 25), and (2x + 15). Find x and each angle.",
+       "steps": [
+        {
+         "m": "(3x − 10) + (x + 25) + (2x + 15) = 180",
+         "why": "Write the equation."
+        },
+        {
+         "m": "6x + 30 = 180",
+         "why": "Combine like terms."
+        },
+        {
+         "m": "6x = 150",
+         "why": "Subtract."
+        },
+        {
+         "m": "x = 25",
+         "why": "Divide."
+        },
+        {
+         "m": "Angles: 65°, 50°, 65°",
+         "why": "Plug x back in. Do they add to 180°?"
+        }
+       ]
+      },
+      "practice": [
+       {
+        "label": "Part A: Find the missing angle",
+        "problems": [
+         {
+          "n": "A1",
+          "q": "A triangle has angles 85° and 47°. Find x.",
+          "a": "x = 48°"
+         },
+         {
+          "n": "A2",
+          "q": "A right triangle has an angle of 61°. Find the third angle.",
+          "a": "29°"
+         },
+         {
+          "n": "A3",
+          "q": "Two angles of a triangle are the same size, x. The third angle is 104°. Find x.",
+          "a": "x = 38°"
+         }
+        ]
+       },
+       {
+        "label": "Part B: Angles written with x (find x AND each angle)",
+        "problems": [
+         {
+          "n": "B4",
+          "q": "The angles are x, (x + 15), and (x + 30).",
+          "a": "x = 45; angles 45°, 60°, 75°"
+         },
+         {
+          "n": "B5",
+          "q": "The angles are 2x, 4x, and 6x.",
+          "a": "x = 15; angles 30°, 60°, 90°"
+         },
+         {
+          "n": "B6",
+          "q": "The angles are (2x + 10), (3x − 5), and (x + 25).",
+          "a": "x = 25; angles 60°, 70°, 50°"
+         },
+         {
+          "n": "B7",
+          "q": "The angles are (4x − 3), (x + 8), and 60°.",
+          "a": "x = 23; angles 89°, 31°, 60°"
+         }
+        ]
+       },
+       {
+        "label": "Part C: Word problems and thinking",
+        "problems": [
+         {
+          "n": "C8",
+          "q": "The second angle of a triangle is twice the first angle. The third angle is 20° more than the first angle. Write the equation, solve it, and find all three angles.",
+          "a": "x + 2x + (x + 20) = 180; x = 40; angles 40°, 80°, 60°"
+         },
+         {
+          "n": "C9",
+          "q": "Can a triangle have two obtuse angles? Show how you know.",
+          "a": "No. Two angles greater than 90° already add to more than 180°."
+         }
+        ]
+       }
+      ],
+      "exit": [
+       {
+        "q": "A triangle has angles 73° and 58°. Find the third angle."
+       },
+       {
+        "q": "The angles are (x + 6), (2x + 4), and (3x − 10). Find x and each angle."
+       }
+      ]
+     }
     },
     {
      "name": "Thursday",
