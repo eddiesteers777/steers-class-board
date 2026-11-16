@@ -5,8 +5,9 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=3";
-import * as store from "./boardStore.js?v=3";
+import { WEEKS } from "../data/weeks.js?v=4";
+import * as store from "./boardStore.js?v=4";
+import { renderTools, tickTools, defaultTools, mergeTools } from "./boardTools.js?v=4";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -42,7 +43,7 @@ function rich(text) {
 }
 function richEl(tag, cls, text) { const e = el(tag, cls); e.appendChild(rich(text)); return e; }
 
-const SCREENS = [["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["speed", "Speed Dating"], ["timer", "Timer"], ["blank", "Whiteboard"]];
+const SCREENS = [["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["speed", "Speed Dating"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
 const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 const ROUND = 240, GAP = 10;
 const PRESETS = [1, 2, 3, 5, 10, 15];
@@ -58,7 +59,7 @@ function defaultWeek() {
 }
 const wd = new Date().getDay();
 const S = { week: defaultWeek(), cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false,
-    timers: { bell: blankTimer(), round: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) } };
+    timers: { bell: blankTimer(), round: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, tools: defaultTools() };
 
 let mode = "remote", signedIn = false, sig = "", writeState = null, SEAL = "brand/calera-seal.webp";
 
@@ -76,6 +77,10 @@ function writer(path) {
 }
 function setStatus(t) { const s = $("status"); if (s) s.textContent = t; }
 function push() { render(); if (writeState) writeState(JSON.parse(JSON.stringify(S))); }
+let quietTimer = 0;
+function quiet() { clearTimeout(quietTimer); quietTimer = setTimeout(() => { if (writeState) writeState(JSON.parse(JSON.stringify(S))); }, 500); } // save typing without redrawing
+const toolApi = { S, el, push, quiet, now, card };
+function toolSig() { const t = Object.assign({}, S.tools); delete t.text; return JSON.stringify(t); }
 const W = () => WEEKS.find((w) => w.id === S.week) || WEEKS[WEEKS.length - 1];
 const L = () => { const w = W(); return (w && w.classes[S.cls]) || null; };
 const D = () => { const l = L(); return (l && l.days && l.days[S.day]) || null; };
@@ -175,8 +180,8 @@ function tick() {
 
 function render() {
     buildControls();
-    const l = L(), d = D(), ns = JSON.stringify([S.week, S.cls, S.day, S.screen, S.prob, S.show, S.timers.free.dur, signedIn]);
-    if (ns === sig) { tick(); return; }
+    const l = L(), d = D(), ns = JSON.stringify([S.week, S.cls, S.day, S.screen, S.prob, S.show, S.timers.free.dur, signedIn, S.screen === "tools" ? toolSig() : ""]);
+    if (ns === sig) { tick(); tickTools(toolApi); return; }
     sig = ns; lastPhase = "";
     const st = $("stage"); st.textContent = ""; canvas = null; ctx = null;
     if (!l) { st.appendChild(el("div", "empty", "No lesson found for this class and week.")); watchInk(); return; }
@@ -206,6 +211,9 @@ function render() {
         const pr = el("div", "presets");
         PRESETS.forEach((m) => { const b = el("button", null, m + " min"); b.type = "button"; b.setAttribute("aria-pressed", String((S.timers.free.dur || 300) === m * 60)); b.onclick = () => { S.timers.free = Object.assign(blankTimer(), { dur: m * 60 }); push(); }; pr.appendChild(b); });
         box.appendChild(pr); st.appendChild(box);
+    } else if (S.screen === "tools") {
+        st.appendChild(header("Classroom Tools", (d ? d.name + " · " : "") + ((d && d.date) || "")));
+        const box = el("div", "toolsbody"); renderTools(box, toolApi); st.appendChild(box); tickTools(toolApi);
     } else { /* bellringer or blank whiteboard */
         const blank = S.screen === "blank" || !d, ps = (d && d.problems) || [];
         st.appendChild(header(blank ? "Whiteboard" : "Bellringer", blank ? "Work it out" : (d.name + " · " + (d.date || ""))));
@@ -283,6 +291,7 @@ function applyState(d) {
     if (!SCREENS.some((x) => x[0] === S.screen)) S.screen = "today";
     if (typeof d.day === "number" && d.day >= 0 && d.day < 5) S.day = d.day;
     if (typeof d.prob === "number") S.prob = d.prob; S.show = !!d.show;
+    { const m = mergeTools(d.tools); Object.keys(S.tools).forEach((k) => delete S.tools[k]); Object.assign(S.tools, m); } // keep the same object: widgets hold a reference to it
     ["bell", "round", "free"].forEach((k) => { const t = d.timers && d.timers[k]; if (t) { S.timers[k] = { running: !!t.running, t0: +t.t0 || 0, elapsed: +t.elapsed || 0 }; if (k === "free") S.timers.free.dur = +t.dur || 300; } });
 }
 function step(n) { const d = D(), len = (d && d.problems && d.problems.length) || 0; if (S.screen !== "bell" || !len) return; S.prob = (S.prob + n + len) % len; S.show = false; push(); }
@@ -301,7 +310,7 @@ export async function startApp(opts) {
     if (window.ResizeObserver) new ResizeObserver(fit).observe($("wrap")); document.addEventListener("fullscreenchange", () => setTimeout(fit, 60));
     document.addEventListener("pointerdown", unlockSound, { once: true });
     document.addEventListener("keydown", (e) => { if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; if (e.key === "ArrowRight") step(1); else if (e.key === "ArrowLeft") step(-1); else if (e.key === "a" || e.key === "A") { if (S.screen === "bell") { S.show = !S.show; push(); } } });
-    setInterval(tick, 250);
+    setInterval(() => { tick(); tickTools(toolApi); }, 250);
     fit(); render();
 
     const user = await store.ready();
