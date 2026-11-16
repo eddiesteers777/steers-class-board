@@ -3,5 +3,5 @@
 // Leave a value out when it is not known yet. Never guess a nine weeks or a unit name.
 //   week5: { nineWeeks: 2, units: { "8th": "Unit name", "7th": "Unit name", "8th-acc": "Unit name" } }
 export const LIBRARY = {
-    week5: {}
+    week5: { nineWeeks: 2 }
 };

@@ -7,9 +7,9 @@
     <meta name="robots" content="noindex">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=14">
-    <link rel="stylesheet" href="css/console.css?v=14">
-    <link rel="stylesheet" href="css/builder.css?v=14">
+    <link rel="stylesheet" href="css/board.css?v=15">
+    <link rel="stylesheet" href="css/console.css?v=15">
+    <link rel="stylesheet" href="css/builder.css?v=15">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page builder">
@@ -55,11 +55,11 @@
         </div>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=14";
-        import { DAYS, dayDate, bellringerSheet, bellringerKey } from "./js/weekSheets.js?v=14";
+        import { WEEKS } from "./data/weeks.js?v=15";
+        import { DAYS, dayDate, bellringerSheet, bellringerKey } from "./js/weekSheets.js?v=15";
         // ?demo runs on this device only, like the guest teacher page: nothing is saved to any account.
         const demo = new URLSearchParams(location.search).has("demo");
-        const store = await import(demo ? "./js/localStore.js?v=14" : "./js/boardStore.js?v=14");
+        const store = await import(demo ? "./js/localStore.js?v=15" : "./js/boardStore.js?v=15");
         const $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
         const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
