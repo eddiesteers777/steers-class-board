@@ -7,9 +7,9 @@
     <meta name="robots" content="noindex">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=15">
-    <link rel="stylesheet" href="css/console.css?v=15">
-    <link rel="stylesheet" href="css/builder.css?v=15">
+    <link rel="stylesheet" href="css/board.css?v=16">
+    <link rel="stylesheet" href="css/console.css?v=16">
+    <link rel="stylesheet" href="css/builder.css?v=16">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page builder">
@@ -21,7 +21,7 @@
     </header>
     <main>
         <h1>Week Builder</h1>
-        <p class="sub">Pick a week and a class, fix or add bellringer problems, then print the student sheet and the teacher key straight from this page. Your changes save only to your private account.</p>
+        <p class="sub">Pick a week and a class, fix or add bellringer problems, then print the bellringer sheet, its key and the guided notes straight from this page. Your changes save only to your private account.</p>
         <div class="bpick">
             <label class="field"><span>Week</span><select id="weekSel" aria-label="Week"></select></label>
             <label class="field"><span>Class</span><select id="classSel" aria-label="Class"></select></label>
@@ -48,18 +48,28 @@
             <span class="count2" id="saved"></span>
         </div>
 
+        <h2>Guided notes</h2>
+        <p class="sub" id="notesNone" hidden>This class has no guided notes in this week.</p>
+        <div class="bpick" id="notesBar">
+            <label class="field"><span>Day</span><select id="notesDay" aria-label="Guided notes day"></select></label>
+            <button class="btn go" id="printNotes" type="button">Print student notes</button>
+            <button class="btn" id="printNotesKey" type="button">Print notes key</button>
+        </div>
+
         <h2>Preview</h2>
         <div class="papers">
             <div id="paperSheet"><h3>Student sheet</h3></div>
             <div id="paperKey"><h3>Teacher key (never post or link)</h3></div>
+            <div id="paperNotes"><h3>Guided notes, student copy</h3></div>
+            <div id="paperNotesKey"><h3>Guided notes key (never post or link)</h3></div>
         </div>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=15";
-        import { DAYS, dayDate, bellringerSheet, bellringerKey } from "./js/weekSheets.js?v=15";
+        import { WEEKS } from "./data/weeks.js?v=16";
+        import { DAYS, dayDate, bellringerSheet, bellringerKey, notesSheet } from "./js/weekSheets.js?v=16";
         // ?demo runs on this device only, like the guest teacher page: nothing is saved to any account.
         const demo = new URLSearchParams(location.search).has("demo");
-        const store = await import(demo ? "./js/localStore.js?v=15" : "./js/boardStore.js?v=15");
+        const store = await import(demo ? "./js/localStore.js?v=16" : "./js/boardStore.js?v=16");
         const $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
         const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
@@ -126,8 +136,18 @@
         }
         function preview() {
             for (const [id, fn] of [["paperSheet", bellringerSheet], ["paperKey", bellringerKey]]) { const box = $(id); while (box.children.length > 1) box.lastChild.remove(); box.appendChild(fn(week, cid)); }
+            const days = cls().days.map((d, i) => [i, d]).filter(([, d]) => d.notes), sel = $("notesDay"), keep = sel.value;
+            sel.replaceChildren(...days.map(([i, d]) => { const o = el("option", null, DAYS[i] + ": " + d.notes.title); o.value = i; return o; }));
+            if (days.some(([i]) => String(i) === keep)) sel.value = keep;
+            $("notesNone").hidden = days.length > 0; $("notesBar").hidden = !days.length;
+            for (const [id, key] of [["paperNotes", false], ["paperNotesKey", true]]) { const box = $(id); box.hidden = !days.length; while (box.children.length > 1) box.lastChild.remove(); if (days.length) box.appendChild(notesSheet(week, cid, +sel.value, key)); }
         }
-        function print(which) { document.body.dataset.print = which; document.title = (which === "key" ? "0 Weekly - TEACHER KEY - Bellringer (" : "0 Weekly - Bellringer (Mon-Fri) (") + cls().label + ")"; window.print(); }
+        function print(which) {
+            document.body.dataset.print = which; const i = +$("notesDay").value, d = cls().days[i];
+            document.title = which === "key" ? "0 Weekly - TEACHER KEY - Bellringer (" + cls().label + ")" : which === "sheet" ? "0 Weekly - Bellringer (Mon-Fri) (" + cls().label + ")"
+                : (i + 1) + " " + DAYS[i] + " - " + (which === "noteskey" ? "TEACHER KEY - " : "") + "Guided Notes - " + d.notes.title + " (" + cls().label + ")";
+            window.print();
+        }
         window.addEventListener("afterprint", () => { document.title = "Week Builder — Calera Math — Steers"; });
         function problemsReady() {
             const empty = cls().days.some((d) => (d.problems || []).some((p) => !String(p.q || "").trim() || !String(p.a || "").trim()));
@@ -139,6 +159,8 @@
         $("classSel").onchange = () => { cid = $("classSel").value; draw(); };
         $("printSheet").onclick = () => { if (problemsReady()) print("sheet"); };
         $("printKey").onclick = () => { if (problemsReady()) print("key"); };
+        $("printNotes").onclick = () => print("notes"); $("printNotesKey").onclick = () => print("noteskey");
+        $("notesDay").onchange = preview;
         $("reset").onclick = () => { delete saved[week.id]; openWeek(week.id); $("saved").textContent = "Showing the published week. Your saved changes stay in your account until you save again."; };
         $("export").onclick = () => {
             const a = el("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(week, null, 1)], { type: "application/json" }));

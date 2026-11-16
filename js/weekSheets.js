@@ -110,3 +110,99 @@ export function bellringerKey(week, cid) {
         : "All " + all.length + " answers are the ones saved with the week. None were changed on the site."));
     return sheet;
 }
+
+/* ---------- guided notes ---------- */
+function blanks(text, key) {   // [word] -> a blank for students, the bold word for the key
+    const frag = document.createDocumentFragment();
+    String(text).split(/(\[[^\]]+\])/).forEach((part) => {
+        const m = /^\[([^\]]+)\]$/.exec(part);
+        if (!m) frag.appendChild(rich(part)); else if (key) frag.appendChild(el("b", null, m[1])); else frag.appendChild(el("span", "rule w14 inl"));
+    });
+    return frag;
+}
+function stepTable(rows) {     // math | why. Never splits across a page.
+    const t = el("table", "sh-steps");
+    rows.forEach(([m, why]) => { const tr = el("tr"), a = el("td", "m"), b = el("td"); a.appendChild(rich(m)); b.appendChild(rich(why)); tr.appendChild(a); tr.appendChild(b); t.appendChild(tr); });
+    return t;
+}
+function boxed(lines) { const d = el("div", "sh-box"); lines.forEach((x) => d.appendChild(x)); return d; }
+function para(cls, bold, text) { const p = el("p", cls); if (bold) p.appendChild(el("b", null, bold)); p.appendChild(rich(text)); return p; }
+
+/** One day's guided notes (student copy, or the teacher key). Same content as the board's Guided Notes screen.
+    A published week holds no exit ticket answers and only the filled-in guided steps, so the student copy
+    leaves those steps blank and the key says when exit answers are missing. */
+export function notesSheet(week, cid, i, key) {
+    const c = week.classes[cid], n = c.days[i].notes, sheet = el("section", "sheet gnotes" + (key ? " key" : ""));
+    head(sheet, (key ? "TEACHER KEY: " : "") + n.title, (key ? "Teacher only. Never post or link. " : "") + (n.subtitle || c.label));
+    if (!key) { const name = el("p", "sh-name"); [["Name:", "w30"], ["Date:", "w14"], ["Class/Period:", "w8"]].forEach(([t, w]) => { name.appendChild(el("b", null, t + " ")); name.appendChild(el("span", "rule " + w)); }); sheet.appendChild(name); }
+    const top = [];
+    if (n.standard) top.push(para(null, "Standard: ", n.standard));
+    if (n.targets && n.targets.length) top.push(para(null, "Learning Targets: ", "I can… " + n.targets.join("  •  ")));
+    if (top.length) sheet.appendChild(boxed(top));
+    if (n.warmup && n.warmup.length) {
+        sheet.appendChild(el("h2", null, "Warm-Up")); const p = el("p", "sh-warm" + (key ? "" : " room"));
+        n.warmup.forEach((w, k) => { p.appendChild(el("b", null, "W" + (k + 1) + ". ")); p.appendChild(rich(w.q)); if (key) { p.appendChild(document.createTextNode("  →  ")); const b = el("b"); b.appendChild(rich(w.a)); p.appendChild(b); } p.appendChild(document.createTextNode("   ")); });
+        sheet.appendChild(p);
+    }
+    if (n.vocab && n.vocab.items) {
+        sheet.appendChild(el("h2", null, "Vocabulary: fill in the blanks"));
+        if (n.vocab.bank) sheet.appendChild(para("sh-bank", "Word bank: ", n.vocab.bank.join("  •  ")));
+        n.vocab.items.forEach((v, k) => { const p = el("p", "sh-vocab"); p.appendChild(document.createTextNode((k + 1) + ". ")); p.appendChild(blanks(v, key)); sheet.appendChild(p); });
+    }
+    if (n.bigIdea && n.bigIdea.length) {
+        sheet.appendChild(el("h2", null, "The Big Idea"));
+        const lines = [para(null, null, "")]; lines[0].appendChild(el("b", null, n.bigIdea[0]));
+        n.bigIdea.slice(1).forEach((t) => lines.push(para(null, null, t)));
+        if (n.steps && n.steps.length) { lines.push(para(null, "Steps:", "")); n.steps.forEach((t, k) => lines.push(para(null, null, (k + 1) + ". " + t))); }
+        sheet.appendChild(boxed(lines));
+    }
+    if (n.examples && n.examples.length) {
+        sheet.appendChild(el("h2", null, "Worked Examples"));
+        n.examples.forEach((e, k) => {
+            const block = el("div", "sh-keep");
+            block.appendChild(para("sh-q", "Example " + (k + 1) + (e.title ? ": " + e.title + ". " : ". "), e.q));
+            block.appendChild(stepTable(e.steps.map((x) => [n.blankExamples && !key ? "" : x.m, x.why || ""])));
+            sheet.appendChild(block);
+        });
+    }
+    if (n.guided) {
+        const block = el("div", "sh-keep"); block.appendChild(el("h2", null, "Guided Practice: your turn with help"));
+        block.appendChild(para("sh-q", null, n.guided.q));
+        block.appendChild(stepTable(n.guided.steps.map((x) => [key ? (x.full || x.m) : ("full" in x ? x.m : ""), x.why || ""])));
+        sheet.appendChild(block);
+    }
+    if (n.practice && n.practice.length) {
+        const h = el("h2", n.practicePageBreak === false ? null : "newpage", "Practice"); sheet.appendChild(h);
+        if (n.practiceDirections) sheet.appendChild(para("sh-dir", null, n.practiceDirections));
+        n.practice.forEach((part) => {
+            if (part.label) sheet.appendChild(el("p", "sh-part", part.label));
+            part.problems.forEach((p) => {
+                const q = para("sh-prac", (p.n || "") + ". ", p.q);
+                if (key) { q.appendChild(document.createTextNode("  →  ")); const b = el("b"); b.appendChild(rich(p.a)); q.appendChild(b); }
+                else q.style.marginBottom = ((part.space == null ? 2 : part.space) * 13.5 + 2) + "pt";
+                sheet.appendChild(q);
+            });
+        });
+    }
+    if (n.errors && n.errors.length) {
+        sheet.appendChild(el("h2", null, "Error Detectives"));
+        if (!key) sheet.appendChild(para("sh-dir", null, "One of these students is correct! Decide: Correct or Mistake? If it is a mistake, explain it and give the right answer."));
+        n.errors.forEach((e, k) => {
+            sheet.appendChild(para("sh-q", "E" + (k + 1) + ". ", e.q));
+            if (key) sheet.appendChild(para("sh-err", (e.correct ? "Correct" : "Mistake") + ". ", e.fix || ""));
+            else { const p = el("p", "sh-err", "Correct or Mistake? "); p.appendChild(el("span", "rule w8 inl")); p.appendChild(document.createTextNode("  Explain: ")); p.appendChild(el("span", "rule w30 inl")); sheet.appendChild(p); }
+        });
+    }
+    if (n.exit && n.exit.length) {
+        sheet.appendChild(el("h2", key || n.exitOwnPage === false ? null : "newpage", "Exit Ticket (individual check)"));   // own page, so it can be collected
+        let missing = 0;
+        n.exit.forEach((p, k) => {
+            const q = para("sh-prac" + (key ? "" : " room3"), "X" + (k + 1) + ". ", p.q);
+            if (key) { if (p.a) { q.appendChild(document.createTextNode("  →  ")); const b = el("b"); b.appendChild(rich(p.a)); q.appendChild(b); } else missing++; }
+            sheet.appendChild(q);
+        });
+        if (!key) sheet.appendChild(el("p", null, "Confidence: ☐ Got it   ☐ Mostly   ☐ Need help"));
+        if (key && missing) sheet.appendChild(el("p", "sh-verify", "Exit ticket answers are not kept on the public site. Load the week file from the week's Drive folder to print them here."));
+    }
+    return sheet;
+}

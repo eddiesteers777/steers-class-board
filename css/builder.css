@@ -55,3 +55,30 @@
     body.builder[data-print="sheet"] #paperSheet,body.builder[data-print="key"] #paperKey{display:block}
     .sheet{width:auto;padding:0;box-shadow:none;border-radius:0}
 }
+
+/* ---- guided notes on paper ---- */
+.sheet.gnotes{padding:.65in}
+.sheet .sh-box{background:#EEF3FA;border:1.5pt solid #2F5496;padding:5pt 7pt;margin:2pt 0 5pt;font-size:10.5pt;break-inside:avoid}
+.sheet .sh-box p{margin-bottom:2pt}
+.sheet.gnotes h2{font-size:13pt}
+.sheet .sh-warm.room{margin-bottom:30pt}
+.sheet .sh-bank{font-size:10.5pt}
+.sheet .sh-vocab{margin-bottom:4pt;line-height:1.5}
+.sheet .rule.inl{margin:0 3pt}
+.sheet .sh-keep{break-inside:avoid;margin-bottom:5pt}
+.sheet .sh-keep h2{margin-top:6pt}
+.sheet .sh-steps{border-collapse:collapse;width:100%;font-size:10.5pt;break-inside:avoid}
+.sheet .sh-steps td{border:1px solid #8EA9DB;padding:3pt 5pt;vertical-align:top;height:15pt}
+.sheet .sh-steps td.m{width:42%;font-weight:700}
+.sheet .sh-part{font-weight:700;margin:5pt 0 2pt}
+.sheet .sh-prac{break-inside:avoid}
+.sheet .sh-prac.room3{margin-bottom:44pt}
+.sheet .sh-err{margin-bottom:7pt}
+.sheet h2.newpage{break-before:page;margin-top:0}
+.sheet:not(:only-child) h2.newpage{border-top:1px dashed #B8C4DA;padding-top:14pt;margin-top:16pt}
+@page gnotes{size:letter;margin:.65in}
+@media print{
+    .sheet.gnotes{page:gnotes;padding:0}
+    .sheet h2.newpage{border-top:0!important;padding-top:0!important;margin-top:0!important}
+    body.builder[data-print="notes"] #paperNotes,body.builder[data-print="noteskey"] #paperNotesKey{display:block}
+}

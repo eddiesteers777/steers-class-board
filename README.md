@@ -28,7 +28,7 @@ The real week files hold answer keys, so they live in the week's Drive folder, n
 ## Week Builder (print from the site)
 `builder.html` (teacher sign-in): pick a week and class, edit bellringer problems, and print the student sheet and teacher key from the browser. `js/weekSheets.js` holds the print layouts, matching `tools/weekly_kit/docs.py`.
 Edits save to `teacher/{uid}/weekfiles/{weekId}` in the private account, never to this repo. The site cannot check math, so the key counts any problem changed on the site as not re-checked. `builder.html?demo` runs on one device with nothing saved.
-So far: bellringer sheet and key. Still built by the weekly kit: homework, study guide, speed dating, guided notes.
+So far: bellringer sheet and key, and guided notes (student copy and key). A published week has no exit ticket answers, so the notes key says so until the week file is loaded. Still built by the weekly kit: homework, study guide, speed dating.
 
 ## Library
 `library.html` lists every week in `data/weeks.js` by class, with search, and opens any day on the Remote (`remote.html?week=&class=&day=&screen=`).
