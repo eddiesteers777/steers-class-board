@@ -1,0 +1,21 @@
+/* Class Data: imports and the by-skill / by-student tables. */
+.cdbar{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end;margin:4px 0 6px}
+.cdt{border-collapse:collapse;width:100%;min-width:720px;font-size:.92rem;background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:12px;overflow:hidden}
+.cdt th,.cdt td{padding:9px 12px;text-align:left;vertical-align:top;border-top:1px solid var(--c-line);line-height:1.4}
+.cdt tr:first-child th,.cdt tr:first-child td{border-top:0}
+.cdt th{font-weight:700;font-size:.8rem;color:var(--c-mute);white-space:nowrap}
+.cdt td.num{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.cdt td.low{background:#FBE9EA;color:#8E1B21}
+.cdt td.mid{background:#FFF6DF;color:#5A4200}
+.cdt td.ok{background:#E3F5EC;color:#0F6B40}
+.imp{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:12px;padding:10px 14px;margin:8px 0}
+.imp span{flex:1;min-width:200px;color:var(--c-mute)}
+.bx{background:transparent;border:1.5px solid var(--c-line);border-radius:10px;padding:7px 11px;font-weight:600;color:var(--c-mute);cursor:pointer}
+.bx:hover{background:var(--c-bg);color:#8E1B21}
+.page #paste{min-height:130px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:12px 0}
+.meta label,.bhead{display:block;font-size:.72rem;font-weight:600;color:var(--c-mute);margin-bottom:3px}
+.meta input,.meta select{width:100%;font:inherit;font-size:.93rem;color:var(--c-ink);background:#fff;border:1.5px solid var(--c-line);border-radius:10px;padding:8px 10px}
+.cols2{display:flex;flex-wrap:wrap;gap:6px 16px;margin:4px 0 12px}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:.93rem}
+.chk input{width:1.05rem;height:1.05rem}

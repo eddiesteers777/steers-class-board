@@ -34,6 +34,10 @@ So far: bellringer sheet and key. Still built by the weekly kit: homework, study
 `library.html` lists every week in `data/weeks.js` by class, with search, and opens any day on the Remote (`remote.html?week=&class=&day=&screen=`).
 Nine weeks and unit labels are typed in `data/library.js`. Leave them out when not known; never guess.
 
+## Class Data
+`data.html` (teacher sign-in): paste or load a CSV of results (Magma Math, a quiz, an exit ticket), pick the student and score columns, and see class averages and who needs help, by skill and by student.
+Student results save only under `teacher/{uid}/data/...` in the private account. NEVER commit student names or results to this repo, including in tests or examples. Roster numbers can be saved instead of names.
+
 ## Two build lanes
 Two Claude threads (school account and personal account) push to `main`. Fetch and check the head of `main` before every push, and re-read any file you are about to overwrite.
 

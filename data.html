@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Data — Calera Math — Steers</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=15">
+    <link rel="stylesheet" href="css/console.css?v=15">
+    <link rel="stylesheet" href="css/classdata.css?v=15">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="console page">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/calera-seal.webp" alt=""><span><b>Steers Class Board</b><small id="who">Calera Middle School</small></span></a>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
+        <a class="btn ghost" href="library.html" style="text-decoration:none">Library</a>
+    </header>
+    <main>
+        <h1>Class Data</h1>
+        <p class="sub">Bring in results from Magma Math, a quiz, or an exit ticket, and see what each class knows and who needs help. Everything here saves only to your private account. It is never part of the site's public code, and students and guests cannot open it.</p>
+
+        <div class="cdbar">
+            <div class="tabs" id="periodTabs" role="group" aria-label="Period"></div>
+            <label class="field"><span>Needs help below</span><select id="cut"><option value="0.6">60%</option><option value="0.7" selected>70%</option><option value="0.8">80%</option></select></label>
+        </div>
+
+        <h2>By skill</h2>
+        <div class="gridwrap"><table class="cdt" id="skills"></table></div>
+        <h2>By student</h2>
+        <div class="gridwrap"><table class="cdt" id="people"></table></div>
+
+        <h2>What has been brought in</h2>
+        <div id="imports"></div>
+
+        <h2>Bring in results</h2>
+        <p class="sub">Paste from a spreadsheet or load a CSV file. The first row must be the column names. One row per student.</p>
+        <div class="rowx"><label class="btn ghost" style="cursor:pointer">Load a CSV file<input type="file" id="file" accept=".csv,.tsv,.txt,text/csv" hidden></label></div>
+        <textarea id="paste" spellcheck="false" aria-label="Paste results here" placeholder="Paste results here"></textarea>
+        <div id="map" hidden>
+            <div class="meta">
+                <div><label for="iTitle">Name of this set</label><input type="text" id="iTitle" placeholder="Example: Triangle Angle Sum exit ticket"></div>
+                <div><label for="iSkill">Skill or topic</label><input type="text" id="iSkill" placeholder="Example: Triangle angle sum"></div>
+                <div><label for="iDate">Date</label><input type="date" id="iDate"></div>
+                <div><label for="iSource">Source</label><input type="text" id="iSource" placeholder="Magma Math, quiz, exit ticket"></div>
+                <div><label for="iPeriod">Period</label><select id="iPeriod"></select></div>
+                <div><label for="iStudent">Student column</label><select id="iStudent"></select></div>
+                <div><label for="iKind">The scores are</label><select id="iKind"><option value="percent">Percents (85 or 85%)</option><option value="points">Points out of a total</option><option value="right">Right or wrong (1/0, yes/no)</option></select></div>
+                <div id="maxBox" hidden><label for="iMax">Points possible for each column</label><input type="number" id="iMax" min="1" step="any" value="10"></div>
+            </div>
+            <p class="bhead">Score columns (tick each column that is a score)</p>
+            <div class="cols2" id="scoreCols"></div>
+            <label class="chk"><input type="checkbox" id="iNumbers"> Save roster numbers instead of names (uses the order on your Rosters page)</label>
+            <div class="rowx"><button class="btn go" id="doImport" type="button">Save these results</button><span class="count2" id="iNote"></span></div>
+        </div>
+    </main>
+    <script type="module">
+        import { parseTable, toScore, looksNumeric, rosterIndex, summarise } from "./js/classData.js?v=15";
+        const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
+        const store = await import(demo ? "./js/localStore.js?v=15" : "./js/boardStore.js?v=15");
+        const PERIODS = [["1st", "8th Grade"], ["2nd", "8th Grade"], ["4th", "8th Grade"], ["5th", "7th Grade"], ["6th", "8th Accelerated"]];
+        const $ = (id) => document.getElementById(id);
+        function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+        const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
+        const pct = (x) => x == null ? "" : Math.round(x * 100) + "%";
+        const band = (x, cut) => x == null ? "" : (x < cut ? "low" : (x < Math.min(1, cut + 0.15) ? "mid" : "ok"));
+
+        let index = [], loaded = new Map(), rosters = {}, period = "1st", table = null;
+
+        // ---------- views ----------
+        function row(cells, tag) { const tr = el("tr"); cells.forEach((c) => { const td = el(tag || "td"); if (c instanceof Node) td.appendChild(c); else if (Array.isArray(c)) { td.textContent = c[0]; td.className = c[1]; } else td.textContent = c == null ? "" : c; tr.appendChild(td); }); return tr; }
+        function draw() {
+            [...$("periodTabs").children].forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.k === period)));
+            const cut = +$("cut").value, mine = index.filter((m) => m.period === period).map((m) => loaded.get(m.id)).filter(Boolean)
+                .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+            const { skills, people } = summarise(mine, cut), S = $("skills"), P = $("people"); S.replaceChildren(); P.replaceChildren();
+            if (!skills.length) { S.appendChild(row(["Nothing brought in for " + period + " period yet."])); P.appendChild(row(["Nothing yet."])); }
+            else {
+                S.appendChild(row(["Set and question", "Skill", "Date", "Class average", "Students", "Below " + pct(cut), "Who needs help (lowest first)"], "th"));
+                skills.forEach((k) => S.appendChild(row([k.label, k.skill, k.date, [pct(k.avg), "num " + band(k.avg, cut)], [String(k.n), "num"], [String(k.low.length), "num"], k.low.map((x) => x.s + " " + pct(x.v)).join(", ")])));
+                P.appendChild(row(["Student", "Average", "Scores", "Below " + pct(cut), "Lowest score"], "th"));
+                people.forEach((p) => P.appendChild(row([p.s, [pct(p.avg), "num " + band(p.avg, cut)], [String(p.n), "num"], [String(p.low), "num"], p.worst.label + " " + pct(p.worst.v)])));
+            }
+            const box = $("imports"); box.replaceChildren();
+            const list = index.filter((m) => m.period === period);
+            if (!list.length) box.appendChild(el("p", "sub", "No sets saved for this period."));
+            list.forEach((m) => {
+                const d = el("div", "imp"); d.appendChild(el("b", null, m.title)); d.appendChild(el("span", null, [m.skill, m.source, m.date, m.n + " students", m.items + (m.items === 1 ? " score column" : " score columns")].filter(Boolean).join(" · ")));
+                const rm = el("button", "bx", "Remove"); rm.type = "button";
+                rm.onclick = async () => {
+                    if (rm.dataset.sure !== "1") { rm.dataset.sure = "1"; rm.textContent = "Tap again to remove"; return; }
+                    status("Removing…");
+                    try { await store.save("data/i_" + m.id, { removed: true, at: Date.now() }); index = index.filter((x) => x.id !== m.id); loaded.delete(m.id); await store.save("data/index", { imports: index, at: Date.now() }); status("Removed", "ok"); draw(); }
+                    catch (e) { status("Could not remove (" + ((e && e.code) || "connection") + ")", "bad"); }
+                };
+                d.appendChild(rm); box.appendChild(d);
+            });
+        }
+
+        // ---------- import ----------
+        function readTable(text) {
+            table = parseTable(text); const map = $("map");
+            if (table.length < 2 || table[0].length < 2) { map.hidden = true; if (text.trim()) $("iNote").textContent = ""; return; }
+            const head = table[0], body = table.slice(1);
+            $("iStudent").replaceChildren(...head.map((h, i) => { const o = el("option", null, h || "Column " + (i + 1)); o.value = i; return o; }));
+            const guess = head.findIndex((h) => /student|name|learner|pupil/i.test(h)); $("iStudent").value = guess >= 0 ? guess : 0;
+            const sc = $("scoreCols"); sc.replaceChildren();
+            head.forEach((h, i) => {
+                const lab = el("label", "chk"), cb = el("input"); cb.type = "checkbox"; cb.value = i; cb.checked = i !== +$("iStudent").value && looksNumeric(body, i) && !/^(id|period|class|grade level|section)$/i.test(h);
+                lab.appendChild(cb); lab.appendChild(document.createTextNode(" " + (h || "Column " + (i + 1)))); sc.appendChild(lab);
+            });
+            if (!$("iDate").value) $("iDate").value = new Date().toLocaleDateString("en-CA");
+            $("iNote").textContent = body.length + " rows read."; map.hidden = false;
+        }
+        $("paste").oninput = () => readTable($("paste").value);
+        $("file").onchange = async (e) => { const f = e.target.files[0]; e.target.value = ""; if (!f) return; const t = await f.text(); $("paste").value = t; if (!$("iTitle").value) $("iTitle").value = f.name.replace(/\.[^.]+$/, ""); readTable(t); };
+        $("iKind").onchange = () => { $("maxBox").hidden = $("iKind").value !== "points"; };
+        $("doImport").onclick = async () => {
+            const note = (t) => { $("iNote").textContent = t; }, head = table[0], sIdx = +$("iStudent").value, kind = $("iKind").value, max = +$("iMax").value;
+            const cols = [...$("scoreCols").querySelectorAll("input:checked")].map((c) => +c.value).filter((c) => c !== sIdx), title = $("iTitle").value.trim(), per = $("iPeriod").value;
+            if (!title) return note("Give this set a name first.");
+            if (!cols.length) return note("Tick at least one score column.");
+            if (kind === "points" && !(max > 0)) return note("Enter the points possible.");
+            let rows = table.slice(1).filter((r) => (r[sIdx] || "").trim()).map((r) => ({ s: r[sIdx].trim(), v: cols.map((c) => toScore(r[c], kind, max)) }));
+            rows = rows.filter((r) => r.v.some((x) => x != null));
+            if (!rows.length) return note("No scores could be read. Check the score columns and what the scores are.");
+            if ($("iNumbers").checked) {
+                const roster = rosters[per] || []; if (!roster.length) return note("No roster is saved for " + per + " period. Add it on the Rosters page, or untick roster numbers.");
+                const miss = rows.filter((r) => rosterIndex(r.s, roster) < 0).map((r) => r.s);
+                if (miss.length) return note("Not on the " + per + " period roster: " + miss.join("; ") + ". Fix the roster or untick roster numbers. Nothing was saved.");
+                rows = rows.map((r) => ({ s: "#" + (rosterIndex(r.s, roster) + 1), v: r.v }));
+            }
+            const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+            const imp = { id, title, skill: $("iSkill").value.trim(), date: $("iDate").value, source: $("iSource").value.trim(), period: per, items: cols.map((c) => head[c] || "Column " + (c + 1)), rows, at: Date.now() };
+            status("Saving…");
+            try {
+                await store.save("data/i_" + id, imp);
+                index = [...index, { id, title, skill: imp.skill, date: imp.date, source: imp.source, period: per, n: rows.length, items: cols.length }];
+                await store.save("data/index", { imports: index, at: Date.now() });
+                loaded.set(id, imp); period = per; status("Saved", "ok");
+                $("paste").value = ""; $("iTitle").value = ""; $("map").hidden = true; table = null; draw(); scrollTo({ top: 0, behavior: "smooth" });
+            } catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); }
+        };
+
+        PERIODS.forEach(([k, label]) => {
+            const b = el("button", null, k + " period"); b.type = "button"; b.dataset.k = k; b.title = label; b.onclick = () => { period = k; draw(); }; $("periodTabs").appendChild(b);
+            const o = el("option", null, k + " period, " + label); o.value = k; $("iPeriod").appendChild(o);
+        });
+        $("cut").onchange = draw;
+
+        const user = await store.ready();
+        if (!user) location.replace("login.html");
+        else {
+            $("who").textContent = demo ? "This device only, nothing is saved" : "Signed in as " + user.name;
+            store.watch("rosters/all", (snap) => { if (!snap.pending) rosters = (snap.exists && snap.data && snap.data.periods) || {}; }, () => {});
+            let first = true;
+            store.watch("data/index", (snap) => {
+                if (snap.pending || !first) return; first = false;
+                index = (snap.exists && snap.data && snap.data.imports) || [];
+                status(demo ? "This device only" : "Live", "ok"); draw();
+                index.forEach((m) => { let got = false; store.watch("data/i_" + m.id, (s2) => { if (got || s2.pending) return; got = true; if (s2.exists && s2.data && s2.data.rows) { loaded.set(m.id, s2.data); draw(); } }, () => {}); });
+            }, (e) => status("Could not load class data (" + ((e && e.code) || "error") + ")", "bad"));
+        }
+    </script>
+</body>
+</html>
