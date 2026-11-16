@@ -14,58 +14,120 @@
     <meta property="og:url" content="https://eddiesteers777.github.io/steers-class-board/">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=8">
-    <link rel="stylesheet" href="css/console.css?v=8">
+    <link rel="stylesheet" href="css/board.css?v=9">
+    <link rel="stylesheet" href="css/console.css?v=9">
     <meta name="theme-color" content="#081B45">
     </head>
 <body class="console page">
     <header class="cbar">
         <a class="cbrand" href="index.html"><img src="brand/calera-seal.webp" alt=""><span><b>Steers Class Board</b><small id="who">Calera Middle School</small></span></a>
+        <a class="btn ghost" href="board.html" style="text-decoration:none">Open Board</a>
         <a class="btn ghost" href="rosters.html" style="text-decoration:none">Rosters</a>
         <button class="btn ghost" id="signOut" type="button">Sign out</button>
     </header>
     <main>
-        <h1 id="weekTitle">This week</h1>
-        <p class="sub">Open the Remote on your Chromebook and the Board on the Promethean. Sign in with the same Google account on both and the Board follows the Remote live.</p>
-        <div class="launch">
-            <a class="main" href="remote.html"><b>Open Remote</b><span>This Chromebook: choose the period and run the lesson</span></a>
-            <a href="board.html"><b>Open Board</b><span>The Promethean: full screen, follows the Remote</span></a>
-        </div>
-        <h2>The week by class</h2>
-        <div class="tabs" id="classes" role="group" aria-label="Class"></div>
-        <p class="sub" id="classLT" style="margin-top:12px"></p>
-        <p id="classTitle" hidden></p>
-        <div class="week" id="week"></div>
-        <p class="tip">Teacher only. Students never sign in. On the Remote, the right arrow, space bar or a clicker steps to the next thing, the left arrow goes back, and A shows or hides the answer.</p>
+        <section class="now" aria-labelledby="nowTitle">
+            <div class="nowmain">
+                <p class="nowwhen" id="nowWhen"></p>
+                <h1 id="nowTitle">Today</h1>
+                <p class="nowlt" id="nowLT"></p>
+                <div class="nowfacts">
+                    <div><h3>Supplies</h3><p id="nowSup"></p></div>
+                    <div><h3>Reminders</h3><p id="nowRem"></p></div>
+                    <div id="nowFilesBox"><h3>Hand out</h3><p id="nowFiles"></p></div>
+                </div>
+            </div>
+            <div class="nowgo">
+                <a class="btn go big" id="nowStart" href="remote.html">Start</a>
+                <a class="btn ghost onnavy" href="remote.html?screen=timer" id="nowTimer">Timer</a>
+                <a class="btn ghost onnavy" href="remote.html?screen=blank" id="nowBoard">Whiteboard</a>
+            </div>
+        </section>
+
+        <h2 id="todayTitle">Today, period by period</h2>
+        <div class="periods" id="periods"></div>
+
+        <h2>The week</h2>
+        <div class="gridwrap"><table class="weekgrid" id="grid"></table></div>
+
+        <details class="bells" id="bells">
+            <summary>Bell times</summary>
+            <p class="sub">Enter when each period starts and ends. The top panel then follows the clock and shows the class you are teaching.</p>
+            <div class="belltable" id="bellRows"></div>
+            <div class="rowx"><button class="btn" id="bellSave" type="button">Save bell times</button><span class="count2" id="bellNote"></span></div>
+        </details>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=8";
-        import { waitForUser, logout } from "./js/auth.js";
-        const today = new Date().toISOString().slice(0, 10);
-        let week = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= today) week = w;
-        const wd = new Date().getDay(), now = (wd >= 1 && wd <= 5) ? wd - 1 : -1, keys = ["mon", "tue", "wed", "thu", "fri"];
-        let sel = "8th";
-        const $ = (id) => document.getElementById(id);
+        import { WEEKS } from "./data/weeks.js?v=9";
+        import * as store from "./js/boardStore.js?v=9";
+        const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
+        const DAYKEYS = ["mon", "tue", "wed", "thu", "fri"], $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
-        function render() {
-            $("weekTitle").textContent = week.label + " · " + week.dates;
-            const host = $("classes"); host.textContent = "";
-            for (const [id, c] of Object.entries(week.classes)) { const b = el("button", null, c.label); b.type = "button"; b.setAttribute("aria-pressed", String(id === sel)); b.onclick = () => { sel = id; render(); }; host.appendChild(b); }
-            const c = week.classes[sel];
-            $("classTitle").textContent = c.cls; $("classLT").textContent = "Learning target: " + c.weekLT;
-            const list = $("week"); list.textContent = "";
-            c.days.forEach((d, i) => {
-                const r = el("div", "dayrow" + (i === now ? " now" : ""));
-                r.appendChild(el("b", null, d.name + " · " + d.date)); r.appendChild(el("span", null, d.agendaLine));
-                const a = el("a", null, "Open on Remote"); a.href = "remote.html?class=" + encodeURIComponent(sel) + "&day=" + keys[i]; r.appendChild(a);
-                list.appendChild(r);
-            });
+        const iso = (d) => d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+        const todayIso = iso(new Date());
+        let week = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= todayIso) week = w;
+        const wd = new Date().getDay(), isSchoolDay = wd >= 1 && wd <= 5, di = isSchoolDay ? wd - 1 : 0;
+        let bells = {};
+        const mins = (t) => { const m = /^(\d{1,2}):(\d{2})$/.exec(t || ""); return m ? +m[1] * 60 + +m[2] : null; };
+        const nice = (t) => { const m = mins(t); if (m == null) return ""; const h = Math.floor(m / 60), mm = ("0" + (m % 60)).slice(-2); return ((h + 11) % 12 + 1) + ":" + mm + (h < 12 ? " AM" : " PM"); };
+
+        // Which period should the top panel show: the one in session, else the next one today, else the first.
+        function current() {
+            const n = new Date(), now = n.getHours() * 60 + n.getMinutes(), timed = PERIODS.map(([p]) => ({ p, s: mins(bells[p] && bells[p].start), e: mins(bells[p] && bells[p].end) })).filter((x) => x.s != null && x.e != null);
+            if (!isSchoolDay) return { p: PERIODS[0][0], label: "Next school day" };
+            if (!timed.length) return { p: PERIODS[0][0], label: "Today" };
+            const live = timed.find((x) => now >= x.s && now < x.e); if (live) return { p: live.p, label: "Right now, until " + nice(bells[live.p].end) };
+            const next = timed.filter((x) => x.s > now).sort((a, b) => a.s - b.s)[0]; if (next) return { p: next.p, label: "Up next at " + nice(bells[next.p].start) };
+            return { p: timed[timed.length - 1].p, label: "School day is over" };
         }
-        render();
-        $("signOut").onclick = async () => { try { await logout(); } finally { location.replace("login.html"); } };
-        const user = await waitForUser();
+        const classOf = (p) => (PERIODS.find((x) => x[0] === p) || PERIODS[0])[1];
+        const startUrl = (p) => "remote.html?period=" + encodeURIComponent(p) + "&day=" + DAYKEYS[di];
+        function fileLinks(host, links) { host.textContent = ""; (links || []).forEach((k, i) => { if (i) host.appendChild(document.createTextNode("  ")); const a = el("a", null, k.t); a.href = k.u; a.target = "_blank"; a.rel = "noopener"; host.appendChild(a); }); }
+
+        function render() {
+            const cur = current(), c = week.classes[classOf(cur.p)], d = c.days[di];
+            $("nowWhen").textContent = cur.label + " · " + cur.p + " period · " + c.label;
+            $("nowTitle").textContent = d.agendaLine;
+            $("nowLT").textContent = d.lt;
+            $("nowSup").textContent = (d.supplies || []).join(", ");
+            $("nowRem").textContent = (d.reminders || []).join(". ");
+            fileLinks($("nowFiles"), c.links); $("nowFilesBox").hidden = !(c.links && c.links.length);
+            $("nowStart").textContent = "Start " + cur.p + " period"; $("nowStart").href = startUrl(cur.p);
+            $("todayTitle").textContent = (isSchoolDay ? d.name + ", " + d.date : "Monday, " + d.date) + ", period by period";
+            const host = $("periods"); host.textContent = "";
+            PERIODS.forEach(([p, cls]) => {
+                const k = week.classes[cls], day = k.days[di], row = el("div", "prow" + (p === cur.p ? " on" : ""));
+                const when = bells[p] && mins(bells[p].start) != null ? nice(bells[p].start) + " to " + nice(bells[p].end) : "";
+                const a = el("div", "pwho"); a.appendChild(el("b", null, p + " period")); a.appendChild(el("span", null, k.label + (when ? " · " + when : ""))); row.appendChild(a);
+                const b = el("div", "pwhat"); b.appendChild(el("b", null, day.agendaLine)); b.appendChild(el("span", null, day.lt)); row.appendChild(b);
+                const f = el("div", "pfiles"); fileLinks(f, k.links); row.appendChild(f);
+                const go = el("a", "btn" + (p === cur.p ? " go" : " ghost"), "Start"); go.href = startUrl(p); go.setAttribute("aria-label", "Start " + p + " period"); row.appendChild(go);
+                host.appendChild(row);
+            });
+            const g = $("grid"); g.textContent = "";
+            const cap = el("caption", null, week.label + ", " + week.dates); g.appendChild(cap);
+            const hr = el("tr"); hr.appendChild(el("th", null, "")); week.classes[PERIODS[0][1]].days.forEach((dd, i) => { const th = el("th", isSchoolDay && i === di ? "today" : null, dd.name); th.scope = "col"; th.appendChild(el("small", null, dd.date.replace(/^\w+ /, ""))); hr.appendChild(th); }); g.appendChild(hr);
+            Object.entries(week.classes).forEach(([id, k]) => { const tr = el("tr"), th = el("th", null, k.label); th.scope = "row"; tr.appendChild(th); k.days.forEach((dd, i) => { tr.appendChild(el("td", isSchoolDay && i === di ? "today" : null, dd.agendaLine)); }); g.appendChild(tr); });
+        }
+
+        const rows = $("bellRows");
+        PERIODS.forEach(([p]) => { const r = el("div", "bellrow"); r.appendChild(el("b", null, p)); ["start", "end"].forEach((k) => { const lab = el("label"); lab.appendChild(el("span", null, k === "start" ? "Starts" : "Ends")); const i = el("input"); i.type = "time"; i.id = "bell-" + p + "-" + k; lab.appendChild(i); r.appendChild(lab); }); rows.appendChild(r); });
+        const fillBells = () => PERIODS.forEach(([p]) => ["start", "end"].forEach((k) => { $("bell-" + p + "-" + k).value = (bells[p] && bells[p][k]) || ""; }));
+
+        render(); setInterval(render, 30000);
+        $("signOut").onclick = async () => { try { await store.signOut(); } finally { location.replace("login.html"); } };
+        const user = await store.ready();
         if (!user) location.replace("login.html");
-        else $("who").textContent = "Signed in as " + (user.displayName || user.email || "teacher");
+        else {
+            $("who").textContent = "Signed in as " + (user.name || "teacher");
+            let loaded = false;
+            store.watch("settings/bells", (snap) => { if (snap.pending) return; bells = (snap.exists && snap.data && snap.data.periods) || {}; if (!loaded) { loaded = true; fillBells(); if (!Object.keys(bells).length) $("bells").open = true; } render(); }, () => {});
+            $("bellSave").onclick = async () => {
+                const out = {}; PERIODS.forEach(([p]) => { const s = $("bell-" + p + "-start").value, e = $("bell-" + p + "-end").value; if (s && e) out[p] = { start: s, end: e }; });
+                $("bellNote").textContent = "Saving…";
+                try { await store.save("settings/bells", { periods: out }); bells = out; $("bellNote").textContent = "Saved " + Object.keys(out).length + " periods"; render(); } catch (e) { $("bellNote").textContent = "Could not save (" + ((e && e.code) || "connection") + ")"; }
+            };
+        }
     </script>
 </body>
 </html>

@@ -5,9 +5,9 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=8";
-import * as store from "./boardStore.js?v=8";
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=8";
+import { WEEKS } from "../data/weeks.js?v=9";
+import * as store from "./boardStore.js?v=9";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=9";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -408,7 +408,10 @@ export async function startApp(opts) {
             first = false;
             const q = new URLSearchParams(location.search), c = q.get("class"), dy = q.get("day"), di = DK.map((k) => k.toLowerCase()).indexOf((dy || "").toLowerCase());
             let changed = !snap.exists;
-            if (mode === "remote" && c && W().classes[c] && (c !== S.cls)) { S.cls = c; S.period = (PERIODS.find((p) => p[1] === c) || [S.period])[0]; S.prob = 0; S.show = false; changed = true; }
+            const pq = q.get("period"), sq = q.get("screen");
+            if (mode === "remote" && sq && SCREENS.some((x) => x[0] === sq) && sq !== S.screen) { S.screen = sq; changed = true; }
+            if (mode === "remote" && pq && PERIODS.some((p) => p[0] === pq) && pq !== S.period) { S.period = pq; S.cls = classOf(pq); S.prob = 0; S.show = false; S.screen = "today"; changed = true; }
+            else if (mode === "remote" && c && W().classes[c] && (c !== S.cls)) { S.cls = c; S.period = (PERIODS.find((p) => p[1] === c) || [S.period])[0]; S.prob = 0; S.show = false; changed = true; }
             if (mode === "remote" && di >= 0 && di !== S.day) { S.day = di; S.prob = 0; S.show = false; changed = true; }
             if (changed) { push(); return; }
         }
