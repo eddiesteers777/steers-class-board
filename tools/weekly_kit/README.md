@@ -7,13 +7,23 @@ One week file in, the week's repeatable pieces out. Built so the same fact
 python3 tools/weekly_kit/build_week.py WEEK.json --out OUT --site .
 ```
 
-Per class it writes the bellringer sheet (.docx and .pdf, native equations with
-stacked fractions), its teacher key, the parent message text and the slide
-text. With `--site .` it also writes `data/<id>.js` for the board site.
+Per class it writes, each as .docx and .pdf with native equations and stacked
+fractions, and each with its teacher key:
+- the bellringer sheet (from each day's `problems`)
+- the homework packet or extra practice (`homework`)
+- the study guide, 4 pages (`studyGuide`)
+- the speed dating set: 40 cards on page 1, recording sheet, early finishers (`speedDating`)
+
+plus the parent message text and the slide text. With `--site .` it also
+writes `data/<id>.js` for the board site. A section a class does not have that
+week is left out of the week file.
 
 It refuses to build if the week file has an error: a missing field, a date
 that does not match the Monday, a bellringer answer whose written check is
-false, or a link that looks like a key, test or Jeopardy board.
+false, a speed dating set that is not exactly 40 distinct cards, a listed wrong
+answer equal to the correct one, or a link that looks like a key, test or
+Jeopardy board. After building it warns if the study guide is not 4 pages or
+card #40 is not on page 1.
 
 - `weekfile.py` loads and checks the week file and converts the math markup.
 - `docs.py` builds the Word files. `mathdoc.py` is the equation/Word layer.
@@ -22,3 +32,20 @@ false, or a link that looks like a key, test or Jeopardy board.
 
 Week files that hold teacher-only content stay in the week's Drive folder,
 not in this public repo. Needs python-docx and LibreOffice (for the PDFs).
+
+## Sections of a class in the week file
+
+Every problem is `{"q": ..., "a": ..., "check": ..., "work": ...}`; `check` is a
+Python expression that recomputes the answer (`F` is Fraction).
+
+- `homework`: `title`, `subtitle`, `directions`, `days: [{day, example: {q, steps[]}, problems[]}]`
+- `studyGuide`: `title`, `subtitle`, `ican`, `examples: [{heading, boxes: [[line, ...]]}]`,
+  `practice: [{title, directions, height, parts: [{label, height, problems[]}]}]`,
+  `errors: [{name, q, shown, correct, fix}]`, `checklist[]`
+- `speedDating`: `title`, `prefix` (for example "2 Tuesday"), `cards[40]` each with
+  `skill` and `wrong: [{a, why}]`, `example: {q, steps[]}`, `early[]`, `errorItem: {q, a, work}`,
+  `setup: [[item, plan]]`, `reviewNotes[]`, `standardNote`
+
+The example file here holds only what is already shown on the board. Homework,
+study guide and speed dating content includes answer keys, so real week files
+with those sections are kept in Drive, never in this repo.

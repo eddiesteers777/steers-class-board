@@ -35,7 +35,9 @@ def _bar(s):
     """{a/b} -> {a|b} at every nesting level (the Word builder's fraction syntax)."""
     out, i = "", 0
     while i < len(s):
-        if s[i] == "{":
+        if s[i] == "{" and i and s[i - 1] == "^":       # an exponent: [base]^{exp}
+            j = _match(s, i); out += "{" + _bar(s[i + 1:j]) + "}"; i = j + 1
+        elif s[i] == "{":
             j = _match(s, i); inner = s[i + 1:j]; d = 0; cut = -1
             for k, ch in enumerate(inner):
                 if ch == "{": d += 1
@@ -51,6 +53,7 @@ def _bar(s):
 def to_word(s):
     """Week-file text -> mathdoc markup ($...$ equations with {a|b} fractions)."""
     s = str(s)
+    if "^{" in s and "$" not in s: raise ValueError("wrap an exponent expression in $...$: " + s)
     if "$" in s:
         return re.sub(r"\$([^$]*)\$", lambda m: "$" + _bar(m.group(1)) + "$", s)
     out, i = "", 0
@@ -66,18 +69,40 @@ def to_word(s):
     return out.replace("$$", "")
 
 
+_SUP = str.maketrans("0123456789-−+n", "⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁻⁺ⁿ")
+
+
+def _powers(s):
+    """[base]^{exp} -> base with a raised exponent, for places that cannot draw one."""
+    return re.sub(r"\[([^\[\]]*)\]\^\{([^{}]*)\}", lambda m: m.group(1) + m.group(2).translate(_SUP), s)
+
+
 def to_plain(s):
     """Week-file text -> plain text for messages and slides: {2/5} -> 2/5."""
-    s = str(s).replace("$", "")
-    while "{" in s:
-        i = s.index("{"); j = _match(s, i); inner = to_plain(s[i + 1:j])
-        s = s[:i] + ("(" + inner + ")" if "/" in inner.replace("/", "", 1) else inner) + s[j + 1:]
+    s = _powers(str(s)).replace("$", "")
+    def frac(t):
+        out, i = "", 0
+        while i < len(t):
+            if t[i] == "{":
+                j = _match(t, i); inner = t[i + 1:j]; d = 0; cut = -1
+                for k, ch in enumerate(inner):
+                    if ch == "{": d += 1
+                    elif ch == "}": d -= 1
+                    elif ch == "/" and d == 0: cut = k; break
+                if cut < 0: raise ValueError("fraction needs a slash: " + t)
+                n, m = frac(inner[:cut]).strip(), frac(inner[cut + 1:]).strip()
+                wrap = lambda x: "(" + x + ")" if "/" in x else x
+                out += (" " if out[-1:].isdigit() else "") + wrap(n) + "/" + wrap(m); i = j + 1
+            else:
+                out += t[i]; i += 1
+        return out
+    s = frac(s)
     return s.replace("§", "$")
 
 
 def to_board(s):
     """Week-file text -> board site text (keeps {a/b}; drops $ wrappers)."""
-    return str(s).replace("$", "").replace("§", "$")
+    return _powers(str(s)).replace("$", "").replace("§", "$")
 
 
 # ---------- checks ----------
@@ -138,5 +163,34 @@ def validate(week):
         for lk in c.get("links") or []:
             t = (lk.get("t", "") + " " + lk.get("u", "")).lower()
             if re.search(r"\bkey\b|teacher|\btest\b|jeopardy", t): err.append(tag + "link '%s' looks like a key, test or Jeopardy board. Never link those." % lk.get("t"))
+        def probs(tag2, items, need_wrong=False):
+            for n, p in enumerate(items or [], 1):
+                if not p.get("q") or not p.get("a"): err.append(tag + "%s %d needs both q and a" % (tag2, n)); continue
+                ok, msg = check_problem(p)
+                if ok is False: err.append(tag + "%s %d: %s" % (tag2, n, msg))
+                elif ok is None: warn.append(tag + "%s %d has no check" % (tag2, n))
+                for w in p.get("wrong") or []:
+                    if to_plain(w.get("a", "")).strip() == to_plain(p["a"]).strip(): err.append(tag + "%s %d: a listed wrong answer equals the correct answer" % (tag2, n))
+                if need_wrong and not p.get("wrong"): err.append(tag + "%s %d has no likely wrong answers" % (tag2, n))
+                for f in ("q", "a", "work"):
+                    try: to_word(p.get(f, ""))
+                    except ValueError as e: err.append(tag + "%s %d %s: %s" % (tag2, n, f, e))
+        h = c.get("homework")
+        if h:
+            for day in h.get("days") or []: probs("homework %s problem" % day.get("day", "?"), day.get("problems"))
+        g = c.get("studyGuide")
+        if g:
+            for pr in g.get("practice") or []:
+                for part in pr.get("parts") or []: probs("study guide '%s' problem" % pr.get("title", "?"), part.get("problems"))
+            for e in g.get("errors") or []:
+                if "correct" not in e or not e.get("fix"): err.append(tag + "study guide error item '%s' needs 'correct' and 'fix'" % e.get("name"))
+            if g.get("errors") and not any(e.get("correct") for e in g["errors"]): warn.append(tag + "Error Detectives has no correct example (the rule is to include one)")
+        sd = c.get("speedDating")
+        if sd:
+            n = len(sd.get("cards") or [])
+            if n != 40: err.append(tag + "speed dating has %d cards; it must have exactly 40" % n)
+            probs("speed dating card", sd.get("cards"), need_wrong=True); probs("speed dating early finisher", sd.get("early"))
+            qs = [to_plain(x.get("q", "")) for x in sd.get("cards") or []]
+            if len(set(qs)) != len(qs): err.append(tag + "speed dating has duplicate cards")
         if not c.get("homeworkLine"): warn.append(tag + "no homeworkLine (parent message will have no homework line)")
     return err, warn
