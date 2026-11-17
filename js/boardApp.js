@@ -197,7 +197,44 @@ function speedTimer() {
         b.onclick = () => { if (S.speedMode === v) return; const t = S.timers[S.speedMode === "check" ? "check" : "round"]; if (t.running) { t.elapsed = now() - t.t0; t.running = false; } S.speedMode = v; push(); };
         sw.appendChild(b);
     });
-    k.c.firstChild.appendChild(sw); timerParts(m, k.i); return k.c;
+    k.c.firstChild.appendChild(sw); timerParts(m, k.i);
+    const fx = el("button", "alt tfix", "Set time"); fx.type = "button"; fx.title = "Pick the round and the time left";
+    fx.onclick = () => { speedFix = speedNow(); sig = ""; render(); };
+    k.i.querySelector(".tbtns").appendChild(fx);
+    if (speedFix) k.c.appendChild(speedFixPanel(m));
+    return k.c;
+}
+/* Set time (Remote only): put the speed dating timer back where it was after an accidental Reset.
+   The fix lives on this device until Save, so the board keeps counting while the teacher types. */
+let speedFix = null;
+function speedNow() {
+    const m = S.speedMode === "check" ? "check" : "round", t = S.timers[m], e = Math.max(0, Math.floor((t.running ? now() - t.t0 : t.elapsed) / 1000));
+    if (m === "check") return { n: 1, left: Math.max(0, CHECK - e) };
+    const x = e % (ROUND + GAP), n = Math.floor(e / (ROUND + GAP)) + 1;
+    return x < ROUND ? { n, left: ROUND - x } : { n: n + 1, left: ROUND };   // during the rotate gap, offer the next round
+}
+function speedFixPanel(m) {
+    const max = m === "check" ? CHECK : ROUND, f = speedFix, p = el("div", "sfix");
+    p.setAttribute("role", "group"); p.setAttribute("aria-label", "Set the speed dating timer");
+    const stepper = (label, get, set, show) => {
+        const r = el("div", "sfrow"); r.appendChild(el("span", "sflab", label));
+        const minus = el("button", "sfstep", "\u2212"), val = el("span", "sfval", show()), plus = el("button", "sfstep", "+");
+        minus.type = plus.type = "button"; minus.setAttribute("aria-label", label + " down"); plus.setAttribute("aria-label", label + " up");
+        minus.onclick = () => { set(get() - 1); val.textContent = show(); }; plus.onclick = () => { set(get() + 1); val.textContent = show(); };
+        r.appendChild(minus); r.appendChild(val); r.appendChild(plus); return r;
+    };
+    if (m === "round") p.appendChild(stepper("Round", () => f.n, (v) => { f.n = Math.max(1, Math.min(40, v)); }, () => String(f.n)));
+    p.appendChild(stepper("Minutes", () => Math.floor(f.left / 60), (v) => { f.left = Math.max(0, Math.min(max, Math.max(0, Math.min(Math.floor(max / 60), v)) * 60 + f.left % 60)); }, () => String(Math.floor(f.left / 60))));
+    p.appendChild(stepper("Seconds", () => f.left % 60, (v) => { const mm = Math.floor(f.left / 60), ss = ((v % 60) + 60) % 60; f.left = Math.max(0, Math.min(max, mm * 60 + ss)); }, () => ("0" + (f.left % 60)).slice(-2)));
+    const b = el("div", "sfbtns"), ok = el("button", null, "Save"), no = el("button", "alt", "Cancel"); ok.type = no.type = "button";
+    ok.onclick = () => {
+        const t = S.timers[m], left = Math.max(m === "round" ? 1 : 0, Math.min(max, f.left));
+        t.elapsed = (m === "round" ? (f.n - 1) * (ROUND + GAP) + (ROUND - left) : CHECK - left) * 1000;
+        if (t.running) t.t0 = now() - t.elapsed;
+        speedFix = null; sig = ""; push();
+    };
+    no.onclick = () => { speedFix = null; sig = ""; render(); };
+    b.appendChild(ok); b.appendChild(no); p.appendChild(b); return p;
 }
 function secsFor(kind) { if (kind === "check") return CHECK; if (kind === "free") return S.timers.free.dur || 300; const l = L(); return (l && l.bellSeconds) || 300; }
 const fmt = (r) => Math.floor(r / 60) + ":" + ("0" + (r % 60)).slice(-2);
@@ -233,7 +270,7 @@ function skeleton() {
 function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
     syncGames(); buildControls();
-    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, signedIn, S.screen === "game" ? gameSig() : ""]);
+    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : ""]);
     renderDock(); drawGamePanel();
     if (ns === sig) { renderLayer(); tick(); tickTools(toolApi); return; }
     sig = ns; lastPhase = "";
