@@ -8,15 +8,15 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=46">
-    <link rel="stylesheet" href="css/console.css?v=46">
+    <link rel="stylesheet" href="css/board.css?v=49">
+    <link rel="stylesheet" href="css/console.css?v=49">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/games.css?v=46">
+    <link rel="stylesheet" href="css/games.css?v=49">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page">
     <header class="cbar">
-        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Calera Middle School</small></span></a>
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Class Board</small></span></a>
         <span class="live" id="status" role="status">Connecting…</span>
         <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
         <a class="btn ghost" href="remote.html?screen=game" style="text-decoration:none">Remote</a>
@@ -61,10 +61,10 @@
         </section>
     </main>
     <script type="module">
-        import { parseSet, setToText, cleanSet, countClues, mathRich, LIMITS } from "./js/games.js?v=46";
-        import { WEEKS } from "./data/weeks.js?v=46";
+        import { parseSet, setToText, cleanSet, countClues, mathRich, LIMITS } from "./js/games.js?v=49";
+        import { WEEKS } from "./data/weeks.js?v=49";
         const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
-        const store = await import(demo ? "./js/localStore.js?v=46" : "./js/boardStore.js?v=46");
+        const store = await import(demo ? "./js/localStore.js?v=49" : "./js/boardStore.js?v=49");
         const $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
         const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
@@ -162,7 +162,8 @@
             const uneven = parsed.cats.length > 1 && new Set(parsed.cats.map((c) => c.clues.length)).size > 1;
             box.appendChild(el("p", null, parsed.cats.length + (parsed.cats.length === 1 ? " category, " : " categories, ") + n + (n === 1 ? " question" : " questions") + (parsed.final ? ", plus a final question." : ".")));
             if (parsed.problems.length) { box.appendChild(el("p", null, "Fix these before saving:")); const ul = el("ul"); parsed.problems.forEach((t) => ul.appendChild(el("li", null, t))); box.appendChild(ul); } else if (n) box.classList.add("ok");
-            if (uneven) box.appendChild(el("p", "gswarn", "Heads up: the categories do not all have the same number of questions (" + parsed.cats.map((c) => c.n + " has " + c.clues.length).join(", ") + "). You can still save."));
+            if (uneven) { const most = Math.max(...parsed.cats.map((c) => c.clues.length)), short = parsed.cats.filter((c) => c.clues.length < most);
+                box.appendChild(el("p", "gswarn", "Heads up: the Review Board will show empty spaces under " + short.map((c) => c.n + " (" + c.clues.length + " of " + most + ")").join(", ") + ". Add questions to those categories so every column has " + most + ". You can still save.")); }
             $("save").disabled = !n || parsed.problems.length > 0;
             if (n) {
                 const head = el("tr"); ["Category", "Points", "Question", "Answer"].forEach((t) => head.appendChild(el("th", null, t))); prev.appendChild(head);
