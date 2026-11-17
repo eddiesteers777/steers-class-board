@@ -432,3 +432,16 @@ div.gpset{cursor:default}
 .gpcrow{justify-content:center;font-size:.9rem}
 .glgame.code{border-top-color:#C98A16}
 .gcwrap .gchsay{font-size:2.1em}
+
+/* ---------- Import a question set ---------- */
+.gsimport{border:1.5px solid var(--c-line);border-radius:12px;padding:10px 14px;margin:0 0 12px;background:#F7FAFF}
+.gsimport summary{cursor:pointer;font-weight:700;min-height:32px;display:flex;align-items:center}
+.gsimport[open] summary{margin-bottom:6px}
+.gsimrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:6px 0}
+.gsfile{position:relative;overflow:hidden;cursor:pointer}
+.gsfile input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.gsfile:focus-within{outline:2px solid var(--c-accent,#2E5FA8);outline-offset:2px}
+.page textarea.gsimtext{min-height:110px}
+.gsimport .chk{display:flex;gap:6px;align-items:center;font-size:.9rem;min-height:36px;margin:4px 0}
+.gsimport .rowx{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#imNote{line-height:1.45}
