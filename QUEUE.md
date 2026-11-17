@@ -26,6 +26,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Done
 | When | Item |
 |------|------|
+| Nov 17 | Game Library: the Review Games page is now the library. It explains the four games, lists sets as cards (Play, Edit, Copy, Remove), filters by class, and lets each set be given to classes. Play opens the Remote with that game ready for the chosen class. Tested with a local store only. |
 | Nov 17 | Review Games, fourth game: Trashketball. Right teams score the answer points and shoot from the 1, 2 or 3 point line; the teacher taps the result. Results save to Class Data. Tested with a local store only. |
 | Nov 17 | Review game results in Class Data: every finished game saves its date, period, winner, scores, team members (from the Group maker) and right answers per category. Class Data shows who won with a "Bonus given" box, student wins still owed a bonus, and class growth. Tested with a local store only. |
 | Nov 17 | Review Games, third game: Class vs. Teacher (shows as "Class vs. Mr. Steers"). The whole class plays against the teacher; the teacher awards each point after looking at the boards. First to 5/7/10/15, with a class-scoring rule shown on the board and a streak note. Tested with a local store only. |

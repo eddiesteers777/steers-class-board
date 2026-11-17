@@ -227,6 +227,19 @@ let G = null, loaded = false, key = "", unsub = null, write = null, rev = 0;
 let SETS = null, setsWatched = false, starting = "", panelSig = "", lastDone = false, endArm = 0, panelNote = "";
 
 export function mountGames(api) { A = api; }
+/* The Game Library's Play button opens remote.html?screen=game&period=1st&set=<id>&game=<kind>. */
+let AUTO = (() => { try { const q = new URLSearchParams(location.search), id = q.get("set"), k = q.get("game"); return id && ["board", "chests", "versus", "shots"].includes(k) ? { id, k, per: q.get("period") || "" } : null; } catch (e) { return null; } })();
+function tryAuto() {
+    if (!AUTO || A.mode() !== "remote" || !onGame() || !loaded || !SETS || starting) return;
+    if (AUTO.per && AUTO.per !== A.S.period) return;   // wait for the period from the link to take hold
+    const want = AUTO; AUTO = null;
+    try { const u = new URL(location.href); ["set", "game", "period"].forEach((k) => u.searchParams.delete(k)); history.replaceState(null, "", u); } catch (e) { /* ok */ }
+    const meta = SETS.find((s) => s.id === want.id);
+    if (!meta) { panelNote = "That question set was not found. It may have been removed."; panelSig = ""; return; }
+    if (G) { panelNote = "A game is already running for " + A.S.period + " period. End it first, then pick \"" + meta.title + "\" below."; panelSig = ""; return; }
+    start(meta, want.k);
+}
+const setFor = (s, per) => !Array.isArray(s.per) || !s.per.length || s.per.includes(per);
 export const gameSig = () => key + "#" + rev + "#" + loaded;
 const onGame = () => A && A.S.screen === "game";
 const keyOf = (c, r) => c + "-" + r;
@@ -657,18 +670,24 @@ export function drawPanel() {
     if (sig === panelSig || typing) return; panelSig = sig;
     p.textContent = "";
     if (!loaded) { p.append(h("Review game"), el("p", "gpnote", "Getting " + A.S.period + " period's game…")); return; }
+    if (AUTO) { tryAuto(); if (starting) return; }
     if (!G) {
         p.append(h("Start a review game"), el("p", "gpnote", A.S.period + " period. Each period keeps its own game and scores."));
         if (panelNote) p.append(el("p", "gpnote bad", panelNote));
         if (!SETS) p.append(el("p", "gpnote", "Getting your question sets…"));
         else if (!SETS.length) p.append(el("p", "gpnote", "No question sets are saved yet. Make one by pasting your table."));
-        else { const list = el("div", "gpsets"); SETS.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach((s) => {
+        else { const list = el("div", "gpsets"), mine = SETS.filter((s) => setFor(s, A.S.period)), rest = SETS.filter((s) => !setFor(s, A.S.period));
+            if (!mine.length) list.append(el("p", "gpnote", "No sets are given to " + A.S.period + " period yet. Sets for other classes are below."));
+            const one = (s, into) => {
             const b = el("div", "gpset"), row = el("div", "gpsetbtns");
             b.append(el("b", null, s.title || "Review game"), el("small", null, starting === s.id ? "Opening…" : (s.cats || 0) + " categories · " + (s.clues || 0) + " questions"));
             [["board", "Review Board"], ["chests", "Treasure Chests"], ["versus", "Class vs. Teacher"], ["shots", "Trashketball"]].forEach(([k, label]) => { const g = btn("btn ghost", label, () => start(s, k)); g.disabled = !!starting; g.setAttribute("aria-label", "Play " + (s.title || "this set") + " as " + label); row.append(g); });
-            b.append(row); list.append(b);
-        }); p.append(list); }
-        const a = el("a", "btn " + (SETS && !SETS.length ? "go" : "ghost") + " gplink", SETS && SETS.length ? "Make or edit question sets" : "Make a question set"); a.href = "games.html"; p.append(a);
+            b.append(row); into.append(b);
+            };
+            mine.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach((s) => one(s, list));
+            if (rest.length) { const more = el("details", "gpmore"); more.append(el("summary", null, "Sets for other classes (" + rest.length + ")")); rest.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach((s) => one(s, more)); list.append(more); }
+            p.append(list); }
+        const a = el("a", "btn " + (SETS && !SETS.length ? "go" : "ghost") + " gplink", SETS && SETS.length ? "Open the Game Library" : "Make a question set"); a.href = "games.html"; p.append(a);
         return;
     }
     if (panelNote) p.append(el("p", "gpnote bad", panelNote));

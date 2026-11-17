@@ -217,3 +217,40 @@ div.gpset{cursor:default}
 @media (prefers-reduced-motion:reduce){.gtball.in{animation:none}}
 .gpshots{display:grid;grid-template-columns:1fr;gap:6px}
 .gpshots .gpok,.gpshots .gpno{min-height:48px;font-size:.95rem}
+
+/* ---------- Game Library page ---------- */
+.glgames{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:8px}
+.glgame{border:1.5px solid var(--c-line);border-radius:12px;padding:12px 14px;background:#fff;border-top:5px solid #7FAEDD}
+.glgame.chests{border-top-color:#F2B33D}.glgame.versus{border-top-color:#1B4FBF}.glgame.shots{border-top-color:#3BA374}
+.glgame b{display:block;font-family:var(--display);font-size:1.05rem;margin-bottom:4px}
+.glgame p{font-size:.88rem;line-height:1.45;color:var(--c-ink)}
+.glgame small{display:block;margin-top:6px;color:var(--c-mute);font-size:.8rem;font-weight:600}
+.glhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.glhead h2{margin:0}
+.glbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0 4px}
+.glsearch{flex:1;min-width:180px}
+.glsearch input{width:100%;font:inherit;font-size:1rem;border:1.5px solid var(--c-line);border-radius:10px;padding:9px 10px;min-height:44px;background:#fff;color:var(--c-ink)}
+.glsearch .sr,.glper .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.glsets{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-top:8px;align-items:start}
+.glsets>p{grid-column:1/-1}
+.glset{border:1.5px solid var(--c-line);border-radius:12px;padding:12px 14px;background:#fff;display:flex;flex-direction:column;gap:6px;min-width:0}
+.gltitle{font-size:1.02rem;overflow-wrap:anywhere}
+.glmeta{color:var(--c-mute);font-size:.85rem}
+.glchips{display:flex;flex-wrap:wrap;gap:4px}
+.glchip{font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:999px;background:#E6EEFA;color:#123A84}
+.glchip.all{background:var(--c-bg);color:var(--c-mute)}
+.glacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.glacts .btn,.glacts .bx2{min-height:44px}
+.glplay{border-top:1px solid var(--c-line);margin-top:6px;padding-top:8px;display:flex;flex-direction:column;gap:8px}
+.glplay label{font-size:.85rem;font-weight:600;color:var(--c-mute)}
+.glplay select{font:inherit;font-size:.95rem;border:1.5px solid var(--c-line);border-radius:10px;padding:7px 8px;min-height:44px;background:#fff;color:var(--c-ink);margin-left:4px;max-width:100%}
+.glplayrow{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.glplayrow .btn{min-height:44px;text-decoration:none;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.88rem}
+.glper{border:1.5px solid var(--c-line);border-radius:12px;padding:8px 12px 10px;margin:4px 0 10px}
+.glper legend{font-size:.75rem;font-weight:600;color:var(--c-mute);padding:0 4px}
+#perPick{display:flex;flex-wrap:wrap;gap:6px 16px;margin-bottom:4px}
+#perPick .chk{display:inline-flex;gap:6px;align-items:center;font-size:.93rem;min-height:36px}
+#perPick input{width:1.05rem;height:1.05rem}
+.gpmore{border-top:1px solid var(--c-line);padding-top:6px}
+.gpmore summary{cursor:pointer;font-size:.85rem;font-weight:600;color:var(--c-mute);min-height:36px;display:flex;align-items:center}
+.gpmore[open]{display:flex;flex-direction:column;gap:8px}
