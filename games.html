@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Games | Focal</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=37">
+    <link rel="stylesheet" href="css/console.css?v=37">
+    <link rel="stylesheet" href="css/theme-rings.css?v=1">
+    <link rel="stylesheet" href="css/games.css?v=37">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="console page">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Calera Middle School</small></span></a>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
+        <a class="btn ghost" href="remote.html?screen=game" style="text-decoration:none">Remote</a>
+    </header>
+    <main>
+        <h1>Review Games</h1>
+        <p class="sub">Games you run from the Remote while the board shows them. Students never sign in or use a device. Paste a question table once and it is saved to your private account, never to the site's public code.</p>
+
+        <section class="gsbox">
+            <h2>Your question sets</h2>
+            <div id="sets"><p class="sub">Getting your sets…</p></div>
+        </section>
+
+        <section class="gsbox" id="editor">
+            <h2 id="edHead">New question set</h2>
+            <p class="sub" style="margin-bottom:8px">One line for each question: <b>CATEGORY | POINTS | QUESTION | ANSWER</b>. Up to 6 categories with 6 questions each. Add a line with the category FINAL for a final wager question. Type exponents as 10^4 and fractions as 3/4; the board shows them properly.</p>
+            <div class="gsmeta">
+                <div><label for="title">Name of this set</label><input type="text" id="title" maxlength="80" placeholder="Example: Unit 4 Review, Scientific Notation"></div>
+                <div><label for="fromWeek">Or start from a week on the site</label><select id="fromWeek"><option value="">Choose a week and class</option></select></div>
+            </div>
+            <label for="text" class="bhead" style="display:block;font-size:.75rem;font-weight:600;color:var(--c-mute);margin-bottom:3px">Question table</label>
+            <textarea id="text" class="gstext" spellcheck="false" placeholder="CATEGORY | POINTS | QUESTION | ANSWER&#10;SCIENTIFIC TO STANDARD | 100 | Convert 3.2 × 10^4 | 32,000&#10;SCIENTIFIC TO STANDARD | 200 | Convert 6.5 × 10^-3 | 0.0065"></textarea>
+            <div class="gscheck" id="check" role="status"></div>
+            <div class="rowx">
+                <button class="btn go" id="save" type="button" disabled>Save this set</button>
+                <button class="btn ghost" id="clear" type="button">Start over</button>
+                <span class="count2" id="note" role="status"></span>
+            </div>
+            <p class="sub" style="margin:0">The site cannot check math. Check every answer before you save.</p>
+            <div class="gswrap"><table class="gsprev" id="prev"></table></div>
+        </section>
+    </main>
+    <script type="module">
+        import { parseSet, setToText, cleanSet, countClues, mathRich, LIMITS } from "./js/games.js?v=37";
+        import { WEEKS } from "./data/weeks.js?v=37";
+        const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
+        const store = await import(demo ? "./js/localStore.js?v=37" : "./js/boardStore.js?v=37");
+        const $ = (id) => document.getElementById(id);
+        function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+        const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
+        let index = [], editing = "", parsed = null;
+
+        function drawSets() {
+            const box = $("sets"); box.replaceChildren();
+            if (!index.length) { box.appendChild(el("p", "sub", "No sets saved yet. Paste your table below to make the first one.")); return; }
+            index.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach((m) => {
+                const d = el("div", "gsitem"); d.appendChild(el("b", null, m.title));
+                d.appendChild(el("span", null, m.cats + " categories · " + m.clues + " questions" + (m.final ? " · final question" : "")));
+                const play = el("a", "btn", "Play on the Remote"); play.href = "remote.html?screen=game"; d.appendChild(play);
+                const ed = el("button", "bx2", "Edit"); ed.type = "button"; ed.onclick = () => edit(m); d.appendChild(ed);
+                const rm = el("button", "bx2", "Remove"); rm.type = "button";
+                rm.onclick = async () => {
+                    if (rm.dataset.sure !== "1") { rm.dataset.sure = "1"; rm.textContent = "Tap again to remove"; setTimeout(() => { rm.dataset.sure = ""; rm.textContent = "Remove"; }, 4000); return; }
+                    status("Removing…");
+                    try { await store.save("games/s_" + m.id, { removed: true, at: Date.now() }); index = index.filter((x) => x.id !== m.id); await store.save("games/index", { sets: index, at: Date.now() }); if (editing === m.id) reset(); status("Removed", "ok"); drawSets(); }
+                    catch (e) { status("Could not remove (" + ((e && e.code) || "connection") + ")", "bad"); }
+                };
+                d.appendChild(rm); box.appendChild(d);
+            });
+        }
+        function edit(m) {
+            let got = false; status("Opening…");
+            const u = store.watch("games/s_" + m.id, (snap) => {
+                if (got || snap.pending) return; got = true; setTimeout(() => u && u(), 0);
+                const set = snap.exists ? cleanSet(snap.data) : null;
+                if (!set) { status("Could not open that set", "bad"); return; }
+                editing = m.id; $("title").value = set.title; $("text").value = setToText(set); $("edHead").textContent = "Edit: " + set.title; $("save").textContent = "Save changes";
+                status(demo ? "This device only" : "Live", "ok"); check(); $("editor").scrollIntoView({ behavior: "smooth", block: "start" });
+            }, () => status("Could not open that set", "bad"));
+        }
+        function reset() { editing = ""; $("title").value = ""; $("text").value = ""; $("fromWeek").value = ""; $("edHead").textContent = "New question set"; $("save").textContent = "Save this set"; $("note").textContent = ""; check(); }
+
+        function check() {
+            const text = $("text").value, box = $("check"), prev = $("prev"); box.replaceChildren(); prev.replaceChildren(); box.className = "gscheck";
+            if (!text.trim()) { parsed = null; $("save").disabled = true; return; }
+            parsed = parseSet(text); const n = countClues(parsed);
+            const uneven = parsed.cats.length > 1 && new Set(parsed.cats.map((c) => c.clues.length)).size > 1;
+            box.appendChild(el("p", null, parsed.cats.length + (parsed.cats.length === 1 ? " category, " : " categories, ") + n + (n === 1 ? " question" : " questions") + (parsed.final ? ", plus a final question." : ".")));
+            if (parsed.problems.length) { box.appendChild(el("p", null, "Fix these before saving:")); const ul = el("ul"); parsed.problems.forEach((t) => ul.appendChild(el("li", null, t))); box.appendChild(ul); } else if (n) box.classList.add("ok");
+            if (uneven) box.appendChild(el("p", "gswarn", "Heads up: the categories do not all have the same number of questions (" + parsed.cats.map((c) => c.n + " has " + c.clues.length).join(", ") + "). You can still save."));
+            $("save").disabled = !n || parsed.problems.length > 0;
+            if (n) {
+                const head = el("tr"); ["Category", "Points", "Question", "Answer"].forEach((t) => head.appendChild(el("th", null, t))); prev.appendChild(head);
+                const line = (c, p, q, a) => { const tr = el("tr"), tq = el("td"), ta = el("td", "ans"); tq.append(mathRich(q)); ta.append(mathRich(a)); tr.append(el("td", null, c), el("td", "num", String(p)), tq, ta); prev.appendChild(tr); };
+                parsed.cats.forEach((c) => c.clues.forEach((k) => line(c.n, k.p, k.q, k.a)));
+                if (parsed.final) line(parsed.final.c, "Final", parsed.final.q, parsed.final.a);
+            }
+        }
+        $("text").oninput = check;
+        $("clear").onclick = reset;
+
+        // Start from a week already on the site: its bellringer, warm-up and practice problems, one category per day.
+        // Those are student-facing and already have answers. Points go in the order the problems appear.
+        const weekOpts = [];
+        const hasAnswers = (c) => (c.days || []).some((d) => [...(d.problems || []), ...((d.notes && d.notes.warmup) || []), ...((d.notes && d.notes.practice) || []).flatMap((p) => p.problems || [])].some((p) => p && p.q && p.a));
+        WEEKS.slice().reverse().forEach((w) => Object.keys(w.classes).forEach((ck) => { if (hasAnswers(w.classes[ck])) weekOpts.push([w, ck]); }));   // newest first; weeks with no answers on the site are left out
+        weekOpts.forEach(([w, ck], i) => { const o = el("option", null, w.label + " · " + w.classes[ck].label); o.value = i; $("fromWeek").appendChild(o); });
+        $("fromWeek").onchange = () => {
+            const pick = weekOpts[+$("fromWeek").value]; if ($("fromWeek").value === "" || !pick) return;
+            const [w, ck] = pick, cls = w.classes[ck], rows = [], flat = (s) => String(s).replace(/\s*\n\s*/g, " ").replace(/\s+\|\s+/g, " / ");
+            (cls.days || []).forEach((d) => {
+                const n = d.notes || {}, pool = [...(d.problems || []), ...(n.warmup || []), ...((n.practice || []).flatMap((p) => p.problems || []))].filter((p) => p && p.q && p.a).slice(0, LIMITS.clues > 5 ? 5 : LIMITS.clues);
+                pool.forEach((p, i) => rows.push([(d.short || d.name || "Day").toUpperCase(), (i + 1) * 100, flat(p.q), flat(p.a)].join(" | ")));
+            });
+            if (!rows.length) { $("note").textContent = "That week has no problems with answers on the site."; return; }
+            $("text").value = rows.join("\n"); if (!$("title").value) $("title").value = w.label + " Review, " + cls.label;
+            $("note").textContent = "Filled in from " + w.label + ". The points follow the order of the problems, not how hard they are. Edit before you save."; check();
+        };
+
+        $("save").onclick = async () => {
+            if (!parsed || !countClues(parsed) || parsed.problems.length) return;
+            const title = $("title").value.trim(); if (!title) { $("note").textContent = "Give this set a name first."; $("title").focus(); return; }
+            const id = editing || (Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
+            const set = cleanSet({ id, title, cats: parsed.cats, final: parsed.final }), meta = { id, title: set.title, cats: set.cats.length, clues: countClues(set), final: !!set.final, at: Date.now() };
+            status("Saving…");
+            try {
+                await store.save("games/s_" + id, Object.assign({ at: meta.at }, set));
+                index = [...index.filter((x) => x.id !== id), meta]; await store.save("games/index", { sets: index, at: meta.at });
+                status("Saved", "ok"); reset(); $("note").textContent = "Saved \"" + meta.title + "\". Open the Remote and choose Review Game to play it."; drawSets(); scrollTo({ top: 0, behavior: "smooth" });
+            } catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); }
+        };
+
+        const user = await store.ready();
+        if (!user) location.replace("login.html");
+        else {
+            $("who").textContent = demo ? "This device only, nothing is saved" : "Signed in as " + user.name;
+            let first = true;
+            store.watch("games/index", (snap) => {
+                if (snap.pending || !first) return; first = false;
+                index = ((snap.exists && snap.data && snap.data.sets) || []).filter((s) => s && s.id);
+                status(demo ? "This device only" : "Live", "ok"); drawSets();
+            }, (e) => status("Could not load your sets (" + ((e && e.code) || "error") + ")", "bad"));
+        }
+    </script>
+</body>
+</html>

@@ -15,10 +15,10 @@
     <meta property="og:url" content="https://focalboard.web.app/">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=36">
-    <link rel="stylesheet" href="css/console.css?v=36">
+    <link rel="stylesheet" href="css/board.css?v=37">
+    <link rel="stylesheet" href="css/console.css?v=37">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/home.css?v=36">
+    <link rel="stylesheet" href="css/home.css?v=37">
     <link rel="stylesheet" href="css/footer.css?v=2">
     <meta name="theme-color" content="#081B45">
     </head>
@@ -40,6 +40,7 @@
             <a class="hm-sl" href="board.html" title="Open Board"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span class="hm-slt"><b>Open Board</b><small id="st-board">The projected screen</small></span></a>
             <a class="hm-sl" href="remote.html" title="Remote"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg><span class="hm-slt"><b>Remote</b><small>Run class, timer and tally</small></span></a>
             <a class="hm-sl" href="sub.html" title="Sub view"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span class="hm-slt"><b>Sub view</b><small>No sign-in board for a guest</small></span></a>
+            <a class="hm-sl" href="games.html" title="Review Games"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="hm-slt"><b>Review Games</b><small>Games you run, no logins</small></span></a>
             <p class="hm-sg">Plan</p>
             <a class="hm-sl" href="planner.html" title="Planner"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h2M14 14h2M8 18h2"/></svg><span class="hm-slt"><b>Planner</b><small id="st-planner">Day, week, month and year</small></span></a>
             <a class="hm-sl" href="builder.html" title="Week Builder"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V2h12v7"/><rect x="2" y="9" width="20" height="9" rx="2"/><path d="M6 14h12v8H6z"/></svg><span class="hm-slt"><b>Week Builder</b><small id="st-builder">Print the week's paperwork</small></span></a>
@@ -119,10 +120,10 @@
         </div>
     </footer>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=36";
-        import * as store from "./js/boardStore.js?v=36";
-        import { LIBRARY } from "./data/library.js?v=36";
-        import { SCHOOL_YEAR, SCHOOL_DAYS, today as todayFn, addDays, mondayOf, eventsOn, isSchoolDay as schoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, short } from "./js/schoolCal.js?v=36";
+        import { WEEKS } from "./data/weeks.js?v=37";
+        import * as store from "./js/boardStore.js?v=37";
+        import { LIBRARY } from "./data/library.js?v=37";
+        import { SCHOOL_YEAR, SCHOOL_DAYS, today as todayFn, addDays, mondayOf, eventsOn, isSchoolDay as schoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, short } from "./js/schoolCal.js?v=37";
         const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
         const DAYKEYS = ["mon", "tue", "wed", "thu", "fri"], $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
