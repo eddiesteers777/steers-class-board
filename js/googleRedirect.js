@@ -10,11 +10,18 @@
    auth-return.html with the answer in the address, which that page reads
    when it loads. A reload can't lose it.
 
-   Needs https://steers-class-board.firebaseapp.com/auth-return.html in the Google
-   Cloud web client's Authorized redirect URIs. Pure helpers: unit-tested.
+   Needs https://steers-class-board.firebaseapp.com/auth-return.html and
+   https://steers-class-board.web.app/auth-return.html in the Google Cloud web
+   client's Authorized redirect URIs (one per hosting domain). Pure helpers: unit-tested.
    ========================================================== */
 
 export const RETURN_URL = "https://steers-class-board.firebaseapp.com/auth-return.html";
+export const RETURN_URL_WEBAPP = "https://steers-class-board.web.app/auth-return.html";
+
+/** The return page for the domain the site is running on. */
+export function returnUrlForOrigin(origin) {
+    return origin === "https://steers-class-board.web.app" ? RETURN_URL_WEBAPP : RETURN_URL;
+}
 const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 
 /** The Google address to send the whole page to. */
@@ -48,7 +55,7 @@ export function newState() {
     return [...a].map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
-/** The Home Screen app, where the pop-up can't be trusted. Only on the real site (the redirect address is registered for it). */
+/** The Home Screen app, where the pop-up can't be trusted. Only on the real site (a redirect address is registered for each hosting domain). */
 export function useRedirectSignIn({ standalone, origin }) {
-    return Boolean(standalone) && origin === "https://steers-class-board.firebaseapp.com";
+    return Boolean(standalone) && (origin === "https://steers-class-board.firebaseapp.com" || origin === "https://steers-class-board.web.app");
 }
