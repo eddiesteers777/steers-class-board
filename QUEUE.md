@@ -1,4 +1,4 @@
-# Steers Class Board — queue
+# Focal — queue
 
 One list of what is next. Pull from the top of "Next up". Move an item when its state changes.
 Scout before building (see DESIGN.md). Check the head of `main` before every push.

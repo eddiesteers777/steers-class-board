@@ -31,7 +31,7 @@ export function wireSignIn(button, note) {
         say("A Google window is opening. Choose your account there.");
         let ok = false;
         try { ok = await login(); } catch { ok = false; }
-        if (ok) { say("Signed in. Opening the class board…"); location.replace("index.html"); return; }
+        if (ok) { say("Signed in. Opening Focal…"); location.replace("index.html"); return; }
         trail("login-stayed", "sign-in did not finish");
         say("Sign-in didn't finish. Tap Sign In with Google to try again.");
         busy = false; button.disabled = false; button.textContent = label; button.focus();

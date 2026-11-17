@@ -1,4 +1,4 @@
-# Steers Class Board
+# Focal (formerly Steers Class Board)
 
 Classroom display for Mr. Steers' math classes at Calera Middle School.
 Live at https://eddiesteers777.github.io/steers-class-board/

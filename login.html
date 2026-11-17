@@ -3,25 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign in — Calera Math — Steers</title>
+    <title>Sign in | Focal</title>
+    <meta name="description" content="Focal: the class board, remote and planner for Mr. Steers' math classes at Calera Middle School. Teacher-only.">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
     <meta name="robots" content="noindex">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/calera.css">
-    <meta name="theme-color" content="#0E2A47">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/signin.css?v=1">
+    <meta name="theme-color" content="#0B2559">
 </head>
 <body>
-    <main class="school-home">
-        <p class="school-eyebrow">Calera Middle School</p>
-        <h1 class="school-title">Sign in</h1>
-        <p class="school-sub">Teacher-only. Sign in with Google to open the class board home screen.</p>
-        <div class="remote-controls">
-            <button id="loginBtnPage" class="btn" type="button">Sign In with Google</button>
+    <main class="si">
+        <img src="brand/logo.svg" alt="Focal logo">
+        <h1>Sign in</h1>
+        <p class="who">Focal · Teacher-only</p>
+        <div class="line" aria-hidden="true"></div>
+        <p>Sign in with Google to open the home screen.</p>
+        <div class="acts">
+            <button id="loginBtnPage" class="btn go" type="button">Sign In with Google</button>
+            <a class="btn ghost" href="home.html">Back</a>
         </div>
-        <p id="loginNote" class="school-sub" role="status"></p>
-        <p class="school-sub"><a href="home.html">Back to the signed-out home page</a></p>
+        <p id="loginNote" class="note" role="status"></p>
     </main>
     <script type="module">
-        import { wireSignIn } from "./js/signInButton.js?v=18";
+        import { wireSignIn } from "./js/signInButton.js?v=19";
         wireSignIn(document.getElementById("loginBtnPage"), document.getElementById("loginNote"));
     </script>
 </body>

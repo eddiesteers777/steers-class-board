@@ -1,13 +1,13 @@
 {
-    "name": "Calera Math \u2014 Steers",
-    "short_name": "Calera Math",
-    "description": "Calera Middle School math: class library, board display and teacher remote for Mr. Steers. Teacher-only.",
+    "name": "Focal",
+    "short_name": "Focal",
+    "description": "Focal: class board, remote and planner for Mr. Steers' math classes at Calera Middle School. Teacher-only.",
     "start_url": "index.html",
     "scope": "./",
     "display": "standalone",
     "orientation": "landscape-primary",
-    "background_color": "#0E2A47",
-    "theme_color": "#0E2A47",
+    "background_color": "#0B2559",
+    "theme_color": "#0B2559",
     "icons": [
         {
             "src": "icons/icon-192.png",
