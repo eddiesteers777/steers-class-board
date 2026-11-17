@@ -214,6 +214,114 @@ export default {
     ]
    },
    "links": []
+  },
+  "8th-acc": {
+   "label": "8th Grade Accelerated",
+   "cls": "Steers - 8th Grade Accelerated",
+   "weekLT": "I can identify the legs and hypotenuse of a right triangle and use the Pythagorean Theorem to find the hypotenuse.",
+   "bellSeconds": 300,
+   "days": [
+    {
+     "name": "Monday",
+     "title": "No School",
+     "date": "October 12",
+     "agendaLine": "No School: Fall Break",
+     "short": "No school",
+     "bell": "",
+     "agenda": [
+      "No School: Fall Break"
+     ],
+     "supplies": [],
+     "reminders": [],
+     "lt": "",
+     "problems": []
+    },
+    {
+     "name": "Tuesday",
+     "title": "No School",
+     "date": "October 13",
+     "agendaLine": "No School: Fall Break",
+     "short": "No school",
+     "bell": "",
+     "agenda": [
+      "No School: Fall Break"
+     ],
+     "supplies": [],
+     "reminders": [],
+     "lt": "",
+     "problems": []
+    },
+    {
+     "name": "Wednesday",
+     "title": "Wednesday",
+     "date": "October 14",
+     "agendaLine": "Pythagorean Theorem Day 1",
+     "short": "Pythagorean Theorem day 1",
+     "bell": "",
+     "agenda": [
+      "Pythagorean Theorem Day 1"
+     ],
+     "supplies": [
+      "Worksheet",
+      "Pencil"
+     ],
+     "reminders": [],
+     "lt": "I can identify the legs and hypotenuse of a right triangle and use the Pythagorean Theorem to find the hypotenuse.",
+     "problems": []
+    },
+    {
+     "name": "Thursday",
+     "title": "Thursday",
+     "date": "October 15",
+     "agendaLine": "Pythagorean Partner Challenge + Magma Math",
+     "short": "Partner challenge + Magma",
+     "bell": "",
+     "agenda": [
+      "Pythagorean Partner Challenge",
+      "Magma Math"
+     ],
+     "supplies": [
+      "Chromebook",
+      "Pencil"
+     ],
+     "reminders": [],
+     "lt": "I can use the Pythagorean Theorem to find the hypotenuse.",
+     "problems": []
+    },
+    {
+     "name": "Friday",
+     "title": "Friday",
+     "date": "October 16",
+     "agendaLine": "Magma Math Assignment + Blooket",
+     "short": "Magma + Blooket",
+     "bell": "",
+     "agenda": [
+      "Magma Math Assignment",
+      "Blooket"
+     ],
+     "supplies": [
+      "Chromebook",
+      "Pencil"
+     ],
+     "reminders": [],
+     "lt": "I can use the Pythagorean Theorem to find the hypotenuse.",
+     "problems": []
+    }
+   ],
+   "speed": {
+    "motto": "Show your work. Explain WHY. Write down mistakes!",
+    "lt": "I can identify the legs and hypotenuse of a right triangle and use the Pythagorean Theorem to find the hypotenuse.",
+    "steps": [
+     "Your card is your master problem. Solve it and be ready to teach it.",
+     "Meet your partner and show your card.",
+     "Solve your partner’s problem on your recording sheet.",
+     "Explain your steps and check each other’s work.",
+     "Write mistakes partners make on YOUR card in the Errors section.",
+     "When the timer ends, the moving side goes one seat clockwise.",
+     "At the end, share your most common error for the class error review."
+    ]
+   },
+   "links": []
   }
  }
 };
