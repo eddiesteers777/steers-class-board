@@ -256,3 +256,6 @@ body.board .goalin{display:none}
 .goalbar i{display:block;height:100%;background:var(--sky);border-radius:1em;transition:width .3s}
 .goalbar.done i{background:var(--amber,#F2B33D)}
 .goalnum{font-size:1.3em;font-weight:700;font-variant-numeric:tabular-nums}
+/* Lost connection on the projected board (the header is hidden there). Small, bottom centre, clear of the Back/Next arrows and Show controls. */
+.connpill{display:none}
+body.board .connpill:not([hidden]){display:block;position:fixed;left:50%;transform:translateX(-50%);bottom:10px;z-index:5;background:#FBE9EA;color:#8E1B21;border-radius:999px;padding:6px 14px;font-weight:600;font-size:.9rem;box-shadow:0 8px 32px rgba(8,27,69,.12)}
