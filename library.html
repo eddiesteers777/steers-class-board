@@ -8,10 +8,10 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=41">
-    <link rel="stylesheet" href="css/console.css?v=41">
+    <link rel="stylesheet" href="css/board.css?v=42">
+    <link rel="stylesheet" href="css/console.css?v=42">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/library.css?v=41">
+    <link rel="stylesheet" href="css/library.css?v=42">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page">
@@ -34,8 +34,8 @@
         <div id="shelf"></div>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=41";
-        import { LIBRARY } from "./data/library.js?v=41";
+        import { WEEKS } from "./data/weeks.js?v=42";
+        import { LIBRARY } from "./data/library.js?v=42";
         const DK = ["mon", "tue", "wed", "thu", "fri"], $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
         function link(cls, text, href) { const a = el("a", cls, text); a.href = href; return a; }
@@ -104,7 +104,7 @@
         $("find").oninput = draw;
 
         const guest = new URLSearchParams(location.search).has("demo");   // ?demo: look without signing in (the week data is not private)
-        const user = guest ? { name: "" } : await (await import("./js/boardStore.js?v=41")).ready();
+        const user = guest ? { name: "" } : await (await import("./js/boardStore.js?v=42")).ready();
         if (!user) location.replace("login.html");
         else { if (user.name) $("who").textContent = "Signed in as " + user.name; draw(); }
     </script>
