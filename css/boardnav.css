@@ -1,0 +1,8 @@
+/* Next/Back arrows for full-screen Board view. Quiet until touched; big enough to tap on the Promethean. */
+.bnav{display:none}
+body.board .bnav{display:flex;gap:8px;position:fixed;left:10px;bottom:10px;z-index:5;opacity:.4;transition:opacity .15s}
+body.board .bnav:hover,body.board .bnav:focus-within{opacity:1}
+.bnav button{width:52px;height:52px;border-radius:999px;border:2px solid var(--sky,#7FAEDD);background:rgba(8,27,69,.75);color:#fff;font:700 30px/1 system-ui,sans-serif;padding:0 0 4px;cursor:pointer;display:grid;place-items:center}
+.bnav button:active:not(:disabled){transform:scale(.94)}
+.bnav button:disabled{opacity:.35;cursor:default}
+@media print{.bnav{display:none!important}}
