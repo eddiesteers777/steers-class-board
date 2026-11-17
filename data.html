@@ -8,10 +8,10 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=53">
-    <link rel="stylesheet" href="css/console.css?v=53">
+    <link rel="stylesheet" href="css/board.css?v=54">
+    <link rel="stylesheet" href="css/console.css?v=54">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/classdata.css?v=53">
+    <link rel="stylesheet" href="css/classdata.css?v=54">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page">
@@ -80,12 +80,12 @@
         </div>
     </main>
     <script type="module">
-        import { parseTable, toScore, looksNumeric, rosterIndex, summarise, byStandard } from "./js/classData.js?v=53";
-        import { STANDARDS } from "./data/standards.js?v=53";
-        import { readXlsx, guessHeaderRow } from "./js/xlsxRead.js?v=53";
-        import { mountGameResults } from "./js/gameResults.js?v=53";
+        import { parseTable, toScore, looksNumeric, rosterIndex, summarise, byStandard } from "./js/classData.js?v=54";
+        import { STANDARDS } from "./data/standards.js?v=54";
+        import { readXlsx, guessHeaderRow } from "./js/xlsxRead.js?v=54";
+        import { mountGameResults } from "./js/gameResults.js?v=54";
         const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
-        const store = await import(demo ? "./js/localStore.js?v=53" : "./js/boardStore.js?v=53");
+        const store = await import(demo ? "./js/localStore.js?v=54" : "./js/boardStore.js?v=54");
         const PERIODS = [["1st", "8th Grade"], ["2nd", "8th Grade"], ["4th", "8th Grade"], ["5th", "7th Grade"], ["6th", "8th Accelerated"]];
         const $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }

@@ -55,6 +55,8 @@ Bingo uses the same sets: the Remote panel links to `bingo.html` (Print the card
 Tug of War uses the same sets: the room splits into two sides (names editable, Blue and Gold by default). Each question the teacher taps which side was right (or both, or neither); a right side pulls the rope one step its way. First side to pull the marker past its line (3 to 8 steps) wins.
 
 Rapid Fire uses the same sets: the whole class plays against the clock (30 seconds to 3 minutes). The teacher taps Right, Missed or Skip and the next question shows at once; the board shows the count, the streak, the last answer and the class record for that period to beat. The round ends on its own when time runs out.
+
+Prize Wheel uses the same sets and the Treasure Chests flow: every team answers, the teacher taps who was right, and each right team spins a 12-wedge wheel on the board (+10 to +50, double, steal 25, swap, lose 15 or nothing). The Remote draws the wedge and adds the prize; the board turns the wheel to it and shows the prize when it stops.
 Results: when a game reaches its final scores, the Remote saves a short summary to `teacher/{uid}/games/results` (date, period, game, set, team scores, winner, right answers per category, and the students on each team when the teams came from the Group maker). Class Data (`data.html#games`, `js/gameResults.js`) shows who won by day and period with a "Bonus given" box, each student's wins and wins still owed a bonus, and class growth over time. Names stay in the private account and never show on the board.
 The games are original to Focal. Do not copy the name, look or art of any other review-game site.
 

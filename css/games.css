@@ -392,3 +392,19 @@ div.gpset{cursor:default}
 .glgame.rapid{border-top-color:#F2B33D}
 
 .gprfvs{grid-template-columns:repeat(3,1fr)}
+
+/* ---------- Prize Wheel ---------- */
+.gwbox{min-height:0;display:flex;align-items:center;justify-content:center}
+.gwheel{height:100%;width:100%;max-height:100%}
+.gwspin{transform-box:fill-box;transform-origin:center}
+.gwseg{stroke:#081B45;stroke-width:1.2;fill:#2E5FA8}.gwseg.alt{fill:#3C74C4}
+.gwseg.dbl{fill:#2F9E6A}.gwseg.lose{fill:#B9474B}.gwseg.steal,.gwseg.swap{fill:#C98A16}.gwseg.none{fill:#56627A}
+.gwlab{fill:#fff;font-weight:800;font-size:15px;font-family:var(--display,inherit)}
+.gwhub{fill:#F4F1E8;stroke:#081B45;stroke-width:3}
+.gwrim{fill:none;stroke:var(--sky,#7FB8F2);stroke-width:4}
+.gwptr{fill:var(--amber,#F2B33D);stroke:#081B45;stroke-width:2}
+.gwlate{animation:gwin .35s ease-out both}
+@keyframes gwin{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.gwlate{animation:none}}
+.gpspin{min-height:64px;font-size:1.1rem}
+.glgame.wheel{border-top-color:#2F9E6A}
