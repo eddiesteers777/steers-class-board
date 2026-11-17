@@ -5,12 +5,12 @@
      { "8th": { "8.11": { s: "taught", d: "2026-11-17" } }, "7th": { … } }
    ?demo keeps everything on this device only. ?cls=7th&q=slope opens straight to a search.
 ========================================== */
-import { STANDARDS } from "../data/standards.js?v=54";
-import { today, short, daysLeftInNineWeeks, nineWeeksOf } from "./schoolCal.js?v=54";
-import { nextUp } from "./standardsNext.js?v=54";
+import { STANDARDS } from "../data/standards.js?v=55";
+import { today, short, daysLeftInNineWeeks, nineWeeksOf } from "./schoolCal.js?v=55";
+import { nextUp } from "./standardsNext.js?v=55";
 
 const demo = new URLSearchParams(location.search).has("demo");
-const store = await import(demo ? "./localStore.js?v=54" : "./boardStore.js?v=54");
+const store = await import(demo ? "./localStore.js?v=55" : "./boardStore.js?v=55");
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };

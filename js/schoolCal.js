@@ -2,7 +2,7 @@
    Calera Math — school calendar helpers (pure, no page code).
    Dates are "YYYY-MM-DD" strings in local time everywhere.
 ========================================== */
-import { SCHOOL_YEAR } from "../data/calendar.js?v=54";
+import { SCHOOL_YEAR } from "../data/calendar.js?v=55";
 export { SCHOOL_YEAR };
 
 export const iso = (d) => d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
