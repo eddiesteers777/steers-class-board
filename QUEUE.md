@@ -14,7 +14,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Next up
 | # | Item | Notes |
 |---|------|-------|
-| 16 | Record a lesson from the whiteboard | Eddie asked Nov 16: press Record, work a problem, press Done, get a video file to upload to Schoology for homework and study-guide help. Scout first: record the stage only (not the controls), optional microphone, save to the device (no cloud storage on the free plan), and a clear warning before any student name or voice is captured. |
+| 16 | Record a lesson: confirm on real devices | Built Nov 16 (see Done). Still to confirm: Chrome on the Chromebook saves the file, and the video plays for students once uploaded to Schoology. Test recording here was MP4 (H.264) with Opus sound; real Chrome may pick AAC. |
 | 17 | Week Builder print: notes with rule boxes and worked lines | Notes can now carry `intro` (a rule box before an example) and practice parts with `kind` and `showWork`. `js/weekSheets.js` does not print these yet; `tools/weekly_kit/docs.py` prints `intro`. |
 | 15 | Bell times editor holds one schedule only | The regular schedule is saved. Not stored anywhere yet: the 3rd-period lunch block (A, B, C), gym dismissal, dismissal times, and the 1-hour and 2-hour activity schedules. Needs named schedules and more rows. Do not force these under a wrong label. |
 | 7 | Sign-in popup needed a second try | Seen in the Nov 16 live test: the first Google popup closed without finishing. Scout `js/googleSignIn.js`, `js/signInRetry.js`. |
@@ -28,6 +28,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Done
 | When | Item |
 |------|------|
+| Nov 16 | Record a lesson (Remote, "Record a lesson" in the side rail): records the lesson stage only, microphone off unless turned on, warns if a student name tool is showing, saves a video to the device. `js/recorder.js`. Nothing is uploaded by the site. |
 | Nov 16 | Guided notes on the board for 7th Monday and 8th Accelerated Monday, loaded from the paper notes in the school Drive (wording unchanged). The Accelerated student notes have no error detectives or exit ticket, so none were loaded. |
 | Nov 16 | The three Friday Nov 20 sub plans (7th, 8th, 8th Accelerated) carry the guest teacher address. Each is still one page. |
 | Nov 16 | Bell times: the regular schedule is set on Home. |

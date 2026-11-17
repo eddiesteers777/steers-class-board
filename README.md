@@ -30,6 +30,9 @@ The real week files hold answer keys, so they live in the week's Drive folder, n
 Edits save to `teacher/{uid}/weekfiles/{weekId}` in the private account, never to this repo. The site cannot check math, so the key counts any problem changed on the site as not re-checked. `builder.html?demo` runs on one device with nothing saved.
 So far: bellringer sheet and key, and guided notes (student copy and key). A published week has no exit ticket answers, so the notes key says so until the week file is loaded. Still built by the weekly kit: homework, study guide, speed dating.
 
+## Record a lesson
+On the Remote, "Record a lesson" records the lesson stage (not the controls) and saves a video to the device for uploading to Schoology. `js/recorder.js`. The microphone is off unless turned on, and nothing is uploaded or stored by the site. It warns before recording while a student name tool is showing.
+
 ## Library
 `library.html` lists every week in `data/weeks.js` by class, with search, and opens any day on the Remote (`remote.html?week=&class=&day=&screen=`).
 Nine weeks and unit labels are typed in `data/library.js`. Leave them out when not known; never guess.

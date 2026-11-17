@@ -215,3 +215,21 @@ body.board #stage{border-radius:0;box-shadow:none}
 .ncount{font-size:.68em;color:var(--soft)}
 .nans{align-self:flex-start;font-family:var(--display);font-size:1.25em;font-weight:700;background:#E3F5EC;color:#0F6B40;border-radius:.4em;padding:.1em .7em}
 .nowfacts[hidden]{display:none}
+
+/* ---------- record a lesson ---------- */
+.recbox{display:flex;flex-direction:column;gap:8px;padding:6px 10px 4px}
+.reccheck{display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:500;min-height:32px}
+.reccheck input{width:18px;height:18px}
+.btn.recgo{background:var(--red);min-height:44px}
+.btn.recgo:hover{background:#9A1D23}
+.btn.recdone{background:var(--navy);min-height:44px}
+.recnote{font-size:.8rem;line-height:1.4;color:var(--c-mute)}
+.recnote[data-state="bad"]{color:#8E1B21}
+.recnote[data-state="ok"]{color:#0F6B40}
+.recpill{display:inline-flex;align-items:center;gap:8px;background:#FBE9EA;color:#8E1B21;border-radius:999px;padding:4px 6px 4px 12px;font-size:.88rem}
+.recpill i{width:10px;height:10px;border-radius:50%;background:var(--red);animation:recblink 1.2s steps(2,start) infinite}
+.recpill b{font-variant-numeric:tabular-nums}
+.recpill button{background:var(--red);color:#fff;border:0;border-radius:999px;padding:5px 14px;font-weight:600;font-size:.85rem;cursor:pointer}
+@keyframes recblink{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.recpill i{animation:none}}
+body.board .recpill{display:none}

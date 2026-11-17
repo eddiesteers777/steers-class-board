@@ -7,8 +7,8 @@
     <meta name="robots" content="noindex">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=18">
-    <link rel="stylesheet" href="css/console.css?v=18">
+    <link rel="stylesheet" href="css/board.css?v=19">
+    <link rel="stylesheet" href="css/console.css?v=19">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console">
@@ -17,6 +17,7 @@
         <label class="field"><span>Period</span><select id="periodSel" aria-label="Period"></select></label>
         <label class="field" id="weekField" hidden><span>Week</span><select id="weekSel" aria-label="Week"></select></label>
         <span class="live" id="status" role="status">Connecting…</span>
+        <span class="recpill" id="recPill" hidden><i></i><b id="recTime">0:00</b><button id="recPillDone" type="button">Done</button></span>
         <button class="btn" id="boardBtn" type="button">Board view</button>
         <details class="menu acct"><summary>Menu</summary><div class="pop"><a href="index.html">Home</a><a href="rosters.html">Rosters</a><button id="signOut" type="button">Sign out</button></div></details>
     </header>
@@ -26,6 +27,14 @@
             <div class="seg scr" id="screens" role="group" aria-label="Screen"></div>
             <details class="menu fold" id="toolsMenu" open><summary>Tools <span class="count" id="toolCount"></span></summary><div class="toolchips" id="dock" role="group" aria-label="Tools"></div></details>
             <details class="menu fold" id="filesMenu"><summary>Files</summary><div class="files" id="files"></div></details>
+            <details class="menu fold" id="recMenu"><summary>Record a lesson</summary>
+                <div class="recbox">
+                    <label class="reccheck"><input type="checkbox" id="recMic"> Microphone on</label>
+                    <button class="btn recgo" id="recGo" type="button">Record</button>
+                    <button class="btn recdone" id="recDone" type="button" hidden>Done, save video</button>
+                    <p class="recnote" id="recNote" role="status">Records the lesson screen and saves a video to this Chromebook. Best done without students in the room.</p>
+                </div>
+            </details>
         </nav>
         <main class="deck">
             <div class="wrap" id="wrap"><div id="stage"><div id="screenHost"></div><div id="toolLayer" class="toollayer"></div></div></div>
@@ -37,8 +46,9 @@
     </div>
     <button id="exit" type="button">Show controls</button>
     <script type="module">
-        import { startApp } from "./js/boardApp.js?v=18";
+        import { startApp } from "./js/boardApp.js?v=19";
         startApp({ mode: "remote" });
+        import("./js/recorder.js?v=19").then((m) => m.mount());
     </script>
 </body>
 </html>
