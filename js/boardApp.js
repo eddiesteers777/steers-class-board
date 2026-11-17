@@ -5,12 +5,12 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=54";
+import { WEEKS } from "../data/weeks.js?v=55";
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=54";
-import * as snd from "./sound.js?v=54";
-import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=54";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=55";
+import * as snd from "./sound.js?v=55";
+import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=55";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -73,6 +73,10 @@ const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd 
     timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", fix: null, tools: defaultTools(),
     sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "" } };
 
+// This page's own mark on what it saves, so a change from another tab of the same browser can be shown
+// before the server confirms it (those tabs share one offline copy, where it first arrives as "pending").
+const PAGE = Math.random().toString(36).slice(2, 10);
+let saveFailedAt = 0;   // a failed save stays on screen a few seconds, even when the connection itself is fine
 let mode = "remote", signedIn = false, sig = "", writeState = null, SEAL = "brand/logo.svg";
 
 function writer(path) {
@@ -80,14 +84,19 @@ function writer(path) {
     const w = function (d) {
         next = d; if (busy) return; busy = true;
         (async function () {
-            while (next) { const x = next; next = null; try { await store.save(path, x); } catch (e) { setStatus("Could not save (" + ((e && e.code) || "connection") + ")"); } }
+            while (next) { const x = next; next = null; x.by = PAGE; try { await store.save(path, x); } catch (e) { saveFailedAt = Date.now(); setStatus("Could not save (" + ((e && e.code) || "connection") + "). The board did not change."); } }
             busy = false;
         })();
     };
     w.busy = () => busy || !!next;
     return w;
 }
-function setStatus(t) { const s = $("status"); if (s) { s.textContent = t; s.dataset.state = (t === "Live" || t === "This device only") ? "ok" : (t.startsWith("Connecting") || t.startsWith("Still") ? "wait" : "bad"); } }
+function setStatus(t) {
+    const st = (t === "Live" || t === "This device only") ? "ok" : (t.startsWith("Connecting") || t.startsWith("Still") ? "wait" : "bad");
+    const s = $("status"); if (s) { s.textContent = t; s.dataset.state = st; }
+    // The board view hides the header, so a lost connection shows as a small pill in the corner instead.
+    const pill = $("connPill"); if (pill) { pill.hidden = st === "ok" || !synced; pill.textContent = st === "bad" ? "Not connected. Reconnecting\u2026" : "Connecting\u2026"; }
+}
 function push() { S.stamp = localIso(); render(); if (writeState) writeState(JSON.parse(JSON.stringify(S))); }
 let quietTimer = 0;
 function quiet() { clearTimeout(quietTimer); quietTimer = setTimeout(() => { if (writeState) writeState(JSON.parse(JSON.stringify(S))); }, 500); } // save typing without redrawing
@@ -752,7 +761,7 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
-    store = (opts && opts.store) || await import("./boardStore.js?v=54");
+    store = (opts && opts.store) || await import("./boardStore.js?v=55");
     const guest = mode === "sub";
     mountGames({ S, header, store: () => store, writer, now, beep: () => snd.cue("done"), unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     document.body.classList.toggle("board", mode === "board");
@@ -776,6 +785,8 @@ export async function startApp(opts) {
     keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
     document.addEventListener("keydown", (e) => { if (e.target && (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.target.isContentEditable)) return; if (e.altKey || e.ctrlKey || e.metaKey) return; if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); step(1); } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); step(-1); } else if (e.key === "m" || e.key === "M") { S.sound.music = !S.sound.music; push(); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
     setInterval(() => { if (!synced) return; tick(); tickTools(toolApi); tickGames(); soundTick(); }, 250);
+    { const p = el("div", "connpill"); p.id = "connPill"; p.setAttribute("role", "status"); p.hidden = true; document.body.appendChild(p); }
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && synced) { tick(); tickTools(toolApi); tickGames(); soundTick(); } });   // a tab back in view shows the right time at once
     document.body.classList.add("syncing");
     const arrived = () => { if (synced) return; synced = true; document.body.classList.remove("syncing"); sig = ""; };
     fit(); render();
@@ -791,13 +802,26 @@ export async function startApp(opts) {
     writeState = writer("board/state");
     store.watch("rosters/all", (snap) => { const p = (snap.exists && snap.data && snap.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); renderLayer(); }, () => {});
     store.clockSkew().then((ms) => { skew = ms; tick(); });
-    const slow = setTimeout(() => { mark("board-slow", ms()); setStatus("Still connecting…"); arrived(); render(); }, 10000);   // never leave the teacher on a blank board
-    let first = true, gotServer = false;
+    const slow = setTimeout(() => { mark("board-slow", ms()); setStatus("Still connecting\u2026"); arrived(); render(); }, 10000);   // never leave the teacher on a blank board
+    // Connection, said plainly. The Remote must never look live when the board cannot follow it.
+    const LOST = mode === "remote" ? "Not connected. The board will not follow. Reconnecting\u2026" : "Not connected. This screen will not follow the Remote. Reconnecting\u2026";
+    let first = true, gotServer = false, cacheSince = 0, errored = false, checks = 0;
+    const live = () => { cacheSince = 0; errored = false; if (Date.now() - saveFailedAt > 8000) setStatus(guest ? "This device only" : "Live"); };
+    const lost = () => { if (!guest) setStatus(LOST); };
+    window.addEventListener("offline", lost);
+    if (!guest) setInterval(async () => {   // a connection can stall with no error: check it, and wake it if it has
+        if (document.visibilityState === "hidden") return;
+        if (cacheSince && Date.now() - cacheSince > 5000) lost();
+        if (!synced || errored || ++checks % 6) return;   // a server read about every 30 s while in view
+        if (!(await store.reachable("board/state"))) { lost(); store.kick && store.kick(); }
+    }, 5000);
     store.watch("board/state", (snap) => {
         if (!gotServer && !snap.fromCache) { gotServer = true; mark("board-server", ms()); }
-        if (snap.pending || (writeState && writeState.busy())) return;
+        if (snap.fromCache) { if (!cacheSince) cacheSince = Date.now(); } else if (!guest) live();
+        if ((snap.pending && !(snap.data && snap.data.by && snap.data.by !== PAGE)) || (writeState && writeState.busy())) return;
         if (!synced) mark("board-shown", ms() + (snap.fromCache ? " (saved copy)" : " (server)"));
-        clearTimeout(slow); setStatus(guest ? "This device only" : "Live");
+        clearTimeout(slow);
+        if (guest) setStatus("This device only"); else if (!snap.fromCache) live(); else if (!gotServer) setStatus("Connecting\u2026");
         if (snap.exists) applyState(snap.data);
         arrived();
         if (first) {
@@ -817,6 +841,14 @@ export async function startApp(opts) {
             if (changed) { push(); return; }
         }
         render();
-    }, (e) => { clearTimeout(slow); setStatus("Sync is off (" + ((e && e.code) || "error") + ")"); arrived(); render(); });
+    }, (e, fails) => {
+        clearTimeout(slow); errored = true; mark("board-sync-error", ((e && e.code) || "error") + ", try " + fails);
+        arrived(); lost(); render();
+        // The projected board has no one at its keyboard: if listening keeps failing while the device is online,
+        // reload it (at most once every 5 minutes). The saved state comes straight back.
+        if (mode === "board" && fails >= 4 && navigator.onLine) {
+            try { const k = "focal-board-reloaded", at = +sessionStorage.getItem(k) || 0; if (Date.now() - at > 300000) { sessionStorage.setItem(k, String(Date.now())); location.reload(); } } catch { /* storage blocked: keep retrying */ }
+        }
+    });
     render();
 }
