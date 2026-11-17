@@ -15,7 +15,7 @@ import {
 import { prewarmGoogleSignIn, googleSignInReady, requestGoogleAccessToken, GOOGLE_CLIENT_ID } from "./googleSignIn.js";
 import { trail } from "./signInTrail.js";
 import { retryOnNetworkError } from "./signInRetry.js";
-import { buildAuthUrl, newState, useRedirectSignIn } from "./googleRedirect.js";
+import { buildAuthUrl, newState, returnUrlForOrigin, useRedirectSignIn } from "./googleRedirect.js";
 
 // ?signincheck shows the sign-in steps on screen (js/signInCheck.js).
 try {
@@ -254,7 +254,7 @@ export async function login() {
             const state = newState();
             try { localStorage.setItem("school-oauth-state", JSON.stringify({ state, at: Date.now(), back: "index.html" })); } catch { /* storage unavailable */ }
             trail("login-start", "full page");
-            location.href = buildAuthUrl({ clientId: GOOGLE_CLIENT_ID, state });
+            location.href = buildAuthUrl({ clientId: GOOGLE_CLIENT_ID, redirectUri: returnUrlForOrigin(location.origin), state });
             return new Promise(() => {});   // the page is leaving; nothing after this should run
         }
         const viaGoogle = googleSignInReady();

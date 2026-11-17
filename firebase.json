@@ -1,4 +1,16 @@
 {
+  "hosting": [
+    {
+      "site": "focalboard",
+      "public": ".",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    },
+    {
+      "site": "steers-class-board",
+      "public": ".",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    }
+  ],
   "functions": {
     "source": "functions",
     "runtime": "nodejs22"

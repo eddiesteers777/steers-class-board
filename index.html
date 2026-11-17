@@ -4,26 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Focal | Home</title>
-    <meta name="description" content="Calera Middle School math class library for Mr. Steers: Week 5, November 16–20, 2026. Teacher-only.">
-    <link rel="canonical" href="https://eddiesteers777.github.io/steers-class-board/">
+    <meta name="description" content="Math class library for Mr. Steers: Week 5, November 16–20, 2026. Teacher-only.">
+    <link rel="canonical" href="https://focalboard.web.app/">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Focal">
     <meta property="og:title" content="Focal | Home">
-    <meta property="og:description" content="Calera Middle School math class library for Mr. Steers: Week 5, November 16–20, 2026. Teacher-only.">
-    <meta property="og:url" content="https://eddiesteers777.github.io/steers-class-board/">
+    <meta property="og:description" content="Math class library for Mr. Steers: Week 5, November 16–20, 2026. Teacher-only.">
+    <meta property="og:url" content="https://focalboard.web.app/">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
     <link rel="stylesheet" href="css/board.css?v=36">
     <link rel="stylesheet" href="css/console.css?v=36">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
     <link rel="stylesheet" href="css/home.css?v=36">
+    <link rel="stylesheet" href="css/footer.css?v=2">
     <meta name="theme-color" content="#081B45">
     </head>
 <body class="console page hm-home">
     <header class="cbar">
-        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Calera Middle School</small></span></a>
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Class Board</small></span></a>
         <button class="btn ghost hm-menu" id="sideOpen" type="button" aria-controls="side" aria-expanded="false">Pages</button>
         <button class="btn ghost hm-gear" id="settingsOpen" type="button" aria-haspopup="dialog">Settings</button>
         <button class="btn ghost" id="signOut" type="button">Sign out</button>
@@ -100,6 +101,23 @@
           </div>
         </dialog>
     </main>
+    <footer class="pub-footer">
+        <div class="pub-footer-top">
+            <div class="pub-footer-lead">
+                <a href="index.html" class="pub-footer-brand" aria-label="Focal home"><img src="brand/logo.svg" alt="" class="brand-mark"><span class="pub-footer-word"><span class="brand-word">Focal</span> <span class="pub-footer-sub">Class Board</span></span></a>
+                <p class="pub-footer-line">Teach from one board.</p>
+            </div>
+            <nav class="pub-footer-cols" aria-label="Footer">
+                <div><h2>Teach</h2><a href="board.html">Open Board</a><a href="remote.html">Remote</a><a href="sub.html">Sub view</a></div>
+                <div><h2>Plan</h2><a href="planner.html">Planner</a><a href="builder.html">Week Builder</a><a href="library.html">Library</a><a href="standards.html">Standards</a></div>
+                <div><h2>Focal</h2><a href="index.html">Home</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div>
+            </nav>
+        </div>
+        <div class="pub-footer-legal">
+            <p class="pub-footer-signin">Focal signs you in with Google. It uses your name and email only to open your account. <a href="privacy.html">How your data is used</a></p>
+            <p>&copy; 2026 Focal · Made by Edgar Steers</p>
+        </div>
+    </footer>
     <script type="module">
         import { WEEKS } from "./data/weeks.js?v=36";
         import * as store from "./js/boardStore.js?v=36";

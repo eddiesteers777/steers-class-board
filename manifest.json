@@ -1,7 +1,7 @@
 {
     "name": "Focal",
     "short_name": "Focal",
-    "description": "Focal: class board, remote and planner for Mr. Steers' math classes at Calera Middle School. Teacher-only.",
+    "description": "Focal: class board, remote and planner for Mr. Steers' math classes. Teacher-only.",
     "start_url": "index.html",
     "scope": "./",
     "display": "standalone",
