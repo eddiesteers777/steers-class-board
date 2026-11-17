@@ -76,3 +76,11 @@
 .pub-footer-place{ max-width:var(--pub-max); margin:clamp(24px,4vw,40px) auto 0; font-size:13px; color:var(--text-secondary); }
 .pub-footer-legal .pub-footer-place{ margin:0 0 8px; }
 .pub-footer-place + .pub-footer-legal{ margin-top:8px; }
+
+/* Sign-in page (home.html): that page centers one card with a row flex
+   layout, so a footer there would sit beside the card instead of below
+   it. Stack the page, let the card take the middle, and put the footer
+   full width at the bottom, with a visible top edge against the gradient. */
+body.signin-foot{ flex-direction:column; align-items:stretch; justify-content:flex-start; padding:0; }
+body.signin-foot .si{ margin:auto; padding:32px 16px; }
+body.signin-foot .pub-footer{ margin-top:0; border-top:1px solid rgba(244,247,251,.25); }
