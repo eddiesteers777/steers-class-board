@@ -75,7 +75,42 @@ body.board #exit{display:block}
 .q .ans{font-size:1.15em;font-weight:700;background:var(--on);color:var(--blue);border-radius:.5em;padding:.15em .7em}
 .q button{font-size:.75em;background:var(--sky);color:var(--navy);border:0;border-radius:2em;padding:.3em 1em;font-weight:700;white-space:nowrap}
 .cv{flex:1;min-height:0;position:relative;background:var(--board);border-radius:.6em;overflow:hidden}
-.cv.grid{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:2.5em 2.5em}
+.cv.p-grid{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:2.5em 2.5em}
+.cv.p-dots{background-image:radial-gradient(circle,#A9C0DE .14em,transparent .16em);background-size:2.5em 2.5em;background-position:1.25em 1.25em}
+.cv.p-lines{background-image:linear-gradient(transparent calc(2.5em - 1px),var(--grid) calc(2.5em - 1px));background-size:100% 2.5em}
+.cv.moving canvas{cursor:grab}
+/* math tools (js/mathPad.js): Add menu and the picked tool's settings, inside the whiteboard */
+.mathmenu,.mathpanel{position:absolute;z-index:3;background:#fff;color:#0E1B3A;border-radius:.7em;box-shadow:0 8px 32px rgba(8,27,69,.12);font-size:max(.72em,13px);overflow:auto}
+.mathmenu{top:.5em;right:.5em;width:min(27em,calc(100% - 1em));max-height:calc(100% - 1em);padding:.7em .9em .8em}
+.mathpanel{top:.5em;left:.5em;width:min(28em,calc(100% - 1em));max-height:calc(100% - 1em);padding:.6em .8em .7em}
+.mmhead,.mphead{display:flex;align-items:center;gap:.4em;margin-bottom:.35em}
+.mmhead b,.mphead b{flex:1;font-size:1.1em;color:var(--blue)}
+.mmh{font-size:.8em;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#55627F;margin:.5em 0 .25em}
+.mmrow,.mprow,.mpkeys{display:flex;flex-wrap:wrap;gap:.35em;align-items:center}
+.mathmenu button,.mathpanel button{font:inherit;font-weight:600;color:var(--blue);background:#EEF3FA;border:.1em solid var(--line);border-radius:2em;padding:.3em .85em;min-height:2.3em;cursor:pointer}
+.mathmenu button:hover,.mathpanel button:hover{background:#DCE7F5}
+.mathpanel button[aria-pressed="true"]{background:var(--sky);color:var(--navy)}
+.mathpanel button.danger{color:var(--red)}
+.mathmenu .mmtile{min-width:3.2em;border-color:transparent}
+.mathmenu .mmtile.t1{background:#F2B33D;color:#14213D}.mathmenu .mmtile.tx{background:#7FAEDD;color:#14213D}.mathmenu .mmtile.tx2{background:#10358A;color:#fff}
+.mathmenu .mmtile.tn1,.mathmenu .mmtile.tnx,.mathmenu .mmtile.tnx2{background:#C62828;color:#fff}
+.mpbody{display:flex;flex-direction:column;gap:.5em}
+.mpf{display:flex;align-items:center;gap:.4em;flex-wrap:wrap}
+.mpf span,.mprow>span,.mpstep span{font-weight:600;color:#55627F;font-size:.9em}
+.mpf input,.mathpanel textarea{font:inherit;color:#0E1B3A;border:.1em solid var(--line);border-radius:.55em;padding:.3em .5em;min-height:2.2em;background:#fff}
+.mprow .mpf input{width:5.6em}
+.mpf.fx input{flex:1;min-width:8em}
+.mpf.fx i{width:.8em;height:.8em;border-radius:50%;display:inline-block}
+.mpf em{flex-basis:100%;color:var(--red);font-style:normal;font-size:.85em}
+.mpf em:empty{display:none}
+.mpf input.bad{border-color:var(--red)}
+.mathpanel textarea{width:100%;resize:vertical;font-size:1.15em}
+.mpstep{display:flex;align-items:center;gap:.3em}
+.mpstep b{min-width:1.6em;text-align:center}
+.mpstep button{min-width:2.3em;padding:.3em}
+.mphint{color:#55627F;font-size:.9em;margin:0}
+.tools .addtool{background:var(--sky);color:var(--navy)}
+@media (max-width:699px){.mathpanel{top:auto;bottom:.5em;max-height:48%}}
 .cv canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
 .tools{display:flex;flex-wrap:wrap;gap:.35em;align-items:center}
 .tools button{font-size:.72em;background:var(--deep);border:.13em solid var(--sky);border-radius:2em;padding:.25em .9em;font-weight:600;min-height:2.4em}
