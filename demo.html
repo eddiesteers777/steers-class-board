@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Try the board | Anchor Board</title>
+    <meta name="description" content="Try the class board and remote in your browser with a made-up sample week. Nothing is saved.">
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=58">
+    <link rel="stylesheet" href="css/console.css?v=57">
+    <link rel="stylesheet" href="css/theme-rings.css?v=1">
+    <link rel="stylesheet" href="css/boardnav.css?v=1">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="console">
+    <header class="cbar">
+        <a class="cbrand" href="site/index.html" title="Back to the Anchor Board site"><img src="brand/logo.svg" alt=""><span><b>Anchor Board</b><small id="who">Demo · sample week</small></span></a>
+        <label class="field"><span>Period</span><select id="periodSel" aria-label="Period"></select></label>
+        <label class="field" id="weekField" hidden><span>Week</span><select id="weekSel" aria-label="Week"></select></label>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <button class="btn" id="boardBtn" type="button">Board view</button>
+        <button id="signOut" type="button" hidden>Sign out</button>
+    </header>
+    <div class="cbody">
+        <nav class="rail" aria-label="Board controls">
+            <p class="railh">Screens</p>
+            <div class="seg scr" id="screens" role="group" aria-label="Screen"></div>
+            <details class="menu fold" id="toolsMenu" open><summary>Tools <span class="count" id="toolCount"></span></summary><div class="toolchips" id="dock" role="group" aria-label="Tools"></div></details>
+            <details class="menu fold" id="filesMenu"><summary>Files</summary><div class="files" id="files"></div></details>
+        </nav>
+        <main class="deck">
+            <div class="wrap" id="wrap"><div id="stage"><div id="screenHost"></div><div id="toolLayer" class="toollayer"></div></div></div>
+            <div class="flowbar">
+                <div class="seg days" id="days" role="group" aria-label="Day"></div>
+                <div class="flow"><button id="flowBack" type="button">Back</button><button id="flowNext" type="button">Next</button></div>
+            </div>
+        </main>
+    </div>
+    <button id="exit" type="button">Show controls</button>
+    <script type="module">
+        import { startApp } from "./js/boardApp.js?v=58";
+        import * as store from "./js/localStore.js?v=57";
+        import demoWeek from "./data/demo-week.js?v=1";
+        // Public demo: a made-up sample week, one class, nothing saved anywhere.
+        startApp({ mode: "sub", store, weeks: [demoWeek], periods: [["1st", "demo"]], who: "Demo · sample week, nothing saved" });
+    </script>
+</body>
+</html>
