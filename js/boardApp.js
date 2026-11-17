@@ -5,12 +5,12 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=55";
+import { WEEKS } from "../data/weeks.js?v=56";
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=55";
-import * as snd from "./sound.js?v=55";
-import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=55";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=56";
+import * as snd from "./sound.js?v=56";
+import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=56";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -76,15 +76,20 @@ const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd 
 // This page's own mark on what it saves, so a change from another tab of the same browser can be shown
 // before the server confirms it (those tabs share one offline copy, where it first arrives as "pending").
 const PAGE = Math.random().toString(36).slice(2, 10);
-let saveFailedAt = 0;   // a failed save stays on screen a few seconds, even when the connection itself is fine
+let saveFailedAt = 0;
+// Board and Remote open in the same browser hear each other's changes at once through this channel,
+// without waiting for the server. Firestore still saves every change for reloads and other devices.
+let tabs = null, heard = { by: "", at: 0 };   // a failed save stays on screen a few seconds, even when the connection itself is fine
 let mode = "remote", signedIn = false, sig = "", writeState = null, SEAL = "brand/logo.svg";
 
 function writer(path) {
     let busy = false, next = null;
     const w = function (d) {
+        d.by = PAGE; d.at = Date.now();
+        if (path === "board/state" && tabs) { try { tabs.postMessage(d); } catch (e) { /* the server copy still gets there */ } }
         next = d; if (busy) return; busy = true;
         (async function () {
-            while (next) { const x = next; next = null; x.by = PAGE; try { await store.save(path, x); } catch (e) { saveFailedAt = Date.now(); setStatus("Could not save (" + ((e && e.code) || "connection") + "). The board did not change."); } }
+            while (next) { const x = next; next = null; try { await store.save(path, x); } catch (e) { saveFailedAt = Date.now(); setStatus("Could not save (" + ((e && e.code) || "connection") + "). The board did not change."); } }
             busy = false;
         })();
     };
@@ -761,7 +766,7 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
-    store = (opts && opts.store) || await import("./boardStore.js?v=55");
+    store = (opts && opts.store) || await import("./boardStore.js?v=56");
     const guest = mode === "sub";
     mountGames({ S, header, store: () => store, writer, now, beep: () => snd.cue("done"), unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     document.body.classList.toggle("board", mode === "board");
@@ -799,6 +804,15 @@ export async function startApp(opts) {
     mark("board-auth", ms());
     if (!user) { location.replace("login.html"); return; }
     signedIn = true; $("who").textContent = guest ? "Guest teacher view, no sign-in" : (user.name ? "Signed in as " + user.name : "Signed in");
+    if (!guest && "BroadcastChannel" in window) {
+        try {
+            tabs = new BroadcastChannel("focal-board-" + user.uid);
+            tabs.onmessage = (ev) => {
+                const d = ev.data; if (!synced || !d || d.by === PAGE) return;
+                heard = { by: d.by, at: +d.at || 0 }; applyState(d); render();
+            };
+        } catch (e) { tabs = null; }
+    }
     writeState = writer("board/state");
     store.watch("rosters/all", (snap) => { const p = (snap.exists && snap.data && snap.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); renderLayer(); }, () => {});
     store.clockSkew().then((ms) => { skew = ms; tick(); });
@@ -819,6 +833,8 @@ export async function startApp(opts) {
         if (!gotServer && !snap.fromCache) { gotServer = true; mark("board-server", ms()); }
         if (snap.fromCache) { if (!cacheSince) cacheSince = Date.now(); } else if (!guest) live();
         if ((snap.pending && !(snap.data && snap.data.by && snap.data.by !== PAGE)) || (writeState && writeState.busy())) return;
+        // An older copy of a change this tab already heard over the channel must not wind it back.
+        if (snap.data && heard.by && snap.data.by === heard.by && (+snap.data.at || 0) < heard.at) return;
         if (!synced) mark("board-shown", ms() + (snap.fromCache ? " (saved copy)" : " (server)"));
         clearTimeout(slow);
         if (guest) setStatus("This device only"); else if (!snap.fromCache) live(); else if (!gotServer) setStatus("Connecting\u2026");
