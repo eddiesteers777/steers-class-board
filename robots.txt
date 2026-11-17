@@ -2,6 +2,8 @@ User-agent: *
 Allow: /steers-class-board/
 Allow: /steers-class-board/index.html
 Allow: /steers-class-board/home.html
+Allow: /steers-class-board/privacy.html
+Allow: /steers-class-board/terms.html
 Disallow: /steers-class-board/board.html
 Disallow: /steers-class-board/remote.html
 Disallow: /steers-class-board/login.html
