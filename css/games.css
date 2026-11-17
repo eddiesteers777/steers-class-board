@@ -131,3 +131,46 @@ input.gpname,.gprow input[type=number]{font:inherit;font-weight:600;color:var(--
 .gsprev td.num{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
 .gsprev td.ans{font-weight:600}
 .gswrap{overflow-x:auto}
+
+/* ---------- Treasure Chests ---------- */
+.gchnote{flex:none;text-align:center;font-size:.85em;color:var(--soft)}
+.gchwrap{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:1em}
+.gchests{min-height:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:.5em}
+.gchest{background:var(--blue);border:.1em solid var(--sky);border-radius:.6em;color:var(--on);min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15em;padding:.3em;
+  box-shadow:0 .1em .3em rgba(4,12,34,.3);transition:background .2s,transform .08s}
+.gchest:hover:not(:disabled){background:#1746B0}
+.gchest:active:not(:disabled){transform:scale(.97)}
+.gchsvg{height:52%;max-height:4.2em;width:auto}
+.gchsvg .cb{fill:var(--deep);stroke:var(--sky);stroke-width:2.2}
+.gchsvg .cl{fill:#1B4FBF;stroke:var(--sky);stroke-width:2.2}
+.gchsvg .cs{fill:none;stroke:var(--sky);stroke-width:2.2}
+.gchsvg .ck{fill:var(--amber,#F2B33D)}
+.gchn{font-size:1.25em;font-weight:700;line-height:1.1;text-align:center;font-variant-numeric:tabular-nums}
+.gchest small{font-size:.7em;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.gchest.open{background:var(--deep);border-color:rgba(127,174,221,.35);box-shadow:none;cursor:default}
+.gchest.open .gchsvg{opacity:.35}
+.gchest.open .gchn{font-size:1em}
+.gchest.last{border-color:var(--amber,#F2B33D);border-width:.16em;background:#14306F}
+.gchest.last .gchsvg{opacity:1}
+.gchest.open.add .gchn,.gchest.open.dbl .gchn{color:#9BE3BE}
+.gchest.open.lose .gchn{color:#FFB3AE}
+.gchest.open.steal .gchn,.gchest.open.swap .gchn{color:var(--amber,#F2B33D)}
+.gchside{min-height:0;background:var(--navy);border:.13em solid var(--sky);border-radius:.8em;padding:1em;display:flex;flex-direction:column;justify-content:center;gap:.4em;text-align:center}
+.gchwho{font-size:1.1em;font-weight:600;color:var(--soft)}
+.gchsay{font-size:2.6em;font-weight:800;line-height:1.05;font-family:var(--display,inherit)}
+.gchsay.add,.gchsay.dbl{color:#9BE3BE}.gchsay.lose{color:#FFB3AE}.gchsay.steal,.gchsay.swap{color:var(--amber,#F2B33D)}
+.gchsub{font-size:1.05em;font-weight:600}
+.gchq{margin-top:auto;font-size:.8em;color:var(--soft)}
+@media (prefers-reduced-motion:reduce){.gchest{transition:none}}
+
+.gpset .gpsetbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.gpset .gpsetbtns .btn{flex:1 1 120px}
+div.gpset{cursor:default}
+.gpright{display:flex;flex-direction:column;gap:6px}
+.gpteam{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:48px;border:1.5px solid var(--c-line);border-radius:12px;background:#fff;padding:8px 12px;font:inherit;font-weight:600;color:var(--c-ink);cursor:pointer;text-align:left}
+.gpteam b{font-variant-numeric:tabular-nums}
+.gpteam[aria-pressed="true"]{background:#E3F5EC;border-color:#1F9D61;color:#0F6B40}
+.gpteam[aria-pressed="true"] span::before{content:"✓ "}
+.gpchests{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gpchests .gpadj{font-size:1.1rem}
+.gprow.nm{grid-template-columns:minmax(0,1fr) auto}
