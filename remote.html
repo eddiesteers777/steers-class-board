@@ -7,8 +7,8 @@
     <meta name="robots" content="noindex">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=23">
-    <link rel="stylesheet" href="css/console.css?v=23">
+    <link rel="stylesheet" href="css/board.css?v=24">
+    <link rel="stylesheet" href="css/console.css?v=24">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console">
@@ -27,6 +27,7 @@
             <div class="seg scr" id="screens" role="group" aria-label="Screen"></div>
             <details class="menu fold" id="toolsMenu" open><summary>Tools <span class="count" id="toolCount"></span></summary><div class="toolchips" id="dock" role="group" aria-label="Tools"></div></details>
             <details class="menu fold" id="filesMenu"><summary>Files</summary><div class="files" id="files"></div></details>
+            <button class="btn tallyopen" id="tallyOpen" type="button" aria-expanded="false" aria-controls="tally">Class tally (private)</button>
             <details class="menu fold" id="recMenu"><summary>Record a lesson</summary>
                 <div class="recbox">
                     <label class="reccheck"><input type="checkbox" id="recMic"> Microphone on</label>
@@ -44,11 +45,19 @@
             </div>
         </main>
     </div>
+    <aside class="tally" id="tally" hidden aria-label="Class tally, private to this Remote">
+        <div class="thead"><div><b>Class tally</b><span id="tallyHead"></span></div><button class="btn ghost" id="tallyClose" type="button">Close</button></div>
+        <p class="tnote">Only you see this. It never shows on the board. Tap a mark to add one; − takes one back.</p>
+        <div id="tallyList"></div>
+        <p class="ttot" id="tallyTot"></p>
+        <p class="tnote" id="tallyNote" role="status"></p>
+    </aside>
     <button id="exit" type="button">Show controls</button>
     <script type="module">
-        import { startApp } from "./js/boardApp.js?v=23";
+        import { startApp } from "./js/boardApp.js?v=24";
         startApp({ mode: "remote" });
-        import("./js/recorder.js?v=23").then((m) => m.mount());
+        import("./js/boardStore.js?v=24").then(async (store) => { if (await store.ready()) (await import("./js/tally.js?v=24")).mount({ store, period: () => document.getElementById("periodSel").value || "1st" }); }).catch(() => {});
+        import("./js/recorder.js?v=24").then((m) => m.mount());
     </script>
 </body>
 </html>

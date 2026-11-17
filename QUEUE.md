@@ -26,6 +26,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Done
 | When | Item |
 |------|------|
+| Nov 16 | Class tally (option A, part 2), Eddie OKd names Nov 16: Remote rail button opens a private panel with each student in the period, +1 Participation / On task / Redirect and a take-back. Saved per day at teacher/{uid}/tally/{date}. Never in board state, hidden in Board view. Still open: how long to keep it and how it ties into Class Data. |
 | Nov 16 | Bell times hold named schedules: Regular plus any number more (activity days, early dismissal), each with "other times" rows (lunch blocks, gym dismissal, dismissal). "Today's schedule" picks one for today only; the next day goes back to Regular. Stored in `settings/bells` as `schedules` and `today`; `periods` stays the Regular schedule. |
 | Nov 16 | Week Builder prints the study guide (4 pages) and speed dating (cards, recording sheet, early finishers) with both keys, ported from `docs.py`. They carry answers, so they only appear after Load week file or from a private saved copy. Tested with a made-up week file only; check against a real one. |
 | Nov 16 | Weekly Agenda: the highlighted day row no longer breaks. The Home "Right now" card's `.now` style was leaking onto `.row.now` (grid, padding, navy background, dark text). The card is now `.nowcard`; the board's chosen day gets an amber ring. |
