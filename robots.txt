@@ -9,6 +9,7 @@ Disallow: /steers-class-board/builder.html
 Disallow: /steers-class-board/data.html
 Disallow: /steers-class-board/library.html
 Disallow: /steers-class-board/planner.html
+Disallow: /steers-class-board/standards.html
 Disallow: /steers-class-board/rosters.html
 Disallow: /steers-class-board/sub.html
 Disallow: /steers-class-board/auth-return.html

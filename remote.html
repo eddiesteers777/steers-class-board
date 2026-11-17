@@ -7,8 +7,8 @@
     <meta name="robots" content="noindex">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=25">
-    <link rel="stylesheet" href="css/console.css?v=25">
+    <link rel="stylesheet" href="css/board.css?v=26">
+    <link rel="stylesheet" href="css/console.css?v=26">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console">
@@ -54,10 +54,10 @@
     </aside>
     <button id="exit" type="button">Show controls</button>
     <script type="module">
-        import { startApp } from "./js/boardApp.js?v=25";
+        import { startApp } from "./js/boardApp.js?v=26";
         startApp({ mode: "remote" });
-        import("./js/boardStore.js?v=25").then(async (store) => { if (await store.ready()) (await import("./js/tally.js?v=25")).mount({ store, period: () => document.getElementById("periodSel").value || "1st" }); }).catch(() => {});
-        import("./js/recorder.js?v=25").then((m) => m.mount());
+        import("./js/boardStore.js?v=26").then(async (store) => { if (await store.ready()) (await import("./js/tally.js?v=26")).mount({ store, period: () => document.getElementById("periodSel").value || "1st" }); }).catch(() => {});
+        import("./js/recorder.js?v=26").then((m) => m.mount());
     </script>
 </body>
 </html>
