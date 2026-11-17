@@ -5,11 +5,11 @@
      { "8th": { "8.11": { s: "taught", d: "2026-11-17" } }, "7th": { … } }
    ?demo keeps everything on this device only. ?cls=7th&q=slope opens straight to a search.
 ========================================== */
-import { STANDARDS } from "../data/standards.js?v=26";
-import { today, short } from "./schoolCal.js?v=26";
+import { STANDARDS } from "../data/standards.js?v=27";
+import { today, short } from "./schoolCal.js?v=27";
 
 const demo = new URLSearchParams(location.search).has("demo");
-const store = await import(demo ? "./localStore.js?v=26" : "./boardStore.js?v=26");
+const store = await import(demo ? "./localStore.js?v=27" : "./boardStore.js?v=27");
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
@@ -50,7 +50,7 @@ function hits(s, u) {
     if (only === "open" && ["taught"].includes(markOf(s.code))) return false;
     const q = fold(query).trim(); if (!q) return true;
     const words = q.split(/\s+/);
-    const hay = fold([s.code, s.text, s.domain, s.cluster, ...s.parts.map((p) => s.code + p.l + " " + p.text), ...(u ? u.targets : []), ...s.objectives].join(" "));
+    const hay = fold([s.code, s.text, ...s.parts.map((p) => s.code + p.l + " " + p.text), ...(u ? u.targets : []), ...s.objectives].join(" "));
     return words.every((w) => hay.includes(w));
 }
 
@@ -80,7 +80,7 @@ function list(title, items, cls2) {
 /** One standard. u = this unit's notes for it ({ parts, targets, specs }) or null. */
 function stdRow(s, u) {
     const row = el("article", "st-row" + (s.critical ? " crit" : "") + " s-" + (markOf(s.code) || "none"));
-    row.id = "s" + s.code.replace(".", "-");
+    row.id = "s-" + s.code.replace(/[^A-Za-z0-9]+/g, "-");
     const top = el("div", "st-top");
     const code = el("span", "st-code", s.code + (u && u.parts.length && u.parts.length < s.parts.length ? u.parts.join(",") : ""));
     top.appendChild(code);
@@ -130,6 +130,13 @@ function unitView(C, box) {
         h.appendChild(meta); card.appendChild(h);
         const bar = el("div", "pl-prog"); const i = el("i"); i.style.width = (u.standards.length ? (100 * done) / u.standards.length : 0) + "%"; bar.appendChild(i); card.appendChild(bar);
         rows.forEach(([s, x]) => card.appendChild(stdRow(s, x)));
+        (u.extra || []).filter((x) => !query || fold(x.label + " " + x.text).includes(fold(query).trim())).forEach((x) => {
+            const r = el("article", "st-row extra"); const top = el("div", "st-top");
+            top.appendChild(el("span", "st-code", x.label || "Unit doc")); top.appendChild(chip("note", "Wording from the unit doc")); r.appendChild(top);
+            r.appendChild(el("p", "st-text", x.text));
+            const l = list("I can…", x.targets, "ican"); if (l) r.appendChild(l);
+            card.appendChild(r);
+        });
         box.appendChild(card);
     });
     const loose = C.standards.filter((s) => !used.has(s.code) && hits(s, null));
@@ -184,7 +191,7 @@ function draw() {
     summary(C);
     const box = $("view"); box.textContent = "";
     box.classList.remove("pl-view"); void box.offsetWidth; box.classList.add("pl-view");
-    if (!C) { box.appendChild(el("div", "pl-empty", "8th Accelerated standards (8th grade plus Algebra I with Probability) are being added from your unit docs next.")); return; }
+    if (!C) { box.appendChild(el("div", "pl-empty", "No standards loaded for this class yet.")); return; }
     const n = view === "domain" ? domainView(C, box) : unitView(C, box);
     if (!n) box.appendChild(el("div", "pl-empty", query ? "No standard matches “" + query + "”." : "Nothing to show with this filter."));
 }

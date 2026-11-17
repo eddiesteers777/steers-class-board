@@ -1,5 +1,4 @@
-"""Build data/standards.js from Eddie's Drive docs. Save each doc's text as Markdown into tools/standards/docs/
-(NOT committed: the unit docs hold district links and Schoology codes), then run: python3 build.py ../../data/standards.js
+"""Build data/standards.js from Eddie's Drive docs (saved by extract.py into docs/).
 Standard wording, sub-parts, critical marks, objectives and prior skills come from the DIGS docs.
 Units, pacing, learning targets and ACAP item specs come from the unit/topic docs.
 Links, Schoology codes, tier notes and teacher notes are dropped on purpose (the repo is public)."""
@@ -13,6 +12,10 @@ def clean(s):
     s = re.sub(r"<https?://[^>]*>", "", s)
     s = s.replace("\\*", "*").replace("\\>", ">").replace("\\<", "<").replace("\\#", "#").replace("\\&", "&").replace("\\[", "[").replace("\\]", "]").replace("\\!", "!").replace("\\-", "-")
     s = s.replace("**", "")
+    # The Docs export drops superscripts; put back the few the standards use.
+    s = re.sub(r"\bi such that i =", "i such that i² =", s)
+    s = re.sub(r"(\b[xy]|\))2(?=[\s.,)=+\-]|$)", r"\1²", s)
+    s = re.sub(r"\(X0 = 1\)", "(X⁰ = 1)", s)
     return re.sub(r"[ \t]+", " ", s).strip()
 
 LETTERS = "abcdefghij"
@@ -25,7 +28,7 @@ def parse_digs(path, grade):
         if not ln: continue
         if ln.startswith("## "): domain = clean(ln[3:]); continue
         if ln.startswith("#### "): cluster = clean(ln[5:]); continue
-        m = re.match(r"^(\d+)\\\.\s+(.*)$", ln)
+        m = re.match(r"^(\d+)\\?\.\s*(.*)$", ln)
         if m:
             text = clean(m.group(2)); crit = text.startswith("*")
             cur = {"n": int(m.group(1)), "code": f"{grade}.{m.group(1)}", "domain": domain, "cluster": cluster,
@@ -48,7 +51,7 @@ def parse_digs(path, grade):
         s["parts"] = [{"l": LETTERS[i], "text": t} for i, t in enumerate(s["parts"])]
     return out
 
-def norm(s): return re.sub(r"[^a-z0-9]", "", s.lower())
+def norm(s): return re.sub(r"[^a-z0-9]", "", s.lower().replace("²", "2").replace("⁰", "0"))
 
 def split_targets(s):
     s = re.sub(r"^I can…|^I can\.\.\.", "", s.strip())
@@ -65,7 +68,7 @@ def parse_unit(path, grade, stds):
     else:
         mm = re.match(r"^(?:TOPIC # ?|Unit )(\w+):?\s+(.*?)(?:\s+8th Grade.*)?$", clean(first))
         num, name = mm.group(1), mm.group(2).strip()
-    t8 = re.search(r"8th Grade Topic \w+ - (.*?)(?: _\d_)*\.docx", os.path.basename(path))
+    t8 = re.search(r"8th Grade Topic \w+ - (.*?)(?: \(\d\))*\.docx", os.path.basename(path))
     if t8: name = t8.group(1).replace("_", "/")
     first_c = clean(first)
     mm = re.match(r"^(?:TOPIC # ?|Unit )(\w+)", first_c)
@@ -100,9 +103,60 @@ g8 = parse_digs(os.path.join(D, "Grade 8.md"), "8")
 u7 = sorted([parse_unit(p, "7", g7) for p in glob.glob(os.path.join(D, "7th Grade - Topic*.md"))], key=unit_sort)
 u8 = sorted([parse_unit(p, "8", g8) for p in glob.glob(os.path.join(D, "8th Grade Topic*.md"))], key=unit_sort)
 
+def parse_acc(path, pool):
+    """8th Accelerated unit docs number standards their own way (8ACC.13, 8.Acc.6, 7ACC.25, Alg I.3…).
+    Match each row to the Grade 8 or Algebra I standard by its wording instead of trusting the number."""
+    txt = open(path).read()
+    mm = re.search(r"8th Acc Unit (\w+) - (.*?)(?: \(\d\))*\.docx", os.path.basename(path))
+    num, name = mm.group(1), mm.group(2).replace("_", "/")
+    rows = []
+    for r in txt.split("\n"):
+        if not r.startswith("|"): continue
+        cells = [clean(c) for c in r.strip().strip("|").split("|")]
+        first = cells[0]
+        if first.startswith("Standards"): continue
+        if first.startswith("Standard"): rows.append((first, None))
+        elif re.match(r"^\d+\\?\.\s", r.strip("| ")) and len(cells) > 1: rows.append((first, cells[1]))   # Unit 3 table rows
+    items, extra = {}, []
+    for body, tcol in rows:
+        nb = norm(body)
+        best = None
+        for s in pool:
+            stem = norm(s["text"])[:45]
+            letters = [p["l"] for p in s["parts"] if norm(p["text"])[:40] in nb]
+            if stem and stem in nb or letters:
+                score = (bool(stem in nb)) * 2 + len(letters)
+                if not best or score > best[0]: best = (score, s, letters)
+        if tcol is not None: targets = split_targets(re.sub(r"^I CAN:\s*", "", tcol))
+        else:
+            mt = re.search(r"Learning Targets?:\s*(.*?)(?:\s*Item Specs:|$)", body)
+            targets = split_targets(mt.group(1)) if mt else []
+        targets = [t for t in targets if not t.startswith("[Grade") and "Haven’t checked" not in t]
+        ms = re.search(r"Item Specs:\s*(ACAP[^|]*?)(?:\s*Assign|\s*Haven|$)", body)
+        spec = ms.group(1).strip() if ms else ""
+        if not best:
+            mc = re.match(r"^Standard\s*#?:?\s*([0-9A-Za-z. ]+?)\.?\s+([A-Z].*?)\s*(?:Learning Targets?:|$)", body)
+            extra.append({"label": mc.group(1).strip() if mc else "", "text": mc.group(2).strip() if mc else body[:200], "targets": targets}); continue
+        s, letters = best[1], best[2]
+        it = items.setdefault(s["code"], {"code": s["code"], "parts": [], "targets": [], "specs": []})
+        for l in letters:
+            if l not in it["parts"]: it["parts"].append(l)
+        for t in targets:
+            if t not in it["targets"]: it["targets"].append(t)
+        if spec and spec not in it["specs"]: it["specs"].append(spec)
+    out = {"id": num, "name": name, "pacing": "", "standards": list(items.values())}
+    if extra: out["extra"] = extra     # rows whose wording matches no Grade 8 or Algebra I standard; shown as written
+    return out
+
+a1 = parse_digs(os.path.join(D, "Algebra I.md"), "AI")
+for x in a1: x["code"] = "Alg I." + str(x["n"]); x["domain"] = "Algebra I with Probability: " + x["domain"]
+uacc = sorted([parse_acc(p, g8 + a1) for p in glob.glob(os.path.join(D, "8th Acc Unit*.md"))], key=unit_sort)
+used = {x["code"] for u in uacc for x in u["standards"]}
+
 data = {
     "7th": {"label": "7th Grade", "course": "Grade 7", "standards": g7, "units": u7, "unitWord": "Topic"},
     "8th": {"label": "8th Grade", "course": "Grade 8", "standards": g8, "units": u8, "unitWord": "Topic"},
+    "8th-acc": {"label": "8th Accelerated", "course": "Grade 8 Accelerated", "standards": g8 + a1, "units": uacc, "unitWord": "Unit"},
 }
 head = """// Alabama Course of Study math standards for each class, grouped by the district's units.
 // GENERATED from Eddie's Drive docs (Critical Standards "DIGS" docs and the unit/topic docs). Do not hand-edit;
@@ -113,4 +167,5 @@ open(OUT, "w").write(head + "export const STANDARDS = " + json.dumps(data, ensur
 for k, v in data.items():
     print(k, len(v["standards"]), "standards,", sum(s["critical"] for s in v["standards"]), "critical,", len(v["units"]), "units")
     for u in v["units"]:
+        if u.get("extra"): print("      EXTRA:", u["extra"])
         print("   ", u["id"], u["name"], "|", u["pacing"], "|", ", ".join(s["code"] + "".join(s["parts"]) + f"({len(s['targets'])}t)" for s in u["standards"]))
