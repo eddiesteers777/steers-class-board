@@ -10,6 +10,7 @@ let store = null; // the signed-in Firestore store, or a this-device-only store 
 import { trail } from "./signInTrail.js";
 import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=57";
 import * as snd from "./sound.js?v=57";
+import { createMathPad } from "./mathPad.js?v=1";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=57";
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive } from "./liveRoom.js?v=58";
 
@@ -171,7 +172,7 @@ function fit() {
     if (Wd < 50 || H < 50) return;
     const se = synced ? shelfEm() : 0;
     let sw = Math.min(Wd / (1 + se / 52), H * 16 / 9), sh = sw * 9 / 16;
-    if (Wd < 700) { sw = Wd; sh = H; }
+    if (Wd < 700) { sw = Wd; sh = Math.max(440, Math.round(window.innerHeight * 0.82)); }   // not the wrap's height: on a phone the wrap grows with the stage, and the stage kept growing
     st.style.width = sw + "px"; st.style.height = sh + "px"; st.style.fontSize = Math.max(9, sw / 52) + "px";
     { const shelf = shelfEl(), f = Math.max(9, sw / 52); shelf.hidden = !se; shelf.style.fontSize = f + "px"; shelf.style.width = ((se - 0.6) * f) + "px"; shelf.style.maxHeight = sh + "px"; } fitShelf();
     { const key = se + "|" + narrowWrap(); if (key !== shelfApplied) { shelfApplied = key; layerSig = ""; setTimeout(renderLayer, 0); } }
@@ -349,7 +350,7 @@ function render() {
     renderDock(); drawGamePanel(); drawLivePanel();
     if (ns === sig) { renderLayer(); tick(); tickTools(toolApi); return; }
     sig = ns;
-    const st = $("screenHost"); st.textContent = ""; canvas = null; ctx = null;
+    const st = $("screenHost"); st.textContent = ""; canvas = null; ctx = null; pad = null;
     if (!l) { st.appendChild(el("div", "empty", "No lesson found for this class and week.")); watchInk(); return; }
     const w = W();
     if (S.screen === "agenda") {
@@ -397,7 +398,7 @@ function render() {
             if (!f.open && f.lines.length) left.appendChild(el("p", "ncount", shown < f.lines.length ? "Step " + shown + " of " + f.lines.length : "All " + f.lines.length + " steps shown"));
             if (f.ans && S.show && !f.blanks) left.appendChild(richEl("p", "nans", f.ans));
             body.appendChild(left);
-            const cv = el("div", "cv" + (gridOn ? " grid" : "")); cv.id = "cv"; canvas = el("canvas"); cv.appendChild(canvas);
+            const cv = makeCv();
             right.appendChild(cv); right.appendChild(toolbar()); body.appendChild(right); st.appendChild(body); bindCanvas(); sizeCanvas();
             list.scrollTop = list.scrollHeight; // keep the newest step in view
         }
@@ -422,7 +423,7 @@ function render() {
                 const sb = el("button", null, S.show ? "Hide answer" : "Show answer"); sb.type = "button"; sb.onclick = () => { S.show = !S.show; push(); }; q.appendChild(sb); wk.appendChild(q);
             } else wk.appendChild(el("div", "q", "No bellringer problems are loaded for this day."));
         }
-        const cv = el("div", "cv" + (gridOn ? " grid" : "")); cv.id = "cv"; canvas = el("canvas"); cv.appendChild(canvas);
+        const cv = makeCv();
         wk.appendChild(cv); wk.appendChild(toolbar()); st.appendChild(wk); bindCanvas(); sizeCanvas();
     }
     renderLayer(); watchInk(); tick();
@@ -515,23 +516,41 @@ function fitShelf() {
 }
 
 /* ---------- whiteboard ink ---------- */
-let canvas = null, ctx = null, strokes = [], cur = null, pen = "ink", size = 1, erasing = false, gridOn = false, inkKey = "", inkUnsub = null, inkWrite = null, clearArm = 0;
+let canvas = null, ctx = null, strokes = [], cur = null, pen = "ink", size = 1, erasing = false, paper = "", inkKey = "", inkUnsub = null, inkWrite = null, clearArm = 0;
+let pad = null, hist = [], padItems = [];   // pad: the math tools under the ink (js/mathPad.js); hist: undo copies; padItems: the tools, kept while the screen redraws
+const PAPERS = [["", "Plain"], ["grid", "Grid"], ["dots", "Dots"], ["lines", "Lines"]];
+/* The whiteboard: math tools on a canvas underneath, ink on top. */
+function makeCv() {
+    const cv = el("div", "cv" + (paper ? " p-" + paper : "")); cv.id = "cv"; canvas = el("canvas"); cv.appendChild(canvas);
+    pad = createMathPad(cv, canvas, { change: snap, commit: saveInk, onMode: () => retool() });
+    pad.setItems(padItems); return cv;
+}
+function snap() { hist.push(JSON.stringify({ strokes, items: pad ? pad.items() : padItems })); if (hist.length > 60) hist.shift(); }
+function undo() {
+    const last = hist.pop(); if (!last) return; const d = JSON.parse(last);
+    strokes = d.strokes || []; padItems = d.items || []; if (pad) pad.setItems(padItems); redraw(); saveInk();
+}
+function setPaper(p) { paper = p; const cv = $("cv"); if (cv) { PAPERS.forEach(([k]) => { if (k) cv.classList.remove("p-" + k); }); if (p) cv.classList.add("p-" + p); } }
 const PENS = { ink: "--pen-ink", blue: "--pen-blue", red: "--pen-red", green: "--pen-green" }, SIZES = [3, 6, 11];
 const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 function toolbar() {
     const t = el("div", "tools"); t.id = "tools";
-    Object.keys(PENS).forEach((k) => { const b = el("button", "sw"); b.type = "button"; b.style.background = css(PENS[k]); b.setAttribute("aria-label", k + " pen"); b.setAttribute("aria-pressed", String(!erasing && pen === k)); b.onclick = () => { pen = k; erasing = false; retool(); }; t.appendChild(b); });
+    Object.keys(PENS).forEach((k) => { const b = el("button", "sw"); b.type = "button"; b.style.background = css(PENS[k]); b.setAttribute("aria-label", k + " pen"); b.setAttribute("aria-pressed", String(!erasing && pen === k)); b.onclick = () => { pen = k; erasing = false; if (pad) pad.setOn(false); retool(); }; t.appendChild(b); });
     ["Thin", "Medium", "Thick"].forEach((n, i) => { const b = el("button", null, n); b.type = "button"; b.setAttribute("aria-pressed", String(size === i)); b.onclick = () => { size = i; retool(); }; t.appendChild(b); });
-    const er = el("button", null, "Eraser"); er.type = "button"; er.setAttribute("aria-pressed", String(erasing)); er.onclick = () => { erasing = !erasing; retool(); }; t.appendChild(er);
-    const un = el("button", null, "Undo"); un.type = "button"; un.onclick = () => { if (strokes.length) { strokes.pop(); redraw(); saveInk(); } }; t.appendChild(un);
+    const er = el("button", null, "Eraser"); er.type = "button"; er.setAttribute("aria-pressed", String(erasing && !(pad && pad.on))); er.onclick = () => { erasing = !erasing; if (pad) pad.setOn(false); retool(); }; t.appendChild(er);
+    const moving = !!(pad && pad.on);
+    const mv = el("button", null, "Move"); mv.type = "button"; mv.title = "Pick up, move, size and turn the math tools"; mv.setAttribute("aria-pressed", String(moving)); mv.onclick = () => { if (pad) pad.setOn(!pad.on); retool(); }; t.appendChild(mv);
+    const ad = el("button", "addtool", "+ Math tool"); ad.type = "button"; ad.onclick = () => { if (pad) pad.openMenu(); }; t.appendChild(ad);
+    const un = el("button", null, "Undo"); un.type = "button"; un.onclick = undo; t.appendChild(un);
     const cl = el("button", null, "Clear"); cl.type = "button";
-    cl.onclick = () => { if (Date.now() - clearArm < 3000) { strokes = []; redraw(); saveInk(); cl.textContent = "Clear"; clearArm = 0; } else { clearArm = Date.now(); cl.textContent = "Tap again to clear"; setTimeout(() => { cl.textContent = "Clear"; }, 3000); } };
+    cl.onclick = () => { if (Date.now() - clearArm < 3000) { snap(); strokes = []; padItems = []; if (pad) pad.clear(); redraw(); saveInk(); cl.textContent = "Clear"; clearArm = 0; } else { clearArm = Date.now(); cl.textContent = "Tap again to clear"; setTimeout(() => { cl.textContent = "Clear"; }, 3000); } };
     t.appendChild(cl);
-    const gr = el("button", null, "Grid"); gr.type = "button"; gr.setAttribute("aria-pressed", String(gridOn)); gr.onclick = () => { gridOn = !gridOn; $("cv").classList.toggle("grid", gridOn); gr.setAttribute("aria-pressed", String(gridOn)); }; t.appendChild(gr);
+    const pi = Math.max(0, PAPERS.findIndex((x) => x[0] === paper));
+    const gr = el("button", null, "Paper: " + PAPERS[pi][1]); gr.type = "button"; gr.title = "Plain, grid, dots or lines behind the work"; gr.setAttribute("aria-pressed", String(!!paper)); gr.onclick = () => { setPaper(PAPERS[(pi + 1) % PAPERS.length][0]); saveInk(); retool(); }; t.appendChild(gr);
     const n = el("span", "note"); n.id = "inknote"; t.appendChild(n); return t;
 }
 function retool() { const old = $("tools"); if (old) old.parentNode.replaceChild(toolbar(), old); }
-function sizeCanvas() { if (!canvas) return; const r = canvas.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2); if (r.width < 2) return; canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr); ctx = canvas.getContext("2d"); redraw(); }
+function sizeCanvas() { if (!canvas) return; const r = canvas.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2); if (r.width < 2) return; canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr); ctx = canvas.getContext("2d"); redraw(); if (pad) pad.resize(); }
 function drawStroke(s) {
     if (!ctx || !s.p || s.p.length < 2) return; const Wd = canvas.width, H = canvas.height, p = s.p;
     ctx.globalCompositeOperation = s.e ? "destination-out" : "source-over"; ctx.strokeStyle = css(PENS[s.c] || PENS.ink) || "#14213D";
@@ -543,23 +562,29 @@ function drawStroke(s) {
 function redraw() { if (!ctx || !canvas) return; ctx.clearRect(0, 0, canvas.width, canvas.height); strokes.forEach(drawStroke); if (cur) drawStroke(cur); }
 function pt(e) { const r = canvas.getBoundingClientRect(); return [Math.round(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * 10000), Math.round(Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) * 10000)]; }
 function bindCanvas() {
-    canvas.addEventListener("pointerdown", (e) => { if (e.button) return; e.preventDefault(); try { canvas.setPointerCapture(e.pointerId); } catch (x) { /* ok */ } const p = pt(e); cur = { c: pen, w: size, e: erasing ? 1 : 0, p: [p[0], p[1]] }; redraw(); });
+    canvas.addEventListener("pointerdown", (e) => { if (e.button || (pad && pad.on)) return; e.preventDefault(); try { canvas.setPointerCapture(e.pointerId); } catch (x) { /* ok */ } const p = pt(e); cur = { c: pen, w: size, e: erasing ? 1 : 0, p: [p[0], p[1]] }; redraw(); });
     canvas.addEventListener("pointermove", (e) => { if (!cur) return; const p = pt(e), a = cur.p, n = a.length; if (Math.abs(p[0] - a[n - 2]) + Math.abs(p[1] - a[n - 1]) < 14) return; a.push(p[0], p[1]); redraw(); });
-    const end = () => { if (!cur) return; strokes.push(cur); cur = null; redraw(); saveInk(); };
+    const end = () => { if (!cur) return; snap(); strokes.push(cur); cur = null; redraw(); saveInk(); };
     canvas.addEventListener("pointerup", end); canvas.addEventListener("pointercancel", end);
 }
 function note(t) { const n = $("inknote"); if (n) n.textContent = t; }
 function saveInk() {
-    if (!inkWrite) return; const body = { strokes, at: Date.now() };
+    if (pad) padItems = pad.items();
+    if (!inkWrite) return; const body = { strokes, items: padItems, paper, at: Date.now() };
     if (JSON.stringify(body).length > 700000) { note("This board is full. Clear it to keep saving."); return; }
     note(""); inkWrite(JSON.parse(JSON.stringify(body)));
 }
 function watchInk() {
     const key = canvas ? [S.week, S.period, "d" + S.day, S.screen === "notes" ? "n" + S.note : S.screen === "fix" ? "fix" + ((fixCur() || {}).n || 0) : ((S.screen === "bell" && D()) ? "p" + S.prob : "blank")].join("_") : "";
-    if (key === inkKey) return; inkKey = key; if (inkUnsub) { inkUnsub(); inkUnsub = null; } inkWrite = null; strokes = []; cur = null; redraw();
+    if (key === inkKey) return; inkKey = key; if (inkUnsub) { inkUnsub(); inkUnsub = null; } inkWrite = null; strokes = []; cur = null; hist = []; padItems = []; if (pad) pad.setItems([]); redraw();
     if (!key || !signedIn) return;
     inkWrite = writer("ink/" + key);
-    inkUnsub = store.watch("ink/" + key, (snap) => { if (key !== inkKey || snap.pending || cur || (inkWrite && inkWrite.busy())) return; const dd = snap.exists && snap.data; strokes = dd && Array.isArray(dd.strokes) ? JSON.parse(JSON.stringify(dd.strokes)) : []; redraw(); }, () => note("Saved drawings are not available right now."));
+    inkUnsub = store.watch("ink/" + key, (sn) => {
+        if (key !== inkKey || sn.pending || cur || (inkWrite && inkWrite.busy()) || (pad && pad.busy())) return; const dd = sn.exists && sn.data;
+        strokes = dd && Array.isArray(dd.strokes) ? JSON.parse(JSON.stringify(dd.strokes)) : [];
+        padItems = dd && Array.isArray(dd.items) ? JSON.parse(JSON.stringify(dd.items)) : []; if (pad) pad.setItems(padItems);
+        const pp = dd && PAPERS.some((x) => x[0] === dd.paper) ? dd.paper : ""; if (pp !== paper) { setPaper(pp); retool(); }
+        redraw(); }, () => note("Saved drawings are not available right now."));
 }
 
 /* ---------- Fix It Together: the speed dating error review ----------
@@ -626,7 +651,7 @@ function drawFix(st) {
         left.appendChild(e);
     }
     body.appendChild(left);
-    const cv = el("div", "cv" + (gridOn ? " grid" : "")); cv.id = "cv"; canvas = el("canvas"); cv.appendChild(canvas);
+    const cv = makeCv();
     right.appendChild(cv); right.appendChild(toolbar()); body.appendChild(right); st.appendChild(body); bindCanvas(); sizeCanvas();
 }
 /* Remote only: pick a card, or type one when the week's cards are not saved in Week Builder. */
