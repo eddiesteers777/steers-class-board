@@ -26,7 +26,7 @@ const ref = (path) => doc(db, `teacher/${uid}/${path}`);
 /** Live subscription. next({ exists, data, pending }); returns unsubscribe. */
 export function watch(path, next, error = () => {}) {
     return onSnapshot(ref(path),
-        (snap) => next({ exists: snap.exists(), data: snap.data(), pending: snap.metadata.hasPendingWrites }),
+        (snap) => next({ exists: snap.exists(), data: snap.data(), pending: snap.metadata.hasPendingWrites, fromCache: snap.metadata.fromCache }),
         error);
 }
 

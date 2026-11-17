@@ -5,9 +5,10 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=20";
+import { WEEKS } from "../data/weeks.js?v=21";
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=20";
+import { trail } from "./signInTrail.js";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=21";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -500,7 +501,7 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
-    store = (opts && opts.store) || await import("./boardStore.js?v=20");
+    store = (opts && opts.store) || await import("./boardStore.js?v=21");
     const guest = mode === "sub";
     document.body.classList.toggle("board", mode === "board");
     $("periodSel").onchange = function () { S.period = this.value; S.cls = classOf(this.value); resetPos(); push(); };
@@ -520,16 +521,23 @@ export async function startApp(opts) {
     const arrived = () => { if (synced) return; synced = true; document.body.classList.remove("syncing"); sig = ""; };
     fit(); render();
 
+    // Load timing, kept on this device only (step names and times, no data). ?signincheck shows it.
+    const t0 = performance.now(), ms = () => Math.round(performance.now() - t0) + " ms";
+    const mark = guest ? () => {} : trail;
+    mark("board-load", mode + ", page " + Math.round(t0) + " ms");
     const user = await store.ready();
+    mark("board-auth", ms());
     if (!user) { location.replace("login.html"); return; }
     signedIn = true; $("who").textContent = guest ? "Guest teacher view, no sign-in" : (user.name ? "Signed in as " + user.name : "Signed in");
     writeState = writer("board/state");
     store.watch("rosters/all", (snap) => { const p = (snap.exists && snap.data && snap.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); renderLayer(); }, () => {});
     store.clockSkew().then((ms) => { skew = ms; tick(); });
-    const slow = setTimeout(() => { setStatus("Still connecting…"); arrived(); render(); }, 10000);   // never leave the teacher on a blank board
-    let first = true;
+    const slow = setTimeout(() => { mark("board-slow", ms()); setStatus("Still connecting…"); arrived(); render(); }, 10000);   // never leave the teacher on a blank board
+    let first = true, gotServer = false;
     store.watch("board/state", (snap) => {
+        if (!gotServer && !snap.fromCache) { gotServer = true; mark("board-server", ms()); }
         if (snap.pending || (writeState && writeState.busy())) return;
+        if (!synced) mark("board-shown", ms() + (snap.fromCache ? " (saved copy)" : " (server)"));
         clearTimeout(slow); setStatus(guest ? "This device only" : "Live");
         if (snap.exists) applyState(snap.data);
         arrived();

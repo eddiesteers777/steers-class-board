@@ -5,7 +5,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import {
-  getFirestore, initializeFirestore, persistentLocalCache, persistentSingleTabManager,
+  getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   terminate, clearIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
@@ -55,7 +55,9 @@ function streamLooksUnsafe() {
 let db;
 try {
   db = initializeFirestore(app, {
-    localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() }),
+    // Every tab shares the offline copy (2026-11-16). With one owner tab, a second tab (Home and the
+    // Remote open together) got no saved copy and waited on the network before showing anything.
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
     ...(streamLooksUnsafe() ? { experimentalForceLongPolling: true } : { experimentalAutoDetectLongPolling: true })
   });
 } catch (error) {
