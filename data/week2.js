@@ -440,6 +440,223 @@ export default {
      "u": "https://docs.google.com/document/d/1iRfKJ3RXwaEGDiupW79mjthB7AJ2GVnHHCVCeNxPK-0/edit?usp=sharing"
     }
    ]
+  },
+  "8th-acc": {
+   "label": "8th Grade Accelerated",
+   "cls": "Steers - 8th Grade Accelerated",
+   "weekLT": "I can use the Pythagorean Theorem to find unknown side lengths of right triangles, including real-world problems.",
+   "bellSeconds": 300,
+   "days": [
+    {
+     "name": "Monday",
+     "title": "Monday",
+     "date": "October 26",
+     "agendaLine": "Review: Exponents, Scientific Notation, Rational and Irrational: Guided Notes",
+     "short": "Review notes",
+     "bell": "Bellringer Sheet",
+     "agenda": [
+      "Review: Exponents, Scientific Notation, Rational and Irrational: Guided Notes"
+     ],
+     "supplies": [
+      "Bellringer",
+      "Guided Notes",
+      "Pencil"
+     ],
+     "reminders": [
+      "Speed Dating tomorrow"
+     ],
+     "lt": "I can use exponent rules, scientific notation, and rational and irrational numbers from earlier this year.",
+     "problems": [
+      {
+       "q": "The legs of a right triangle are 5 and 12. Find the hypotenuse.",
+       "a": "13"
+      },
+      {
+       "q": "Write 7,200 in scientific notation.",
+       "a": "7.2 × 10³"
+      },
+      {
+       "q": "Solve: x + 9 = 20",
+       "a": "x = 11"
+      },
+      {
+       "q": "Solve: 4x = 36",
+       "a": "x = 9"
+      }
+     ]
+    },
+    {
+     "name": "Tuesday",
+     "title": "Tuesday",
+     "date": "October 27",
+     "agendaLine": "Speed Dating: Mixed Review",
+     "short": "Speed dating",
+     "bell": "Bellringer Sheet",
+     "agenda": [
+      "Speed Dating: Mixed Review"
+     ],
+     "supplies": [
+      "Bellringer",
+      "Recording Sheet",
+      "Pencil"
+     ],
+     "reminders": [],
+     "lt": "I can use the Pythagorean Theorem to find unknown side lengths of right triangles, including real-world problems.",
+     "problems": [
+      {
+       "q": "A right triangle has hypotenuse 10 and one leg 8. Find the missing leg.",
+       "a": "6"
+      },
+      {
+       "q": "Write 3⁵ ÷ 3² as one power.",
+       "a": "3³ (27)"
+      },
+      {
+       "q": "Solve: 2x + 1 = 11",
+       "a": "x = 5"
+      },
+      {
+       "q": "Solve: {x/4} = 6",
+       "a": "x = 24"
+      }
+     ]
+    },
+    {
+     "name": "Wednesday",
+     "title": "Wednesday",
+     "date": "October 28",
+     "agendaLine": "Jeopardy Review",
+     "short": "Jeopardy review",
+     "bell": "Bellringer Sheet",
+     "agenda": [
+      "Jeopardy Review"
+     ],
+     "supplies": [
+      "Bellringer",
+      "Pencil"
+     ],
+     "reminders": [
+      "Test tomorrow"
+     ],
+     "lt": "I can use the converse of the Pythagorean Theorem and find the distance between two points.",
+     "problems": [
+      {
+       "q": "Is √36 rational or irrational?",
+       "a": "Rational (√36 = 6)"
+      },
+      {
+       "q": "Find the distance between (0, 0) and (3, 4).",
+       "a": "5"
+      },
+      {
+       "q": "Solve: 3x − 2 = 13",
+       "a": "x = 5"
+      },
+      {
+       "q": "3(4 + 2)",
+       "a": "18"
+      }
+     ]
+    },
+    {
+     "name": "Thursday",
+     "title": "Thursday",
+     "date": "October 29",
+     "agendaLine": "Test: Pythagorean Theorem and Review",
+     "short": "Unit test",
+     "bell": "Bellringer Sheet",
+     "agenda": [
+      "Test: Pythagorean Theorem and Review"
+     ],
+     "supplies": [
+      "Bellringer",
+      "Pencil"
+     ],
+     "reminders": [],
+     "lt": "I can show what I know about the Pythagorean Theorem and review topics.",
+     "problems": [
+      {
+       "q": "Write the Pythagorean Theorem.",
+       "a": "a² + b² = c²"
+      },
+      {
+       "q": "Find 9² and √81.",
+       "a": "81 and 9"
+      },
+      {
+       "q": "(2 × 10³)(3 × 10⁴)",
+       "a": "6 × 10⁷"
+      },
+      {
+       "q": "What is the hypotenuse?",
+       "a": "The side across from the right angle (the longest side)"
+      }
+     ]
+    },
+    {
+     "name": "Friday",
+     "title": "Friday",
+     "date": "October 30",
+     "agendaLine": "Half Day Sub: Intro to Equations Worksheet",
+     "short": "Half day sub",
+     "bell": "Bellringer Sheet",
+     "agenda": [
+      "Half Day Sub: Intro to Equations Worksheet"
+     ],
+     "supplies": [
+      "Bellringer",
+      "Worksheet",
+      "Pencil"
+     ],
+     "reminders": [],
+     "lt": "I can solve equations by using inverse operations.",
+     "problems": [
+      {
+       "q": "Write 0.0006 in scientific notation.",
+       "a": "6 × 10⁻⁴"
+      },
+      {
+       "q": "5² · 5³",
+       "a": "5⁵"
+      },
+      {
+       "q": "Solve: x − 6 = 9",
+       "a": "x = 15"
+      },
+      {
+       "q": "Solve: 5x = 40",
+       "a": "x = 8"
+      }
+     ]
+    }
+   ],
+   "speed": {
+    "motto": "Show your work. Explain WHY. Write down mistakes!",
+    "lt": "I can use the Pythagorean Theorem to find unknown side lengths of right triangles, including real-world problems.",
+    "steps": [
+     "Your card is your master problem. Solve it and be ready to teach it.",
+     "Meet your partner and show your card.",
+     "Solve your partner’s problem on your recording sheet.",
+     "Explain your steps and check each other’s work.",
+     "Write mistakes partners make on YOUR card in the Errors section.",
+     "When the timer ends, the moving side goes one seat clockwise.",
+     "At the end, share your most common error for the class error review."
+    ]
+   },
+   "links": [
+    {
+     "t": "Bellringer sheet",
+     "u": "https://docs.google.com/document/d/1x1cs-jObbFZU_t0L-Ds82Aj8fkESjD7q5vtqz8GcGBo/edit?usp=sharing"
+    },
+    {
+     "t": "Homework",
+     "u": "https://docs.google.com/document/d/1k_b5sSJUmS4qs0hZv25FSGUcLjqzd5l5b4x4dKDn8es/edit?usp=sharing"
+    },
+    {
+     "t": "Intro to Equations worksheet",
+     "u": "https://docs.google.com/document/d/1tEDCO_hx7gcVTgILGExmBIIeylpm9n2PTP46vMGmslw/edit?usp=sharing"
+    }
+   ]
   }
  }
 };
