@@ -21,18 +21,8 @@
         <p class="school-sub"><a href="home.html">Back to the signed-out home page</a></p>
     </main>
     <script type="module">
-        import { login } from "./js/auth.js";
-        document.getElementById("loginBtnPage").addEventListener("click", async () => {
-            const note = document.getElementById("loginNote");
-            note.textContent = "Signing you in…";
-            try {
-                await login();
-                note.textContent = "";
-                location.replace("index.html");
-            } catch (e) {
-                note.textContent = "Sign-in didn't finish. " + (e?.code || e?.message || "Try again.");
-            }
-        });
+        import { wireSignIn } from "./js/signInButton.js?v=18";
+        wireSignIn(document.getElementById("loginBtnPage"), document.getElementById("loginNote"));
     </script>
 </body>
 </html>

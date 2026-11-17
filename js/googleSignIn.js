@@ -56,8 +56,17 @@ function buildClient(google, clientId) {
             else p.reject(Object.assign(new Error(response?.error || "no token"), { code: "auth/internal-error" }));
         },
         error_callback: error => {
-            const p = pending; pending = null;
-            if (p) p.reject(Object.assign(new Error(error?.type || "error"), { code: googleErrorCode(error?.type) }));
+            const p = pending; if (!p) return;
+            // Chrome can report "popup_closed" while Google's window is still open (a known quirk when the
+            // window is cut off from this page), and the token then arrives anyway. Nov 16 live test: the
+            // first window "closed without finishing". So wait a little for the token before giving up.
+            if (error?.type === "popup_closed" && !p.closedOnce) {
+                p.closedOnce = true;
+                setTimeout(() => { if (pending === p) { pending = null; p.reject(Object.assign(new Error("popup_closed"), { code: googleErrorCode("popup_closed") })); } }, POPUP_CLOSED_GRACE_MS);
+                return;
+            }
+            pending = null;
+            p.reject(Object.assign(new Error(error?.type || "error"), { code: googleErrorCode(error?.type) }));
         }
     });
 }
@@ -72,6 +81,9 @@ export function prewarmGoogleSignIn() {
 export function googleSignInReady() {
     return Boolean(GOOGLE_CLIENT_ID && tokenClient);
 }
+
+/** After Google says its window closed, how long to keep listening for a token that may still come. */
+export const POPUP_CLOSED_GRACE_MS = 15000;
 
 /** How long to wait for Google's window to answer before saying so (the Home Screen app can lose its reply). */
 export const GOOGLE_WAIT_MS = 45000;

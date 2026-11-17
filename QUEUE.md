@@ -17,7 +17,6 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 | 16 | Record a lesson: confirm on real devices | Built Nov 16 (see Done). Still to confirm: Chrome on the Chromebook saves the file, and the video plays for students once uploaded to Schoology. Test recording here was MP4 (H.264) with Opus sound; real Chrome may pick AAC. |
 | 17 | Week Builder print: notes with rule boxes and worked lines | Notes can now carry `intro` (a rule box before an example) and practice parts with `kind` and `showWork`. `js/weekSheets.js` does not print these yet; `tools/weekly_kit/docs.py` prints `intro`. |
 | 15 | Bell times editor holds one schedule only | The regular schedule is saved. Not stored anywhere yet: the 3rd-period lunch block (A, B, C), gym dismissal, dismissal times, and the 1-hour and 2-hour activity schedules. Needs named schedules and more rows. Do not force these under a wrong label. |
-| 7 | Sign-in popup needed a second try | Seen in the Nov 16 live test: the first Google popup closed without finishing. Scout `js/googleSignIn.js`, `js/signInRetry.js`. |
 | 8 | Board takes about 8 seconds to load its state | Seen Nov 16. The skeleton now covers the wait; find out where the time goes (sign-in, Firestore, clock check). |
 | 9 | Check every teacher page against DESIGN.md | 390px and desktop: Home, Remote, Rosters, Library, Week Builder, Class Data, sign-in. Home's header now has six buttons and needs thinning. |
 | 10 | Week 6 content | Starts from the "Weekly Plan Intake - Steers Math" Sheet (school account). New `data/week6.js`, add to `data/weeks.js` and `data/library.js`. |
@@ -28,6 +27,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Done
 | When | Item |
 |------|------|
+| Nov 16 | Sign-in: a failed try now stays on the sign-in page and says so (it used to jump to the dashboard and bounce back); the button waits for Google's script so the tap opens Google's own window; a "popup closed" from Google waits 15 s for a token that may still arrive (a Chrome quirk). `?signincheck` shows this device's sign-in steps (`js/signInCheck.js` was missing). Not proven on Eddie's devices: if the first try still fails, open the page with `?signincheck` and read the steps. |
 | Nov 16 | Record a lesson (Remote, "Record a lesson" in the side rail): records the lesson stage only, microphone off unless turned on, warns if a student name tool is showing, saves a video to the device. `js/recorder.js`. Nothing is uploaded by the site. |
 | Nov 16 | Guided notes on the board for 7th Monday and 8th Accelerated Monday, loaded from the paper notes in the school Drive (wording unchanged). The Accelerated student notes have no error detectives or exit ticket, so none were loaded. |
 | Nov 16 | The three Friday Nov 20 sub plans (7th, 8th, 8th Accelerated) carry the guest teacher address. Each is still one page. |

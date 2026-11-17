@@ -39,22 +39,12 @@
             <a class="btn secondary" href="index.html">Go to Home</a>
         </div>
         <p id="homeSignInNote" class="school-sub" role="status"></p>
-        <div class="school-note">Sign in with the teacher's Google account. If Firebase is not configured yet, sign-in will show an error — fill in <code>js/firebase.js</code> from the new Firebase project first.</div>
+        <div class="school-note">Sign in with the teacher's Google account. Students never sign in. Add <code>?signincheck</code> to this page's address to see the last sign-in steps on this device if sign-in keeps failing.</div>
     </main>
     <script src="js/loadHeader.js"></script>
     <script type="module">
-        import { login } from "./js/auth.js";
-        document.getElementById("homeSignIn").addEventListener("click", async () => {
-            const note = document.getElementById("homeSignInNote");
-            note.textContent = "Signing you in…";
-            try {
-                await login();
-                note.textContent = "";
-                location.replace("index.html");
-            } catch (e) {
-                note.textContent = "Sign-in didn't finish. " + (e?.code || e?.message || "Try again.");
-            }
-        });
+        import { wireSignIn } from "./js/signInButton.js?v=18";
+        wireSignIn(document.getElementById("homeSignIn"), document.getElementById("homeSignInNote"));
     </script>
 </body>
 </html>
