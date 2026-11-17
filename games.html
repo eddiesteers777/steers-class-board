@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Review Games | Focal</title>
+    <title>Game Library | Focal</title>
     <meta name="robots" content="noindex">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=39">
-    <link rel="stylesheet" href="css/console.css?v=39">
+    <link rel="stylesheet" href="css/board.css?v=40">
+    <link rel="stylesheet" href="css/console.css?v=40">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/games.css?v=39">
+    <link rel="stylesheet" href="css/games.css?v=40">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page">
@@ -22,12 +22,22 @@
         <a class="btn ghost" href="remote.html?screen=game" style="text-decoration:none">Remote</a>
     </header>
     <main>
-        <h1>Review Games</h1>
-        <p class="sub">Games you run from the Remote while the board shows them. Students never sign in or use a device. Paste a question table once and it is saved to your private account, never to the site's public code.</p>
+        <h1>Game Library</h1>
+        <p class="sub">Every review game lives here. Make a question set once, give it to the classes that need it, and play it as any of the games below from the Remote. Students never sign in or use a device. Sets save to your private account, never to the site's public code.</p>
 
         <section class="gsbox">
-            <h2>Your question sets</h2>
-            <div id="sets"><p class="sub">Getting your sets…</p></div>
+            <h2>The games</h2>
+            <p class="sub">Any question set plays as any of these.</p>
+            <div class="glgames" id="games"></div>
+        </section>
+
+        <section class="gsbox">
+            <div class="glhead"><h2>Your question sets</h2><button class="btn go" id="newSet" type="button">New question set</button></div>
+            <div class="glbar">
+                <div class="tabs" id="perTabs" role="group" aria-label="Show sets for"></div>
+                <label class="glsearch"><span class="sr">Search sets</span><input type="search" id="find" placeholder="Search sets"></label>
+            </div>
+            <div id="sets" class="glsets"><p class="sub">Getting your sets…</p></div>
         </section>
 
         <section class="gsbox" id="editor">
@@ -37,6 +47,7 @@
                 <div><label for="title">Name of this set</label><input type="text" id="title" maxlength="80" placeholder="Example: Unit 4 Review, Scientific Notation"></div>
                 <div><label for="fromWeek">Or start from a week on the site</label><select id="fromWeek"><option value="">Choose a week and class</option></select></div>
             </div>
+            <fieldset class="glper"><legend>Classes that use this set</legend><div id="perPick"></div><p class="sub">Leave them all unticked to show this set to every class.</p></fieldset>
             <label for="text" class="bhead" style="display:block;font-size:.75rem;font-weight:600;color:var(--c-mute);margin-bottom:3px">Question table</label>
             <textarea id="text" class="gstext" spellcheck="false" placeholder="CATEGORY | POINTS | QUESTION | ANSWER&#10;SCIENTIFIC TO STANDARD | 100 | Convert 3.2 × 10^4 | 32,000&#10;SCIENTIFIC TO STANDARD | 200 | Convert 6.5 × 10^-3 | 0.0065"></textarea>
             <div class="gscheck" id="check" role="status"></div>
@@ -50,23 +61,72 @@
         </section>
     </main>
     <script type="module">
-        import { parseSet, setToText, cleanSet, countClues, mathRich, LIMITS } from "./js/games.js?v=39";
-        import { WEEKS } from "./data/weeks.js?v=39";
+        import { parseSet, setToText, cleanSet, countClues, mathRich, LIMITS } from "./js/games.js?v=40";
+        import { WEEKS } from "./data/weeks.js?v=40";
         const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
-        const store = await import(demo ? "./js/localStore.js?v=39" : "./js/boardStore.js?v=39");
+        const store = await import(demo ? "./js/localStore.js?v=40" : "./js/boardStore.js?v=40");
         const $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
         const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
-        let index = [], editing = "", parsed = null;
+        const PERIODS = [["1st", "8th Grade"], ["2nd", "8th Grade"], ["4th", "8th Grade"], ["5th", "7th Grade"], ["6th", "8th Accelerated"]];
+        const GAMES = [
+            ["board", "Review Board", "Categories and point tiles. Teams take turns picking a tile, with steals, a hidden double and a final wager.", "Best for a full review day"],
+            ["chests", "Treasure Chests", "One question at a time. Every team that gets it right opens a chest: points, double, steal, swap or a dud.", "Best for luck and comebacks"],
+            ["versus", "Class vs. Teacher", "The whole class plays against you. Boards up, and you give the point to the class or to yourself.", "Best for whole-class focus"],
+            ["shots", "Trashketball", "Right teams score and send a shooter to the 1, 2 or 3 point line. You tap made or missed.", "Best for getting them moving"],
+        ];
+        let index = [], editing = "", parsed = null, view = "all", playing = "";
+        const perOf = (m) => (Array.isArray(m.per) ? m.per.filter((p) => PERIODS.some((x) => x[0] === p)) : []);
+        const forPeriod = (m, p) => { const per = perOf(m); return !per.length || per.includes(p); };
+        const fmtDay = (t) => t ? new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
+
+        GAMES.forEach(([k, name, how, best]) => { const c = el("div", "glgame " + k); c.append(el("b", null, name), el("p", null, how), el("small", null, best)); $("games").append(c); });
+        [["all", "All classes"], ...PERIODS.map(([p]) => [p, p + " period"])].forEach(([k, t]) => {
+            const b = el("button", null, t); b.type = "button"; b.dataset.k = k; b.onclick = () => { view = k; drawSets(); }; $("perTabs").append(b);
+        });
+        PERIODS.forEach(([p, label]) => { const l = el("label", "chk"), c = el("input"); c.type = "checkbox"; c.value = p; l.append(c, document.createTextNode(" " + p + " period · " + label)); $("perPick").append(l); });
+        const pickedPer = () => [...$("perPick").querySelectorAll("input:checked")].map((c) => c.value);
+        const setPicked = (list) => $("perPick").querySelectorAll("input").forEach((c) => { c.checked = list.includes(c.value); });
+        $("find").oninput = () => drawSets();
+        $("newSet").onclick = () => { reset(); $("editor").scrollIntoView({ behavior: "smooth", block: "start" }); $("title").focus({ preventScroll: true }); };
+
+        function playBox(m) {
+            const box = el("div", "glplay"), row = el("div", "glplayrow"), sel = el("select"); sel.setAttribute("aria-label", "Class to play it with");
+            const per = perOf(m), opts = per.length ? PERIODS.filter(([p]) => per.includes(p)) : PERIODS;
+            opts.forEach(([p, label]) => { const o = el("option", null, p + " period · " + label); o.value = p; sel.append(o); });
+            if (view !== "all" && opts.some(([p]) => p === view)) sel.value = view;
+            const lab = el("label", null, "Class "); lab.append(sel); box.append(lab);
+            GAMES.forEach(([k, name]) => { const a = el("a", "btn ghost", name); a.href = "#"; a.onclick = (e) => { e.preventDefault(); location.href = "remote.html?" + new URLSearchParams({ screen: "game", period: sel.value, set: m.id, game: k }).toString(); }; row.append(a); });
+            box.append(row, el("p", "sub", "Opens the Remote with this game ready for that class. If a game is already running there, it asks you to end it first."));
+            return box;
+        }
+        async function copySet(m) {
+            status("Copying…");
+            const set = await new Promise((done) => { let got = false; const u = store.watch("games/s_" + m.id, (snap) => { if (got || snap.pending) return; got = true; setTimeout(() => u && u(), 0); done(snap.exists ? cleanSet(snap.data) : null); }, () => done(null)); });
+            if (!set) { status("Could not copy that set", "bad"); return; }
+            const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title = ("Copy of " + set.title).slice(0, LIMITS.title);
+            const copy = cleanSet(Object.assign({}, set, { id, title })), meta = { id, title, cats: copy.cats.length, clues: countClues(copy), final: !!copy.final, per: perOf(m), at: Date.now() };
+            try { await store.save("games/s_" + id, Object.assign({ at: meta.at }, copy)); index = [...index, meta]; await store.save("games/index", { sets: index, at: meta.at }); status("Copied", "ok"); drawSets(); }
+            catch (e) { status("Could not copy (" + ((e && e.code) || "connection") + ")", "bad"); }
+        }
 
         function drawSets() {
+            [...$("perTabs").children].forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.k === view)));
             const box = $("sets"); box.replaceChildren();
-            if (!index.length) { box.appendChild(el("p", "sub", "No sets saved yet. Paste your table below to make the first one.")); return; }
-            index.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach((m) => {
-                const d = el("div", "gsitem"); d.appendChild(el("b", null, m.title));
-                d.appendChild(el("span", null, m.cats + " categories · " + m.clues + " questions" + (m.final ? " · final question" : "")));
-                const play = el("a", "btn", "Play on the Remote"); play.href = "remote.html?screen=game"; d.appendChild(play);
-                const ed = el("button", "bx2", "Edit"); ed.type = "button"; ed.onclick = () => edit(m); d.appendChild(ed);
+            if (!index.length) { box.appendChild(el("p", "sub", "No sets saved yet. Tap New question set to make the first one.")); return; }
+            const q = $("find").value.trim().toLowerCase();
+            const list = index.filter((m) => (view === "all" || forPeriod(m, view)) && (!q || String(m.title).toLowerCase().includes(q))).sort((a, b) => (b.at || 0) - (a.at || 0));
+            if (!list.length) { box.appendChild(el("p", "sub", q ? "No sets match that search." : "No sets for " + view + " period yet. Edit a set and tick " + view + " period, or make a new one.")); return; }
+            list.forEach((m) => {
+                const d = el("div", "glset"), per = perOf(m), chips = el("div", "glchips");
+                d.appendChild(el("b", "gltitle", m.title));
+                d.appendChild(el("span", "glmeta", m.cats + (m.cats === 1 ? " category · " : " categories · ") + m.clues + " questions" + (m.final ? " · final question" : "") + (m.at ? " · edited " + fmtDay(m.at) : "")));
+                (per.length ? per.map((p) => p + " period") : ["All classes"]).forEach((t) => chips.append(el("span", "glchip" + (per.length ? "" : " all"), t)));
+                d.appendChild(chips);
+                const acts = el("div", "glacts");
+                const play = el("button", "btn go", playing === m.id ? "Close" : "Play"); play.type = "button"; play.onclick = () => { playing = playing === m.id ? "" : m.id; drawSets(); }; acts.appendChild(play);
+                const ed = el("button", "bx2", "Edit"); ed.type = "button"; ed.onclick = () => edit(m); acts.appendChild(ed);
+                const cp = el("button", "bx2", "Copy"); cp.type = "button"; cp.onclick = () => copySet(m); acts.appendChild(cp);
                 const rm = el("button", "bx2", "Remove"); rm.type = "button";
                 rm.onclick = async () => {
                     if (rm.dataset.sure !== "1") { rm.dataset.sure = "1"; rm.textContent = "Tap again to remove"; setTimeout(() => { rm.dataset.sure = ""; rm.textContent = "Remove"; }, 4000); return; }
@@ -74,7 +134,9 @@
                     try { await store.save("games/s_" + m.id, { removed: true, at: Date.now() }); index = index.filter((x) => x.id !== m.id); await store.save("games/index", { sets: index, at: Date.now() }); if (editing === m.id) reset(); status("Removed", "ok"); drawSets(); }
                     catch (e) { status("Could not remove (" + ((e && e.code) || "connection") + ")", "bad"); }
                 };
-                d.appendChild(rm); box.appendChild(d);
+                acts.appendChild(rm); d.appendChild(acts);
+                if (playing === m.id) d.appendChild(playBox(m));
+                box.appendChild(d);
             });
         }
         function edit(m) {
@@ -83,11 +145,11 @@
                 if (got || snap.pending) return; got = true; setTimeout(() => u && u(), 0);
                 const set = snap.exists ? cleanSet(snap.data) : null;
                 if (!set) { status("Could not open that set", "bad"); return; }
-                editing = m.id; $("title").value = set.title; $("text").value = setToText(set); $("edHead").textContent = "Edit: " + set.title; $("save").textContent = "Save changes";
+                editing = m.id; setPicked(perOf(m)); $("title").value = set.title; $("text").value = setToText(set); $("edHead").textContent = "Edit: " + set.title; $("save").textContent = "Save changes";
                 status(demo ? "This device only" : "Live", "ok"); check(); $("editor").scrollIntoView({ behavior: "smooth", block: "start" });
             }, () => status("Could not open that set", "bad"));
         }
-        function reset() { editing = ""; $("title").value = ""; $("text").value = ""; $("fromWeek").value = ""; $("edHead").textContent = "New question set"; $("save").textContent = "Save this set"; $("note").textContent = ""; check(); }
+        function reset() { editing = ""; setPicked(view === "all" ? [] : [view]); $("title").value = ""; $("text").value = ""; $("fromWeek").value = ""; $("edHead").textContent = "New question set"; $("save").textContent = "Save this set"; $("note").textContent = ""; check(); }
 
         function check() {
             const text = $("text").value, box = $("check"), prev = $("prev"); box.replaceChildren(); prev.replaceChildren(); box.className = "gscheck";
@@ -130,12 +192,12 @@
             if (!parsed || !countClues(parsed) || parsed.problems.length) return;
             const title = $("title").value.trim(); if (!title) { $("note").textContent = "Give this set a name first."; $("title").focus(); return; }
             const id = editing || (Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
-            const set = cleanSet({ id, title, cats: parsed.cats, final: parsed.final }), meta = { id, title: set.title, cats: set.cats.length, clues: countClues(set), final: !!set.final, at: Date.now() };
+            const set = cleanSet({ id, title, cats: parsed.cats, final: parsed.final }), meta = { id, title: set.title, cats: set.cats.length, clues: countClues(set), final: !!set.final, per: pickedPer(), at: Date.now() };
             status("Saving…");
             try {
                 await store.save("games/s_" + id, Object.assign({ at: meta.at }, set));
                 index = [...index.filter((x) => x.id !== id), meta]; await store.save("games/index", { sets: index, at: meta.at });
-                status("Saved", "ok"); reset(); $("note").textContent = "Saved \"" + meta.title + "\". Open the Remote and choose Review Game to play it."; drawSets(); scrollTo({ top: 0, behavior: "smooth" });
+                status("Saved", "ok"); reset(); $("note").textContent = "Saved \"" + meta.title + "\". Tap Play on it to start a game."; drawSets(); scrollTo({ top: 0, behavior: "smooth" });
             } catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); }
         };
 
