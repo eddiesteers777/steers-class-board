@@ -7,9 +7,9 @@
     <meta name="robots" content="noindex">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=30">
-    <link rel="stylesheet" href="css/console.css?v=30">
-    <link rel="stylesheet" href="css/classdata.css?v=30">
+    <link rel="stylesheet" href="css/board.css?v=31">
+    <link rel="stylesheet" href="css/console.css?v=31">
+    <link rel="stylesheet" href="css/classdata.css?v=31">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page">
@@ -21,7 +21,7 @@
     </header>
     <main>
         <h1>Class Data</h1>
-        <p class="sub">Bring in results from Magma Math, a quiz, or an exit ticket, and see what each class knows and who needs help. Everything here saves only to your private account. It is never part of the site's public code, and students and guests cannot open it.</p>
+        <p class="sub">Bring in results from Wayground, Blooket, DeltaMath, Magma Math, a quiz, or an exit ticket, and see what each class knows and who needs help. Everything here saves only to your private account. It is never part of the site's public code, and students and guests cannot open it.</p>
 
         <div class="cdbar">
             <div class="tabs" id="periodTabs" role="group" aria-label="Period"></div>
@@ -37,15 +37,19 @@
         <div id="imports"></div>
 
         <h2>Bring in results</h2>
-        <p class="sub">Paste from a spreadsheet or load a CSV file. The first row must be the column names. One row per student.</p>
-        <div class="rowx"><label class="btn ghost" style="cursor:pointer">Load a CSV file<input type="file" id="file" accept=".csv,.tsv,.txt,text/csv" hidden></label></div>
+        <p class="sub">Download the report from the app as Excel (.xlsx) or CSV and load it here, or paste from a spreadsheet. One row per student. If the report has title lines above the column names, pick the row that holds the column names.</p>
+        <div class="rowx"><label class="btn ghost" style="cursor:pointer">Load an Excel or CSV file<input type="file" id="file" accept=".xlsx,.csv,.tsv,.txt,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden></label><span class="count2" id="fileNote"></span></div>
+        <div class="meta" id="pickBox" hidden>
+            <div id="sheetBox" hidden><label for="iSheet">Sheet</label><select id="iSheet"></select></div>
+            <div><label for="iHead">Column names are in</label><select id="iHead"></select></div>
+        </div>
         <textarea id="paste" spellcheck="false" aria-label="Paste results here" placeholder="Paste results here"></textarea>
         <div id="map" hidden>
             <div class="meta">
                 <div><label for="iTitle">Name of this set</label><input type="text" id="iTitle" placeholder="Example: Triangle Angle Sum exit ticket"></div>
                 <div><label for="iSkill">Skill or topic</label><input type="text" id="iSkill" placeholder="Example: Triangle angle sum"></div>
                 <div><label for="iDate">Date</label><input type="date" id="iDate"></div>
-                <div><label for="iSource">Source</label><input type="text" id="iSource" placeholder="Magma Math, quiz, exit ticket"></div>
+                <div><label for="iSource">Source</label><input type="text" id="iSource" list="sources" placeholder="Wayground, Blooket, DeltaMath, Magma Math"><datalist id="sources"><option value="Wayground"><option value="Blooket"><option value="DeltaMath"><option value="Magma Math"><option value="Paper (graded by Claude)"><option value="Exit ticket"><option value="Quiz"><option value="Test"></datalist></div>
                 <div><label for="iPeriod">Period</label><select id="iPeriod"></select></div>
                 <div><label for="iStudent">Student column</label><select id="iStudent"></select></div>
                 <div><label for="iKind">The scores are</label><select id="iKind"><option value="percent">Percents (85 or 85%)</option><option value="points">Points out of a total</option><option value="right">Right or wrong (1/0, yes/no)</option></select></div>
@@ -58,9 +62,10 @@
         </div>
     </main>
     <script type="module">
-        import { parseTable, toScore, looksNumeric, rosterIndex, summarise } from "./js/classData.js?v=30";
+        import { parseTable, toScore, looksNumeric, rosterIndex, summarise } from "./js/classData.js?v=31";
+        import { readXlsx, guessHeaderRow } from "./js/xlsxRead.js?v=31";
         const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
-        const store = await import(demo ? "./js/localStore.js?v=30" : "./js/boardStore.js?v=30");
+        const store = await import(demo ? "./js/localStore.js?v=31" : "./js/boardStore.js?v=31");
         const PERIODS = [["1st", "8th Grade"], ["2nd", "8th Grade"], ["4th", "8th Grade"], ["5th", "7th Grade"], ["6th", "8th Accelerated"]];
         const $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -101,9 +106,18 @@
         }
 
         // ---------- import ----------
-        function readTable(text) {
-            table = parseTable(text); const map = $("map");
-            if (table.length < 2 || table[0].length < 2) { map.hidden = true; if (text.trim()) $("iNote").textContent = ""; return; }
+        let rawRows = [], sheets = null;
+        function readTable(text) { useRows(parseTable(text)); }
+        function useRows(rows, keepHead) {
+            rawRows = rows; const hb = $("iHead");
+            if (!keepHead) {
+                const g = guessHeaderRow(rows);
+                hb.replaceChildren(...rows.slice(0, 25).map((r, i) => { const o = el("option", null, (i === 0 ? "Top line: " : "Line " + (i + 1) + ": ") + r.filter(Boolean).slice(0, 4).join(", ").slice(0, 60)); o.value = i; return o; }));
+                hb.value = g;
+            }
+            $("pickBox").hidden = rows.length < 2;
+            table = rows.slice(+hb.value || 0); const map = $("map");
+            if (table.length < 2 || table[0].length < 2) { map.hidden = true; $("iNote").textContent = ""; return; }
             const head = table[0], body = table.slice(1);
             $("iStudent").replaceChildren(...head.map((h, i) => { const o = el("option", null, h || "Column " + (i + 1)); o.value = i; return o; }));
             const guess = head.findIndex((h) => /student|name|learner|pupil/i.test(h)); $("iStudent").value = guess >= 0 ? guess : 0;
@@ -115,8 +129,27 @@
             if (!$("iDate").value) $("iDate").value = new Date().toLocaleDateString("en-CA");
             $("iNote").textContent = body.length + " rows read."; map.hidden = false;
         }
-        $("paste").oninput = () => readTable($("paste").value);
-        $("file").onchange = async (e) => { const f = e.target.files[0]; e.target.value = ""; if (!f) return; const t = await f.text(); $("paste").value = t; if (!$("iTitle").value) $("iTitle").value = f.name.replace(/\.[^.]+$/, ""); readTable(t); };
+        $("paste").oninput = () => { sheets = null; $("sheetBox").hidden = true; $("fileNote").textContent = ""; readTable($("paste").value); };
+        $("iHead").onchange = () => useRows(rawRows, true);
+        $("iSheet").onchange = () => useRows(sheets[+$("iSheet").value].rows);
+        const SOURCES = [["wayground", "Wayground"], ["quizizz", "Wayground"], ["blooket", "Blooket"], ["deltamath", "DeltaMath"], ["delta math", "DeltaMath"], ["magma", "Magma Math"]];
+        $("file").onchange = async (e) => {
+            const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+            if (!$("iTitle").value) $("iTitle").value = f.name.replace(/\.[^.]+$/, "");
+            const hit = SOURCES.find(([k]) => f.name.toLowerCase().includes(k)); if (hit && !$("iSource").value) $("iSource").value = hit[1];
+            if (/\.xls$/i.test(f.name)) { $("fileNote").textContent = "This is an old Excel file (.xls). Download it as .xlsx or CSV instead."; return; }
+            if (/\.xlsx$/i.test(f.name)) {
+                try { sheets = await readXlsx(f); } catch (err) { $("fileNote").textContent = "Could not read that Excel file. Try downloading it as CSV."; return; }
+                sheets = sheets.filter((x) => x.rows.length); if (!sheets.length) { $("fileNote").textContent = "That file has no filled-in sheets."; return; }
+                $("iSheet").replaceChildren(...sheets.map((x, i) => { const o = el("option", null, x.name + " (" + x.rows.length + " rows)"); o.value = i; return o; }));
+                const best = sheets.reduce((b, x, i) => x.rows.length > sheets[b].rows.length ? i : b, 0); $("iSheet").value = best;
+                $("sheetBox").hidden = sheets.length < 2; $("paste").value = "";
+                $("fileNote").textContent = f.name + (sheets.length > 1 ? " has " + sheets.length + " sheets. Pick the one with one row per student." : "");
+                useRows(sheets[best].rows); return;
+            }
+            sheets = null; $("sheetBox").hidden = true; $("fileNote").textContent = f.name;
+            const t = await f.text(); $("paste").value = t; readTable(t);
+        };
         $("iKind").onchange = () => { $("maxBox").hidden = $("iKind").value !== "points"; };
         $("doImport").onclick = async () => {
             const note = (t) => { $("iNote").textContent = t; }, head = table[0], sIdx = +$("iStudent").value, kind = $("iKind").value, max = +$("iMax").value;
@@ -141,7 +174,7 @@
                 index = [...index, { id, title, skill: imp.skill, date: imp.date, source: imp.source, period: per, n: rows.length, items: cols.length }];
                 await store.save("data/index", { imports: index, at: Date.now() });
                 loaded.set(id, imp); period = per; status("Saved", "ok");
-                $("paste").value = ""; $("iTitle").value = ""; $("map").hidden = true; table = null; draw(); scrollTo({ top: 0, behavior: "smooth" });
+                $("paste").value = ""; $("iTitle").value = ""; $("map").hidden = true; $("pickBox").hidden = true; $("fileNote").textContent = ""; sheets = null; table = null; draw(); scrollTo({ top: 0, behavior: "smooth" });
             } catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); }
         };
 
