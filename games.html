@@ -8,10 +8,10 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=48">
-    <link rel="stylesheet" href="css/console.css?v=48">
+    <link rel="stylesheet" href="css/board.css?v=49">
+    <link rel="stylesheet" href="css/console.css?v=49">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/games.css?v=48">
+    <link rel="stylesheet" href="css/games.css?v=49">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page">
@@ -61,10 +61,10 @@
         </section>
     </main>
     <script type="module">
-        import { parseSet, setToText, cleanSet, countClues, mathRich, LIMITS } from "./js/games.js?v=48";
-        import { WEEKS } from "./data/weeks.js?v=48";
+        import { parseSet, setToText, cleanSet, countClues, mathRich, LIMITS } from "./js/games.js?v=49";
+        import { WEEKS } from "./data/weeks.js?v=49";
         const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
-        const store = await import(demo ? "./js/localStore.js?v=48" : "./js/boardStore.js?v=48");
+        const store = await import(demo ? "./js/localStore.js?v=49" : "./js/boardStore.js?v=49");
         const $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
         const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };

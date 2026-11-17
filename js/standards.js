@@ -5,11 +5,12 @@
      { "8th": { "8.11": { s: "taught", d: "2026-11-17" } }, "7th": { … } }
    ?demo keeps everything on this device only. ?cls=7th&q=slope opens straight to a search.
 ========================================== */
-import { STANDARDS } from "../data/standards.js?v=48";
-import { today, short } from "./schoolCal.js?v=48";
+import { STANDARDS } from "../data/standards.js?v=49";
+import { today, short, daysLeftInNineWeeks, nineWeeksOf } from "./schoolCal.js?v=49";
+import { nextUp } from "./standardsNext.js?v=49";
 
 const demo = new URLSearchParams(location.search).has("demo");
-const store = await import(demo ? "./localStore.js?v=48" : "./boardStore.js?v=48");
+const store = await import(demo ? "./localStore.js?v=49" : "./boardStore.js?v=49");
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
@@ -179,6 +180,49 @@ function summary(C) {
     tile(teaching.length ? teaching.slice(0, 3).join(", ") + (teaching.length > 3 ? "…" : "") : "None", "teaching right now");
     tile(String(C.units.length), C.course + " units in the district plan");
 }
+/* ---------- next up: what the district order says comes next ---------- */
+const ORDN = ["", "1st", "2nd", "3rd", "4th"];
+function findRow(code) {
+    const go = () => { const n = document.getElementById("s-" + code.replace(/[^A-Za-z0-9]+/g, "-")); if (n) { n.scrollIntoView({ behavior: "smooth", block: "center" }); n.classList.add("st-flash"); setTimeout(() => n.classList.remove("st-flash"), 1600); } };
+    if (only !== "all" || query) { only = "all"; query = ""; $("q").value = ""; draw(); }
+    requestAnimationFrame(go);
+}
+function nextPanel() {
+    const box = $("next"); box.textContent = "";
+    const n = nextUp(cls, progress); if (!n) { box.hidden = true; return; } box.hidden = false;
+    const head = el("div", "st-nhead"), t = el("div");
+    t.appendChild(el("h2", null, "Next up"));
+    const d = today(), q = nineWeeksOf(d), left = q ? daysLeftInNineWeeks(d) : 0;
+    const meta = [];
+    if (q) meta.push(left + (left === 1 ? " school day" : " school days") + " left in the " + ORDN[q.n] + " nine weeks");
+    meta.push(n.critLeft + " critical (★) " + (n.critLeft === 1 ? "standard" : "standards") + " not taught yet");
+    t.appendChild(el("p", "st-nmeta", meta.join(" · ")));
+    head.appendChild(t); box.appendChild(head);
+    if (n.current) {
+        const now = el("p", "st-nnow"); now.appendChild(el("b", null, "Now: ")); now.appendChild(document.createTextNode(n.unitWord + " " + n.current.id + ": " + n.current.name));
+        if (n.teaching.length) now.appendChild(document.createTextNode(" (teaching " + n.teaching.join(", ") + ")"));
+        box.appendChild(now);
+    }
+    if (!n.next.length) box.appendChild(el("p", "st-nnow", "Every standard from here on is marked Teaching or Taught."));
+    const list = el("ol", "st-nlist");
+    n.next.slice(0, 4).forEach((x) => {
+        const li = el("li"), top = el("div", "st-ntop");
+        const code = el("button", "st-code st-ncode", x.code); code.type = "button"; code.title = "Show " + x.code + " in the list"; code.onclick = () => findRow(x.code);
+        top.appendChild(code);
+        if (x.critical) top.appendChild(chip("crit", "★ Critical"));
+        top.appendChild(el("span", "st-nunit", n.unitWord + " " + x.unit.id + ": " + x.unit.name));
+        const go = el("button", "st-nstart", "Start teaching"); go.type = "button"; go.onclick = () => setMark(x.code, "teaching");
+        top.appendChild(go);
+        li.appendChild(top);
+        li.appendChild(el("p", "st-ntext", x.text.length > 150 ? x.text.slice(0, 147).trim() + "…" : x.text));
+        list.appendChild(li);
+    });
+    if (n.next.length) box.appendChild(list);
+    if (n.next.length > 4) box.appendChild(el("p", "st-nmore", "Then " + (n.next.length - 4) + " more, in district order below."));
+    const links = (label, codes) => { if (!codes.length) return; const p = el("p", "st-nopen"); p.appendChild(el("b", null, label)); codes.forEach((c, i) => { const a = el("button", "st-nlink", c); a.type = "button"; a.onclick = () => findRow(c); if (i) p.appendChild(document.createTextNode(", ")); p.appendChild(a); }); box.appendChild(p); };
+    links("Marked Reteach: ", n.reteach);
+    links("Left open in earlier " + n.unitWord.toLowerCase() + "s: ", n.left.map((x) => x.code));
+}
 function seg(id, items, cur, onPick) {
     const box = $(id); box.textContent = "";
     items.forEach(([k, label]) => { const b = el("button", null, label); b.type = "button"; b.dataset.v = k; b.setAttribute("aria-pressed", String(k === cur)); b.onclick = () => onPick(k); box.appendChild(b); });
@@ -189,6 +233,7 @@ function draw() {
     seg("only", ONLY, only, (k) => { only = k; draw(); });
     const C = STANDARDS[cls];
     summary(C);
+    nextPanel();
     const box = $("view"); box.textContent = "";
     box.classList.remove("pl-view"); void box.offsetWidth; box.classList.add("pl-view");
     if (!C) { box.appendChild(el("div", "pl-empty", "No standards loaded for this class yet.")); return; }
