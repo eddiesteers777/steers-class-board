@@ -277,3 +277,28 @@ body.board .recpill{display:none}
 .fixbtns button.fixdone[aria-pressed="true"]{background:var(--green,#2E7D32);color:#fff}
 .fixbtns button.alt{background:transparent;color:var(--on);border:.12em solid var(--soft)}
 .fixhint{margin:0;color:var(--soft);font-size:.95em}
+
+/* ---------- Sound and music (Remote rail) ---------- */
+.sndbox{display:flex;flex-direction:column;gap:8px;padding:6px 10px 4px}
+.sndtog{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;background:var(--c-bg);border:1.5px solid var(--c-line);border-radius:10px;padding:8px 10px;font:inherit;font-size:.9rem;font-weight:600;color:var(--c-ink);cursor:pointer;min-height:40px}
+.sndtog i{font-style:normal;font-size:.75rem;font-weight:700;border-radius:999px;padding:2px 10px;background:#DDE3EE;color:var(--c-mute)}
+.sndtog[aria-pressed="true"]{border-color:var(--navy)}
+.sndtog[aria-pressed="true"] i{background:var(--green);color:#fff}
+.console .seg.sndsty,.console .seg.sndat{display:flex;flex-wrap:wrap;gap:4px;background:var(--c-bg);border:1.5px solid var(--c-line);border-radius:10px;padding:3px}
+.console .seg.sndsty button,.console .seg.sndat button{flex:1;background:transparent;border:0;border-radius:8px;padding:6px 6px;font-size:.82rem;font-weight:600;color:var(--c-mute);min-height:32px}
+.console .seg.sndsty button[aria-pressed="true"],.console .seg.sndat button[aria-pressed="true"]{background:var(--navy);color:#fff}
+.sndvol{display:flex;flex-direction:column;gap:2px;font-size:.78rem;font-weight:600;color:var(--c-mute)}
+.sndvol input{width:100%;accent-color:var(--navy);min-height:24px}
+.sndtry{display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-size:.78rem;color:var(--c-mute)}
+.sndtry button{background:transparent;border:1px solid var(--c-line);border-radius:999px;padding:3px 9px;font-size:.78rem;font-weight:600;color:#1B4FBF;cursor:pointer}
+.sndtry button:hover{background:var(--c-bg)}
+.sndlab{font-size:.78rem;font-weight:600;color:var(--c-mute);margin:2px 0 -4px}
+.sndnote{font-size:.8rem;line-height:1.4;color:var(--c-mute)}
+@media (max-width:860px){.sndbox{min-width:240px}}
+/* A screen that should play sound but has not been tapped yet. */
+.sndtap{position:fixed;right:14px;bottom:14px;z-index:60;background:var(--amber);color:var(--amber-ink);border:0;border-radius:999px;padding:10px 18px;font:600 .95rem var(--ui);box-shadow:0 4px 14px rgba(8,27,69,.3);cursor:pointer}
+.sndtap::before{content:"\266A  "}
+.sndtap[hidden]{display:none}
+.musicbtn{white-space:nowrap}
+.musicbtn::before{content:"\266A";margin-right:6px}
+.musicbtn[aria-pressed="true"]{background:#E3F5EC;border-color:var(--green);color:#0F6B40}
