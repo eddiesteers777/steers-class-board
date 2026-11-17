@@ -20,12 +20,13 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 | 9 | Check every teacher page against DESIGN.md | 390px and desktop: Home, Remote, Rosters, Library, Week Builder, Class Data, sign-in. Home's header now has six buttons and needs thinning. |
 | 10 | Week 6 content | Starts from the "Weekly Plan Intake - Steers Math" Sheet (school account). New `data/week6.js`, add to `data/weeks.js` and `data/library.js`. |
 | 12 | Class Data: tie results to skills over time | Link a set to a Library week, show growth, group by standard once the curriculum documents are in the project. |
-| 20 | Review games: the next game | Ideas Eddie has seen: Mystery Tiles, Ring Race, Trashketball scorer, printable Bingo. Ask him which one before building. |
+| 20 | Review games: the next game | Ideas Eddie has seen: Mystery Tiles, Ring Race, printable Bingo. Ask him which one before building. |
 | 14 | Remove unused starter pages | `planning.html`, `homework.html`, `schedule.html` and their scripts look unused. Confirm with the school thread first. |
 
 ## Done
 | When | Item |
 |------|------|
+| Nov 17 | Review Games, fourth game: Trashketball. Right teams score the answer points and shoot from the 1, 2 or 3 point line; the teacher taps the result. Results save to Class Data. Tested with a local store only. |
 | Nov 17 | Review game results in Class Data: every finished game saves its date, period, winner, scores, team members (from the Group maker) and right answers per category. Class Data shows who won with a "Bonus given" box, student wins still owed a bonus, and class growth. Tested with a local store only. |
 | Nov 17 | Review Games, third game: Class vs. Teacher (shows as "Class vs. Mr. Steers"). The whole class plays against the teacher; the teacher awards each point after looking at the boards. First to 5/7/10/15, with a class-scoring rule shown on the board and a streak note. Tested with a local store only. |
 | Nov 17 | Review Games, second game: Treasure Chests. Same question sets; every team answers, right teams each open one of nine chests (+10 to +50, double, steal 25, swap scores, lose 15, empty). The teacher picks the target for a steal or swap. Scores never go below 0. Tested with a local store only. |

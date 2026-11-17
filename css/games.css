@@ -198,3 +198,22 @@ div.gpset{cursor:default}
 .gpvs b{font-size:1.3rem;font-variant-numeric:tabular-nums}
 .gpvsbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .gpvsbtns button{min-height:56px;font-size:1rem}
+
+/* ---------- Trashketball ---------- */
+.gtwrap{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:1em}
+.gtcourtbox{min-height:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#0E2A5E,#081B45);border:.13em solid var(--sky);border-radius:.8em;padding:.6em}
+.gtcourt{width:100%;height:100%;max-height:100%}
+.gtline{fill:none;stroke:#8FB3E8;stroke-width:3;stroke-dasharray:10 8;opacity:.75}
+.gtline.hit{stroke:var(--amber,#F2B33D);stroke-width:6;stroke-dasharray:none;opacity:1}
+.gtlab{fill:#CFE0FA;font-size:17px;font-weight:700;font-family:inherit}
+.gtlab.hit{fill:var(--amber,#F2B33D);font-size:20px}
+.gtcan{fill:#5B7BAE;stroke:#CFE0FA;stroke-width:2}
+.gtrim{fill:#CFE0FA}
+.gtrib{stroke:#2C4A7E;stroke-width:2}
+.gtball{fill:#F4F1E8;stroke:#B9B2A0;stroke-width:2}
+.gtball.in{animation:gtdrop .6s ease-out}
+.gtball.out{opacity:.85}
+@keyframes gtdrop{from{transform:translateY(-120px)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){.gtball.in{animation:none}}
+.gpshots{display:grid;grid-template-columns:1fr;gap:6px}
+.gpshots .gpok,.gpshots .gpno{min-height:48px;font-size:.95rem}
