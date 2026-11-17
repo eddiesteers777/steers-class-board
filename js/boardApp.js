@@ -553,12 +553,18 @@ function drawFix(st) {
     right.appendChild(cv); right.appendChild(toolbar()); body.appendChild(right); st.appendChild(body); bindCanvas(); sizeCanvas();
 }
 /* Remote only: pick a card, or type one when the week's cards are not saved in Week Builder. */
+// A dropdown cannot stack fractions: {3/4} becomes 3/4, and {{3/4}/{1/2}} becomes (3/4)/(1/2).
+function flatFrac(t) {
+    let i = 0; const atom = (x) => (/^[\w.−-]+$/.test(x) ? x : "(" + x + ")");
+    const parse = (stop) => { let out = ""; while (i < t.length && !(stop && stop.includes(t[i]))) { if (t[i] === "{") { const save = i++; const a = parse("/}").trim(); if (t[i] === "/") { i++; const b = parse("}").trim(); if (t[i] === "}") { i++; const nested = !!stop; out += (/\d$/.test(out) ? " " : "") + (nested && /\d \d/.test(a + b) ? "(" + atom(a) + "/" + atom(b) + ")" : atom(a) + "/" + atom(b)); continue; } } i = save + 1; out += "{"; continue; } out += t[i++]; } return out; };
+    return parse("");
+}
 function fixPicker(f, sd) {
     const box = el("div", "fixctl"), row = el("div", "fixrow"), sel = el("select"), cards = sd ? sd.cards : null, n = cards ? cards.length : 40;
     sel.setAttribute("aria-label", "Pick a card");
     const o0 = el("option", null, "Pick a tricky card\u2026"); o0.value = ""; sel.appendChild(o0);
     for (let i = 1; i <= n; i++) {
-        const q = cards && cards[i - 1] && cards[i - 1].q ? String(cards[i - 1].q).replace(/\s+/g, " ") : "", o = el("option", null, "#" + i + (q ? "  " + (q.length > 70 ? q.slice(0, 68) + "\u2026" : q) : "") + (f.list.some((x) => x.n === i) ? "  (on the list)" : ""));
+        const q = cards && cards[i - 1] && cards[i - 1].q ? flatFrac(String(cards[i - 1].q)).replace(/\s+/g, " ") : "", o = el("option", null, "#" + i + (q ? "  " + (q.length > 70 ? q.slice(0, 68) + "\u2026" : q) : "") + (f.list.some((x) => x.n === i) ? "  (on the list)" : ""));
         o.value = String(i); sel.appendChild(o);
     }
     row.appendChild(sel);
