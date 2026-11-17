@@ -1,7 +1,7 @@
 # Focal (formerly Steers Class Board)
 
 Classroom display for Mr. Steers' math classes at Calera Middle School.
-Live at https://steers-class-board.web.app/
+Live at https://focalboard.web.app/
 
 - `index.html` home: this week, with Open Remote and Open Board.
 - `remote.html` the Chromebook: pick class, day and screen, run timers, show answers.
@@ -17,7 +17,7 @@ Live at https://steers-class-board.web.app/
 Teacher only. Students never sign in.
 
 ## Guest teacher (sub days)
-`sub.html` runs the board on one device with no sign-in: https://steers-class-board.web.app/sub.html
+`sub.html` runs the board on one device with no sign-in: https://focalboard.web.app/sub.html
 Nothing is saved and it never touches the teacher's account or rosters. Put this link in the sub plan.
 
 ## Guided Notes
@@ -49,6 +49,6 @@ Two Claude threads (school account and personal account) push to `main`. Fetch a
 
 ## Hosting + Google
 
-- Live: https://steers-class-board.web.app/ via Firebase Hosting (free Spark plan). GitHub Pages (https://eddiesteers777.github.io/steers-class-board/) is still enabled for now as a fallback. No custom domain — the `web.app` address is the official address unless Eddie buys a domain later.
+- Live: https://focalboard.web.app/ via Firebase Hosting (free Spark plan). Also served at https://steers-class-board.web.app/ and via GitHub Pages (https://eddiesteers777.github.io/steers-class-board/) as fallbacks. No custom domain — the `web.app` address is the official address unless Eddie buys a domain later.
 - Google Search Console: property for the Pages URL, verified by HTML file, sitemap submitted. Google indexes only the public pages (`/` and `home.html`); every app page carries `noindex` and the classroom content sits behind teacher sign-in, so it is not searchable.
 - SEO files in repo: `robots.txt`, `sitemap.xml`, `favicon.svg` + `icons/icon-192.png` / `icon-512.png` / `icon-maskable-512.png` (navy "S"), canonical + Open Graph tags on `index.html` and `home.html`, WebSite JSON-LD on `home.html`.

@@ -23,4 +23,4 @@ Disallow: /css/
 Disallow: /data/
 Disallow: /components/
 
-Sitemap: https://steers-class-board.web.app/sitemap.xml
+Sitemap: https://focalboard.web.app/sitemap.xml
