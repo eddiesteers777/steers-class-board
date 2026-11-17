@@ -450,7 +450,14 @@ div.gpset{cursor:default}
 .vr{gap:.8em}
 .vrlab{font-size:.8em;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
 .vrjoin{flex:1;min-height:0;display:grid;grid-template-columns:1.1fr 1fr;gap:1.2em}
-.vrhow{background:var(--navy);border:.13em solid var(--sky);border-radius:.8em;padding:1em 1.4em;display:flex;flex-direction:column;justify-content:center;gap:.2em}
+.vrhow{position:relative;background:var(--navy);border:.13em solid var(--sky);border-radius:.8em;padding:1em 1.4em;display:flex;flex-direction:column;justify-content:center;gap:.2em}
+.vrwhohead{display:flex;align-items:center;gap:1em}
+.vrqr{flex:none;width:8.5em;display:flex;flex-direction:column;align-items:center;gap:.25em}
+.vrqr svg{width:100%;height:auto;border-radius:.4em;display:block}
+.vrqr p{font-size:.75em;font-weight:700;color:var(--soft)}
+.vrpqr{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:8px}
+.vrpqr svg{width:150px;height:150px;border-radius:8px;border:1px solid var(--c-line)}
+.vrpqr small{font-size:.75rem;color:#6B4E00}
 .vrurl{font-size:2.1em;font-weight:700;line-height:1.15;margin-bottom:.4em;word-break:break-all}
 .vrcode{white-space:nowrap;font-family:var(--display,inherit);font-size:4.2em;font-weight:800;line-height:1;color:var(--amber,#F2B33D);letter-spacing:.06em;font-variant-numeric:tabular-nums}
 .vrwho{background:var(--deep);border-radius:.8em;padding:1em 1.2em;display:flex;flex-direction:column;gap:.6em;min-height:0;overflow:hidden}

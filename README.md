@@ -73,6 +73,7 @@ The "Student Game" screen on the Remote opens a game students play on their own 
 - Students sign in as anonymous guests on their own device only (a separate Firebase app, so a teacher signed in on the same device stays signed in). The Firebase project needs Anonymous sign-in turned on.
 - Data: `rooms/{code}` (status, name list), `rooms/{code}/p/{student}` (that student's entry), `rooms/{code}/s/{student}` (what the Remote sends that student), and the full game at `teacher/{uid}/games/room`. Closing the room deletes `rooms/{code}` and everything under it. Each student's result goes to Class Data (`games/results`, kind `vault`) only when the teacher turns on saving or taps "Save results". `firestore.rules` limits a student to their own entry, while the game is open, with set fields and sizes.
 - Free-plan budget: about 2 to 3 writes per question per student. A 10-minute game with 30 students uses roughly 3,000 of the 20,000 free daily writes; "See work live" adds more.
+- The board and Remote show a QR code that opens `play.html?code=<code>`, so a scan skips typing the code (`js/vendor/qrcode.js`, qrcode-generator 1.4.4, MIT).
 - Testing: run `firebase emulators:start --only firestore,auth` and open pages on localhost with `?emu`.
 
 ## Design rules and the queue
