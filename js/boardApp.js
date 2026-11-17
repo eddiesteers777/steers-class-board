@@ -5,7 +5,9 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=57";
+import { WEEKS as ALL_WEEKS } from "../data/weeks.js?v=57";
+// The public demo page passes its own sample week and periods (opts.weeks, opts.periods).
+let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
 import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=57";
@@ -51,7 +53,7 @@ function richEl(tag, cls, text) { const e = el(tag, cls); e.appendChild(rich(tex
 const SCREENS = [["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["speed", "Speed Dating"], ["fix", "Fix It"], ["game", "Review Game"], ["live", "Student Game"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
 const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 // Each period and the class plan it follows.
-const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
+let PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
 const classOf = (period) => (PERIODS.find((p) => p[0] === period) || PERIODS[0])[1];
 const ROUND = 240, GAP = 10, CHECK = 600;   // speed dating: 4:00 rounds, 10 s to rotate; 10:00 to go over the master problems
 const PRESETS = [1, 2, 3, 5, 10, 15];
@@ -794,6 +796,8 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
+    if (opts && Array.isArray(opts.weeks) && opts.weeks.length) WEEKS = opts.weeks;
+    if (opts && Array.isArray(opts.periods) && opts.periods.length) PERIODS = opts.periods;
     store = (opts && opts.store) || await import("./boardStore.js?v=58");
     const guest = mode === "sub";
     mountGames({ S, header, store: () => store, writer, now, beep: () => snd.cue("done"), unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
@@ -832,7 +836,7 @@ export async function startApp(opts) {
     const user = await store.ready();
     mark("board-auth", ms());
     if (!user) { location.replace("login.html"); return; }
-    signedIn = true; $("who").textContent = guest ? "Guest teacher view, no sign-in" : (user.name ? "Signed in as " + user.name : "Signed in");
+    signedIn = true; $("who").textContent = guest ? ((opts && opts.who) || "Guest teacher view, no sign-in") : (user.name ? "Signed in as " + user.name : "Signed in");
     if (!guest && "BroadcastChannel" in window) {
         try {
             tabs = new BroadcastChannel("focal-board-" + user.uid);
