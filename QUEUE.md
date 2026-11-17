@@ -20,12 +20,13 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 | 9 | Check every teacher page against DESIGN.md | 390px and desktop: Home, Remote, Rosters, Library, Week Builder, Class Data, sign-in. Home's header now has six buttons and needs thinning. |
 | 10 | Week 6 content | Starts from the "Weekly Plan Intake - Steers Math" Sheet (school account). New `data/week6.js`, add to `data/weeks.js` and `data/library.js`. |
 | 12 | Class Data: tie results to skills over time | Link a set to a Library week, show growth, group by standard once the curriculum documents are in the project. |
-| 20 | Review games: the next game | Eddie picked all three in order (Nov 17): Mystery Tiles (done), Ring Race, printable Bingo. Ask him which one before building. |
+| 20 | Review games: the next game | Eddie picked all three in order (Nov 17): Mystery Tiles (done), Ring Race (done), printable Bingo. Ask him which one before building. |
 | 14 | Remove unused starter pages | `planning.html`, `homework.html`, `schedule.html` and their scripts look unused. Confirm with the school thread first. |
 
 ## Done
 | When | Item |
 |------|------|
+| Nov 17 | Review Games, sixth game: Ring Race. Every team has a ring; right answers move one step, with an optional bonus step for the fastest; first to close the ring wins. Tested with a local store only. |
 | Nov 17 | Review Games, fifth game: Mystery Tiles. A typed phrase hides behind 12 tiles; right teams flip tiles; solving it scores 50 + 10 per covered tile. Tested with a local store only. |
 | Nov 17 | Game Library: the Review Games page is now the library. It explains the four games, lists sets as cards (Play, Edit, Copy, Remove), filters by class, and lets each set be given to classes. Play opens the Remote with that game ready for the chosen class. Tested with a local store only. |
 | Nov 17 | Review Games, fourth game: Trashketball. Right teams score the answer points and shoot from the 1, 2 or 3 point line; the teacher taps the result. Results save to Class Data. Tested with a local store only. |
