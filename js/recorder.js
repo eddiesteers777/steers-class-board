@@ -11,9 +11,35 @@
    - Chrome always asks which tab to share. That prompt cannot be skipped.
 ========================================== */
 const $ = (id) => document.getElementById(id);
-let rec = null, chunks = [], streams = [], startedAt = 0, ticker = 0, mime = "", cropped = false;
+let rec = null, chunks = [], streams = [], startedAt = 0, ticker = 0, mime = "", cropped = false, painter = null;
 
-const TYPES = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4;codecs=avc1.42E01E", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
+// A fresh key frame every second, so a player that trips on one frame recovers within a second.
+// High profile H.264 first: it plays in Windows Media Player, Chrome and Schoology. Then WebM if MP4 cannot be made.
+const TYPES = ["video/mp4;codecs=avc1.640028,mp4a.40.2", "video/mp4;codecs=avc1.640028,opus", "video/mp4;codecs=avc1.640028",
+    "video/mp4;codecs=avc1.4D4028", "video/mp4;codecs=avc1.42E028", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
+
+/* The captured tab changes size while recording (Chrome adds its "sharing this tab" bar, the window
+   is resized, the crop settles). A size change in the middle of an MP4 makes Windows players show a
+   smeared, streaky picture. So the capture is drawn onto a canvas that never changes size (even
+   numbers, at most 1920 x 1080), and the canvas is what gets recorded. */
+function steady(track) {
+    const v = document.createElement("video"); v.muted = true; v.playsInline = true; v.srcObject = new MediaStream([track]);
+    const set = track.getSettings ? track.getSettings() : {}, sw = set.width || 1280, sh = set.height || 720;
+    const k = Math.min(1, 1920 / sw, 1080 / sh), even = (n) => Math.max(2, Math.round(n / 2) * 2);
+    const c = document.createElement("canvas"); c.width = even(sw * k); c.height = even(sh * k);
+    const ctx = c.getContext("2d", { alpha: false });
+    const draw = () => {
+        if (v.videoWidth) {
+            const s = Math.min(c.width / v.videoWidth, c.height / v.videoHeight), w = v.videoWidth * s, h = v.videoHeight * s;
+            ctx.fillStyle = "#081B45"; ctx.fillRect(0, 0, c.width, c.height);
+            ctx.drawImage(v, (c.width - w) / 2, (c.height - h) / 2, w, h);
+        }
+    };
+    v.play().catch(() => {}); draw();
+    const timer = setInterval(draw, 1000 / 30);      // a steady 30 frames a second, even when the lesson screen is still
+    const out = c.captureStream(30).getVideoTracks()[0];
+    return { track: out, stop() { clearInterval(timer); out.stop(); v.srcObject = null; } };
+}
 export function supported() { return !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia && window.MediaRecorder); }
 
 function say(text, state) { const n = $("recNote"); if (n) { n.textContent = text; n.dataset.state = state || ""; } }
@@ -48,13 +74,15 @@ async function start() {
     const video = screen.getVideoTracks()[0];
     cropped = false;
     try { if (window.CropTarget && video.cropTo) { await video.cropTo(await window.CropTarget.fromElement($("stage"))); cropped = true; } } catch (e) { cropped = false; }
-    const tracks = [video];
+    await new Promise((r) => setTimeout(r, 400));     // let the crop and Chrome's sharing bar settle
+    painter = steady(video);
+    const tracks = [painter.track];
     if ($("recMic").checked) {
         try { const mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); streams.push(mic); tracks.push(mic.getAudioTracks()[0]); }
         catch (e) { say("The microphone was not allowed, so this recording has no sound.", "bad"); }
     }
     mime = TYPES.find((t) => MediaRecorder.isTypeSupported(t)) || "";
-    try { rec = new MediaRecorder(new MediaStream(tracks), mime ? { mimeType: mime, videoBitsPerSecond: 2500000 } : undefined); }
+    try { rec = new MediaRecorder(new MediaStream(tracks), mime ? { mimeType: mime, videoBitsPerSecond: 4000000, videoKeyFrameIntervalDuration: 1000 } : undefined); }
     catch (e) { stopStreams(); say("Could not start recording (" + ((e && e.name) || "error") + ").", "bad"); return; }
     chunks = [];
     rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
@@ -66,7 +94,7 @@ async function start() {
     tick(); ticker = setInterval(tick, 500);
     say(cropped ? "Recording the lesson screen only." : "Recording this whole tab, including the controls.");
 }
-function stopStreams() { streams.forEach((s) => s.getTracks().forEach((t) => t.stop())); streams = []; }
+function stopStreams() { if (painter) { painter.stop(); painter = null; } streams.forEach((s) => s.getTracks().forEach((t) => t.stop())); streams = []; }
 function stop() { if (rec && rec.state !== "inactive") rec.stop(); }
 function save() {
     clearInterval(ticker); stopStreams(); setUi(false);

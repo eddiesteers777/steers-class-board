@@ -8,10 +8,10 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=31">
-    <link rel="stylesheet" href="css/console.css?v=32">
+    <link rel="stylesheet" href="css/board.css?v=33">
+    <link rel="stylesheet" href="css/console.css?v=33">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/work.css?v=31">
+    <link rel="stylesheet" href="css/work.css?v=33">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page">
@@ -22,12 +22,15 @@
         <a class="btn ghost" href="data.html" style="text-decoration:none">Class Data</a>
     </header>
     <main>
-        <h1>Student Work</h1>
-        <p class="sub">Snap or upload students' papers, sort them by student, then download one PDF to hand to Claude for grading. Scans save only to your private account. They are never part of the site's public code, and students and guests cannot open them.</p>
+        <section class="wk-hero">
+            <p class="wk-kicker">Grading</p>
+            <h1>Student Work</h1>
+            <p>Snap or upload students' papers, sort them by student, then download one PDF to hand to Claude for grading. Scans save only to your private account. Students and guests cannot open them.</p>
+            <span class="wk-space" id="space"></span>
+        </section>
 
         <div class="wk-bar">
             <div class="tabs" id="periodTabs" role="group" aria-label="Period"></div>
-            <span class="wk-space" id="space"></span>
         </div>
 
         <!-- list of assignments -->
@@ -97,9 +100,9 @@
     <datalist id="names"></datalist>
 
     <script type="module">
-        import { shrink, rotate, buildPdf, mb } from "./js/studentWork.js?v=31";
+        import { shrink, rotate, buildPdf, mb } from "./js/studentWork.js?v=33";
         const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
-        const store = await import(demo ? "./js/localStore.js?v=31" : "./js/boardStore.js?v=31");
+        const store = await import(demo ? "./js/localStore.js?v=33" : "./js/boardStore.js?v=33");
         const PERIODS = [["1st", "8th Grade"], ["2nd", "8th Grade"], ["4th", "8th Grade"], ["5th", "7th Grade"], ["6th", "8th Accelerated"]];
         const KEY = "Answer key", FREE = 1024 * 1048576;
         const $ = (id) => document.getElementById(id);
@@ -112,6 +115,15 @@
         let index = [], rosters = {}, period = "1st", cur = null, imgs = new Map(), unsub = new Map(), busy = false;
 
         // ---------- list ----------
+        /** A small progress ring (the site's logo idea): share of the class with work scanned. */
+        function ring(frac, label) {
+            const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg"), r = 20, len = 2 * Math.PI * r;
+            svg.setAttribute("viewBox", "0 0 52 52"); svg.setAttribute("class", "wk-ring"); svg.setAttribute("aria-hidden", "true");
+            const c = (cls, dash) => { const e = document.createElementNS(NS, "circle"); e.setAttribute("cx", 26); e.setAttribute("cy", 26); e.setAttribute("r", r); e.setAttribute("class", cls); if (dash != null) e.setAttribute("stroke-dasharray", dash + " " + len); svg.appendChild(e); };
+            c("bg"); if (frac > 0) c(frac >= 1 ? "fg done" : "fg", Math.max(0.02, Math.min(1, frac)) * len);
+            const t = document.createElementNS(NS, "text"); t.setAttribute("x", 26); t.setAttribute("y", 30); t.setAttribute("text-anchor", "middle"); t.textContent = label; svg.appendChild(t);
+            return svg;
+        }
         function drawList() {
             [...$("periodTabs").children].forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.k === period)));
             const used = index.reduce((s, m) => s + (m.bytes || 0), 0);
@@ -122,6 +134,8 @@
             if (!list.length) box.appendChild(el("p", "wk-empty", "No assignments for " + period + " period yet. Make one below, then snap the papers."));
             list.forEach((m) => {
                 const a = el("button", "wk-card"); a.type = "button";
+                const total = (rosters[m.period] || []).filter(Boolean).length, got = m.students || 0;
+                a.appendChild(ring(total ? got / total : (got ? 1 : 0), total ? got + "/" + total : String(got)));
                 a.appendChild(el("b", null, m.title));
                 const bits = [fmtDate(m.date), (m.students || 0) + (m.students === 1 ? " student" : " students"), (m.pages || 0) + (m.pages === 1 ? " page" : " pages")];
                 a.appendChild(el("span", null, bits.join(" · ")));
@@ -345,7 +359,7 @@
         if (!user) location.replace("login.html");
         else {
             $("who").textContent = demo ? "This device only, nothing is saved" : "Signed in as " + user.name;
-            store.watch("rosters/all", (snap) => { if (snap.pending) return; rosters = (snap.exists && snap.data && snap.data.periods) || {}; if (cur) drawSet(); }, () => {});
+            store.watch("rosters/all", (snap) => { if (snap.pending) return; rosters = (snap.exists && snap.data && snap.data.periods) || {}; if (cur) drawSet(); else drawList(); }, () => {});
             let first = true;
             store.watch("work/index", (snap) => {
                 if (snap.pending || busy) return;
