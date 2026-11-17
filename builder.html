@@ -8,10 +8,10 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=33">
-    <link rel="stylesheet" href="css/console.css?v=33">
+    <link rel="stylesheet" href="css/board.css?v=34">
+    <link rel="stylesheet" href="css/console.css?v=34">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/builder.css?v=33">
+    <link rel="stylesheet" href="css/builder.css?v=34">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page builder">
@@ -81,11 +81,11 @@
         </div>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=33";
-        import { DAYS, dayDate, bellringerSheet, bellringerKey, notesSheet, studyGuideSheet, studyGuideKey, speedDatingSheet, speedDatingKey } from "./js/weekSheets.js?v=33";
+        import { WEEKS } from "./data/weeks.js?v=34";
+        import { DAYS, dayDate, bellringerSheet, bellringerKey, notesSheet, studyGuideSheet, studyGuideKey, speedDatingSheet, speedDatingKey } from "./js/weekSheets.js?v=34";
         // ?demo runs on this device only, like the guest teacher page: nothing is saved to any account.
         const demo = new URLSearchParams(location.search).has("demo");
-        const store = await import(demo ? "./js/localStore.js?v=33" : "./js/boardStore.js?v=33");
+        const store = await import(demo ? "./js/localStore.js?v=34" : "./js/boardStore.js?v=34");
         const $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
         const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };

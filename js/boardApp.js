@@ -5,10 +5,10 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=33";
+import { WEEKS } from "../data/weeks.js?v=34";
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=33";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=34";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -49,7 +49,7 @@ const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 // Each period and the class plan it follows.
 const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
 const classOf = (period) => (PERIODS.find((p) => p[0] === period) || PERIODS[0])[1];
-const ROUND = 240, GAP = 10;
+const ROUND = 240, GAP = 10, CHECK = 600;   // speed dating: 4:00 rounds, 10 s to rotate; 10:00 to go over the master problems
 const PRESETS = [1, 2, 3, 5, 10, 15];
 let skew = 0; // this device's clock vs the shared clock, in ms
 const now = () => Date.now() + skew;
@@ -68,7 +68,7 @@ function defaultWeek() {
 }
 const wd = new Date().getDay();
 const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0,
-    timers: { bell: blankTimer(), round: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, tools: defaultTools() };
+    timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", tools: defaultTools() };
 
 let mode = "remote", signedIn = false, sig = "", writeState = null, SEAL = "brand/calera-seal.webp";
 
@@ -181,12 +181,24 @@ function timerParts(kind, host) {
     rs.onclick = () => { S.timers[kind] = Object.assign(blankTimer(), kind === "free" ? { dur: S.timers.free.dur || 300 } : {}); push(); };
     tb.appendChild(go); tb.appendChild(rs);
     host.appendChild(c);
-    if (kind === "round") { const r = el("p", "round"); r.id = "round"; host.appendChild(r); }
+    if (kind === "round" || kind === "check") { const r = el("p", "round"); r.id = "round"; if (kind === "check") r.textContent = "Go over each master problem"; host.appendChild(r); }
     host.appendChild(bar); host.appendChild(tb);
     host.dataset.kind = kind; host.id = "tcard";
 }
 function timerCard(kind, title) { const k = card(title); k.i.classList.add("timer"); timerParts(kind, k.i); return k.c; }
-function secsFor(kind) { if (kind === "free") return S.timers.free.dur || 300; const l = L(); return (l && l.bellSeconds) || 300; }
+/* Speed dating timer: rounds (4:00, then 10 s to rotate) or a 10:00 check of the master problems. */
+function speedTimer() {
+    const m = S.speedMode === "check" ? "check" : "round", k = card("Timer");
+    k.c.classList.add("stimer"); k.i.classList.add("timer");
+    const sw = el("div", "tmode"); sw.setAttribute("role", "group"); sw.setAttribute("aria-label", "Timer");
+    [["round", "Rounds 4:00"], ["check", "Check 10:00"]].forEach(([v, label]) => {
+        const b = el("button", null, label); b.type = "button"; b.setAttribute("aria-pressed", String(m === v));
+        b.onclick = () => { if (S.speedMode === v) return; const t = S.timers[S.speedMode === "check" ? "check" : "round"]; if (t.running) { t.elapsed = now() - t.t0; t.running = false; } S.speedMode = v; push(); };
+        sw.appendChild(b);
+    });
+    k.c.firstChild.appendChild(sw); timerParts(m, k.i); return k.c;
+}
+function secsFor(kind) { if (kind === "check") return CHECK; if (kind === "free") return S.timers.free.dur || 300; const l = L(); return (l && l.bellSeconds) || 300; }
 const fmt = (r) => Math.floor(r / 60) + ":" + ("0" + (r % 60)).slice(-2);
 
 let audio = null, lastPhase = "";
@@ -202,8 +214,8 @@ function tick() {
     if (kind === "round") {
         const x = e % (ROUND + GAP), n = Math.floor(e / (ROUND + GAP)) + 1;
         if (x < ROUND) { const rr = ROUND - x; txt = fmt(rr); hot = rr <= 30; frac = rr / ROUND; phase = "work" + n; }
-        else { const g = ROUND + GAP - x; txt = "Rotate! " + g; hot = true; frac = (GAP - g) / GAP; phase = "rotate" + n; }
-        $("round").textContent = "Round " + n;
+        else { const g = ROUND + GAP - x; txt = fmt(g); hot = true; frac = (GAP - g) / GAP; phase = "rotate" + n; }
+        const rl = $("round"); rl.textContent = x < ROUND ? "Round " + n + " · then rotate" : "Rotate now! Next partner"; rl.classList.toggle("hot", x >= ROUND);
     } else {
         const T = secsFor(kind), r = Math.max(0, T - e); txt = r > 0 ? fmt(r) : "Time!"; hot = r <= Math.min(60, T / 4); frac = r / T; phase = r > 0 ? "run" : "done";
     }
@@ -220,7 +232,7 @@ function skeleton() {
 function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
     buildControls();
-    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, signedIn]);
+    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, signedIn]);
     renderDock();
     if (ns === sig) { renderLayer(); tick(); tickTools(toolApi); return; }
     sig = ns; lastPhase = "";
@@ -245,7 +257,7 @@ function render() {
         st.appendChild(header("Speed Dating", sp.motto));
         const g2 = el("div", "body speed"), k2 = card("How It Works", "steps"), ol = el("ol");
         (sp.steps || []).forEach((t) => ol.appendChild(el("li", null, t))); k2.c.replaceChild(ol, k2.i);
-        g2.appendChild(k2.c); g2.appendChild(timerCard("round", "Round Timer · 4:00, then rotate")); g2.appendChild(weekCard()); g2.appendChild(ltBox(sp.lt)); st.appendChild(g2);
+        g2.appendChild(k2.c); g2.appendChild(speedTimer()); g2.appendChild(weekCard()); g2.appendChild(ltBox(sp.lt)); st.appendChild(g2);
     } else if (S.screen === "timer") {
         st.appendChild(header("Timer", (d ? d.name + " · " : "") + ((d && d.date) || "")));
         const box = el("div", "bigtimer"); timerParts("free", box);
@@ -444,7 +456,8 @@ function applyState(d) {
     if (typeof d.prob === "number") S.prob = d.prob; S.show = !!d.show;
     S.note = Math.max(0, Math.floor(+d.note || 0)); S.step = Math.max(0, Math.floor(+d.step || 0));
     { const m = mergeTools(d.tools); Object.keys(S.tools).forEach((k) => delete S.tools[k]); Object.assign(S.tools, m); } // keep the same object: widgets hold a reference to it
-    ["bell", "round", "free"].forEach((k) => { const t = d.timers && d.timers[k]; if (t) { S.timers[k] = { running: !!t.running, t0: +t.t0 || 0, elapsed: +t.elapsed || 0 }; if (k === "free") S.timers.free.dur = +t.dur || 300; } });
+    S.speedMode = d.speedMode === "check" ? "check" : "round";
+    ["bell", "round", "check", "free"].forEach((k) => { const t = d.timers && d.timers[k]; if (t) { S.timers[k] = { running: !!t.running, t0: +t.t0 || 0, elapsed: +t.elapsed || 0 }; if (k === "free") S.timers.free.dur = +t.dur || 300; } });
 }
 /* One-tap lesson flow: Weekly Agenda -> Today -> each bellringer problem and its answer -> the day's activity. */
 function isSpeedDay() { const d = D(); return !!d && /speed dating/i.test((d.agendaLine || "") + " " + (d.agenda || []).join(" ")); }
@@ -501,7 +514,7 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
-    store = (opts && opts.store) || await import("./boardStore.js?v=33");
+    store = (opts && opts.store) || await import("./boardStore.js?v=34");
     const guest = mode === "sub";
     document.body.classList.toggle("board", mode === "board");
     $("periodSel").onchange = function () { S.period = this.value; S.cls = classOf(this.value); resetPos(); push(); };
