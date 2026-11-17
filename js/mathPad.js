@@ -7,12 +7,12 @@
      opts.commit()  called after an edit is finished (the page saves)
    so a student drawing pad can use it the same way.
 ========================================== */
-import { MENU, NAMES, newItem, cleanItems, drawItems, drawSelection, hitItem, hitHandle, dragHandle, compileExpr, parseStep, PLOT } from "./mathTools.js?v=1";
+import { MENU, NAMES, newItem, cleanItems, drawItems, drawItem, drawSelection, hitItem, hitHandle, dragHandle, compileExpr, parseStep, geom, PLOT } from "./mathTools.js?v=1";
 
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 function btn(text, fn, cls) { const b = el("button", cls, text); b.type = "button"; b.onclick = fn; return b; }
 
-let current = null;   // the newest pad hears Delete and Escape
+let current = null, lastTab = 0;   // lastTab: the tray opens on the group used last   // the newest pad hears Delete and Escape
 document.addEventListener("keydown", (e) => { if (current) current.key(e); });
 
 export function createMathPad(host, ink, opts) {
@@ -86,16 +86,32 @@ export function createMathPad(host, ink, opts) {
 
     /* ---- the Add menu ---- */
     function closeMenu() { if (menu) { menu.remove(); menu = null; } }
+    /* A tray of pictures: one tab per group, each tool drawn the way it will look. */
+    function thumb(key) {
+        const c = el("canvas"), Wc = 300, Hc = 200; c.width = Wc; c.height = Hc;
+        const it = newItem(key, { x: 0.5, y: 0.5 }); if (!it) return c;
+        if (it.k === "plane") it.fx = ["2x + 1", "", ""]; if (it.k === "text") it.txt = "x^2 + {3/4}"; if (it.k === "numline") Object.assign(it, { min: 0, max: 4, step: "1/2" });
+        const ctx2 = c.getContext("2d");
+        // fit: never wider than 84% or taller than 76% of the picture
+        for (let i = 0; i < 3; i++) { const g = geom(it, Wc, Hc, ctx2), k = Math.min(Wc * 0.84 / g.w, Hc * 0.76 / g.h); if (it.k === "text") it.fs *= k; else it.s *= k; }
+        if (it.k === "tile" && it.t === "x") it.s = Math.min(it.s, 0.8);
+        const draw = () => { ctx2.clearRect(0, 0, Wc, Hc); drawItem(ctx2, it, Wc, Hc); };
+        draw(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+        return c;
+    }
     function openMenu() {
         if (menu) { closeMenu(); return; }
         menu = el("div", "mathmenu"); menu.setAttribute("role", "dialog"); menu.setAttribute("aria-label", "Add a math tool");
-        const top = el("div", "mmhead"); top.appendChild(el("b", null, "Add a math tool")); top.appendChild(btn("Close", closeMenu, "mmx")); menu.appendChild(top);
-        MENU.forEach(([group, list]) => {
-            const g = el("div", "mmgroup"); g.appendChild(el("p", "mmh", group)); const row = el("div", "mmrow");
-            list.forEach(([key, name]) => { const b = btn(name, () => { closeMenu(); add(key); }, key.startsWith("tile:") ? "mmtile t" + key.slice(5).replace("-", "n") : ""); row.appendChild(b); });
-            g.appendChild(row); menu.appendChild(g);
-        });
-        host.appendChild(menu);
+        const top = el("div", "mmhead"), tabs = el("div", "mmtabs"); tabs.setAttribute("role", "tablist");
+        const grid = el("div", "mmgrid");
+        const show = (gi) => {
+            lastTab = gi; grid.textContent = "";
+            [...tabs.children].forEach((b, i) => { b.setAttribute("aria-selected", String(i === gi)); b.classList.toggle("on", i === gi); });
+            MENU[gi][1].forEach(([key, name]) => { const b = el("button", "mmpic"); b.type = "button"; b.appendChild(thumb(key)); b.appendChild(el("span", null, name)); b.setAttribute("aria-label", "Add " + name); b.onclick = () => { closeMenu(); add(key); }; grid.appendChild(b); });
+        };
+        MENU.forEach(([group], gi) => { const b = el("button", null, group.replace("Graph and numbers", "Graph")); b.type = "button"; b.setAttribute("role", "tab"); b.onclick = () => show(gi); tabs.appendChild(b); });
+        top.appendChild(tabs); const x = btn("Close", closeMenu, "mmx"); top.appendChild(x);
+        menu.appendChild(top); menu.appendChild(grid); host.appendChild(menu); show(Math.min(lastTab, MENU.length - 1));
     }
 
     /* ---- settings for the picked tool ---- */

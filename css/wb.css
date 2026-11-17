@@ -1,0 +1,92 @@
+/* Canvas-first whiteboard (Bellringer, Whiteboard, Guided Notes): thin strip, paper edge to edge,
+   a floating tool rail, a lesson card on the paper and pages along the bottom. Sizes in em follow the stage. */
+.wbx{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 .45em .45em}
+.wbstrip{flex:none;height:2.6em;display:flex;align-items:center;gap:.6em;padding:0 .5em;color:var(--on)}
+.wbstrip img{width:1.7em;height:1.7em;border-radius:22%}
+.wbstrip h1{font-size:1.15em;font-weight:800;white-space:nowrap}
+.wbsub{font-size:.72em;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.wbfill{flex:1}
+.wbstrip .cls{font-size:.66em}
+.wbdots{display:flex;gap:.25em;align-items:center;margin-left:.3em}
+.wbdots button{width:.55em;height:.55em;border-radius:1em;border:0;padding:0;background:rgba(185,211,238,.3);cursor:pointer;transition:width .24s,background .24s}
+.wbdots button.done{background:var(--sky)}
+.wbdots button.on{background:var(--amber);width:1.4em}
+.wbprog{display:flex;align-items:center;gap:.4em;margin-left:.3em}
+.wbprog i{display:block;width:7em;height:.32em;border-radius:1em;background:rgba(185,211,238,.3);overflow:hidden}
+.wbprog b{display:block;height:100%;background:var(--amber);border-radius:1em;transition:width .24s}
+.wbprog span{font-size:.56em;font-weight:700;color:var(--soft)}
+.wbpaper{flex:1;min-height:0;position:relative;border-radius:.6em;overflow:hidden;background:var(--board)}
+.wbpaper .cv{position:absolute;inset:0;border-radius:0}
+
+/* the tool rail */
+.wbrail{position:absolute;z-index:2;left:.5em;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:.18em;padding:.35em;border-radius:1em;background:rgba(8,27,69,.9);box-shadow:0 8px 32px rgba(8,27,69,.12);max-height:calc(100% - 1em);overflow-y:auto;scrollbar-width:none;transition:opacity .25s}
+.wbrail .rb{width:1.75em;height:1.75em;display:grid;place-items:center;border:0;border-radius:.5em;background:transparent;color:#DCE7F5;cursor:pointer;padding:0;transition:background .15s,color .15s}
+.wbrail .rb svg{width:.9em;height:.9em}
+.wbrail .rb:hover{background:rgba(127,174,221,.18)}
+.wbrail .rb[aria-pressed="true"]{background:var(--sky);color:var(--navy)}
+.wbrail .rb.amber{background:var(--amber);color:var(--navy)}
+.wbrail .rb.armed{background:var(--red,#B4232A);color:#fff}
+.wbrail .rb.size i{display:block;border-radius:50%;box-shadow:0 0 0 .08em rgba(255,255,255,.8)}
+.wbrail .rsep{display:block;width:1.2em;height:.06em;background:rgba(185,211,238,.28);margin:.12em 0}
+.wbrail .rsw{display:grid;grid-template-columns:1fr 1fr;gap:.22em;padding:.1em 0}
+.wbrail .sw{width:.72em;height:.72em;border-radius:50%;border:.08em solid rgba(255,255,255,.85);padding:0;cursor:pointer}
+.wbrail .sw[aria-pressed="true"]{outline:.1em solid var(--sky);outline-offset:.08em}
+.cv .inknote{position:absolute;z-index:2;left:3em;bottom:.5em;margin:0;font-size:.6em;background:rgba(8,27,69,.85);color:#fff;border-radius:2em;padding:.3em .9em}
+.cv .inknote:empty{display:none}
+body.board .cv .inknote{display:block}
+body.board .cv .inknote:empty{display:none}
+
+/* the lesson card */
+.wbcard{position:absolute;z-index:2;left:2.8em;top:.6em;max-height:calc(100% - 3.2em);display:flex;flex-direction:column;background:#fff;color:var(--ink);border:.06em solid #DCE7F5;border-radius:.7em;box-shadow:0 8px 32px rgba(8,27,69,.12);overflow:hidden}
+.wbcard.dragging{box-shadow:0 14px 40px rgba(8,27,69,.24)}
+.wbctop{flex:none;display:flex;align-items:center;gap:.3em;padding:.3em .4em .2em .5em;cursor:grab;touch-action:none;user-select:none}
+.wbcard.dragging .wbctop{cursor:grabbing}
+.wbgrip{width:.7em;height:.7em;color:#9AAAC4;display:grid}
+.wbgrip svg{width:100%;height:100%}
+.wbclabel{flex:1;min-width:0;font-size:.56em;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wbcb{font:inherit;font-size:.5em;font-weight:700;color:#55627F;background:#EEF3FA;border:0;border-radius:2em;min-width:2.6em;height:2.2em;padding:0 .6em;display:grid;place-items:center;cursor:pointer}
+.wbcb svg{width:1.3em;height:1.3em}
+.wbcb:disabled{opacity:.35;cursor:default}
+.wbcbody{flex:1;min-height:0;display:flex;flex-direction:column;gap:.35em;padding:.1em .7em .6em;overflow:auto}
+.wbq{font-family:var(--display);font-size:1em;font-weight:700;line-height:1.22;color:var(--navy)}
+.wbans{align-self:flex-start;font-family:var(--display);font-size:.95em;font-weight:700;background:#E3F5EC;color:#0F6B40;border-radius:.4em;padding:.1em .6em;animation:pop .22s ease-out}
+.wbcrow{display:flex;align-items:center;gap:.35em;flex-wrap:wrap;margin-top:.15em}
+.wbbtn{font:inherit;font-size:.56em;font-weight:700;display:inline-flex;align-items:center;gap:.4em;border:0;border-radius:2em;padding:.5em 1em;min-height:2.4em;background:#EEF3FA;color:var(--blue);cursor:pointer}
+.wbbtn svg{width:1.2em;height:1.2em}
+.wbbtn.dark{background:var(--navy);color:#fff}
+.wbbtn.amber{background:var(--amber);color:var(--navy)}
+.wbbtn:disabled{opacity:.4;cursor:default}
+.wbcard .ndots button{background:#DCE7F5;height:.32em}
+.wbcard .ndots button.done{background:var(--sky)}
+.wbcard .ndots button.on{background:var(--amber)}
+.wbcard .wbq .blank{display:inline-block;border-bottom:.12em solid var(--amber);height:1em;vertical-align:baseline;margin:0 .15em}
+.wbcard .wbq .fill{color:var(--navy);background:var(--amber);border-radius:.25em;padding:0 .3em;margin:0 .1em}
+.wbcard .nlines{overflow:visible}
+.wbcard .nline{background:#F6F9FD;font-size:.82em}
+.wbcard .ncount{font-size:.52em;color:#55627F}
+.wbshow{position:absolute;z-index:2;left:2.8em;top:.6em;display:inline-flex;align-items:center;gap:.4em;font:inherit;font-size:.56em;font-weight:700;border:0;border-radius:2em;padding:.55em 1.1em;background:var(--navy);color:#fff;box-shadow:0 8px 32px rgba(8,27,69,.12);cursor:pointer}
+.wbshow svg{width:1.2em;height:1.2em}
+
+/* pages */
+.wbpages{position:absolute;z-index:2;left:50%;bottom:.5em;transform:translateX(-50%);display:flex;gap:.25em;transition:opacity .25s}
+.wbpages button{font:inherit;font-size:.52em;font-weight:700;min-width:2.6em;height:2.4em;padding:0 .8em;border-radius:.7em;border:.12em solid #DCE7F5;background:rgba(255,255,255,.9);color:var(--blue);cursor:pointer}
+.wbpages button.on{border-color:var(--sky);background:#fff}
+.wbpages button.add{background:var(--navy);border-color:var(--navy);color:#fff;display:grid;place-items:center;padding:0}
+.wbpages button.add svg{width:1.3em;height:1.3em}
+
+/* math tools: the tray opens at the bottom, a tool's settings at the top right */
+.wbpaper .mathmenu,.wbpaper .mathpanel{font-size:max(.5em,13px)}
+.wbpaper .mathmenu{top:auto;bottom:3.8em;left:50%;right:auto;transform:translateX(-50%);width:min(44em,calc(100% - 1em));max-height:calc(100% - 3em)}
+.mathmenu .mmhead{align-items:flex-start}
+.mmtabs{flex:1;display:flex;flex-wrap:wrap;gap:.3em}
+.mathmenu .mmtabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.mmgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(8.4em,1fr));gap:.5em;margin-top:.4em}
+.mathmenu .mmpic{display:flex;flex-direction:column;align-items:center;gap:.3em;border-radius:.8em;padding:.4em;min-height:0;background:#fff;border:.1em solid #DCE7F5}
+.mathmenu .mmpic:hover{background:#F6F9FD;border-color:var(--sky)}
+.cv .mmpic canvas{position:static;inset:auto;width:100%;height:auto;aspect-ratio:3/2;border-radius:.5em;background:#F6F9FD;cursor:pointer;touch-action:auto}
+.wbpaper .mathpanel{left:auto;right:.5em}
+
+/* the projected board: the controls fade when nobody has touched it for a few seconds */
+body.board.idle .wbrail,body.board.idle .wbpages,body.board.idle .wbcb,body.board.idle .bnav,body.board.idle #exit{opacity:.12}
+@media (prefers-reduced-motion:reduce){.wbrail,.wbpages,.wbdots button{transition:none}}
+@media (max-width:699px){.wbpaper .mathpanel{top:auto;bottom:.5em}.wbcard{left:2.6em}}
