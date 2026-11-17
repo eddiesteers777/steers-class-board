@@ -408,3 +408,27 @@ div.gpset{cursor:default}
 @media (prefers-reduced-motion:reduce){.gwlate{animation:none}}
 .gpspin{min-height:64px;font-size:1.1rem}
 .glgame.wheel{border-top-color:#2F9E6A}
+
+/* ---------- Code Breaker ---------- */
+.gcleft{min-height:0;display:flex;flex-direction:column;gap:.5em;background:var(--navy);border:.13em solid var(--sky);border-radius:.8em;padding:.7em 1em}
+.gclock{display:flex;align-items:center;gap:.8em}
+.gclab{font-weight:800;font-size:1em;color:var(--soft);margin:0;font-family:var(--display,inherit)}
+.gchist{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:flex-end;gap:.3em;overflow:hidden}
+.gcline{display:grid;grid-template-columns:7em auto;align-items:center;gap:.6em}
+.gcwho{font-weight:700;font-size:.85em;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gcnone{color:var(--soft);font-size:.95em;margin:auto 0}
+.gcrow{display:flex;gap:.25em}
+.gcd{display:inline-flex;align-items:center;justify-content:center;width:1.6em;height:1.6em;border-radius:.3em;font-weight:800;font-size:1.25em;background:#2A3A5C;color:#fff;font-family:var(--display,inherit)}
+.gcd.g{background:#2F9E6A}.gcd.a{background:#C98A16}.gcd.x{background:#4A5570;color:#C9D2E3}
+.gcrow.secret .gcd{background:#0E2557;border:.08em dashed var(--sky,#7FB8F2);font-size:1.6em}
+.gckey{display:flex;flex-wrap:wrap;gap:.3em 1em;font-size:.7em;color:var(--soft)}
+.gckey span{display:inline-flex;align-items:center;gap:.35em}.gckey .gcd{width:.9em;height:.9em;font-size:1em}
+.gcsolved{display:flex;flex-direction:column;align-items:center;gap:.2em}.gcsolved small{color:var(--soft);font-size:.7em}
+.gpcode{font-size:1.4rem;font-weight:800;letter-spacing:.2em;margin:0}
+.gpcodein{display:flex;gap:6px;justify-content:center;margin:4px 0}
+.gpcodein span{width:44px;height:48px;border:1.5px solid var(--c-line);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;background:#fff}
+.gpkeys{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.gpkeys button{min-height:48px;font-size:1.1rem}
+.gpcrow{justify-content:center;font-size:.9rem}
+.glgame.code{border-top-color:#C98A16}
+.gcwrap .gchsay{font-size:2.1em}
