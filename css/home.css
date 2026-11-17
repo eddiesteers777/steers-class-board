@@ -73,7 +73,10 @@
   body.hm-home.hm-min{padding-left:var(--side-min)}
   .hm-min .hm-side{width:var(--side-min)}
   .hm-min .hm-stitle,.hm-min .hm-slt{opacity:0;pointer-events:none}
-  .hm-min .hm-shead{padding:18px 18px 8px}
+  .hm-min .hm-shead{padding:18px 0 8px;justify-content:center}
+  .hm-min .hm-stitle{display:none}
+  .hm-min .hm-smin{background:#F2B33D;border-color:#F2B33D;color:#081B45}
+  .hm-min .hm-smin:hover{background:#F6C561}
   .hm-min .hm-smin{transform:rotate(180deg)}
   .hm-min .hm-sg{height:1px;margin:14px 8px;overflow:hidden;color:transparent;background:rgba(191,211,238,.18)}
   .hm-min .hm-snav{padding:4px 10px 20px}
