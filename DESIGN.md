@@ -13,8 +13,9 @@ simpler, one less thing.
 ## Name and logo (Nov 16, 2026)
 - The site is called **Focal**. Eddie wants a name he could sell, so the product name never includes "Steers".
   His own class details (Mr. Steers, Calera Middle School, the class pills) stay as content.
-- Logo: the "progress rings" target, `brand/logo.svg` (also `favicon.svg` and `icons/`). Symbol only, no letters.
-  It must not look like the Southbound ribbon logo.
+- Logo: the "Ring anchor" (Eddie picked option B on 2026-11-17 for the Anchor Board rebrand): the two rings open at
+  the top and become an anchor's arms, white shank and crossbar, amber eye. `brand/logo.svg` (also `favicon.svg` and
+  `icons/`). Symbol only, no letters. It replaced the earlier "progress rings" target. It must not look like the Southbound logo.
 - `css/theme-rings.css` carries the logo onto the pages: the navy gradient (#173F86 → #0B2559 → #081B45),
   faint rings in the background, the rings mark on stage card titles and the learning target, and a
   four-colour line (paper, light blue #B9D3EE, sky, amber) under headers. Load it after `console.css`.
