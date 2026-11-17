@@ -5,10 +5,11 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=37";
+import { WEEKS } from "../data/weeks.js?v=39";
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=37";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=39";
+import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=39";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -44,7 +45,7 @@ function rich(text) {
 }
 function richEl(tag, cls, text) { const e = el(tag, cls); e.appendChild(rich(text)); return e; }
 
-const SCREENS = [["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["speed", "Speed Dating"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
+const SCREENS = [["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["speed", "Speed Dating"], ["game", "Review Game"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
 const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 // Each period and the class plan it follows.
 const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
@@ -121,11 +122,11 @@ function buildControls() {
             const b = el("button", null, "Go to today"); b.type = "button"; b.onclick = () => { S.week = defaultWeek(); S.day = rd; resetPos(); push(); }; nt.appendChild(b);
         }
     }
-    seg($("screens"), SCREENS, S.screen, (id) => { S.screen = id; S.show = false; push(); });
+    seg($("screens"), SCREENS.filter((x) => mode !== "sub" || x[0] !== "game"), S.screen, (id) => { S.screen = id; S.show = false; push(); });
     const sel = $("weekSel"); sel.textContent = "";
     WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + x.dates); o.value = x.id; sel.appendChild(o); });
     sel.value = w.id; $("weekField").hidden = WEEKS.length < 2;
-    const fn = $("flowNext"); if (fn) { fn.textContent = flowLabel(); const dead = !["agenda", "today", "bell", "notes"].includes(S.screen) || fn.textContent === "Next"; fn.disabled = dead; $("flowBack").disabled = !["today", "bell", "notes", "speed"].includes(S.screen); }
+    const fn = $("flowNext"); if (fn) { fn.textContent = flowLabel(); const dead = !["agenda", "today", "bell", "notes", "game"].includes(S.screen) || fn.textContent === "Next"; fn.disabled = dead; $("flowBack").disabled = !["today", "bell", "notes", "speed"].includes(S.screen); }
     const files = $("files"), l = L();
     if (files) {
         files.textContent = "";
@@ -231,9 +232,9 @@ function skeleton() {
 }
 function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
-    buildControls();
-    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, signedIn]);
-    renderDock();
+    syncGames(); buildControls();
+    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, signedIn, S.screen === "game" ? gameSig() : ""]);
+    renderDock(); drawGamePanel();
     if (ns === sig) { renderLayer(); tick(); tickTools(toolApi); return; }
     sig = ns; lastPhase = "";
     const st = $("screenHost"); st.textContent = ""; canvas = null; ctx = null;
@@ -286,6 +287,8 @@ function render() {
             right.appendChild(cv); right.appendChild(toolbar()); body.appendChild(right); st.appendChild(body); bindCanvas(); sizeCanvas();
             list.scrollTop = list.scrollHeight; // keep the newest step in view
         }
+    } else if (S.screen === "game") {
+        drawGame(st); tickGames();
     } else if (S.screen === "tools") {
         st.appendChild(header("Classroom Tools", (d ? d.name + " · " : "") + ((d && d.date) || "")));
         const box = el("div", "toolsbody"); box.appendChild(el("p", "toolempty", Object.keys(S.tools.on).length ? "" : "Turn tools on from the Tools row on the Remote. Drag a tool by its title to move it, and drag its corner to resize it.")); st.appendChild(box);
@@ -462,6 +465,7 @@ function applyState(d) {
 /* One-tap lesson flow: Weekly Agenda -> Today -> each bellringer problem and its answer -> the day's activity. */
 function isSpeedDay() { const d = D(); return !!d && /speed dating/i.test((d.agendaLine || "") + " " + (d.agenda || []).join(" ")); }
 function flow(n) {
+    if (S.screen === "game") { gameFlow(n); return; }
     const d = D(), len = (d && d.problems && d.problems.length) || 0, frames = notesFrames(d), hasNotes = frames.length > 0;
     const afterBell = () => { if (hasNotes) { S.screen = "notes"; S.note = 0; S.step = 0; S.show = false; } else if (isSpeedDay()) { S.screen = "speed"; S.show = false; } else { S.screen = "today"; S.show = false; } };
     if (n > 0) {
@@ -492,6 +496,7 @@ function flow(n) {
     push();
 }
 function flowLabel() {
+    if (S.screen === "game") return gameFlowLabel();
     const d = D(), len = (d && d.problems && d.problems.length) || 0, frames = notesFrames(d), hasNotes = frames.length > 0;
     const after = hasNotes ? "Next: Guided Notes" : (isSpeedDay() ? "Next: Speed Dating" : "Next: Back to Today");
     if (S.screen === "agenda") return "Next: Today";
@@ -514,8 +519,9 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
-    store = (opts && opts.store) || await import("./boardStore.js?v=37");
+    store = (opts && opts.store) || await import("./boardStore.js?v=39");
     const guest = mode === "sub";
+    mountGames({ S, header, store: () => store, writer, now, beep, unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     document.body.classList.toggle("board", mode === "board");
     $("periodSel").onchange = function () { S.period = this.value; S.cls = classOf(this.value); resetPos(); push(); };
     document.addEventListener("click", (e) => { document.querySelectorAll("details.acct[open]").forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });
@@ -529,7 +535,7 @@ export async function startApp(opts) {
     $("flowNext").onclick = () => flow(1); $("flowBack").onclick = () => flow(-1);
     keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
     document.addEventListener("keydown", (e) => { if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); flow(1); } else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); flow(-1); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
-    setInterval(() => { if (!synced) return; tick(); tickTools(toolApi); }, 250);
+    setInterval(() => { if (!synced) return; tick(); tickTools(toolApi); tickGames(); }, 250);
     document.body.classList.add("syncing");
     const arrived = () => { if (synced) return; synced = true; document.body.classList.remove("syncing"); sig = ""; };
     fit(); render();

@@ -41,6 +41,17 @@ Nine weeks and unit labels are typed in `data/library.js`. Leave them out when n
 `data.html` (teacher sign-in): paste or load a CSV of results (Magma Math, a quiz, an exit ticket), pick the student and score columns, and see class averages and who needs help, by skill and by student.
 Student results save only under `teacher/{uid}/data/...` in the private account. NEVER commit student names or results to this repo, including in tests or examples. Roster numbers can be saved instead of names.
 
+## Review Games
+Games the teacher runs from the Remote while the board shows them. Students never sign in or use a device.
+`games.html` (teacher sign-in, `?demo` for testing): paste a table of `CATEGORY | POINTS | QUESTION | ANSWER` lines (or tab-separated), check it, and save it as a question set. A FINAL line adds a final wager question. A set can also be started from a week's problems.
+Sets are private: `teacher/{uid}/games/index` and `games/s_<id>`. Never commit question sets or answers to this repo.
+On the Remote, the "Review Game" screen shows the Review Board (categories and point tiles). A private panel beside the board picture shows the answer before the class sees it, scores each team right or wrong, runs a timer, and has undo. Each period keeps its own game at `games/live_<period>`. `js/games.js`, `css/games.css`.
+Treasure Chests uses the same sets: one question at a time (easiest first), every team answers on whiteboards, the teacher taps the teams that were right, and each of those teams opens one of nine chests (points, double, steal, swap, lose some or empty, drawn when it opens). Undo steps back one move.
+Class vs. Teacher uses the same sets: the whole class answers each question on whiteboards, and the teacher gives the point to the class or to themselves (the name on the board is editable). Two progress rings fill toward the goal (first to 5, 7, 10 or 15).
+Trashketball uses the same sets: every team answers on whiteboards, the teams that were right score the answer points (0, 1 or 2) and each send a shooter to toss a paper ball at a can from the 1, 2 or 3 point line. The teacher taps "Made it from…" or "Missed" and the board shows the court and the result. Undo steps back one move.
+Results: when a game reaches its final scores, the Remote saves a short summary to `teacher/{uid}/games/results` (date, period, game, set, team scores, winner, right answers per category, and the students on each team when the teams came from the Group maker). Class Data (`data.html#games`, `js/gameResults.js`) shows who won by day and period with a "Bonus given" box, each student's wins and wins still owed a bonus, and class growth over time. Names stay in the private account and never show on the board.
+The games are original to Focal. Do not copy the name, look or art of any other review-game site.
+
 ## Design rules and the queue
 Read `DESIGN.md` before changing how anything looks or behaves, and `QUEUE.md` for what is next. Scout before building.
 
