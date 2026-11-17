@@ -8,10 +8,10 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=36">
-    <link rel="stylesheet" href="css/console.css?v=36">
+    <link rel="stylesheet" href="css/board.css?v=37">
+    <link rel="stylesheet" href="css/console.css?v=37">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/classdata.css?v=36">
+    <link rel="stylesheet" href="css/classdata.css?v=37">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page">
@@ -34,6 +34,18 @@
         <div class="gridwrap"><table class="cdt" id="skills"></table></div>
         <h2>By student</h2>
         <div class="gridwrap"><table class="cdt" id="people"></table></div>
+
+        <section id="games">
+            <h2>Review games</h2>
+            <p class="sub">Every Review Board, Treasure Chests and Class vs. Teacher game you finish on the Remote lands here with its date and period. Tick "Bonus given" once you add the points in your gradebook.</p>
+            <h3>Who won</h3>
+            <div class="gridwrap"><table class="cdt" id="gWins"></table></div>
+            <h3>Students</h3>
+            <div class="gridwrap"><table class="cdt" id="gPeople"></table></div>
+            <h3>Class growth</h3>
+            <div id="gVs"></div>
+            <div class="gridwrap"><table class="cdt" id="gCats"></table></div>
+        </section>
 
         <h2>What has been brought in</h2>
         <div id="imports"></div>
@@ -64,10 +76,11 @@
         </div>
     </main>
     <script type="module">
-        import { parseTable, toScore, looksNumeric, rosterIndex, summarise } from "./js/classData.js?v=36";
-        import { readXlsx, guessHeaderRow } from "./js/xlsxRead.js?v=36";
+        import { parseTable, toScore, looksNumeric, rosterIndex, summarise } from "./js/classData.js?v=37";
+        import { readXlsx, guessHeaderRow } from "./js/xlsxRead.js?v=37";
+        import { mountGameResults } from "./js/gameResults.js?v=37";
         const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
-        const store = await import(demo ? "./js/localStore.js?v=36" : "./js/boardStore.js?v=36");
+        const store = await import(demo ? "./js/localStore.js?v=37" : "./js/boardStore.js?v=37");
         const PERIODS = [["1st", "8th Grade"], ["2nd", "8th Grade"], ["4th", "8th Grade"], ["5th", "7th Grade"], ["6th", "8th Accelerated"]];
         const $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -75,7 +88,7 @@
         const pct = (x) => x == null ? "" : Math.round(x * 100) + "%";
         const band = (x, cut) => x == null ? "" : (x < cut ? "low" : (x < Math.min(1, cut + 0.15) ? "mid" : "ok"));
 
-        let index = [], loaded = new Map(), rosters = {}, period = "1st", table = null;
+        let index = [], loaded = new Map(), rosters = {}, period = "1st", table = null, drawGames = null;
 
         // ---------- views ----------
         function row(cells, tag) { const tr = el("tr"); cells.forEach((c) => { const td = el(tag || "td"); if (c instanceof Node) td.appendChild(c); else if (Array.isArray(c)) { td.textContent = c[0]; td.className = c[1]; } else td.textContent = c == null ? "" : c; tr.appendChild(td); }); return tr; }
@@ -91,6 +104,7 @@
                 P.appendChild(row(["Student", "Average", "Scores", "Below " + pct(cut), "Lowest score"], "th"));
                 people.forEach((p) => P.appendChild(row([p.s, [pct(p.avg), "num " + band(p.avg, cut)], [String(p.n), "num"], [String(p.low), "num"], p.worst.label + " " + pct(p.worst.v)])));
             }
+            if (drawGames) drawGames(period, cut, band, pct);
             const box = $("imports"); box.replaceChildren();
             const list = index.filter((m) => m.period === period);
             if (!list.length) box.appendChild(el("p", "sub", "No sets saved for this period."));
@@ -190,6 +204,7 @@
         if (!user) location.replace("login.html");
         else {
             $("who").textContent = demo ? "This device only, nothing is saved" : "Signed in as " + user.name;
+            drawGames = mountGameResults({ store, el, status });
             store.watch("rosters/all", (snap) => { if (!snap.pending) rosters = (snap.exists && snap.data && snap.data.periods) || {}; }, () => {});
             let first = true;
             store.watch("data/index", (snap) => {
