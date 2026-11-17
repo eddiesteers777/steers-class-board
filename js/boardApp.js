@@ -5,11 +5,11 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=42";
+import { WEEKS } from "../data/weeks.js?v=43";
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=42";
-import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=42";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=43";
+import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=43";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -45,7 +45,7 @@ function rich(text) {
 }
 function richEl(tag, cls, text) { const e = el(tag, cls); e.appendChild(rich(text)); return e; }
 
-const SCREENS = [["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["speed", "Speed Dating"], ["game", "Review Game"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
+const SCREENS = [["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["speed", "Speed Dating"], ["fix", "Fix It"], ["game", "Review Game"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
 const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 // Each period and the class plan it follows.
 const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
@@ -69,7 +69,7 @@ function defaultWeek() {
 }
 const wd = new Date().getDay();
 const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0,
-    timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", tools: defaultTools() };
+    timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", fix: null, tools: defaultTools() };
 
 let mode = "remote", signedIn = false, sig = "", writeState = null, SEAL = "brand/logo.svg";
 
@@ -126,7 +126,7 @@ function buildControls() {
     const sel = $("weekSel"); sel.textContent = "";
     WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + x.dates); o.value = x.id; sel.appendChild(o); });
     sel.value = w.id; $("weekField").hidden = WEEKS.length < 2;
-    const fn = $("flowNext"); if (fn) { fn.textContent = flowLabel(); const dead = !["agenda", "today", "bell", "notes", "game"].includes(S.screen) || fn.textContent === "Next"; fn.disabled = dead; $("flowBack").disabled = !["today", "bell", "notes", "speed"].includes(S.screen); }
+    const fn = $("flowNext"); if (fn) { fn.textContent = flowLabel(); const dead = !["agenda", "today", "bell", "notes", "game", "speed", "fix"].includes(S.screen) || fn.textContent === "Next"; fn.disabled = dead; $("flowBack").disabled = !["today", "bell", "notes", "speed", "fix"].includes(S.screen); }
     const files = $("files"), l = L();
     if (files) {
         files.textContent = "";
@@ -270,7 +270,7 @@ function skeleton() {
 function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
     syncGames(); buildControls();
-    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : ""]);
+    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : ""]);
     renderDock(); drawGamePanel();
     if (ns === sig) { renderLayer(); tick(); tickTools(toolApi); return; }
     sig = ns; lastPhase = "";
@@ -296,6 +296,8 @@ function render() {
         const g2 = el("div", "body speed"), k2 = card("How It Works", "steps"), ol = el("ol");
         (sp.steps || []).forEach((t) => ol.appendChild(el("li", null, t))); k2.c.replaceChild(ol, k2.i);
         g2.appendChild(k2.c); g2.appendChild(speedTimer()); g2.appendChild(weekCard()); g2.appendChild(ltBox(sp.lt)); st.appendChild(g2);
+    } else if (S.screen === "fix") {
+        drawFix(st);
     } else if (S.screen === "timer") {
         st.appendChild(header("Timer", (d ? d.name + " · " : "") + ((d && d.date) || "")));
         const box = el("div", "bigtimer"); timerParts("free", box);
@@ -476,11 +478,109 @@ function saveInk() {
     note(""); inkWrite(JSON.parse(JSON.stringify(body)));
 }
 function watchInk() {
-    const key = canvas ? [S.week, S.period, "d" + S.day, S.screen === "notes" ? "n" + S.note : ((S.screen === "bell" && D()) ? "p" + S.prob : "blank")].join("_") : "";
+    const key = canvas ? [S.week, S.period, "d" + S.day, S.screen === "notes" ? "n" + S.note : S.screen === "fix" ? "fix" + ((fixCur() || {}).n || 0) : ((S.screen === "bell" && D()) ? "p" + S.prob : "blank")].join("_") : "";
     if (key === inkKey) return; inkKey = key; if (inkUnsub) { inkUnsub(); inkUnsub = null; } inkWrite = null; strokes = []; cur = null; redraw();
     if (!key || !signedIn) return;
     inkWrite = writer("ink/" + key);
     inkUnsub = store.watch("ink/" + key, (snap) => { if (key !== inkKey || snap.pending || cur || (inkWrite && inkWrite.busy())) return; const dd = snap.exists && snap.data; strokes = dd && Array.isArray(dd.strokes) ? JSON.parse(JSON.stringify(dd.strokes)) : []; redraw(); }, () => note("Saved drawings are not available right now."));
+}
+
+/* ---------- Fix It Together: the speed dating error review ----------
+   After speed dating, students name the cards that tripped people up. The teacher picks each card
+   on the Remote, it shows on the board beside a whiteboard, and the class works it out together.
+   Card problems come from the week saved in Week Builder (private, never in this public repo).
+   An answer or a common mistake reaches the board only when the teacher taps to reveal it. */
+const sdWeeks = {}, sdWatched = {};
+function sdSet() {
+    if (mode === "board" || !store || !signedIn) return null;
+    const id = S.week;
+    if (!sdWatched[id]) {
+        sdWatched[id] = true;
+        store.watch("weekfiles/" + id, (snap) => {
+            if (snap.pending) return; let w = null;
+            try { if (snap.exists && snap.data && snap.data.json) w = JSON.parse(snap.data.json); } catch (e) { /* a damaged copy: type the problem instead */ }
+            sdWeeks[id] = w; if (S.screen === "fix") { sig = ""; render(); }
+        }, () => { sdWeeks[id] = null; });
+    }
+    const w = sdWeeks[id], c = w && w.classes && w.classes[S.cls], sd = c && c.speedDating;
+    return sd && Array.isArray(sd.cards) && sd.cards.length ? sd : null;
+}
+const fixKey = () => S.week + "|" + S.period + "|" + S.day;
+const str = (x, n) => (typeof x === "string" ? x : "").slice(0, n);
+function cleanFix(f) {
+    if (!f || typeof f !== "object" || typeof f.key !== "string") return null;
+    const list = (Array.isArray(f.list) ? f.list : []).slice(0, 40).map((x) => ({ n: Math.max(1, Math.min(99, Math.floor(+(x && x.n) || 1))), q: str(x && x.q, 400), done: !!(x && x.done) }));
+    return { key: f.key, list, cur: Math.max(0, Math.min(list.length - 1, Math.floor(+f.cur || 0))), ans: str(f.ans, 200), err: (Array.isArray(f.err) ? f.err : []).slice(0, 4).map((e) => str(e, 200)) };
+}
+function fixState() { if (!S.fix || S.fix.key !== fixKey()) S.fix = { key: fixKey(), list: [], cur: 0, ans: "", err: [] }; return S.fix; }
+function fixCur() { const f = S.fix && S.fix.key === fixKey() ? S.fix : null; return f && f.list[f.cur]; }
+function fixGo(i) { const f = fixState(); f.cur = i; f.ans = ""; f.err = []; push(); }
+function fixAdd(n, q) {
+    const f = fixState(), at = f.list.findIndex((x) => x.n === n);
+    if (at >= 0) { if (q) f.list[at].q = q; fixGo(at); return; }
+    f.list.push({ n, q: q || "", done: false }); fixGo(f.list.length - 1);
+}
+function drawFix(st) {
+    const f = fixState(), c = f.list[f.cur], sd = sdSet(), remote = mode !== "board";
+    st.appendChild(header("Fix It Together", sd && sd.title ? "Speed dating review: " + sd.title : "The cards that tripped us up"));
+    const body = el("div", "notes fix"), left = el("div", "nleft"), right = el("div", "nright");
+    if (remote) left.appendChild(fixPicker(f, sd));
+    if (f.list.length) {
+        const chips = el("div", "fixchips");
+        f.list.forEach((x, i) => {
+            const b = el("button", "fixchip" + (i === f.cur ? " on" : "") + (x.done ? " done" : ""), "#" + x.n + (x.done ? " \u2713" : ""));
+            b.type = "button"; b.setAttribute("aria-label", "Card " + x.n + (x.done ? ", fixed" : "")); b.onclick = () => fixGo(i); chips.appendChild(b);
+        });
+        left.appendChild(chips);
+    }
+    if (c) {
+        left.appendChild(el("p", "nkind", "Card #" + c.n + " \u00b7 tricky card " + (f.cur + 1) + " of " + f.list.length));
+        left.appendChild(c.q ? richEl("p", "nq", c.q) : el("p", "nq fixnoq", "Card #" + c.n));
+        if (f.err.length) { const w = el("div", "fixerr"); w.appendChild(el("p", "fixerrh", "Watch out: common mistakes")); f.err.forEach((t) => w.appendChild(richEl("p", null, t))); left.appendChild(w); }
+        if (f.ans) left.appendChild(richEl("p", "nans", "Answer: " + f.ans));
+        if (remote) left.appendChild(fixReveal(f, c, sd));
+    } else {
+        const e = el("div", "fixempty");
+        e.appendChild(el("p", "fixbig", "Which card tripped you up?"));
+        e.appendChild(el("p", null, "Check the Errors box on your card. Tell us the card number and the most common mistake."));
+        left.appendChild(e);
+    }
+    body.appendChild(left);
+    const cv = el("div", "cv" + (gridOn ? " grid" : "")); cv.id = "cv"; canvas = el("canvas"); cv.appendChild(canvas);
+    right.appendChild(cv); right.appendChild(toolbar()); body.appendChild(right); st.appendChild(body); bindCanvas(); sizeCanvas();
+}
+/* Remote only: pick a card, or type one when the week's cards are not saved in Week Builder. */
+function fixPicker(f, sd) {
+    const box = el("div", "fixctl"), row = el("div", "fixrow"), sel = el("select"), cards = sd ? sd.cards : null, n = cards ? cards.length : 40;
+    sel.setAttribute("aria-label", "Pick a card");
+    const o0 = el("option", null, "Pick a tricky card\u2026"); o0.value = ""; sel.appendChild(o0);
+    for (let i = 1; i <= n; i++) {
+        const q = cards && cards[i - 1] && cards[i - 1].q ? String(cards[i - 1].q).replace(/\s+/g, " ") : "", o = el("option", null, "#" + i + (q ? "  " + (q.length > 70 ? q.slice(0, 68) + "\u2026" : q) : "") + (f.list.some((x) => x.n === i) ? "  (on the list)" : ""));
+        o.value = String(i); sel.appendChild(o);
+    }
+    row.appendChild(sel);
+    if (cards) sel.onchange = () => { const i = +sel.value; if (i) fixAdd(i, String((cards[i - 1] && cards[i - 1].q) || "")); };
+    else {
+        const t = el("input"); t.type = "text"; t.placeholder = "Type the problem on the card"; t.id = "fixType"; t.setAttribute("aria-label", "Problem on the card");
+        const add = el("button", null, "Show it"); add.type = "button";
+        const go = () => { const i = +sel.value; if (!i) { sel.focus(); return; } fixAdd(i, t.value.trim()); };
+        add.onclick = go; t.onkeydown = (e) => { if (e.key === "Enter") go(); };
+        row.appendChild(t); row.appendChild(add);
+    }
+    box.appendChild(row);
+    if (!cards) box.appendChild(el("p", "fixhint", "Save this week in Week Builder and the card problems show up in this list."));
+    return box;
+}
+function fixReveal(f, c, sd) {
+    const box = el("div", "fixctl fixbtns"), card = sd && sd.cards[c.n - 1];
+    const btn = (label, on, fn, cls) => { const b = el("button", cls || null, label); b.type = "button"; b.setAttribute("aria-pressed", String(!!on)); b.onclick = fn; box.appendChild(b); };
+    const wrong = card && Array.isArray(card.wrong) ? card.wrong.filter((w) => w && w.a) : [];
+    // Handlers read the state fresh: a synced copy can replace S.fix without a redraw.
+    if (wrong.length) btn(f.err.length ? "Hide mistakes" : "Show common mistakes", f.err.length, () => { const f = fixState(); f.err = f.err.length ? [] : wrong.slice(0, 3).map((w) => String(w.a) + (w.why ? ": " + w.why : "")); push(); });
+    if (card && card.a) btn(f.ans ? "Hide answer" : "Show answer", f.ans, () => { const f = fixState(); f.ans = f.ans ? "" : String(card.a); push(); });
+    btn(c.done ? "Fixed \u2713" : "Mark fixed", c.done, () => { const f = fixState(), c = f.list[f.cur]; if (!c) return; c.done = !c.done; if (c.done && f.cur < f.list.length - 1) { fixGo(f.cur + 1); return; } push(); }, "fixdone");
+    btn("Remove", false, () => { const f = fixState(); f.list.splice(f.cur, 1); fixGo(Math.max(0, Math.min(f.cur, f.list.length - 1))); }, "alt");
+    return box;
 }
 
 /* ---------- shared state ---------- */
@@ -497,6 +597,7 @@ function applyState(d) {
     S.note = Math.max(0, Math.floor(+d.note || 0)); S.step = Math.max(0, Math.floor(+d.step || 0));
     { const m = mergeTools(d.tools); Object.keys(S.tools).forEach((k) => delete S.tools[k]); Object.assign(S.tools, m); } // keep the same object: widgets hold a reference to it
     S.speedMode = d.speedMode === "check" ? "check" : "round";
+    S.fix = cleanFix(d.fix);
     ["bell", "round", "check", "free"].forEach((k) => { const t = d.timers && d.timers[k]; if (t) { S.timers[k] = { running: !!t.running, t0: +t.t0 || 0, elapsed: +t.elapsed || 0 }; if (k === "free") S.timers.free.dur = +t.dur || 300; } });
 }
 /* One-tap lesson flow: Weekly Agenda -> Today -> each bellringer problem and its answer -> the day's activity. */
@@ -516,6 +617,8 @@ function flow(n) {
             else if (S.note < frames.length - 1) { S.note++; S.step = 0; S.show = false; }
             else if (isSpeedDay()) { S.screen = "speed"; S.show = false; } else return;
         }
+        else if (S.screen === "speed") S.screen = "fix";
+        else if (S.screen === "fix") { const f = fixState(); if (f.cur < f.list.length - 1) { fixGo(f.cur + 1); return; } return; }
         else return;
     } else {
         if (S.screen === "today") S.screen = "agenda";
@@ -527,6 +630,7 @@ function flow(n) {
             else if (S.note > 0) { S.note--; const g = frames[S.note]; S.step = g.lines.length; S.show = !!g.ans; }
             else if (len) { S.screen = "bell"; S.prob = len - 1; S.show = true; } else S.screen = "today";
         }
+        else if (S.screen === "fix") { const f = fixState(); if (f.list.length && f.cur > 0) { fixGo(f.cur - 1); return; } S.screen = "speed"; }
         else if (S.screen === "speed") { if (hasNotes) { S.screen = "notes"; S.note = frames.length - 1; S.step = frames[S.note].lines.length; S.show = false; } else if (len) { S.screen = "bell"; S.prob = len - 1; S.show = true; } else S.screen = "today"; }
         else return;
     }
@@ -546,6 +650,8 @@ function flowLabel() {
         if (S.note < frames.length - 1) return "Next: " + frames[S.note + 1].kind.split(":")[0];
         return isSpeedDay() ? "Next: Speed Dating" : "Next";
     }
+    if (S.screen === "speed") return "Next: Fix It Together";
+    if (S.screen === "fix") { const f = fixState(); return f.cur < f.list.length - 1 ? "Next: Card #" + f.list[f.cur + 1].n : "Next"; }
     return "Next";
 }
 let wake = null;
@@ -556,7 +662,7 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
-    store = (opts && opts.store) || await import("./boardStore.js?v=42");
+    store = (opts && opts.store) || await import("./boardStore.js?v=43");
     const guest = mode === "sub";
     mountGames({ S, header, store: () => store, writer, now, beep, unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     document.body.classList.toggle("board", mode === "board");

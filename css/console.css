@@ -256,3 +256,25 @@ body.board .recpill{display:none}
 .tundo{min-height:44px;border-radius:10px;border:1.5px solid var(--c-line);background:transparent;font-weight:700;color:var(--c-mute);cursor:pointer}
 .ttot{font-weight:600;font-size:.88rem;margin-top:10px}
 @media (max-width:520px){.trow{grid-template-columns:minmax(0,1fr) repeat(3,54px) 32px}}
+/* Fix It Together (speed dating error review) */
+.fixchips{display:flex;flex-wrap:wrap;gap:.3em}
+.fixchip{font-size:.72em;font-weight:700;border:.13em solid var(--sky);background:transparent;color:var(--on);border-radius:2em;padding:.15em .8em;cursor:pointer}
+.fixchip.done{border-color:rgba(255,255,255,.35);color:var(--soft)}
+.fixchip.on{background:var(--amber);border-color:var(--amber);color:var(--amber-ink)}
+.fixerr{background:#FDECEA;color:#8A1F11;border-radius:.5em;padding:.35em .7em;border-left:.3em solid #E5533D;font-size:.85em;line-height:1.25}
+.fixerr p{margin:.1em 0}
+.fixerr .fixerrh{font-weight:800;font-size:.8em;text-transform:uppercase;letter-spacing:.04em}
+.fixempty{margin:auto 0;color:var(--on)}
+.fixempty .fixbig{font-family:var(--display);font-size:1.7em;font-weight:800;line-height:1.15;margin:0 0 .3em}
+.fixempty p{font-size:.95em;line-height:1.35;color:var(--soft)}
+.fixnoq{color:var(--soft)}
+.fixctl{font-size:.7em;display:flex;flex-direction:column;gap:.35em}
+.fixrow{display:flex;gap:.35em;flex-wrap:wrap}
+.fixrow select,.fixrow input{flex:1 1 12em;min-width:0;font:inherit;padding:.35em .6em;border-radius:.5em;border:.12em solid var(--sky);background:#fff;color:var(--navy)}
+.fixrow button,.fixbtns button{font:inherit;font-weight:700;border:0;border-radius:2em;padding:.35em 1em;background:var(--sky);color:var(--navy);cursor:pointer}
+.fixbtns{flex-direction:row;flex-wrap:wrap;margin-top:auto}
+.fixbtns button[aria-pressed="true"]{background:var(--amber);color:var(--amber-ink)}
+.fixbtns button.fixdone[aria-pressed="true"]{background:var(--green,#2E7D32);color:#fff}
+.fixbtns button.alt{background:transparent;color:var(--on);border:.12em solid var(--soft)}
+.fixhint{margin:0;color:var(--soft);font-size:.95em}
+body.board .fixctl{display:none!important}
