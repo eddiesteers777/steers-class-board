@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — the student page for Vault Raid (play.html, focalboard.web.app/play).
+   AnchorBoard — the student page for Vault Raid (play.html, anchorboard.app/play).
    No account and no password: the page signs in as an anonymous guest on this
    device only, so the game can tell this Chromebook's answers from the others'.
    It never touches the teacher's sign-in (it runs as its own Firebase app, "play").
@@ -26,8 +26,8 @@ const app = initializeApp({
 const auth = getAuth(app), db = getFirestore(app);
 if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {   // local testing with the emulators only
     try {
-        if (new URLSearchParams(location.search).has("emu")) sessionStorage.setItem("focal-emu", "1");
-        if (sessionStorage.getItem("focal-emu")) { connectFirestoreEmulator(db, "127.0.0.1", 8080); connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true }); }
+        if (new URLSearchParams(location.search).has("emu")) sessionStorage.setItem("anchorboard-emu", "1");
+        if (sessionStorage.getItem("anchorboard-emu")) { connectFirestoreEmulator(db, "127.0.0.1", 8080); connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true }); }
     } catch (e) { /* storage blocked */ }
 }
 setPersistence(auth, browserLocalPersistence).catch(() => {});
@@ -36,7 +36,7 @@ const $ = (id) => document.getElementById(id);
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "button"; if (fn) b.onclick = fn; return b; };
 const mathEl = (tag, cls, text) => { const e = el(tag, cls); e.append(V.mathText(text)); return e; };
-const store = { get: (k) => { try { return localStorage.getItem("focal-play-" + k) || ""; } catch (e) { return ""; } }, set: (k, v) => { try { localStorage.setItem("focal-play-" + k, v); } catch (e) { /* ok */ } } };
+const store = { get: (k) => { try { return localStorage.getItem("anchorboard-play-" + k) || ""; } catch (e) { return ""; } }, set: (k, v) => { try { localStorage.setItem("anchorboard-play-" + k, v); } catch (e) { /* ok */ } } };
 
 const ST = {
     uid: "", code: "", room: null, roomGone: false, me: null, hadMe: false,

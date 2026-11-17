@@ -1,4 +1,4 @@
-/* Turn a question list from another tool into Focal's question table (CATEGORY | POINTS | QUESTION | ANSWER).
+/* Turn a question list from another tool into AnchorBoard's question table (CATEGORY | POINTS | QUESTION | ANSWER).
  * Reads CSV files and cells pasted from a spreadsheet (tab separated). Knows the column layouts of the
  * Blooket, Wayground (Quizizz), Gimkit and Kahoot spreadsheet templates, plus any sheet with a
  * Question column and an Answer column, or plain two to four column lists. Pure functions: nothing is

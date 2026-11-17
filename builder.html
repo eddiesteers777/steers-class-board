@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Week Builder | Focal</title>
+    <title>Week Builder | AnchorBoard</title>
     <meta name="robots" content="noindex">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -16,7 +16,7 @@
 </head>
 <body class="console page builder">
     <header class="cbar">
-        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Class Board</small></span></a>
+        <a class="cbrand" href="index.html"><img src="brand/anchor-logo.svg" alt=""><span><b>AnchorBoard</b><small id="who">Class Board</small></span></a>
         <span class="live" id="status" role="status">Connecting…</span>
         <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
         <a class="btn" href="remote.html" style="text-decoration:none">Open Remote</a>
@@ -172,7 +172,7 @@
                 : (i + 1) + " " + DAYS[i] + " - " + (which === "noteskey" ? "TEACHER KEY - " : "") + "Guided Notes - " + d.notes.title + " (" + cls().label + ")";
             window.print();
         }
-        window.addEventListener("afterprint", () => { document.title = "Week Builder | Focal"; });
+        window.addEventListener("afterprint", () => { document.title = "Week Builder | AnchorBoard"; });
         function problemsReady() {
             const empty = cls().days.some((d) => (d.problems || []).some((p) => !String(p.q || "").trim() || !String(p.a || "").trim()));
             if (empty) status("A problem is missing its question or answer", "bad");

@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — review games the teacher runs.
+   AnchorBoard — review games the teacher runs.
    The board shows the game; the Remote runs it. Students never sign in
    and never touch a device. The teacher scores the teams.
 
@@ -1280,7 +1280,7 @@ function endButton() {
 }
 
 function optionsBox() {
-    const opt = el("details", "gpopts"); opt.append(el("summary", null, G.kind === "versus" ? "Options" : "Teams and options")); opt.open = sessionStorage.getItem("focal-game-opts") === "1"; opt.ontoggle = () => { try { sessionStorage.setItem("focal-game-opts", opt.open ? "1" : "0"); } catch (e) { /* ok */ } };
+    const opt = el("details", "gpopts"); opt.append(el("summary", null, G.kind === "versus" ? "Options" : "Teams and options")); opt.open = sessionStorage.getItem("anchorboard-game-opts") === "1"; opt.ontoggle = () => { try { sessionStorage.setItem("anchorboard-game-opts", opt.open ? "1" : "0"); } catch (e) { /* ok */ } };
     if (isCh() || G.kind === "shots" || G.kind === "tiles" || G.kind === "race") { opt.append(el("p", "gpnote", "Team names")); teamNames(opt); }
     if (G.kind === "code") {
         const l = el("label", "gpchk"), sel = el("select"); [[4, "4 digits"], [3, "3 digits (easier)"]].forEach(([v, t]) => { const o = el("option", null, t); o.value = v; sel.append(o); }); sel.value = String(G.opts.len);
@@ -1559,7 +1559,7 @@ function tugPanel(p) {
     } else {
         p.append(btn("btn go", G.qi >= G.qs.length - 1 ? "Show the final result" : "Next question", tugNext), undoB());
     }
-    const opt = el("details", "gpopts"); opt.append(el("summary", null, "Options")); opt.open = sessionStorage.getItem("focal-game-opts") === "1"; opt.ontoggle = () => { try { sessionStorage.setItem("focal-game-opts", opt.open ? "1" : "0"); } catch (e) { /* ok */ } };
+    const opt = el("details", "gpopts"); opt.append(el("summary", null, "Options")); opt.open = sessionStorage.getItem("anchorboard-game-opts") === "1"; opt.ontoggle = () => { try { sessionStorage.setItem("anchorboard-game-opts", opt.open ? "1" : "0"); } catch (e) { /* ok */ } };
     G.teams.forEach((t, i) => { const l = el("label", "gpchk"), inp = el("input", "gpname"); inp.type = "text"; inp.maxLength = 16; inp.value = t.n; inp.setAttribute("aria-label", "Name of side " + (i + 1));
         inp.oninput = () => { G.teams[i].n = inp.value.slice(0, 16) || (i ? "Gold" : "Blue"); changed({ quiet: true }); }; l.append(document.createTextNode((i ? "Right" : "Left") + " side "), inp); opt.append(l); });
     const pick = (label, list, cur, fn) => { const l = el("label", "gpchk"), sel = el("select"); list.forEach(([v, t]) => { const o = el("option", null, t); o.value = v; sel.append(o); }); sel.value = String(cur); sel.onchange = () => fn(sel.value); l.append(document.createTextNode(label + " "), sel); return l; };
@@ -1586,7 +1586,7 @@ function rapidPanel(p) {
         if (!G.timer.running) p.append(el("p", "gpnote", "Paused. Tap Resume to keep going."));
     }
     p.append(sc);
-    const opt = el("details", "gpopts"); opt.append(el("summary", null, "Options")); opt.open = sessionStorage.getItem("focal-game-opts") === "1"; opt.ontoggle = () => { try { sessionStorage.setItem("focal-game-opts", opt.open ? "1" : "0"); } catch (e) { /* ok */ } };
+    const opt = el("details", "gpopts"); opt.append(el("summary", null, "Options")); opt.open = sessionStorage.getItem("anchorboard-game-opts") === "1"; opt.ontoggle = () => { try { sessionStorage.setItem("anchorboard-game-opts", opt.open ? "1" : "0"); } catch (e) { /* ok */ } };
     const l = el("label", "gpchk"), sel = el("select"); RAPID_SECS.map((n) => [n, n < 60 ? n + " seconds" : n / 60 + (n === 60 ? " minute" : " minutes")]).forEach(([v, t]) => { const o = el("option", null, t); o.value = v; sel.append(o); });
     sel.value = String(G.opts.secs); sel.disabled = G.cp !== "ready"; sel.onchange = () => { G.opts.secs = +sel.value; changed(); }; l.append(document.createTextNode("Round length "), sel); opt.append(l);
     if (G.cp !== "ready") opt.append(el("p", "gpnote", "Round length is set before the round starts."));

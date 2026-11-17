@@ -11,18 +11,18 @@
    when it loads. A reload can't lose it.
 
    Needs https://steers-class-board.firebaseapp.com/auth-return.html,
-   https://focalboard.web.app/auth-return.html and
+   https://anchorboard.app/auth-return.html and
    https://steers-class-board.web.app/auth-return.html in the Google Cloud web
    client's Authorized redirect URIs (one per hosting domain). Pure helpers: unit-tested.
    ========================================================== */
 
 export const RETURN_URL = "https://steers-class-board.firebaseapp.com/auth-return.html";
-export const RETURN_URL_FOCALBOARD = "https://focalboard.web.app/auth-return.html";
+export const RETURN_URL_ANCHORBOARD = "https://anchorboard.app/auth-return.html";
 export const RETURN_URL_WEBAPP = "https://steers-class-board.web.app/auth-return.html";
 
 /** The return page for the domain the site is running on. */
 export function returnUrlForOrigin(origin) {
-    if (origin === "https://focalboard.web.app") return RETURN_URL_FOCALBOARD;
+    if (origin === "https://anchorboard.app") return RETURN_URL_ANCHORBOARD;
     if (origin === "https://steers-class-board.web.app") return RETURN_URL_WEBAPP;
     return RETURN_URL;
 }
@@ -61,5 +61,5 @@ export function newState() {
 
 /** The Home Screen app, where the pop-up can't be trusted. Only on the real site (a redirect address is registered for each hosting domain). */
 export function useRedirectSignIn({ standalone, origin }) {
-    return Boolean(standalone) && (origin === "https://steers-class-board.firebaseapp.com" || origin === "https://focalboard.web.app" || origin === "https://steers-class-board.web.app");
+    return Boolean(standalone) && (origin === "https://steers-class-board.firebaseapp.com" || origin === "https://anchorboard.app" || origin === "https://steers-class-board.web.app");
 }

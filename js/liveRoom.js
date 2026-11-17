@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — student game on Chromebooks: Vault Raid.
+   AnchorBoard — student game on Chromebooks: Vault Raid.
    The "Student Game" screen. Students play on their own devices at /play with a
    game code and their name: no Google account, no password. The teacher runs it
    from the Remote, and the board shows the code, the scores and any student's work.
@@ -21,7 +21,7 @@ const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "bu
 const mathEl = (tag, cls, text) => { const e = el(tag, cls); e.append(V.mathText(text)); return e; };
 
 // This Remote's mark as the referee. Kept for the tab's life, so a reload carries on running the game.
-const PAGE = (() => { try { let id = sessionStorage.getItem("focal-live-host"); if (!id) { id = Math.random().toString(36).slice(2, 10); sessionStorage.setItem("focal-live-host", id); } return id; } catch (e) { return Math.random().toString(36).slice(2, 10); } })();
+const PAGE = (() => { try { let id = sessionStorage.getItem("anchorboard-live-host"); if (!id) { id = Math.random().toString(36).slice(2, 10); sessionStorage.setItem("anchorboard-live-host", id); } return id; } catch (e) { return Math.random().toString(36).slice(2, 10); } })();
 const LENGTHS = [[5, "5 minutes"], [8, "8 minutes"], [10, "10 minutes"], [15, "15 minutes"], [20, "20 minutes"], [0, "Until I end it"]];
 const HOST_STALE = 20000;    // another Remote that has not checked in for this long can be taken over
 const JOIN_PATH = "play";

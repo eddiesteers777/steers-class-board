@@ -1,11 +1,11 @@
-/* Focal footer — copied from Southbound Coaching's public footer
-   (css/public.css), recolored for Focal. Same structure and rules,
+/* AnchorBoard footer — copied from Southbound Coaching's public footer
+   (css/public.css), recolored for AnchorBoard. Same structure and rules,
    only the brand values below changed. */
 
 :root {
-    --forest: #081B45;          /* footer background: Focal stage navy */
+    --forest: #081B45;          /* footer background: AnchorBoard stage navy */
     --cream: #F4F7FB;           /* big line and brand: on-navy */
-    --primary: #F2B33D;         /* accents: Focal amber */
+    --primary: #F2B33D;         /* accents: AnchorBoard amber */
     --text-secondary: #C7D3E8;  /* links on navy */
     --muted: #8FA3C4;           /* legal text on navy */
     --border: rgba(244, 247, 251, .16);

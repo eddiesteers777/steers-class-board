@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — math tools on a whiteboard (the page side).
+   AnchorBoard — math tools on a whiteboard (the page side).
    createMathPad(host, ink, opts) puts a second canvas under the ink canvas for the tools,
    and handles Move mode (pick, drag, resize, turn), the Add menu and each tool's settings.
    Nothing here knows about the board's state or saving: the page passes
