@@ -8,10 +8,10 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=49">
-    <link rel="stylesheet" href="css/console.css?v=49">
+    <link rel="stylesheet" href="css/board.css?v=50">
+    <link rel="stylesheet" href="css/console.css?v=50">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/classdata.css?v=49">
+    <link rel="stylesheet" href="css/classdata.css?v=50">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page">
@@ -30,6 +30,9 @@
             <label class="field"><span>Needs help below</span><select id="cut"><option value="0.6">60%</option><option value="0.7" selected>70%</option><option value="0.8">80%</option></select></label>
         </div>
 
+        <h2>By standard</h2>
+        <p class="sub" id="stdNote"></p>
+        <div class="gridwrap"><table class="cdt" id="stds"></table></div>
         <h2>By skill</h2>
         <div class="gridwrap"><table class="cdt" id="skills"></table></div>
         <h2>By student</h2>
@@ -61,6 +64,7 @@
         <div id="map" hidden>
             <div class="meta">
                 <div><label for="iTitle">Name of this set</label><input type="text" id="iTitle" placeholder="Example: Triangle Angle Sum exit ticket"></div>
+                <div><label for="iStd">Standard</label><select id="iStd"></select></div>
                 <div><label for="iSkill">Skill or topic</label><input type="text" id="iSkill" placeholder="Example: Triangle angle sum"></div>
                 <div><label for="iDate">Date</label><input type="date" id="iDate"></div>
                 <div><label for="iSource">Source</label><input type="text" id="iSource" list="sources" placeholder="Wayground, Blooket, DeltaMath, Magma Math"><datalist id="sources"><option value="Wayground"><option value="Blooket"><option value="DeltaMath"><option value="Magma Math"><option value="Paper (graded by Claude)"><option value="Exit ticket"><option value="Quiz"><option value="Test"></datalist></div>
@@ -69,18 +73,19 @@
                 <div><label for="iKind">The scores are</label><select id="iKind"><option value="percent">Percents (85 or 85%)</option><option value="points">Points out of a total</option><option value="right">Right or wrong (1/0, yes/no)</option></select></div>
                 <div id="maxBox" hidden><label for="iMax">Points possible for each column</label><input type="number" id="iMax" min="1" step="any" value="10"></div>
             </div>
-            <p class="bhead">Score columns (tick each column that is a score)</p>
+            <p class="bhead">Score columns (tick each column that is a score; give a column its own standard when one report covers several)</p>
             <div class="cols2" id="scoreCols"></div>
             <label class="chk"><input type="checkbox" id="iNumbers"> Save roster numbers instead of names (uses the order on your Rosters page)</label>
             <div class="rowx"><button class="btn go" id="doImport" type="button">Save these results</button><span class="count2" id="iNote"></span></div>
         </div>
     </main>
     <script type="module">
-        import { parseTable, toScore, looksNumeric, rosterIndex, summarise } from "./js/classData.js?v=49";
-        import { readXlsx, guessHeaderRow } from "./js/xlsxRead.js?v=49";
-        import { mountGameResults } from "./js/gameResults.js?v=49";
+        import { parseTable, toScore, looksNumeric, rosterIndex, summarise, byStandard } from "./js/classData.js?v=50";
+        import { STANDARDS } from "./data/standards.js?v=50";
+        import { readXlsx, guessHeaderRow } from "./js/xlsxRead.js?v=50";
+        import { mountGameResults } from "./js/gameResults.js?v=50";
         const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
-        const store = await import(demo ? "./js/localStore.js?v=49" : "./js/boardStore.js?v=49");
+        const store = await import(demo ? "./js/localStore.js?v=50" : "./js/boardStore.js?v=50");
         const PERIODS = [["1st", "8th Grade"], ["2nd", "8th Grade"], ["4th", "8th Grade"], ["5th", "7th Grade"], ["6th", "8th Accelerated"]];
         const $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -88,7 +93,46 @@
         const pct = (x) => x == null ? "" : Math.round(x * 100) + "%";
         const band = (x, cut) => x == null ? "" : (x < cut ? "low" : (x < Math.min(1, cut + 0.15) ? "mid" : "ok"));
 
-        let index = [], loaded = new Map(), rosters = {}, period = "1st", table = null, drawGames = null;
+        let index = [], loaded = new Map(), rosters = {}, period = "1st", table = null, drawGames = null, progress = {};
+        // ---------- standards ----------
+        const CLS = { "1st": "8th", "2nd": "8th", "4th": "8th", "5th": "7th", "6th": "8th-acc" };
+        const stdOf = (cls, code) => ((STANDARDS[cls] || {}).standards || []).find((x) => x.code === code);
+        const unitOf = (cls, code) => ((STANDARDS[cls] || {}).units || []).find((u) => u.standards.some((x) => x.code === code));
+        const markOf = (cls, code) => ((progress[cls] || {})[code] || {}).s || "";
+        const MARK = { "": "Not yet", teaching: "Teaching", taught: "Taught", reteach: "Reteach" };
+        function stdOptions(sel, cls, cur, blank) {   // district unit order first, then any standard not in a unit
+            const C = STANDARDS[cls]; sel.replaceChildren(); const o0 = el("option", null, blank); o0.value = ""; sel.appendChild(o0);
+            if (!C) return; const seen = new Set();
+            const add = (box, s) => { if (seen.has(s.code)) return; seen.add(s.code); const o = el("option", null, s.code + (s.critical ? " ★ " : " · ") + (s.text.length > 70 ? s.text.slice(0, 67).trim() + "…" : s.text)); o.value = s.code; box.appendChild(o); };
+            C.units.forEach((u) => { const g = el("optgroup"); g.label = (C.unitWord || "Unit") + " " + u.id + ": " + u.name; u.standards.forEach((x) => { const s = stdOf(cls, x.code); if (s) add(g, s); }); if (g.children.length) sel.appendChild(g); });
+            const rest = el("optgroup"); rest.label = "Other standards"; C.standards.forEach((s) => add(rest, s)); if (rest.children.length) sel.appendChild(rest);
+            sel.value = cur || "";
+        }
+        async function setMark(cls, code, s) {
+            const p = progress[cls] = progress[cls] || {}; p[code] = { s, d: new Date().toLocaleDateString("en-CA") };
+            status("Saving…"); try { await store.save("standards/progress", progress); status("Saved", "ok"); } catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); } draw();
+        }
+        function drawStandards(mine, cut) {
+            const cls = CLS[period], T = $("stds"); T.replaceChildren();
+            const { list, untagged } = byStandard(mine, cut), C = STANDARDS[cls];
+            const order = (code) => { const i = (C ? C.units : []).findIndex((u) => u.standards.some((x) => x.code === code)); return i < 0 ? 999 : i; };
+            list.sort((a, b) => order(a.code) - order(b.code) || a.code.localeCompare(b.code, undefined, { numeric: true }));
+            $("stdNote").textContent = (list.length ? "Scores grouped by the standard each set or column is tagged with. Status comes from the Standards page." : "Give a set a standard (when you bring it in, or with the Standard box on a saved set below) and it shows here.")
+                + (untagged ? " " + untagged + (untagged === 1 ? " score column has" : " score columns have") + " no standard yet." : "");
+            if (!list.length) { T.appendChild(row(["No results are tagged with a standard for " + period + " period yet."])); return; }
+            T.appendChild(row(["Standard", "Status", "Class average", "First → latest", "Students", "Below " + pct(cut), "Who needs help (lowest first)"], "th"));
+            list.forEach((g) => {
+                const s = stdOf(cls, g.code), u = unitOf(cls, g.code), m = markOf(cls, g.code);
+                const who = el("div", "cdStd"); who.appendChild(el("b", null, g.code + (s && s.critical ? " ★" : "")));
+                if (u) who.appendChild(el("small", null, (C.unitWord || "Unit") + " " + u.id + ": " + u.name));
+                if (s) who.title = s.text;
+                const st = el("div", "cdMark"); st.appendChild(el("span", "cdM m-" + (m || "none"), MARK[m] || m));
+                if (g.avg != null && g.avg < cut && m === "taught") { const b = el("button", "bx cdRe", "Mark Reteach"); b.type = "button"; b.title = "Marks " + g.code + " as Reteach on the Standards page"; b.onclick = () => setMark(cls, g.code, "reteach"); st.appendChild(b); }
+                const first = g.sets[0], last = g.sets[g.sets.length - 1];
+                const trend = g.sets.length > 1 ? pct(first.avg) + " → " + pct(last.avg) + " (" + g.sets.length + " sets)" : "1 set: " + first.title;
+                T.appendChild(row([who, st, [pct(g.avg), "num " + band(g.avg, cut)], trend, [String(g.n), "num"], [String(g.low.length), "num"], g.low.map((x) => x.s + " " + pct(x.v)).join(", ")]));
+            });
+        }
 
         // ---------- views ----------
         function row(cells, tag) { const tr = el("tr"); cells.forEach((c) => { const td = el(tag || "td"); if (c instanceof Node) td.appendChild(c); else if (Array.isArray(c)) { td.textContent = c[0]; td.className = c[1]; } else td.textContent = c == null ? "" : c; tr.appendChild(td); }); return tr; }
@@ -96,6 +140,7 @@
             [...$("periodTabs").children].forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.k === period)));
             const cut = +$("cut").value, mine = index.filter((m) => m.period === period).map((m) => loaded.get(m.id)).filter(Boolean)
                 .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+            drawStandards(mine, cut);
             const { skills, people } = summarise(mine, cut), S = $("skills"), P = $("people"); S.replaceChildren(); P.replaceChildren();
             if (!skills.length) { S.appendChild(row(["Nothing brought in for " + period + " period yet."])); P.appendChild(row(["Nothing yet."])); }
             else {
@@ -110,6 +155,14 @@
             if (!list.length) box.appendChild(el("p", "sub", "No sets saved for this period."));
             list.forEach((m) => {
                 const d = el("div", "imp"); d.appendChild(el("b", null, m.title)); d.appendChild(el("span", null, [m.skill, m.source, m.date, m.n + " students", m.items + (m.items === 1 ? " score column" : " score columns")].filter(Boolean).join(" · ")));
+                const ss = el("select", "cdSetStd"); ss.setAttribute("aria-label", "Standard for " + m.title); stdOptions(ss, CLS[m.period], m.std, "Standard: none");
+                ss.onchange = async () => {
+                    const imp = loaded.get(m.id); if (!imp) { status("That set has not loaded yet", "bad"); ss.value = m.std || ""; return; }
+                    status("Saving…");
+                    try { imp.std = ss.value; await store.save("data/i_" + m.id, imp); index = index.map((x) => x.id === m.id ? Object.assign({}, x, { std: ss.value }) : x); await store.save("data/index", { imports: index, at: Date.now() }); status("Saved", "ok"); draw(); }
+                    catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); }
+                };
+                d.appendChild(ss);
                 const rm = el("button", "bx", "Remove"); rm.type = "button";
                 rm.onclick = async () => {
                     if (rm.dataset.sure !== "1") { rm.dataset.sure = "1"; rm.textContent = "Tap again to remove"; return; }
@@ -140,7 +193,9 @@
             const sc = $("scoreCols"); sc.replaceChildren();
             head.forEach((h, i) => {
                 const lab = el("label", "chk"), cb = el("input"); cb.type = "checkbox"; cb.value = i; cb.checked = i !== +$("iStudent").value && looksNumeric(body, i) && !/^(id|period|class|grade level|section)$/i.test(h);
-                lab.appendChild(cb); lab.appendChild(document.createTextNode(" " + (h || "Column " + (i + 1)))); sc.appendChild(lab);
+                lab.appendChild(cb); lab.appendChild(document.createTextNode(" " + (h || "Column " + (i + 1))));
+                const wrap = el("span", "cdCol"), cs = el("select", "colStd"); cs.dataset.col = i; cs.setAttribute("aria-label", "Standard for the column " + (h || "Column " + (i + 1))); stdOptions(cs, CLS[$("iPeriod").value], "", "Same as the set");
+                wrap.append(lab, cs); sc.appendChild(wrap);
             });
             if (!$("iDate").value) $("iDate").value = new Date().toLocaleDateString("en-CA");
             $("iNote").textContent = body.length + " rows read."; map.hidden = false;
@@ -183,11 +238,13 @@
                 rows = rows.map((r) => ({ s: "#" + (rosterIndex(r.s, roster) + 1), v: r.v }));
             }
             const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-            const imp = { id, title, skill: $("iSkill").value.trim(), date: $("iDate").value, source: $("iSource").value.trim(), period: per, items: cols.map((c) => head[c] || "Column " + (c + 1)), rows, at: Date.now() };
+            const std = $("iStd").value, colStd = Object.fromEntries([...$("scoreCols").querySelectorAll("select.colStd")].map((x) => [+x.dataset.col, x.value]));
+            const istd = cols.map((c) => colStd[c] || ""), extra = istd.some(Boolean) ? { istd } : {};
+            const imp = { id, title, std, ...extra, skill: $("iSkill").value.trim(), date: $("iDate").value, source: $("iSource").value.trim(), period: per, items: cols.map((c) => head[c] || "Column " + (c + 1)), rows, at: Date.now() };
             status("Saving…");
             try {
                 await store.save("data/i_" + id, imp);
-                index = [...index, { id, title, skill: imp.skill, date: imp.date, source: imp.source, period: per, n: rows.length, items: cols.length }];
+                index = [...index, { id, title, std, skill: imp.skill, date: imp.date, source: imp.source, period: per, n: rows.length, items: cols.length }];
                 await store.save("data/index", { imports: index, at: Date.now() });
                 loaded.set(id, imp); period = per; status("Saved", "ok");
                 $("paste").value = ""; $("iTitle").value = ""; $("map").hidden = true; $("pickBox").hidden = true; $("fileNote").textContent = ""; sheets = null; table = null; draw(); scrollTo({ top: 0, behavior: "smooth" });
@@ -199,12 +256,15 @@
             const o = el("option", null, k + " period, " + label); o.value = k; $("iPeriod").appendChild(o);
         });
         $("cut").onchange = draw;
+        const fillStd = () => { stdOptions($("iStd"), CLS[$("iPeriod").value], $("iStd").value, "None"); $("scoreCols").querySelectorAll("select.colStd").forEach((x) => stdOptions(x, CLS[$("iPeriod").value], x.value, "Same as the set")); };
+        $("iPeriod").onchange = fillStd; fillStd();
 
         const user = await store.ready();
         if (!user) location.replace("login.html");
         else {
             $("who").textContent = demo ? "This device only, nothing is saved" : "Signed in as " + user.name;
             drawGames = mountGameResults({ store, el, status });
+            store.watch("standards/progress", (snap) => { if (snap.pending) return; const d = (snap.exists && snap.data) || {}; progress = d && typeof d === "object" ? d : {}; draw(); }, () => {});
             store.watch("rosters/all", (snap) => { if (!snap.pending) rosters = (snap.exists && snap.data && snap.data.periods) || {}; }, () => {});
             let first = true;
             store.watch("data/index", (snap) => {

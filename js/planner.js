@@ -5,13 +5,13 @@
      { days: { "2026-11-18": { note, c: { "8th": "plan" } } }, weeks: { "2026-11-16": { c: { "8th": "unit or focus" } } } }
    ?demo keeps everything on this device only.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=49";
-import { LIBRARY } from "../data/library.js?v=49";
-import { suggestedUnit } from "./standardsNext.js?v=49";
-import { SCHOOL_YEAR, iso, parse, addDays, today, weekday, mondayOf, eventsOn, isSchoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, schoolDaysBetween, SCHOOL_DAYS, short } from "./schoolCal.js?v=49";
+import { WEEKS } from "../data/weeks.js?v=50";
+import { LIBRARY } from "../data/library.js?v=50";
+import { suggestedUnit } from "./standardsNext.js?v=50";
+import { SCHOOL_YEAR, iso, parse, addDays, today, weekday, mondayOf, eventsOn, isSchoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, schoolDaysBetween, SCHOOL_DAYS, short } from "./schoolCal.js?v=50";
 
 const demo = new URLSearchParams(location.search).has("demo");
-const store = await import(demo ? "./localStore.js?v=49" : "./boardStore.js?v=49");
+const store = await import(demo ? "./localStore.js?v=50" : "./boardStore.js?v=50");
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };

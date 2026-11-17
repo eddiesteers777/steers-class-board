@@ -31,3 +31,14 @@
 .grSpark span{flex:1;min-width:6px;max-width:28px;border-radius:4px 4px 0 0;background:#9DB6D9}
 .grSpark span.low{background:#D9636B}.grSpark span.mid{background:#E8B43A}.grSpark span.ok{background:#3BA374}
 .grTrend{margin:4px 0 10px;font-weight:600}
+
+/* By standard */
+.cdStd b{display:block;font-family:var(--display);font-weight:800}
+.cdStd small{display:block;color:var(--c-mute);font-size:.8rem;line-height:1.35}
+.cdMark{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.cdM{display:inline-block;font-size:.78rem;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--c-bg);color:var(--c-mute);white-space:nowrap}
+.cdM.m-teaching{background:#2F6FDB;color:#fff}.cdM.m-taught{background:#1F9D61;color:#fff}.cdM.m-reteach{background:#B4232A;color:#fff}
+.cdRe{padding:5px 9px;font-size:.8rem;color:#8E1B21;border-color:#E6B7BA}
+.cdSetStd{font:inherit;font-size:.86rem;max-width:280px;border:1.5px solid var(--c-line);border-radius:10px;padding:6px 8px;background:#fff;color:var(--c-ink)}
+.cdCol{display:inline-flex;flex-wrap:wrap;gap:4px 8px;align-items:center;border:1px solid var(--c-line);border-radius:10px;padding:5px 8px;background:var(--c-surface)}
+.cdCol select{font:inherit;font-size:.8rem;max-width:220px;border:1px solid var(--c-line);border-radius:8px;padding:3px 6px;background:#fff}
