@@ -14,20 +14,15 @@
     <meta property="og:url" content="https://eddiesteers777.github.io/steers-class-board/">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=27">
-    <link rel="stylesheet" href="css/console.css?v=27">
+    <link rel="stylesheet" href="css/board.css?v=28">
+    <link rel="stylesheet" href="css/console.css?v=28">
+    <link rel="stylesheet" href="css/home.css?v=28">
     <meta name="theme-color" content="#081B45">
     </head>
 <body class="console page">
     <header class="cbar">
         <a class="cbrand" href="index.html"><img src="brand/calera-seal.webp" alt=""><span><b>Steers Class Board</b><small id="who">Calera Middle School</small></span></a>
-        <a class="btn ghost" href="board.html" style="text-decoration:none">Open Board</a>
-        <a class="btn ghost" href="rosters.html" style="text-decoration:none">Rosters</a>
-        <a class="btn ghost" href="planner.html" style="text-decoration:none">Planner</a>
-        <a class="btn ghost" href="standards.html" style="text-decoration:none">Standards</a>
-        <a class="btn ghost" href="library.html" style="text-decoration:none">Library</a>
-        <a class="btn ghost" href="builder.html" style="text-decoration:none">Week Builder</a>
-        <a class="btn ghost" href="data.html" style="text-decoration:none">Class Data</a>
+        <button class="btn ghost hm-gear" id="settingsOpen" type="button" aria-haspopup="dialog">Settings</button>
         <button class="btn ghost" id="signOut" type="button">Sign out</button>
     </header>
     <main>
@@ -49,6 +44,25 @@
             </div>
         </section>
 
+        <div class="hm-glance" id="glance" aria-live="polite"></div>
+        <div class="hm-needs" id="needs" hidden></div>
+        <nav class="hm-launch" aria-label="Pages">
+            <section class="hm-group"><h2>Teach</h2><div class="hm-tiles">
+                <a class="hm-tile" href="board.html"><b>Open Board</b><span id="st-board">The projected screen</span></a>
+                <a class="hm-tile" href="remote.html"><b>Remote</b><span>Run class, timer and tally</span></a>
+                <a class="hm-tile" href="sub.html"><b>Sub view</b><span>No sign-in board for a guest teacher</span></a>
+            </div></section>
+            <section class="hm-group"><h2>Plan</h2><div class="hm-tiles">
+                <a class="hm-tile" href="planner.html"><b>Planner</b><span id="st-planner">Day, week, month and year</span></a>
+                <a class="hm-tile" href="builder.html"><b>Week Builder</b><span id="st-builder">Print the week's paperwork</span></a>
+                <a class="hm-tile" href="library.html"><b>Library</b><span id="st-library">Every week by class and unit</span></a>
+                <a class="hm-tile" href="standards.html"><b>Standards</b><span id="st-standards">By unit, with critical marks</span></a>
+            </div></section>
+            <section class="hm-group"><h2>Track</h2><div class="hm-tiles">
+                <a class="hm-tile" href="data.html"><b>Class Data</b><span>Scores and imports</span></a>
+                <a class="hm-tile" href="rosters.html"><b>Rosters</b><span>Class lists for the Remote</span></a>
+            </div></section>
+        </nav>
         <h2 id="todayTitle">Today, period by period</h2>
         <p class="sub" id="todayExtra" hidden></p>
         <div class="periods" id="periods"></div>
@@ -56,8 +70,10 @@
         <h2>The week</h2>
         <div class="gridwrap"><table class="weekgrid" id="grid"></table></div>
 
-        <details class="bells" id="bells">
-            <summary>Bell times</summary>
+        <dialog class="hm-dialog" id="settings" aria-labelledby="settingsTitle">
+          <div class="hm-dhead"><h2 id="settingsTitle">Settings</h2><button class="btn ghost" id="settingsClose" type="button">Done</button></div>
+          <div class="bells" id="bells">
+            <h3 class="bellh">Bell times</h3>
             <p class="sub">Enter when each period starts and ends. The top panel then follows the clock and shows the class you are teaching. Keep more than one schedule (activity days, early dismissal) and pick which one runs today. Tomorrow goes back to Regular on its own.</p>
             <div class="bpick2">
                 <label class="field"><span>Today's schedule</span><select id="todaySel" aria-label="Today's schedule"></select></label>
@@ -72,11 +88,14 @@
             <div class="belltable" id="extraRows"></div>
             <div class="rowx"><button class="btn ghost" id="extraAdd" type="button">Add a time</button></div>
             <div class="rowx"><button class="btn" id="bellSave" type="button">Save bell times</button><span class="count2" id="bellNote"></span></div>
-        </details>
+          </div>
+        </dialog>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=27";
-        import * as store from "./js/boardStore.js?v=27";
+        import { WEEKS } from "./data/weeks.js?v=28";
+        import * as store from "./js/boardStore.js?v=28";
+        import { LIBRARY } from "./data/library.js?v=28";
+        import { SCHOOL_YEAR, SCHOOL_DAYS, today as todayFn, addDays, mondayOf, eventsOn, isSchoolDay as schoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, short } from "./js/schoolCal.js?v=28";
         const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
         const DAYKEYS = ["mon", "tue", "wed", "thu", "fri"], $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -117,7 +136,7 @@
             $("nowRem").textContent = (d.reminders || []).join(". ");
             fileLinks($("nowFiles"), c.links); $("nowFilesBox").hidden = !(c.links && c.links.length);
             if (cur.p) { $("nowStart").textContent = "Start " + cur.p + " period"; $("nowStart").href = startUrl(cur.p); $("nowStart").onclick = null; }
-            else { $("nowStart").textContent = cur.go[0]; $("nowStart").href = cur.go[1]; $("nowStart").onclick = cur.go[1] === "#bells" ? () => { $("bells").open = true; } : null; }
+            else { $("nowStart").textContent = cur.go[0]; $("nowStart").href = cur.go[1]; $("nowStart").onclick = cur.go[1] === "#bells" ? (e) => { e.preventDefault(); openSettings(); } : null; }
             $("todayTitle").textContent = (isSchoolDay ? d.name + ", " + d.date : "Monday, " + d.date) + ", period by period";
             { const sc = schedOf(todayId()), ex = (sc.extra || []).filter((x) => x.label && mins(x.start) != null).sort((a, b) => mins(a.start) - mins(b.start)), bits = [];
               if (todayId() !== "regular") bits.push(sc.name + " schedule today.");
@@ -175,13 +194,85 @@
             return out;
         }
         render(); setInterval(render, 30000);
+        /* ---------- settings dialog ---------- */
+        const dlg = $("settings");
+        function openSettings() { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", ""); }
+        $("settingsOpen").onclick = openSettings;
+        $("settingsClose").onclick = () => dlg.close ? dlg.close() : dlg.removeAttribute("open");
+        dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+        /* ---------- at a glance ---------- */
+        const CLS = [["8th", "8th Grade"], ["7th", "7th Grade"], ["8th-acc", "8th Accelerated"]];
+        const ORD = ["", "1st", "2nd", "3rd", "4th"];
+        let plans = null, progress = null;
+        function nextBreak(from) {
+            for (let d = addDays(from, 1); d <= SCHOOL_YEAR.last; d = addDays(d, 1)) {
+                const w = new Date(d + "T12:00").getDay(); if (w === 0 || w === 6) continue;
+                const ev = eventsOn(d).find((e) => e.kind === "off" || e.kind === "work");
+                if (ev) return { d, ev, days: SCHOOL_DAYS.filter((x) => x > from && x < d).length };
+            }
+            return null;
+        }
+        function nextWeekMonday(from) {
+            for (let m = addDays(mondayOf(from), 7); m <= SCHOOL_YEAR.last; m = addDays(m, 7))
+                for (let i = 0; i < 5; i++) if (schoolDay(addDays(m, i))) return m;
+            return null;
+        }
+        function glance() {
+            const t = todayFn(), G = $("glance"); G.textContent = "";
+            const tile = (big, small, cls) => { const d = el("div", "hm-gt" + (cls ? " " + cls : "")); d.appendChild(el("b", null, big)); d.appendChild(el("span", null, small)); G.appendChild(d); };
+            const n = dayNumber(t), q = nineWeeksOf(t);
+            if (n) tile("Day " + n, "of " + SCHOOL_DAYS.length + " school days", "accent");
+            else { const ev = eventsOn(t).find((e) => e.kind === "off" || e.kind === "work"); tile(ev ? ev.text : "No school today", "next school day " + (SCHOOL_DAYS.find((d) => d > t) ? short(SCHOOL_DAYS.find((d) => d > t)) : "after the summer"), "accent"); }
+            if (q) tile(daysLeftInNineWeeks(t) + " days", "left in the " + ORD[q.n] + " nine weeks (ends " + short(q.end, { month: "short", day: "numeric" }) + ")");
+            const nb = nextBreak(t);
+            if (nb) tile(nb.ev.text, (nb.ev.start === nb.ev.end ? short(nb.ev.start, { weekday: "short", month: "short", day: "numeric" }) : short(nb.ev.start, { month: "short", day: "numeric" }) + " to " + short(nb.ev.end, { month: "short", day: "numeric" })) + " · " + nb.days + " school day" + (nb.days === 1 ? "" : "s") + " until then");
+            // This week, per class: unit or focus from the Planner, else the Library label; teaching marks from Standards.
+            const mon = mondayOf(t), wk = WEEKS.find((w) => w.monday === mon), lib = wk && LIBRARY[wk.id] && LIBRARY[wk.id].units || {};
+            const box = el("div", "hm-week"); box.appendChild(el("h2", null, "This week"));
+            const row = el("div", "hm-weekrow");
+            CLS.forEach(([id, label]) => {
+                const c = el("a", "hm-wk"); c.href = "planner.html?view=week&date=" + mon;
+                c.appendChild(el("i", null, label));
+                const unit = (plans && plans.weeks && plans.weeks[mon] && plans.weeks[mon].c && plans.weeks[mon].c[id]) || lib[id] || "";
+                c.appendChild(el("b", unit ? null : "none", unit || "No unit set yet"));
+                const teach = Object.entries((progress && progress[id]) || {}).filter(([, v]) => v && v.s === "teaching").map(([k]) => k);
+                c.appendChild(el("span", null, teach.length ? "Teaching " + teach.slice(0, 4).join(", ") + (teach.length > 4 ? "…" : "") : (progress ? "No standards marked teaching" : "")));
+                row.appendChild(c);
+            });
+            box.appendChild(row); G.appendChild(box);
+            statuses(t);
+        }
+        function statuses(t) {
+            const nm = nextWeekMonday(t), have = nm && WEEKS.some((w) => w.monday === nm);
+            const latest = WEEKS[WEEKS.length - 1];
+            $("st-board").textContent = latest ? latest.label + " is on the board" : "The projected screen";
+            $("st-builder").textContent = nm ? (have ? "Week of " + short(nm, { month: "short", day: "numeric" }) + " is built" : "Week of " + short(nm, { month: "short", day: "numeric" }) + " not built yet") : "Print the week's paperwork";
+            $("st-library").textContent = WEEKS.length + " week" + (WEEKS.length === 1 ? "" : "s") + " saved";
+            const marked = progress ? Object.values(progress).reduce((a, c) => a + Object.values(c || {}).filter((v) => v && v.s === "taught").length, 0) : null;
+            if (marked != null) $("st-standards").textContent = marked + " standard" + (marked === 1 ? "" : "s") + " marked taught";
+            const days = plans ? Object.keys(plans.days || {}).filter((d) => d >= t).length : null;
+            if (days != null) $("st-planner").textContent = days ? days + " day" + (days === 1 ? "" : "s") + " planned ahead" : "Nothing planned ahead yet";
+            // Needs you
+            const needs = [];
+            if (bellsLoaded && !Object.keys(doc.periods || {}).length) needs.push(["Bell times are not set, so the Today panel cannot follow the clock.", "Set bell times", openSettings]);
+            if (nm && !have) needs.push(["Next week (" + short(nm, { month: "short", day: "numeric" }) + ") is not built yet.", "Open Week Builder", "builder.html"]);
+            const N = $("needs"); N.textContent = ""; N.hidden = !needs.length;
+            if (needs.length) {
+                N.appendChild(el("h2", null, "Needs you"));
+                needs.forEach(([txt, btn, go]) => { const r = el("div", "hm-need"); r.appendChild(el("p", null, txt)); const a = el(typeof go === "string" ? "a" : "button", "btn ghost", btn); if (typeof go === "string") a.href = go; else { a.type = "button"; a.onclick = go; } r.appendChild(a); N.appendChild(r); });
+            }
+        }
+        let bellsLoaded = false;
+        glance(); setInterval(glance, 300000);
         $("signOut").onclick = async () => { try { await store.signOut(); } finally { location.replace("login.html"); } };
         const user = await store.ready();
         if (!user) location.replace("login.html");
         else {
             $("who").textContent = "Signed in as " + (user.name || "teacher");
             let loaded = false;
-            store.watch("settings/bells", (snap) => { if (snap.pending) return; doc = cleanDoc(snap.exists && snap.data); useToday(); if (!loaded) { loaded = true; fillBells(); if (!Object.keys(doc.periods).length) $("bells").open = true; } else pickers(); render(); }, () => {});
+            store.watch("settings/bells", (snap) => { if (snap.pending) return; doc = cleanDoc(snap.exists && snap.data); useToday(); bellsLoaded = true; statuses(todayIso); if (!loaded) { loaded = true; fillBells(); } else pickers(); render(); }, () => {});
+            store.watch("planner/plans", (snap) => { if (snap.pending) return; plans = (snap.exists && snap.data) || {}; glance(); }, () => {});
+            store.watch("standards/progress", (snap) => { if (snap.pending) return; progress = (snap.exists && snap.data) || {}; glance(); }, () => {});
             const write = async (msg) => {
                 $("bellNote").textContent = "Saving…";
                 try { await store.save("settings/bells", doc); useToday(); pickers(); $("bellNote").textContent = msg; render(); } catch (e) { $("bellNote").textContent = "Could not save (" + ((e && e.code) || "connection") + ")"; }
