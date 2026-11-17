@@ -14,17 +14,40 @@
     <meta property="og:url" content="https://eddiesteers777.github.io/steers-class-board/">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=28">
-    <link rel="stylesheet" href="css/console.css?v=28">
-    <link rel="stylesheet" href="css/home.css?v=28">
+    <link rel="stylesheet" href="css/board.css?v=29">
+    <link rel="stylesheet" href="css/console.css?v=29">
+    <link rel="stylesheet" href="css/home.css?v=29">
     <meta name="theme-color" content="#081B45">
     </head>
-<body class="console page">
+<body class="console page hm-home">
     <header class="cbar">
         <a class="cbrand" href="index.html"><img src="brand/calera-seal.webp" alt=""><span><b>Steers Class Board</b><small id="who">Calera Middle School</small></span></a>
+        <button class="btn ghost hm-menu" id="sideOpen" type="button" aria-controls="side" aria-expanded="false">Pages</button>
         <button class="btn ghost hm-gear" id="settingsOpen" type="button" aria-haspopup="dialog">Settings</button>
         <button class="btn ghost" id="signOut" type="button">Sign out</button>
     </header>
+    <aside class="hm-side" id="side" aria-label="Pages">
+        <div class="hm-shead">
+            <span class="hm-stitle">Pages</span>
+            <button class="hm-smin" id="sideMin" type="button" aria-label="Minimize the side panel" aria-expanded="true" title="Minimize"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <button class="hm-sclose" id="sideClose" type="button" aria-label="Close the side panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        </div>
+        <nav class="hm-snav">
+            <p class="hm-sg">Teach</p>
+            <a class="hm-sl" href="board.html" title="Open Board"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span class="hm-slt"><b>Open Board</b><small id="st-board">The projected screen</small></span></a>
+            <a class="hm-sl" href="remote.html" title="Remote"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg><span class="hm-slt"><b>Remote</b><small>Run class, timer and tally</small></span></a>
+            <a class="hm-sl" href="sub.html" title="Sub view"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span class="hm-slt"><b>Sub view</b><small>No sign-in board for a guest</small></span></a>
+            <p class="hm-sg">Plan</p>
+            <a class="hm-sl" href="planner.html" title="Planner"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h2M14 14h2M8 18h2"/></svg><span class="hm-slt"><b>Planner</b><small id="st-planner">Day, week, month and year</small></span></a>
+            <a class="hm-sl" href="builder.html" title="Week Builder"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V2h12v7"/><rect x="2" y="9" width="20" height="9" rx="2"/><path d="M6 14h12v8H6z"/></svg><span class="hm-slt"><b>Week Builder</b><small id="st-builder">Print the week's paperwork</small></span></a>
+            <a class="hm-sl" href="library.html" title="Library"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg><span class="hm-slt"><b>Library</b><small id="st-library">Every week by class and unit</small></span></a>
+            <a class="hm-sl" href="standards.html" title="Standards"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg><span class="hm-slt"><b>Standards</b><small id="st-standards">By unit, with critical marks</small></span></a>
+            <p class="hm-sg">Track</p>
+            <a class="hm-sl" href="data.html" title="Class Data"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M8 17V11M13 17V7M18 17v-4"/></svg><span class="hm-slt"><b>Class Data</b><small>Scores and imports</small></span></a>
+            <a class="hm-sl" href="rosters.html" title="Rosters"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="hm-slt"><b>Rosters</b><small>Class lists for the Remote</small></span></a>
+        </nav>
+    </aside>
+    <div class="hm-scrim" id="sideScrim" hidden></div>
     <main>
         <section class="nowcard" aria-labelledby="nowTitle">
             <div class="nowmain">
@@ -46,23 +69,6 @@
 
         <div class="hm-glance" id="glance" aria-live="polite"></div>
         <div class="hm-needs" id="needs" hidden></div>
-        <nav class="hm-launch" aria-label="Pages">
-            <section class="hm-group"><h2>Teach</h2><div class="hm-tiles">
-                <a class="hm-tile" href="board.html"><b>Open Board</b><span id="st-board">The projected screen</span></a>
-                <a class="hm-tile" href="remote.html"><b>Remote</b><span>Run class, timer and tally</span></a>
-                <a class="hm-tile" href="sub.html"><b>Sub view</b><span>No sign-in board for a guest teacher</span></a>
-            </div></section>
-            <section class="hm-group"><h2>Plan</h2><div class="hm-tiles">
-                <a class="hm-tile" href="planner.html"><b>Planner</b><span id="st-planner">Day, week, month and year</span></a>
-                <a class="hm-tile" href="builder.html"><b>Week Builder</b><span id="st-builder">Print the week's paperwork</span></a>
-                <a class="hm-tile" href="library.html"><b>Library</b><span id="st-library">Every week by class and unit</span></a>
-                <a class="hm-tile" href="standards.html"><b>Standards</b><span id="st-standards">By unit, with critical marks</span></a>
-            </div></section>
-            <section class="hm-group"><h2>Track</h2><div class="hm-tiles">
-                <a class="hm-tile" href="data.html"><b>Class Data</b><span>Scores and imports</span></a>
-                <a class="hm-tile" href="rosters.html"><b>Rosters</b><span>Class lists for the Remote</span></a>
-            </div></section>
-        </nav>
         <h2 id="todayTitle">Today, period by period</h2>
         <p class="sub" id="todayExtra" hidden></p>
         <div class="periods" id="periods"></div>
@@ -92,10 +98,10 @@
         </dialog>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=28";
-        import * as store from "./js/boardStore.js?v=28";
-        import { LIBRARY } from "./data/library.js?v=28";
-        import { SCHOOL_YEAR, SCHOOL_DAYS, today as todayFn, addDays, mondayOf, eventsOn, isSchoolDay as schoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, short } from "./js/schoolCal.js?v=28";
+        import { WEEKS } from "./data/weeks.js?v=29";
+        import * as store from "./js/boardStore.js?v=29";
+        import { LIBRARY } from "./data/library.js?v=29";
+        import { SCHOOL_YEAR, SCHOOL_DAYS, today as todayFn, addDays, mondayOf, eventsOn, isSchoolDay as schoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, short } from "./js/schoolCal.js?v=29";
         const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
         const DAYKEYS = ["mon", "tue", "wed", "thu", "fri"], $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -200,6 +206,21 @@
         $("settingsOpen").onclick = openSettings;
         $("settingsClose").onclick = () => dlg.close ? dlg.close() : dlg.removeAttribute("open");
         dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+        /* ---------- side panel: minimizes to an icon rail on wide screens, slides over on phones ---------- */
+        {
+            const side = $("side"), scrim = $("sideScrim"), wide = matchMedia("(min-width:1000px)");
+            const keepGet = () => { try { return localStorage.getItem("home-side"); } catch { return null; } };
+            const keepSet = (v) => { try { localStorage.setItem("home-side", v); } catch {} };
+            const setMin = (m) => { document.body.classList.toggle("hm-min", m); $("sideMin").setAttribute("aria-expanded", String(!m)); $("sideMin").setAttribute("aria-label", m ? "Expand the side panel" : "Minimize the side panel"); $("sideMin").title = m ? "Expand" : "Minimize"; keepSet(m ? "min" : "open"); };
+            setMin(keepGet() === "min");
+            $("sideMin").onclick = () => setMin(!document.body.classList.contains("hm-min"));
+            const drawer = (open) => { document.body.classList.toggle("hm-drawer", open); scrim.hidden = !open; $("sideOpen").setAttribute("aria-expanded", String(open)); if (open) side.querySelector("a").focus(); };
+            $("sideOpen").onclick = () => drawer(true);
+            $("sideClose").onclick = () => { drawer(false); $("sideOpen").focus(); };
+            scrim.onclick = () => drawer(false);
+            document.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.body.classList.contains("hm-drawer")) { drawer(false); $("sideOpen").focus(); } });
+            wide.addEventListener("change", () => drawer(false));
+        }
         /* ---------- at a glance ---------- */
         const CLS = [["8th", "8th Grade"], ["7th", "7th Grade"], ["8th-acc", "8th Accelerated"]];
         const ORD = ["", "1st", "2nd", "3rd", "4th"];
