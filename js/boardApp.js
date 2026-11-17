@@ -5,11 +5,11 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=45";
+import { WEEKS } from "../data/weeks.js?v=46";
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=45";
-import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=45";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=46";
+import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=46";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -492,7 +492,7 @@ function watchInk() {
    An answer or a common mistake reaches the board only when the teacher taps to reveal it. */
 const sdWeeks = {}, sdWatched = {};
 function sdSet() {
-    if (mode === "board" || !store || !signedIn) return null;
+    if (!store || !signedIn) return null;
     const id = S.week;
     if (!sdWatched[id]) {
         sdWatched[id] = true;
@@ -524,7 +524,7 @@ function fixAdd(n, q) {
     f.list.push({ n, q: q || "", done: false }); fixGo(f.list.length - 1);
 }
 function drawFix(st) {
-    const f = fixState(), c = f.list[f.cur], sd = sdSet(), remote = mode !== "board";
+    const f = fixState(), c = f.list[f.cur], sd = sdSet(), remote = true;   // Eddie: the picker shows on every screen, the board too
     st.appendChild(header("Fix It Together", sd && sd.title ? "Speed dating review: " + sd.title : "The cards that tripped us up"));
     const body = el("div", "notes fix"), left = el("div", "nleft"), right = el("div", "nright");
     if (remote) left.appendChild(fixPicker(f, sd));
@@ -671,7 +671,7 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
-    store = (opts && opts.store) || await import("./boardStore.js?v=45");
+    store = (opts && opts.store) || await import("./boardStore.js?v=46");
     const guest = mode === "sub";
     mountGames({ S, header, store: () => store, writer, now, beep, unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     document.body.classList.toggle("board", mode === "board");

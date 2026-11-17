@@ -277,4 +277,3 @@ body.board .recpill{display:none}
 .fixbtns button.fixdone[aria-pressed="true"]{background:var(--green,#2E7D32);color:#fff}
 .fixbtns button.alt{background:transparent;color:var(--on);border:.12em solid var(--soft)}
 .fixhint{margin:0;color:var(--soft);font-size:.95em}
-body.board .fixctl{display:none!important}
