@@ -12,7 +12,8 @@ let store = null; // the signed-in Firestore store, or a this-device-only store 
 import { trail } from "./signInTrail.js";
 import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=57";
 import * as snd from "./sound.js?v=57";
-import { createMathPad } from "./mathPad.js?v=1";
+import { createMathPad } from "./mathPad.js?v=2";
+import { wbIcon } from "./wbIcons.js?v=1";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=57";
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive } from "./liveRoom.js?v=58";
 
@@ -73,8 +74,17 @@ function defaultWeek() {
     return pick.id;
 }
 const wd = new Date().getDay();
+/* Canvas-first whiteboard: where the lesson card sits (fractions of the paper), its size, and the extra pages per board. */
+function defaultWb() { return { card: { x: 0.06, y: 0.05, w: 1, hide: false }, pg: { k: "", n: 0 }, pages: {} }; }
+function cleanWb(o) {
+    const d = defaultWb(); if (!o || typeof o !== "object") return d; const c = o.card || {}, num = (v, a, b, def) => (typeof v === "number" && v >= a && v <= b ? v : def);
+    d.card = { x: num(c.x, 0, 0.95, 0.06), y: num(c.y, 0, 0.95, 0.05), w: num(c.w, 0, 2, 1), hide: !!c.hide };
+    if (o.pg && typeof o.pg.k === "string") d.pg = { k: o.pg.k.slice(0, 120), n: num(o.pg.n, 0, 11, 0) };
+    if (o.pages && typeof o.pages === "object") Object.keys(o.pages).slice(-40).forEach((k) => { const n = Math.floor(+o.pages[k]); if (n > 1) d.pages[k.slice(0, 120)] = Math.min(12, n); });
+    return d;
+}
 const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0,
-    timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", fix: null, tools: defaultTools(),
+    timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", fix: null, tools: defaultTools(), wb: defaultWb(),
     sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "" } };
 
 // This page's own mark on what it saves, so a change from another tab of the same browser can be shown
@@ -178,7 +188,7 @@ function fit() {
     st.style.width = sw + "px"; st.style.height = sh + "px"; st.style.fontSize = Math.max(9, sw / 52) + "px";
     { const shelf = shelfEl(), f = Math.max(9, sw / 52); shelf.hidden = !se; shelf.style.fontSize = f + "px"; shelf.style.width = ((se - 0.6) * f) + "px"; shelf.style.maxHeight = sh + "px"; } fitShelf();
     { const key = se + "|" + narrowWrap(); if (key !== shelfApplied) { shelfApplied = key; layerSig = ""; setTimeout(renderLayer, 0); } }
-    sizeCanvas();
+    sizeCanvas(); placeCard();
 }
 
 function header(title, sub) {
@@ -348,9 +358,9 @@ function skeleton() {
 function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
     syncGames(); syncLive(); buildControls(); soundSync();
-    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : ""]);
+    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", WB_SCREENS[S.screen] ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : ""]);
     renderDock(); drawGamePanel(); drawLivePanel();
-    if (ns === sig) { renderLayer(); tick(); tickTools(toolApi); return; }
+    if (ns === sig) { renderLayer(); tick(); tickTools(toolApi); placeCard(); return; }
     sig = ns;
     const st = $("screenHost"); st.textContent = ""; canvas = null; ctx = null; pad = null;
     if (!l) { st.appendChild(el("div", "empty", "No lesson found for this class and week.")); watchInk(); return; }
@@ -383,27 +393,7 @@ function render() {
         PRESETS.forEach((m) => { const b = el("button", null, m + " min"); b.type = "button"; b.setAttribute("aria-pressed", String((S.timers.free.dur || 300) === m * 60)); b.onclick = () => { S.timers.free = Object.assign(blankTimer(), { dur: m * 60 }); push(); }; pr.appendChild(b); });
         box.appendChild(pr); st.appendChild(box);
     } else if (S.screen === "notes") {
-        const frames = notesFrames(d), n = d && d.notes;
-        st.appendChild(header("Guided Notes", n ? n.title : (d ? d.name + " · " + (d.date || "") : "")));
-        if (!frames.length) { const e = el("div", "toolsbody"); e.appendChild(el("p", "toolempty", "No guided notes are loaded for this day.")); st.appendChild(e); }
-        else {
-            if (S.note >= frames.length) S.note = frames.length - 1;
-            const f = frames[S.note], shown = f.open ? f.lines.length : Math.min(S.step, f.lines.length);
-            const body = el("div", "notes"), left = el("div", "nleft"), right = el("div", "nright");
-            const dots = el("div", "ndots"); frames.forEach((x, i) => { const b = el("button", i === S.note ? "on" : (i < S.note ? "done" : "")); b.type = "button"; b.title = x.kind; b.setAttribute("aria-label", "Go to " + x.kind); b.onclick = () => { S.note = i; S.step = 0; S.show = false; push(); }; dots.appendChild(b); });
-            left.appendChild(dots);
-            left.appendChild(el("p", "nkind", f.kind));
-            if (f.blanks) left.appendChild(blanked(f.q, S.show)); else left.appendChild(richEl("p", "nq", f.q));
-            const list = el("div", "nlines");
-            f.lines.slice(0, shown).forEach((ln, i) => { const row = el("div", "nline" + (i === shown - 1 && !f.open ? " new" : "")); row.appendChild(richEl("p", "nm", ln.m)); if (ln.why) row.appendChild(richEl("p", "nw", ln.why)); list.appendChild(row); });
-            left.appendChild(list);
-            if (!f.open && f.lines.length) left.appendChild(el("p", "ncount", shown < f.lines.length ? "Step " + shown + " of " + f.lines.length : "All " + f.lines.length + " steps shown"));
-            if (f.ans && S.show && !f.blanks) left.appendChild(richEl("p", "nans", f.ans));
-            body.appendChild(left);
-            const cv = makeCv();
-            right.appendChild(cv); right.appendChild(toolbar()); body.appendChild(right); st.appendChild(body); bindCanvas(); sizeCanvas();
-            list.scrollTop = list.scrollHeight; // keep the newest step in view
-        }
+        drawWb(st, "notes");
     } else if (S.screen === "game") {
         drawGame(st); tickGames();
     } else if (S.screen === "live") {
@@ -412,23 +402,122 @@ function render() {
         st.appendChild(header("Classroom Tools", (d ? d.name + " · " : "") + ((d && d.date) || "")));
         const box = el("div", "toolsbody"); box.appendChild(el("p", "toolempty", Object.keys(S.tools.on).length ? "" : "Turn tools on from the Tools row on the Remote. Drag a tool by its title to move it, and drag its corner to resize it.")); st.appendChild(box);
     } else { /* bellringer or blank whiteboard */
-        const blank = S.screen === "blank" || !d, ps = (d && d.problems) || [];
-        st.appendChild(header(blank ? "Whiteboard" : "Bellringer", blank ? "Work it out" : (d.name + " · " + (d.date || ""))));
-        const wk = el("div", "work"); wk.style.flex = "1"; wk.style.minHeight = "0";
-        if (!blank) {
-            const pr = el("div", "probs");
-            ps.forEach((p, i) => { const b2 = el("button", null, "Problem " + (i + 1)); b2.type = "button"; b2.setAttribute("aria-pressed", String(i === S.prob)); b2.onclick = () => { S.prob = i; S.show = false; push(); }; pr.appendChild(b2); });
-            wk.appendChild(pr);
-            const p = ps[S.prob];
-            if (p) {
-                const q = el("div", "q"); q.appendChild(richEl("p", "qt", p.q)); if (S.show) q.appendChild(richEl("p", "ans", p.a));
-                const sb = el("button", null, S.show ? "Hide answer" : "Show answer"); sb.type = "button"; sb.onclick = () => { S.show = !S.show; push(); }; q.appendChild(sb); wk.appendChild(q);
-            } else wk.appendChild(el("div", "q", "No bellringer problems are loaded for this day."));
-        }
-        const cv = makeCv();
-        wk.appendChild(cv); wk.appendChild(toolbar()); st.appendChild(wk); bindCanvas(); sizeCanvas();
+        drawWb(st, S.screen === "blank" || !d ? "blank" : "bell");
     }
     renderLayer(); watchInk(); tick();
+}
+
+/* ---------- canvas-first whiteboard: Bellringer, Whiteboard and Guided Notes ----------
+   A thin strip on top, then paper edge to edge. The lesson sits on a card that floats on the paper:
+   drag it by its top bar, make it bigger or smaller, or hide it. The tool rail floats on the left,
+   and pages run along the bottom. Card place, size and pages are shared, so the board follows the Remote. */
+const WB_SCREENS = { bell: 1, blank: 1, notes: 1 };
+const CARD_W = [0.3, 0.38, 0.5];
+function wbStrip(title, sub, extra) {
+    const h = el("div", "wbstrip"), im = el("img"); im.src = SEAL; im.alt = ""; h.appendChild(im);
+    h.appendChild(el("h1", null, title)); if (sub) h.appendChild(el("p", "wbsub", sub));
+    if (extra) h.appendChild(extra);
+    h.appendChild(el("span", "wbfill"));
+    const l = L(); h.appendChild(el("p", "cls", (l && l.cls) || "")); return h;
+}
+function drawWb(st, kind) {
+    const d = D(), ps = (d && d.problems) || [];
+    let extra = null, sub = "";
+    if (kind === "bell") {
+        sub = d.name + (ps.length ? " · Problem " + (Math.min(S.prob, ps.length - 1) + 1) + " of " + ps.length : "");
+        extra = el("div", "wbdots"); extra.setAttribute("role", "group"); extra.setAttribute("aria-label", "Problems");
+        ps.forEach((p, i) => { const b = el("button", i === S.prob ? "on" : (i < S.prob ? "done" : "")); b.type = "button"; b.setAttribute("aria-label", "Problem " + (i + 1)); b.setAttribute("aria-pressed", String(i === S.prob)); b.onclick = () => { S.prob = i; S.show = false; push(); }; extra.appendChild(b); });
+    } else if (kind === "notes") {
+        const n = d && d.notes, fr = notesFrames(d); sub = n ? n.title : (d ? d.name : "");
+        if (fr.length) { const at = Math.min(S.note, fr.length - 1); extra = el("div", "wbprog"); extra.setAttribute("role", "progressbar"); extra.setAttribute("aria-label", "Notes progress"); extra.setAttribute("aria-valuemin", "1"); extra.setAttribute("aria-valuemax", String(fr.length)); extra.setAttribute("aria-valuenow", String(at + 1));
+            const bar = el("i"), fill = el("b"); fill.style.width = ((at + 1) / fr.length * 100) + "%"; bar.appendChild(fill); extra.appendChild(bar); extra.appendChild(el("span", null, (at + 1) + " / " + fr.length)); }
+    } else sub = d ? d.name + (d.date ? " · " + d.date : "") : "Work it out";
+    const wrap = el("div", "wbx");
+    wrap.appendChild(wbStrip(kind === "bell" ? "Bellringer" : kind === "notes" ? "Guided Notes" : "Whiteboard", sub, extra));
+    const paperEl = el("div", "wbpaper"); paperEl.id = "wbpaper"; wrap.appendChild(paperEl);
+    const cv = makeCv(); paperEl.appendChild(cv);
+    const card = kind === "bell" ? bellCard(d, ps) : kind === "notes" ? notesCard(d) : null;
+    if (card) {
+        if (S.wb.card.hide) { const sb = el("button", "wbshow"); sb.type = "button"; sb.innerHTML = wbIcon("doc") + "<span>" + (kind === "bell" ? "Show problem" : "Show notes") + "</span>"; sb.onclick = () => { S.wb.card.hide = false; push(); }; paperEl.appendChild(sb); }
+        else paperEl.appendChild(card);
+    }
+    paperEl.appendChild(pagesBar());
+    st.appendChild(wrap); bindCanvas(); sizeCanvas(); placeCard();
+    const list = paperEl.querySelector(".nlines"); if (list) list.scrollTop = list.scrollHeight;
+}
+function cardShell(label, aria) {
+    const c = el("section", "wbcard"); c.id = "wbcard"; c.setAttribute("aria-label", aria || label);
+    const top = el("div", "wbctop"), grip = el("span", "wbgrip"); grip.innerHTML = wbIcon("grip"); top.appendChild(grip);
+    top.appendChild(el("span", "wbclabel", label));
+    const sm = el("button", "wbcb", "A−"), lg = el("button", "wbcb", "A+"), hide = el("button", "wbcb"); sm.type = lg.type = hide.type = "button";
+    sm.title = "Smaller card"; lg.title = "Bigger card"; sm.disabled = S.wb.card.w <= 0; lg.disabled = S.wb.card.w >= 2;
+    sm.onclick = () => { S.wb.card.w = Math.max(0, S.wb.card.w - 1); push(); }; lg.onclick = () => { S.wb.card.w = Math.min(2, S.wb.card.w + 1); push(); };
+    hide.innerHTML = wbIcon("eyeOff"); hide.title = "Hide the card"; hide.setAttribute("aria-label", "Hide the card"); hide.onclick = () => { S.wb.card.hide = true; push(); };
+    top.append(sm, lg, hide); c.appendChild(top);
+    const body = el("div", "wbcbody"); c.appendChild(body);
+    dragCard(c, top);
+    return { c, body };
+}
+function bellCard(d, ps) {
+    const p = ps[S.prob];
+    const { c, body } = cardShell(p ? "Problem " + (S.prob + 1) : "Bellringer");
+    if (!p) { body.appendChild(el("p", "wbq", "No bellringer problems are loaded for this day.")); return c; }
+    body.appendChild(richEl("p", "wbq", p.q));
+    if (S.show) body.appendChild(richEl("p", "wbans", p.a));
+    const row = el("div", "wbcrow");
+    const sb = el("button", "wbbtn dark"); sb.type = "button"; sb.innerHTML = wbIcon(S.show ? "eyeOff" : "eye") + "<span>" + (S.show ? "Hide answer" : "Show answer") + "</span>"; sb.onclick = () => { S.show = !S.show; push(); }; row.appendChild(sb);
+    if (S.prob < ps.length - 1) { const nb = el("button", "wbbtn"); nb.type = "button"; nb.textContent = "Next problem"; nb.onclick = () => { S.prob++; S.show = false; push(); }; row.appendChild(nb); }
+    body.appendChild(row); return c;
+}
+function notesCard(d) {
+    const frames = notesFrames(d);
+    if (!frames.length) { const { c, body } = cardShell("Guided Notes"); body.appendChild(el("p", "wbq", "No guided notes are loaded for this day.")); return c; }
+    if (S.note >= frames.length) S.note = frames.length - 1;
+    const f = frames[S.note], shown = f.open ? f.lines.length : Math.min(S.step, f.lines.length);
+    const { c, body } = cardShell(f.kind, "Guided notes: " + f.kind); c.classList.add("wbnotes");
+    if (f.blanks) { const q = blanked(f.q, S.show); q.className = "wbq"; body.appendChild(q); } else body.appendChild(richEl("p", "wbq", f.q));
+    const list = el("div", "nlines");
+    f.lines.slice(0, shown).forEach((ln, i) => { const row = el("div", "nline" + (i === shown - 1 && !f.open ? " new" : "")); row.appendChild(richEl("p", "nm", ln.m)); if (ln.why) row.appendChild(richEl("p", "nw", ln.why)); list.appendChild(row); });
+    body.appendChild(list);
+    if (f.ans && S.show && !f.blanks) body.appendChild(richEl("p", "wbans", f.ans));
+    const row = el("div", "wbcrow");
+    if (!f.open && f.lines.length) row.appendChild(el("span", "ncount", shown < f.lines.length ? "Step " + shown + " of " + f.lines.length : "All " + f.lines.length + " steps"));
+    row.appendChild(el("span", "wbfill"));
+    const bk = el("button", "wbbtn"); bk.type = "button"; bk.textContent = "Back"; bk.onclick = () => step(-1); bk.disabled = S.screen === screenOrder()[0];
+    const nx = el("button", "wbbtn amber"); nx.type = "button"; nx.textContent = stepLabel().replace(/^Next: /, "") || "Next"; nx.onclick = () => step(1);
+    row.append(bk, nx); body.appendChild(row);
+    return c;
+}
+/* Put the card where it was left, kept inside the paper. */
+function placeCard() {
+    const c = $("wbcard"), pp = $("wbpaper"); if (!c || !pp) return;
+    const W2 = pp.clientWidth, H2 = pp.clientHeight; if (W2 < 10) return;
+    c.style.width = Math.max(Math.min(W2 - 16, 260), Math.round(W2 * CARD_W[S.wb.card.w])) + "px";
+    const cw = c.offsetWidth, ch = c.offsetHeight;
+    c.style.left = Math.round(Math.min(Math.max(0, S.wb.card.x * W2), Math.max(0, W2 - cw))) + "px";
+    c.style.top = Math.round(Math.min(Math.max(0, S.wb.card.y * H2), Math.max(0, H2 - Math.min(ch, H2)))) + "px";
+}
+function dragCard(c, handle) {
+    let st0 = null;
+    handle.addEventListener("pointerdown", (e) => {
+        if (e.button || e.target.closest("button")) return; e.preventDefault(); const pp = $("wbpaper"); if (!pp) return;
+        try { handle.setPointerCapture(e.pointerId); } catch (x) { /* ok */ }
+        st0 = { x: e.clientX, y: e.clientY, l: c.offsetLeft, t: c.offsetTop, W: pp.clientWidth, H: pp.clientHeight }; c.classList.add("dragging");
+    });
+    handle.addEventListener("pointermove", (e) => {
+        if (!st0) return; const l = Math.min(Math.max(0, st0.l + e.clientX - st0.x), st0.W - c.offsetWidth), t = Math.min(Math.max(0, st0.t + e.clientY - st0.y), Math.max(0, st0.H - 40));
+        c.style.left = l + "px"; c.style.top = t + "px";
+    });
+    const end = () => { if (!st0) return; const s0 = st0; st0 = null; c.classList.remove("dragging"); S.wb.card.x = Math.round(c.offsetLeft / s0.W * 1000) / 1000; S.wb.card.y = Math.round(c.offsetTop / s0.H * 1000) / 1000; push(); };
+    handle.addEventListener("pointerup", end); handle.addEventListener("pointercancel", end);
+}
+/* Pages: more room on the same problem. Each page is its own saved drawing. */
+function pagesBar() {
+    const bar = el("div", "wbpages"); bar.setAttribute("role", "group"); bar.setAttribute("aria-label", "Pages");
+    const n = pageCount(), cur = pageNow(), base = inkBase();
+    for (let i = 0; i < n; i++) { const b = el("button", i === cur ? "on" : "", i === cur ? "Page " + (i + 1) : String(i + 1)); b.type = "button"; b.setAttribute("aria-pressed", String(i === cur)); b.setAttribute("aria-label", "Page " + (i + 1)); b.onclick = () => { S.wb.pg = { k: base, n: i }; push(); }; bar.appendChild(b); }
+    if (n < 12) { const a = el("button", "add"); a.type = "button"; a.innerHTML = wbIcon("plus"); a.title = "New page"; a.setAttribute("aria-label", "New page"); a.onclick = () => { const ks = Object.keys(S.wb.pages); if (ks.length >= 40) delete S.wb.pages[ks[0]]; S.wb.pages[base] = n + 1; S.wb.pg = { k: base, n }; push(); }; bar.appendChild(a); }
+    return bar;
 }
 
 /* ---------- guided notes ---------- */
@@ -518,14 +607,14 @@ function fitShelf() {
 }
 
 /* ---------- whiteboard ink ---------- */
-let canvas = null, ctx = null, strokes = [], cur = null, pen = "ink", size = 1, erasing = false, paper = "", inkKey = "", inkUnsub = null, inkWrite = null, clearArm = 0;
+let canvas = null, ctx = null, strokes = [], cur = null, pen = "ink", size = 1, paper = "", inkKey = "", inkUnsub = null, inkWrite = null, clearArm = 0;
 let pad = null, hist = [], padItems = [];   // pad: the math tools under the ink (js/mathPad.js); hist: undo copies; padItems: the tools, kept while the screen redraws
 const PAPERS = [["", "Plain"], ["grid", "Grid"], ["dots", "Dots"], ["lines", "Lines"]];
 /* The whiteboard: math tools on a canvas underneath, ink on top. */
 function makeCv() {
     const cv = el("div", "cv" + (paper ? " p-" + paper : "")); cv.id = "cv"; canvas = el("canvas"); cv.appendChild(canvas);
     pad = createMathPad(cv, canvas, { change: snap, commit: saveInk, onMode: () => retool() });
-    pad.setItems(padItems); return cv;
+    pad.setItems(padItems); cv.appendChild(rail()); const n = el("p", "inknote"); n.id = "inknote"; n.setAttribute("role", "status"); cv.appendChild(n); return cv;
 }
 function snap() { hist.push(JSON.stringify({ strokes, items: pad ? pad.items() : padItems })); if (hist.length > 60) hist.shift(); }
 function undo() {
@@ -535,36 +624,50 @@ function undo() {
 function setPaper(p) { paper = p; const cv = $("cv"); if (cv) { PAPERS.forEach(([k]) => { if (k) cv.classList.remove("p-" + k); }); if (p) cv.classList.add("p-" + p); } }
 const PENS = { ink: "--pen-ink", blue: "--pen-blue", red: "--pen-red", green: "--pen-green" }, SIZES = [3, 6, 11];
 const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-function toolbar() {
-    const t = el("div", "tools"); t.id = "tools";
-    Object.keys(PENS).forEach((k) => { const b = el("button", "sw"); b.type = "button"; b.style.background = css(PENS[k]); b.setAttribute("aria-label", k + " pen"); b.setAttribute("aria-pressed", String(!erasing && pen === k)); b.onclick = () => { pen = k; erasing = false; if (pad) pad.setOn(false); retool(); }; t.appendChild(b); });
-    ["Thin", "Medium", "Thick"].forEach((n, i) => { const b = el("button", null, n); b.type = "button"; b.setAttribute("aria-pressed", String(size === i)); b.onclick = () => { size = i; retool(); }; t.appendChild(b); });
-    const er = el("button", null, "Eraser"); er.type = "button"; er.setAttribute("aria-pressed", String(erasing && !(pad && pad.on))); er.onclick = () => { erasing = !erasing; if (pad) pad.setOn(false); retool(); }; t.appendChild(er);
+/* The tool rail floats on the left of the paper: pen, highlighter, eraser, move; four inks and a size;
+   then math tools, undo, paper and clear. Icons only, with names for screen readers and on hover. */
+let tool = "pen";   // "pen", "hi" (highlighter) or "eraser"
+function rail() {
+    const t = el("div", "wbrail"); t.id = "tools"; t.setAttribute("role", "toolbar"); t.setAttribute("aria-label", "Whiteboard tools");
     const moving = !!(pad && pad.on);
-    const mv = el("button", null, "Move"); mv.type = "button"; mv.title = "Pick up, move, size and turn the math tools"; mv.setAttribute("aria-pressed", String(moving)); mv.onclick = () => { if (pad) pad.setOn(!pad.on); retool(); }; t.appendChild(mv);
-    const ad = el("button", "addtool", "+ Math tool"); ad.type = "button"; ad.onclick = () => { if (pad) pad.openMenu(); }; t.appendChild(ad);
-    const un = el("button", null, "Undo"); un.type = "button"; un.onclick = undo; t.appendChild(un);
-    const cl = el("button", null, "Clear"); cl.type = "button";
-    cl.onclick = () => { if (Date.now() - clearArm < 3000) { snap(); strokes = []; padItems = []; if (pad) pad.clear(); redraw(); saveInk(); cl.textContent = "Clear"; clearArm = 0; } else { clearArm = Date.now(); cl.textContent = "Tap again to clear"; setTimeout(() => { cl.textContent = "Clear"; }, 3000); } };
-    t.appendChild(cl);
+    const b = (name, label, on, fn, cls) => { const x = el("button", "rb" + (cls ? " " + cls : "")); x.type = "button"; x.innerHTML = wbIcon(name); x.title = label; x.setAttribute("aria-label", label); if (on != null) x.setAttribute("aria-pressed", String(on)); x.onclick = fn; t.appendChild(x); return x; };
+    const pick = (k) => () => { tool = k; if (pad) pad.setOn(false); retool(); };
+    b("pen", "Pen", !moving && tool === "pen", pick("pen"));
+    b("hi", "Highlighter", !moving && tool === "hi", pick("hi"));
+    b("eraser", "Eraser", !moving && tool === "eraser", pick("eraser"));
+    b("move", "Move the math tools", moving, () => { if (pad) pad.setOn(!pad.on); retool(); });
+    t.appendChild(el("i", "rsep"));
+    const sw = el("div", "rsw");
+    Object.keys(PENS).forEach((k) => { const x = el("button", "sw"); x.type = "button"; x.style.background = css(PENS[k]); x.title = k === "ink" ? "Navy ink" : k[0].toUpperCase() + k.slice(1) + " ink"; x.setAttribute("aria-label", x.title); x.setAttribute("aria-pressed", String(pen === k)); x.onclick = () => { pen = k; if (tool === "eraser") tool = "pen"; if (pad) pad.setOn(false); retool(); }; sw.appendChild(x); });
+    t.appendChild(sw);
+    const sz = el("button", "rb size"); sz.type = "button"; sz.title = ["Thin", "Medium", "Thick"][size] + " line (tap to change)"; sz.setAttribute("aria-label", sz.title);
+    const dot = el("i"); dot.style.width = dot.style.height = [0.35, 0.6, 0.9][size] + "em"; dot.style.background = tool === "hi" ? "#F2B33D" : pen === "ink" ? "#F4F7FB" : css(PENS[pen]); sz.appendChild(dot); sz.onclick = () => { size = (size + 1) % 3; retool(); }; t.appendChild(sz);
+    t.appendChild(el("i", "rsep"));
+    b("math", "Add a math tool", null, () => { if (pad) pad.openMenu(); }, "amber");
+    b("undo", "Undo", null, undo);
     const pi = Math.max(0, PAPERS.findIndex((x) => x[0] === paper));
-    const gr = el("button", null, "Paper: " + PAPERS[pi][1]); gr.type = "button"; gr.title = "Plain, grid, dots or lines behind the work"; gr.setAttribute("aria-pressed", String(!!paper)); gr.onclick = () => { setPaper(PAPERS[(pi + 1) % PAPERS.length][0]); saveInk(); retool(); }; t.appendChild(gr);
-    const n = el("span", "note"); n.id = "inknote"; t.appendChild(n); return t;
+    b("paper", "Paper: " + PAPERS[pi][1] + " (tap for " + PAPERS[(pi + 1) % PAPERS.length][1].toLowerCase() + ")", null, () => { setPaper(PAPERS[(pi + 1) % PAPERS.length][0]); saveInk(); retool(); });
+    const cl = b("trash", Date.now() - clearArm < 3000 ? "Tap again to clear this page" : "Clear this page", null, () => {
+        if (Date.now() - clearArm < 3000) { snap(); strokes = []; padItems = []; if (pad) pad.clear(); redraw(); saveInk(); clearArm = 0; retool(); }
+        else { clearArm = Date.now(); retool(); setTimeout(() => { if (Date.now() - clearArm >= 2900) retool(); }, 3000); }
+    }, Date.now() - clearArm < 3000 ? "armed" : "");
+    void cl; return t;
 }
-function retool() { const old = $("tools"); if (old) old.parentNode.replaceChild(toolbar(), old); }
+function retool() { const old = $("tools"); if (old) old.parentNode.replaceChild(rail(), old); }
 function sizeCanvas() { if (!canvas) return; const r = canvas.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2); if (r.width < 2) return; canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr); ctx = canvas.getContext("2d"); redraw(); if (pad) pad.resize(); }
 function drawStroke(s) {
     if (!ctx || !s.p || s.p.length < 2) return; const Wd = canvas.width, H = canvas.height, p = s.p;
-    ctx.globalCompositeOperation = s.e ? "destination-out" : "source-over"; ctx.strokeStyle = css(PENS[s.c] || PENS.ink) || "#14213D";
-    ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.lineWidth = (s.e ? 5 : 1) * (SIZES[s.w] || 6) * Wd / 1400;
+    ctx.globalCompositeOperation = s.e ? "destination-out" : "source-over"; ctx.strokeStyle = s.h && (s.c === "ink" || !PENS[s.c]) ? "#F2B33D" : (css(PENS[s.c] || PENS.ink) || "#14213D");
+    ctx.globalAlpha = s.h ? 0.38 : 1;
+    ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.lineWidth = (s.e ? 5 : s.h ? 3.4 : 1) * (SIZES[s.w] || 6) * Wd / 1400;
     ctx.beginPath(); ctx.moveTo(p[0] / 10000 * Wd, p[1] / 10000 * H); if (p.length === 2) ctx.lineTo(p[0] / 10000 * Wd + 0.1, p[1] / 10000 * H);
     for (let i = 2; i < p.length; i += 2) ctx.lineTo(p[i] / 10000 * Wd, p[i + 1] / 10000 * H);
-    ctx.stroke(); ctx.globalCompositeOperation = "source-over";
+    ctx.stroke(); ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
 }
 function redraw() { if (!ctx || !canvas) return; ctx.clearRect(0, 0, canvas.width, canvas.height); strokes.forEach(drawStroke); if (cur) drawStroke(cur); }
 function pt(e) { const r = canvas.getBoundingClientRect(); return [Math.round(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * 10000), Math.round(Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) * 10000)]; }
 function bindCanvas() {
-    canvas.addEventListener("pointerdown", (e) => { if (e.button || (pad && pad.on)) return; e.preventDefault(); try { canvas.setPointerCapture(e.pointerId); } catch (x) { /* ok */ } const p = pt(e); cur = { c: pen, w: size, e: erasing ? 1 : 0, p: [p[0], p[1]] }; redraw(); });
+    canvas.addEventListener("pointerdown", (e) => { if (e.button || (pad && pad.on)) return; e.preventDefault(); try { canvas.setPointerCapture(e.pointerId); } catch (x) { /* ok */ } const p = pt(e); cur = { c: pen, w: size, e: tool === "eraser" ? 1 : 0, p: [p[0], p[1]] }; if (tool === "hi") cur.h = 1; redraw(); });
     canvas.addEventListener("pointermove", (e) => { if (!cur) return; const p = pt(e), a = cur.p, n = a.length; if (Math.abs(p[0] - a[n - 2]) + Math.abs(p[1] - a[n - 1]) < 14) return; a.push(p[0], p[1]); redraw(); });
     const end = () => { if (!cur) return; snap(); strokes.push(cur); cur = null; redraw(); saveInk(); };
     canvas.addEventListener("pointerup", end); canvas.addEventListener("pointercancel", end);
@@ -576,8 +679,11 @@ function saveInk() {
     if (JSON.stringify(body).length > 700000) { note("This board is full. Clear it to keep saving."); return; }
     note(""); inkWrite(JSON.parse(JSON.stringify(body)));
 }
+function inkBase() { return [S.week, S.period, "d" + S.day, S.screen === "notes" ? "n" + S.note : S.screen === "fix" ? "fix" + ((fixCur() || {}).n || 0) : ((S.screen === "bell" && D()) ? "p" + S.prob : "blank")].join("_"); }
+function pageCount() { return S.wb.pages[inkBase()] || 1; }
+function pageNow() { const b = inkBase(); return S.wb.pg.k === b ? Math.min(S.wb.pg.n, pageCount() - 1) : 0; }
 function watchInk() {
-    const key = canvas ? [S.week, S.period, "d" + S.day, S.screen === "notes" ? "n" + S.note : S.screen === "fix" ? "fix" + ((fixCur() || {}).n || 0) : ((S.screen === "bell" && D()) ? "p" + S.prob : "blank")].join("_") : "";
+    const key = canvas ? inkBase() + (pageNow() ? "_pg" + pageNow() : "") : "";
     if (key === inkKey) return; inkKey = key; if (inkUnsub) { inkUnsub(); inkUnsub = null; } inkWrite = null; strokes = []; cur = null; hist = []; padItems = []; if (pad) pad.setItems([]); redraw();
     if (!key || !signedIn) return;
     inkWrite = writer("ink/" + key);
@@ -654,7 +760,7 @@ function drawFix(st) {
     }
     body.appendChild(left);
     const cv = makeCv();
-    right.appendChild(cv); right.appendChild(toolbar()); body.appendChild(right); st.appendChild(body); bindCanvas(); sizeCanvas();
+    right.appendChild(cv); body.appendChild(right); st.appendChild(body); bindCanvas(); sizeCanvas();
 }
 /* Remote only: pick a card, or type one when the week's cards are not saved in Week Builder. */
 // A dropdown cannot stack fractions: {3/4} becomes 3/4, and {{3/4}/{1/2}} becomes (3/4)/(1/2).
@@ -711,6 +817,7 @@ function applyState(d) {
     { const m = mergeTools(d.tools); Object.keys(S.tools).forEach((k) => delete S.tools[k]); Object.assign(S.tools, m); } // keep the same object: widgets hold a reference to it
     S.speedMode = d.speedMode === "check" ? "check" : "round";
     S.fix = cleanFix(d.fix);
+    S.wb = cleanWb(d.wb);
     { const o = d.sound || {}, v = (x, def) => (typeof x === "number" && x >= 0 && x <= 1 ? x : def);
         S.sound = { fx: o.fx !== false, fxv: v(o.fxv, 0.7), music: !!o.music, mv: v(o.mv, 0.35), style: snd.STYLES.some((x) => x[0] === o.style) ? o.style : "focus", at: typeof o.at === "string" ? o.at.slice(0, 20) : "" }; }
     ["bell", "round", "check", "free"].forEach((k) => { const t = d.timers && d.timers[k]; if (t) { S.timers[k] = { running: !!t.running, t0: +t.t0 || 0, elapsed: +t.elapsed || 0 }; if (k === "free") S.timers.free.dur = +t.dur || 300; } });
@@ -803,6 +910,10 @@ export async function startApp(opts) {
     mountGames({ S, header, store: () => store, writer, now, beep: () => snd.cue("done"), unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     mountLive({ S, header, store: () => store, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     document.body.classList.toggle("board", mode === "board");
+    {   // On the projected board the rail, pages and arrows fade after 4 s with nobody touching it, and come back on any touch.
+        let idleT = 0; const wake = () => { document.body.classList.remove("idle"); clearTimeout(idleT); idleT = setTimeout(() => { if (document.body.classList.contains("board") && !document.querySelector(".mathmenu,.mathpanel")) document.body.classList.add("idle"); }, 4000); };
+        ["pointermove", "pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, wake, true)); wake();
+    }
     $("periodSel").onchange = function () { S.period = this.value; S.cls = classOf(this.value); resetPos(); push(); };
     document.addEventListener("click", (e) => { document.querySelectorAll("details.acct[open]").forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });
     $("weekSel").onchange = function () { S.week = this.value; resetPos(); push(); };
