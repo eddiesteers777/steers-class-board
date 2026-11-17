@@ -102,7 +102,7 @@
     <script type="module">
         import { shrink, rotate, buildPdf, mb } from "./js/studentWork.js?v=57";
         const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
-        const store = await import(demo ? "./js/localStore.js?v=57" : "./js/boardStore.js?v=57");
+        const store = await import(demo ? "./js/localStore.js?v=57" : "./js/boardStore.js?v=58");
         const PERIODS = [["1st", "8th Grade"], ["2nd", "8th Grade"], ["4th", "8th Grade"], ["5th", "7th Grade"], ["6th", "8th Accelerated"]];
         const KEY = "Answer key", FREE = 1024 * 1048576;
         const $ = (id) => document.getElementById(id);

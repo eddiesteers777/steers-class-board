@@ -9,7 +9,7 @@
 ========================================== */
 import { db } from "./firebase.js";
 import { waitForUser, logout } from "./auth.js";
-import { doc, setDoc, getDocFromServer, onSnapshot, serverTimestamp, disableNetwork, enableNetwork } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { doc, collection, setDoc, getDoc, getDocs, deleteDoc, writeBatch, getDocFromServer, onSnapshot, serverTimestamp, disableNetwork, enableNetwork } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 let uid = null;
 
@@ -37,12 +37,15 @@ const ref = (path) => doc(db, `teacher/${uid}/${path}`);
  */
 const RETRY = [1000, 2000, 4000, 8000, 15000, 30000];
 export function watch(path, next, error = () => {}) {
+    return listen(() => ref(path), (snap) => next({ exists: snap.exists(), data: snap.data(), pending: snap.metadata.hasPendingWrites, fromCache: snap.metadata.fromCache }), error);
+}
+function listen(target, next, error) {
     let unsub = null, stopped = false, fails = 0, timer = 0;
     const start = () => {
         clearTimeout(timer); timer = 0;
         if (stopped || unsub) return;
-        unsub = onSnapshot(ref(path), { includeMetadataChanges: true },
-            (snap) => { fails = 0; next({ exists: snap.exists(), data: snap.data(), pending: snap.metadata.hasPendingWrites, fromCache: snap.metadata.fromCache }); },
+        unsub = onSnapshot(target(), { includeMetadataChanges: true },
+            (snap) => { fails = 0; next(snap); },
             (e) => {
                 unsub = null; fails++;
                 try { error(e, fails); } catch { /* the page's handler must not stop the retry */ }
@@ -95,5 +98,43 @@ export async function kick() {
     try { await disableNetwork(db); } catch { /* already off */ }
     try { await enableNetwork(db); } catch { /* tried */ }
 }
+
+/* ---------- student game rooms ----------
+   A student game (Vault Raid, js/liveRoom.js) lives OUTSIDE the teacher's space, at rooms/{code},
+   so students with no Google account can reach it by its code. The rules (firestore.rules) let only
+   the teacher who opened a room change it, and let each student write only their own entry.
+   Paths here are full paths from the top, e.g. "rooms/123456/p". */
+const abs = (path) => doc(db, path);
+export const rooms = {
+    uid: () => uid,
+    /** One document, same snapshot shape as watch(). */
+    watch(path, next, error = () => {}) {
+        return listen(() => abs(path), (snap) => next({ exists: snap.exists(), data: snap.data(), pending: snap.metadata.hasPendingWrites, fromCache: snap.metadata.fromCache }), error);
+    },
+    /** Every document in a collection: next([{ id, data }], changedIds). */
+    watchAll(path, next, error = () => {}) {
+        return listen(() => collection(db, path), (snap) => {
+            if (snap.metadata.hasPendingWrites) return;
+            next(snap.docs.map((d) => ({ id: d.id, data: d.data() })), snap.docChanges().map((c) => c.doc.id));
+        }, error);
+    },
+    get: async (path) => { const s = await getDoc(abs(path)); return s.exists() ? s.data() : null; },
+    save: (path, data, merge) => setDoc(abs(path), data, merge ? { merge: true } : undefined),
+    /** Several writes at once (up to 450): [{ path, data, merge }] or [{ path, del: true }]. */
+    async many(list) {
+        for (let i = 0; i < list.length; i += 450) {
+            const b = writeBatch(db);
+            list.slice(i, i + 450).forEach((w) => { if (w.del) b.delete(abs(w.path)); else b.set(abs(w.path), w.data, w.merge ? { merge: true } : {}); });
+            await b.commit();
+        }
+    },
+    /** Delete every document in a collection (the teacher's own room only). */
+    async clear(path) {
+        const s = await getDocs(collection(db, path)), ids = s.docs.map((d) => d.ref.path);
+        await rooms.many(ids.map((p) => ({ path: p, del: true })));
+        return ids.length;
+    },
+    del: (path) => deleteDoc(abs(path)),
+};
 
 export { logout as signOut };

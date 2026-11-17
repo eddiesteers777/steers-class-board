@@ -104,7 +104,7 @@
         $("find").oninput = draw;
 
         const guest = new URLSearchParams(location.search).has("demo");   // ?demo: look without signing in (the week data is not private)
-        const user = guest ? { name: "" } : await (await import("./js/boardStore.js?v=57")).ready();
+        const user = guest ? { name: "" } : await (await import("./js/boardStore.js?v=58")).ready();
         if (!user) location.replace("login.html");
         else { $("who").textContent = guest ? "Looking without signing in" : (user.name ? "Signed in as " + user.name : "Signed in"); draw(); }
     </script>
