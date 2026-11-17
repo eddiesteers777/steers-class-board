@@ -8,10 +8,10 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=56">
-    <link rel="stylesheet" href="css/console.css?v=56">
+    <link rel="stylesheet" href="css/board.css?v=57">
+    <link rel="stylesheet" href="css/console.css?v=57">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/games.css?v=56">
+    <link rel="stylesheet" href="css/games.css?v=57">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page">
@@ -47,6 +47,14 @@
                 <div><label for="title">Name of this set</label><input type="text" id="title" maxlength="80" placeholder="Example: Unit 4 Review, Scientific Notation"></div>
                 <div><label for="fromWeek">Or start from a week on the site</label><select id="fromWeek"><option value="">Choose a week and class</option></select></div>
             </div>
+            <details class="gsimport" id="importBox">
+                <summary>Import from Blooket, Wayground, Gimkit, Kahoot or a spreadsheet</summary>
+                <p class="sub">Choose the CSV file you downloaded, or open the sheet, select the cells (headings included) and paste them below. For an Excel file, open it in Excel or Google Sheets and copy the cells. The questions land in the table below for you to check before saving.</p>
+                <div class="gsimrow"><label class="btn ghost gsfile">Choose a CSV file<input type="file" id="imFile" accept=".csv,.tsv,.txt,text/csv,text/plain"></label><span class="sub" id="imName"></span></div>
+                <textarea id="imText" class="gstext gsimtext" spellcheck="false" placeholder="Or paste the cells here"></textarea>
+                <label class="chk"><input type="checkbox" id="imChoices"> Put the answer choices in each multiple-choice question</label>
+                <div class="rowx"><button class="btn go" id="imGo" type="button">Bring these questions in</button><span class="count2" id="imNote" role="status"></span></div>
+            </details>
             <fieldset class="glper"><legend>Classes that use this set</legend><div id="perPick"></div><p class="sub">Leave them all unticked to show this set to every class.</p></fieldset>
             <label for="text" class="bhead" style="display:block;font-size:.75rem;font-weight:600;color:var(--c-mute);margin-bottom:3px">Question table</label>
             <textarea id="text" class="gstext" spellcheck="false" placeholder="CATEGORY | POINTS | QUESTION | ANSWER&#10;SCIENTIFIC TO STANDARD | 100 | Convert 3.2 × 10^4 | 32,000&#10;SCIENTIFIC TO STANDARD | 200 | Convert 6.5 × 10^-3 | 0.0065"></textarea>
@@ -61,10 +69,11 @@
         </section>
     </main>
     <script type="module">
-        import { parseSet, setToText, cleanSet, countClues, mathRich, LIMITS } from "./js/games.js?v=56";
-        import { WEEKS } from "./data/weeks.js?v=56";
+        import { parseTable, readQuestions, toTable } from "./js/importSet.js?v=57";
+        import { parseSet, setToText, cleanSet, countClues, mathRich, LIMITS } from "./js/games.js?v=57";
+        import { WEEKS } from "./data/weeks.js?v=57";
         const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
-        const store = await import(demo ? "./js/localStore.js?v=56" : "./js/boardStore.js?v=56");
+        const store = await import(demo ? "./js/localStore.js?v=57" : "./js/boardStore.js?v=57");
         const $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
         const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
@@ -176,6 +185,37 @@
             }
         }
         $("text").oninput = check;
+
+        // Import from another tool: read the file or the pasted cells, then fill the question table to review.
+        let imFileText = "", imFileName = "";
+        $("imFile").onchange = async () => {
+            const f = $("imFile").files[0]; imFileText = ""; imFileName = ""; $("imName").textContent = ""; if (!f) return;
+            if (/\.xlsx?$/i.test(f.name)) { $("imNote").textContent = "That is an Excel file. Open it in Excel or Google Sheets, select the cells, copy them and paste them in the box."; $("imFile").value = ""; return; }
+            if (f.size > 2e6) { $("imNote").textContent = "That file is too big for a question set."; $("imFile").value = ""; return; }
+            imFileText = await f.text(); imFileName = f.name.replace(/\.[^.]+$/, ""); $("imName").textContent = f.name; $("imNote").textContent = "";
+        };
+        $("imGo").onclick = () => {
+            const raw = $("imText").value.trim() ? $("imText").value : imFileText;
+            if (!raw.trim()) { $("imNote").textContent = "Choose a file or paste the cells first."; return; }
+            const got = readQuestions(parseTable(raw), $("imChoices").checked);
+            if (!got.items.length) { $("imNote").textContent = "No questions with answers were found. Include the heading row (Question, Answer…) when you copy." + (got.skipped.length ? " " + got.skipped[0] : ""); return; }
+            if ($("text").value.trim() && !confirmReplace()) return;
+            const t = toTable(got.items);
+            $("text").value = t.text;
+            if (!$("title").value && imFileName && !$("imText").value.trim()) $("title").value = imFileName.slice(0, 80);
+            const msg = ["Brought in " + (got.total - t.cut) + " question" + (got.total - t.cut === 1 ? "" : "s") + " from " + (got.source === "list" || got.source === "spreadsheet" ? "your " + got.source : "a " + got.source + " sheet") + ", in " + t.cats + (t.cats === 1 ? " category." : " categories.")];
+            if (got.items.some((x) => !x.c)) msg.push("Questions without a category are in PART 1, PART 2… Rename those in the table.");
+            if (t.cut) msg.push(t.cut + " more did not fit (the board holds 6 categories of 6). Make a second set for them.");
+            if (got.skipped.length) msg.push(got.skipped.length + " row" + (got.skipped.length === 1 ? "" : "s") + " skipped: " + got.skipped.slice(0, 3).join(" ") + (got.skipped.length > 3 ? " …" : ""));
+            msg.push("Check every answer before you save.");
+            $("note").textContent = ""; $("imNote").textContent = msg.join(" "); check();
+            $("text").scrollIntoView({ behavior: "smooth", block: "center" });
+        };
+        let replaceArm = 0;
+        function confirmReplace() {   // a second tap within 5 s replaces what is already in the table
+            if (Date.now() - replaceArm < 5000) { replaceArm = 0; return true; }
+            replaceArm = Date.now(); $("imNote").textContent = "The table already has questions. Tap again to replace them."; return false;
+        }
         $("clear").onclick = reset;
 
         // Start from a week already on the site: its bellringer, warm-up and practice problems, one category per day.
