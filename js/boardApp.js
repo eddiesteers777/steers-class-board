@@ -5,11 +5,11 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=43";
+import { WEEKS } from "../data/weeks.js?v=44";
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=43";
-import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=43";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=44";
+import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=44";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -503,7 +503,10 @@ function sdSet() {
         }, () => { sdWeeks[id] = null; });
     }
     const w = sdWeeks[id], c = w && w.classes && w.classes[S.cls], sd = c && c.speedDating;
-    return sd && Array.isArray(sd.cards) && sd.cards.length ? sd : null;
+    if (sd && Array.isArray(sd.cards) && sd.cards.length) return sd;
+    // Fallback: the card problems published with the week (student-facing, no answers).
+    const sp = (L() || {}).speed;
+    return sp && Array.isArray(sp.cards) && sp.cards.length ? { title: sp.cardsTitle || "", cards: sp.cards } : null;
 }
 const fixKey = () => S.week + "|" + S.period + "|" + S.day;
 const str = (x, n) => (typeof x === "string" ? x : "").slice(0, n);
@@ -662,7 +665,7 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
-    store = (opts && opts.store) || await import("./boardStore.js?v=43");
+    store = (opts && opts.store) || await import("./boardStore.js?v=44");
     const guest = mode === "sub";
     mountGames({ S, header, store: () => store, writer, now, beep, unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     document.body.classList.toggle("board", mode === "board");
