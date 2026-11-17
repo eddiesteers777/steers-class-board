@@ -79,3 +79,28 @@ export function summarise(imports, cut) {
     }).sort((a, b) => a.avg - b.avg);
     return { skills, people };
 }
+
+/** Scores grouped by Alabama standard. An import carries a standard for the whole set (imp.std) and,
+    optionally, one per score column (imp.istd[k], "" = same as the set). Untagged scores are counted, not shown.
+    Returns { list: [{ code, avg, n, sets: [{ title, date, avg }], low: [{ s, v }] }], untagged } with sets by date. */
+export function byStandard(imports, cut) {
+    const map = new Map(); let untagged = 0;
+    for (const imp of imports) {
+        imp.items.forEach((item, k) => {
+            const code = (imp.istd && imp.istd[k]) || imp.std || "";
+            const got = imp.rows.map((r) => [r.s, r.v[k]]).filter(([, v]) => v != null);
+            if (!got.length) return;
+            if (!code) { untagged++; return; }
+            if (!map.has(code)) map.set(code, { code, sets: new Map(), people: new Map() });
+            const g = map.get(code), key = imp.id || imp.title;
+            if (!g.sets.has(key)) g.sets.set(key, { title: imp.title, date: imp.date || "", vals: [] });
+            for (const [s, v] of got) { g.sets.get(key).vals.push(v); if (!g.people.has(s)) g.people.set(s, []); g.people.get(s).push(v); }
+        });
+    }
+    const list = [...map.values()].map((g) => {
+        const sets = [...g.sets.values()].map((x) => ({ title: x.title, date: x.date, avg: mean(x.vals), n: x.vals.length })).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+        const per = [...g.people.entries()].map(([s, vs]) => ({ s, v: mean(vs) }));
+        return { code: g.code, avg: mean(per.map((p) => p.v)), n: per.length, sets, low: per.filter((p) => p.v < cut).sort((a, b) => a.v - b.v) };
+    });
+    return { list, untagged };
+}

@@ -15,10 +15,10 @@
     <meta property="og:url" content="https://focalboard.web.app/">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=51">
-    <link rel="stylesheet" href="css/console.css?v=51">
+    <link rel="stylesheet" href="css/board.css?v=53">
+    <link rel="stylesheet" href="css/console.css?v=53">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/home.css?v=51">
+    <link rel="stylesheet" href="css/home.css?v=53">
     <link rel="stylesheet" href="css/footer.css?v=2">
     <meta name="theme-color" content="#081B45">
     </head>
@@ -120,10 +120,10 @@
         </div>
     </footer>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=51";
-        import * as store from "./js/boardStore.js?v=51";
-        import { LIBRARY } from "./data/library.js?v=51";
-        import { SCHOOL_YEAR, SCHOOL_DAYS, today as todayFn, addDays, mondayOf, eventsOn, isSchoolDay as schoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, short } from "./js/schoolCal.js?v=51";
+        import { WEEKS } from "./data/weeks.js?v=53";
+        import * as store from "./js/boardStore.js?v=53";
+        import { LIBRARY } from "./data/library.js?v=53";
+        import { SCHOOL_YEAR, SCHOOL_DAYS, today as todayFn, addDays, mondayOf, eventsOn, isSchoolDay as schoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, short } from "./js/schoolCal.js?v=53";
         const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
         const DAYKEYS = ["mon", "tue", "wed", "thu", "fri"], $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
