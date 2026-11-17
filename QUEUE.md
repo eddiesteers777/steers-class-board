@@ -26,6 +26,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Done
 | When | Item |
 |------|------|
+| Nov 17 | Timer sounds and background music. `js/sound.js` makes every sound in the browser (Web Audio), no audio files and nothing copyrighted. Timers: start chime, 1:00-left bell, ticks for the last 5 s, three bells at time up; speed dating rounds: bell at 0:30 left, a rotate call, ticks in the last 3 s of the 10 s rotate, a start chime for the next round. Sounds fire on any screen. Music: generated Calm / Focus / Upbeat, on and off from the top bar ("Music") or the rail's Sound panel or the M key, with volumes. Settings are shared; one screen plays (the board by default, or "This device"). A board that has not been tapped shows "Tap for sound". Tested on the sub page (local store) only. |
 | Nov 17 | Review Games, eighth game: Tug of War. Two sides; each right side pulls the rope one step; first past its line wins. Tested with a local store only. |
 | Nov 17 | Review Games, seventh game: Bingo. Printable numbered cards from a set's answers (bingo.html), questions called in shuffled order, and a card checker on the Remote. Tested with a local store only. |
 | Nov 17 | Review Games, sixth game: Ring Race. Every team has a ring; right answers move one step, with an optional bonus step for the fastest; first to close the ring wins. Tested with a local store only. |

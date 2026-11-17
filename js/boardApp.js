@@ -5,11 +5,12 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=46";
+import { WEEKS } from "../data/weeks.js?v=47";
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=46";
-import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=46";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=47";
+import * as snd from "./sound.js?v=47";
+import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=47";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -69,7 +70,8 @@ function defaultWeek() {
 }
 const wd = new Date().getDay();
 const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0,
-    timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", fix: null, tools: defaultTools() };
+    timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", fix: null, tools: defaultTools(),
+    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "" } };
 
 let mode = "remote", signedIn = false, sig = "", writeState = null, SEAL = "brand/logo.svg";
 
@@ -239,14 +241,72 @@ function speedFixPanel(m) {
 function secsFor(kind) { if (kind === "check") return CHECK; if (kind === "free") return S.timers.free.dur || 300; const l = L(); return (l && l.bellSeconds) || 300; }
 const fmt = (r) => Math.floor(r / 60) + ":" + ("0" + (r % 60)).slice(-2);
 
-let audio = null, lastPhase = "";
-function unlockSound() { try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === "suspended") audio.resume(); } catch (e) { /* no sound on this device */ } }
-function beep(times) {
-    if (!audio) return;
-    try { for (let n = 0; n < times; n++) { const o = audio.createOscillator(), g = audio.createGain(), at = audio.currentTime + n * 0.35; o.frequency.value = 880; g.gain.setValueAtTime(0.25, at); g.gain.exponentialRampToValueAtTime(0.001, at + 0.3); o.connect(g); g.connect(audio.destination); o.start(at); o.stop(at + 0.3); } } catch (e) { /* ignore */ }
+const unlockSound = () => snd.unlock();
+/* ---------- sound ----------
+   One screen plays the sound: the board, unless the Remote picked "This device".
+   Settings are shared, so the Remote turns music on and the board plays it. */
+const DEVICE = (() => { try { let id = localStorage.getItem("focal-device-id"); if (!id) { id = Math.random().toString(36).slice(2, 10); localStorage.setItem("focal-device-id", id); } return id; } catch (e) { return Math.random().toString(36).slice(2, 10); } })();
+function playsHere() { return mode === "sub" || (S.sound.at ? S.sound.at === DEVICE : document.body.classList.contains("board")); }
+function soundSync() { snd.set(S.sound, playsHere()); soundControls(); }
+/* Every timer, every quarter second, whatever screen is showing. */
+function soundTick() {
+    const sec = (t) => Math.max(0, Math.floor((t.running ? now() - t.t0 : t.elapsed) / 1000));
+    ["bell", "free", "check"].forEach((k) => { const t = S.timers[k]; snd.watchTimer({ kind: k, running: t.running, secs: sec(t), total: secsFor(k) }); });
+    const r = S.timers.round; snd.watchTimer({ kind: "round", running: r.running, secs: sec(r), round: { len: ROUND, gap: GAP } });
+}
+function soundPanel() {
+    const rail = document.querySelector(".rail"); if (!rail || $("soundMenu")) return;
+    const box = el("details", "menu fold"); box.id = "soundMenu"; box.open = window.innerWidth > 860;
+    const sum = el("summary", null, "Sound "); const cnt = el("span", "count"); cnt.id = "soundCount"; sum.appendChild(cnt); box.appendChild(sum);
+    const b = el("div", "sndbox"); box.appendChild(b);
+    const toggle = (id, label) => { const x = el("button", "sndtog"); x.type = "button"; x.id = id; x.appendChild(el("span", null, label)); x.appendChild(el("i")); b.appendChild(x); return x; };
+    const slider = (id, label) => { const w = el("label", "sndvol"); w.appendChild(el("span", null, label)); const r = el("input"); r.type = "range"; r.min = "0"; r.max = "100"; r.step = "5"; r.id = id; w.appendChild(r); b.appendChild(w); return r; };
+    toggle("sndMusic", "Music").onclick = () => { S.sound.music = !S.sound.music; snd.unlock(); push(); };
+    const sty = el("div", "seg sndsty"); sty.id = "sndStyle"; sty.setAttribute("role", "group"); sty.setAttribute("aria-label", "Music style"); b.appendChild(sty);
+    const mv = slider("sndMv", "Music volume");
+    mv.oninput = () => { S.sound.mv = +mv.value / 100; soundSync(); quiet(); };
+    toggle("sndFx", "Timer sounds").onclick = () => { S.sound.fx = !S.sound.fx; snd.unlock(); push(); };
+    const fv = slider("sndFv", "Timer volume");
+    fv.oninput = () => { S.sound.fxv = +fv.value / 100; soundSync(); quiet(); };
+    fv.onchange = () => snd.preview("warn");
+    const tr = el("div", "sndtry"); tr.appendChild(el("span", null, "Hear:"));
+    [["go", "Start"], ["tick", "Tick"], ["rotate", "Rotate"], ["done", "Time up"]].forEach(([k, label]) => { const x = el("button", null, label); x.type = "button"; x.onclick = () => snd.preview(k); tr.appendChild(x); });
+    b.appendChild(tr);
+    if (mode !== "sub") {
+        b.appendChild(el("p", "sndlab", "Sound plays on"));
+        const at = el("div", "seg sndat"); at.id = "sndAt"; at.setAttribute("role", "group"); at.setAttribute("aria-label", "Sound plays on"); b.appendChild(at);
+    }
+    const n = el("p", "sndnote"); n.id = "sndNote"; n.setAttribute("role", "status"); b.appendChild(n);
+    const anchor = $("filesMenu") || $("toolsMenu"); anchor.after(box);
+    // The quick switch in the top bar, so music goes on and off without scrolling the rail.
+    const q = el("button", "btn ghost musicbtn"); q.id = "musicBtn"; q.type = "button"; q.title = "Background music (M key)";
+    q.onclick = () => { S.sound.music = !S.sound.music; snd.unlock(); push(); };
+    $("boardBtn").before(q);
+    snd.onChange(soundControls);
+}
+function soundControls() {
+    const box = $("soundMenu");
+    let tap = $("sndTap");   // a screen that should play but has not been tapped yet (browsers need one tap first)
+    if (!tap) { tap = el("button", "sndtap", "Tap for sound"); tap.id = "sndTap"; tap.type = "button"; tap.onclick = (e) => { e.stopPropagation(); snd.unlock(); }; document.body.appendChild(tap); }
+    tap.hidden = !(synced && snd.wanted() && !snd.running());
+    if (!box) return;
+    const so = S.sound, here = playsHere();
+    const on = (id, v) => { const x = $(id); x.setAttribute("aria-pressed", String(v)); x.querySelector("i").textContent = v ? "On" : "Off"; };
+    on("sndMusic", so.music); on("sndFx", so.fx);
+    seg($("sndStyle"), snd.STYLES, so.style, (v) => { S.sound.style = v; S.sound.music = true; snd.unlock(); push(); });
+    [["sndMv", so.mv], ["sndFv", so.fxv]].forEach(([id, v]) => { const r = $(id); if (document.activeElement !== r) r.value = String(Math.round(v * 100)); });
+    if ($("sndAt")) seg($("sndAt"), [["board", "The board"], ["here", "This device"]], so.at && so.at === DEVICE ? "here" : (so.at ? "other" : "board"), (v) => { S.sound.at = v === "here" ? DEVICE : ""; snd.unlock(); push(); });
+    $("soundCount").textContent = so.music ? "Music on" : "";
+    const q = $("musicBtn"); if (q) { q.textContent = so.music ? "Music on" : "Music off"; q.setAttribute("aria-pressed", String(so.music)); }
+    let note;
+    if (!so.music && !so.fx) note = "Sound is off.";
+    else if (here) note = snd.running() ? "Playing on this device." : "Tap this screen once to let it play sound.";
+    else if (so.at) note = "Playing on another device.";
+    else note = "Playing on the board. If it stays quiet, tap the board once.";
+    $("sndNote").textContent = note;
 }
 function tick() {
-    const tc = $("tcard"); if (!tc) { lastPhase = ""; return; }
+    const tc = $("tcard"); if (!tc) return;
     const kind = tc.dataset.kind, t = S.timers[kind], ms = t.running ? now() - t.t0 : t.elapsed, e = Math.max(0, Math.floor(ms / 1000));
     const c = $("clock"), bar = $("tbar"); let txt, hot, frac, phase;
     if (kind === "round") {
@@ -257,8 +317,6 @@ function tick() {
     } else {
         const T = secsFor(kind), r = Math.max(0, T - e); txt = r > 0 ? fmt(r) : "Time!"; hot = r <= Math.min(60, T / 4); frac = r / T; phase = r > 0 ? "run" : "done";
     }
-    if (t.running && lastPhase && phase !== lastPhase && (phase === "done" || phase.startsWith("rotate"))) beep(phase === "done" ? 3 : 2);
-    lastPhase = phase;
     c.textContent = txt; c.classList.toggle("hot", hot); bar.classList.toggle("hot", hot); bar.firstChild.style.width = (frac * 100) + "%";
     $("tgo").textContent = t.running ? "Pause" : (t.elapsed > 0 ? "Resume" : "Start");
 }
@@ -269,11 +327,11 @@ function skeleton() {
 }
 function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
-    syncGames(); buildControls();
+    syncGames(); buildControls(); soundSync();
     const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : ""]);
     renderDock(); drawGamePanel();
     if (ns === sig) { renderLayer(); tick(); tickTools(toolApi); return; }
-    sig = ns; lastPhase = "";
+    sig = ns;
     const st = $("screenHost"); st.textContent = ""; canvas = null; ctx = null;
     if (!l) { st.appendChild(el("div", "empty", "No lesson found for this class and week.")); watchInk(); return; }
     const w = W();
@@ -607,6 +665,8 @@ function applyState(d) {
     { const m = mergeTools(d.tools); Object.keys(S.tools).forEach((k) => delete S.tools[k]); Object.assign(S.tools, m); } // keep the same object: widgets hold a reference to it
     S.speedMode = d.speedMode === "check" ? "check" : "round";
     S.fix = cleanFix(d.fix);
+    { const o = d.sound || {}, v = (x, def) => (typeof x === "number" && x >= 0 && x <= 1 ? x : def);
+        S.sound = { fx: o.fx !== false, fxv: v(o.fxv, 0.7), music: !!o.music, mv: v(o.mv, 0.35), style: snd.STYLES.some((x) => x[0] === o.style) ? o.style : "focus", at: typeof o.at === "string" ? o.at.slice(0, 20) : "" }; }
     ["bell", "round", "check", "free"].forEach((k) => { const t = d.timers && d.timers[k]; if (t) { S.timers[k] = { running: !!t.running, t0: +t.t0 || 0, elapsed: +t.elapsed || 0 }; if (k === "free") S.timers.free.dur = +t.dur || 300; } });
 }
 /* One-tap lesson flow: Weekly Agenda -> Today -> each bellringer problem and its answer -> the day's activity. */
@@ -671,23 +731,24 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
-    store = (opts && opts.store) || await import("./boardStore.js?v=46");
+    store = (opts && opts.store) || await import("./boardStore.js?v=47");
     const guest = mode === "sub";
-    mountGames({ S, header, store: () => store, writer, now, beep, unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
+    mountGames({ S, header, store: () => store, writer, now, beep: () => snd.cue("done"), unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     document.body.classList.toggle("board", mode === "board");
     $("periodSel").onchange = function () { S.period = this.value; S.cls = classOf(this.value); resetPos(); push(); };
     document.addEventListener("click", (e) => { document.querySelectorAll("details.acct[open]").forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });
     $("weekSel").onchange = function () { S.week = this.value; resetPos(); push(); };
-    $("boardBtn").onclick = () => { document.body.classList.add("board"); unlockSound(); try { const p = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ok */ } fit(); };
-    $("exit").onclick = () => { document.body.classList.remove("board"); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* ok */ } fit(); };
+    $("boardBtn").onclick = () => { document.body.classList.add("board"); unlockSound(); try { const p = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ok */ } fit(); soundSync(); };
+    $("exit").onclick = () => { document.body.classList.remove("board"); soundSync(); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* ok */ } fit(); };
     $("signOut").onclick = async () => { try { await store.signOut(); } finally { location.replace("login.html"); } };
     window.addEventListener("resize", fit);
     if (window.ResizeObserver) new ResizeObserver(fit).observe($("wrap")); document.addEventListener("fullscreenchange", () => setTimeout(fit, 60));
-    document.addEventListener("pointerdown", unlockSound, { once: true });
+    document.addEventListener("pointerdown", unlockSound); document.addEventListener("keydown", unlockSound);
+    soundPanel();
     $("flowNext").onclick = () => flow(1); $("flowBack").onclick = () => flow(-1);
     keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
-    document.addEventListener("keydown", (e) => { if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); flow(1); } else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); flow(-1); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
-    setInterval(() => { if (!synced) return; tick(); tickTools(toolApi); tickGames(); }, 250);
+    document.addEventListener("keydown", (e) => { if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); flow(1); } else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); flow(-1); } else if (e.key === "m" || e.key === "M") { S.sound.music = !S.sound.music; push(); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
+    setInterval(() => { if (!synced) return; tick(); tickTools(toolApi); tickGames(); soundTick(); }, 250);
     document.body.classList.add("syncing");
     const arrived = () => { if (synced) return; synced = true; document.body.classList.remove("syncing"); sig = ""; };
     fit(); render();

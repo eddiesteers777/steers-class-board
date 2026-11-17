@@ -7,10 +7,10 @@
     <meta name="robots" content="noindex">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=46">
-    <link rel="stylesheet" href="css/console.css?v=46">
+    <link rel="stylesheet" href="css/board.css?v=47">
+    <link rel="stylesheet" href="css/console.css?v=47">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/games.css?v=46">
+    <link rel="stylesheet" href="css/games.css?v=47">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page bingopage">
@@ -32,9 +32,9 @@
         <div id="cards" class="bgcards"></div>
     </main>
     <script type="module">
-        import { cleanSet, mathRich, bingoPool, bingoSize, bingoCard } from "./js/games.js?v=46";
+        import { cleanSet, mathRich, bingoPool, bingoSize, bingoCard } from "./js/games.js?v=47";
         const q = new URLSearchParams(location.search), demo = q.has("demo");
-        const store = await import(demo ? "./js/localStore.js?v=46" : "./js/boardStore.js?v=46");
+        const store = await import(demo ? "./js/localStore.js?v=47" : "./js/boardStore.js?v=47");
         const $ = (id) => document.getElementById(id);
         const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
         const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
