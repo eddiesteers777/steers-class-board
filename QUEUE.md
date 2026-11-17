@@ -6,7 +6,6 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Waiting on Eddie
 | # | Item | What is needed |
 |---|------|----------------|
-| 1 | Calendar page with school dates | The Shelby County 2026-27 calendar and the nine-weeks dates. Never guess dates. |
 | 2 | Homework printing in the Week Builder | One real week file that has a homework section. |
 | 18 | Enter the other bell schedules | The editor holds named schedules now (see Done). Eddie enters the real times: 3rd-period lunch A/B/C, gym dismissal, dismissal, 1-hour and 2-hour activity. Never guess times. |
 | 3 | Fit the Class Data import to Magma Math | The header row of a real Magma Math export. |
@@ -26,6 +25,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Done
 | When | Item |
 |------|------|
+| Nov 16 | Planner page (`planner.html`, linked from Home and Library): Day, Week, Month and Year views with the Shelby County 2026-27 calendar (`data/calendar.js`, typed from the district PDF; student-day counts match it: 83 + 94 = 177). Published weeks show their real lessons; anything else is a private plan saved at teacher/{uid}/planner/plans. `?demo` for testing. Nine-weeks start dates for the 2nd and 4th (Oct 14, Mar 9) are the first student days after the breaks, read from the calendar. |
 | Nov 16 | Class tally (option A, part 2), Eddie OKd names Nov 16: Remote rail button opens a private panel with each student in the period, +1 Participation / On task / Redirect and a take-back. Saved per day at teacher/{uid}/tally/{date}. Never in board state, hidden in Board view. Still open: how long to keep it and how it ties into Class Data. |
 | Nov 16 | Bell times hold named schedules: Regular plus any number more (activity days, early dismissal), each with "other times" rows (lunch blocks, gym dismissal, dismissal). "Today's schedule" picks one for today only; the next day goes back to Regular. Stored in `settings/bells` as `schedules` and `today`; `periods` stays the Regular schedule. |
 | Nov 16 | Week Builder prints the study guide (4 pages) and speed dating (cards, recording sheet, early finishers) with both keys, ported from `docs.py`. They carry answers, so they only appear after Load week file or from a private saved copy. Tested with a made-up week file only; check against a real one. |

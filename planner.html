@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planner — Calera Math — Steers</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=25">
+    <link rel="stylesheet" href="css/console.css?v=25">
+    <link rel="stylesheet" href="css/planner.css?v=25">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="console page planner">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/calera-seal.webp" alt=""><span><b>Steers Class Board</b><small id="who">Calera Middle School</small></span></a>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
+        <a class="btn ghost" href="library.html" style="text-decoration:none">Library</a>
+        <a class="btn" href="remote.html" style="text-decoration:none">Open Remote</a>
+    </header>
+    <main>
+        <h1>Planner</h1>
+        <div class="pl-sum" id="summary" aria-live="polite"></div>
+        <div class="pl-bar">
+            <div class="pl-seg" id="views" role="group" aria-label="View"></div>
+            <div class="pl-nav">
+                <button class="pl-arrow" id="prev" type="button" aria-label="Previous">‹</button>
+                <button class="btn ghost pl-today" id="toToday" type="button">Today</button>
+                <button class="pl-arrow" id="next" type="button" aria-label="Next">›</button>
+            </div>
+            <div class="pl-seg pl-cls" id="classes" role="group" aria-label="Classes to show"></div>
+        </div>
+        <h2 class="pl-title" id="title"></h2>
+        <div id="view" class="pl-view"></div>
+        <p class="pl-foot">School dates come from the Shelby County 2026–27 calendar. Plans you type here save to your private account only. Weeks that are on the board show their real lesson; open them in the Library or the Week Builder to change them.</p>
+    </main>
+    <script type="module" src="js/planner.js?v=25"></script>
+</body>
+</html>
