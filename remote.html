@@ -7,8 +7,8 @@
     <meta name="robots" content="noindex">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=19">
-    <link rel="stylesheet" href="css/console.css?v=19">
+    <link rel="stylesheet" href="css/board.css?v=20">
+    <link rel="stylesheet" href="css/console.css?v=20">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console">
@@ -46,9 +46,9 @@
     </div>
     <button id="exit" type="button">Show controls</button>
     <script type="module">
-        import { startApp } from "./js/boardApp.js?v=19";
+        import { startApp } from "./js/boardApp.js?v=20";
         startApp({ mode: "remote" });
-        import("./js/recorder.js?v=19").then((m) => m.mount());
+        import("./js/recorder.js?v=20").then((m) => m.mount());
     </script>
 </body>
 </html>

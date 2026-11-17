@@ -5,9 +5,9 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=19";
+import { WEEKS } from "../data/weeks.js?v=20";
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=19";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=20";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -89,7 +89,7 @@ let quietTimer = 0;
 function quiet() { clearTimeout(quietTimer); quietTimer = setTimeout(() => { if (writeState) writeState(JSON.parse(JSON.stringify(S))); }, 500); } // save typing without redrawing
 let ROSTERS = {};
 const toolApi = { S, el, push, quiet, now, card, rosters: () => ROSTERS, redraw: () => { layerSig = ""; renderLayer(); } };
-function toolSig() { const t = Object.assign({}, S.tools); delete t.text; return JSON.stringify([t, S.period, Object.keys(ROSTERS).map((k) => k + ROSTERS[k].length)]); }
+function toolSig() { const t = Object.assign({}, S.tools); delete t.text; t.goal = Object.assign({}, t.goal); delete t.goal.text; return JSON.stringify([t, S.period, Object.keys(ROSTERS).map((k) => k + ROSTERS[k].length)]); }
 function resetPos() { S.prob = 0; S.show = false; S.note = 0; S.step = 0; }
 const W = () => WEEKS.find((w) => w.id === S.week) || WEEKS[WEEKS.length - 1];
 const L = () => { const w = W(); return (w && w.classes[S.cls]) || null; };
@@ -325,7 +325,7 @@ function blanked(text, reveal) {
 }
 
 /* ---------- floating tools (shown over every screen) ---------- */
-const DEFAULT_POS = { pick: [34, 30], groups: [10, 24],  traffic: [2, 23], work: [20, 23], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40] };
+const DEFAULT_POS = { pick: [34, 30], groups: [10, 24],  traffic: [2, 23], work: [20, 23], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40], goal: [60, 30] };
 let topZ = 1;
 let layerSig = "", dragging = false;
 function posOf(k) { const p = S.tools.pos[k]; if (p) return p; const d = DEFAULT_POS[k] || [10, 30]; return { x: d[0], y: d[1], s: 1 }; }
@@ -337,7 +337,7 @@ function renderDock() {
 function renderLayer() {
     const layer = $("toolLayer"); if (!layer || dragging) return;
     const ns = toolSig(); if (ns === layerSig) return; layerSig = ns;
-    const typing = document.activeElement && document.activeElement.id === "toolMsgIn", caret = typing ? document.activeElement.selectionStart : 0;
+    const typingId = document.activeElement && ["toolMsgIn", "toolGoalIn"].includes(document.activeElement.id) ? document.activeElement.id : "", typing = !!typingId, caret = typing ? document.activeElement.selectionStart : 0;
     layer.textContent = ""; const shelf = shelfEl(), docked = shelfKeys(), canDock = !narrowWrap(); shelf.textContent = "";
     TOOL_LIST.forEach(([k]) => {
         if (!S.tools.on[k]) return;
@@ -370,7 +370,7 @@ function renderLayer() {
         w.addEventListener("pointerdown", () => { w.style.zIndex = String(++topZ); });
         layer.appendChild(w);
     });
-    if (typing) { const t = $("toolMsgIn"); if (t) { t.focus(); try { t.setSelectionRange(caret, caret); } catch (e) { /* ok */ } } }
+    if (typing) { const t = $(typingId); if (t) { t.focus(); try { t.setSelectionRange(caret, caret); } catch (e) { /* ok */ } } }
     tickTools(toolApi);
     if ((shelfEm() + "|" + narrowWrap()) !== shelfApplied) fit();   // the shelf appeared, went away or changed width
     fitShelf();
@@ -500,7 +500,7 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
-    store = (opts && opts.store) || await import("./boardStore.js?v=19");
+    store = (opts && opts.store) || await import("./boardStore.js?v=20");
     const guest = mode === "sub";
     document.body.classList.toggle("board", mode === "board");
     $("periodSel").onchange = function () { S.period = this.value; S.cls = classOf(this.value); resetPos(); push(); };

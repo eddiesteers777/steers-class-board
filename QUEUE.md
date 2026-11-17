@@ -27,6 +27,8 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Done
 | When | Item |
 |------|------|
+| Nov 16 | Weekly Agenda: the highlighted day row no longer breaks. The Home "Right now" card's `.now` style was leaking onto `.row.now` (grid, padding, navy background, dark text). The card is now `.nowcard`; the board's chosen day gets an amber ring. |
+| Nov 16 | Class goal tool (classroom flow option A, part 1): goal text, a points bar per period, +1/−1, goal of 10 to 100, reset per period. No student names. Table points use the Scoreboard. The private per-student tally (part 2) waits on Eddie's district answer. |
 | Nov 16 | Sign-in: a failed try now stays on the sign-in page and says so (it used to jump to the dashboard and bounce back); the button waits for Google's script so the tap opens Google's own window; a "popup closed" from Google waits 15 s for a token that may still arrive (a Chrome quirk). `?signincheck` shows this device's sign-in steps (`js/signInCheck.js` was missing). Not proven on Eddie's devices: if the first try still fails, open the page with `?signincheck` and read the steps. |
 | Nov 16 | Record a lesson (Remote, "Record a lesson" in the side rail): records the lesson stage only, microphone off unless turned on, warns if a student name tool is showing, saves a video to the device. `js/recorder.js`. Nothing is uploaded by the site. |
 | Nov 16 | Guided notes on the board for 7th Monday and 8th Accelerated Monday, loaded from the paper notes in the school Drive (wording unchanged). The Accelerated student notes have no error detectives or exit ticket, so none were loaded. |

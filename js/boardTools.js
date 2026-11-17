@@ -3,20 +3,23 @@
    Small widgets Mr. Steers turns on from the Remote; the Board shows the
    same ones. All state lives in S.tools inside the shared board state.
    Original Calera-look widgets: traffic light, voice level, clock,
-   stopwatch, message, dice, scoreboard.
+   stopwatch, message, dice, scoreboard, class goal.
 ========================================== */
 
-export const TOOL_LIST = [["traffic", "Traffic light"], ["work", "Voice level"], ["clock", "Clock"], ["stopwatch", "Stopwatch"], ["text", "Message"], ["dice", "Dice"], ["score", "Scoreboard"], ["pick", "Name picker"], ["groups", "Group maker"]];
+export const TOOL_LIST = [["traffic", "Traffic light"], ["work", "Voice level"], ["clock", "Clock"], ["stopwatch", "Stopwatch"], ["text", "Message"], ["dice", "Dice"], ["score", "Scoreboard"], ["goal", "Class goal"], ["pick", "Name picker"], ["groups", "Group maker"]];
 export const PERIOD_KEYS = ["1st", "2nd", "4th", "5th", "6th"];
 const today = () => { const d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); };
 let showOut = false; // the "Who is out" list is open on this device only
 const WORK = [["silent", "Silent", "Voices off", 0], ["whisper", "Whisper", "Only your partner can hear", 1], ["partner", "Partner Talk", "Table voices", 2], ["group", "Group Work", "Everyone shares the work", 4]];
 const PERIODS = ["1st", "2nd", "4th", "5th", "6th"];
+const GOAL_TARGETS = [10, 20, 30, 50, 100];
+const GOAL_HINT = "Set a class goal on the Remote.";
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
 
 export function defaultTools() {
     return { v: 2, on: {}, pos: {}, traffic: "green", work: "silent", text: "",
         dice: { n: 2, vals: [3, 5], roll: 0 }, score: { teams: [{ n: "Team 1", s: 0 }, { n: "Team 2", s: 0 }] },
+        goal: { text: "", target: 20, pts: {} },
         sw: { running: false, t0: 0, elapsed: 0 },
         pick: { period: "", cur: -1, used: [] }, groups: { period: "", size: 3, order: [] }, absent: { day: "", periods: {} } };
 }
@@ -30,6 +33,11 @@ export function mergeTools(d) {
     if (typeof d.text === "string") t.text = d.text.slice(0, 600);
     if (d.dice && Array.isArray(d.dice.vals)) t.dice = { n: Math.min(3, Math.max(1, +d.dice.n || 1)), vals: d.dice.vals.slice(0, 3).map((v) => Math.min(6, Math.max(1, +v || 1))), roll: +d.dice.roll || 0 };
     if (d.score && Array.isArray(d.score.teams)) t.score = { teams: d.score.teams.slice(0, 6).map((x) => ({ n: String(x.n || "Team").slice(0, 16), s: +x.s || 0 })) };
+    if (d.goal && typeof d.goal === "object") {
+        t.goal.text = typeof d.goal.text === "string" ? d.goal.text.slice(0, 120) : "";
+        t.goal.target = GOAL_TARGETS.includes(+d.goal.target) ? +d.goal.target : 20;
+        if (d.goal.pts && typeof d.goal.pts === "object") PERIOD_KEYS.forEach((k) => { const n = Math.floor(+d.goal.pts[k] || 0); if (n) t.goal.pts[k] = Math.min(999, Math.max(0, n)); });
+    }
     const idx = (a) => (Array.isArray(a) ? a.slice(0, 60).map((n) => Math.max(0, Math.floor(+n || 0))) : []);
     if (d.pick) t.pick = { period: PERIOD_KEYS.includes(d.pick.period) ? d.pick.period : "", cur: Number.isInteger(d.pick.cur) ? d.pick.cur : -1, used: idx(d.pick.used) };
     if (d.groups) t.groups = { period: PERIOD_KEYS.includes(d.groups.period) ? d.groups.period : "", size: Math.min(6, Math.max(2, +d.groups.size || 3)), order: idx(d.groups.order) };
@@ -103,6 +111,27 @@ export function buildWidget(k, api) {
             mk("Reset scores", () => { T.score.teams.forEach((x) => { x.s = 0; }); });
             b.appendChild(ctl);
         }
+        else if (k === "goal") {
+            // One class goal, points kept per period. No student names: the whole class earns together.
+            const period = S.period || "1st", pts = T.goal.pts[period] || 0, tgt = T.goal.target, done = pts >= tgt;
+            const show = el("p", "goaltext"); show.id = "toolGoal"; show.textContent = T.goal.text || GOAL_HINT; b.appendChild(show);
+            const inp = el("input", "msgin goalin"); inp.id = "toolGoalIn"; inp.type = "text"; inp.maxLength = 120; inp.value = T.goal.text; inp.placeholder = "Goal, like: Extra recess Friday"; inp.setAttribute("aria-label", "Class goal text");
+            inp.oninput = () => { T.goal.text = inp.value; show.textContent = T.goal.text || GOAL_HINT; api.quiet(); };
+            b.appendChild(inp);
+            const bar = el("div", "goalbar" + (done ? " done" : "")), fill = el("i"); fill.style.width = Math.min(100, Math.round(pts / tgt * 100)) + "%";
+            bar.setAttribute("role", "progressbar"); bar.setAttribute("aria-valuemin", "0"); bar.setAttribute("aria-valuemax", String(tgt)); bar.setAttribute("aria-valuenow", String(Math.min(pts, tgt))); bar.setAttribute("aria-label", period + " period class points");
+            bar.appendChild(fill); b.appendChild(bar);
+            b.appendChild(el("p", "goalnum", done ? "Goal reached! " + pts + " points" : pts + " of " + tgt + " points"));
+            b.appendChild(el("p", "vsub", period + " period"));
+            const pm = el("div", "minis"), minus = el("button", null, "−1"), plus = el("button", "primary", "+1 class point"); minus.type = plus.type = "button";
+            minus.setAttribute("aria-label", "Take 1 point from " + period + " period");
+            minus.onclick = () => { T.goal.pts[period] = Math.max(0, pts - 1); push(); }; plus.onclick = () => { T.goal.pts[period] = Math.min(999, pts + 1); push(); };
+            pm.appendChild(minus); pm.appendChild(plus); b.appendChild(pm);
+            const ctl = el("div", "minis setup");
+            GOAL_TARGETS.forEach((n) => { const m = el("button", null, "Goal " + n); m.type = "button"; m.setAttribute("aria-pressed", String(tgt === n)); m.onclick = () => { T.goal.target = n; push(); }; ctl.appendChild(m); });
+            const rs = el("button", null, "Reset " + period); rs.type = "button"; rs.onclick = () => { delete T.goal.pts[period]; push(); }; ctl.appendChild(rs);
+            b.appendChild(ctl);
+        }
         else if (k === "pick" || k === "groups") {
             const st = k === "pick" ? T.pick : T.groups, period = st.period || S.period || "1st", names = (api.rosters()[period]) || [];
             if (T.absent.day !== today()) { T.absent.day = today(); T.absent.periods = {}; } // absences only last the day
@@ -150,4 +179,6 @@ export function tickTools(api) {
     if (sw) { const ms = T.sw.running ? api.now() - T.sw.t0 : T.sw.elapsed, s = Math.max(0, Math.floor(ms / 1000)); sw.textContent = Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
     const msg = document.getElementById("toolMsg"), inp = document.getElementById("toolMsgIn");
     if (msg && document.activeElement !== inp) { msg.textContent = T.text || "Type a message on the Remote."; if (inp && inp.value !== T.text) inp.value = T.text; }
+    const goal = document.getElementById("toolGoal"), gin = document.getElementById("toolGoalIn");
+    if (goal && document.activeElement !== gin) { goal.textContent = T.goal.text || GOAL_HINT; if (gin && gin.value !== T.goal.text) gin.value = T.goal.text; }
 }

@@ -98,7 +98,7 @@ body.board #stage{border-radius:0;box-shadow:none}
 #stage .card h3{font-weight:600;letter-spacing:.01em}
 #stage .chip{background:var(--amber);color:var(--amber-ink)}
 #stage .lt{border-color:var(--amber)}
-#stage .row.now{box-shadow:inset .45em 0 0 var(--amber)}
+#stage .row.now{box-shadow:0 0 0 .22em var(--amber)}
 #stage .wl.now{box-shadow:inset .3em 0 0 var(--amber)}
 #stage .q .ans{background:#E3F5EC;color:#0F6B40}
 #stage .tbtns button:first-child,#stage .minis button.primary{background:var(--green);color:#fff}
@@ -149,9 +149,9 @@ body.board #stage{border-radius:0;box-shadow:none}
 .console .rail .toolchips{align-items:stretch}
 
 /* ---------- home dashboard ---------- */
-.now{display:grid;grid-template-columns:1fr auto;gap:22px;align-items:center;background:var(--navy);color:#fff;border-radius:20px;padding:26px 28px;box-shadow:0 14px 34px rgba(14,27,58,.22)}
+.nowcard{display:grid;grid-template-columns:1fr auto;gap:22px;align-items:center;background:var(--navy);color:#fff;border-radius:20px;padding:26px 28px;box-shadow:0 14px 34px rgba(14,27,58,.22)}
 .nowwhen{font-size:.9rem;font-weight:600;color:var(--amber)}
-.now h1{color:#fff;font-size:2.3rem;margin:4px 0 6px}
+.nowcard h1{color:#fff;font-size:2.3rem;margin:4px 0 6px}
 .nowlt{font-size:1.05rem;color:#D5E4F5;max-width:60ch;line-height:1.4}
 .nowfacts{display:flex;flex-wrap:wrap;gap:10px 34px;margin-top:16px}
 .nowfacts h3{font-size:.74rem;font-weight:600;color:#9DB8DA;margin-bottom:2px}
@@ -190,7 +190,7 @@ body.board #stage{border-radius:0;box-shadow:none}
 .bellrow b{width:44px}
 .bellrow label{display:flex;align-items:center;gap:6px;font-size:.88rem;color:var(--c-mute)}
 .bellrow input{font:inherit;color:var(--c-ink);border:1.5px solid var(--c-line);border-radius:8px;padding:5px 8px;background:#fff}
-@media (max-width:760px){.now{grid-template-columns:1fr}.prow{grid-template-columns:1fr auto}.pwhat,.pfiles{grid-column:1/-1}}
+@media (max-width:760px){.nowcard{grid-template-columns:1fr}.prow{grid-template-columns:1fr auto}.pwhat,.pfiles{grid-column:1/-1}}
 .pfiles a,.nowfacts a{display:inline-block;margin-right:14px}
 
 .sublink{color:var(--c-mute)!important;font-weight:500!important}

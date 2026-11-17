@@ -227,3 +227,11 @@ body.syncing .rail,body.syncing .flowbar,body.syncing .cbar .field{opacity:.45;p
 .card h3 .close.pop{font-size:.95em}
 .docked h3{display:flex;align-items:center;justify-content:space-between}
 body.board .docked .close,body.board .float .close{display:none}
+/* Class goal: one goal, points per period, no names */
+.goaltext{font-size:1.15em;font-weight:700;line-height:1.15;text-align:center;overflow-wrap:anywhere}
+.goalin{min-height:0;margin:.2em 0}
+body.board .goalin{display:none}
+.goalbar{width:100%;height:1.1em;background:var(--paper,#F5F8FD);border:.13em solid var(--sky);border-radius:1em;overflow:hidden;margin:.35em 0 .2em}
+.goalbar i{display:block;height:100%;background:var(--sky);border-radius:1em;transition:width .3s}
+.goalbar.done i{background:var(--amber,#F2B33D)}
+.goalnum{font-size:1.3em;font-weight:700;font-variant-numeric:tabular-nums}
