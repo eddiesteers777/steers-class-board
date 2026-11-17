@@ -8,8 +8,8 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=44">
-    <link rel="stylesheet" href="css/console.css?v=44">
+    <link rel="stylesheet" href="css/board.css?v=45">
+    <link rel="stylesheet" href="css/console.css?v=45">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
     <meta name="theme-color" content="#081B45">
     </head>
@@ -31,7 +31,7 @@
         <div class="rowx"><button class="btn ghost" id="fill" type="button">Fill the boxes</button></div>
     </main>
     <script type="module">
-        import * as store from "./js/boardStore.js?v=44";
+        import * as store from "./js/boardStore.js?v=45";
         const KEYS = ["1st", "2nd", "4th", "5th", "6th"], $ = (id) => document.getElementById(id), boxes = {};
         const status = (t) => { const s = $("status"); s.textContent = t; s.dataset.state = /^(Live|Saved|Filled)/.test(t) ? "ok" : (/Could not|No period/.test(t) ? "bad" : "wait"); };
         KEYS.forEach((k) => {
