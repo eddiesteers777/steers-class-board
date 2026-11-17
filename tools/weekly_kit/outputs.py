@@ -32,9 +32,21 @@ def board_notes(n):
     if n.get("vocab"): out["vocab"] = {"items": [b(v) for v in n["vocab"]["items"]]}
     if n.get("bigIdea"): out["bigIdea"] = [b(t) for t in n["bigIdea"]]
     if n.get("steps"): out["steps"] = [b(t) for t in n["steps"]]
-    if n.get("examples"): out["examples"] = [{"title": e.get("title", ""), "q": b(e["q"]), "steps": [{"m": b(x["m"]), "why": b(x.get("why", ""))} for x in e["steps"]]} for e in n["examples"]]
+    if n.get("examples"):
+        out["examples"] = []
+        for e in n["examples"]:
+            x = {"title": e.get("title", ""), "q": b(e["q"]), "steps": [{"m": b(st["m"]), "why": b(st.get("why", ""))} for st in e["steps"]]}
+            if e.get("intro"): x["intro"] = [b(t) for t in e["intro"]]
+            out["examples"].append(x)
     if n.get("guided"): out["guided"] = {"q": b(n["guided"]["q"]), "steps": [{"m": b(x.get("full") or x["m"]), "why": b(x.get("why", ""))} for x in n["guided"]["steps"]]}
-    if n.get("practice"): out["practice"] = [{"label": part.get("label", ""), "problems": [{"n": p.get("n", ""), "q": b(p["q"]), "a": b(p["a"])} for p in part["problems"]]} for part in n["practice"]]
+    if n.get("practice"):
+        out["practice"] = []
+        for part in n["practice"]:
+            # "showWork" parts (problems worked together) also send the worked line to the board
+            probs = [dict({"n": p.get("n", ""), "q": b(p["q"]), "a": b(p["a"])}, **({"work": b(p["work"])} if part.get("showWork") and p.get("work") else {})) for p in part["problems"]]
+            item = {"label": part.get("label", ""), "problems": probs}
+            if part.get("kind"): item["kind"] = part["kind"]
+            out["practice"].append(item)
     if n.get("exit"): out["exit"] = [{"q": b(p["q"])} for p in n["exit"]]
     return out
 

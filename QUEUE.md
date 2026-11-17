@@ -14,6 +14,8 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Next up
 | # | Item | Notes |
 |---|------|-------|
+| 16 | Record a lesson from the whiteboard | Eddie asked Nov 16: press Record, work a problem, press Done, get a video file to upload to Schoology for homework and study-guide help. Scout first: record the stage only (not the controls), optional microphone, save to the device (no cloud storage on the free plan), and a clear warning before any student name or voice is captured. |
+| 17 | Week Builder print: notes with rule boxes and worked lines | Notes can now carry `intro` (a rule box before an example) and practice parts with `kind` and `showWork`. `js/weekSheets.js` does not print these yet; `tools/weekly_kit/docs.py` prints `intro`. |
 | 15 | Bell times editor holds one schedule only | The regular schedule is saved. Not stored anywhere yet: the 3rd-period lunch block (A, B, C), gym dismissal, dismissal times, and the 1-hour and 2-hour activity schedules. Needs named schedules and more rows. Do not force these under a wrong label. |
 | 7 | Sign-in popup needed a second try | Seen in the Nov 16 live test: the first Google popup closed without finishing. Scout `js/googleSignIn.js`, `js/signInRetry.js`. |
 | 8 | Board takes about 8 seconds to load its state | Seen Nov 16. The skeleton now covers the wait; find out where the time goes (sign-in, Firestore, clock check). |
@@ -21,12 +23,12 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 | 10 | Week 6 content | Starts from the "Weekly Plan Intake - Steers Math" Sheet (school account). New `data/week6.js`, add to `data/weeks.js` and `data/library.js`. |
 | 11 | Study guide and speed dating printing in the Week Builder | Port from `tools/weekly_kit/docs.py`, as was done for bellringers and guided notes. |
 | 12 | Class Data: tie results to skills over time | Link a set to a Library week, show growth, group by standard once the curriculum documents are in the project. |
-| 13 | Guided notes for the days that have none | 7th Monday and 8th Accelerated Monday were taught from paper notes kept in the school Drive. Load them only from those, never rewrite them. |
 | 14 | Remove unused starter pages | `planning.html`, `homework.html`, `schedule.html` and their scripts look unused. Confirm with the school thread first. |
 
 ## Done
 | When | Item |
 |------|------|
+| Nov 16 | Guided notes on the board for 7th Monday and 8th Accelerated Monday, loaded from the paper notes in the school Drive (wording unchanged). The Accelerated student notes have no error detectives or exit ticket, so none were loaded. |
 | Nov 16 | The three Friday Nov 20 sub plans (7th, 8th, 8th Accelerated) carry the guest teacher address. Each is still one page. |
 | Nov 16 | Bell times: the regular schedule is set on Home. |
 | Nov 16 | The two live test items were removed (bellringer answer back to 65, test data set removed). The "1 of 18 problems were changed" notice still shows from an earlier edit; do not clear it without Eddie. |

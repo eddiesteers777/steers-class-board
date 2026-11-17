@@ -44,8 +44,8 @@ Python expression that recomputes the answer (`F` is Fraction).
   `practice: [{title, directions, height, parts: [{label, height, problems[]}]}]`,
   `errors: [{name, q, shown, correct, fix}]`, `checklist[]`
 - a day's `notes`: `title`, `subtitle`, `standard`, `targets[]`, `warmup[]`, `vocab: {bank[], items[]}` with `[blanks]` in brackets,
-  `bigIdea[]`, `steps[]`, `examples: [{title, q, steps: [{m, why}]}]`, `guided: {q, steps: [{m, full, why}]}`,
-  `practice: [{label, space, problems[]}]` (each problem has `n`, such as "A1"), `errors[]`, `exit[]`
+  `bigIdea[]`, `steps[]`, `examples: [{title, q, intro[], steps: [{m, why}]}]` (`intro` is a rule box shown before that example), `guided: {q, steps: [{m, full, why}]}`,
+  `practice: [{label, kind, showWork, space, problems[]}]` (each problem has `n`, such as "A1"; `showWork` sends the worked line to the board for problems done together), `errors[]`, `exit[]`
 - `speedDating`: `title`, `prefix` (for example "2 Tuesday"), `cards[40]` each with
   `skill` and `wrong: [{a, why}]`, `example: {q, steps[]}`, `early[]`, `errorItem: {q, a, work}`,
   `setup: [[item, plan]]`, `reviewNotes[]`, `standardNote`

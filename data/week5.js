@@ -530,7 +530,200 @@ export default {
        "q": "Find (−6)(−{7/9}).",
        "a": "{14/3} = 4{2/3}"
       }
-     ]
+     ],
+     "notes": {
+      "title": "Problem Solving with Rational Numbers",
+      "targets": [
+       "solve real-world and mathematical problems using addition, subtraction, multiplication, and division with rational numbers, including complex fractions.",
+       "No calculator on the quiz, so we practice by hand."
+      ],
+      "vocab": {
+       "items": [
+        "A number that can be written as a fraction of two integers is a [rational number].",
+        "A fraction that has a fraction (or decimal) in the numerator, denominator, or both is a [complex fraction].",
+        "To divide by a fraction, multiply by its [reciprocal].",
+        "Subtracting a number is the same as adding its [opposite].",
+        "To add fractions, rewrite them with the least common denominator, or [LCD]."
+       ]
+      },
+      "bigIdea": [
+       "Rules to Remember",
+       "Add and subtract: same signs, add and keep the sign. Different signs, subtract and keep the sign of the number farther from zero. Subtract = add the opposite.",
+       "Multiply and divide: same signs give a positive. Different signs give a negative. Divide = multiply by the reciprocal.",
+       "Complex fraction: the fraction bar means divide. Rewrite as top ÷ bottom.",
+       "Order of operations: parentheses, exponents, multiply and divide (left to right), then add and subtract (left to right)."
+      ],
+      "examples": [
+       {
+        "title": "",
+        "q": "Find −{3/4} + {5/6}.",
+        "steps": [
+         {
+          "m": "−{9/12} + {10/12}",
+          "why": "LCD is 12."
+         },
+         {
+          "m": "{1/12}",
+          "why": "Answer"
+         }
+        ]
+       },
+       {
+        "title": "",
+        "q": "Find (−2{1/2})(1{1/3}).",
+        "steps": [
+         {
+          "m": "−{5/2} · {4/3}",
+          "why": "Improper fractions."
+         },
+         {
+          "m": "−{20/6} = −{10/3}",
+          "why": ""
+         },
+         {
+          "m": "−3{1/3}",
+          "why": "Answer"
+         }
+        ]
+       },
+       {
+        "title": "",
+        "q": "Simplify {−{3/5}/{9/10}}.",
+        "steps": [
+         {
+          "m": "−{3/5} ÷ {9/10}",
+          "why": "The bar means divide."
+         },
+         {
+          "m": "−{3/5} · {10/9}",
+          "why": ""
+         },
+         {
+          "m": "−{30/45} = −{2/3}",
+          "why": "Answer"
+         }
+        ]
+       },
+       {
+        "title": "",
+        "q": "A diver is at −15.5 m. She rises 2.5 m each minute for 4 minutes. Where is she now?",
+        "steps": [
+         {
+          "m": "−15.5 + 4(2.5)",
+          "why": ""
+         },
+         {
+          "m": "−15.5 + 10",
+          "why": ""
+         },
+         {
+          "m": "−5.5 m",
+          "why": "Answer"
+         }
+        ]
+       }
+      ],
+      "practice": [
+       {
+        "label": "Guided Practice (we try together)",
+        "problems": [
+         {
+          "n": "1",
+          "q": "−{5/8} − {1/4}",
+          "a": "−{7/8}",
+          "work": "−{5/8} − {2/8} = −{7/8}"
+         },
+         {
+          "n": "2",
+          "q": "(−0.6)(−4.5)",
+          "a": "2.7",
+          "work": "6 × 45 = 270, two decimal places, same signs: positive. 2.70 = 2.7."
+         },
+         {
+          "n": "3",
+          "q": "−{2/3} ÷ (−{4/9})",
+          "a": "{3/2}",
+          "work": "−{2/3} · (−{9/4}) = {18/12} = {3/2} = 1{1/2}"
+         },
+         {
+          "n": "4",
+          "q": "{1{1/2}/−{3/4}}",
+          "a": "−2",
+          "work": "{3/2} ÷ (−{3/4}) = {3/2} · (−{4/3}) = −{12/6} = −2"
+         },
+         {
+          "n": "5",
+          "q": "A recipe uses 2{1/4} cups of flour for 3 equal batches. How much flour is in each batch?",
+          "a": "{3/4} cup",
+          "work": "2{1/4} = {9/4}, then {9/4} ÷ 3 = {9/4} · {1/3} = {9/12} = {3/4} cup"
+         },
+         {
+          "n": "6",
+          "q": "Sam's balance is −$12.40. He deposits $30 and then pays a $2.75 fee 3 times. What is his balance?",
+          "a": "$9.35",
+          "work": "−12.40 + 30 = 17.60; 3(2.75) = 8.25; 17.60 − 8.25 = 9.35"
+         }
+        ],
+        "kind": "Guided practice"
+       },
+       {
+        "label": "Practice (you try)",
+        "problems": [
+         {
+          "n": "1",
+          "q": "{3/5} − {7/10}",
+          "a": "−{1/10}"
+         },
+         {
+          "n": "2",
+          "q": "−3.2 + 7.85",
+          "a": "4.65"
+         },
+         {
+          "n": "3",
+          "q": "(−{3/4})(−{8/9})",
+          "a": "{2/3}"
+         },
+         {
+          "n": "4",
+          "q": "−1{1/2} ÷ {3/4}",
+          "a": "−2"
+         },
+         {
+          "n": "5",
+          "q": "{−2.4/0.6}",
+          "a": "−4"
+         },
+         {
+          "n": "6",
+          "q": "−4 + 3(−2{1/2})",
+          "a": "−11{1/2} (or −11.5)"
+         },
+         {
+          "n": "7",
+          "q": "A rope is 12{1/2} feet long. It is cut into pieces that are 2{1/2} feet long. How many pieces?",
+          "a": "5 pieces"
+         },
+         {
+          "n": "8",
+          "q": "A stock lost $1.35 each day for 5 days. What was the total change in price?",
+          "a": "−$6.75"
+         }
+        ]
+       }
+      ],
+      "exit": [
+       {
+        "q": "−{5/6} + {1/3}"
+       },
+       {
+        "q": "{−{5/6}/{2/3}}"
+       },
+       {
+        "q": "It is 4°F. The temperature falls 3.5°F each hour for 6 hours. What is the temperature?"
+       }
+      ]
+     }
     },
     {
      "name": "Tuesday",
@@ -723,7 +916,257 @@ export default {
        "q": "Solve: 5x + 2 = 3x + 12",
        "a": "x = 5"
       }
-     ]
+     ],
+     "notes": {
+      "title": "Inequalities: Special Cases, Word Problems, and Compound Inequalities",
+      "targets": [
+       "identify inequalities as true or false based on the number of solutions.",
+       "use a linear inequality to represent a word problem.",
+       "solve a linear inequality and interpret its solution.",
+       "write and solve compound inequalities."
+      ],
+      "warmup": [
+       {
+        "q": "3x − 7 > 11",
+        "a": "x > 6"
+       },
+       {
+        "q": "−2x + 5 ≥ 1",
+        "a": "x ≤ 2"
+       },
+       {
+        "q": "4x + 1 < 2x + 9",
+        "a": "x < 4"
+       }
+      ],
+      "vocab": {
+       "items": [
+        "If the variables cancel and you get a TRUE statement like 6 > 1, the solution is [all real numbers] (every number works).",
+        "If the variables cancel and you get a FALSE statement like −4 ≤ −9, there is [no solution].",
+        "A [compound] inequality joins two inequalities, like −2 < x ≤ 4.",
+        "In a word problem, a solution is [viable] if it makes sense in the real situation (for example, you cannot buy 6.25 shirts).",
+        "An “[and]” inequality graphs as ONE piece between two numbers. An “[or]” inequality graphs as TWO separate pieces."
+       ]
+      },
+      "examples": [
+       {
+        "title": "",
+        "q": "Solve 2(x + 3) > 2x + 1.",
+        "steps": [
+         {
+          "m": "2x + 6 > 2x + 1",
+          "why": "Distribute the 2."
+         },
+         {
+          "m": "6 > 1",
+          "why": "Subtract 2x from both sides. The x terms cancel."
+         },
+         {
+          "m": "TRUE → all real numbers",
+          "why": "6 is greater than 1, so every value of x works. Check: x = 0 gives 6 > 1 ✔"
+         }
+        ],
+        "intro": [
+         "Part 1: When the variables cancel. Simplify, then look: if the x terms disappear, ask “Is what is left TRUE or FALSE?”",
+         "TRUE statement → the solution is all real numbers.",
+         "FALSE statement → no solution."
+        ]
+       },
+       {
+        "title": "",
+        "q": "Solve 3x − 4 ≤ 3x − 9.",
+        "steps": [
+         {
+          "m": "−4 ≤ −9",
+          "why": "Subtract 3x from both sides. The x terms cancel."
+         },
+         {
+          "m": "FALSE → no solution",
+          "why": "−4 is NOT less than or equal to −9, so no value of x works. Check: x = 0 gives −4 ≤ −9, which is false."
+         }
+        ]
+       },
+       {
+        "title": "",
+        "q": "A gym charges $25 to sign up plus $12 per month. Dan can spend at most $145. How many months m can he join?",
+        "steps": [
+         {
+          "m": "25 + 12m ≤ 145",
+          "why": "“At most” means ≤."
+         },
+         {
+          "m": "12m ≤ 120",
+          "why": "Subtract 25 from both sides."
+         },
+         {
+          "m": "m ≤ 10",
+          "why": "Divide by 12. Dan can join for 10 months or fewer. Check: 25 + 12(10) = 145 ✔"
+         }
+        ],
+        "intro": [
+         "Part 2: Word problems. Key phrases: “at most” or “no more than” → ≤ • “at least” or “no less than” → ≥ • “more than” → > • “fewer than” → <",
+         "Steps: 1. Define the variable. 2. Write the inequality. 3. Solve it. 4. Ask: does the answer make sense? (Whole numbers only? Not negative?)"
+        ]
+       },
+       {
+        "title": "",
+        "q": "T-shirts cost $7 each. Lena has $50. How many shirts t can she buy?",
+        "steps": [
+         {
+          "m": "7t ≤ 50",
+          "why": "She can spend at most $50."
+         },
+         {
+          "m": "t ≤ {50/7}, about 7.14",
+          "why": "Divide by 7."
+         },
+         {
+          "m": "t ≤ 7 (whole shirts)",
+          "why": "Viable answers are whole numbers 0, 1, 2, …, 7. She can buy at most 7 shirts. 7 shirts cost $49. 8 shirts cost $56, which is too much."
+         }
+        ]
+       },
+       {
+        "title": "AND",
+        "q": "Solve −3 < 2x + 1 ≤ 9 and graph it.",
+        "steps": [
+         {
+          "m": "−3 < 2x + 1 ≤ 9",
+          "why": "Start. Do each step to all three parts."
+         },
+         {
+          "m": "−4 < 2x ≤ 8",
+          "why": "Subtract 1 from all three parts."
+         },
+         {
+          "m": "−2 < x ≤ 4",
+          "why": "Divide all three parts by 2 (positive, no flip)."
+         },
+         {
+          "m": "Graph: open circle at −2, closed circle at 4, shade between. Interval notation: (−2, 4]",
+          "why": "Check: x = 0 gives −3 < 1 ≤ 9 ✔"
+         }
+        ],
+        "intro": [
+         "Part 3: Compound inequalities. “AND” (between): do the same step to ALL THREE parts. Graph is one piece between two numbers.",
+         "“OR”: solve each inequality by itself. Graph is two pieces going in opposite directions.",
+         "Remember: if you divide by a NEGATIVE, flip BOTH signs."
+        ]
+       },
+       {
+        "title": "OR",
+        "q": "Solve x − 1 < −2 or 3x ≥ 9 and graph it.",
+        "steps": [
+         {
+          "m": "x − 1 < −2 OR 3x ≥ 9",
+          "why": "Solve each inequality by itself."
+         },
+         {
+          "m": "x < −1 OR x ≥ 3",
+          "why": "Add 1 to the first. Divide the second by 3."
+         },
+         {
+          "m": "Graph: open circle at −1 shading left, closed circle at 3 shading right.",
+          "why": "Two separate pieces. Check: x = 0 is in NEITHER piece. 0 − 1 < −2 is false and 3(0) ≥ 9 is false ✔"
+         }
+        ]
+       }
+      ],
+      "guided": {
+       "q": "Solve 5 ≥ 1 − 2x ≥ −3 and graph it.",
+       "steps": [
+        {
+         "m": "5 ≥ 1 − 2x ≥ −3",
+         "why": "Start."
+        },
+        {
+         "m": "4 ≥ −2x ≥ −4",
+         "why": "Subtract 1 from all three parts."
+        },
+        {
+         "m": "−2 ≤ x ≤ 2",
+         "why": "Divide all parts by −2. FLIP both signs! Then write it with the smaller number first."
+        }
+       ]
+      },
+      "practice": [
+       {
+        "label": "Part A: Number of solutions",
+        "problems": [
+         {
+          "n": "A1",
+          "q": "5x − 2 > 5x + 3",
+          "a": "No solution"
+         },
+         {
+          "n": "A2",
+          "q": "3(x − 1) ≥ 3x − 5",
+          "a": "All real numbers"
+         },
+         {
+          "n": "A3",
+          "q": "2x + 8 < 2(x + 4)",
+          "a": "No solution"
+         },
+         {
+          "n": "A4",
+          "q": "4(x + 2) ≥ 4x + 8",
+          "a": "All real numbers"
+         }
+        ]
+       },
+       {
+        "label": "Part B: Word problems (write an inequality, solve it, and say what the answer means)",
+        "problems": [
+         {
+          "n": "B5",
+          "q": "Ria has $60. Tickets cost $9 each. She wants to have at least $15 left. How many tickets t can she buy?",
+          "a": "60 − 9t ≥ 15 → t ≤ 5. At most 5 tickets."
+         },
+         {
+          "n": "B6",
+          "q": "A phone plan costs $20 plus $0.10 per text. Marcus can spend at most $32. How many texts t can he send?",
+          "a": "20 + 0.10t ≤ 32 → t ≤ 120. At most 120 texts."
+         },
+         {
+          "n": "B7",
+          "q": "A rectangle is 12 cm long. Its perimeter must be less than 50 cm. What are the possible widths w?",
+          "a": "2(12 + w) < 50 → w < 13. Width must be less than 13 cm (and greater than 0)."
+         },
+         {
+          "n": "B8",
+          "q": "Jada scored 82 and 91 on two tests. She wants an average of at least 88 on three tests. What score x does she need on the third test?",
+          "a": "{82 + 91 + x/3} ≥ 88 → x ≥ 91."
+         }
+        ]
+       },
+       {
+        "label": "Part C: Compound inequalities",
+        "problems": [
+         {
+          "n": "C9",
+          "q": "−5 < 3x + 1 < 10",
+          "a": "−2 < x < 3"
+         },
+         {
+          "n": "C10",
+          "q": "2 ≤ 4x − 2 ≤ 14",
+          "a": "1 ≤ x ≤ 4"
+         },
+         {
+          "n": "C11",
+          "q": "3x < −6 or x + 2 > 7",
+          "a": "x < −2 or x > 5"
+         },
+         {
+          "n": "C12",
+          "q": "−4 < −2x ≤ 6",
+          "a": "−3 ≤ x < 2"
+         }
+        ]
+       }
+      ]
+     }
     },
     {
      "name": "Tuesday",

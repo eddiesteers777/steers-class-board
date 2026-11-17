@@ -246,6 +246,7 @@ def guided_notes(week, cid, i, path, key=False):
     if n.get("examples"):
         d.h2("Worked Examples", size=13)
         for k, e in enumerate(n["examples"], 1):
+            if e.get("intro"): d.box(["**" + to_word(e["intro"][0]) + "**"] + [to_word(t) for t in e["intro"][1:]], size=10.5)
             d.p("**Example %d%s** %s" % (k, (": " + e["title"] + ".") if e.get("title") else ".", to_word(e["q"])), keep=True, after=2)
             d.steps([("" if blanks else to_word(x["m"]), to_word(x.get("why", ""))) for x in e["steps"]], size=10.5)
     g = n.get("guided")
