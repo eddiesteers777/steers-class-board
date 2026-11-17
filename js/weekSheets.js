@@ -206,3 +206,134 @@ export function notesSheet(week, cid, i, key) {
     }
     return sheet;
 }
+
+/* ---------- study guide and speed dating ----------
+   Ported from tools/weekly_kit/docs.py (study_guide, speed_dating and their keys). These parts carry
+   answers, so they are never in the published week: they come from the week file (Load week file)
+   or a private saved copy. */
+function nameRow(sheet, fields) {
+    const p = el("p", "sh-name");
+    fields.forEach(([t, w]) => { p.appendChild(el("b", null, t + " ")); p.appendChild(el("span", "rule " + w)); });
+    sheet.appendChild(p);
+}
+const NAME3 = [["Name:", "w30"], ["Date:", "w14"], ["Period:", "w8"]];
+function pageTitle(sheet, text, first) { const h = el("h2", "sh-ptitle" + (first ? "" : " newpage"), text); sheet.appendChild(h); return h; }
+function richLine(cls, text, prefix) { const p = el("p", cls); if (prefix) p.appendChild(el("b", null, prefix)); p.appendChild(rich(text)); return p; }
+function keyTable(head, rows, widths) {
+    const t = el("table", "sh-table sh-small"), hr = el("tr");
+    head.forEach((h, k) => { const th = el("th", null, h); if (widths && widths[k]) th.style.width = widths[k]; hr.appendChild(th); }); t.appendChild(hr);
+    rows.forEach((r) => { const tr = el("tr"); r.forEach((cell) => { const td = el("td"); (Array.isArray(cell) ? cell : [cell]).forEach((x, k) => { if (k) td.appendChild(el("br")); td.appendChild(rich(x)); }); tr.appendChild(td); }); t.appendChild(tr); });
+    return t;
+}
+const wrongList = (list) => (list || []).map((w) => w.a + ": " + (w.why || ""));
+
+/** Study guide: worked examples, each practice page on its own page, then error detectives and the check-up. */
+export function studyGuideSheet(week, cid) {
+    const c = week.classes[cid], g = c.studyGuide, sheet = el("section", "sheet sguide");
+    sheet.appendChild(el("h1", "sh-title", g.title)); if (g.subtitle) sheet.appendChild(el("p", "sh-sub", g.subtitle));
+    nameRow(sheet, NAME3);
+    if (g.ican) sheet.appendChild(boxed([richLine(null, g.ican, "I can: ")]));
+    (g.examples || []).forEach((part) => {
+        sheet.appendChild(el("h2", null, part.heading));
+        (part.boxes || []).forEach((box) => sheet.appendChild(boxed(box.map((x) => richLine(null, x)))));
+    });
+    (g.practice || []).forEach((pr) => {
+        pageTitle(sheet, pr.title); nameRow(sheet, NAME3);
+        if (pr.directions) sheet.appendChild(richLine("sh-dir", pr.directions));
+        let n = 0;
+        (pr.parts || []).forEach((part) => {
+            if (part.label) sheet.appendChild(richLine("sh-part", part.label));
+            const t = el("table", "sh-steps sh-pboxes");
+            (part.problems || []).forEach((p) => { n++; const tr = el("tr"), td = el("td"); td.style.height = (part.height || pr.height || 0.62) + "in"; td.appendChild(el("b", null, n + ". ")); td.appendChild(rich(p.q)); tr.appendChild(td); t.appendChild(tr); });
+            sheet.appendChild(t);
+        });
+    });
+    pageTitle(sheet, g.errorTitle || "Error Detectives and Check-Up"); nameRow(sheet, NAME3);
+    const intro = el("p", "sh-dir"); intro.append("Each student solved a problem. Decide if the work is ", el("b", null, "correct"), " or has a ", el("b", null, "mistake"), ". If there is a mistake, circle it and fix it."); sheet.appendChild(intro);
+    (g.errors || []).forEach((e) => {
+        const b = boxed([richLine(null, e.q, e.name + ": "), richLine(null, e.shown), el("p", null, "☐ Correct   ☐ Mistake. Fix it or explain:")]);
+        b.classList.add("white"); b.lastChild.appendChild(el("span", "rule w30 inl")); sheet.appendChild(b);
+    });
+    if (g.checklist && g.checklist.length) {
+        sheet.appendChild(el("h2", null, "How am I doing?"));
+        const t = el("table", "sh-table sh-check");
+        g.checklist.forEach((s) => { const tr = el("tr"), a = el("td"); a.appendChild(rich(s)); tr.appendChild(a); ["☐ Got it", "☐ Mostly", "☐ Need help"].forEach((x) => tr.appendChild(el("td", "ck", x))); t.appendChild(tr); });
+        sheet.appendChild(t);
+        const p = el("p", null, "One thing I still need help with: "); p.appendChild(el("span", "rule w30 inl")); sheet.appendChild(p);
+    }
+    return sheet;
+}
+
+export function studyGuideKey(week, cid) {
+    const c = week.classes[cid], g = c.studyGuide, sheet = el("section", "sheet key");
+    head(sheet, "TEACHER KEY: " + g.title, "Teacher only. Never post or link.");
+    let total = 0, checked = 0, edited = 0;
+    (g.practice || []).forEach((pr) => {
+        sheet.appendChild(el("h2", null, pr.title)); const rows = []; let n = 0;
+        (pr.parts || []).forEach((part) => (part.problems || []).forEach((p) => { n++; total++; if (p.check) checked++; if (p.edited) edited++; rows.push([String(n), p.a || "", p.work || ""]); }));
+        sheet.appendChild(keyTable(["#", "Answer", "Work"], rows, ["0.4in", "2.2in"]));
+    });
+    if (g.errors && g.errors.length) {
+        sheet.appendChild(el("h2", null, "Error Detectives"));
+        sheet.appendChild(keyTable(["Student", "Verdict", "What to look for"], g.errors.map((e) => [e.name, e.correct ? "Correct" : "Mistake", e.fix || ""]), ["1in", "0.9in"]));
+    }
+    sheet.appendChild(el("p", "sh-verify", checked + " of " + total + " practice answers were recomputed by a written check when the week file was built." + (edited ? " " + edited + " were changed by hand since and are NOT re-checked." : "")));
+    return sheet;
+}
+
+/** Speed dating: page 1 the 40 cards, page 2 the recording sheet, page 3 early finishers. */
+export function speedDatingSheet(week, cid) {
+    const c = week.classes[cid], s = c.speedDating, cards = s.cards || [], sheet = el("section", "sheet sdate");
+    sheet.appendChild(el("p", "sh-btitle", "SPEED DATING REVIEW: " + s.title));
+    sheet.appendChild(el("p", "sh-dir sh-tiny", "Cards 1–40. Your teacher hands you ONE card. Do NOT write on the card, and do NOT show the answer to your partners."));
+    const grid = el("table", "sh-cards"); grid.style.fontSize = (s.cardSize || 9) + "pt";
+    for (let r = 0; r * 4 < cards.length; r++) {
+        const tr = el("tr");
+        for (let q = 0; q < 4; q++) { const k = r * 4 + q, td = el("td"); td.style.height = (s.cardHeight || 0.76) + "in"; if (cards[k]) { td.appendChild(el("b", null, "#" + (k + 1) + "  ")); td.appendChild(rich(cards[k].q)); } tr.appendChild(td); }
+        grid.appendChild(tr);
+    }
+    sheet.appendChild(grid);
+    const rec = el("p", "sh-btitle newpage", "SPEED DATING: Recording Sheet"); sheet.appendChild(rec);
+    nameRow(sheet, [["Name:", "w30"], ["Date:", "w14"], ["Period:", "w8"], ["My card #:", "w8"]]);
+    const mine = el("p", null); mine.appendChild(el("b", null, "My card's correct answer (get it checked by your teacher): ")); mine.appendChild(el("span", "rule w22")); sheet.appendChild(mine);
+    const rt = el("table", "sh-table sh-rounds"), hr = el("tr");
+    [["Round", "0.6in"], ["Partner's card #", "1in"], ["Show ALL work to solve their card", ""], ["My answer", "1in"], ["Partner checked ✓", "1in"]].forEach(([t, w]) => { const th = el("th", null, t); if (w) th.style.width = w; hr.appendChild(th); }); rt.appendChild(hr);
+    for (let i = 1; i <= (s.rounds || 8); i++) { const tr = el("tr"); tr.appendChild(el("td", null, String(i))); for (let k = 0; k < 4; k++) tr.appendChild(el("td")); rt.appendChild(tr); }
+    sheet.appendChild(rt);
+    sheet.appendChild(el("h2", null, "My Master Problem: Errors"));
+    sheet.appendChild(el("p", "sh-tiny", "Write what your partners got wrong on YOUR card (the wrong answer or the mistake), and how many partners made it."));
+    const et = el("table", "sh-table sh-errs"), eh = el("tr"); eh.appendChild(el("th", null, "Wrong answer or mistake")); eh.appendChild(el("th", null, "How many partners?")); et.appendChild(eh);
+    for (let i = 0; i < 3; i++) { const tr = el("tr"); tr.appendChild(el("td")); tr.appendChild(el("td")); et.appendChild(tr); }
+    sheet.appendChild(et);
+    [["The MOST common error on my problem was: ", "w40"], ["Class error review: how to fix it: ", "w40"]].forEach(([t, w]) => { const p = el("p", null, t); p.appendChild(el("span", "rule " + w + " inl")); sheet.appendChild(p); });
+    sheet.appendChild(el("p", "sh-btitle newpage", "Early Finishers: Fix the Mistakes"));
+    nameRow(sheet, [["Name:", "w30"], ["Period:", "w8"]]);
+    if (s.example) sheet.appendChild(boxed([richLine(null, s.example.q, "Worked example: ")].concat((s.example.steps || []).map((x) => richLine(null, x)))));
+    sheet.appendChild(el("p", "sh-dir", "These are deliberate extra practice. Show every step, then come back for the class error review."));
+    const early = s.early || [];
+    early.forEach((p, i) => sheet.appendChild(richLine("sh-prac sh-room", p.q, (i + 1) + ". ")));
+    if (s.errorItem) sheet.appendChild(richLine("sh-prac sh-room", s.errorItem.q, (early.length + 1) + ". Error analysis. "));
+    sheet.appendChild(el("p", "sh-dir", "When you finish, come back to the class error review at the end of the period."));
+    return sheet;
+}
+
+export function speedDatingKey(week, cid) {
+    const c = week.classes[cid], s = c.speedDating, cards = s.cards || [], sheet = el("section", "sheet key sdkey");
+    head(sheet, "TEACHER KEY: Speed Dating Review, " + s.title + " (" + c.label + ")", "Teacher only. Never post or link." + (s.standardNote ? " " + s.standardNote : ""));
+    if (s.setup && s.setup.length) { sheet.appendChild(el("h2", null, "Setup")); sheet.appendChild(keyTable(["Item", "Plan"], s.setup.map(([a, b]) => [a, b]), ["1.6in"])); }
+    sheet.appendChild(el("h2", null, "Master cards 1–" + cards.length + ": answers, work, and likely wrong answers (teacher only)"));
+    sheet.appendChild(keyTable(["#", "Skill", "Answer", "Worked solution", "Likely wrong answers (why)"], cards.map((cd, n) => [String(n + 1), cd.skill || "", cd.a || "", cd.work || "", wrongList(cd.wrong)]), ["0.3in", "1.1in", "0.85in", "", "2.4in"]));
+    const early = s.early || [];
+    if (early.length || s.errorItem) {
+        sheet.appendChild(el("h2", null, "Early-finisher key (deliberate extra practice)"));
+        const rows = early.map((p, i) => [String(i + 1), p.a || "", p.work || "", wrongList(p.wrong)]);
+        if (s.errorItem) rows.push([String(early.length + 1), s.errorItem.a || "", s.errorItem.work || "", []]);
+        sheet.appendChild(keyTable(["#", "Answer", "Work", "Likely wrong answers"], rows, ["0.3in", "1.5in"]));
+    }
+    if (s.reviewNotes && s.reviewNotes.length) { sheet.appendChild(el("h2", null, "Class error review notes")); s.reviewNotes.forEach((x) => sheet.appendChild(richLine("sh-work", x, "• "))); }
+    const checked = cards.filter((cd) => cd.check).length, edited = cards.filter((cd) => cd.edited).length;
+    sheet.appendChild(el("h2", null, "Verification"));
+    sheet.appendChild(el("p", "sh-verify", checked + " of " + cards.length + " card answers were recomputed by a written check when the week file was built." + (edited ? " " + edited + " were changed by hand since and are NOT re-checked." : "")));
+    if (cards.length !== 40) sheet.appendChild(el("p", "sh-verify warn", "This deck has " + cards.length + " cards. The weekly kit expects exactly 40."));
+    return sheet;
+}

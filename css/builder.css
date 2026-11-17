@@ -82,3 +82,32 @@
     .sheet h2.newpage{border-top:0!important;padding-top:0!important;margin-top:0!important}
     body.builder[data-print="notes"] #paperNotes,body.builder[data-print="noteskey"] #paperNotesKey{display:block}
 }
+
+/* ---- study guide and speed dating on paper ---- */
+.sheet.sguide{padding:.6in;font-size:10.5pt}
+.sheet .sh-box.white{background:#fff}
+.sheet .sh-ptitle,.sheet .sh-btitle{font-size:16pt;font-weight:700;color:#2F5496;margin:0 0 2pt}
+.sheet .sh-pboxes td{vertical-align:top;font-weight:400}
+.sheet .sh-check td{font-size:10pt}.sheet .sh-check td.ck{width:1.05in;white-space:nowrap}
+.sheet .sh-small th,.sheet .sh-small td{font-size:9.5pt}
+.sheet.sdkey .sh-small th,.sheet.sdkey .sh-small td{font-size:8.5pt}
+.sheet .w40{width:3.4in}
+.sheet.sdate{padding:.4in;font-size:10pt}
+.sheet .sh-tiny{font-size:9pt}
+.sheet .sh-cards{border-collapse:collapse;width:100%;table-layout:fixed}
+.sheet .sh-cards td{border:1px solid #8EA9DB;padding:3pt 4pt;vertical-align:top;line-height:1.2}
+.sheet .sh-cards tr,.sheet .sh-rounds tr{break-inside:avoid}
+.sheet .sh-rounds td{height:.62in;font-size:10pt}
+.sheet .sh-errs td{height:.32in}
+.sheet .sh-room{margin-bottom:46pt}
+.sheet .sh-verify.warn{color:#8E1B21;font-weight:700}
+.sheet .sh-btitle.newpage,.sheet .sh-ptitle.newpage{break-before:page}
+.sheet:not(:only-child) .sh-btitle.newpage,.sheet:not(:only-child) .sh-ptitle.newpage{border-top:1px dashed #B8C4DA;padding-top:14pt;margin-top:16pt}
+@page sguide{size:letter;margin:.6in}
+@page sdate{size:letter;margin:.4in}
+@media print{
+    .sheet.sguide{page:sguide;padding:0}
+    .sheet.sdate{page:sdate;padding:0}
+    .sheet .sh-btitle.newpage,.sheet .sh-ptitle.newpage{border-top:0!important;padding-top:0!important;margin-top:0!important}
+    body.builder[data-print="sg"] #paperSG,body.builder[data-print="sgkey"] #paperSGKey,body.builder[data-print="sd"] #paperSD,body.builder[data-print="sdkey"] #paperSDKey{display:block}
+}

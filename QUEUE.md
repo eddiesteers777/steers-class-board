@@ -20,13 +20,13 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 | 8 | Board takes about 8 seconds to load its state | Nov 16: could not measure here (the cloud test machine cannot load Firebase). Changed: all tabs now share the offline copy (before, a second tab such as Home + Remote had none and waited on the network). Added load timing: open the board with `?signincheck` and read the `board-load`, `board-auth`, `board-server`, `board-shown` steps. If `board-auth` is slow it is sign-in; if `board-shown` says "server" and is slow it is the school network (try long polling). |
 | 9 | Check every teacher page against DESIGN.md | 390px and desktop: Home, Remote, Rosters, Library, Week Builder, Class Data, sign-in. Home's header now has six buttons and needs thinning. |
 | 10 | Week 6 content | Starts from the "Weekly Plan Intake - Steers Math" Sheet (school account). New `data/week6.js`, add to `data/weeks.js` and `data/library.js`. |
-| 11 | Study guide and speed dating printing in the Week Builder | Port from `tools/weekly_kit/docs.py`, as was done for bellringers and guided notes. |
 | 12 | Class Data: tie results to skills over time | Link a set to a Library week, show growth, group by standard once the curriculum documents are in the project. |
 | 14 | Remove unused starter pages | `planning.html`, `homework.html`, `schedule.html` and their scripts look unused. Confirm with the school thread first. |
 
 ## Done
 | When | Item |
 |------|------|
+| Nov 16 | Week Builder prints the study guide (4 pages) and speed dating (cards, recording sheet, early finishers) with both keys, ported from `docs.py`. They carry answers, so they only appear after Load week file or from a private saved copy. Tested with a made-up week file only; check against a real one. |
 | Nov 16 | Weekly Agenda: the highlighted day row no longer breaks. The Home "Right now" card's `.now` style was leaking onto `.row.now` (grid, padding, navy background, dark text). The card is now `.nowcard`; the board's chosen day gets an amber ring. |
 | Nov 16 | Class goal tool (classroom flow option A, part 1): goal text, a points bar per period, +1/−1, goal of 10 to 100, reset per period. No student names. Table points use the Scoreboard. The private per-student tally (part 2) waits on Eddie's district answer. |
 | Nov 16 | Sign-in: a failed try now stays on the sign-in page and says so (it used to jump to the dashboard and bounce back); the button waits for Google's script so the tap opens Google's own window; a "popup closed" from Google waits 15 s for a token that may still arrive (a Chrome quirk). `?signincheck` shows this device's sign-in steps (`js/signInCheck.js` was missing). Not proven on Eddie's devices: if the first try still fails, open the page with `?signincheck` and read the steps. |

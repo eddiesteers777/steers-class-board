@@ -7,9 +7,9 @@
     <meta name="robots" content="noindex">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=21">
-    <link rel="stylesheet" href="css/console.css?v=21">
-    <link rel="stylesheet" href="css/builder.css?v=21">
+    <link rel="stylesheet" href="css/board.css?v=22">
+    <link rel="stylesheet" href="css/console.css?v=22">
+    <link rel="stylesheet" href="css/builder.css?v=22">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page builder">
@@ -21,7 +21,7 @@
     </header>
     <main>
         <h1>Week Builder</h1>
-        <p class="sub">Pick a week and a class, fix or add bellringer problems, then print the bellringer sheet, its key and the guided notes straight from this page. Your changes save only to your private account.</p>
+        <p class="sub">Pick a week and a class, fix or add bellringer problems, then print the bellringer sheet, its key, the guided notes, the study guide and speed dating straight from this page. Your changes save only to your private account.</p>
         <div class="bpick">
             <label class="field"><span>Week</span><select id="weekSel" aria-label="Week"></select></label>
             <label class="field"><span>Class</span><select id="classSel" aria-label="Class"></select></label>
@@ -56,20 +56,34 @@
             <button class="btn" id="printNotesKey" type="button">Print notes key</button>
         </div>
 
+        <h2>Study guide and speed dating</h2>
+        <p class="sub" id="extraNone">These carry answers, so they are never on the public site. Use Load week file with this week's file from Drive, then Save my changes to keep them in your private account.</p>
+        <div class="bpick" id="sgBar" hidden>
+            <button class="btn go" id="printSG" type="button">Print study guide</button>
+            <button class="btn" id="printSGKey" type="button">Print study guide key</button>
+        </div>
+        <div class="bpick" id="sdBar" hidden>
+            <button class="btn go" id="printSD" type="button">Print speed dating (cards, recording sheet, early finishers)</button>
+            <button class="btn" id="printSDKey" type="button">Print speed dating key</button>
+        </div>
         <h2>Preview</h2>
         <div class="papers">
             <div id="paperSheet"><h3>Student sheet</h3></div>
             <div id="paperKey"><h3>Teacher key (never post or link)</h3></div>
             <div id="paperNotes"><h3>Guided notes, student copy</h3></div>
             <div id="paperNotesKey"><h3>Guided notes key (never post or link)</h3></div>
+            <div id="paperSG" hidden><h3>Study guide</h3></div>
+            <div id="paperSGKey" hidden><h3>Study guide key (never post or link)</h3></div>
+            <div id="paperSD" hidden><h3>Speed dating</h3></div>
+            <div id="paperSDKey" hidden><h3>Speed dating key (never post or link)</h3></div>
         </div>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=21";
-        import { DAYS, dayDate, bellringerSheet, bellringerKey, notesSheet } from "./js/weekSheets.js?v=21";
+        import { WEEKS } from "./data/weeks.js?v=22";
+        import { DAYS, dayDate, bellringerSheet, bellringerKey, notesSheet, studyGuideSheet, studyGuideKey, speedDatingSheet, speedDatingKey } from "./js/weekSheets.js?v=22";
         // ?demo runs on this device only, like the guest teacher page: nothing is saved to any account.
         const demo = new URLSearchParams(location.search).has("demo");
-        const store = await import(demo ? "./js/localStore.js?v=21" : "./js/boardStore.js?v=21");
+        const store = await import(demo ? "./js/localStore.js?v=22" : "./js/boardStore.js?v=22");
         const $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
         const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
@@ -141,9 +155,17 @@
             if (days.some(([i]) => String(i) === keep)) sel.value = keep;
             $("notesNone").hidden = days.length > 0; $("notesBar").hidden = !days.length;
             for (const [id, key] of [["paperNotes", false], ["paperNotesKey", true]]) { const box = $(id); box.hidden = !days.length; while (box.children.length > 1) box.lastChild.remove(); if (days.length) box.appendChild(notesSheet(week, cid, +sel.value, key)); }
+            const sg = !!(cls().studyGuide && cls().studyGuide.title), sd = !!(cls().speedDating && Array.isArray(cls().speedDating.cards));
+            $("sgBar").hidden = !sg; $("sdBar").hidden = !sd; $("extraNone").hidden = sg || sd;
+            for (const [id, on, fn] of [["paperSG", sg, studyGuideSheet], ["paperSGKey", sg, studyGuideKey], ["paperSD", sd, speedDatingSheet], ["paperSDKey", sd, speedDatingKey]]) {
+                const box = $(id); box.hidden = !on; while (box.children.length > 1) box.lastChild.remove();
+                if (on) { try { box.appendChild(fn(week, cid)); } catch (e) { box.appendChild(el("p", "bnote", "This part of the week file could not be read (" + e.message + ").")); } }
+            }
         }
         function print(which) {
             document.body.dataset.print = which; const i = +$("notesDay").value, d = cls().days[i];
+            const extra = { sg: "Study Guide", sgkey: "TEACHER KEY - Study Guide", sd: "Speed Dating", sdkey: "TEACHER KEY - Speed Dating" }[which];
+            if (extra) { document.title = extra + " (" + cls().label + ")"; window.print(); return; }
             document.title = which === "key" ? "0 Weekly - TEACHER KEY - Bellringer (" + cls().label + ")" : which === "sheet" ? "0 Weekly - Bellringer (Mon-Fri) (" + cls().label + ")"
                 : (i + 1) + " " + DAYS[i] + " - " + (which === "noteskey" ? "TEACHER KEY - " : "") + "Guided Notes - " + d.notes.title + " (" + cls().label + ")";
             window.print();
@@ -159,6 +181,7 @@
         $("classSel").onchange = () => { cid = $("classSel").value; draw(); };
         $("printSheet").onclick = () => { if (problemsReady()) print("sheet"); };
         $("printKey").onclick = () => { if (problemsReady()) print("key"); };
+        $("printSG").onclick = () => print("sg"); $("printSGKey").onclick = () => print("sgkey"); $("printSD").onclick = () => print("sd"); $("printSDKey").onclick = () => print("sdkey");
         $("printNotes").onclick = () => print("notes"); $("printNotesKey").onclick = () => print("noteskey");
         $("notesDay").onchange = preview;
         $("reset").onclick = () => { delete saved[week.id]; openWeek(week.id); $("saved").textContent = "Showing the published week. Your saved changes stay in your account until you save again."; };
