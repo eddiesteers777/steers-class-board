@@ -367,3 +367,28 @@ div.gpset{cursor:default}
 .gptug{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .gptug button{min-height:48px;font-size:.92rem}
 .glgame.tug{border-top-color:#E5484D}
+
+/* ---------- Rapid Fire ---------- */
+.grfwrap{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 15em;gap:.8em}
+.grfq{min-height:0}
+.grfready{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:.4em}
+.grfbig{font-size:3.4em;font-weight:800;font-family:var(--display,inherit);color:var(--amber,#F2B33D);margin:0}
+.grfhow{font-size:1.3em;margin:0}
+.grfrec{font-size:1em;font-weight:700;color:var(--soft);margin:0;text-align:center}
+.grfrec.beat{color:#9BE3BE}
+.grflast{margin-top:.4em;padding:.35em .7em;border-radius:.6em;background:rgba(207,224,250,.08);border-left:.3em solid var(--soft)}
+.grflast.ok{border-left-color:#3FBF7F}.grflast.no{border-left-color:#E5484D}
+.grflast small{font-size:.65em;color:var(--soft)}.grflast p{margin:0;font-size:1.05em;font-weight:700}
+.grfside{display:flex;flex-direction:column;gap:.7em;min-height:0}
+.grfcount,.grfstreak{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--navy);border:.13em solid var(--sky);border-radius:.8em;padding:.4em}
+.grfcount{flex:1.6}.grfstreak{flex:1}
+.grfcount b{font-size:5em;line-height:1;font-weight:800;font-family:var(--display,inherit)}
+.grfstreak b{font-size:2.8em;line-height:1;font-weight:800}
+.grfcount small,.grfstreak small{font-size:.8em;color:var(--soft)}
+.grfcount.beat{border-color:#3FBF7F}.grfcount.beat b{color:#9BE3BE}
+.grfstreak.hot{border-color:var(--amber,#F2B33D)}.grfstreak.hot b{color:var(--amber,#F2B33D)}
+.gprapid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.gprapid button{min-height:64px;font-size:1.1rem}
+.glgame.rapid{border-top-color:#F2B33D}
+
+.gprfvs{grid-template-columns:repeat(3,1fr)}
