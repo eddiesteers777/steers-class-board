@@ -254,3 +254,26 @@ div.gpset{cursor:default}
 .gpmore{border-top:1px solid var(--c-line);padding-top:6px}
 .gpmore summary{cursor:pointer;font-size:.85rem;font-weight:600;color:var(--c-mute);min-height:36px;display:flex;align-items:center}
 .gpmore[open]{display:flex;flex-direction:column;gap:8px}
+
+/* ---------- Mystery Tiles ---------- */
+.gmywrap{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:1em}
+.gmywrap.qv{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+.gmywrap.qv .gclue{min-height:0}
+.gmy{position:relative;min-height:0;border-radius:.8em;overflow:hidden;border:.13em solid var(--sky);background:linear-gradient(135deg,#FFF6DF,#FCE3A6)}
+.gmy:not(.big){align-self:center;aspect-ratio:4/3}
+.gmyback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:.6em;text-align:center}
+.gmyph{font-family:var(--display,inherit);font-weight:800;color:#081B45;line-height:1.05;text-transform:uppercase;overflow-wrap:anywhere}
+.gmy.big .gmyph.s1{font-size:3.2em}.gmy.big .gmyph.s2{font-size:2.3em}.gmy.big .gmyph.s3{font-size:1.6em}
+.gmy:not(.big) .gmyph.s1{font-size:1.7em}.gmy:not(.big) .gmyph.s2{font-size:1.2em}.gmy:not(.big) .gmyph.s3{font-size:.85em}
+.gmygrid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:0}
+.gmytile{background:var(--blue);border:0;box-shadow:inset 0 0 0 .06em var(--sky);border-radius:0;padding:0;color:var(--on);font-size:1.6em;font-weight:800;font-variant-numeric:tabular-nums;cursor:pointer;transition:opacity .35s,transform .35s}
+.gmy:not(.big) .gmytile{font-size:.95em}
+.gmytile:hover:not(:disabled){background:#1746B0}
+.gmytile.open{opacity:0;transform:scale(.85);cursor:default}
+@media (prefers-reduced-motion:reduce){.gmytile{transition:none}}
+.gpmy{display:flex;flex-direction:column;gap:6px}
+.gpmy input{font:inherit;font-size:1rem;border:1.5px solid var(--c-line);border-radius:10px;padding:9px 10px;min-height:44px;background:#fff;color:var(--c-ink)}
+.gpmysecret{background:#FFF6DF;border:1px solid #F2D58A;border-radius:8px;padding:6px 8px;color:#5A4200;font-weight:600}
+.gpmytiles{grid-template-columns:repeat(4,1fr)}
+.gpguess{border-top:1px solid var(--c-line);padding-top:6px;display:flex;flex-direction:column;gap:6px}
+.glgame.tiles{border-top-color:#C8A2F0}

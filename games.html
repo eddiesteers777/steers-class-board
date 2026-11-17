@@ -8,10 +8,10 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=40">
-    <link rel="stylesheet" href="css/console.css?v=40">
+    <link rel="stylesheet" href="css/board.css?v=41">
+    <link rel="stylesheet" href="css/console.css?v=41">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/games.css?v=40">
+    <link rel="stylesheet" href="css/games.css?v=41">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page">
@@ -61,10 +61,10 @@
         </section>
     </main>
     <script type="module">
-        import { parseSet, setToText, cleanSet, countClues, mathRich, LIMITS } from "./js/games.js?v=40";
-        import { WEEKS } from "./data/weeks.js?v=40";
+        import { parseSet, setToText, cleanSet, countClues, mathRich, LIMITS } from "./js/games.js?v=41";
+        import { WEEKS } from "./data/weeks.js?v=41";
         const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
-        const store = await import(demo ? "./js/localStore.js?v=40" : "./js/boardStore.js?v=40");
+        const store = await import(demo ? "./js/localStore.js?v=41" : "./js/boardStore.js?v=41");
         const $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
         const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
@@ -74,6 +74,7 @@
             ["chests", "Treasure Chests", "One question at a time. Every team that gets it right opens a chest: points, double, steal, swap or a dud.", "Best for luck and comebacks"],
             ["versus", "Class vs. Teacher", "The whole class plays against you. Boards up, and you give the point to the class or to yourself.", "Best for whole-class focus"],
             ["shots", "Trashketball", "Right teams score and send a shooter to the 1, 2 or 3 point line. You tap made or missed.", "Best for getting them moving"],
+            ["tiles", "Mystery Tiles", "A phrase you type hides behind 12 tiles. Right answers flip tiles, and a team that guesses the phrase scores big.", "Best for vocabulary and big reveals"],
         ];
         let index = [], editing = "", parsed = null, view = "all", playing = "";
         const perOf = (m) => (Array.isArray(m.per) ? m.per.filter((p) => PERIODS.some((x) => x[0] === p)) : []);

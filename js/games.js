@@ -103,7 +103,7 @@ function newGame(set, teams) {
         dbl: "", opts: { lose: true, secs: 30, dbl: false }, timer: blankTimer(), hist: [], phase: "play", fstep: 0, wag: [], fdone: [], at: Date.now() };
 }
 function cleanGame(d) {
-    const g = d && d.kind === "chests" ? cleanChests(d) : d && d.kind === "versus" ? cleanVersus(d) : d && d.kind === "shots" ? cleanShots(d) : cleanBoard(d);
+    const g = d && d.kind === "chests" ? cleanChests(d) : d && d.kind === "versus" ? cleanVersus(d) : d && d.kind === "shots" ? cleanShots(d) : d && d.kind === "tiles" ? cleanTiles(d) : cleanBoard(d);
     if (!g) return null;
     g.teams.forEach((t, i) => { const m = d.teams && d.teams[i] && d.teams[i].m; if (Array.isArray(m) && m.length) t.m = m.slice(0, 12).map((x) => str(x, 60)).filter(Boolean); });
     g.log = (Array.isArray(d.log) ? d.log : []).slice(-200).map((x) => ({ c: str(x && x.c, LIMITS.cat), ok: Math.max(0, Math.floor(+x.ok || 0)), of: Math.max(1, Math.floor(+x.of || 1)), k: str(x && x.k, 8) }));
@@ -218,6 +218,38 @@ function cleanShots(d) {
     return g;
 }
 
+/* ---------- Mystery Tiles ---------- */
+/* A phrase the teacher types hides behind 12 numbered tiles. Teams that answer right each flip a
+   tile (+10). Any team can guess the phrase when the teacher calls on them: solving it is worth
+   50 plus 10 for every tile still covered. Then a new mystery, or the final scores. */
+const TILE_N = 12, TILE_PTS = 10, SOLVE_BASE = 50;
+function newTiles(set, teams) {
+    return { v: 1, kind: "tiles", id: set.id, title: set.title, cats: set.cats, final: null, qs: questionsOf(set), qi: 0,
+        teams: (teams || ["Team 1", "Team 2", "Team 3"]).map((n) => ({ n, s: 0 })), cp: "setup", show: false, right: [], queue: [], picker: -1,
+        tiles: Array(TILE_N).fill(0), flip: -1, ph: "", hint: "", solver: -1, got: 0, adv: 0, round: 1, opts: { secs: 30 }, timer: blankTimer(), snap: [], phase: "play", at: Date.now() };
+}
+function cleanTiles(d) {
+    const set = cleanSet(d); if (!set || d.v !== 1) return null;
+    const g = newTiles(set, []), int = (v) => Math.floor(+v || 0), team = (v) => { const n = int(v); return n >= 0 && n < g.teams.length ? n : -1; };
+    g.teams = (Array.isArray(d.teams) ? d.teams : []).slice(0, LIMITS.teams).map((t, i) => ({ n: str(t && t.n, 16) || "Team " + (i + 1), s: Math.max(0, int(t && t.s)) }));
+    while (g.teams.length < 2) g.teams.push({ n: "Team " + (g.teams.length + 1), s: 0 });
+    g.qi = Math.min(g.qs.length - 1, Math.max(0, int(d.qi)));
+    g.cp = ["setup", "q", "pick", "solved"].includes(d.cp) ? d.cp : "setup"; g.show = !!d.show;
+    const list = (a) => [...new Set((Array.isArray(a) ? a : []).map(team).filter((t) => t >= 0))];
+    g.right = list(d.right); g.queue = list(d.queue); g.picker = team(d.picker);
+    g.tiles = Array.from({ length: TILE_N }, (_, i) => (Array.isArray(d.tiles) && d.tiles[i] ? 1 : 0));
+    g.flip = int(d.flip) >= 0 && int(d.flip) < TILE_N && d.flip !== null && d.flip !== "" && d.flip !== undefined ? int(d.flip) : -1;
+    g.ph = str(d.ph, 60).trim(); g.hint = str(d.hint, 60).trim(); g.solver = team(d.solver); g.got = Math.max(0, int(d.got)); g.adv = d.adv ? 1 : 0; g.round = Math.max(1, int(d.round) || 1);
+    g.opts = { secs: [15, 30, 45, 60, 90, 120].includes(+(d.opts && d.opts.secs)) ? +d.opts.secs : 30 };
+    if (d.timer) g.timer = { running: !!d.timer.running, t0: +d.timer.t0 || 0, elapsed: +d.timer.elapsed || 0 };
+    g.snap = (Array.isArray(d.snap) ? d.snap : []).filter((x) => typeof x === "string" && x.length < 20000).slice(-12);
+    g.phase = d.phase === "done" ? "done" : "play"; g.at = +d.at || 0;
+    if (!g.ph) g.cp = "setup";
+    if (g.cp === "pick" && g.picker < 0) g.cp = "q";
+    if (g.cp === "solved" && g.solver < 0) g.cp = "q";
+    return g;
+}
+
 const prizeText = (c) => ({ add: "+" + c.n + " points", dbl: "Double points!", steal: c.x >= 0 ? "Stole " + (c.g || 0) : "Steal " + c.n, swap: "Swap scores", lose: "Lose " + c.n, none: "Empty chest" }[c.k] || "");
 const needsTarget = (c) => (c.k === "steal" || c.k === "swap") && c.x === -1;
 
@@ -228,7 +260,7 @@ let SETS = null, setsWatched = false, starting = "", panelSig = "", lastDone = f
 
 export function mountGames(api) { A = api; }
 /* The Game Library's Play button opens remote.html?screen=game&period=1st&set=<id>&game=<kind>. */
-let AUTO = (() => { try { const q = new URLSearchParams(location.search), id = q.get("set"), k = q.get("game"); return id && ["board", "chests", "versus", "shots"].includes(k) ? { id, k, per: q.get("period") || "" } : null; } catch (e) { return null; } })();
+let AUTO = (() => { try { const q = new URLSearchParams(location.search), id = q.get("set"), k = q.get("game"); return id && ["board", "chests", "versus", "shots", "tiles"].includes(k) ? { id, k, per: q.get("period") || "" } : null; } catch (e) { return null; } })();
 function tryAuto() {
     if (!AUTO || A.mode() !== "remote" || !onGame() || !loaded || !SETS || starting) return;
     if (AUTO.per && AUTO.per !== A.S.period) return;   // wait for the period from the link to take hold
@@ -284,7 +316,7 @@ export function syncGames() {
    game, set, each team's score and (when teams came from the Group maker) who was on it, the
    winner, and how many questions were answered right by category. Private, never on the board. */
 let RESULTS = null, resultsWatched = false, pendingResult = null, resultsWrite = null;
-const KIND_NAMES = { board: "Review Board", chests: "Treasure Chests", versus: "Class vs. Teacher", shots: "Trashketball" };
+const KIND_NAMES = { board: "Review Board", chests: "Treasure Chests", versus: "Class vs. Teacher", shots: "Trashketball", tiles: "Mystery Tiles" };
 const localDay = () => { const d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); };
 function watchResults() {
     if (resultsWatched || !A.signedIn() || A.mode() !== "remote") return; resultsWatched = true; resultsWrite = A.writer("games/results");
@@ -373,7 +405,7 @@ async function start(meta, kind) {
     if (!set) { panelNote = "Could not open that set. Check the connection and try again."; panelSig = ""; drawPanel(); return; }
     const keep = G && G.teams ? G.teams.map((t) => t.n) : null;
     const prev = G && G.teams;
-    G = kind === "chests" ? newChests(set, keep) : kind === "versus" ? newVersus(set) : kind === "shots" ? newShots(set, keep) : newGame(set, keep); G.log = []; G.rid = "";
+    G = kind === "chests" ? newChests(set, keep) : kind === "versus" ? newVersus(set) : kind === "shots" ? newShots(set, keep) : kind === "tiles" ? newTiles(set, keep) : newGame(set, keep); G.log = []; G.rid = "";
     if (prev && kind !== "versus") G.teams.forEach((t, i) => { if (prev[i] && prev[i].m) t.m = prev[i].m; });
     loaded = true; changed();
 }
@@ -454,12 +486,42 @@ function nextShooter() {
     if (G.queue.length) { G.shooter = G.queue.shift(); G.shot = -1; changed(); } else shotNextQuestion();
 }
 
+/* ---------- Mystery Tiles moves ---------- */
+const covered = () => G.tiles.filter((t) => !t).length;
+const solveValue = () => SOLVE_BASE + TILE_PTS * covered();
+function tilesNextQuestion() {
+    G.right = []; G.queue = []; G.picker = -1; G.flip = -1; G.show = false; G.timer = blankTimer();
+    if (G.qi >= G.qs.length - 1) { G.phase = "done"; changed(); return; }
+    G.qi++; G.cp = covered() ? "q" : "solved"; if (G.cp === "solved" && G.solver < 0) G.cp = "q"; changed();
+}
+function tilesPicking() {
+    save(); logQ(curQ().c, G.right.length, G.teams.length); G.queue = G.teams.map((_, i) => i).filter((i) => G.right.includes(i));
+    if (!G.queue.length || !covered()) { tilesNextQuestion(); return; }
+    G.picker = G.queue.shift(); G.flip = -1; G.cp = "pick"; G.show = true; G.timer = blankTimer(); changed();
+}
+function flipTile(i) {
+    if (!G || G.kind !== "tiles" || G.cp !== "pick" || G.picker < 0 || G.tiles[i] || G.flip >= 0) return;
+    save(); G.tiles[i] = 1; G.flip = i; G.teams[G.picker].s += TILE_PTS; A.unlockSound(); changed();
+}
+function tilesNextPicker() {
+    if (G.queue.length && covered()) { G.picker = G.queue.shift(); G.flip = -1; changed(); } else tilesNextQuestion();
+}
+function solve(t) {
+    if (G.kind !== "tiles" || !G.ph || G.cp === "setup" || G.cp === "solved") return;
+    save(); G.adv = G.cp === "pick" ? 1 : 0; G.got = solveValue(); G.teams[t].s += G.got; G.solver = t; G.tiles = G.tiles.map(() => 1); G.cp = "solved"; G.queue = []; G.picker = -1; G.flip = -1; G.timer = blankTimer(); A.unlockSound(); changed();
+}
+function newMystery(ph, hint) {
+    save(); G.ph = String(ph).slice(0, 60).trim(); G.hint = String(hint || "").slice(0, 60).trim(); G.tiles = Array(TILE_N).fill(0); G.solver = -1; G.got = 0; G.flip = -1;
+    if (G.cp === "solved") { G.round++; if (G.adv) { if (G.qi < G.qs.length - 1) G.qi++; else G.phase = "done"; } G.adv = 0; }
+    G.cp = "q"; G.show = false; G.right = []; G.queue = []; G.picker = -1; G.timer = blankTimer(); changed();
+}
+
 /* ---------- the stage (what students see) ---------- */
 function strip() {
     const s = el("div", "gteams"); s.id = "gTeams";
     const best = Math.max(...G.teams.map((t) => t.s));
     G.teams.forEach((t, i) => {
-        const now = G.kind === "chests" ? (G.cp === "pick" && i === G.picker) : G.kind === "shots" ? (G.cp === "shoot" && i === G.shooter) : (G.phase === "play" && i === G.turn), b = el("div", "gteam" + (now ? " turn" : "") + (G.phase === "done" && t.s === best ? " win" : ""));
+        const now = G.kind === "chests" || G.kind === "tiles" ? (G.cp === "pick" && i === G.picker) : G.kind === "shots" ? (G.cp === "shoot" && i === G.shooter) : (G.phase === "play" && i === G.turn), b = el("div", "gteam" + (now ? " turn" : "") + (G.phase === "done" && t.s === best ? " win" : ""));
         b.append(el("span", "gtn", t.n), el("b", "gts", pts(t.s))); s.append(b);
     });
     return s;
@@ -512,6 +574,36 @@ function chestStage(body) {
     wrap.append(grid, side); body.append(wrap);
 }
 
+
+function mysteryGrid(big) {
+    const wrap = el("div", "gmy" + (big ? " big" : "")), back = el("div", "gmyback"), grid = el("div", "gmygrid");
+    back.append(el("p", "gmyph " + (G.ph.length <= 14 ? "s1" : G.ph.length <= 28 ? "s2" : "s3"), G.ph));
+    G.tiles.forEach((t, i) => { const b = btn("gmytile" + (t ? " open" : "") + (i === G.flip ? " last" : ""), t ? "" : String(i + 1), () => flipTile(i)); b.disabled = !!t; b.setAttribute("aria-label", t ? "Tile " + (i + 1) + ", flipped" : "Flip tile " + (i + 1)); grid.append(b); });
+    wrap.append(back, grid); return wrap;
+}
+function tilesStage(body) {
+    if (G.cp === "setup") { const e = el("div", "empty"); e.append(el("b", null, "Mystery Tiles"), document.createTextNode(A.mode() === "remote" ? "Type the mystery phrase in the panel to start." : "Get ready: a mystery phrase is about to hide behind the tiles.")); body.append(e); return; }
+    const q = curQ(), side = el("div", "gchside");
+    if (G.cp === "q") {
+        const box = el("div", "gclue gmyq"), top = el("div", "gtop");
+        top.append(el("span", "gchip", "Question " + (G.qi + 1) + " of " + G.qs.length + " · " + q.c), ring());
+        box.append(top, qBox(q.q));
+        if (G.show) { const a = el("div", "gans"); a.append(el("small", null, "Answer"), mathEl("p", null, q.a)); box.append(a); }
+        box.append(el("p", "gchnote", "Every team: write your answer. Right answers flip a tile. Think you know the mystery? Raise your hand."));
+        const wrap = el("div", "gmywrap qv"); wrap.append(box, mysteryGrid(false)); body.append(wrap); return;
+    }
+    if (G.cp === "solved") {
+        side.append(el("p", "gchwho", G.teams[G.solver] ? G.teams[G.solver].n : ""), el("p", "gchsay add", "Solved it! +" + G.got));
+        if (G.hint) side.append(el("p", "gchsub", "Hint: " + G.hint));
+    } else {
+        side.append(el("p", "gchwho", G.teams[G.picker] ? G.teams[G.picker].n : ""));
+        side.append(el("p", "gchsay" + (G.flip >= 0 ? " add" : ""), G.flip >= 0 ? "Tile " + (G.flip + 1) + "! +" + TILE_PTS : "Pick a tile!"));
+        if (G.hint) side.append(el("p", "gchsub", "Hint: " + G.hint));
+        side.append(el("p", "gchsub", "Solve it now for " + solveValue() + " points"));
+        { const ans = el("p", "gchq", "Answer: "); ans.append(mathRich(q.a)); side.append(ans); }
+    }
+    const wrap = el("div", "gmywrap"); wrap.append(mysteryGrid(true), side); body.append(wrap);
+}
 
 function courtSvg() {
     const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", "0 20 400 240"); svg.setAttribute("class", "gtcourt"); svg.setAttribute("aria-hidden", "true");
@@ -574,10 +666,11 @@ export function drawStage(st) {
         const e = el("div", "empty"); e.append(el("b", null, "No game is running for " + per + "."), document.createTextNode(A.mode() === "remote" ? "Pick a question set in the panel beside the board to start one." : "Start one from the Remote."));
         st.append(e); return;
     }
-    st.append(A.header(G.kind === "chests" ? "Treasure Chests" : G.kind === "versus" ? "Class vs. " + G.teams[1].n : G.kind === "shots" ? "Trashketball" : "Review Game", G.title));
+    st.append(A.header(G.kind === "chests" ? "Treasure Chests" : G.kind === "versus" ? "Class vs. " + G.teams[1].n : G.kind === "shots" ? "Trashketball" : G.kind === "tiles" ? "Mystery Tiles" : "Review Game", G.title));
     const body = el("div", "gbody");
     if (G.kind === "chests" && G.phase !== "done") chestStage(body);
     else if (G.kind === "shots" && G.phase !== "done") shotStage(body);
+    else if (G.kind === "tiles" && G.phase !== "done") tilesStage(body);
     else if (G.kind === "versus" && G.phase !== "done") { versusStage(body); st.append(body); return; }
     else if (G.phase === "done") {
         const best = Math.max(...G.teams.map((t) => t.s)), win = G.teams.filter((t) => t.s === best), box = el("div", "gdone");
@@ -620,7 +713,7 @@ export function tickGames() {
     const started = t.running || t.elapsed > 0, done = started && left <= 0, txt = done ? "Time!" : String(left);
     const r = document.getElementById("gRing");
     if (r) {
-        r.hidden = !started || !(G.kind === "chests" || G.kind === "versus" || G.kind === "shots" ? G.cp === "q" : G.open); r.classList.toggle("hot", started && left <= 5);
+        r.hidden = !started || !(G.kind === "chests" || G.kind === "versus" || G.kind === "shots" || G.kind === "tiles" ? G.cp === "q" : G.open); r.classList.toggle("hot", started && left <= 5);
         const arc = document.getElementById("gRingArc"), C = 2 * Math.PI * 42; if (arc) { arc.style.strokeDasharray = String(C); arc.style.strokeDashoffset = String(C * (1 - Math.max(0, Math.min(1, 1 - ms / (total * 1000))))); }
         document.getElementById("gClock").textContent = txt;
     }
@@ -633,6 +726,7 @@ export function tickGames() {
 export function gameFlow(n) {
     if (!G) return;
     if (G.kind === "versus") { if (G.phase !== "play") return; if (G.cp === "result") { if (n > 0) versusNext(); return; } if (n > 0 && !G.show) { G.show = true; changed(); } else if (n < 0 && G.show) { G.show = false; changed(); } return; }
+    if (G.kind === "tiles") { if (G.phase !== "play") return; if (G.cp === "pick") { if (n > 0 && G.flip >= 0) tilesNextPicker(); return; } if (G.cp === "q") { if (n > 0 && !G.show) { G.show = true; changed(); } else if (n < 0 && G.show) { G.show = false; changed(); } } return; }
     if (G.kind === "shots") { if (G.phase !== "play") return; if (G.cp === "shoot") { if (n > 0 && G.shot >= 0) nextShooter(); return; } if (n > 0 && !G.show) { G.show = true; changed(); } else if (n < 0 && G.show) { G.show = false; changed(); } return; }
     if (G.kind === "chests") { if (G.phase === "play" && G.cp === "q") { if (n > 0 && !G.show) { G.show = true; changed(); } else if (n < 0 && G.show) { G.show = false; changed(); } } return; }
     if (G.phase === "final") { if (n > 0 && G.fstep < 2) { G.fstep++; changed(); } else if (n < 0 && G.fstep > 0) { G.fstep--; changed(); } return; }
@@ -644,6 +738,7 @@ export function gameFlowLabel() {
     if (!G) return "Next";
     if (G.kind === "versus") return G.phase !== "play" ? "Next" : G.cp === "result" ? "Next: Next question" : !G.show ? "Next: Show answer" : "Next";
     if (G.kind === "chests") return G.phase === "play" && G.cp === "q" && !G.show ? "Next: Show answer" : "Next";
+    if (G.kind === "tiles") return G.phase !== "play" ? "Next" : G.cp === "q" && !G.show ? "Next: Show answer" : G.cp === "pick" && G.flip >= 0 ? (G.queue.length && covered() ? "Next: Next team" : "Next: Next question") : "Next";
     if (G.kind === "shots") return G.phase !== "play" ? "Next" : G.cp === "q" ? (!G.show ? "Next: Show answer" : "Next") : G.shot >= 0 ? (G.queue.length ? "Next: Next shooter" : "Next: Next question") : "Next";
     if (G.phase === "final") return G.fstep === 0 ? "Next: Show the question" : G.fstep === 1 ? "Next: Show answer" : "Next";
     if (G.phase === "play" && G.open) return G.show ? "Next: Back to the board" : "Next: Show answer";
@@ -681,7 +776,7 @@ export function drawPanel() {
             const one = (s, into) => {
             const b = el("div", "gpset"), row = el("div", "gpsetbtns");
             b.append(el("b", null, s.title || "Review game"), el("small", null, starting === s.id ? "Opening…" : (s.cats || 0) + " categories · " + (s.clues || 0) + " questions"));
-            [["board", "Review Board"], ["chests", "Treasure Chests"], ["versus", "Class vs. Teacher"], ["shots", "Trashketball"]].forEach(([k, label]) => { const g = btn("btn ghost", label, () => start(s, k)); g.disabled = !!starting; g.setAttribute("aria-label", "Play " + (s.title || "this set") + " as " + label); row.append(g); });
+            [["board", "Review Board"], ["chests", "Treasure Chests"], ["versus", "Class vs. Teacher"], ["shots", "Trashketball"], ["tiles", "Mystery Tiles"]].forEach(([k, label]) => { const g = btn("btn ghost", label, () => start(s, k)); g.disabled = !!starting; g.setAttribute("aria-label", "Play " + (s.title || "this set") + " as " + label); row.append(g); });
             b.append(row); into.append(b);
             };
             mine.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach((s) => one(s, list));
@@ -696,14 +791,15 @@ export function drawPanel() {
         p.append(h("Final scores"));
         { const n = el("p", "gpnote"), a = el("a", null, "Class Data"); a.href = "data.html#games"; n.append(document.createTextNode("Saved to "), a, document.createTextNode(" with today's date" + (G.teams.some((t) => t.m) ? " and who was on each team." : ". Use the Group maker's groups as teams to see who won by name."))); p.append(n); }
         teamRows(p, (r, t) => r.append(el("span", "gpname", t.n), el("b", "gpscore", pts(t.s))));
-        if (G.kind === "board" || !G.kind || G.kind === "chests" || G.kind === "shots") p.append(btn("btn ghost", G.kind === "chests" || G.kind === "shots" ? "Back to the game" : "Back to the board", () => { G.phase = "play"; changed(); }));
-        p.append(btn("btn ghost", "Play this set again", () => { const set = cleanSet(G), names = G.teams.map((t) => t.n), o = G.opts; if (G.kind === "chests") { G = newChests(set, names); G.opts = o; } else if (G.kind === "versus") { G = newVersus(set, names[1]); G.opts = o; } else if (G.kind === "shots") { G = newShots(set, names); G.opts = o; } else { G = newGame(set, names); G.opts = o; pickDouble(); } changed(); }));
+        if (G.kind === "board" || !G.kind || G.kind === "chests" || G.kind === "shots" || G.kind === "tiles") p.append(btn("btn ghost", G.kind === "chests" || G.kind === "shots" || G.kind === "tiles" ? "Back to the game" : "Back to the board", () => { G.phase = "play"; changed(); }));
+        p.append(btn("btn ghost", "Play this set again", () => { const set = cleanSet(G), names = G.teams.map((t) => t.n), o = G.opts; if (G.kind === "chests") { G = newChests(set, names); G.opts = o; } else if (G.kind === "versus") { G = newVersus(set, names[1]); G.opts = o; } else if (G.kind === "shots") { G = newShots(set, names); G.opts = o; } else if (G.kind === "tiles") { G = newTiles(set, names); G.opts = o; } else { G = newGame(set, names); G.opts = o; pickDouble(); } changed(); }));
         p.append(endButton());
         return;
     }
     if (G.kind === "chests") { chestPanel(p); return; }
     if (G.kind === "versus") { versusPanel(p); return; }
     if (G.kind === "shots") { shotPanel(p); return; }
+    if (G.kind === "tiles") { tilesPanel(p); return; }
     if (G.phase === "final") {
         const f = G.final;
         p.append(h(finalName(f)), mathEl("p", "gpq", f.q));
@@ -767,7 +863,7 @@ function endButton() {
 
 function optionsBox() {
     const opt = el("details", "gpopts"); opt.append(el("summary", null, G.kind === "versus" ? "Options" : "Teams and options")); opt.open = sessionStorage.getItem("focal-game-opts") === "1"; opt.ontoggle = () => { try { sessionStorage.setItem("focal-game-opts", opt.open ? "1" : "0"); } catch (e) { /* ok */ } };
-    if (G.kind === "chests" || G.kind === "shots") { opt.append(el("p", "gpnote", "Team names")); teamNames(opt); }
+    if (G.kind === "chests" || G.kind === "shots" || G.kind === "tiles") { opt.append(el("p", "gpnote", "Team names")); teamNames(opt); }
     const pick = (label, list, cur, fn) => { const l = el("label", "gpchk"), sel = el("select"); list.forEach(([v, t]) => { const o = el("option", null, t); o.value = v; sel.append(o); }); sel.value = String(cur); sel.onchange = () => fn(sel.value); l.append(document.createTextNode(label + " "), sel); return l; };
     if (G.kind === "versus") {
         const l = el("label", "gpchk"), inp = el("input", "gpname"); inp.type = "text"; inp.maxLength = 16; inp.value = G.teams[1].n; inp.setAttribute("aria-label", "Teacher name on the board");
@@ -777,10 +873,10 @@ function optionsBox() {
     }
     const tb = el("div", "gpbtns");
     const add = btn("btn ghost", "Add a team", () => { if (G.teams.length < LIMITS.teams) { G.teams.push({ n: "Team " + (G.teams.length + 1), s: 0 }); changed(); } }); add.disabled = G.teams.length >= LIMITS.teams;
-    const rem = btn("btn ghost", "Remove last team", () => { if (G.teams.length > 2) { const gone = G.teams.length - 1; G.teams.pop(); if (G.kind === "chests" || G.kind === "shots") { G.right = G.right.filter((x) => x !== gone); G.queue = G.queue.filter((x) => x !== gone); if (G.shooter === gone) { G.shooter = -1; G.cp = "q"; } } else G.turn = Math.min(G.turn, G.teams.length - 1); if (G.hist) G.hist = []; if (G.snap) G.snap = []; changed(); } }); rem.disabled = G.teams.length <= 2;
+    const rem = btn("btn ghost", "Remove last team", () => { if (G.teams.length > 2) { const gone = G.teams.length - 1; G.teams.pop(); if (G.kind === "chests" || G.kind === "shots" || G.kind === "tiles") { if (G.kind === "tiles" && (G.picker === gone || G.solver === gone)) { G.picker = -1; G.solver = -1; if (G.cp !== "setup") G.cp = "q"; } G.right = G.right.filter((x) => x !== gone); G.queue = G.queue.filter((x) => x !== gone); if (G.shooter === gone) { G.shooter = -1; G.cp = "q"; } } else G.turn = Math.min(G.turn, G.teams.length - 1); if (G.hist) G.hist = []; if (G.snap) G.snap = []; changed(); } }); rem.disabled = G.teams.length <= 2;
     tb.append(add, rem);
     { const gs = A.S.tools.groups, n = gs && gs.order && gs.order.length ? Math.ceil(gs.order.length / gs.size) : 0;
-        if (n >= 2 && n <= LIMITS.teams && (!gs.period || gs.period === A.S.period)) tb.append(btn("btn ghost", "Use the Group maker's " + n + " groups", () => { const old = G.teams; const mem = groupMembers(); G.teams = Array.from({ length: n }, (_, i) => Object.assign({ n: "Group " + (i + 1), s: old[i] ? old[i].s : 0 }, mem[i] && mem[i].length ? { m: mem[i] } : {})); if (G.kind === "shots") { G.right = []; G.queue = []; G.shooter = -1; G.cp = "q"; } if (G.kind !== "chests" && G.kind !== "shots") G.turn = Math.min(G.turn, n - 1); if (G.hist) G.hist = []; if (G.snap) G.snap = []; changed(); })); }
+        if (n >= 2 && n <= LIMITS.teams && (!gs.period || gs.period === A.S.period)) tb.append(btn("btn ghost", "Use the Group maker's " + n + " groups", () => { const old = G.teams; const mem = groupMembers(); G.teams = Array.from({ length: n }, (_, i) => Object.assign({ n: "Group " + (i + 1), s: old[i] ? old[i].s : 0 }, mem[i] && mem[i].length ? { m: mem[i] } : {})); if (G.kind === "shots") { G.right = []; G.queue = []; G.shooter = -1; G.cp = "q"; } if (G.kind === "tiles") { G.right = []; G.queue = []; G.picker = -1; G.solver = -1; if (G.cp !== "setup") G.cp = "q"; } if (G.kind !== "chests" && G.kind !== "shots" && G.kind !== "tiles") G.turn = Math.min(G.turn, n - 1); if (G.hist) G.hist = []; if (G.snap) G.snap = []; changed(); })); }
     if (G.kind !== "versus") opt.append(tb);
     const chk = (label, on, fn) => { const l = el("label", "gpchk"), c = el("input"); c.type = "checkbox"; c.checked = on; c.onchange = () => fn(c.checked); l.append(c, document.createTextNode(" " + label)); return l; };
     if (G.kind === "shots") opt.append(pick("A right answer is worth", SHOT_ANS.map((n) => [n, n === 0 ? "No points, just the shot" : n + (n === 1 ? " point" : " points") + " plus the shot"]), G.opts.ans, (v) => { G.opts.ans = +v; changed(); }));
@@ -788,7 +884,7 @@ function optionsBox() {
         opt.append(chk("A wrong answer loses the points", G.opts.lose, (v) => { G.opts.lose = v; changed(); }));
         opt.append(chk("Hide one double-points tile", G.opts.dbl, (v) => { G.opts.dbl = v; pickDouble(); changed(); }));
     }
-    const tl = el("label", "gpchk"), sel = el("select"); (G.kind === "chests" || G.kind === "versus" || G.kind === "shots" ? [15, 30, 45, 60, 90, 120] : [15, 30, 45, 60, 90]).forEach((n) => { const o = el("option", null, n + " seconds"); o.value = n; sel.append(o); }); sel.value = String(G.opts.secs); sel.onchange = () => { G.opts.secs = +sel.value; changed(); };
+    const tl = el("label", "gpchk"), sel = el("select"); (G.kind === "chests" || G.kind === "versus" || G.kind === "shots" || G.kind === "tiles" ? [15, 30, 45, 60, 90, 120] : [15, 30, 45, 60, 90]).forEach((n) => { const o = el("option", null, n + " seconds"); o.value = n; sel.append(o); }); sel.value = String(G.opts.secs); sel.onchange = () => { G.opts.secs = +sel.value; changed(); };
     tl.append(document.createTextNode("Timer for each question "), sel); opt.append(tl);
     opt.append(btn("btn ghost", "Show the scores now", () => { G.phase = "done"; changed(); }), endButton());
     return opt;
@@ -894,4 +990,58 @@ function shotPanel(p) {
     if (G.queue.length) p.append(el("p", "gpnote", "Still to shoot: " + G.queue.map((i) => G.teams[i].n).join(", ")));
     teamRows(p, (r, t) => r.append(el("span", "gpname", t.n), el("b", "gpscore", pts(t.s))));
     p.append(undoB());
+}
+
+function tilesPanel(p) {
+    const undoB = () => { const b = btn("btn ghost", "Undo", chestUndo); b.disabled = !G.snap.length; return b; };
+    if (G.cp === "setup" || G.cp === "solved") {
+        if (G.cp === "solved") p.append(h(G.teams[G.solver].n + " solved it! +" + G.got), el("p", "gpnote", "The phrase was: " + G.ph));
+        else p.append(h("Mystery Tiles: set the mystery"));
+        p.append(el("p", "gpnote", "Type a word or phrase for the class to guess, like a vocabulary word, a rule or a famous mathematician. Only you see it until the tiles flip."));
+        const f = el("div", "gpmy"), ph = el("input"), hint = el("input");
+        ph.type = "text"; ph.maxLength = 60; ph.placeholder = "Mystery phrase"; ph.setAttribute("aria-label", "Mystery phrase"); ph.autocomplete = "off";
+        hint.type = "text"; hint.maxLength = 60; hint.placeholder = "Hint on the board (optional)"; hint.setAttribute("aria-label", "Hint on the board");
+        const go = btn("btn go", G.cp === "solved" ? "Start the next mystery" : "Hide it and start", () => { if (ph.value.trim()) newMystery(ph.value, hint.value); else ph.focus(); });
+        ph.onkeydown = hint.onkeydown = (e) => { if (e.key === "Enter") go.click(); };
+        f.append(ph, hint, go); p.append(f);
+        if (G.cp === "solved") p.append(btn("btn ghost", "Show the final scores", () => { G.phase = "done"; changed(); }));
+        teamRows(p, (r, t) => r.append(el("span", "gpname", t.n), el("b", "gpscore", pts(t.s))));
+        p.append(undoB(), optionsBox()); return;
+    }
+    p.append(el("p", "gpnote gpmysecret", "Mystery: " + G.ph + (G.hint ? " · Hint: " + G.hint : "")));
+    const q = curQ();
+    if (G.cp === "q") {
+        p.append(h("Question " + (G.qi + 1) + " of " + G.qs.length), el("p", "gpnote", q.c), mathEl("p", "gpq", q.q));
+        const ans = el("div", "gpans"); ans.append(el("small", null, "Answer (only you see this)"), mathEl("p", null, q.a)); p.append(ans);
+        const tr = el("div", "gptimer"), clock = el("b"); clock.id = "gpClock";
+        tr.append(clock, btn("btn ghost", G.timer.running ? "Pause" : (G.timer.elapsed > 0 ? "Resume" : "Start timer"), timerGo), btn("btn ghost", "Reset", () => { G.timer = blankTimer(); changed(); }));
+        p.append(tr, btn("btn ghost", G.show ? "Hide the answer on the board" : "Show the answer on the board", () => { G.show = !G.show; changed(); }));
+        p.append(el("p", "gpnote", "Tap every team that got it right. Each one flips a tile (+" + TILE_PTS + ")."));
+        const box = el("div", "gpright");
+        G.teams.forEach((t, i) => { const on = G.right.includes(i), b = btn("gpteam", null, () => { G.right = on ? G.right.filter((x) => x !== i) : [...G.right, i]; changed(); });
+            b.setAttribute("aria-pressed", String(on)); b.append(el("span", null, t.n), el("b", null, pts(t.s))); box.append(b); });
+        p.append(box);
+        const n = G.right.length;
+        p.append(btn("btn go", n ? (n === 1 ? "1 team flips a tile" : n + " teams flip tiles") : (G.qi >= G.qs.length - 1 ? "No one got it. Show the final scores" : "No one got it. Next question"), tilesPicking));
+        const row = el("div", "gpbtns"); row.append(btn("btn ghost", "Skip this question", () => { save(); tilesNextQuestion(); }), undoB()); p.append(row);
+    } else {
+        const who = G.teams[G.picker];
+        if (G.flip < 0) {
+            p.append(h(who.n + " picks a tile"), el("p", "gpnote", "Tap the tile they call out, here or on the board picture."));
+            const grid = el("div", "gpchests gpmytiles");
+            G.tiles.forEach((t, i) => { const b = btn("gpadj", String(i + 1), () => flipTile(i)); b.disabled = !!t; b.setAttribute("aria-label", "Flip tile " + (i + 1)); grid.append(b); });
+            p.append(grid);
+        } else {
+            p.append(h(who.n + ": tile " + (G.flip + 1) + ", +" + TILE_PTS));
+            const last = !G.queue.length || !covered(), end = last && G.qi >= G.qs.length - 1;
+            p.append(btn("btn go", !last ? G.teams[G.queue[0]].n + " picks next" : (end ? "Show the final scores" : "Next question"), tilesNextPicker));
+        }
+        if (G.queue.length) p.append(el("p", "gpnote", "Still to pick: " + G.queue.map((i) => G.teams[i].n).join(", ")));
+    }
+    const guess = el("div", "gpguess");
+    guess.append(el("p", "gpnote", "A team guessed the mystery right? Tap them (+" + solveValue() + "). A wrong guess costs nothing."));
+    const gb = el("div", "gpright"); G.teams.forEach((t, i) => { const b = btn("gpteam", null, () => solve(i)); b.append(el("span", null, t.n + " solved it"), el("b", null, "+" + solveValue())); gb.append(b); });
+    guess.append(gb); p.append(guess);
+    teamRows(p, (r, t) => r.append(el("span", "gpname", t.n), el("b", "gpscore", pts(t.s))));
+    p.append(undoB(), optionsBox()); tickGames();
 }
