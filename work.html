@@ -8,15 +8,15 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=46">
-    <link rel="stylesheet" href="css/console.css?v=46">
+    <link rel="stylesheet" href="css/board.css?v=47">
+    <link rel="stylesheet" href="css/console.css?v=47">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/work.css?v=46">
+    <link rel="stylesheet" href="css/work.css?v=47">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page">
     <header class="cbar">
-        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Calera Middle School</small></span></a>
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Class Board</small></span></a>
         <span class="live" id="status" role="status">Connecting…</span>
         <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
         <a class="btn ghost" href="data.html" style="text-decoration:none">Class Data</a>
@@ -100,9 +100,9 @@
     <datalist id="names"></datalist>
 
     <script type="module">
-        import { shrink, rotate, buildPdf, mb } from "./js/studentWork.js?v=46";
+        import { shrink, rotate, buildPdf, mb } from "./js/studentWork.js?v=47";
         const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
-        const store = await import(demo ? "./js/localStore.js?v=46" : "./js/boardStore.js?v=46");
+        const store = await import(demo ? "./js/localStore.js?v=47" : "./js/boardStore.js?v=47");
         const PERIODS = [["1st", "8th Grade"], ["2nd", "8th Grade"], ["4th", "8th Grade"], ["5th", "7th Grade"], ["6th", "8th Accelerated"]];
         const KEY = "Answer key", FREE = 1024 * 1048576;
         const $ = (id) => document.getElementById(id);

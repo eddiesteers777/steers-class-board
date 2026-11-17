@@ -15,17 +15,18 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Next up
 | # | Item | Notes |
 |---|------|-------|
+| 21 | Live test on Eddie's devices | Everything below was tested with a local store only. On the Chromebook + board, signed in: play one review game across both screens and check its result in Class Data; save one Student Work page and download the PDF; mark one standard Taught; add one Planner note; use the class tally once; upload one recording to Schoology and play it as a student would. Report anything that fails. |
 | 17 | Week Builder print: notes with rule boxes and worked lines | Notes can now carry `intro` (a rule box before an example) and practice parts with `kind` and `showWork`. `js/weekSheets.js` does not print these yet; `tools/weekly_kit/docs.py` prints `intro`. |
 | 8 | Board takes about 8 seconds to load its state | Nov 16: could not measure here (the cloud test machine cannot load Firebase). Changed: all tabs now share the offline copy (before, a second tab such as Home + Remote had none and waited on the network). Added load timing: open the board with `?signincheck` and read the `board-load`, `board-auth`, `board-server`, `board-shown` steps. If `board-auth` is slow it is sign-in; if `board-shown` says "server" and is slow it is the school network (try long polling). |
 | 9 | Check every teacher page against DESIGN.md | 390px and desktop: Home, Remote, Rosters, Library, Week Builder, Class Data, sign-in. Home's header now has six buttons and needs thinning. |
 | 10 | Week 6 content | Starts from the "Weekly Plan Intake - Steers Math" Sheet (school account). New `data/week6.js`, add to `data/weeks.js` and `data/library.js`. |
 | 12 | Class Data: tie results to skills over time | Link a set to a Library week, show growth, group by standard once the curriculum documents are in the project. |
 | 20 | Review games: the next game | Eddie picked all three in order (Nov 17): Mystery Tiles, Ring Race and printable Bingo, all done. Ask Eddie before building more. Ask him which one before building. |
-| 14 | Remove unused starter pages | `planning.html`, `homework.html`, `schedule.html` and their scripts look unused. Confirm with the school thread first. |
 
 ## Done
 | When | Item |
 |------|------|
+| Nov 17 | Cleanup after the Nov 17 audit: removed the leftover coaching pages (`schedule.html`, `planning.html`, `homework.html`) and the old header code only they used (loadHeader, navAccess, app.js, messages, checkin and others); "Calera Middle School" placeholder in page headers is now "Class Board"; the Library says "Looking without signing in" in ?demo; Week Builder print previews scroll inside their own box on a phone instead of widening the page. |
 | Nov 17 | Review Games, eighth game: Tug of War. Two sides; each right side pulls the rope one step; first past its line wins. Tested with a local store only. |
 | Nov 17 | Review Games, seventh game: Bingo. Printable numbered cards from a set's answers (bingo.html), questions called in shuffled order, and a card checker on the Remote. Tested with a local store only. |
 | Nov 17 | Review Games, sixth game: Ring Race. Every team has a ring; right answers move one step, with an optional bonus step for the fastest; first to close the ring wins. Tested with a local store only. |

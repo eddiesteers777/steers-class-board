@@ -8,14 +8,14 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=46">
-    <link rel="stylesheet" href="css/console.css?v=46">
+    <link rel="stylesheet" href="css/board.css?v=47">
+    <link rel="stylesheet" href="css/console.css?v=47">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console">
     <header class="cbar">
-        <a class="cbrand" href="#"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Calera Middle School</small></span></a>
+        <a class="cbrand" href="#"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Class Board</small></span></a>
         <label class="field"><span>Period</span><select id="periodSel" aria-label="Period"></select></label>
         <label class="field" id="weekField" hidden><span>Week</span><select id="weekSel" aria-label="Week"></select></label>
         <span class="live" id="status" role="status">Connecting…</span>
@@ -39,8 +39,8 @@
     </div>
     <button id="exit" type="button">Show controls</button>
     <script type="module">
-        import { startApp } from "./js/boardApp.js?v=46";
-        import * as store from "./js/localStore.js?v=46";
+        import { startApp } from "./js/boardApp.js?v=47";
+        import * as store from "./js/localStore.js?v=47";
         startApp({ mode: "sub", store });
     </script>
 </body>
