@@ -18,7 +18,7 @@ simpler, one less thing.
 - `css/theme-rings.css` carries the logo onto the pages: the navy gradient (#173F86 → #0B2559 → #081B45),
   faint rings in the background, the rings mark on stage card titles and the learning target, and a
   four-colour line (paper, light blue #B9D3EE, sky, amber) under headers. Load it after `console.css`.
-- The Calera seal stays on the projected board header.
+- The Focal logo (`brand/logo.svg`) is on the projected board header. It replaced the Calera seal per Eddie on 2026-11-17.
 
 ## Rules
 - **One screen, one job.** One main thing to look at, one primary action, at most one secondary.

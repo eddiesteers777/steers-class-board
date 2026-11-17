@@ -29,7 +29,7 @@ body.board #exit{display:block}
 #stage{position:relative;display:flex;flex-direction:column;overflow:hidden}
 /* everything inside the stage is sized in em; JS sets the stage font-size */
 .hdr{height:5.2em;background:var(--navy);border-bottom:.3em solid var(--sky);display:flex;align-items:center;gap:1.2em;padding:0 1.8em;flex:none}
-.hdr img{width:4em;height:4em;border-radius:50%}
+.hdr img{width:4em;height:4em;border-radius:22%}
 .ttl{flex:1;min-width:0}
 .ttl h1{font-size:2.5em;font-weight:700;line-height:1.05}
 .ttl p{font-size:1em;color:var(--soft)}
