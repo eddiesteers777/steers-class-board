@@ -1,15 +1,58 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Teacher-only school site. Each signed-in account can read and write
+    function signedIn() { return request.auth != null; }
+    // A teacher signs in with Google. Students playing a game get an anonymous guest sign-in
+    // on their device (play.html), which can never reach a teacher's space.
+    function teacher() { return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous'; }
+
+    // Teacher-only school site. Each teacher account can read and write
     // ONLY its own documents under teacher/{uid}/...:
     //   teacher/{uid}/board/state   what the board is showing
     //   teacher/{uid}/ink/{key}     whiteboard drawings
+    //   teacher/{uid}/games/room    a student game's full state, with answers and vault codes
     // Another Google account that signs in gets its own empty space and can
-    // never see or change the teacher's board. Students never sign in.
+    // never see or change the teacher's board.
     match /teacher/{uid}/{doc=**} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read, write: if teacher() && request.auth.uid == uid;
     }
+
+    // Student games (Vault Raid). A room is found by its 6-digit code.
+    //   rooms/{code}            status, title, the name list and the clock. Any guest with the code can read it.
+    //   rooms/{code}/p/{who}    a student's own entry. Only that student writes it, while the game is open.
+    //   rooms/{code}/s/{who}    what the teacher's Remote sends that one student. Only the teacher writes it.
+    // The teacher who opened the room can read everything in it and delete it.
+    match /rooms/{code} {
+      function room() { return get(/databases/$(database)/documents/rooms/$(code)).data; }
+      function owner() { return teacher() && room().owner == request.auth.uid; }
+
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if teacher() && code.matches('^[1-9][0-9]{5}$')
+        && request.resource.data.owner == request.auth.uid;
+      allow update: if teacher() && resource.data.owner == request.auth.uid
+        && request.resource.data.owner == request.auth.uid;
+      allow delete: if teacher() && resource.data.owner == request.auth.uid;
+
+      match /p/{who} {
+        allow get: if signedIn() && (request.auth.uid == who || owner());
+        allow list, delete: if owner();
+        allow create, update: if signedIn() && request.auth.uid == who
+          && room().status in ['lobby', 'play']
+          && request.resource.data.keys().hasOnly(['at', 'ni', 'nm', 'code', 'cn', 'a', 'k', 'img', 'iq', 'it'])
+          && (!('nm' in request.resource.data) || (request.resource.data.nm is string && request.resource.data.nm.size() <= 24))
+          && (!('code' in request.resource.data) || (request.resource.data.code is string && request.resource.data.code.size() <= 3))
+          && (!('img' in request.resource.data) || (request.resource.data.img is string && request.resource.data.img.size() <= 400000))
+          && (!('a' in request.resource.data) || (request.resource.data.a is map && request.resource.data.a.keys().hasOnly(['n', 'q', 't'])
+                && request.resource.data.a.t is string && request.resource.data.a.t.size() <= 80))
+          && (!('k' in request.resource.data) || (request.resource.data.k is map && request.resource.data.k.keys().hasOnly(['n', 'to', 'g'])));
+      }
+      match /s/{who} {
+        allow get: if signedIn() && (request.auth.uid == who || owner());
+        allow list, write: if owner();
+      }
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

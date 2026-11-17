@@ -14,7 +14,7 @@ Live at https://focalboard.web.app/
 2. Add it to `data/weeks.js`. The newest week whose Monday has arrived opens by default.
 3. Student-facing content only. Never add tests or teacher keys. The repo is public.
 
-Teacher only. Students never sign in.
+Teacher only. Students never sign in to the teacher's pages; in a Student Game they join with a code and no account.
 
 ## Guest teacher (sub days)
 `sub.html` runs the board on one device with no sign-in: https://focalboard.web.app/sub.html
@@ -63,6 +63,17 @@ Code Breaker uses the same sets and the Treasure Chests flow: each right team sc
 Import: the set editor on games.html can bring in a question list from another tool. Choose a CSV file or paste cells copied from a sheet. It reads the Blooket, Wayground (Quizizz), Gimkit and Kahoot spreadsheet templates, any sheet with Question and Answer columns (plus an optional Category or Topic column), and plain question, answer lists. Multiple-choice answers come in as the right option's text, with an option to write the choices into the question. Questions with no category are split into PART 1, PART 2…; the board holds 6 categories of 6. Nothing is saved until the teacher reviews the table and taps Save. The importer is js/importSet.js.
 Results: when a game reaches its final scores, the Remote saves a short summary to `teacher/{uid}/games/results` (date, period, game, set, team scores, winner, right answers per category, and the students on each team when the teams came from the Group maker). Class Data (`data.html#games`, `js/gameResults.js`) shows who won by day and period with a "Bonus given" box, each student's wins and wins still owed a bonus, and class growth over time. Names stay in the private account and never show on the board.
 The games are original to Focal. Do not copy the name, look or art of any other review-game site.
+
+## Student Game: Vault Raid (students on Chromebooks, no sign-in)
+The "Student Game" screen on the Remote opens a game students play on their own devices. `js/liveRoom.js` (Remote panel, board screen, referee), `play.html` + `js/play.js` (student page, focalboard.web.app/play), `js/vaultCore.js` (shared rules: answer checking, codes, names), `css/play.css`.
+- The teacher picks a question set, a length, and whether students pick their name from the period's roster (shown as first name + last initial) or type it, then opens the room. The board shows the address and a 6-digit code.
+- Students type the code, pick their name, and set a secret vault code (3 different digits, 1 to 9). Each right answer earns coins (10, more on a streak) and a hack (up to 3). A hack is one guess at a classmate's code; each digit is marked right spot, wrong spot or not in the code. Cracking a vault takes 25% of its coins (at least 10) and the owner sets a new code behind a 45-second firewall. Focal's own game; not a copy of any other site's mode.
+- Every question has a work pad. Its picture goes to the Remote with each answer (or every few seconds with "See work live"). The Work tab shows every pad; "Show on board" puts one up, without the name unless the teacher picks "Show with name".
+- The Remote is the referee: it checks answers ("Count it" accepts a missed answer from then on) and hacks, so answers and other students' codes never reach a student's device. Keep the Remote open while a game runs; a reload picks the game back up.
+- Students sign in as anonymous guests on their own device only (a separate Firebase app, so a teacher signed in on the same device stays signed in). The Firebase project needs Anonymous sign-in turned on.
+- Data: `rooms/{code}` (status, name list), `rooms/{code}/p/{student}` (that student's entry), `rooms/{code}/s/{student}` (what the Remote sends that student), and the full game at `teacher/{uid}/games/room`. Closing the room deletes `rooms/{code}` and everything under it. Each student's result goes to Class Data (`games/results`, kind `vault`) only when the teacher turns on saving or taps "Save results". `firestore.rules` limits a student to their own entry, while the game is open, with set fields and sizes.
+- Free-plan budget: about 2 to 3 writes per question per student. A 10-minute game with 30 students uses roughly 3,000 of the 20,000 free daily writes; "See work live" adds more.
+- Testing: run `firebase emulators:start --only firestore,auth` and open pages on localhost with `?emu`.
 
 ## Design rules and the queue
 Read `DESIGN.md` before changing how anything looks or behaves, and `QUEUE.md` for what is next. Scout before building.

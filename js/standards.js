@@ -10,7 +10,7 @@ import { today, short, daysLeftInNineWeeks, nineWeeksOf } from "./schoolCal.js?v
 import { nextUp } from "./standardsNext.js?v=57";
 
 const demo = new URLSearchParams(location.search).has("demo");
-const store = await import(demo ? "./localStore.js?v=57" : "./boardStore.js?v=57");
+const store = await import(demo ? "./localStore.js?v=57" : "./boardStore.js?v=58");
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };

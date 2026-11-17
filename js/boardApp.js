@@ -12,6 +12,7 @@ import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./b
 import * as snd from "./sound.js?v=57";
 import { createMathPad } from "./mathPad.js?v=1";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=57";
+import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive } from "./liveRoom.js?v=58";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -47,7 +48,7 @@ function rich(text) {
 }
 function richEl(tag, cls, text) { const e = el(tag, cls); e.appendChild(rich(text)); return e; }
 
-const SCREENS = [["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["speed", "Speed Dating"], ["fix", "Fix It"], ["game", "Review Game"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
+const SCREENS = [["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["speed", "Speed Dating"], ["fix", "Fix It"], ["game", "Review Game"], ["live", "Student Game"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
 const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 // Each period and the class plan it follows.
 const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
@@ -139,7 +140,7 @@ function buildControls() {
             const b = el("button", null, "Go to today"); b.type = "button"; b.onclick = () => { S.week = defaultWeek(); S.day = rd; resetPos(); push(); }; nt.appendChild(b);
         }
     }
-    seg($("screens"), SCREENS.filter((x) => mode !== "sub" || x[0] !== "game"), S.screen, (id) => { S.screen = id; S.show = false; push(); });
+    seg($("screens"), SCREENS.filter((x) => mode !== "sub" || (x[0] !== "game" && x[0] !== "live")), S.screen, (id) => { S.screen = id; S.show = false; push(); });
     const sel = $("weekSel"); sel.textContent = "";
     WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + x.dates); o.value = x.id; sel.appendChild(o); });
     sel.value = w.id; $("weekField").hidden = WEEKS.length < 2;
@@ -344,9 +345,9 @@ function skeleton() {
 }
 function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
-    syncGames(); buildControls(); soundSync();
-    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : ""]);
-    renderDock(); drawGamePanel();
+    syncGames(); syncLive(); buildControls(); soundSync();
+    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : ""]);
+    renderDock(); drawGamePanel(); drawLivePanel();
     if (ns === sig) { renderLayer(); tick(); tickTools(toolApi); return; }
     sig = ns;
     const st = $("screenHost"); st.textContent = ""; canvas = null; ctx = null; pad = null;
@@ -403,6 +404,8 @@ function render() {
         }
     } else if (S.screen === "game") {
         drawGame(st); tickGames();
+    } else if (S.screen === "live") {
+        drawLiveStage(st); tickLive();
     } else if (S.screen === "tools") {
         st.appendChild(header("Classroom Tools", (d ? d.name + " · " : "") + ((d && d.date) || "")));
         const box = el("div", "toolsbody"); box.appendChild(el("p", "toolempty", Object.keys(S.tools.on).length ? "" : "Turn tools on from the Tools row on the Remote. Drag a tool by its title to move it, and drag its corner to resize it.")); st.appendChild(box);
@@ -748,7 +751,7 @@ function flow(n) {
 }
 /* Next/Back for the clicker, the arrow keys and the board's own arrows. The lesson flow goes first; when it has
    nowhere to go, move to the next (or previous) screen in the Screens list, so the board never needs the side panel. */
-const screenOrder = () => SCREENS.filter((x) => mode !== "sub" || x[0] !== "game").map((x) => x[0]);
+const screenOrder = () => SCREENS.filter((x) => mode !== "sub" || (x[0] !== "game" && x[0] !== "live")).map((x) => x[0]);
 function nextScreen(n) {   // skips Guided Notes and Speed Dating on days that have none
     const d = D(), skip = { notes: !notesFrames(d).length, speed: !isSpeedDay() };
     const o = screenOrder().filter((id) => id === S.screen || !skip[id]), j = o.indexOf(S.screen) + n;
@@ -791,9 +794,10 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
-    store = (opts && opts.store) || await import("./boardStore.js?v=57");
+    store = (opts && opts.store) || await import("./boardStore.js?v=58");
     const guest = mode === "sub";
     mountGames({ S, header, store: () => store, writer, now, beep: () => snd.cue("done"), unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
+    mountLive({ S, header, store: () => store, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     document.body.classList.toggle("board", mode === "board");
     $("periodSel").onchange = function () { S.period = this.value; S.cls = classOf(this.value); resetPos(); push(); };
     document.addEventListener("click", (e) => { document.querySelectorAll("details.acct[open]").forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });
@@ -814,7 +818,7 @@ export async function startApp(opts) {
     }
     keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
     document.addEventListener("keydown", (e) => { if (e.target && (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.target.isContentEditable)) return; if (e.altKey || e.ctrlKey || e.metaKey) return; if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); step(1); } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); step(-1); } else if (e.key === "m" || e.key === "M") { S.sound.music = !S.sound.music; push(); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
-    setInterval(() => { if (!synced) return; tick(); tickTools(toolApi); tickGames(); soundTick(); }, 250);
+    setInterval(() => { if (!synced) return; tick(); tickTools(toolApi); tickGames(); tickLive(); soundTick(); }, 250);
     { const p = el("div", "connpill"); p.id = "connPill"; p.setAttribute("role", "status"); p.hidden = true; document.body.appendChild(p); }
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && synced) { tick(); tickTools(toolApi); tickGames(); soundTick(); } });   // a tab back in view shows the right time at once
     document.body.classList.add("syncing");

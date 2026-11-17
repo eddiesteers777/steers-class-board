@@ -445,3 +445,67 @@ div.gpset{cursor:default}
 .gsimport .chk{display:flex;gap:6px;align-items:center;font-size:.9rem;min-height:36px;margin:4px 0}
 .gsimport .rowx{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 #imNote{line-height:1.45}
+
+/* ---------- Student Game: Vault Raid (js/liveRoom.js) ---------- */
+.vr{gap:.8em}
+.vrlab{font-size:.8em;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+.vrjoin{flex:1;min-height:0;display:grid;grid-template-columns:1.1fr 1fr;gap:1.2em}
+.vrhow{background:var(--navy);border:.13em solid var(--sky);border-radius:.8em;padding:1em 1.4em;display:flex;flex-direction:column;justify-content:center;gap:.2em}
+.vrurl{font-size:2.1em;font-weight:700;line-height:1.15;margin-bottom:.4em;word-break:break-all}
+.vrcode{white-space:nowrap;font-family:var(--display,inherit);font-size:4.2em;font-weight:800;line-height:1;color:var(--amber,#F2B33D);letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.vrwho{background:var(--deep);border-radius:.8em;padding:1em 1.2em;display:flex;flex-direction:column;gap:.6em;min-height:0;overflow:hidden}
+.vrcount{font-size:1.6em;font-weight:700}
+.vrchips{display:flex;flex-wrap:wrap;gap:.35em;align-content:flex-start;min-height:0;overflow:hidden;flex:1}
+.vrchip{background:var(--blue);border:.07em solid var(--sky);border-radius:2em;padding:.15em .8em;font-size:.85em;font-weight:600}
+.vrrule{font-size:.8em;color:var(--soft);line-height:1.4}
+.vrplay{flex:1;min-height:0;display:grid;grid-template-columns:1.5fr 1fr;gap:1em}
+.vrlead{background:var(--navy);border:.13em solid var(--sky);border-radius:.8em;padding:.8em 1.2em;display:flex;flex-direction:column;gap:.35em;min-height:0;overflow:hidden}
+.vrrow{display:grid;grid-template-columns:2.2em 1fr auto;align-items:center;gap:.6em;background:var(--deep);border-radius:.5em;padding:.25em .7em}
+.vrrow.vrfirst{background:var(--blue);border:.1em solid var(--amber,#F2B33D)}
+.vrrank{font-size:1.2em;color:var(--soft);text-align:center}
+.vrname{font-size:1.15em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vrcoins{font-size:1.15em;color:var(--amber,#F2B33D);font-variant-numeric:tabular-nums}
+.vrside{display:flex;flex-direction:column;gap:.8em;min-height:0}
+.vrclockbox{background:var(--deep);border-radius:.8em;padding:.6em 1em}
+.vrclock{font-family:var(--display,inherit);font-size:3.2em;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums}
+.vrclock.hot{color:var(--amber,#F2B33D)}
+.vrfeed{flex:1;min-height:0;background:var(--deep);border-radius:.8em;padding:.6em 1em;display:flex;flex-direction:column;gap:.35em;overflow:hidden}
+.vrf{font-size:.95em;line-height:1.3}
+.vrf.crack::before{content:"";display:inline-block;width:.6em;height:.6em;border-radius:50%;background:var(--amber,#F2B33D);margin-right:.45em}
+.vrlate{font-size:.75em;color:var(--soft)}
+.vrempty{color:var(--soft);font-size:1em}
+.vrpad{flex:1;min-height:0;display:flex;flex-direction:column;gap:.6em}
+.vrpadtop{display:flex;align-items:center;gap:.8em;flex-wrap:wrap}
+.vrpadq{font-size:1.3em;font-weight:600;line-height:1.3}
+.vrpadimg{flex:1;min-height:0;background:#fff;border-radius:.8em;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.vrpadimg img{max-width:100%;max-height:100%;object-fit:contain}
+.vrpadimg .vrempty{color:#55627F}
+.vrpod{display:flex;align-items:flex-end;justify-content:center;gap:.8em;margin-top:.6em}
+.vrstep{background:var(--deep);border:.13em solid var(--sky);border-radius:.8em .8em .3em .3em;width:9em;padding:.6em .5em;display:flex;flex-direction:column;align-items:center;gap:.1em}
+.vrstep b{font-size:1em;color:var(--soft)}
+.vrstep span{font-size:1.5em;font-weight:800;line-height:1.1;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vrstep small{font-size:.95em;color:var(--amber,#F2B33D);font-weight:700}
+.vrstep.s1{order:2;min-height:9em;border-color:var(--amber,#F2B33D);justify-content:center}
+.vrstep.s2{order:1;min-height:7em;justify-content:center}
+.vrstep.s3{order:3;min-height:5.5em;justify-content:center}
+
+.vrpanel .vrfield{flex-direction:column;align-items:stretch;gap:4px;font-weight:600}
+.vrpanel .vrfield select{width:100%}
+.vrsub{flex-basis:100%;font-size:.8rem;color:var(--c-mute);line-height:1.4;padding-left:26px}
+.vrpcode{border:2px solid var(--amber);background:#FFF8E6;border-radius:12px;padding:8px 12px;text-align:center}
+.vrpcode small{display:block;font-size:.8rem;color:#6B4E00;font-weight:600}
+.vrpcode b{font-size:2.2rem;letter-spacing:.12em;font-variant-numeric:tabular-nums}
+.vrtabs{display:flex;gap:8px}.vrtabs .btn{flex:1}
+.vrprow{grid-template-columns:minmax(0,1fr) auto auto}
+.vrpl{display:flex;flex-direction:column;min-width:0}
+.vrinfo{font-size:.78rem;color:var(--c-mute)}
+.vrla{font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vrla.ok{color:#0F6B40}.vrla.no{color:#8E1B21}
+.vrgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.vrthumb{display:flex;flex-direction:column;gap:4px;padding:4px;border:1.5px solid var(--c-line);border-radius:10px;background:#fff;color:var(--c-ink);min-height:44px;text-align:left}
+.vrthumb.on{border-color:var(--amber);box-shadow:inset 0 0 0 1px var(--amber)}
+.vrthumb img{width:100%;aspect-ratio:900/520;object-fit:contain;background:#fff;border-radius:6px;border:1px solid var(--c-line)}
+.vrthumb small{font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vrnone{display:grid;place-items:center;aspect-ratio:900/520;background:var(--c-bg);border-radius:6px;font-size:.75rem;color:var(--c-mute)}
+.vrpeek{border:1.5px solid var(--c-line);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:6px}
+.vrpeek img{width:100%;border:1px solid var(--c-line);border-radius:8px;background:#fff}

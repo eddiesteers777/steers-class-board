@@ -3,10 +3,10 @@
 // ==========================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import { getAuth, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getAuth, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import {
   getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
-  terminate, clearIndexedDbPersistence
+  terminate, clearIndexedDbPersistence, connectFirestoreEmulator
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -63,6 +63,15 @@ try {
 } catch (error) {
   console.warn("Calera Math: offline copy unavailable, using memory only.", error);
   db = getFirestore(app);
+}
+
+// Local testing only: a page opened on localhost with ?emu uses the Firebase emulators
+// (firebase emulators:start). Never on the live site.
+if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
+  try {
+    if (new URLSearchParams(location.search).has("emu")) sessionStorage.setItem("focal-emu", "1");
+    if (sessionStorage.getItem("focal-emu")) { connectFirestoreEmulator(db, "127.0.0.1", 8080); connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true }); }
+  } catch { /* storage blocked */ }
 }
 
 // Auth defaults to IndexedDB-backed persistence, which browsers with

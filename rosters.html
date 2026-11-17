@@ -31,7 +31,7 @@
         <div class="rowx"><button class="btn ghost" id="fill" type="button">Fill the boxes</button></div>
     </main>
     <script type="module">
-        import * as store from "./js/boardStore.js?v=57";
+        import * as store from "./js/boardStore.js?v=58";
         const KEYS = ["1st", "2nd", "4th", "5th", "6th"], $ = (id) => document.getElementById(id), boxes = {};
         const status = (t) => { const s = $("status"); s.textContent = t; s.dataset.state = /^(Live|Saved|Filled)/.test(t) ? "ok" : (/Could not|No period/.test(t) ? "bad" : "wait"); };
         KEYS.forEach((k) => {

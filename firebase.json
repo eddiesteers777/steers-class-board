@@ -3,12 +3,44 @@
     {
       "site": "focalboard",
       "public": ".",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "redirects": [
+        {
+          "source": "/play",
+          "destination": "/play.html",
+          "type": 301
+        },
+        {
+          "source": "/join",
+          "destination": "/play.html",
+          "type": 301
+        }
+      ]
     },
     {
       "site": "steers-class-board",
       "public": ".",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "redirects": [
+        {
+          "source": "/play",
+          "destination": "/play.html",
+          "type": 301
+        },
+        {
+          "source": "/join",
+          "destination": "/play.html",
+          "type": 301
+        }
+      ]
     }
   ],
   "functions": {
@@ -19,6 +51,9 @@
     "rules": "firestore.rules"
   },
   "emulators": {
+    "auth": {
+      "port": 9099
+    },
     "firestore": {
       "port": 8080
     },
