@@ -8,15 +8,16 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=45">
-    <link rel="stylesheet" href="css/console.css?v=45">
+    <link rel="stylesheet" href="css/board.css?v=49">
+    <link rel="stylesheet" href="css/console.css?v=49">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/games.css?v=45">
+    <link rel="stylesheet" href="css/boardnav.css?v=1">
+    <link rel="stylesheet" href="css/games.css?v=49">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console">
     <header class="cbar">
-        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Calera Middle School</small></span></a>
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Class Board</small></span></a>
         <label class="field"><span>Period</span><select id="periodSel" aria-label="Period"></select></label>
         <label class="field" id="weekField" hidden><span>Week</span><select id="weekSel" aria-label="Week"></select></label>
         <span class="live" id="status" role="status">Connecting…</span>
@@ -57,10 +58,10 @@
     </aside>
     <button id="exit" type="button">Show controls</button>
     <script type="module">
-        import { startApp } from "./js/boardApp.js?v=45";
+        import { startApp } from "./js/boardApp.js?v=50";
         startApp({ mode: "remote" });
-        import("./js/boardStore.js?v=45").then(async (store) => { if (await store.ready()) (await import("./js/tally.js?v=45")).mount({ store, period: () => document.getElementById("periodSel").value || "1st" }); }).catch(() => {});
-        import("./js/recorder.js?v=45").then((m) => m.mount());
+        import("./js/boardStore.js?v=49").then(async (store) => { if (await store.ready()) (await import("./js/tally.js?v=49")).mount({ store, period: () => document.getElementById("periodSel").value || "1st" }); }).catch(() => {});
+        import("./js/recorder.js?v=49").then((m) => m.mount());
     </script>
 </body>
 </html>

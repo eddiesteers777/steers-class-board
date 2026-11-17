@@ -18,6 +18,8 @@
 .papers{display:grid;gap:22px;margin-top:10px}
 .papers>div>h3{font-family:var(--display);font-size:1.05rem;margin-bottom:8px}
 @media (max-width:760px){.brow{grid-template-columns:1.4rem 1fr}.brow>*:nth-child(n+3){grid-column:2}}
+/* Preview papers are 8.5in wide; on a phone they scroll inside their own box instead of widening the page. */
+@media screen{.papers{min-width:0;grid-template-columns:minmax(0,1fr)}.papers>div{min-width:0;max-width:100%;overflow-x:auto}}
 
 /* ---- the paper ---- */
 .sheet{background:#fff;color:#000;font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:11pt;line-height:1.25;width:8.5in;max-width:100%;padding:.7in;box-shadow:0 6px 24px rgba(14,27,58,.14);border-radius:4px;box-sizing:border-box}

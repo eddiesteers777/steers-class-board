@@ -8,15 +8,15 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=45">
-    <link rel="stylesheet" href="css/console.css?v=45">
+    <link rel="stylesheet" href="css/board.css?v=49">
+    <link rel="stylesheet" href="css/console.css?v=49">
     <link rel="stylesheet" href="css/theme-rings.css?v=1">
-    <link rel="stylesheet" href="css/builder.css?v=45">
+    <link rel="stylesheet" href="css/builder.css?v=49">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page builder">
     <header class="cbar">
-        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Calera Middle School</small></span></a>
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Class Board</small></span></a>
         <span class="live" id="status" role="status">Connecting…</span>
         <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
         <a class="btn" href="remote.html" style="text-decoration:none">Open Remote</a>
@@ -81,11 +81,11 @@
         </div>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=45";
-        import { DAYS, dayDate, bellringerSheet, bellringerKey, notesSheet, studyGuideSheet, studyGuideKey, speedDatingSheet, speedDatingKey } from "./js/weekSheets.js?v=45";
+        import { WEEKS } from "./data/weeks.js?v=49";
+        import { DAYS, dayDate, bellringerSheet, bellringerKey, notesSheet, studyGuideSheet, studyGuideKey, speedDatingSheet, speedDatingKey } from "./js/weekSheets.js?v=49";
         // ?demo runs on this device only, like the guest teacher page: nothing is saved to any account.
         const demo = new URLSearchParams(location.search).has("demo");
-        const store = await import(demo ? "./js/localStore.js?v=45" : "./js/boardStore.js?v=45");
+        const store = await import(demo ? "./js/localStore.js?v=49" : "./js/boardStore.js?v=49");
         const $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
         const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };

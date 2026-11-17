@@ -5,11 +5,11 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=45";
+import { WEEKS } from "../data/weeks.js?v=49";
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=45";
-import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=45";
+import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=49";
+import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=49";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -126,7 +126,9 @@ function buildControls() {
     const sel = $("weekSel"); sel.textContent = "";
     WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + x.dates); o.value = x.id; sel.appendChild(o); });
     sel.value = w.id; $("weekField").hidden = WEEKS.length < 2;
-    const fn = $("flowNext"); if (fn) { fn.textContent = flowLabel(); const dead = !["agenda", "today", "bell", "notes", "game", "speed", "fix"].includes(S.screen) || fn.textContent === "Next"; fn.disabled = dead; $("flowBack").disabled = !["today", "bell", "notes", "speed", "fix"].includes(S.screen); }
+    const fn = $("flowNext"); if (fn) { fn.textContent = stepLabel(); fn.disabled = fn.textContent === "Next" && !nextScreen(1); $("flowBack").disabled = S.screen === screenOrder()[0]; }
+    const bn = $("bnNext"), bb = $("bnBack");
+    if (bn) { const nl = stepLabel(), bl = backLabel(); bn.title = nl; bn.setAttribute("aria-label", nl); bn.disabled = $("flowNext").disabled; bb.title = bl; bb.setAttribute("aria-label", bl); bb.disabled = $("flowBack").disabled; }
     const files = $("files"), l = L();
     if (files) {
         files.textContent = "";
@@ -492,7 +494,7 @@ function watchInk() {
    An answer or a common mistake reaches the board only when the teacher taps to reveal it. */
 const sdWeeks = {}, sdWatched = {};
 function sdSet() {
-    if (mode === "board" || !store || !signedIn) return null;
+    if (!store || !signedIn) return null;
     const id = S.week;
     if (!sdWatched[id]) {
         sdWatched[id] = true;
@@ -524,7 +526,7 @@ function fixAdd(n, q) {
     f.list.push({ n, q: q || "", done: false }); fixGo(f.list.length - 1);
 }
 function drawFix(st) {
-    const f = fixState(), c = f.list[f.cur], sd = sdSet(), remote = mode !== "board";
+    const f = fixState(), c = f.list[f.cur], sd = sdSet(), remote = true;   // Eddie: the picker shows on every screen, the board too
     st.appendChild(header("Fix It Together", sd && sd.title ? "Speed dating review: " + sd.title : "The cards that tripped us up"));
     const body = el("div", "notes fix"), left = el("div", "nleft"), right = el("div", "nright");
     if (remote) left.appendChild(fixPicker(f, sd));
@@ -614,11 +616,11 @@ function isSpeedDay() { const d = D(); return !!d && /speed dating/i.test((d.age
 function flow(n) {
     if (S.screen === "game") { gameFlow(n); return; }
     const d = D(), len = (d && d.problems && d.problems.length) || 0, frames = notesFrames(d), hasNotes = frames.length > 0;
-    const afterBell = () => { if (hasNotes) { S.screen = "notes"; S.note = 0; S.step = 0; S.show = false; } else if (isSpeedDay()) { S.screen = "speed"; S.show = false; } else { S.screen = "today"; S.show = false; } };
+    const afterBell = () => { if (hasNotes) { S.screen = "notes"; S.note = 0; S.step = 0; S.show = false; } else if (isSpeedDay()) { S.screen = "speed"; S.show = false; } else return false; return true; };
     if (n > 0) {
         if (S.screen === "agenda") S.screen = "today";
         else if (S.screen === "today") { if (len) { S.screen = "bell"; S.prob = 0; S.show = false; } else if (hasNotes || isSpeedDay()) afterBell(); else return; }
-        else if (S.screen === "bell") { if (!S.show && len) S.show = true; else if (S.prob < len - 1) { S.prob++; S.show = false; } else afterBell(); }
+        else if (S.screen === "bell") { if (!S.show && len) S.show = true; else if (S.prob < len - 1) { S.prob++; S.show = false; } else if (!afterBell()) return; }
         else if (S.screen === "notes" && hasNotes) {
             const f = frames[Math.min(S.note, frames.length - 1)];
             if (!f.open && S.step < f.lines.length) S.step++;
@@ -645,10 +647,29 @@ function flow(n) {
     }
     push();
 }
+/* Next/Back for the clicker, the arrow keys and the board's own arrows. The lesson flow goes first; when it has
+   nowhere to go, move to the next (or previous) screen in the Screens list, so the board never needs the side panel. */
+const screenOrder = () => SCREENS.filter((x) => mode !== "sub" || x[0] !== "game").map((x) => x[0]);
+function nextScreen(n) {   // skips Guided Notes and Speed Dating on days that have none
+    const d = D(), skip = { notes: !notesFrames(d).length, speed: !isSpeedDay() };
+    const o = screenOrder().filter((id) => id === S.screen || !skip[id]), j = o.indexOf(S.screen) + n;
+    return j >= 0 && j < o.length ? o[j] : null;
+}
+const screenName = (id) => (SCREENS.find((x) => x[0] === id) || ["", ""])[1];
+const stateSig = () => JSON.stringify([S.screen, S.prob, S.show, S.note, S.step, S.fix, S.screen === "game" ? gameSig() : ""]);
+function step(n) {
+    const before = stateSig();
+    flow(n);
+    if (stateSig() !== before) return;
+    const t = nextScreen(n); if (!t) return;
+    S.screen = t; S.show = false; push();
+}
+function stepLabel() { const l = flowLabel(); if (l !== "Next") return l; const t = nextScreen(1); return t ? "Next: " + screenName(t) : "Next"; }
+function backLabel() { if (["today", "bell", "notes", "speed", "fix"].includes(S.screen)) return "Back"; const t = nextScreen(-1); return t ? "Back: " + screenName(t) : "Back"; }
 function flowLabel() {
     if (S.screen === "game") return gameFlowLabel();
     const d = D(), len = (d && d.problems && d.problems.length) || 0, frames = notesFrames(d), hasNotes = frames.length > 0;
-    const after = hasNotes ? "Next: Guided Notes" : (isSpeedDay() ? "Next: Speed Dating" : "Next: Back to Today");
+    const after = hasNotes ? "Next: Guided Notes" : (isSpeedDay() ? "Next: Speed Dating" : "Next");
     if (S.screen === "agenda") return "Next: Today";
     if (S.screen === "today") return len ? "Next: Bellringer" : (hasNotes ? "Next: Guided Notes" : (isSpeedDay() ? "Next: Speed Dating" : "Next"));
     if (S.screen === "bell") { if (!S.show && len) return "Next: Show answer"; if (S.prob < len - 1) return "Next: Problem " + (S.prob + 2); return after; }
@@ -671,7 +692,7 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
-    store = (opts && opts.store) || await import("./boardStore.js?v=45");
+    store = (opts && opts.store) || await import("./boardStore.js?v=49");
     const guest = mode === "sub";
     mountGames({ S, header, store: () => store, writer, now, beep, unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     document.body.classList.toggle("board", mode === "board");
@@ -684,9 +705,15 @@ export async function startApp(opts) {
     window.addEventListener("resize", fit);
     if (window.ResizeObserver) new ResizeObserver(fit).observe($("wrap")); document.addEventListener("fullscreenchange", () => setTimeout(fit, 60));
     document.addEventListener("pointerdown", unlockSound, { once: true });
-    $("flowNext").onclick = () => flow(1); $("flowBack").onclick = () => flow(-1);
+    $("flowNext").onclick = () => step(1); $("flowBack").onclick = () => step(-1);
+    { // small arrows for full-screen Board view (hidden otherwise): tap on the Promethean, click on the Chromebook
+        const nav = el("div", "bnav"), b = el("button", null, "\u2039"), f = el("button", null, "\u203A");
+        b.id = "bnBack"; f.id = "bnNext"; b.type = f.type = "button";
+        b.onclick = () => step(-1); f.onclick = () => step(1);
+        nav.append(b, f); document.body.appendChild(nav);
+    }
     keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
-    document.addEventListener("keydown", (e) => { if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); flow(1); } else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); flow(-1); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
+    document.addEventListener("keydown", (e) => { if (e.target && (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.target.isContentEditable)) return; if (e.altKey || e.ctrlKey || e.metaKey) return; if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); step(1); } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); step(-1); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
     setInterval(() => { if (!synced) return; tick(); tickTools(toolApi); tickGames(); }, 250);
     document.body.classList.add("syncing");
     const arrived = () => { if (synced) return; synced = true; document.body.classList.remove("syncing"); sig = ""; };

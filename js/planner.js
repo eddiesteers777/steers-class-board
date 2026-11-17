@@ -5,12 +5,13 @@
      { days: { "2026-11-18": { note, c: { "8th": "plan" } } }, weeks: { "2026-11-16": { c: { "8th": "unit or focus" } } } }
    ?demo keeps everything on this device only.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=45";
-import { LIBRARY } from "../data/library.js?v=45";
-import { SCHOOL_YEAR, iso, parse, addDays, today, weekday, mondayOf, eventsOn, isSchoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, schoolDaysBetween, SCHOOL_DAYS, short } from "./schoolCal.js?v=45";
+import { WEEKS } from "../data/weeks.js?v=49";
+import { LIBRARY } from "../data/library.js?v=49";
+import { suggestedUnit } from "./standardsNext.js?v=49";
+import { SCHOOL_YEAR, iso, parse, addDays, today, weekday, mondayOf, eventsOn, isSchoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, schoolDaysBetween, SCHOOL_DAYS, short } from "./schoolCal.js?v=49";
 
 const demo = new URLSearchParams(location.search).has("demo");
-const store = await import(demo ? "./localStore.js?v=45" : "./boardStore.js?v=45");
+const store = await import(demo ? "./localStore.js?v=49" : "./boardStore.js?v=49");
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
@@ -27,6 +28,7 @@ const weekOf = (mon) => WEEKS.find((w) => w.monday === mon);
 
 const keep = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch { return null; } };
 const q = new URLSearchParams(location.search);
+let stdProgress = {}, stdLoaded = false;   // the Standards page marks, for "Next up" on weeks not planned yet
 let view = VIEWS.some((v) => v[0] === q.get("view")) ? q.get("view") : (keep("planner-view") || "week");
 let cur = parse(q.get("date") || "") ? q.get("date") : today();
 let shown = new Set(JSON.parse(keep("planner-classes") || "null") || CLASSES.map((c) => c[0]));
@@ -142,6 +144,9 @@ function weekView() {
     shownClasses().forEach(([cls, label]) => {
         const rh = el("div", "pl-rowh"); rh.appendChild(el("b", null, label));
         rh.appendChild(box(weekPlan(mon)[cls], label + " unit or focus for the week", "Unit / focus", (v) => setWeek(mon, cls, v), "focus"));
+        // A week not planned yet, from this week on: offer the next unit in the district order (from the Standards marks).
+        const sug = !w && !weekPlan(mon)[cls] && mon >= mondayOf(today()) && stdLoaded ? suggestedUnit(cls, stdProgress) : "";
+        if (sug) { const b = el("button", "pl-sug", "Next up: " + sug); b.type = "button"; b.title = "Use this as the unit or focus for the week (from the Standards page)"; b.onclick = () => { setWeek(mon, cls, sug); draw(); }; rh.appendChild(b); }
         grid.appendChild(rh);
         days.forEach((d) => { const c = classDay(d, cls, true); c.dataset.day = short(d, { weekday: "short" }); grid.appendChild(c); });
     });
@@ -243,6 +248,11 @@ if (!user) location.replace("login.html");
 else {
     $("who").textContent = demo ? "This device only, nothing is saved" : "Signed in as " + user.name;
     let first = true;
+    store.watch("standards/progress", (snap) => {
+        if (snap.pending) return;
+        const d = (snap.exists && snap.data) || {}; stdProgress = d && typeof d === "object" ? d : {}; stdLoaded = true;
+        if (!(document.activeElement && document.activeElement.classList.contains("pl-in"))) draw();
+    }, () => {});
     store.watch("planner/plans", (snap) => {
         if (snap.pending || dirty) return;
         const d = (snap.exists && snap.data) || {};
