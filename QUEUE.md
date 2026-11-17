@@ -9,13 +9,12 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 | 1 | Calendar page with school dates | The Shelby County 2026-27 calendar and the nine-weeks dates. Never guess dates. |
 | 2 | Homework printing in the Week Builder | One real week file that has a homework section. |
 | 3 | Fit the Class Data import to Magma Math | The header row of a real Magma Math export. |
-| 4 | Remove the two live test items | Eddie says when: the "65 (test)" bellringer answer (Week Builder, "Go back to the published week") and the "Test — live test set (delete me)" data set (Class Data, Remove). They are in his private account, not in this repo. |
 | 5 | Colours and fonts | See the open question in DESIGN.md. |
-| 6 | Set the bell times | Home, "Bell times". Until then Home shows no current period. |
 
 ## Next up
 | # | Item | Notes |
 |---|------|-------|
+| 15 | Bell times editor holds one schedule only | The regular schedule is saved. Not stored anywhere yet: the 3rd-period lunch block (A, B, C), gym dismissal, dismissal times, and the 1-hour and 2-hour activity schedules. Needs named schedules and more rows. Do not force these under a wrong label. |
 | 7 | Sign-in popup needed a second try | Seen in the Nov 16 live test: the first Google popup closed without finishing. Scout `js/googleSignIn.js`, `js/signInRetry.js`. |
 | 8 | Board takes about 8 seconds to load its state | Seen Nov 16. The skeleton now covers the wait; find out where the time goes (sign-in, Firestore, clock check). |
 | 9 | Check every teacher page against DESIGN.md | 390px and desktop: Home, Remote, Rosters, Library, Week Builder, Class Data, sign-in. Home's header now has six buttons and needs thinning. |
@@ -28,6 +27,9 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Done
 | When | Item |
 |------|------|
+| Nov 16 | The three Friday Nov 20 sub plans (7th, 8th, 8th Accelerated) carry the guest teacher address. Each is still one page. |
+| Nov 16 | Bell times: the regular schedule is set on Home. |
+| Nov 16 | The two live test items were removed (bellringer answer back to 65, test data set removed). The "1 of 18 problems were changed" notice still shows from an earlier edit; do not clear it without Eddie. |
 | Nov 16 | Live test by Eddie: rules confirmed closed, sign-in, Library, Week Builder save and Class Data save all passed. |
 | Nov 16 | "Today" means today: a board left on another day starts on the real day the next morning; the Remote marks today and warns, with one tap back, when it shows another day; a skeleton shows until the saved state arrives. |
 | Nov 16 | Home no longer claims a period without bell times, after school, or on a weekend. |
