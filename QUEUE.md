@@ -26,6 +26,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Done
 | When | Item |
 |------|------|
+| Nov 17 | Review Board gaps: Eddie's Week 5 sets were uneven (built from the week's bellringers; 8th had Magma Math Test 2 of 5, 7th had four categories at 3 of 5), so the board showed empty spaces. Both sets filled to 5 per category (14 new questions, answers checked). The set editor's warning now names each short category and says the board will show empty spaces. Standards marks set for all three classes from the past weeks' records (8th Acc 8.5/8.6 left for Eddie to confirm). |
 | Nov 17 | Cleanup after the Nov 17 audit: removed the leftover coaching pages (`schedule.html`, `planning.html`, `homework.html`) and the old header code only they used (loadHeader, navAccess, app.js, messages, checkin and others); "Calera Middle School" placeholder in page headers is now "Class Board"; the Library says "Looking without signing in" in ?demo; Week Builder print previews scroll inside their own box on a phone instead of widening the page. |
 | Nov 17 | Review Games, eighth game: Tug of War. Two sides; each right side pulls the rope one step; first past its line wins. Tested with a local store only. |
 | Nov 17 | Review Games, seventh game: Bingo. Printable numbered cards from a set's answers (bingo.html), questions called in shuffled order, and a card checker on the Remote. Tested with a local store only. |
