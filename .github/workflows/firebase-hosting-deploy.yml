@@ -1,0 +1,22 @@
+name: Deploy to Firebase Hosting
+
+# Every push to main deploys the site to both Firebase Hosting addresses
+# (focalboard.web.app and steers-class-board.web.app) — firebase.json lists
+# both sites, so one deploy updates them together. GitHub Pages is not
+# touched by this workflow.
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install -g firebase-tools
+      - run: firebase deploy --only hosting --project steers-class-board
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
