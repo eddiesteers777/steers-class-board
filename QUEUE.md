@@ -33,6 +33,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 | Nov 17 | Review Games, eighth game: Tug of War. Two sides; each right side pulls the rope one step; first past its line wins. Tested with a local store only. |
 | Nov 17 | Review Games, ninth game: Rapid Fire. Class against the clock; tap Right or Missed; beats the class record for the period. Tested with a local store only. |
 | Nov 17 | Review Games, tenth game: Prize Wheel. Right teams spin a 12-wedge wheel (points, double, steal, swap, lose, nothing). Tested with a local store only. |
+| Nov 17 | Review Games, eleventh game: Code Breaker. Right teams score 10 and guess a secret code; board marks right spot / wrong spot / not in it; cracking scores 50. Tested with a local store only. |
 | Nov 17 | Review Games, seventh game: Bingo. Printable numbered cards from a set's answers (bingo.html), questions called in shuffled order, and a card checker on the Remote. Tested with a local store only. |
 | Nov 17 | Review Games, sixth game: Ring Race. Every team has a ring; right answers move one step, with an optional bonus step for the fastest; first to close the ring wins. Tested with a local store only. |
 | Nov 17 | Review Games, fifth game: Mystery Tiles. A typed phrase hides behind 12 tiles; right teams flip tiles; solving it scores 50 + 10 per covered tile. Tested with a local store only. |

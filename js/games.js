@@ -103,7 +103,7 @@ function newGame(set, teams) {
         dbl: "", opts: { lose: true, secs: 30, dbl: false }, timer: blankTimer(), hist: [], phase: "play", fstep: 0, wag: [], fdone: [], at: Date.now() };
 }
 function cleanGame(d) {
-    const g = d && d.kind === "chests" ? cleanChests(d) : d && d.kind === "versus" ? cleanVersus(d) : d && d.kind === "shots" ? cleanShots(d) : d && d.kind === "tiles" ? cleanTiles(d) : d && d.kind === "race" ? cleanRace(d) : d && d.kind === "bingo" ? cleanBingo(d) : d && d.kind === "tug" ? cleanTug(d) : d && d.kind === "rapid" ? cleanRapid(d) : d && d.kind === "wheel" ? cleanWheel(d) : cleanBoard(d);
+    const g = d && d.kind === "chests" ? cleanChests(d) : d && d.kind === "versus" ? cleanVersus(d) : d && d.kind === "shots" ? cleanShots(d) : d && d.kind === "tiles" ? cleanTiles(d) : d && d.kind === "race" ? cleanRace(d) : d && d.kind === "bingo" ? cleanBingo(d) : d && d.kind === "tug" ? cleanTug(d) : d && d.kind === "rapid" ? cleanRapid(d) : d && d.kind === "wheel" ? cleanWheel(d) : d && d.kind === "code" ? cleanCodeGame(d) : cleanBoard(d);
     if (!g) return null;
     g.teams.forEach((t, i) => { const m = d.teams && d.teams[i] && d.teams[i].m; if (Array.isArray(m) && m.length) t.m = m.slice(0, 12).map((x) => str(x, 60)).filter(Boolean); });
     g.log = (Array.isArray(d.log) ? d.log : []).slice(-200).map((x) => ({ c: str(x && x.c, LIMITS.cat), ok: Math.max(0, Math.floor(+x.ok || 0)), of: Math.max(1, Math.floor(+x.of || 1)), k: str(x && x.k, 8) }));
@@ -171,7 +171,7 @@ function cleanChests(d) {
    those teams spins a 12-wedge wheel on the board. The wedge is drawn on the Remote when it spins;
    the board turns the wheel to it. */
 const WHEEL = [["add", 10], ["add", 20], ["dbl", 0], ["add", 10], ["lose", 15], ["add", 30], ["steal", 25], ["add", 20], ["none", 0], ["add", 50], ["swap", 0], ["add", 10]];
-const isCh = () => G && (G.kind === "chests" || G.kind === "wheel");
+const isCh = () => G && (G.kind === "chests" || G.kind === "wheel" || G.kind === "code");
 function newWheel(set, teams) {
     const g = newChests(set, teams); delete g.chests; return Object.assign(g, { kind: "wheel", spin: null, rot: 0 });
 }
@@ -184,6 +184,47 @@ function cleanWheel(d) {
 }
 const wheelText = (c) => (c.k === "none" ? "Nothing this time" : prizeText(c));
 const curPrize = () => (G.kind === "wheel" ? G.spin : G.last >= 0 ? G.chests[G.last] : null);
+
+/* ---------- Code Breaker ---------- */
+/* Same flow as Treasure Chests: every team answers, the teacher taps who was right. Each right
+   team scores 10 and gets one guess at a secret code (3 or 4 different digits). The board marks
+   each digit of every guess: right digit in the right spot, in the code but somewhere else, or
+   not in the code. Everyone sees every guess, so the room reasons it out together. The team that
+   cracks the code scores 50, and a new code starts. */
+const CODE_RIGHT = 10, CODE_CRACK = 50;
+function newCodeStr(len) { const d = [..."0123456789"]; for (let i = d.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [d[i], d[j]] = [d[j], d[i]]; } return d.slice(0, len).join(""); }
+const codeMarks = (g, code) => [...g].map((d, i) => (code[i] === d ? "g" : code.includes(d) ? "a" : "x")).join("");
+function newCode(set, teams) {
+    const g = newChests(set, teams); delete g.chests;
+    return Object.assign(g, { kind: "code", code: newCodeStr(4), no: 1, guesses: [], solved: null, lastG: null, opts: { secs: 30, len: 4 } });
+}
+function cleanCodeGame(d) {
+    const g = cleanChests(Object.assign({}, d, { chests: null, last: -1 })); if (!g) return null;
+    delete g.chests; g.kind = "code";
+    const o = d.opts || {}; g.opts = { secs: g.opts.secs, len: +o.len === 3 ? 3 : 4 };
+    g.no = Math.max(1, Math.floor(+d.no || 1));
+    const ok = (c) => typeof c === "string" && /^\d{3,4}$/.test(c) && new Set(c).size === c.length;
+    g.code = ok(d.code) ? d.code : newCodeStr(g.opts.len);
+    const team = (v) => { const n = Math.floor(+v); return n >= 0 && n < g.teams.length ? n : -1; };
+    const one = (x) => ({ t: team(x && x.t), g: String((x && x.g) || ""), r: String((x && x.r) || ""), no: Math.floor(+(x && x.no) || 0), qi: Math.floor(+(x && x.qi) || 0) });
+    const good = (x) => x.t >= 0 && /^\d{3,4}$/.test(x.g) && /^[gax]{3,4}$/.test(x.r) && x.r.length === x.g.length;
+    g.guesses = (Array.isArray(d.guesses) ? d.guesses : []).slice(-40).map(one).filter(good);
+    g.lastG = d.lastG ? one(d.lastG) : null; if (g.lastG && !good(g.lastG)) g.lastG = null;
+    g.solved = d.solved && team(d.solved.t) >= 0 && ok(String(d.solved.c)) ? { t: team(d.solved.t), c: String(d.solved.c), no: Math.floor(+d.solved.no || 0), qi: Math.floor(+d.solved.qi || 0) } : null;
+    return g;
+}
+let codeEntry = "";
+function codeGuess(g) {
+    if (!G || G.kind !== "code" || G.cp !== "pick" || G.picker < 0 || g.length !== G.code.length || (G.lastG && G.lastG.t === G.picker)) return;
+    save();
+    const r = codeMarks(g, G.code), entry = { t: G.picker, g, r, no: G.no, qi: G.qi };
+    G.guesses.push(entry); G.guesses = G.guesses.slice(-40); G.lastG = entry;
+    if (!r.includes("a") && !r.includes("x")) {
+        G.teams[G.picker].s += CODE_CRACK; G.solved = { t: G.picker, c: G.code, no: G.no, qi: G.qi };
+        G.no++; G.code = newCodeStr(G.opts.len);
+    }
+    codeEntry = ""; A.unlockSound(); changed();
+}
 
 /* ---------- Class vs. Teacher ---------- */
 /* The whole class answers each question on whiteboards. The teacher looks at the boards and
@@ -399,7 +440,7 @@ let SETS = null, setsWatched = false, starting = "", panelSig = "", lastDone = f
 
 export function mountGames(api) { A = api; }
 /* The Game Library's Play button opens remote.html?screen=game&period=1st&set=<id>&game=<kind>. */
-let AUTO = (() => { try { const q = new URLSearchParams(location.search), id = q.get("set"), k = q.get("game"); return id && ["board", "chests", "versus", "shots", "tiles", "race", "bingo", "tug", "rapid", "wheel"].includes(k) ? { id, k, per: q.get("period") || "" } : null; } catch (e) { return null; } })();
+let AUTO = (() => { try { const q = new URLSearchParams(location.search), id = q.get("set"), k = q.get("game"); return id && ["board", "chests", "versus", "shots", "tiles", "race", "bingo", "tug", "rapid", "wheel", "code"].includes(k) ? { id, k, per: q.get("period") || "" } : null; } catch (e) { return null; } })();
 function tryAuto() {
     if (!AUTO || A.mode() !== "remote" || !onGame() || !loaded || !SETS || starting) return;
     if (AUTO.per && AUTO.per !== A.S.period) return;   // wait for the period from the link to take hold
@@ -455,7 +496,7 @@ export function syncGames() {
    game, set, each team's score and (when teams came from the Group maker) who was on it, the
    winner, and how many questions were answered right by category. Private, never on the board. */
 let RESULTS = null, resultsWatched = false, pendingResult = null, resultsWrite = null;
-const KIND_NAMES = { board: "Review Board", chests: "Treasure Chests", versus: "Class vs. Teacher", shots: "Trashketball", tiles: "Mystery Tiles", race: "Ring Race", bingo: "Bingo", tug: "Tug of War", rapid: "Rapid Fire", wheel: "Prize Wheel" };
+const KIND_NAMES = { board: "Review Board", chests: "Treasure Chests", versus: "Class vs. Teacher", shots: "Trashketball", tiles: "Mystery Tiles", race: "Ring Race", bingo: "Bingo", tug: "Tug of War", rapid: "Rapid Fire", wheel: "Prize Wheel", code: "Code Breaker" };
 const localDay = () => { const d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); };
 function watchResults() {
     if (resultsWatched || !A.signedIn() || A.mode() !== "remote") return; resultsWatched = true; resultsWrite = A.writer("games/results");
@@ -544,7 +585,7 @@ async function start(meta, kind) {
     if (!set) { panelNote = "Could not open that set. Check the connection and try again."; panelSig = ""; drawPanel(); return; }
     const keep = G && G.teams ? G.teams.map((t) => t.n) : null;
     const prev = G && G.teams;
-    G = kind === "chests" ? newChests(set, keep) : kind === "wheel" ? newWheel(set, keep) : kind === "versus" ? newVersus(set) : kind === "shots" ? newShots(set, keep) : kind === "tiles" ? newTiles(set, keep) : kind === "race" ? newRace(set, keep) : kind === "bingo" ? newBingo(set) : kind === "tug" ? newTug(set) : kind === "rapid" ? newRapid(set, rapidRecord()) : newGame(set, keep); G.log = []; G.rid = "";
+    G = kind === "chests" ? newChests(set, keep) : kind === "wheel" ? newWheel(set, keep) : kind === "code" ? newCode(set, keep) : kind === "versus" ? newVersus(set) : kind === "shots" ? newShots(set, keep) : kind === "tiles" ? newTiles(set, keep) : kind === "race" ? newRace(set, keep) : kind === "bingo" ? newBingo(set) : kind === "tug" ? newTug(set) : kind === "rapid" ? newRapid(set, rapidRecord()) : newGame(set, keep); G.log = []; G.rid = "";
     if (prev && kind !== "versus" && kind !== "bingo" && kind !== "tug" && kind !== "rapid") G.teams.forEach((t, i) => { if (prev[i] && prev[i].m) t.m = prev[i].m; });
     loaded = true; changed();
 }
@@ -559,10 +600,11 @@ function chestUndo() {
 const curQ = () => G.qs[G.qi];
 function nextQuestion() {
     if (G.qi >= G.qs.length - 1) { G.phase = "done"; changed(); return; }
-    G.qi++; G.cp = "q"; G.show = false; G.right = []; G.queue = []; G.picker = -1; if (G.kind === "wheel") G.spin = null; else G.chests = closedChests(); G.last = -1; G.timer = blankTimer(); changed();
+    G.qi++; G.cp = "q"; G.show = false; G.right = []; G.queue = []; G.picker = -1; if (G.kind === "wheel") G.spin = null; else if (G.kind === "code") { G.lastG = null; G.solved = null; } else G.chests = closedChests(); G.last = -1; G.timer = blankTimer(); changed();
 }
 function startPicking() {
     save(); logQ(curQ().c, G.right.length, G.teams.length); G.queue = G.teams.map((_, i) => i).filter((i) => G.right.includes(i));
+    if (G.kind === "code") { G.queue.forEach((i) => { G.teams[i].s += CODE_RIGHT; }); G.lastG = null; codeEntry = ""; }
     if (!G.queue.length) { nextQuestion(); return; }
     G.picker = G.queue.shift(); G.cp = "pick"; G.show = true; G.timer = blankTimer(); changed();
 }
@@ -600,7 +642,7 @@ function spinWheel() {
 }
 function chooseTarget(x) { const c = curPrize(); if (!c || !needsTarget(c)) return; save(); c.x = x; applyPrize(c, c.t); changed(); }
 function nextPicker() {
-    if (G.queue.length) { G.picker = G.queue.shift(); changed(); } else nextQuestion();
+    if (G.queue.length) { G.picker = G.queue.shift(); if (G.kind === "code") { G.lastG = null; codeEntry = ""; } changed(); } else nextQuestion();
 }
 
 
@@ -802,6 +844,28 @@ function wheelStage(body) {
     const box = el("div", "gwbox"); box.append(svg);
     wrap.append(box, side); body.append(wrap);
 }
+function codeRow(g, r, cls) {
+    const row = el("div", "gcrow" + (cls ? " " + cls : ""));
+    [...g].forEach((d, i) => { const c = el("span", "gcd " + (r ? r[i] : "q"), d); if (r) c.setAttribute("aria-label", d + (r[i] === "g" ? ", right spot" : r[i] === "a" ? ", in the code, wrong spot" : ", not in the code")); row.append(c); });
+    return row;
+}
+function codeStage(body) {
+    const q = curQ(), wrap = el("div", "gchwrap gcwrap"), left = el("div", "gcleft"), side = el("div", "gchside");
+    const lock = el("div", "gclock"); lock.append(el("p", "gclab", "Secret code" + (G.no > 1 ? " #" + G.no : "")), codeRow("?".repeat(G.code.length), "", "secret")); left.append(lock);
+    const mine = G.guesses.filter((x) => x.no === G.no), hist = el("div", "gchist");
+    if (!mine.length) hist.append(el("p", "gcnone", "No guesses yet. Each digit is used once."));
+    mine.slice(-7).forEach((x) => { const r = el("div", "gcline"); r.append(el("span", "gcwho", G.teams[x.t] ? G.teams[x.t].n : ""), codeRow(x.g, x.r)); hist.append(r); });
+    left.append(hist);
+    const key = el("div", "gckey"); [["g", "Right spot"], ["a", "In the code, wrong spot"], ["x", "Not in the code"]].forEach(([k, t]) => { const s = el("span"); s.append(el("i", "gcd " + k), document.createTextNode(t)); key.append(s); }); left.append(key);
+    side.append(el("p", "gchwho", G.teams[G.picker] ? G.teams[G.picker].n : ""));
+    const sv = G.solved && G.solved.qi === G.qi ? G.solved : null, lg = G.lastG && G.lastG.t === G.picker ? G.lastG : null;
+    if (sv && lg && lg.no === sv.no) { side.append(el("p", "gchsay add", "Cracked it! +" + CODE_CRACK)); const c = el("div", "gcsolved"); c.append(el("small", null, "The code was"), codeRow(sv.c, "g".repeat(sv.c.length))); side.append(c); side.append(el("p", "gchsub", "A new code is ready.")); }
+    else if (lg) { const n = [...lg.r].filter((x) => x === "g").length, a = [...lg.r].filter((x) => x === "a").length; side.append(el("p", "gchsay", n + " right spot" + (n === 1 ? "" : "s")), el("p", "gchsub", a + " in the code, wrong spot")); }
+    else side.append(el("p", "gchsay", "Guess the code!"));
+    if (sv && !(lg && lg.no === sv.no)) side.append(el("p", "gchsub", G.teams[sv.t].n + " cracked " + sv.c + " this round."));
+    { const ans = el("p", "gchq", "Answer: "); ans.append(mathRich(q.a)); side.append(ans); }
+    wrap.append(left, side); body.append(wrap);
+}
 function chestStage(body) {
     const q = curQ(), top = el("div", "gtop");
     if (G.cp === "q") {
@@ -809,10 +873,11 @@ function chestStage(body) {
         top.append(el("span", "gchip", "Question " + (G.qi + 1) + " of " + G.qs.length + " · " + q.c), ring());
         box.append(top, qBox(q.q));
         if (G.show) { const a = el("div", "gans"); a.append(el("small", null, "Answer"), mathEl("p", null, q.a)); box.append(a); }
-        box.append(el("p", "gchnote", "Every team: write your answer. Right answers " + (G.kind === "wheel" ? "spin the wheel." : "open a chest.")));
+        box.append(el("p", "gchnote", "Every team: write your answer. Right answers " + (G.kind === "wheel" ? "spin the wheel." : G.kind === "code" ? "score " + CODE_RIGHT + " and get a guess at the code." : "open a chest.")));
         body.append(box); return;
     }
     if (G.kind === "wheel") { wheelStage(body); return; }
+    if (G.kind === "code") { codeStage(body); return; }
     const wrap = el("div", "gchwrap"), side = el("div", "gchside"), c = G.last >= 0 ? G.chests[G.last] : null, mine = c && c.t === G.picker;
     side.append(el("p", "gchwho", G.teams[G.picker] ? G.teams[G.picker].n : ""));
     if (!mine) side.append(el("p", "gchsay", "Pick a chest!"));
@@ -1000,7 +1065,7 @@ export function drawStage(st) {
         const e = el("div", "empty"); e.append(el("b", null, "No game is running for " + per + "."), document.createTextNode(A.mode() === "remote" ? "Pick a question set in the panel beside the board to start one." : "Start one from the Remote."));
         st.append(e); return;
     }
-    st.append(A.header(G.kind === "chests" ? "Treasure Chests" : G.kind === "versus" ? "Class vs. " + G.teams[1].n : G.kind === "shots" ? "Trashketball" : G.kind === "tiles" ? "Mystery Tiles" : G.kind === "race" ? "Ring Race" : G.kind === "bingo" ? "Bingo" : G.kind === "tug" ? "Tug of War" : G.kind === "rapid" ? "Rapid Fire" : G.kind === "wheel" ? "Prize Wheel" : "Review Game", G.title));
+    st.append(A.header(G.kind === "chests" ? "Treasure Chests" : G.kind === "versus" ? "Class vs. " + G.teams[1].n : G.kind === "shots" ? "Trashketball" : G.kind === "tiles" ? "Mystery Tiles" : G.kind === "race" ? "Ring Race" : G.kind === "bingo" ? "Bingo" : G.kind === "tug" ? "Tug of War" : G.kind === "rapid" ? "Rapid Fire" : G.kind === "wheel" ? "Prize Wheel" : G.kind === "code" ? "Code Breaker" : "Review Game", G.title));
     const body = el("div", "gbody");
     if (isCh() && G.phase !== "done") { chestStage(body); if (G.kind === "wheel" && G.cp === "pick" && wheelWait) { const s = strip(); s.querySelectorAll(".gts").forEach((e) => { e.classList.add("gwlate"); e.style.animationDelay = wheelWait + "ms"; }); body.append(s); st.append(body); return; } }
     else if (G.kind === "shots" && G.phase !== "done") shotStage(body);
@@ -1125,7 +1190,7 @@ export function drawPanel() {
             const one = (s, into) => {
             const b = el("div", "gpset"), row = el("div", "gpsetbtns");
             b.append(el("b", null, s.title || "Review game"), el("small", null, starting === s.id ? "Opening…" : (s.cats || 0) + " categories · " + (s.clues || 0) + " questions"));
-            [["board", "Review Board"], ["chests", "Treasure Chests"], ["versus", "Class vs. Teacher"], ["shots", "Trashketball"], ["tiles", "Mystery Tiles"], ["race", "Ring Race"], ["bingo", "Bingo"], ["tug", "Tug of War"], ["rapid", "Rapid Fire"], ["wheel", "Prize Wheel"]].forEach(([k, label]) => { const g = btn("btn ghost", label, () => start(s, k)); g.disabled = !!starting; g.setAttribute("aria-label", "Play " + (s.title || "this set") + " as " + label); row.append(g); });
+            [["board", "Review Board"], ["chests", "Treasure Chests"], ["versus", "Class vs. Teacher"], ["shots", "Trashketball"], ["tiles", "Mystery Tiles"], ["race", "Ring Race"], ["bingo", "Bingo"], ["tug", "Tug of War"], ["rapid", "Rapid Fire"], ["wheel", "Prize Wheel"], ["code", "Code Breaker"]].forEach(([k, label]) => { const g = btn("btn ghost", label, () => start(s, k)); g.disabled = !!starting; g.setAttribute("aria-label", "Play " + (s.title || "this set") + " as " + label); row.append(g); });
             b.append(row); into.append(b);
             };
             mine.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach((s) => one(s, list));
@@ -1141,7 +1206,7 @@ export function drawPanel() {
         { const n = el("p", "gpnote"), a = el("a", null, "Class Data"); a.href = "data.html#games"; n.append(document.createTextNode("Saved to "), a, document.createTextNode(" with today's date" + (G.kind === "rapid" ? ". Each round's score sets the record to beat next time." : G.teams.some((t) => t.m) ? " and who was on each team." : ". Use the Group maker's groups as teams to see who won by name."))); p.append(n); }
         teamRows(p, (r, t) => r.append(el("span", "gpname", t.n), el("b", "gpscore", pts(t.s))));
         if (G.kind === "board" || !G.kind || isCh() || G.kind === "shots" || G.kind === "tiles") p.append(btn("btn ghost", isCh() || G.kind === "shots" || G.kind === "tiles" ? "Back to the game" : "Back to the board", () => { G.phase = "play"; changed(); }));
-        p.append(btn("btn ghost", "Play this set again", () => { const set = cleanSet(G), names = G.teams.map((t) => t.n), o = G.opts; if (G.kind === "chests") { G = newChests(set, names); G.opts = o; } else if (G.kind === "wheel") { G = newWheel(set, names); G.opts = o; } else if (G.kind === "versus") { G = newVersus(set, names[1]); G.opts = o; } else if (G.kind === "shots") { G = newShots(set, names); G.opts = o; } else if (G.kind === "tiles") { G = newTiles(set, names); G.opts = o; } else if (G.kind === "race") { G = newRace(set, names); G.opts = o; } else if (G.kind === "bingo") { G = newBingo(set); G.opts = o; } else if (G.kind === "tug") { G = newTug(set, names); G.opts = o; } else if (G.kind === "rapid") { G = newRapid(set, Math.max(G.rec, G.teams[0].s)); G.opts = o; } else { G = newGame(set, names); G.opts = o; pickDouble(); } changed(); }));
+        p.append(btn("btn ghost", "Play this set again", () => { const set = cleanSet(G), names = G.teams.map((t) => t.n), o = G.opts; if (G.kind === "chests") { G = newChests(set, names); G.opts = o; } else if (G.kind === "wheel") { G = newWheel(set, names); G.opts = o; } else if (G.kind === "code") { G = newCode(set, names); G.opts = o; G.code = newCodeStr(o.len); } else if (G.kind === "versus") { G = newVersus(set, names[1]); G.opts = o; } else if (G.kind === "shots") { G = newShots(set, names); G.opts = o; } else if (G.kind === "tiles") { G = newTiles(set, names); G.opts = o; } else if (G.kind === "race") { G = newRace(set, names); G.opts = o; } else if (G.kind === "bingo") { G = newBingo(set); G.opts = o; } else if (G.kind === "tug") { G = newTug(set, names); G.opts = o; } else if (G.kind === "rapid") { G = newRapid(set, Math.max(G.rec, G.teams[0].s)); G.opts = o; } else { G = newGame(set, names); G.opts = o; pickDouble(); } changed(); }));
         p.append(endButton());
         return;
     }
@@ -1217,6 +1282,12 @@ function endButton() {
 function optionsBox() {
     const opt = el("details", "gpopts"); opt.append(el("summary", null, G.kind === "versus" ? "Options" : "Teams and options")); opt.open = sessionStorage.getItem("focal-game-opts") === "1"; opt.ontoggle = () => { try { sessionStorage.setItem("focal-game-opts", opt.open ? "1" : "0"); } catch (e) { /* ok */ } };
     if (isCh() || G.kind === "shots" || G.kind === "tiles" || G.kind === "race") { opt.append(el("p", "gpnote", "Team names")); teamNames(opt); }
+    if (G.kind === "code") {
+        const l = el("label", "gpchk"), sel = el("select"); [[4, "4 digits"], [3, "3 digits (easier)"]].forEach(([v, t]) => { const o = el("option", null, t); o.value = v; sel.append(o); }); sel.value = String(G.opts.len);
+        sel.onchange = () => { G.opts.len = +sel.value; changed(); }; l.append(document.createTextNode("Code length "), sel); opt.append(l);
+        opt.append(el("p", "gpnote", "A new length starts with the next code. To start one now, use the button below."));
+        opt.append(btn("btn ghost", "Start a new code now", () => { save(); G.no++; G.code = newCodeStr(G.opts.len); G.lastG = null; changed(); }));
+    }
     if (G.kind === "race") {
         const l = el("label", "gpchk"), sel = el("select"); RACE_GOALS.forEach((n) => { const o = el("option", null, n + " steps"); o.value = n; sel.append(o); }); sel.value = String(G.opts.goal);
         sel.onchange = () => { G.opts.goal = +sel.value; if (G.teams.some((t) => t.s >= G.opts.goal)) G.phase = "done"; changed(); }; l.append(document.createTextNode("Ring size: first to "), sel); opt.append(l);
@@ -1268,10 +1339,11 @@ function chestPanel(p) {
             b.setAttribute("aria-pressed", String(on)); b.append(el("span", null, t.n), el("b", null, pts(t.s))); box.append(b); });
         p.append(box);
         const n = G.right.length;
-        p.append(btn("btn go", n ? (G.kind === "wheel" ? (n === 1 ? "1 team spins the wheel" : n + " teams spin the wheel") : n === 1 ? "1 team opens a chest" : n + " teams open chests") : (G.qi >= G.qs.length - 1 ? "No one got it. Show the final scores" : "No one got it. Next question"), startPicking));
+        p.append(btn("btn go", n ? (G.kind === "wheel" ? (n === 1 ? "1 team spins the wheel" : n + " teams spin the wheel") : G.kind === "code" ? (n === 1 ? "1 team scores and guesses" : n + " teams score and guess") : n === 1 ? "1 team opens a chest" : n + " teams open chests") : (G.qi >= G.qs.length - 1 ? "No one got it. Show the final scores" : "No one got it. Next question"), startPicking));
         const row = el("div", "gpbtns"); row.append(btn("btn ghost", "Skip this question", () => { save(); nextQuestion(); }), undoB()); p.append(row);
         p.append(optionsBox()); tickGames(); return;
     }
+    if (G.kind === "code") { codePanel(p, undoB); return; }
     const c = curPrize(), mine = c && c.t === G.picker, who = G.teams[G.picker], pt = G.kind === "wheel" ? wheelText : prizeText;
     if (!mine && G.kind === "wheel") {
         p.append(h(who.n + " spins"), el("p", "gpnote", "Tap Spin. The board turns the wheel, and the prize is added for you."));
@@ -1521,3 +1593,28 @@ function rapidPanel(p) {
     opt.append(btn("btn ghost", "End the round now", rapidEnd), endButton());
     p.append(opt); tickGames();
 }
+
+function codePanel(p, undoB) {
+    const who = G.teams[G.picker], lg = G.lastG && G.lastG.t === G.picker ? G.lastG : null;
+    const sec = el("div", "gpans"); sec.append(el("small", null, "Secret code (only you see this)"), el("p", "gpcode", G.code)); 
+    if (!lg) {
+        p.append(h(who.n + " guesses"), el("p", "gpnote", "Type the " + G.code.length + " digits they call out. Each digit is used once in the code."));
+        const show = el("div", "gpcodein"); for (let i = 0; i < G.code.length; i++) show.append(el("span", null, codeEntry[i] || "")); p.append(show);
+        const pad = el("div", "gpkeys"), tap = (fn) => () => { fn(); panelSig = ""; drawPanel(); };
+        [..."1234567890"].forEach((d) => { const b = btn("gpadj", d, tap(() => { if (codeEntry.length < G.code.length && !codeEntry.includes(d)) codeEntry += d; })); b.disabled = codeEntry.includes(d) || codeEntry.length >= G.code.length; pad.append(b); });
+        const back = btn("gpadj", "⌫", tap(() => { codeEntry = codeEntry.slice(0, -1); })); back.setAttribute("aria-label", "Delete last digit"); back.disabled = !codeEntry; pad.append(back);
+        p.append(pad);
+        const go = btn("btn go", "Check the guess", () => codeGuess(codeEntry)); go.disabled = codeEntry.length !== G.code.length; p.append(go);
+    } else {
+        const cracked = G.solved && G.solved.qi === G.qi && G.solved.no === lg.no;
+        p.append(h(who.n + ": " + (cracked ? "cracked it! +" + CODE_CRACK : [...lg.r].filter((x) => x === "g").length + " right spot, " + [...lg.r].filter((x) => x === "a").length + " wrong spot")));
+        p.append(codeRow(lg.g, lg.r, "gpcrow"));
+        const last = !G.queue.length, end = last && G.qi >= G.qs.length - 1;
+        p.append(btn("btn go", !last ? G.teams[G.queue[0]].n + " guesses next" : (end ? "Show the final scores" : "Next question"), nextPicker));
+    }
+    p.append(sec);
+    if (G.queue.length) p.append(el("p", "gpnote", "Still to guess: " + G.queue.map((i) => G.teams[i].n).join(", ")));
+    teamRows(p, (r, t) => r.append(el("span", "gpname", t.n), el("b", "gpscore", pts(t.s))));
+    p.append(undoB());
+}
+
