@@ -5,12 +5,12 @@
      { days: { "2026-11-18": { note, c: { "8th": "plan" } } }, weeks: { "2026-11-16": { c: { "8th": "unit or focus" } } } }
    ?demo keeps everything on this device only.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=40";
-import { LIBRARY } from "../data/library.js?v=40";
-import { SCHOOL_YEAR, iso, parse, addDays, today, weekday, mondayOf, eventsOn, isSchoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, schoolDaysBetween, SCHOOL_DAYS, short } from "./schoolCal.js?v=40";
+import { WEEKS } from "../data/weeks.js?v=41";
+import { LIBRARY } from "../data/library.js?v=41";
+import { SCHOOL_YEAR, iso, parse, addDays, today, weekday, mondayOf, eventsOn, isSchoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, schoolDaysBetween, SCHOOL_DAYS, short } from "./schoolCal.js?v=41";
 
 const demo = new URLSearchParams(location.search).has("demo");
-const store = await import(demo ? "./localStore.js?v=40" : "./boardStore.js?v=40");
+const store = await import(demo ? "./localStore.js?v=41" : "./boardStore.js?v=41");
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };

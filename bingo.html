@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Cards | Focal</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=41">
+    <link rel="stylesheet" href="css/console.css?v=41">
+    <link rel="stylesheet" href="css/theme-rings.css?v=1">
+    <link rel="stylesheet" href="css/games.css?v=41">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="console page bingopage">
+    <header class="cbar noprint">
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Calera Middle School</small></span></a>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <a class="btn ghost" href="games.html" style="text-decoration:none">Game Library</a>
+    </header>
+    <main>
+        <div class="noprint">
+            <h1>Bingo cards</h1>
+            <p class="sub" id="intro">Getting the question set…</p>
+            <div class="rowx">
+                <label class="glsearch" style="flex:0 0 auto">Cards <input type="number" id="count" min="1" max="60" value="30" style="width:6em"></label>
+                <button class="btn go" id="print" type="button" disabled>Print the cards</button>
+                <span class="count2" id="note"></span>
+            </div>
+        </div>
+        <div id="cards" class="bgcards"></div>
+    </main>
+    <script type="module">
+        import { cleanSet, mathRich, bingoPool, bingoSize, bingoCard } from "./js/games.js?v=41";
+        const q = new URLSearchParams(location.search), demo = q.has("demo");
+        const store = await import(demo ? "./js/localStore.js?v=41" : "./js/boardStore.js?v=41");
+        const $ = (id) => document.getElementById(id);
+        const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+        const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
+        const id = q.get("set") || "", seed = Math.max(1, Math.floor(+q.get("seed") || 0)) || 0;
+        $("count").value = String(Math.min(60, Math.max(1, Math.floor(+q.get("n") || 30))));
+        let set = null;
+        function draw() {
+            const box = $("cards"); box.replaceChildren(); if (!set) return;
+            const pool = bingoPool(set), size = bingoSize(pool), n = Math.min(60, Math.max(1, Math.floor(+$("count").value || 30)));
+            if (!size) { $("intro").textContent = "\"" + set.title + "\" has " + pool.length + " different answers. Bingo needs at least 9."; $("print").disabled = true; return; }
+            $("intro").textContent = "\"" + set.title + "\" · game number " + seed + " · " + size + " by " + size + (size === 5 ? " with a free middle" : "") + ". These cards only match this game on the Remote. Each card has its own number so you can check a Bingo.";
+            for (let i = 1; i <= n; i++) {
+                const card = bingoCard(pool, seed, i), c = el("section", "bgcard s" + size), head = el("div", "bghead");
+                head.append(el("b", null, "BINGO"), el("span", null, set.title), el("em", null, "Card " + i));
+                const grid = el("div", "bggrid"); grid.style.gridTemplateColumns = "repeat(" + size + ",minmax(0,1fr))"; grid.style.gridTemplateRows = "repeat(" + size + ",minmax(0,1fr))";
+                card.cells.forEach((a) => { const cell = el("div", "bgcell" + (a === "" ? " free" : "")); if (a === "") cell.textContent = "FREE"; else cell.append(mathRich(a)); grid.append(cell); });
+                c.append(head, grid, el("p", "bgfoot", "Name: ______________________   Game " + seed)); box.append(c);
+            }
+            $("print").disabled = false; $("note").textContent = n + (n === 1 ? " card, " : " cards, ") + Math.ceil(n / 2) + (Math.ceil(n / 2) === 1 ? " page" : " pages");
+        }
+        $("count").oninput = draw;
+        $("print").onclick = () => print();
+        const user = await store.ready();
+        if (!user) location.replace("login.html");
+        else if (!id || !seed) { status("Missing game", "bad"); $("intro").textContent = "Open this page from a Bingo game on the Remote (Print the cards), so the cards match that game."; }
+        else {
+            $("who").textContent = demo ? "This device only, nothing is saved" : "Signed in as " + user.name;
+            store.watch("games/s_" + id, (snap) => {
+                if (snap.pending) return;
+                set = snap.exists ? cleanSet(snap.data) : null; status(set ? (demo ? "This device only" : "Live") : "Set not found", set ? "ok" : "bad");
+                if (!set) $("intro").textContent = "That question set was not found. It may have been removed."; draw();
+            }, () => status("Could not load the set", "bad"));
+        }
+    </script>
+</body>
+</html>
