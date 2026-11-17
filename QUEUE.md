@@ -8,6 +8,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 |---|------|----------------|
 | 1 | Calendar page with school dates | The Shelby County 2026-27 calendar and the nine-weeks dates. Never guess dates. |
 | 2 | Homework printing in the Week Builder | One real week file that has a homework section. |
+| 18 | Enter the other bell schedules | The editor holds named schedules now (see Done). Eddie enters the real times: 3rd-period lunch A/B/C, gym dismissal, dismissal, 1-hour and 2-hour activity. Never guess times. |
 | 3 | Fit the Class Data import to Magma Math | The header row of a real Magma Math export. |
 | 5 | Colours and fonts | See the open question in DESIGN.md. |
 
@@ -16,7 +17,6 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 |---|------|-------|
 | 16 | Record a lesson: confirm on real devices | Built Nov 16 (see Done). Still to confirm: Chrome on the Chromebook saves the file, and the video plays for students once uploaded to Schoology. Test recording here was MP4 (H.264) with Opus sound; real Chrome may pick AAC. |
 | 17 | Week Builder print: notes with rule boxes and worked lines | Notes can now carry `intro` (a rule box before an example) and practice parts with `kind` and `showWork`. `js/weekSheets.js` does not print these yet; `tools/weekly_kit/docs.py` prints `intro`. |
-| 15 | Bell times editor holds one schedule only | The regular schedule is saved. Not stored anywhere yet: the 3rd-period lunch block (A, B, C), gym dismissal, dismissal times, and the 1-hour and 2-hour activity schedules. Needs named schedules and more rows. Do not force these under a wrong label. |
 | 8 | Board takes about 8 seconds to load its state | Nov 16: could not measure here (the cloud test machine cannot load Firebase). Changed: all tabs now share the offline copy (before, a second tab such as Home + Remote had none and waited on the network). Added load timing: open the board with `?signincheck` and read the `board-load`, `board-auth`, `board-server`, `board-shown` steps. If `board-auth` is slow it is sign-in; if `board-shown` says "server" and is slow it is the school network (try long polling). |
 | 9 | Check every teacher page against DESIGN.md | 390px and desktop: Home, Remote, Rosters, Library, Week Builder, Class Data, sign-in. Home's header now has six buttons and needs thinning. |
 | 10 | Week 6 content | Starts from the "Weekly Plan Intake - Steers Math" Sheet (school account). New `data/week6.js`, add to `data/weeks.js` and `data/library.js`. |
@@ -26,6 +26,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Done
 | When | Item |
 |------|------|
+| Nov 16 | Bell times hold named schedules: Regular plus any number more (activity days, early dismissal), each with "other times" rows (lunch blocks, gym dismissal, dismissal). "Today's schedule" picks one for today only; the next day goes back to Regular. Stored in `settings/bells` as `schedules` and `today`; `periods` stays the Regular schedule. |
 | Nov 16 | Week Builder prints the study guide (4 pages) and speed dating (cards, recording sheet, early finishers) with both keys, ported from `docs.py`. They carry answers, so they only appear after Load week file or from a private saved copy. Tested with a made-up week file only; check against a real one. |
 | Nov 16 | Weekly Agenda: the highlighted day row no longer breaks. The Home "Right now" card's `.now` style was leaking onto `.row.now` (grid, padding, navy background, dark text). The card is now `.nowcard`; the board's chosen day gets an amber ring. |
 | Nov 16 | Class goal tool (classroom flow option A, part 1): goal text, a points bar per period, +1/−1, goal of 10 to 100, reset per period. No student names. Table points use the Scoreboard. The private per-student tally (part 2) waits on Eddie's district answer. |

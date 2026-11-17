@@ -6,8 +6,8 @@
     <title>Rosters — Calera Math — Steers</title>
     <meta name="robots" content="noindex">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=22">
-    <link rel="stylesheet" href="css/console.css?v=22">
+    <link rel="stylesheet" href="css/board.css?v=23">
+    <link rel="stylesheet" href="css/console.css?v=23">
     <meta name="theme-color" content="#081B45">
     </head>
 <body class="console page">
@@ -28,7 +28,7 @@
         <div class="rowx"><button class="btn ghost" id="fill" type="button">Fill the boxes</button></div>
     </main>
     <script type="module">
-        import * as store from "./js/boardStore.js?v=22";
+        import * as store from "./js/boardStore.js?v=23";
         const KEYS = ["1st", "2nd", "4th", "5th", "6th"], $ = (id) => document.getElementById(id), boxes = {};
         const status = (t) => { const s = $("status"); s.textContent = t; s.dataset.state = /^(Live|Saved|Filled)/.test(t) ? "ok" : (/Could not|No period/.test(t) ? "bad" : "wait"); };
         KEYS.forEach((k) => {

@@ -233,3 +233,8 @@ body.board #stage{border-radius:0;box-shadow:none}
 @keyframes recblink{50%{opacity:.25}}
 @media (prefers-reduced-motion:reduce){.recpill i{animation:none}}
 body.board .recpill{display:none}
+.bpick2{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin:4px 0 12px}
+.bpick2 input[type=text]{font:inherit;color:var(--c-ink);border:1.5px solid var(--c-line);border-radius:8px;padding:6px 8px;background:#fff}
+.bellh{font-size:.95rem;font-weight:700;margin:16px 0 2px}
+.bellrow .bellname{font:inherit;color:var(--c-ink);border:1.5px solid var(--c-line);border-radius:8px;padding:5px 8px;background:#fff;width:150px}
+.bellrow .bx{background:transparent;border:1.5px solid var(--c-line);border-radius:8px;padding:4px 9px;font-weight:700;color:var(--c-mute);cursor:pointer}

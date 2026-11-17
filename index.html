@@ -14,8 +14,8 @@
     <meta property="og:url" content="https://eddiesteers777.github.io/steers-class-board/">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/board.css?v=22">
-    <link rel="stylesheet" href="css/console.css?v=22">
+    <link rel="stylesheet" href="css/board.css?v=23">
+    <link rel="stylesheet" href="css/console.css?v=23">
     <meta name="theme-color" content="#081B45">
     </head>
 <body class="console page">
@@ -48,6 +48,7 @@
         </section>
 
         <h2 id="todayTitle">Today, period by period</h2>
+        <p class="sub" id="todayExtra" hidden></p>
         <div class="periods" id="periods"></div>
 
         <h2>The week</h2>
@@ -55,14 +56,25 @@
 
         <details class="bells" id="bells">
             <summary>Bell times</summary>
-            <p class="sub">Enter when each period starts and ends. The top panel then follows the clock and shows the class you are teaching.</p>
+            <p class="sub">Enter when each period starts and ends. The top panel then follows the clock and shows the class you are teaching. Keep more than one schedule (activity days, early dismissal) and pick which one runs today. Tomorrow goes back to Regular on its own.</p>
+            <div class="bpick2">
+                <label class="field"><span>Today's schedule</span><select id="todaySel" aria-label="Today's schedule"></select></label>
+                <label class="field"><span>Edit schedule</span><select id="editSel" aria-label="Schedule to edit"></select></label>
+                <label class="field"><span>Name</span><input type="text" id="schedName" maxlength="40" aria-label="Schedule name"></label>
+                <button class="btn ghost" id="schedNew" type="button">New schedule</button>
+                <button class="btn ghost" id="schedDel" type="button">Delete this schedule</button>
+            </div>
             <div class="belltable" id="bellRows"></div>
+            <h3 class="bellh">Other times in this schedule</h3>
+            <p class="sub">Lunch blocks, gym dismissal, dismissal, anything with a time. They show under Today on this page.</p>
+            <div class="belltable" id="extraRows"></div>
+            <div class="rowx"><button class="btn ghost" id="extraAdd" type="button">Add a time</button></div>
             <div class="rowx"><button class="btn" id="bellSave" type="button">Save bell times</button><span class="count2" id="bellNote"></span></div>
         </details>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=22";
-        import * as store from "./js/boardStore.js?v=22";
+        import { WEEKS } from "./data/weeks.js?v=23";
+        import * as store from "./js/boardStore.js?v=23";
         const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
         const DAYKEYS = ["mon", "tue", "wed", "thu", "fri"], $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -70,7 +82,12 @@
         const todayIso = iso(new Date());
         let week = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= todayIso) week = w;
         const wd = new Date().getDay(), isSchoolDay = wd >= 1 && wd <= 5, di = isSchoolDay ? wd - 1 : 0;
-        let bells = {};
+        // settings/bells: { periods (the Regular schedule, as before), schedules: { id: { name, periods, extra: [{ label, start, end }] } }, today: { date, id } }
+        let bells = {}, doc = { periods: {}, schedules: {}, today: null };
+        const schedList = () => [["regular", "Regular"]].concat(Object.entries(doc.schedules || {}).filter(([id]) => id !== "regular").map(([id, x]) => [id, x.name || "Schedule"]));
+        const schedOf = (id) => id === "regular" ? { name: "Regular", periods: doc.periods || {}, extra: (doc.schedules && doc.schedules.regular && doc.schedules.regular.extra) || [] } : (doc.schedules || {})[id];
+        const todayId = () => (doc.today && doc.today.date === todayIso && schedOf(doc.today.id)) ? doc.today.id : "regular";
+        const useToday = () => { const sc = schedOf(todayId()); bells = sc.periods || {}; };
         const mins = (t) => { const m = /^(\d{1,2}):(\d{2})$/.exec(t || ""); return m ? +m[1] * 60 + +m[2] : null; };
         const nice = (t) => { const m = mins(t); if (m == null) return ""; const h = Math.floor(m / 60), mm = ("0" + (m % 60)).slice(-2); return ((h + 11) % 12 + 1) + ":" + mm + (h < 12 ? " AM" : " PM"); };
 
@@ -100,6 +117,10 @@
             if (cur.p) { $("nowStart").textContent = "Start " + cur.p + " period"; $("nowStart").href = startUrl(cur.p); $("nowStart").onclick = null; }
             else { $("nowStart").textContent = cur.go[0]; $("nowStart").href = cur.go[1]; $("nowStart").onclick = cur.go[1] === "#bells" ? () => { $("bells").open = true; } : null; }
             $("todayTitle").textContent = (isSchoolDay ? d.name + ", " + d.date : "Monday, " + d.date) + ", period by period";
+            { const sc = schedOf(todayId()), ex = (sc.extra || []).filter((x) => x.label && mins(x.start) != null).sort((a, b) => mins(a.start) - mins(b.start)), bits = [];
+              if (todayId() !== "regular") bits.push(sc.name + " schedule today.");
+              if (ex.length) bits.push("Also today: " + ex.map((x) => x.label + " " + nice(x.start) + (mins(x.end) != null ? " to " + nice(x.end) : "")).join(" · "));
+              $("todayExtra").textContent = bits.join(" "); $("todayExtra").hidden = !bits.length || !isSchoolDay; }
             const host = $("periods"); host.textContent = "";
             PERIODS.forEach(([p, cls]) => {
                 const k = week.classes[cls], day = k.days[di], row = el("div", "prow" + (p === cur.p ? " on" : ""));
@@ -119,8 +140,38 @@
 
         const rows = $("bellRows");
         PERIODS.forEach(([p]) => { const r = el("div", "bellrow"); r.appendChild(el("b", null, p)); ["start", "end"].forEach((k) => { const lab = el("label"); lab.appendChild(el("span", null, k === "start" ? "Starts" : "Ends")); const i = el("input"); i.type = "time"; i.id = "bell-" + p + "-" + k; lab.appendChild(i); r.appendChild(lab); }); rows.appendChild(r); });
-        const fillBells = () => PERIODS.forEach(([p]) => ["start", "end"].forEach((k) => { $("bell-" + p + "-" + k).value = (bells[p] && bells[p][k]) || ""; }));
-
+        let editId = "regular", extra = [];
+        function extraRows() {
+            const host = $("extraRows"); host.textContent = "";
+            if (!extra.length) host.appendChild(el("p", "sub", "None yet."));
+            extra.forEach((x, n) => {
+                const r = el("div", "bellrow"), name = el("input"); name.type = "text"; name.maxLength = 30; name.placeholder = "Like Lunch A"; name.value = x.label || ""; name.className = "bellname"; name.setAttribute("aria-label", "Name of time " + (n + 1)); name.oninput = () => { x.label = name.value; }; r.appendChild(name);
+                ["start", "end"].forEach((k) => { const lab = el("label"); lab.appendChild(el("span", null, k === "start" ? "Starts" : "Ends")); const i = el("input"); i.type = "time"; i.value = x[k] || ""; i.setAttribute("aria-label", (x.label || "Time " + (n + 1)) + (k === "start" ? " starts" : " ends")); i.oninput = () => { x[k] = i.value; }; lab.appendChild(i); r.appendChild(lab); });
+                const del = el("button", "bx", "✕"); del.type = "button"; del.setAttribute("aria-label", "Remove " + (x.label || "this time")); del.onclick = () => { extra.splice(n, 1); extraRows(); }; r.appendChild(del);
+                host.appendChild(r);
+            });
+        }
+        function pickers() {
+            const list = schedList(), opt = ([id, name]) => { const o = el("option", null, name); o.value = id; return o; };
+            $("todaySel").replaceChildren(...list.map(opt)); $("todaySel").value = todayId();
+            $("editSel").replaceChildren(...list.map(opt)); if (!schedOf(editId)) editId = "regular"; $("editSel").value = editId;
+        }
+        function fillBells() {
+            const sc = schedOf(editId) || { periods: {}, extra: [] };
+            PERIODS.forEach(([p]) => ["start", "end"].forEach((k) => { $("bell-" + p + "-" + k).value = (sc.periods && sc.periods[p] && sc.periods[p][k]) || ""; }));
+            $("schedName").value = sc.name || ""; $("schedName").disabled = editId === "regular"; $("schedDel").hidden = editId === "regular";
+            extra = JSON.parse(JSON.stringify(sc.extra || [])); extraRows(); pickers();
+        }
+        function readForm() {
+            const out = {}; PERIODS.forEach(([p]) => { const a = $("bell-" + p + "-start").value, b = $("bell-" + p + "-end").value; if (a && b) out[p] = { start: a, end: b }; });
+            return { periods: out, extra: extra.filter((x) => String(x.label || "").trim() && x.start).map((x) => ({ label: String(x.label).trim().slice(0, 30), start: x.start, end: x.end || "" })) };
+        }
+        function cleanDoc(d) {
+            const out = { periods: (d && d.periods) || {}, schedules: {}, today: null };
+            Object.entries((d && d.schedules) || {}).forEach(([id, x]) => { if (x && typeof x === "object") out.schedules[id] = { name: String(x.name || "Schedule").slice(0, 40), periods: x.periods || {}, extra: Array.isArray(x.extra) ? x.extra : [] }; });
+            if (d && d.today && typeof d.today.date === "string") out.today = { date: d.today.date, id: String(d.today.id || "regular") };
+            return out;
+        }
         render(); setInterval(render, 30000);
         $("signOut").onclick = async () => { try { await store.signOut(); } finally { location.replace("login.html"); } };
         const user = await store.ready();
@@ -128,12 +179,22 @@
         else {
             $("who").textContent = "Signed in as " + (user.name || "teacher");
             let loaded = false;
-            store.watch("settings/bells", (snap) => { if (snap.pending) return; bells = (snap.exists && snap.data && snap.data.periods) || {}; if (!loaded) { loaded = true; fillBells(); if (!Object.keys(bells).length) $("bells").open = true; } render(); }, () => {});
-            $("bellSave").onclick = async () => {
-                const out = {}; PERIODS.forEach(([p]) => { const s = $("bell-" + p + "-start").value, e = $("bell-" + p + "-end").value; if (s && e) out[p] = { start: s, end: e }; });
+            store.watch("settings/bells", (snap) => { if (snap.pending) return; doc = cleanDoc(snap.exists && snap.data); useToday(); if (!loaded) { loaded = true; fillBells(); if (!Object.keys(doc.periods).length) $("bells").open = true; } else pickers(); render(); }, () => {});
+            const write = async (msg) => {
                 $("bellNote").textContent = "Saving…";
-                try { await store.save("settings/bells", { periods: out }); bells = out; $("bellNote").textContent = "Saved " + Object.keys(out).length + " periods"; render(); } catch (e) { $("bellNote").textContent = "Could not save (" + ((e && e.code) || "connection") + ")"; }
+                try { await store.save("settings/bells", doc); useToday(); pickers(); $("bellNote").textContent = msg; render(); } catch (e) { $("bellNote").textContent = "Could not save (" + ((e && e.code) || "connection") + ")"; }
             };
+            $("bellSave").onclick = () => {
+                const f = readForm();
+                if (editId === "regular") { doc.periods = f.periods; doc.schedules.regular = { name: "Regular", periods: {}, extra: f.extra }; }
+                else doc.schedules[editId] = { name: ($("schedName").value.trim() || "Schedule").slice(0, 40), periods: f.periods, extra: f.extra };
+                write("Saved " + (schedOf(editId).name || "schedule") + ": " + Object.keys(f.periods).length + " periods, " + f.extra.length + " other times");
+            };
+            $("editSel").onchange = () => { editId = $("editSel").value; fillBells(); $("bellNote").textContent = ""; };
+            $("todaySel").onchange = () => { const id = $("todaySel").value; doc.today = id === "regular" ? null : { date: todayIso, id }; write("Today runs on " + schedOf(id).name + "."); };
+            $("schedNew").onclick = () => { const id = "s" + Date.now().toString(36); doc.schedules[id] = { name: "New schedule", periods: JSON.parse(JSON.stringify(doc.periods || {})), extra: [] }; editId = id; fillBells(); $("schedName").focus(); $("schedName").select(); $("bellNote").textContent = "Copied from Regular. Change the name and times, then Save bell times."; };
+            $("schedDel").onclick = () => { if (editId === "regular") return; delete doc.schedules[editId]; if (doc.today && doc.today.id === editId) doc.today = null; editId = "regular"; fillBells(); write("Schedule deleted."); };
+            $("extraAdd").onclick = () => { extra.push({ label: "", start: "", end: "" }); extraRows(); const ins = $("extraRows").querySelectorAll(".bellname"); if (ins.length) ins[ins.length - 1].focus(); };
         }
     </script>
 </body>
