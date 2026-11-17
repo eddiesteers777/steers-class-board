@@ -521,7 +521,7 @@ export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
     store = (opts && opts.store) || await import("./boardStore.js?v=37");
     const guest = mode === "sub";
-    mountGames({ S, header, store: () => store, writer, now, beep, unlockSound, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
+    mountGames({ S, header, store: () => store, writer, now, beep, unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     document.body.classList.toggle("board", mode === "board");
     $("periodSel").onchange = function () { S.period = this.value; S.cls = classOf(this.value); resetPos(); push(); };
     document.addEventListener("click", (e) => { document.querySelectorAll("details.acct[open]").forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });

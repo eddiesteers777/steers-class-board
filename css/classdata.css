@@ -19,3 +19,15 @@
 .cols2{display:flex;flex-wrap:wrap;gap:6px 16px;margin:4px 0 12px}
 .chk{display:inline-flex;gap:6px;align-items:center;font-size:.93rem}
 .chk input{width:1.05rem;height:1.05rem}
+
+/* Review game results (js/gameResults.js) */
+#games{scroll-margin-top:80px}
+#games h3{font-size:1rem;margin:18px 0 6px}
+.grWho b{display:block}
+.grWho small{display:block;color:var(--c-mute);font-size:.82rem;line-height:1.35}
+.grChk{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;cursor:pointer}
+.grChk input{width:18px;height:18px}
+.grSpark{display:flex;align-items:flex-end;gap:4px;height:90px;padding:8px 10px;background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:12px;margin:6px 0 8px;max-width:720px}
+.grSpark span{flex:1;min-width:6px;max-width:28px;border-radius:4px 4px 0 0;background:#9DB6D9}
+.grSpark span.low{background:#D9636B}.grSpark span.mid{background:#E8B43A}.grSpark span.ok{background:#3BA374}
+.grTrend{margin:4px 0 10px;font-weight:600}

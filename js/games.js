@@ -7,6 +7,7 @@
      teacher/{uid}/games/index        the list of saved sets
      teacher/{uid}/games/s_<id>       one question set
      teacher/{uid}/games/live_<per>   the game being played in one period
+     teacher/{uid}/games/results      a summary of every finished game (Class Data shows it)
    Nothing here goes in the public repo.
 
    Games: the Review Board (a grid of categories and point tiles) and
@@ -102,8 +103,14 @@ function newGame(set, teams) {
         dbl: "", opts: { lose: true, secs: 30, dbl: false }, timer: blankTimer(), hist: [], phase: "play", fstep: 0, wag: [], fdone: [], at: Date.now() };
 }
 function cleanGame(d) {
-    if (d && d.kind === "chests") return cleanChests(d);
-    if (d && d.kind === "versus") return cleanVersus(d);
+    const g = d && d.kind === "chests" ? cleanChests(d) : d && d.kind === "versus" ? cleanVersus(d) : cleanBoard(d);
+    if (!g) return null;
+    g.teams.forEach((t, i) => { const m = d.teams && d.teams[i] && d.teams[i].m; if (Array.isArray(m) && m.length) t.m = m.slice(0, 12).map((x) => str(x, 60)).filter(Boolean); });
+    g.log = (Array.isArray(d.log) ? d.log : []).slice(-200).map((x) => ({ c: str(x && x.c, LIMITS.cat), ok: Math.max(0, Math.floor(+x.ok || 0)), of: Math.max(1, Math.floor(+x.of || 1)), k: str(x && x.k, 8) }));
+    g.rid = str(d.rid, 40);
+    return g;
+}
+function cleanBoard(d) {
     const set = cleanSet(d); if (!set || d.v !== 1) return null;
     const g = newGame(set, []), int = (v) => Math.floor(+v || 0);
     g.teams = (Array.isArray(d.teams) ? d.teams : []).slice(0, LIMITS.teams).map((t, i) => ({ n: str(t && t.n, 16) || "Team " + (i + 1), s: int(t && t.s) }));
@@ -202,6 +209,7 @@ const topValue = () => Math.max(...G.cats.map((c) => Math.max(...c.clues.map((k)
 
 /** Local change: save it and draw it. */
 function changed(opts) {
+    if (G && G.phase === "done" && A.mode() === "remote" && A.signedIn()) recordResult();
     rev++; if (write && G) write(JSON.parse(JSON.stringify(G)));
     if (opts && opts.quiet) { drawStrip(); return; }
     A.redraw();
@@ -221,10 +229,51 @@ export function syncGames() {
             }, () => { loaded = true; rev++; panelNote = "Saved games are not available right now."; A.redraw(); });
         }
     }
+    if (onGame()) watchResults();
     if (!setsWatched && A.signedIn() && A.mode() === "remote" && onGame()) {
         setsWatched = true;
         A.store().watch("games/index", (snap) => { if (snap.pending) return; SETS = ((snap.exists && snap.data && snap.data.sets) || []).filter((s) => s && s.id).slice(0, 200); panelSig = ""; drawPanel(); }, () => { SETS = []; panelSig = ""; drawPanel(); });
     }
+}
+
+
+/* ---------- results for Class Data ---------- */
+/* When a game reaches its final scores, a short summary is saved to games/results: day, period,
+   game, set, each team's score and (when teams came from the Group maker) who was on it, the
+   winner, and how many questions were answered right by category. Private, never on the board. */
+let RESULTS = null, resultsWatched = false, pendingResult = null, resultsWrite = null;
+const KIND_NAMES = { board: "Review Board", chests: "Treasure Chests", versus: "Class vs. Teacher" };
+const localDay = () => { const d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); };
+function watchResults() {
+    if (resultsWatched || !A.signedIn() || A.mode() !== "remote") return; resultsWatched = true; resultsWrite = A.writer("games/results");
+    A.store().watch("games/results", (snap) => {
+        if (snap.pending || resultsWrite.busy()) return;
+        RESULTS = ((snap.exists && snap.data && snap.data.list) || []).filter((r) => r && r.id);
+        if (pendingResult) { const r = pendingResult; pendingResult = null; putResult(r); }
+    }, () => { RESULTS = RESULTS || []; });
+}
+function putResult(r) {
+    if (!RESULTS) { pendingResult = r; return; }
+    const at = RESULTS.findIndex((x) => x.id === r.id);
+    if (at >= 0) { r.bonus = RESULTS[at].bonus || {}; RESULTS[at] = r; } else RESULTS.push(r);
+    RESULTS = RESULTS.slice(-1500); resultsWrite({ list: RESULTS, at: Date.now() });
+}
+function recordResult() {
+    if (!G.rid) G.rid = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const kind = G.kind || "board", best = Math.max(...G.teams.map((t) => t.s)), by = {};
+    (G.log || []).forEach((x) => { const k = x.c || "Questions"; by[k] = by[k] || { c: k, ok: 0, of: 0 }; by[k].ok += x.ok; by[k].of += x.of; });
+    putResult({ id: G.rid, date: localDay(), at: Date.now(), period: A.S.period, kind, game: KIND_NAMES[kind], title: G.title,
+        teams: G.teams.map((t) => Object.assign({ n: t.n, s: t.s }, t.m ? { m: t.m } : {})), win: G.teams.map((t, i) => (t.s === best ? i : -1)).filter((i) => i >= 0),
+        cats: Object.values(by), bonus: {} });
+    panelNote = "";
+}
+/** The Group maker's groups for this period, as lists of names (absent students left out, as the tool does). */
+function groupMembers() {
+    const T = A.S.tools, gs = T.groups, per = gs.period || A.S.period, names = (A.rosters && A.rosters()[per]) || [];
+    const out = T.absent && T.absent.day === localDay() ? (T.absent.periods[per] || []) : [];
+    const order = (gs.order || []).filter((i) => i < names.length && !out.includes(i)), res = [];
+    for (let g = 0; g * gs.size < order.length; g++) res.push(order.slice(g * gs.size, (g + 1) * gs.size).map((i) => names[i]));
+    return res;
 }
 
 /* ---------- moves ---------- */
@@ -238,11 +287,12 @@ function openClue(c, r) {
 }
 function score(t, right) {
     const o = G.open; if (!o) return; const v = valueOf(o), k = keyOf(o.c, o.r);
-    if (right) { G.teams[t].s += v; G.hist.push({ t, d: v, k, c: 1, f: 0 }); closeClue(true); }
+    if (right) { G.teams[t].s += v; G.hist.push({ t, d: v, k, c: 1, f: 0 }); logQ(G.cats[o.c].n, 1, 1, k); closeClue(true); }
     else { const d = G.opts.lose ? -v : 0; G.teams[t].s += d; if (!G.tried.includes(t)) G.tried.push(t); G.hist.push({ t, d, k, c: 0, f: 0 }); }
     G.hist = G.hist.slice(-60); changed();
 }
-function noOne() { const o = G.open; if (!o) return; G.hist.push({ t: -1, d: 0, k: keyOf(o.c, o.r), c: 1, f: 0 }); closeClue(true); changed(); }
+function noOne() { const o = G.open; if (!o) return; G.hist.push({ t: -1, d: 0, k: keyOf(o.c, o.r), c: 1, f: 0 }); logQ(G.cats[o.c].n, 0, 1, keyOf(o.c, o.r)); closeClue(true); changed(); }
+function logQ(c, ok, of, k) { if (!G.log) G.log = []; G.log.push({ c, ok, of, k: k || "" }); G.log = G.log.slice(-200); }
 function undo() {
     const h = G.hist.pop(); if (!h) return;
     if (h.t >= 0 && G.teams[h.t]) G.teams[h.t].s -= h.d;
@@ -250,6 +300,7 @@ function undo() {
     else if (h.k) {
         const [c, r] = h.k.split("-").map(Number);
         if (h.c) {   // the tile had closed: open it again, with the misses that came before
+            if (G.log && G.log.length && G.log[G.log.length - 1].k === h.k) G.log.pop();
             delete G.used[h.k]; G.turn = (G.turn - 1 + G.teams.length) % G.teams.length; G.phase = "play";
             G.open = { c, r }; G.show = false; G.timer = blankTimer(); G.tried = [];
             for (let i = G.hist.length - 1; i >= 0 && G.hist[i].k === h.k && !G.hist[i].c && !G.hist[i].f; i--) G.tried.push(G.hist[i].t);
@@ -279,7 +330,10 @@ async function start(meta, kind) {
     starting = "";
     if (!set) { panelNote = "Could not open that set. Check the connection and try again."; panelSig = ""; drawPanel(); return; }
     const keep = G && G.teams ? G.teams.map((t) => t.n) : null;
-    G = kind === "chests" ? newChests(set, keep) : kind === "versus" ? newVersus(set) : newGame(set, keep); loaded = true; changed();
+    const prev = G && G.teams;
+    G = kind === "chests" ? newChests(set, keep) : kind === "versus" ? newVersus(set) : newGame(set, keep); G.log = []; G.rid = "";
+    if (prev && kind !== "versus") G.teams.forEach((t, i) => { if (prev[i] && prev[i].m) t.m = prev[i].m; });
+    loaded = true; changed();
 }
 
 
@@ -295,7 +349,7 @@ function nextQuestion() {
     G.qi++; G.cp = "q"; G.show = false; G.right = []; G.queue = []; G.picker = -1; G.chests = closedChests(); G.last = -1; G.timer = blankTimer(); changed();
 }
 function startPicking() {
-    save(); G.queue = G.teams.map((_, i) => i).filter((i) => G.right.includes(i));
+    save(); logQ(curQ().c, G.right.length, G.teams.length); G.queue = G.teams.map((_, i) => i).filter((i) => G.right.includes(i));
     if (!G.queue.length) { nextQuestion(); return; }
     G.picker = G.queue.shift(); G.cp = "pick"; G.show = true; G.timer = blankTimer(); changed();
 }
@@ -328,7 +382,7 @@ function nextPicker() {
 /* ---------- Class vs. Teacher moves ---------- */
 function award(w) {
     if (G.cp !== "q" || G.phase !== "play") return;
-    save(); G.teams[w].s++; G.won = w; G.cp = "result"; G.show = true; G.timer = blankTimer();
+    save(); logQ(curQ().c, w === 0 ? 1 : 0, 1); G.teams[w].s++; G.won = w; G.cp = "result"; G.show = true; G.timer = blankTimer();
     G.streak = w === 0 ? G.streak + 1 : 0;
     if (G.teams[w].s >= G.opts.goal) G.phase = "done";
     changed();
@@ -535,6 +589,7 @@ export function drawPanel() {
     const undoBtn = () => { const b = btn("btn ghost", "Undo last score", undo); b.disabled = !G.hist.length; return b; };
     if (G.phase === "done") {
         p.append(h("Final scores"));
+        { const n = el("p", "gpnote"), a = el("a", null, "Class Data"); a.href = "data.html#games"; n.append(document.createTextNode("Saved to "), a, document.createTextNode(" with today's date" + (G.teams.some((t) => t.m) ? " and who was on each team." : ". Use the Group maker's groups as teams to see who won by name."))); p.append(n); }
         teamRows(p, (r, t) => r.append(el("span", "gpname", t.n), el("b", "gpscore", pts(t.s))));
         if (G.kind === "board" || !G.kind || G.kind === "chests") p.append(btn("btn ghost", G.kind === "chests" ? "Back to the game" : "Back to the board", () => { G.phase = "play"; changed(); }));
         p.append(btn("btn ghost", "Play this set again", () => { const set = cleanSet(G), names = G.teams.map((t) => t.n), o = G.opts; if (G.kind === "chests") { G = newChests(set, names); G.opts = o; } else if (G.kind === "versus") { G = newVersus(set, names[1]); G.opts = o; } else { G = newGame(set, names); G.opts = o; pickDouble(); } changed(); }));
@@ -619,7 +674,7 @@ function optionsBox() {
     const rem = btn("btn ghost", "Remove last team", () => { if (G.teams.length > 2) { const gone = G.teams.length - 1; G.teams.pop(); if (G.kind === "chests") { G.right = G.right.filter((x) => x !== gone); G.queue = G.queue.filter((x) => x !== gone); } else G.turn = Math.min(G.turn, G.teams.length - 1); if (G.hist) G.hist = []; if (G.snap) G.snap = []; changed(); } }); rem.disabled = G.teams.length <= 2;
     tb.append(add, rem);
     { const gs = A.S.tools.groups, n = gs && gs.order && gs.order.length ? Math.ceil(gs.order.length / gs.size) : 0;
-        if (n >= 2 && n <= LIMITS.teams && (!gs.period || gs.period === A.S.period)) tb.append(btn("btn ghost", "Use the Group maker's " + n + " groups", () => { const old = G.teams; G.teams = Array.from({ length: n }, (_, i) => ({ n: "Group " + (i + 1), s: old[i] ? old[i].s : 0 })); if (G.kind !== "chests") G.turn = Math.min(G.turn, n - 1); if (G.hist) G.hist = []; if (G.snap) G.snap = []; changed(); })); }
+        if (n >= 2 && n <= LIMITS.teams && (!gs.period || gs.period === A.S.period)) tb.append(btn("btn ghost", "Use the Group maker's " + n + " groups", () => { const old = G.teams; const mem = groupMembers(); G.teams = Array.from({ length: n }, (_, i) => Object.assign({ n: "Group " + (i + 1), s: old[i] ? old[i].s : 0 }, mem[i] && mem[i].length ? { m: mem[i] } : {})); if (G.kind !== "chests") G.turn = Math.min(G.turn, n - 1); if (G.hist) G.hist = []; if (G.snap) G.snap = []; changed(); })); }
     if (G.kind !== "versus") opt.append(tb);
     const chk = (label, on, fn) => { const l = el("label", "gpchk"), c = el("input"); c.type = "checkbox"; c.checked = on; c.onchange = () => fn(c.checked); l.append(c, document.createTextNode(" " + label)); return l; };
     if (G.kind !== "chests" && G.kind !== "versus") {

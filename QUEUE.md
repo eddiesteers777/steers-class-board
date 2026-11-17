@@ -26,6 +26,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Done
 | When | Item |
 |------|------|
+| Nov 17 | Review game results in Class Data: every finished game saves its date, period, winner, scores, team members (from the Group maker) and right answers per category. Class Data shows who won with a "Bonus given" box, student wins still owed a bonus, and class growth. Tested with a local store only. |
 | Nov 17 | Review Games, third game: Class vs. Teacher (shows as "Class vs. Mr. Steers"). The whole class plays against the teacher; the teacher awards each point after looking at the boards. First to 5/7/10/15, with a class-scoring rule shown on the board and a streak note. Tested with a local store only. |
 | Nov 17 | Review Games, second game: Treasure Chests. Same question sets; every team answers, right teams each open one of nine chests (+10 to +50, double, steal 25, swap scores, lose 15, empty). The teacher picks the target for a steal or swap. Scores never go below 0. Tested with a local store only. |
 | Nov 17 | Review Games, first game: the Review Board. `games.html` saves private question sets from a pasted `CATEGORY \| POINTS \| QUESTION \| ANSWER` table; the Remote's "Review Game" screen runs it with a private answer panel, team scoring, steals, timer, undo, an optional double tile and a final wager question. Each period keeps its own game. Tested with a local store only; signed-in saving and two-device sync still need a check on Eddie's devices. |
