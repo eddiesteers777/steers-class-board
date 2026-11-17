@@ -103,7 +103,7 @@ function newGame(set, teams) {
         dbl: "", opts: { lose: true, secs: 30, dbl: false }, timer: blankTimer(), hist: [], phase: "play", fstep: 0, wag: [], fdone: [], at: Date.now() };
 }
 function cleanGame(d) {
-    const g = d && d.kind === "chests" ? cleanChests(d) : d && d.kind === "versus" ? cleanVersus(d) : d && d.kind === "shots" ? cleanShots(d) : d && d.kind === "tiles" ? cleanTiles(d) : d && d.kind === "race" ? cleanRace(d) : d && d.kind === "bingo" ? cleanBingo(d) : cleanBoard(d);
+    const g = d && d.kind === "chests" ? cleanChests(d) : d && d.kind === "versus" ? cleanVersus(d) : d && d.kind === "shots" ? cleanShots(d) : d && d.kind === "tiles" ? cleanTiles(d) : d && d.kind === "race" ? cleanRace(d) : d && d.kind === "bingo" ? cleanBingo(d) : d && d.kind === "tug" ? cleanTug(d) : cleanBoard(d);
     if (!g) return null;
     g.teams.forEach((t, i) => { const m = d.teams && d.teams[i] && d.teams[i].m; if (Array.isArray(m) && m.length) t.m = m.slice(0, 12).map((x) => str(x, 60)).filter(Boolean); });
     g.log = (Array.isArray(d.log) ? d.log : []).slice(-200).map((x) => ({ c: str(x && x.c, LIMITS.cat), ok: Math.max(0, Math.floor(+x.ok || 0)), of: Math.max(1, Math.floor(+x.of || 1)), k: str(x && x.k, 8) }));
@@ -319,6 +319,29 @@ function cleanBingo(d) {
     return g;
 }
 
+/* ---------- Tug of War ---------- */
+/* The room splits into two sides. Each question, each side that gets it right pulls the rope one
+   step its way (both right cancels out). First side to pull the marker past its line wins.
+   The rope position is simply side 2's pulls minus side 1's. */
+const TUG_GOALS = [3, 4, 5, 6, 8];
+function newTug(set, names) {
+    return { v: 1, kind: "tug", id: set.id, title: set.title, cats: set.cats, final: null, qs: questionsOf(set), qi: 0,
+        teams: [{ n: (names && names[0]) || "Blue", s: 0 }, { n: (names && names[1]) || "Gold", s: 0 }], cp: "q", show: false, last: -1,
+        opts: { secs: 30, goal: 4 }, timer: blankTimer(), snap: [], phase: "play", at: Date.now() };
+}
+function cleanTug(d) {
+    const set = cleanSet(d); if (!set || d.v !== 1) return null;
+    const g = newTug(set, [d.teams && d.teams[0] && str(d.teams[0].n, 16), d.teams && d.teams[1] && str(d.teams[1].n, 16)]), int = (v) => Math.floor(+v || 0);
+    g.teams.forEach((t, i) => { t.s = Math.max(0, int(d.teams && d.teams[i] && d.teams[i].s)); });
+    g.qi = Math.min(g.qs.length - 1, Math.max(0, int(d.qi))); g.cp = d.cp === "result" ? "result" : "q"; g.show = !!d.show;
+    g.last = [0, 1, 2, 3].includes(+d.last) && d.last !== null && d.last !== "" ? +d.last : -1; if (g.cp === "result" && g.last < 0) g.cp = "q";
+    const o = d.opts || {}; g.opts = { secs: [15, 30, 45, 60, 90, 120].includes(+o.secs) ? +o.secs : 30, goal: TUG_GOALS.includes(+o.goal) ? +o.goal : 4 };
+    if (d.timer) g.timer = { running: !!d.timer.running, t0: +d.timer.t0 || 0, elapsed: +d.timer.elapsed || 0 };
+    g.snap = (Array.isArray(d.snap) ? d.snap : []).filter((x) => typeof x === "string" && x.length < 20000).slice(-12);
+    g.phase = d.phase === "done" ? "done" : "play"; g.at = +d.at || 0;
+    return g;
+}
+
 const prizeText = (c) => ({ add: "+" + c.n + " points", dbl: "Double points!", steal: c.x >= 0 ? "Stole " + (c.g || 0) : "Steal " + c.n, swap: "Swap scores", lose: "Lose " + c.n, none: "Empty chest" }[c.k] || "");
 const needsTarget = (c) => (c.k === "steal" || c.k === "swap") && c.x === -1;
 
@@ -329,7 +352,7 @@ let SETS = null, setsWatched = false, starting = "", panelSig = "", lastDone = f
 
 export function mountGames(api) { A = api; }
 /* The Game Library's Play button opens remote.html?screen=game&period=1st&set=<id>&game=<kind>. */
-let AUTO = (() => { try { const q = new URLSearchParams(location.search), id = q.get("set"), k = q.get("game"); return id && ["board", "chests", "versus", "shots", "tiles", "race", "bingo"].includes(k) ? { id, k, per: q.get("period") || "" } : null; } catch (e) { return null; } })();
+let AUTO = (() => { try { const q = new URLSearchParams(location.search), id = q.get("set"), k = q.get("game"); return id && ["board", "chests", "versus", "shots", "tiles", "race", "bingo", "tug"].includes(k) ? { id, k, per: q.get("period") || "" } : null; } catch (e) { return null; } })();
 function tryAuto() {
     if (!AUTO || A.mode() !== "remote" || !onGame() || !loaded || !SETS || starting) return;
     if (AUTO.per && AUTO.per !== A.S.period) return;   // wait for the period from the link to take hold
@@ -385,7 +408,7 @@ export function syncGames() {
    game, set, each team's score and (when teams came from the Group maker) who was on it, the
    winner, and how many questions were answered right by category. Private, never on the board. */
 let RESULTS = null, resultsWatched = false, pendingResult = null, resultsWrite = null;
-const KIND_NAMES = { board: "Review Board", chests: "Treasure Chests", versus: "Class vs. Teacher", shots: "Trashketball", tiles: "Mystery Tiles", race: "Ring Race", bingo: "Bingo" };
+const KIND_NAMES = { board: "Review Board", chests: "Treasure Chests", versus: "Class vs. Teacher", shots: "Trashketball", tiles: "Mystery Tiles", race: "Ring Race", bingo: "Bingo", tug: "Tug of War" };
 const localDay = () => { const d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); };
 function watchResults() {
     if (resultsWatched || !A.signedIn() || A.mode() !== "remote") return; resultsWatched = true; resultsWrite = A.writer("games/results");
@@ -474,8 +497,8 @@ async function start(meta, kind) {
     if (!set) { panelNote = "Could not open that set. Check the connection and try again."; panelSig = ""; drawPanel(); return; }
     const keep = G && G.teams ? G.teams.map((t) => t.n) : null;
     const prev = G && G.teams;
-    G = kind === "chests" ? newChests(set, keep) : kind === "versus" ? newVersus(set) : kind === "shots" ? newShots(set, keep) : kind === "tiles" ? newTiles(set, keep) : kind === "race" ? newRace(set, keep) : kind === "bingo" ? newBingo(set) : newGame(set, keep); G.log = []; G.rid = "";
-    if (prev && kind !== "versus" && kind !== "bingo") G.teams.forEach((t, i) => { if (prev[i] && prev[i].m) t.m = prev[i].m; });
+    G = kind === "chests" ? newChests(set, keep) : kind === "versus" ? newVersus(set) : kind === "shots" ? newShots(set, keep) : kind === "tiles" ? newTiles(set, keep) : kind === "race" ? newRace(set, keep) : kind === "bingo" ? newBingo(set) : kind === "tug" ? newTug(set) : newGame(set, keep); G.log = []; G.rid = "";
+    if (prev && kind !== "versus" && kind !== "bingo" && kind !== "tug") G.teams.forEach((t, i) => { if (prev[i] && prev[i].m) t.m = prev[i].m; });
     loaded = true; changed();
 }
 
@@ -620,6 +643,21 @@ function bingoWin(n) {
     save(); G.teams.push({ n: "Card " + n, s: 1, c: n }); changed();
 }
 
+/* ---------- Tug of War moves ---------- */
+const tugPos = () => G.teams[1].s - G.teams[0].s;
+function tugPull(w) {   // 0: side 1 right, 1: side 2 right, 2: both, 3: neither
+    if (G.cp !== "q" || G.phase !== "play") return;
+    save(); logQ(curQ().c, w === 2 ? 2 : w === 3 ? 0 : 1, 2);
+    if (w === 0 || w === 2) G.teams[0].s++; if (w === 1 || w === 2) G.teams[1].s++;
+    G.last = w; G.cp = "result"; G.show = true; G.timer = blankTimer();
+    if (Math.abs(tugPos()) >= G.opts.goal) G.phase = "done";
+    changed();
+}
+function tugNext() {
+    if (G.qi >= G.qs.length - 1) { G.phase = "done"; changed(); return; }
+    G.qi++; G.cp = "q"; G.show = false; G.last = -1; G.timer = blankTimer(); changed();
+}
+
 /* ---------- the stage (what students see) ---------- */
 function strip() {
     const s = el("div", "gteams"); s.id = "gTeams";
@@ -741,6 +779,33 @@ function bingoStage(body) {
     const wrap = el("div", "gbwrap"); wrap.append(box, side); body.append(wrap);
 }
 
+function ropeSvg() {
+    const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", "0 0 1000 150"); svg.setAttribute("class", "gtug"); svg.setAttribute("aria-hidden", "true");
+    const add = (tag, at, text) => { const e = document.createElementNS(NS, tag); Object.keys(at).forEach((k) => e.setAttribute(k, at[k])); if (text != null) e.textContent = text; svg.append(e); return e; };
+    const goal = G.opts.goal, step = 380 / goal, pos = Math.max(-goal, Math.min(goal, tugPos())), x = 500 + pos * step;
+    add("rect", { x: 0, y: 0, width: 500, height: 150, class: "gtside a" }); add("rect", { x: 500, y: 0, width: 500, height: 150, class: "gtside b" });
+    for (let i = -goal; i <= goal; i++) if (i) add("line", { x1: 500 + i * step, y1: 60, x2: 500 + i * step, y2: 90, class: "gttick" });
+    add("line", { x1: 500 - goal * step, y1: 20, x2: 500 - goal * step, y2: 130, class: "gtwinline a" }); add("line", { x1: 500 + goal * step, y1: 20, x2: 500 + goal * step, y2: 130, class: "gtwinline b" });
+    add("line", { x1: 500, y1: 10, x2: 500, y2: 140, class: "gtmid" });
+    const defs = add("defs", {}), cp = document.createElementNS(NS, "clipPath"), cr = document.createElementNS(NS, "rect"); cp.id = "gtClip"; cr.setAttribute("width", 1000); cr.setAttribute("height", 150); cp.append(cr); defs.append(cp);
+    const rope = document.createElementNS(NS, "path"); rope.setAttribute("d", "M-400 75 Q 250 " + (68 + (pos % 2 ? 4 : 0)) + " 500 75 T 1400 75"); rope.setAttribute("class", "gtrope"); rope.setAttribute("transform", "translate(" + (pos * step) + " 0)");
+    const rg = add("g", { "clip-path": "url(#gtClip)" }); rg.append(rope);
+    const knot = add("g", { class: "gtknot", transform: "translate(" + x + " 75)" });
+    [["path", { d: "M0 -38 L0 0", class: "gtpole" }], ["path", { d: "M0 -38 L26 -30 L0 -22 Z", class: "gtflag" }], ["circle", { cx: 0, cy: 0, r: 11, class: "gtdot" }]].forEach(([t, at]) => { const e = document.createElementNS(NS, t); Object.keys(at).forEach((k) => e.setAttribute(k, at[k])); knot.append(e); });
+    return svg;
+}
+function tugStage(body) {
+    const q = curQ(), top = el("div", "gtop"), box = el("div", "gclue gtugq");
+    top.append(el("span", "gchip", "Question " + (G.qi + 1) + " · " + q.c), ring()); box.append(top, qBox(q.q));
+    if (G.show) { const a = el("div", "gans"); a.append(el("small", null, "Answer"), mathEl("p", null, q.a)); box.append(a); }
+    const field = el("div", "gtugfield"), names = el("div", "gtugnames"), pos = tugPos(), goal = G.opts.goal;
+    const side = (i) => { const d = el("div", "gtugname " + (i ? "b" : "a")); d.append(el("b", null, G.teams[i].n), el("small", null, G.teams[i].s + (G.teams[i].s === 1 ? " pull" : " pulls"))); return d; };
+    const say = G.cp === "result" ? (G.last === 2 ? "Both right: no one moves!" : G.last === 3 ? "No one got it." : G.teams[G.last].n + " pulls!") : (pos === 0 ? "Dead even" : G.teams[pos < 0 ? 0 : 1].n + " is " + Math.abs(pos) + " of " + goal + " from winning");
+    names.append(side(0), el("p", "gtugsay" + (G.cp === "result" && G.last < 2 ? " pull" : ""), say), side(1));
+    field.append(names, ropeSvg());
+    const wrap = el("div", "gtugwrap"); wrap.append(box, field); body.append(wrap);
+}
+
 function courtSvg() {
     const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", "0 20 400 240"); svg.setAttribute("class", "gtcourt"); svg.setAttribute("aria-hidden", "true");
     const add = (tag, at, text) => { const e = document.createElementNS(NS, tag); Object.keys(at).forEach((k) => e.setAttribute(k, at[k])); if (text != null) e.textContent = text; svg.append(e); return e; };
@@ -802,13 +867,15 @@ export function drawStage(st) {
         const e = el("div", "empty"); e.append(el("b", null, "No game is running for " + per + "."), document.createTextNode(A.mode() === "remote" ? "Pick a question set in the panel beside the board to start one." : "Start one from the Remote."));
         st.append(e); return;
     }
-    st.append(A.header(G.kind === "chests" ? "Treasure Chests" : G.kind === "versus" ? "Class vs. " + G.teams[1].n : G.kind === "shots" ? "Trashketball" : G.kind === "tiles" ? "Mystery Tiles" : G.kind === "race" ? "Ring Race" : G.kind === "bingo" ? "Bingo" : "Review Game", G.title));
+    st.append(A.header(G.kind === "chests" ? "Treasure Chests" : G.kind === "versus" ? "Class vs. " + G.teams[1].n : G.kind === "shots" ? "Trashketball" : G.kind === "tiles" ? "Mystery Tiles" : G.kind === "race" ? "Ring Race" : G.kind === "bingo" ? "Bingo" : G.kind === "tug" ? "Tug of War" : "Review Game", G.title));
     const body = el("div", "gbody");
     if (G.kind === "chests" && G.phase !== "done") chestStage(body);
     else if (G.kind === "shots" && G.phase !== "done") shotStage(body);
     else if (G.kind === "tiles" && G.phase !== "done") tilesStage(body);
     else if (G.kind === "race" && G.phase !== "done") { raceStage(body); st.append(body); return; }
     else if (G.kind === "bingo" && G.phase !== "done") { bingoStage(body); st.append(body); return; }
+    else if (G.kind === "tug" && G.phase !== "done") { tugStage(body); st.append(body); return; }
+    else if (G.kind === "tug") { const p = tugPos(), box = el("div", "gdone"); box.append(el("p", "gwinlab", p ? "Winner" : "It's a tie!"), el("p", "gwin", p ? G.teams[p < 0 ? 0 : 1].n : G.teams[0].n + " and " + G.teams[1].n), el("p", "gwinpts", G.teams[0].s + " pulls to " + G.teams[1].s)); body.append(box); st.append(body); return; }
     else if (G.kind === "bingo") { const box = el("div", "gdone"); box.append(el("p", "gwinlab", G.teams.length ? "Bingo!" : "Game over"), el("p", "gwin", G.teams.length ? G.teams.map((t) => t.n).join(", ") : "No bingo this time"), el("p", "gwinpts", calledList().length + " answers called")); body.append(box); st.append(body); return; }
     else if (G.kind === "versus" && G.phase !== "done") { versusStage(body); st.append(body); return; }
     else if (G.phase === "done") {
@@ -852,7 +919,7 @@ export function tickGames() {
     const started = t.running || t.elapsed > 0, done = started && left <= 0, txt = done ? "Time!" : String(left);
     const r = document.getElementById("gRing");
     if (r) {
-        r.hidden = !started || !(G.kind === "chests" || G.kind === "versus" || G.kind === "shots" || G.kind === "tiles" || G.kind === "race" ? G.cp === "q" : G.kind === "bingo" ? G.phase === "play" : G.open); r.classList.toggle("hot", started && left <= 5);
+        r.hidden = !started || !(G.kind === "chests" || G.kind === "versus" || G.kind === "shots" || G.kind === "tiles" || G.kind === "race" || G.kind === "tug" ? G.cp === "q" : G.kind === "bingo" ? G.phase === "play" : G.open); r.classList.toggle("hot", started && left <= 5);
         const arc = document.getElementById("gRingArc"), C = 2 * Math.PI * 42; if (arc) { arc.style.strokeDasharray = String(C); arc.style.strokeDashoffset = String(C * (1 - Math.max(0, Math.min(1, 1 - ms / (total * 1000))))); }
         document.getElementById("gClock").textContent = txt;
     }
@@ -866,6 +933,7 @@ export function gameFlow(n) {
     if (!G) return;
     if (G.kind === "versus") { if (G.phase !== "play") return; if (G.cp === "result") { if (n > 0) versusNext(); return; } if (n > 0 && !G.show) { G.show = true; changed(); } else if (n < 0 && G.show) { G.show = false; changed(); } return; }
     if (G.kind === "bingo") { if (G.phase !== "play") return; if (n > 0) { if (!G.show) { save(); G.show = true; changed(); } else bingoNext(); } else if (n < 0 && G.show) { G.show = false; changed(); } return; }
+    if (G.kind === "tug") { if (G.phase !== "play") return; if (G.cp === "result") { if (n > 0) tugNext(); return; } if (n > 0 && !G.show) { G.show = true; changed(); } else if (n < 0 && G.show) { G.show = false; changed(); } return; }
     if (G.kind === "race") { if (G.phase !== "play") return; if (G.cp === "result") { if (n > 0) raceNext(); return; } if (n > 0 && !G.show) { G.show = true; changed(); } else if (n < 0 && G.show) { G.show = false; changed(); } return; }
     if (G.kind === "tiles") { if (G.phase !== "play") return; if (G.cp === "pick") { if (n > 0 && G.flip >= 0) tilesNextPicker(); return; } if (G.cp === "q") { if (n > 0 && !G.show) { G.show = true; changed(); } else if (n < 0 && G.show) { G.show = false; changed(); } } return; }
     if (G.kind === "shots") { if (G.phase !== "play") return; if (G.cp === "shoot") { if (n > 0 && G.shot >= 0) nextShooter(); return; } if (n > 0 && !G.show) { G.show = true; changed(); } else if (n < 0 && G.show) { G.show = false; changed(); } return; }
@@ -880,6 +948,7 @@ export function gameFlowLabel() {
     if (G.kind === "versus") return G.phase !== "play" ? "Next" : G.cp === "result" ? "Next: Next question" : !G.show ? "Next: Show answer" : "Next";
     if (G.kind === "chests") return G.phase === "play" && G.cp === "q" && !G.show ? "Next: Show answer" : "Next";
     if (G.kind === "bingo") return G.phase !== "play" ? "Next" : !G.show ? "Next: Show answer" : "Next: Next question";
+    if (G.kind === "tug") return G.phase !== "play" ? "Next" : G.cp === "result" ? "Next: Next question" : !G.show ? "Next: Show answer" : "Next";
     if (G.kind === "race") return G.phase !== "play" ? "Next" : G.cp === "result" ? "Next: Next question" : !G.show ? "Next: Show answer" : "Next";
     if (G.kind === "tiles") return G.phase !== "play" ? "Next" : G.cp === "q" && !G.show ? "Next: Show answer" : G.cp === "pick" && G.flip >= 0 ? (G.queue.length && covered() ? "Next: Next team" : "Next: Next question") : "Next";
     if (G.kind === "shots") return G.phase !== "play" ? "Next" : G.cp === "q" ? (!G.show ? "Next: Show answer" : "Next") : G.shot >= 0 ? (G.queue.length ? "Next: Next shooter" : "Next: Next question") : "Next";
@@ -919,7 +988,7 @@ export function drawPanel() {
             const one = (s, into) => {
             const b = el("div", "gpset"), row = el("div", "gpsetbtns");
             b.append(el("b", null, s.title || "Review game"), el("small", null, starting === s.id ? "Opening…" : (s.cats || 0) + " categories · " + (s.clues || 0) + " questions"));
-            [["board", "Review Board"], ["chests", "Treasure Chests"], ["versus", "Class vs. Teacher"], ["shots", "Trashketball"], ["tiles", "Mystery Tiles"], ["race", "Ring Race"], ["bingo", "Bingo"]].forEach(([k, label]) => { const g = btn("btn ghost", label, () => start(s, k)); g.disabled = !!starting; g.setAttribute("aria-label", "Play " + (s.title || "this set") + " as " + label); row.append(g); });
+            [["board", "Review Board"], ["chests", "Treasure Chests"], ["versus", "Class vs. Teacher"], ["shots", "Trashketball"], ["tiles", "Mystery Tiles"], ["race", "Ring Race"], ["bingo", "Bingo"], ["tug", "Tug of War"]].forEach(([k, label]) => { const g = btn("btn ghost", label, () => start(s, k)); g.disabled = !!starting; g.setAttribute("aria-label", "Play " + (s.title || "this set") + " as " + label); row.append(g); });
             b.append(row); into.append(b);
             };
             mine.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach((s) => one(s, list));
@@ -935,7 +1004,7 @@ export function drawPanel() {
         { const n = el("p", "gpnote"), a = el("a", null, "Class Data"); a.href = "data.html#games"; n.append(document.createTextNode("Saved to "), a, document.createTextNode(" with today's date" + (G.teams.some((t) => t.m) ? " and who was on each team." : ". Use the Group maker's groups as teams to see who won by name."))); p.append(n); }
         teamRows(p, (r, t) => r.append(el("span", "gpname", t.n), el("b", "gpscore", pts(t.s))));
         if (G.kind === "board" || !G.kind || G.kind === "chests" || G.kind === "shots" || G.kind === "tiles") p.append(btn("btn ghost", G.kind === "chests" || G.kind === "shots" || G.kind === "tiles" ? "Back to the game" : "Back to the board", () => { G.phase = "play"; changed(); }));
-        p.append(btn("btn ghost", "Play this set again", () => { const set = cleanSet(G), names = G.teams.map((t) => t.n), o = G.opts; if (G.kind === "chests") { G = newChests(set, names); G.opts = o; } else if (G.kind === "versus") { G = newVersus(set, names[1]); G.opts = o; } else if (G.kind === "shots") { G = newShots(set, names); G.opts = o; } else if (G.kind === "tiles") { G = newTiles(set, names); G.opts = o; } else if (G.kind === "race") { G = newRace(set, names); G.opts = o; } else if (G.kind === "bingo") { G = newBingo(set); G.opts = o; } else { G = newGame(set, names); G.opts = o; pickDouble(); } changed(); }));
+        p.append(btn("btn ghost", "Play this set again", () => { const set = cleanSet(G), names = G.teams.map((t) => t.n), o = G.opts; if (G.kind === "chests") { G = newChests(set, names); G.opts = o; } else if (G.kind === "versus") { G = newVersus(set, names[1]); G.opts = o; } else if (G.kind === "shots") { G = newShots(set, names); G.opts = o; } else if (G.kind === "tiles") { G = newTiles(set, names); G.opts = o; } else if (G.kind === "race") { G = newRace(set, names); G.opts = o; } else if (G.kind === "bingo") { G = newBingo(set); G.opts = o; } else if (G.kind === "tug") { G = newTug(set, names); G.opts = o; } else { G = newGame(set, names); G.opts = o; pickDouble(); } changed(); }));
         p.append(endButton());
         return;
     }
@@ -945,6 +1014,7 @@ export function drawPanel() {
     if (G.kind === "tiles") { tilesPanel(p); return; }
     if (G.kind === "race") { racePanel(p); return; }
     if (G.kind === "bingo") { bingoPanel(p); return; }
+    if (G.kind === "tug") { tugPanel(p); return; }
     if (G.phase === "final") {
         const f = G.final;
         p.append(h(finalName(f)), mathEl("p", "gpq", f.q));
@@ -1255,4 +1325,33 @@ function bingoPanel(p) {
     cn.onchange = () => { G.opts.cards = Math.min(60, Math.max(1, Math.floor(+cn.value || 30))); changed(); }; cl.append(document.createTextNode("Cards to print "), cn); opt.append(cl);
     opt.append(btn("btn ghost", "Show the results now", () => { G.phase = "done"; changed(); }), endButton());
     p.append(opt); tickGames();
+}
+
+function tugPanel(p) {
+    const q = curQ(), undoB = () => { const b = btn("btn ghost", "Undo", chestUndo); b.disabled = !G.snap.length; return b; }, [A0, B0] = G.teams;
+    p.append(h("Question " + (G.qi + 1) + " of " + G.qs.length), el("p", "gpnote", q.c), mathEl("p", "gpq", q.q));
+    const ans = el("div", "gpans"); ans.append(el("small", null, "Answer (only you see this)"), mathEl("p", null, q.a)); p.append(ans);
+    const pos = tugPos(), sc = el("div", "gpvs"); G.teams.forEach((t) => { const d = el("div"); d.append(el("span", null, t.n), el("b", null, t.s + (t.s === 1 ? " pull" : " pulls"))); sc.append(d); }); p.append(sc);
+    p.append(el("p", "gpnote", pos === 0 ? "The rope is dead even. First to " + G.opts.goal + " steps wins." : G.teams[pos < 0 ? 0 : 1].n + " is " + Math.abs(pos) + " of " + G.opts.goal + " steps from winning."));
+    if (G.cp === "q") {
+        const tr = el("div", "gptimer"), clock = el("b"); clock.id = "gpClock";
+        tr.append(clock, btn("btn ghost", G.timer.running ? "Pause" : (G.timer.elapsed > 0 ? "Resume" : "Start timer"), timerGo), btn("btn ghost", "Reset", () => { G.timer = blankTimer(); changed(); }));
+        p.append(tr, btn("btn ghost", G.show ? "Hide the answer on the board" : "Show the answer on the board", () => { G.show = !G.show; changed(); }));
+        p.append(el("p", "gpnote", "Who got it right?"));
+        const row = el("div", "gptug");
+        row.append(btn("gpok", A0.n + " right", () => tugPull(0)), btn("gpok", B0.n + " right", () => tugPull(1)), btn("gpadj", "Both right", () => tugPull(2)), btn("gpno", "Neither", () => tugPull(3)));
+        p.append(row);
+        const r2 = el("div", "gpbtns"); r2.append(btn("btn ghost", "Skip this question", () => { save(); tugNext(); }), undoB()); p.append(r2);
+        tickGames();
+    } else {
+        p.append(btn("btn go", G.qi >= G.qs.length - 1 ? "Show the final result" : "Next question", tugNext), undoB());
+    }
+    const opt = el("details", "gpopts"); opt.append(el("summary", null, "Options")); opt.open = sessionStorage.getItem("focal-game-opts") === "1"; opt.ontoggle = () => { try { sessionStorage.setItem("focal-game-opts", opt.open ? "1" : "0"); } catch (e) { /* ok */ } };
+    G.teams.forEach((t, i) => { const l = el("label", "gpchk"), inp = el("input", "gpname"); inp.type = "text"; inp.maxLength = 16; inp.value = t.n; inp.setAttribute("aria-label", "Name of side " + (i + 1));
+        inp.oninput = () => { G.teams[i].n = inp.value.slice(0, 16) || (i ? "Gold" : "Blue"); changed({ quiet: true }); }; l.append(document.createTextNode((i ? "Right" : "Left") + " side "), inp); opt.append(l); });
+    const pick = (label, list, cur, fn) => { const l = el("label", "gpchk"), sel = el("select"); list.forEach(([v, t]) => { const o = el("option", null, t); o.value = v; sel.append(o); }); sel.value = String(cur); sel.onchange = () => fn(sel.value); l.append(document.createTextNode(label + " "), sel); return l; };
+    opt.append(pick("Steps to win", TUG_GOALS.map((n) => [n, n + " steps"]), G.opts.goal, (v) => { G.opts.goal = +v; if (Math.abs(tugPos()) >= G.opts.goal) G.phase = "done"; changed(); }));
+    opt.append(pick("Timer for each question", [15, 30, 45, 60, 90, 120].map((n) => [n, n + " seconds"]), G.opts.secs, (v) => { G.opts.secs = +v; changed(); }));
+    opt.append(btn("btn ghost", "Show the result now", () => { G.phase = "done"; changed(); }), endButton());
+    p.append(opt);
 }
