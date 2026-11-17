@@ -20,12 +20,13 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 | 9 | Check every teacher page against DESIGN.md | 390px and desktop: Home, Remote, Rosters, Library, Week Builder, Class Data, sign-in. Home's header now has six buttons and needs thinning. |
 | 10 | Week 6 content | Starts from the "Weekly Plan Intake - Steers Math" Sheet (school account). New `data/week6.js`, add to `data/weeks.js` and `data/library.js`. |
 | 12 | Class Data: tie results to skills over time | Link a set to a Library week, show growth, group by standard once the curriculum documents are in the project. |
-| 20 | Review games: the next game | Ideas Eddie has seen: Mystery Tiles, Ring Race, Class vs. Mr. Steers, Trashketball scorer, printable Bingo. Ask him which one before building. |
+| 20 | Review games: the next game | Ideas Eddie has seen: Mystery Tiles, Ring Race, Trashketball scorer, printable Bingo. Ask him which one before building. |
 | 14 | Remove unused starter pages | `planning.html`, `homework.html`, `schedule.html` and their scripts look unused. Confirm with the school thread first. |
 
 ## Done
 | When | Item |
 |------|------|
+| Nov 17 | Review Games, third game: Class vs. Teacher (shows as "Class vs. Mr. Steers"). The whole class plays against the teacher; the teacher awards each point after looking at the boards. First to 5/7/10/15, with a class-scoring rule shown on the board and a streak note. Tested with a local store only. |
 | Nov 17 | Review Games, second game: Treasure Chests. Same question sets; every team answers, right teams each open one of nine chests (+10 to +50, double, steal 25, swap scores, lose 15, empty). The teacher picks the target for a steal or swap. Scores never go below 0. Tested with a local store only. |
 | Nov 17 | Review Games, first game: the Review Board. `games.html` saves private question sets from a pasted `CATEGORY \| POINTS \| QUESTION \| ANSWER` table; the Remote's "Review Game" screen runs it with a private answer panel, team scoring, steals, timer, undo, an optional double tile and a final wager question. Each period keeps its own game. Tested with a local store only; signed-in saving and two-device sync still need a check on Eddie's devices. |
 | Nov 17 | Past 2nd nine weeks weeks on the site: `data/week0.js`–`week4.js` (Oct 12 to Nov 13), typed from Eddie's Drive week folders. Every day has its agenda, learning target and bellringers with answers (220 problems with Acc, each checked by a computed check). Off days (Fall Break Oct 12–13, Veterans Day Nov 11) are "No School" rows. Links are student files only; no tests, keys, Jeopardy or speed dating sets. 8th Acc Weeks 0–2 are copies of the 8th Grade days (its Drive folders are empty; Eddie confirmed Nov 16 that Acc did the 8th lessons). Week 0 has no bellringer sheets. |

@@ -47,6 +47,7 @@ Games the teacher runs from the Remote while the board shows them. Students neve
 Sets are private: `teacher/{uid}/games/index` and `games/s_<id>`. Never commit question sets or answers to this repo.
 On the Remote, the "Review Game" screen shows the Review Board (categories and point tiles). A private panel beside the board picture shows the answer before the class sees it, scores each team right or wrong, runs a timer, and has undo. Each period keeps its own game at `games/live_<period>`. `js/games.js`, `css/games.css`.
 Treasure Chests uses the same sets: one question at a time (easiest first), every team answers on whiteboards, the teacher taps the teams that were right, and each of those teams opens one of nine chests (points, double, steal, swap, lose some or empty, drawn when it opens). Undo steps back one move.
+Class vs. Teacher uses the same sets: the whole class answers each question on whiteboards, and the teacher gives the point to the class or to themselves (the name on the board is editable). Two progress rings fill toward the goal (first to 5, 7, 10 or 15).
 The games are original to Focal. Do not copy the name, look or art of any other review-game site.
 
 ## Design rules and the queue

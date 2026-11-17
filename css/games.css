@@ -174,3 +174,27 @@ div.gpset{cursor:default}
 .gpchests{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .gpchests .gpadj{font-size:1.1rem}
 .gprow.nm{grid-template-columns:minmax(0,1fr) auto}
+
+/* ---------- Class vs. Teacher ---------- */
+.gvwrap{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.6fr) minmax(0,1fr);gap:1em;align-items:stretch}
+.gvside{min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4em;background:var(--deep);border:.13em solid transparent;border-radius:.8em;padding:.6em;text-align:center}
+.gvside.got{border-color:var(--amber,#F2B33D)}
+.gvname{font-size:1.15em;font-weight:700;line-height:1.15;overflow-wrap:anywhere}
+.gvring{position:relative;width:min(100%,8.5em);aspect-ratio:1;display:grid;place-items:center}
+.gvring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.gvring circle{fill:none;stroke-width:10}
+.gvring .gv-bg{stroke:rgba(127,174,221,.22)}
+.gvring .gv-fg{stroke:var(--sky);stroke-linecap:round;transition:stroke-dashoffset .26s ease-out}
+.gvside.class .gv-fg{stroke:#9BE3BE}
+.gvside.teacher .gv-fg{stroke:var(--amber,#F2B33D)}
+.gvring b{position:relative;font-size:3em;font-weight:800;font-variant-numeric:tabular-nums;font-family:var(--display,inherit)}
+.gvgoal{font-size:.8em;color:var(--soft)}
+.gvwho{flex:none;text-align:center;font-size:1.6em;font-weight:800;font-family:var(--display,inherit)}
+.gvwho.class{color:#9BE3BE}.gvwho.teacher{color:var(--amber,#F2B33D)}
+@media (prefers-reduced-motion:reduce){.gvring .gv-fg{transition:none}}
+.gpvs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gpvs>div{border:1.5px solid var(--c-line);border-radius:12px;padding:8px 12px;display:flex;flex-direction:column}
+.gpvs span{font-size:.8rem;color:var(--c-mute);font-weight:600}
+.gpvs b{font-size:1.3rem;font-variant-numeric:tabular-nums}
+.gpvsbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gpvsbtns button{min-height:56px;font-size:1rem}
