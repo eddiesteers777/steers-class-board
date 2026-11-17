@@ -8,7 +8,7 @@
    in the order the district units list them. Standards left open in units before the current one
    are reported separately as "left open", so they are not mistaken for the next lesson.
 ========================================== */
-import { STANDARDS } from "../data/standards.js?v=50";
+import { STANDARDS } from "../data/standards.js?v=52";
 
 const stateOf = (p, code) => ((p || {})[code] || {}).s || "";
 

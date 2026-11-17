@@ -103,7 +103,7 @@ function newGame(set, teams) {
         dbl: "", opts: { lose: true, secs: 30, dbl: false }, timer: blankTimer(), hist: [], phase: "play", fstep: 0, wag: [], fdone: [], at: Date.now() };
 }
 function cleanGame(d) {
-    const g = d && d.kind === "chests" ? cleanChests(d) : d && d.kind === "versus" ? cleanVersus(d) : d && d.kind === "shots" ? cleanShots(d) : d && d.kind === "tiles" ? cleanTiles(d) : d && d.kind === "race" ? cleanRace(d) : d && d.kind === "bingo" ? cleanBingo(d) : d && d.kind === "tug" ? cleanTug(d) : cleanBoard(d);
+    const g = d && d.kind === "chests" ? cleanChests(d) : d && d.kind === "versus" ? cleanVersus(d) : d && d.kind === "shots" ? cleanShots(d) : d && d.kind === "tiles" ? cleanTiles(d) : d && d.kind === "race" ? cleanRace(d) : d && d.kind === "bingo" ? cleanBingo(d) : d && d.kind === "tug" ? cleanTug(d) : d && d.kind === "rapid" ? cleanRapid(d) : cleanBoard(d);
     if (!g) return null;
     g.teams.forEach((t, i) => { const m = d.teams && d.teams[i] && d.teams[i].m; if (Array.isArray(m) && m.length) t.m = m.slice(0, 12).map((x) => str(x, 60)).filter(Boolean); });
     g.log = (Array.isArray(d.log) ? d.log : []).slice(-200).map((x) => ({ c: str(x && x.c, LIMITS.cat), ok: Math.max(0, Math.floor(+x.ok || 0)), of: Math.max(1, Math.floor(+x.of || 1)), k: str(x && x.k, 8) }));
@@ -342,6 +342,34 @@ function cleanTug(d) {
     return g;
 }
 
+/* ---------- Rapid Fire ---------- */
+/* The whole class against the clock. The round timer runs (30 s to 3 min); the teacher taps Right
+   or Missed as fast as the class answers and the next question shows at once. The board counts
+   right answers and the streak, and shows the class record for this period to beat.
+   The set loops if the round outlasts it. */
+const RAPID_SECS = [30, 45, 60, 90, 120, 180];
+function newRapid(set, rec) {
+    return { v: 1, kind: "rapid", id: set.id, title: set.title, cats: set.cats, final: null, qs: questionsOf(set), qi: 0,
+        teams: [{ n: "Class", s: 0 }], cp: "ready", miss: 0, streak: 0, best: 0, last: -1, lq: -1, rec: Math.max(0, Math.floor(+rec || 0)),
+        opts: { secs: 60 }, timer: blankTimer(), snap: [], phase: "play", at: Date.now() };
+}
+function cleanRapid(d) {
+    const set = cleanSet(d); if (!set || d.v !== 1) return null;
+    const g = newRapid(set, d.rec), int = (v) => Math.max(0, Math.floor(+v || 0));
+    g.teams[0].s = int(d.teams && d.teams[0] && d.teams[0].s);
+    g.qi = Math.min(g.qs.length - 1, int(d.qi)); g.cp = d.cp === "go" ? "go" : "ready";
+    ["miss", "streak", "best"].forEach((k) => { g[k] = int(d[k]); });
+    g.last = [0, 1, 2].includes(+d.last) && d.last !== null && d.last !== "" ? +d.last : -1;
+    g.lq = d.lq !== null && d.lq !== "" && +d.lq >= 0 && +d.lq < g.qs.length ? Math.floor(+d.lq) : -1;
+    g.opts = { secs: RAPID_SECS.includes(+(d.opts && d.opts.secs)) ? +d.opts.secs : 60 };
+    if (d.timer) g.timer = { running: !!d.timer.running, t0: +d.timer.t0 || 0, elapsed: +d.timer.elapsed || 0 };
+    g.snap = (Array.isArray(d.snap) ? d.snap : []).filter((x) => typeof x === "string" && x.length < 20000).slice(-12);
+    g.phase = d.phase === "done" ? "done" : "play"; g.at = +d.at || 0;
+    return g;
+}
+/** The class's best Rapid Fire score in this period, from saved results (Remote only). */
+const rapidRecord = () => Math.max(0, ...(RESULTS || []).filter((r) => r.kind === "rapid" && r.period === A.S.period).map((r) => +(r.teams && r.teams[0] && r.teams[0].s) || 0));
+
 const prizeText = (c) => ({ add: "+" + c.n + " points", dbl: "Double points!", steal: c.x >= 0 ? "Stole " + (c.g || 0) : "Steal " + c.n, swap: "Swap scores", lose: "Lose " + c.n, none: "Empty chest" }[c.k] || "");
 const needsTarget = (c) => (c.k === "steal" || c.k === "swap") && c.x === -1;
 
@@ -352,7 +380,7 @@ let SETS = null, setsWatched = false, starting = "", panelSig = "", lastDone = f
 
 export function mountGames(api) { A = api; }
 /* The Game Library's Play button opens remote.html?screen=game&period=1st&set=<id>&game=<kind>. */
-let AUTO = (() => { try { const q = new URLSearchParams(location.search), id = q.get("set"), k = q.get("game"); return id && ["board", "chests", "versus", "shots", "tiles", "race", "bingo", "tug"].includes(k) ? { id, k, per: q.get("period") || "" } : null; } catch (e) { return null; } })();
+let AUTO = (() => { try { const q = new URLSearchParams(location.search), id = q.get("set"), k = q.get("game"); return id && ["board", "chests", "versus", "shots", "tiles", "race", "bingo", "tug", "rapid"].includes(k) ? { id, k, per: q.get("period") || "" } : null; } catch (e) { return null; } })();
 function tryAuto() {
     if (!AUTO || A.mode() !== "remote" || !onGame() || !loaded || !SETS || starting) return;
     if (AUTO.per && AUTO.per !== A.S.period) return;   // wait for the period from the link to take hold
@@ -408,7 +436,7 @@ export function syncGames() {
    game, set, each team's score and (when teams came from the Group maker) who was on it, the
    winner, and how many questions were answered right by category. Private, never on the board. */
 let RESULTS = null, resultsWatched = false, pendingResult = null, resultsWrite = null;
-const KIND_NAMES = { board: "Review Board", chests: "Treasure Chests", versus: "Class vs. Teacher", shots: "Trashketball", tiles: "Mystery Tiles", race: "Ring Race", bingo: "Bingo", tug: "Tug of War" };
+const KIND_NAMES = { board: "Review Board", chests: "Treasure Chests", versus: "Class vs. Teacher", shots: "Trashketball", tiles: "Mystery Tiles", race: "Ring Race", bingo: "Bingo", tug: "Tug of War", rapid: "Rapid Fire" };
 const localDay = () => { const d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); };
 function watchResults() {
     if (resultsWatched || !A.signedIn() || A.mode() !== "remote") return; resultsWatched = true; resultsWrite = A.writer("games/results");
@@ -497,8 +525,8 @@ async function start(meta, kind) {
     if (!set) { panelNote = "Could not open that set. Check the connection and try again."; panelSig = ""; drawPanel(); return; }
     const keep = G && G.teams ? G.teams.map((t) => t.n) : null;
     const prev = G && G.teams;
-    G = kind === "chests" ? newChests(set, keep) : kind === "versus" ? newVersus(set) : kind === "shots" ? newShots(set, keep) : kind === "tiles" ? newTiles(set, keep) : kind === "race" ? newRace(set, keep) : kind === "bingo" ? newBingo(set) : kind === "tug" ? newTug(set) : newGame(set, keep); G.log = []; G.rid = "";
-    if (prev && kind !== "versus" && kind !== "bingo" && kind !== "tug") G.teams.forEach((t, i) => { if (prev[i] && prev[i].m) t.m = prev[i].m; });
+    G = kind === "chests" ? newChests(set, keep) : kind === "versus" ? newVersus(set) : kind === "shots" ? newShots(set, keep) : kind === "tiles" ? newTiles(set, keep) : kind === "race" ? newRace(set, keep) : kind === "bingo" ? newBingo(set) : kind === "tug" ? newTug(set) : kind === "rapid" ? newRapid(set, rapidRecord()) : newGame(set, keep); G.log = []; G.rid = "";
+    if (prev && kind !== "versus" && kind !== "bingo" && kind !== "tug" && kind !== "rapid") G.teams.forEach((t, i) => { if (prev[i] && prev[i].m) t.m = prev[i].m; });
     loaded = true; changed();
 }
 
@@ -658,6 +686,25 @@ function tugNext() {
     G.qi++; G.cp = "q"; G.show = false; G.last = -1; G.timer = blankTimer(); changed();
 }
 
+/* ---------- Rapid Fire moves ---------- */
+function rapidGo() {   // start, pause or resume the round
+    if (G.phase !== "play") return;
+    if (G.cp === "ready") { G.cp = "go"; G.timer = blankTimer(); }
+    timerGo();
+}
+function rapidMark(w) {   // 0: right, 1: missed, 2: skip
+    if (G.cp !== "go" || G.phase !== "play") return;
+    save(); if (w < 2) logQ(curQ().c, w === 0 ? 1 : 0, 1);
+    if (w === 0) { G.teams[0].s++; G.streak++; G.best = Math.max(G.best, G.streak); }
+    else if (w === 1) { G.miss++; G.streak = 0; }
+    G.last = w; G.lq = G.qi; G.qi = (G.qi + 1) % G.qs.length;
+    changed();
+}
+function rapidEnd() {
+    if (G.timer.running) { G.timer.elapsed = A.now() - G.timer.t0; G.timer.running = false; }
+    G.phase = "done"; changed();
+}
+
 /* ---------- the stage (what students see) ---------- */
 function strip() {
     const s = el("div", "gteams"); s.id = "gTeams";
@@ -806,6 +853,23 @@ function tugStage(body) {
     const wrap = el("div", "gtugwrap"); wrap.append(box, field); body.append(wrap);
 }
 
+function rapidStage(body) {
+    const q = curQ(), wrap = el("div", "grfwrap"), main = el("div", "gclue grfq"), side = el("div", "grfside");
+    const recTxt = G.rec ? "Class record: " + G.rec : "No record yet. Set one!";
+    if (G.cp === "ready") {
+        const box = el("div", "grfready"); box.append(el("p", "grfbig", G.opts.secs + " seconds"), el("p", "grfhow", "Answer as many as you can. Every right answer counts."), el("p", "grfrec", recTxt));
+        main.append(box);
+    } else {
+        const top = el("div", "gtop"); top.append(el("span", "gchip", q.c), ring()); main.append(top, qBox(q.q));
+        if (G.lq >= 0 && G.last >= 0) { const l = el("div", "grflast " + ["ok", "no", "skip"][G.last]); l.append(el("small", null, G.last === 0 ? "Right! Last answer" : G.last === 1 ? "Last answer" : "Skipped. Answer"), mathEl("p", null, G.qs[G.lq].a)); main.append(l); }
+    }
+    const n = G.teams[0].s, beat = G.rec && n > G.rec;
+    const big = el("div", "grfcount" + (beat ? " beat" : "")); big.append(el("b", null, String(n)), el("small", null, n === 1 ? "right" : "right answers"));
+    const st = el("div", "grfstreak" + (G.streak >= 3 ? " hot" : "")); st.append(el("b", null, String(G.streak)), el("small", null, "in a row"));
+    side.append(big, st, el("p", "grfrec" + (beat ? " beat" : ""), beat ? "New class record!" : recTxt));
+    wrap.append(main, side); body.append(wrap);
+}
+
 function courtSvg() {
     const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", "0 20 400 240"); svg.setAttribute("class", "gtcourt"); svg.setAttribute("aria-hidden", "true");
     const add = (tag, at, text) => { const e = document.createElementNS(NS, tag); Object.keys(at).forEach((k) => e.setAttribute(k, at[k])); if (text != null) e.textContent = text; svg.append(e); return e; };
@@ -867,7 +931,7 @@ export function drawStage(st) {
         const e = el("div", "empty"); e.append(el("b", null, "No game is running for " + per + "."), document.createTextNode(A.mode() === "remote" ? "Pick a question set in the panel beside the board to start one." : "Start one from the Remote."));
         st.append(e); return;
     }
-    st.append(A.header(G.kind === "chests" ? "Treasure Chests" : G.kind === "versus" ? "Class vs. " + G.teams[1].n : G.kind === "shots" ? "Trashketball" : G.kind === "tiles" ? "Mystery Tiles" : G.kind === "race" ? "Ring Race" : G.kind === "bingo" ? "Bingo" : G.kind === "tug" ? "Tug of War" : "Review Game", G.title));
+    st.append(A.header(G.kind === "chests" ? "Treasure Chests" : G.kind === "versus" ? "Class vs. " + G.teams[1].n : G.kind === "shots" ? "Trashketball" : G.kind === "tiles" ? "Mystery Tiles" : G.kind === "race" ? "Ring Race" : G.kind === "bingo" ? "Bingo" : G.kind === "tug" ? "Tug of War" : G.kind === "rapid" ? "Rapid Fire" : "Review Game", G.title));
     const body = el("div", "gbody");
     if (G.kind === "chests" && G.phase !== "done") chestStage(body);
     else if (G.kind === "shots" && G.phase !== "done") shotStage(body);
@@ -876,6 +940,8 @@ export function drawStage(st) {
     else if (G.kind === "bingo" && G.phase !== "done") { bingoStage(body); st.append(body); return; }
     else if (G.kind === "tug" && G.phase !== "done") { tugStage(body); st.append(body); return; }
     else if (G.kind === "tug") { const p = tugPos(), box = el("div", "gdone"); box.append(el("p", "gwinlab", p ? "Winner" : "It's a tie!"), el("p", "gwin", p ? G.teams[p < 0 ? 0 : 1].n : G.teams[0].n + " and " + G.teams[1].n), el("p", "gwinpts", G.teams[0].s + " pulls to " + G.teams[1].s)); body.append(box); st.append(body); return; }
+    else if (G.kind === "rapid" && G.phase !== "done") { rapidStage(body); st.append(body); return; }
+    else if (G.kind === "rapid") { const n = G.teams[0].s, beat = n > G.rec && n > 0, box = el("div", "gdone"); box.append(el("p", "gwinlab", beat && G.rec ? "New class record!" : beat ? "First record set!" : "Time!"), el("p", "gwin", n + (n === 1 ? " right answer" : " right answers")), el("p", "gwinpts", "Best streak: " + G.best + " in a row" + (G.rec && !beat ? " · Record to beat: " + G.rec : ""))); body.append(box); st.append(body); return; }
     else if (G.kind === "bingo") { const box = el("div", "gdone"); box.append(el("p", "gwinlab", G.teams.length ? "Bingo!" : "Game over"), el("p", "gwin", G.teams.length ? G.teams.map((t) => t.n).join(", ") : "No bingo this time"), el("p", "gwinpts", calledList().length + " answers called")); body.append(box); st.append(body); return; }
     else if (G.kind === "versus" && G.phase !== "done") { versusStage(body); st.append(body); return; }
     else if (G.phase === "done") {
@@ -919,12 +985,12 @@ export function tickGames() {
     const started = t.running || t.elapsed > 0, done = started && left <= 0, txt = done ? "Time!" : String(left);
     const r = document.getElementById("gRing");
     if (r) {
-        r.hidden = !started || !(G.kind === "chests" || G.kind === "versus" || G.kind === "shots" || G.kind === "tiles" || G.kind === "race" || G.kind === "tug" ? G.cp === "q" : G.kind === "bingo" ? G.phase === "play" : G.open); r.classList.toggle("hot", started && left <= 5);
+        r.hidden = !started || !(G.kind === "chests" || G.kind === "versus" || G.kind === "shots" || G.kind === "tiles" || G.kind === "race" || G.kind === "tug" ? G.cp === "q" : G.kind === "rapid" ? G.cp === "go" : G.kind === "bingo" ? G.phase === "play" : G.open); r.classList.toggle("hot", started && left <= 5);
         const arc = document.getElementById("gRingArc"), C = 2 * Math.PI * 42; if (arc) { arc.style.strokeDasharray = String(C); arc.style.strokeDashoffset = String(C * (1 - Math.max(0, Math.min(1, 1 - ms / (total * 1000))))); }
         document.getElementById("gClock").textContent = txt;
     }
     const pc = document.getElementById("gpClock"); if (pc) { pc.textContent = started ? txt : total + " s"; pc.classList.toggle("hot", started && left <= 5); }
-    if (t.running && done && !lastDone) A.beep(3);
+    if (t.running && done && !lastDone) { A.beep(3); if (G.kind === "rapid" && G.phase === "play" && A.mode() === "remote") { lastDone = done; rapidEnd(); return; } }
     lastDone = done;
 }
 
@@ -933,6 +999,7 @@ export function gameFlow(n) {
     if (!G) return;
     if (G.kind === "versus") { if (G.phase !== "play") return; if (G.cp === "result") { if (n > 0) versusNext(); return; } if (n > 0 && !G.show) { G.show = true; changed(); } else if (n < 0 && G.show) { G.show = false; changed(); } return; }
     if (G.kind === "bingo") { if (G.phase !== "play") return; if (n > 0) { if (!G.show) { save(); G.show = true; changed(); } else bingoNext(); } else if (n < 0 && G.show) { G.show = false; changed(); } return; }
+    if (G.kind === "rapid") { if (n > 0 && G.phase === "play" && G.cp === "ready") rapidGo(); return; }
     if (G.kind === "tug") { if (G.phase !== "play") return; if (G.cp === "result") { if (n > 0) tugNext(); return; } if (n > 0 && !G.show) { G.show = true; changed(); } else if (n < 0 && G.show) { G.show = false; changed(); } return; }
     if (G.kind === "race") { if (G.phase !== "play") return; if (G.cp === "result") { if (n > 0) raceNext(); return; } if (n > 0 && !G.show) { G.show = true; changed(); } else if (n < 0 && G.show) { G.show = false; changed(); } return; }
     if (G.kind === "tiles") { if (G.phase !== "play") return; if (G.cp === "pick") { if (n > 0 && G.flip >= 0) tilesNextPicker(); return; } if (G.cp === "q") { if (n > 0 && !G.show) { G.show = true; changed(); } else if (n < 0 && G.show) { G.show = false; changed(); } } return; }
@@ -948,6 +1015,7 @@ export function gameFlowLabel() {
     if (G.kind === "versus") return G.phase !== "play" ? "Next" : G.cp === "result" ? "Next: Next question" : !G.show ? "Next: Show answer" : "Next";
     if (G.kind === "chests") return G.phase === "play" && G.cp === "q" && !G.show ? "Next: Show answer" : "Next";
     if (G.kind === "bingo") return G.phase !== "play" ? "Next" : !G.show ? "Next: Show answer" : "Next: Next question";
+    if (G.kind === "rapid") return G.phase === "play" && G.cp === "ready" ? "Next: Start the round" : "Next";
     if (G.kind === "tug") return G.phase !== "play" ? "Next" : G.cp === "result" ? "Next: Next question" : !G.show ? "Next: Show answer" : "Next";
     if (G.kind === "race") return G.phase !== "play" ? "Next" : G.cp === "result" ? "Next: Next question" : !G.show ? "Next: Show answer" : "Next";
     if (G.kind === "tiles") return G.phase !== "play" ? "Next" : G.cp === "q" && !G.show ? "Next: Show answer" : G.cp === "pick" && G.flip >= 0 ? (G.queue.length && covered() ? "Next: Next team" : "Next: Next question") : "Next";
@@ -988,7 +1056,7 @@ export function drawPanel() {
             const one = (s, into) => {
             const b = el("div", "gpset"), row = el("div", "gpsetbtns");
             b.append(el("b", null, s.title || "Review game"), el("small", null, starting === s.id ? "Opening…" : (s.cats || 0) + " categories · " + (s.clues || 0) + " questions"));
-            [["board", "Review Board"], ["chests", "Treasure Chests"], ["versus", "Class vs. Teacher"], ["shots", "Trashketball"], ["tiles", "Mystery Tiles"], ["race", "Ring Race"], ["bingo", "Bingo"], ["tug", "Tug of War"]].forEach(([k, label]) => { const g = btn("btn ghost", label, () => start(s, k)); g.disabled = !!starting; g.setAttribute("aria-label", "Play " + (s.title || "this set") + " as " + label); row.append(g); });
+            [["board", "Review Board"], ["chests", "Treasure Chests"], ["versus", "Class vs. Teacher"], ["shots", "Trashketball"], ["tiles", "Mystery Tiles"], ["race", "Ring Race"], ["bingo", "Bingo"], ["tug", "Tug of War"], ["rapid", "Rapid Fire"]].forEach(([k, label]) => { const g = btn("btn ghost", label, () => start(s, k)); g.disabled = !!starting; g.setAttribute("aria-label", "Play " + (s.title || "this set") + " as " + label); row.append(g); });
             b.append(row); into.append(b);
             };
             mine.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach((s) => one(s, list));
@@ -1001,10 +1069,10 @@ export function drawPanel() {
     const undoBtn = () => { const b = btn("btn ghost", "Undo last score", undo); b.disabled = !G.hist.length; return b; };
     if (G.phase === "done") {
         p.append(h("Final scores"));
-        { const n = el("p", "gpnote"), a = el("a", null, "Class Data"); a.href = "data.html#games"; n.append(document.createTextNode("Saved to "), a, document.createTextNode(" with today's date" + (G.teams.some((t) => t.m) ? " and who was on each team." : ". Use the Group maker's groups as teams to see who won by name."))); p.append(n); }
+        { const n = el("p", "gpnote"), a = el("a", null, "Class Data"); a.href = "data.html#games"; n.append(document.createTextNode("Saved to "), a, document.createTextNode(" with today's date" + (G.kind === "rapid" ? ". Each round's score sets the record to beat next time." : G.teams.some((t) => t.m) ? " and who was on each team." : ". Use the Group maker's groups as teams to see who won by name."))); p.append(n); }
         teamRows(p, (r, t) => r.append(el("span", "gpname", t.n), el("b", "gpscore", pts(t.s))));
         if (G.kind === "board" || !G.kind || G.kind === "chests" || G.kind === "shots" || G.kind === "tiles") p.append(btn("btn ghost", G.kind === "chests" || G.kind === "shots" || G.kind === "tiles" ? "Back to the game" : "Back to the board", () => { G.phase = "play"; changed(); }));
-        p.append(btn("btn ghost", "Play this set again", () => { const set = cleanSet(G), names = G.teams.map((t) => t.n), o = G.opts; if (G.kind === "chests") { G = newChests(set, names); G.opts = o; } else if (G.kind === "versus") { G = newVersus(set, names[1]); G.opts = o; } else if (G.kind === "shots") { G = newShots(set, names); G.opts = o; } else if (G.kind === "tiles") { G = newTiles(set, names); G.opts = o; } else if (G.kind === "race") { G = newRace(set, names); G.opts = o; } else if (G.kind === "bingo") { G = newBingo(set); G.opts = o; } else if (G.kind === "tug") { G = newTug(set, names); G.opts = o; } else { G = newGame(set, names); G.opts = o; pickDouble(); } changed(); }));
+        p.append(btn("btn ghost", "Play this set again", () => { const set = cleanSet(G), names = G.teams.map((t) => t.n), o = G.opts; if (G.kind === "chests") { G = newChests(set, names); G.opts = o; } else if (G.kind === "versus") { G = newVersus(set, names[1]); G.opts = o; } else if (G.kind === "shots") { G = newShots(set, names); G.opts = o; } else if (G.kind === "tiles") { G = newTiles(set, names); G.opts = o; } else if (G.kind === "race") { G = newRace(set, names); G.opts = o; } else if (G.kind === "bingo") { G = newBingo(set); G.opts = o; } else if (G.kind === "tug") { G = newTug(set, names); G.opts = o; } else if (G.kind === "rapid") { G = newRapid(set, Math.max(G.rec, G.teams[0].s)); G.opts = o; } else { G = newGame(set, names); G.opts = o; pickDouble(); } changed(); }));
         p.append(endButton());
         return;
     }
@@ -1015,6 +1083,7 @@ export function drawPanel() {
     if (G.kind === "race") { racePanel(p); return; }
     if (G.kind === "bingo") { bingoPanel(p); return; }
     if (G.kind === "tug") { tugPanel(p); return; }
+    if (G.kind === "rapid") { rapidPanel(p); return; }
     if (G.phase === "final") {
         const f = G.final;
         p.append(h(finalName(f)), mathEl("p", "gpq", f.q));
@@ -1354,4 +1423,29 @@ function tugPanel(p) {
     opt.append(pick("Timer for each question", [15, 30, 45, 60, 90, 120].map((n) => [n, n + " seconds"]), G.opts.secs, (v) => { G.opts.secs = +v; changed(); }));
     opt.append(btn("btn ghost", "Show the result now", () => { G.phase = "done"; changed(); }), endButton());
     p.append(opt);
+}
+
+function rapidPanel(p) {
+    const q = curQ(), undoB = () => { const b = btn("btn ghost", "Undo", chestUndo); b.disabled = !G.snap.length; return b; };
+    const sc = el("div", "gpvs gprfvs"); [["Right", G.teams[0].s], ["Missed", G.miss], ["In a row", G.streak]].forEach(([t, v]) => { const d = el("div"); d.append(el("span", null, t), el("b", null, String(v))); sc.append(d); });
+    if (G.cp === "ready") {
+        p.append(h("Rapid Fire: " + G.opts.secs + " seconds"), el("p", "gpnote", "The board shows one question at a time. Tap Right or Missed as fast as the class answers, and the next one shows at once. " + (G.rec ? "Class record for " + A.S.period + " period: " + G.rec + "." : "No record yet for " + A.S.period + " period.")));
+        p.append(btn("btn go", "Start the round", rapidGo));
+    } else {
+        p.append(h("Question " + (G.qi + 1) + " of " + G.qs.length), el("p", "gpnote", q.c), mathEl("p", "gpq", q.q));
+        const ans = el("div", "gpans"); ans.append(el("small", null, "Answer (only you see this)"), mathEl("p", null, q.a)); p.append(ans);
+        const tr = el("div", "gptimer"), clock = el("b"); clock.id = "gpClock";
+        tr.append(clock, btn("btn ghost", G.timer.running ? "Pause" : "Resume", rapidGo)); p.append(tr);
+        const row = el("div", "gprapid"), ok = btn("gpok", "Right", () => rapidMark(0)), no = btn("gpno", "Missed", () => rapidMark(1));
+        ok.disabled = no.disabled = !G.timer.running; row.append(ok, no); p.append(row);
+        const r2 = el("div", "gpbtns"), sk = btn("btn ghost", "Skip", () => rapidMark(2)); sk.disabled = !G.timer.running; r2.append(sk, undoB()); p.append(r2);
+        if (!G.timer.running) p.append(el("p", "gpnote", "Paused. Tap Resume to keep going."));
+    }
+    p.append(sc);
+    const opt = el("details", "gpopts"); opt.append(el("summary", null, "Options")); opt.open = sessionStorage.getItem("focal-game-opts") === "1"; opt.ontoggle = () => { try { sessionStorage.setItem("focal-game-opts", opt.open ? "1" : "0"); } catch (e) { /* ok */ } };
+    const l = el("label", "gpchk"), sel = el("select"); RAPID_SECS.map((n) => [n, n < 60 ? n + " seconds" : n / 60 + (n === 60 ? " minute" : " minutes")]).forEach(([v, t]) => { const o = el("option", null, t); o.value = v; sel.append(o); });
+    sel.value = String(G.opts.secs); sel.disabled = G.cp !== "ready"; sel.onchange = () => { G.opts.secs = +sel.value; changed(); }; l.append(document.createTextNode("Round length "), sel); opt.append(l);
+    if (G.cp !== "ready") opt.append(el("p", "gpnote", "Round length is set before the round starts."));
+    opt.append(btn("btn ghost", "End the round now", rapidEnd), endButton());
+    p.append(opt); tickGames();
 }

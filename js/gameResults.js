@@ -67,6 +67,7 @@ export function mountGameResults({ store, el, status }) {
             const teams = r.teams || [], win = r.win || [], tie = win.length > 1;
             const who = el("div", "grWho");
             if (!teams.length) who.textContent = "";
+            else if (r.kind === "rapid") who.appendChild(el("b", null, "Class: " + (teams[0].s || 0) + " right"));
             else if (win.length === teams.length) who.textContent = "Tie (everyone)";
             else win.forEach((i) => { const t = teams[i]; const b = el("b", null, (tie ? "Tie: " : "") + t.n); who.appendChild(b); if (t.m && t.m.length) who.appendChild(el("small", null, t.m.join(", "))); });
             const cb = el("input"); cb.type = "checkbox"; cb.checked = !!(r.bonus && r.bonus.given); cb.setAttribute("aria-label", "Bonus given for " + r.title + " on " + r.date);
