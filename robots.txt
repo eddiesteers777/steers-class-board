@@ -15,9 +15,6 @@ Disallow: /standards.html
 Disallow: /rosters.html
 Disallow: /sub.html
 Disallow: /auth-return.html
-Disallow: /homework.html
-Disallow: /planning.html
-Disallow: /schedule.html
 Disallow: /js/
 Disallow: /css/
 Disallow: /data/

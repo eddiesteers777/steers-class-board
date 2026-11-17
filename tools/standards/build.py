@@ -1,7 +1,11 @@
 """Build data/standards.js from Eddie's Drive docs (saved by extract.py into docs/).
 Standard wording, sub-parts, critical marks, objectives and prior skills come from the DIGS docs.
 Units, pacing, learning targets and ACAP item specs come from the unit/topic docs.
-Links, Schoology codes, tier notes and teacher notes are dropped on purpose (the repo is public)."""
+Links, Schoology codes, tier notes and teacher notes are dropped on purpose (the repo is public).
+8th Accelerated Units 4 (Pythagorean Theorem) and 10 (Volume) are not in the Drive Acc standards folder; their
+docs are in the Weekly Math Planning project ("8th Acc Unit 04 - Pythagorean Theorem", "8th Acc Unit 10 - Volume").
+Save them into docs/ as "8th Acc Unit 4 - Pythagorean Theorem.docx.md" and "8th Acc Unit 10 - Volume.docx.md"
+with one "| Standard #: ... Learning Targets: ... Item Specs: ... |" row per standard before rebuilding."""
 import json, os, re, sys, glob
 HERE = os.path.dirname(os.path.abspath(__file__))
 D = os.path.join(HERE, "docs")
