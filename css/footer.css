@@ -1,6 +1,5 @@
-/* Focal footer — copied from Southbound Coaching's public footer
-   (css/public.css), recolored for Focal. Same structure and rules,
-   only the brand values below changed. */
+/* Site footer. Started from a shared footer pattern and recolored with the
+   rings palette. Only the brand values below are specific to this site. */
 
 :root {
     --forest: #081B45;          /* footer background: Focal stage navy */

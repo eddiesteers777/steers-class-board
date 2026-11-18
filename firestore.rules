@@ -53,6 +53,24 @@ service cloud.firestore {
       }
     }
 
+    // Early access sign-ups from the public site (site/join.html). Anyone can add one
+    // well-formed entry; nobody can read, change or delete the list from the web.
+    // Eddie reads it in the Firebase console.
+    match /waitlist/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['grades', 'subject', 'board', 'device', 'email', 'name', 'note', 'at'])
+        && request.resource.data.keys().hasAll(['grades', 'board', 'device', 'email', 'at'])
+        && request.resource.data.at == request.time
+        && request.resource.data.email is string && request.resource.data.email.size() <= 120
+        && request.resource.data.email.matches('^[^@ ]+@[^@ ]+[.][^@ ]+$')
+        && request.resource.data.grades in ['elementary', 'middle', 'high', 'other']
+        && request.resource.data.board in ['promethean', 'smart', 'projector', 'tv']
+        && request.resource.data.device in ['chromebook', 'laptop', 'ipad', 'phone']
+        && (!('subject' in request.resource.data) || (request.resource.data.subject is string && request.resource.data.subject.size() <= 60))
+        && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() <= 40))
+        && (!('note' in request.resource.data) || (request.resource.data.note is string && request.resource.data.note.size() <= 500));
+      allow read, update, delete: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
