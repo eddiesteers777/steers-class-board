@@ -32,7 +32,7 @@ let H = null, loaded = false, rev = 0, hosting = false, unsubH = null, unsubP = 
 let PL = {};                 // the latest entry from each student (rooms/{code}/p), Remote only
 let SETS = null, setsWatched = false, note = "", busy = "", tab = "players", peek = "", endArm = 0;
 let saveTimer = 0, lastSave = 0, panelSig = "", panelAt = 0, padWatch = null, padFor = "", PAD = null;
-const choice = { set: "", mins: 10, names: "roster", board: true, save: false, live: false };
+const choice = { set: "", mins: 10, names: "roster", board: true, save: false, live: false, work: true };
 
 export function mountLive(api) { A = api; }
 export const liveSig = () => rev + "#" + loaded + "#" + hosting + "#" + (PAD ? PAD.it : "");
@@ -131,7 +131,7 @@ function handle(id, d, sends) {
     const a = d.a;
     if (a && (+a.n || 0) > p.sa) {
         p.sa = +a.n;
-        if (H.status === "play" && +a.q === p.qn && p.code) {
+        if (H.status === "play" && +a.q === p.qn && p.code && !(H.opts.work !== false && !d.img)) {   // work required: an answer with no pad picture is not taken
             const q = qOf(p, p.qn), typed = String(a.t || "").slice(0, 80), ok = V.sameAnswer(typed, q.a, q.al);
             p.n++;
             let plus = 0;
@@ -187,7 +187,7 @@ function flush(sends) {
 const everyone = () => { const s = new Set(Object.keys(H.players)); s.add("room"); return s; };
 function roomDoc() {
     return { owner: A.store().rooms.uid(), status: H.status, title: H.title, mode: H.mode, names: H.mode === "roster" ? H.names : [], taken: H.taken || [],
-        live: !!H.opts.live, ends: H.ends || 0, at: Date.now() };
+        live: !!H.opts.live, work: H.opts.work !== false, ends: H.ends || 0, at: Date.now() };
 }
 
 /* ---------- teacher moves ---------- */
@@ -205,7 +205,7 @@ async function openRoom() {
         for (let i = 0; i < 6 && !code; i++) { const c = V.newRoomCode(); try { if (!(await A.store().rooms.get("rooms/" + c))) code = c; } catch (e) { code = c; } }
         if (!code) throw new Error("Could not find a free game code. Try again.");
         H = { v: 1, code, status: "lobby", title: set.title || meta.title || "Review", setId: meta.id, per: A.S.period, qs, mode: choice.names, names, taken: [],
-            opts: { mins: choice.mins, board: choice.board, save: choice.save, live: choice.live }, players: {}, feed: [], show: null, ends: 0, t0: 0, rid: "", saved: false,
+            opts: { mins: choice.mins, board: choice.board, save: choice.save, live: choice.live, work: choice.work }, players: {}, feed: [], show: null, ends: 0, t0: 0, rid: "", saved: false,
             host: PAGE, hb: Date.now(), at: Date.now() };
         await A.store().rooms.save("rooms/" + code, roomDoc());
         hosting = true; loaded = true; await A.store().save("games/room", clean(H)); takeHost(); tab = "players";
@@ -412,6 +412,7 @@ function setupPanel(p) {
     if (choice.names === "roster") p.append(el("p", "gpnote", "Names show as first name and last initial (" + A.S.period + " period's list on the Rosters page)."));
     const more = el("details", "gpopts"); more.append(el("summary", null, "Options"));
     more.append(check("Show names on the board", choice.board, (v) => { choice.board = v; }),
+        check("Students must show work before they can submit", choice.work, (v) => { choice.work = v; }, "On: the answer button waits until there is real work on their pad."),
         check("See their work live as they draw", choice.live, (v) => { choice.live = v; }, "Off: you see each student's work when they answer. On: it updates every few seconds, which uses more of the free daily allowance."),
         check("Save each student's result to Class Data", choice.save, (v) => { choice.save = v; }, "Off by default. Names, coins and right answers are kept in your private account. Leave off until the district says student data can be stored."));
     p.append(more);
