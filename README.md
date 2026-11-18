@@ -16,6 +16,10 @@ The Calera weeks, periods and classes in `data/weeks.js` belong to Mr. Steers' a
 Signed out (the sub page) and student guests still see the Calera weeks. If the choice can't be read, the page shows the Calera weeks and saves nothing. `?pack=starter` or `?pack=calera` on a signed-in page sets it by hand.
 
 A new (starter) account is sent from Home to `setup.html` once: name on the board, school, grades, subject, its classes and periods, and bell times. It saves to `teacher/{uid}/settings/setup` (`{ name, school, grades, subject, classes: [{ p, label, room }], done }`) and bell times to the same `settings/bells` Home uses. `data/weeks.js` then copies the sample week once per class, so the board, Remote, Home and Rosters show the teacher's own periods and class names. "Skip setup for now" also marks it done; Home's "Set up your classes" tile opens it again.
+The Calera-only pages (Plan the Week, Week Review, Question Bank, Planner, Week Builder, Standards) load `js/caleraOnly.js`, which sends a starter account back to Home.
+
+## Your data (account.html)
+Settings on Home links to `account.html`: a count of everything the account saved, and "Delete all my data" (type DELETE). `js/accountData.js` deletes every document under `teacher/{uid}/` (its `COLLECTIONS` list), any student game room the teacher left open, and the posted Class Pages under `pub/{uid}/`, then signs out. **When a new folder is added under `teacher/{uid}/`, add it to `COLLECTIONS`.**
 
 ## Adding a week
 1. Copy `data/week5.js` to `data/weekN.js` and replace the content (dates, agenda, supplies, reminders, learning targets, bellringer problems with verified answers, file links).
