@@ -133,3 +133,6 @@ textarea.pw-in{min-height:64px;resize:vertical}
 .bk-item .frac>span:last-child{padding:.04em .2em 0}
 #more{margin:12px 0}
 .bk-claude{margin:22px 0 8px;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.bk-std{border:0;cursor:pointer;font-family:inherit;color:#0B3D91;background:#DCEBFF}
+.bk-std.skill{color:#7A4B00;background:#FFF1D6}
+.bk-std:hover,.bk-std:focus-visible{outline:2px solid currentColor;outline-offset:1px}

@@ -35,19 +35,23 @@ export default {
      "problems": [
       {
        "q": "The legs of a right triangle are 5 and 12. Find the hypotenuse.",
-       "a": "13"
+       "a": "13",
+       "std": "8.28"
       },
       {
        "q": "Write 7,200 in scientific notation.",
-       "a": "7.2 × 10³"
+       "a": "7.2 × 10³",
+       "std": "8.5"
       },
       {
        "q": "Solve: x + 9 = 20",
-       "a": "x = 11"
+       "a": "x = 11",
+       "skill": "Prior skill: One-step equations"
       },
       {
        "q": "Solve: 4x = 36",
-       "a": "x = 9"
+       "a": "x = 9",
+       "skill": "Prior skill: One-step equations"
       }
      ]
     },
@@ -71,19 +75,23 @@ export default {
      "problems": [
       {
        "q": "A right triangle has hypotenuse 10 and one leg 8. Find the missing leg.",
-       "a": "6"
+       "a": "6",
+       "std": "8.28"
       },
       {
        "q": "Write 3⁵ ÷ 3² as one power.",
-       "a": "3³ (27)"
+       "a": "3³ (27)",
+       "std": "8.3"
       },
       {
        "q": "Solve: 2x + 1 = 11",
-       "a": "x = 5"
+       "a": "x = 5",
+       "std": "7.9"
       },
       {
        "q": "Solve: {x/4} = 6",
-       "a": "x = 24"
+       "a": "x = 24",
+       "skill": "Prior skill: One-step equations"
       }
      ]
     },
@@ -108,19 +116,23 @@ export default {
      "problems": [
       {
        "q": "Is √36 rational or irrational?",
-       "a": "Rational (√36 = 6)"
+       "a": "Rational (√36 = 6)",
+       "std": "8.4"
       },
       {
        "q": "Find the distance between (0, 0) and (3, 4).",
-       "a": "5"
+       "a": "5",
+       "std": "8.27"
       },
       {
        "q": "Solve: 3x − 2 = 13",
-       "a": "x = 5"
+       "a": "x = 5",
+       "std": "7.9"
       },
       {
        "q": "3(4 + 2)",
-       "a": "18"
+       "a": "18",
+       "skill": "Prior skill: Order of operations"
       }
      ]
     },
@@ -143,19 +155,23 @@ export default {
      "problems": [
       {
        "q": "Write the Pythagorean Theorem.",
-       "a": "a² + b² = c²"
+       "a": "a² + b² = c²",
+       "std": "8.26"
       },
       {
        "q": "Find 9² and √81.",
-       "a": "81 and 9"
+       "a": "81 and 9",
+       "std": "8.4"
       },
       {
        "q": "(2 × 10³)(3 × 10⁴)",
-       "a": "6 × 10⁷"
+       "a": "6 × 10⁷",
+       "std": "8.6"
       },
       {
        "q": "What is the hypotenuse?",
-       "a": "The side across from the right angle (the longest side)"
+       "a": "The side across from the right angle (the longest side)",
+       "std": "8.28"
       }
      ]
     },
@@ -179,19 +195,23 @@ export default {
      "problems": [
       {
        "q": "Write 0.0006 in scientific notation.",
-       "a": "6 × 10⁻⁴"
+       "a": "6 × 10⁻⁴",
+       "std": "8.5"
       },
       {
        "q": "5² · 5³",
-       "a": "5⁵"
+       "a": "5⁵",
+       "std": "8.3"
       },
       {
        "q": "Solve: x − 6 = 9",
-       "a": "x = 15"
+       "a": "x = 15",
+       "skill": "Prior skill: One-step equations"
       },
       {
        "q": "Solve: 5x = 40",
-       "a": "x = 8"
+       "a": "x = 8",
+       "skill": "Prior skill: One-step equations"
       }
      ]
     }
@@ -252,19 +272,23 @@ export default {
      "problems": [
       {
        "q": "5.8 + 3.25",
-       "a": "9.05"
+       "a": "9.05",
+       "std": "7.4"
       },
       {
        "q": "7.3 − 2.6",
-       "a": "4.7"
+       "a": "4.7",
+       "std": "7.4"
       },
       {
        "q": "8 × 7",
-       "a": "56"
+       "a": "56",
+       "skill": "Prior skill: Basic facts"
       },
       {
        "q": "0.6 × 10",
-       "a": "6"
+       "a": "6",
+       "std": "7.4"
       }
      ]
     },
@@ -288,19 +312,23 @@ export default {
      "problems": [
       {
        "q": "Round 5.46 to the nearest tenth.",
-       "a": "5.5"
+       "a": "5.5",
+       "skill": "Prior skill: Rounding decimals"
       },
       {
        "q": "10.6 − 3.9",
-       "a": "6.7"
+       "a": "6.7",
+       "std": "7.4"
       },
       {
        "q": "30 ÷ 5",
-       "a": "6"
+       "a": "6",
+       "skill": "Prior skill: Basic facts"
       },
       {
        "q": "63 ÷ 7",
-       "a": "9"
+       "a": "9",
+       "skill": "Prior skill: Basic facts"
       }
      ]
     },
@@ -325,19 +353,23 @@ export default {
      "problems": [
       {
        "q": "Write {1/5} as a decimal.",
-       "a": "0.2"
+       "a": "0.2",
+       "std": "7.4"
       },
       {
        "q": "0.4 × 0.3",
-       "a": "0.12"
+       "a": "0.12",
+       "std": "7.4"
       },
       {
        "q": "Which is greater, 0.5 or 0.45?",
-       "a": "0.5"
+       "a": "0.5",
+       "skill": "Prior skill: Comparing decimals"
       },
       {
        "q": "0.25 + 0.5",
-       "a": "0.75"
+       "a": "0.75",
+       "std": "7.4"
       }
      ]
     },
@@ -360,19 +392,23 @@ export default {
      "problems": [
       {
        "q": "1.9 × 3",
-       "a": "5.7"
+       "a": "5.7",
+       "std": "7.4"
       },
       {
        "q": "7.5 ÷ 5",
-       "a": "1.5"
+       "a": "1.5",
+       "std": "7.4"
       },
       {
        "q": "Write {1/3} as a decimal. Does it stop or repeat?",
-       "a": "0.333…, it repeats"
+       "a": "0.333…, it repeats",
+       "std": "7.4"
       },
       {
        "q": "Order from least to greatest: 0.3, 0.03, 0.33",
-       "a": "0.03, 0.3, 0.33"
+       "a": "0.03, 0.3, 0.33",
+       "skill": "Prior skill: Comparing decimals"
       }
      ]
     },
@@ -396,19 +432,23 @@ export default {
      "problems": [
       {
        "q": "−7 + 12",
-       "a": "5"
+       "a": "5",
+       "std": "7.4"
       },
       {
        "q": "{1/3} + {1/3}",
-       "a": "{2/3}"
+       "a": "{2/3}",
+       "std": "7.4"
       },
       {
        "q": "Round 8.64 to the nearest tenth.",
-       "a": "8.6"
+       "a": "8.6",
+       "skill": "Prior skill: Rounding decimals"
       },
       {
        "q": "1.8 × 5",
-       "a": "9"
+       "a": "9",
+       "std": "7.4"
       }
      ]
     }
@@ -469,19 +509,23 @@ export default {
      "problems": [
       {
        "q": "The legs of a right triangle are 5 and 12. Find the hypotenuse.",
-       "a": "13"
+       "a": "13",
+       "std": "8.28"
       },
       {
        "q": "Write 7,200 in scientific notation.",
-       "a": "7.2 × 10³"
+       "a": "7.2 × 10³",
+       "std": "8.5"
       },
       {
        "q": "Solve: x + 9 = 20",
-       "a": "x = 11"
+       "a": "x = 11",
+       "skill": "Prior skill: One-step equations"
       },
       {
        "q": "Solve: 4x = 36",
-       "a": "x = 9"
+       "a": "x = 9",
+       "skill": "Prior skill: One-step equations"
       }
      ]
     },
@@ -505,19 +549,23 @@ export default {
      "problems": [
       {
        "q": "A right triangle has hypotenuse 10 and one leg 8. Find the missing leg.",
-       "a": "6"
+       "a": "6",
+       "std": "8.28"
       },
       {
        "q": "Write 3⁵ ÷ 3² as one power.",
-       "a": "3³ (27)"
+       "a": "3³ (27)",
+       "std": "8.3"
       },
       {
        "q": "Solve: 2x + 1 = 11",
-       "a": "x = 5"
+       "a": "x = 5",
+       "std": "7.9"
       },
       {
        "q": "Solve: {x/4} = 6",
-       "a": "x = 24"
+       "a": "x = 24",
+       "skill": "Prior skill: One-step equations"
       }
      ]
     },
@@ -542,19 +590,23 @@ export default {
      "problems": [
       {
        "q": "Is √36 rational or irrational?",
-       "a": "Rational (√36 = 6)"
+       "a": "Rational (√36 = 6)",
+       "std": "8.4"
       },
       {
        "q": "Find the distance between (0, 0) and (3, 4).",
-       "a": "5"
+       "a": "5",
+       "std": "8.27"
       },
       {
        "q": "Solve: 3x − 2 = 13",
-       "a": "x = 5"
+       "a": "x = 5",
+       "std": "7.9"
       },
       {
        "q": "3(4 + 2)",
-       "a": "18"
+       "a": "18",
+       "skill": "Prior skill: Order of operations"
       }
      ]
     },
@@ -577,19 +629,23 @@ export default {
      "problems": [
       {
        "q": "Write the Pythagorean Theorem.",
-       "a": "a² + b² = c²"
+       "a": "a² + b² = c²",
+       "std": "8.26"
       },
       {
        "q": "Find 9² and √81.",
-       "a": "81 and 9"
+       "a": "81 and 9",
+       "std": "8.4"
       },
       {
        "q": "(2 × 10³)(3 × 10⁴)",
-       "a": "6 × 10⁷"
+       "a": "6 × 10⁷",
+       "std": "8.6"
       },
       {
        "q": "What is the hypotenuse?",
-       "a": "The side across from the right angle (the longest side)"
+       "a": "The side across from the right angle (the longest side)",
+       "std": "8.28"
       }
      ]
     },
@@ -613,19 +669,23 @@ export default {
      "problems": [
       {
        "q": "Write 0.0006 in scientific notation.",
-       "a": "6 × 10⁻⁴"
+       "a": "6 × 10⁻⁴",
+       "std": "8.5"
       },
       {
        "q": "5² · 5³",
-       "a": "5⁵"
+       "a": "5⁵",
+       "std": "8.3"
       },
       {
        "q": "Solve: x − 6 = 9",
-       "a": "x = 15"
+       "a": "x = 15",
+       "skill": "Prior skill: One-step equations"
       },
       {
        "q": "Solve: 5x = 40",
-       "a": "x = 8"
+       "a": "x = 8",
+       "skill": "Prior skill: One-step equations"
       }
      ]
     }

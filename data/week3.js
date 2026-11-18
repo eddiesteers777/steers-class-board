@@ -35,19 +35,23 @@ export default {
      "problems": [
       {
        "q": "Solve: 3x + 5 = 20",
-       "a": "x = 5"
+       "a": "x = 5",
+       "std": "7.9"
       },
       {
        "q": "Solve: 2(x − 4) = 10",
-       "a": "x = 9"
+       "a": "x = 9",
+       "std": "7.9"
       },
       {
        "q": "Simplify: 4(x + 3) − 2x",
-       "a": "2x + 12"
+       "a": "2x + 12",
+       "std": "7.6"
       },
       {
        "q": "Solve: {1/3}x − 2 = 4",
-       "a": "x = 18"
+       "a": "x = 18",
+       "std": "7.9"
       }
      ]
     },
@@ -73,19 +77,23 @@ export default {
      "problems": [
       {
        "q": "Solve: 5x − 3 = 2x + 12",
-       "a": "x = 5"
+       "a": "x = 5",
+       "std": "8.11"
       },
       {
        "q": "Solve: 3(x + 2) = 2x + 11",
-       "a": "x = 5"
+       "a": "x = 5",
+       "std": "8.11"
       },
       {
        "q": "Simplify: 6x + 4 − 2x + 1",
-       "a": "4x + 5"
+       "a": "4x + 5",
+       "std": "7.6"
       },
       {
        "q": "Solve: −2x + 7 = 15",
-       "a": "x = −4"
+       "a": "x = −4",
+       "std": "7.9"
       }
      ]
     },
@@ -110,19 +118,23 @@ export default {
      "problems": [
       {
        "q": "How many solutions? 4x + 8 = 4(x + 2)",
-       "a": "Infinitely many solutions"
+       "a": "Infinitely many solutions",
+       "std": "8.11"
       },
       {
        "q": "How many solutions? 2x + 3 = 2x + 7",
-       "a": "No solution"
+       "a": "No solution",
+       "std": "8.11"
       },
       {
        "q": "Solve: 6x − 5 = x + 10",
-       "a": "x = 3"
+       "a": "x = 3",
+       "std": "8.11"
       },
       {
        "q": "Solve: 7 − 3x = −8",
-       "a": "x = 5"
+       "a": "x = 5",
+       "std": "7.9"
       }
      ]
     },
@@ -146,19 +158,23 @@ export default {
      "problems": [
       {
        "q": "A taxi costs $3 plus $2 per mile. The ride costs $17. How many miles?",
-       "a": "m = 7 miles"
+       "a": "m = 7 miles",
+       "std": "7.9"
       },
       {
        "q": "5 more than 3 times a number is 26. Write and solve an equation.",
-       "a": "3n + 5 = 26, so n = 7"
+       "a": "3n + 5 = 26, so n = 7",
+       "std": "7.9"
       },
       {
        "q": "Gym A costs $10 plus $4 per visit. Gym B costs $20 plus $2 per visit. After how many visits do they cost the same?",
-       "a": "v = 5 visits"
+       "a": "v = 5 visits",
+       "std": "8.11"
       },
       {
        "q": "Solve: 2(x + 4) + 2x = 32",
-       "a": "x = 6"
+       "a": "x = 6",
+       "std": "8.11"
       }
      ]
     },
@@ -182,19 +198,23 @@ export default {
      "problems": [
       {
        "q": "The legs of a right triangle are 6 and 8. Find the hypotenuse.",
-       "a": "10"
+       "a": "10",
+       "std": "8.28"
       },
       {
        "q": "Write 45,000 in scientific notation.",
-       "a": "4.5 × 10⁴"
+       "a": "4.5 × 10⁴",
+       "std": "8.5"
       },
       {
        "q": "Is √50 rational or irrational?",
-       "a": "Irrational"
+       "a": "Irrational",
+       "std": "8.4"
       },
       {
        "q": "Solve: 2x + 9 = 21",
-       "a": "x = 6"
+       "a": "x = 6",
+       "std": "7.9"
       }
      ]
     }
@@ -271,19 +291,23 @@ export default {
      "problems": [
       {
        "q": "−6 + 2",
-       "a": "−4"
+       "a": "−4",
+       "std": "7.4"
       },
       {
        "q": "3 − 8",
-       "a": "−5"
+       "a": "−5",
+       "std": "7.4"
       },
       {
        "q": "What is the opposite of −7?",
-       "a": "7"
+       "a": "7",
+       "std": "7.4"
       },
       {
        "q": "|−9|",
-       "a": "9"
+       "a": "9",
+       "skill": "Prior skill: Absolute value"
       }
      ]
     },
@@ -309,19 +333,23 @@ export default {
      "problems": [
       {
        "q": "−4 + (−5)",
-       "a": "−9"
+       "a": "−9",
+       "std": "7.4"
       },
       {
        "q": "−2 − 6",
-       "a": "−8"
+       "a": "−8",
+       "std": "7.4"
       },
       {
        "q": "7 − (−3)",
-       "a": "10"
+       "a": "10",
+       "std": "7.4"
       },
       {
        "q": "1.5 − 2.5",
-       "a": "−1"
+       "a": "−1",
+       "std": "7.4"
       }
      ]
     },
@@ -344,19 +372,23 @@ export default {
      "problems": [
       {
        "q": "−10 + 4",
-       "a": "−6"
+       "a": "−6",
+       "std": "7.4"
       },
       {
        "q": "5.2 − 7",
-       "a": "−1.8"
+       "a": "−1.8",
+       "std": "7.4"
       },
       {
        "q": "−{1/2} + {1/2}",
-       "a": "0"
+       "a": "0",
+       "std": "7.4"
       },
       {
        "q": "3 − (−6)",
-       "a": "9"
+       "a": "9",
+       "std": "7.4"
       }
      ]
     },
@@ -380,19 +412,23 @@ export default {
      "problems": [
       {
        "q": "The temperature is −3°C. It drops 5°C. What is the new temperature?",
-       "a": "−8°C"
+       "a": "−8°C",
+       "std": "7.4"
       },
       {
        "q": "What is the distance between −2 and 5 on a number line?",
-       "a": "7"
+       "a": "7",
+       "std": "7.4"
       },
       {
        "q": "−0.5 + 2.5",
-       "a": "2"
+       "a": "2",
+       "std": "7.4"
       },
       {
        "q": "4 − 9",
-       "a": "−5"
+       "a": "−5",
+       "std": "7.4"
       }
      ]
     },
@@ -416,19 +452,23 @@ export default {
      "problems": [
       {
        "q": "Write {5/8} as a decimal.",
-       "a": "0.625"
+       "a": "0.625",
+       "std": "7.4"
       },
       {
        "q": "2.4 + 3.75",
-       "a": "6.15"
+       "a": "6.15",
+       "std": "7.4"
       },
       {
        "q": "1.2 × 0.5",
-       "a": "0.6"
+       "a": "0.6",
+       "std": "7.4"
       },
       {
        "q": "3.6 ÷ 0.9",
-       "a": "4"
+       "a": "4",
+       "std": "7.4"
       }
      ]
     }
@@ -501,19 +541,23 @@ export default {
      "problems": [
       {
        "q": "Solve: 4(x − 2) + 3x = 27",
-       "a": "x = 5"
+       "a": "x = 5",
+       "std": "8.11"
       },
       {
        "q": "Solve: {1/2}x + 3 = 9",
-       "a": "x = 12"
+       "a": "x = 12",
+       "std": "7.9"
       },
       {
        "q": "Solve: 5x − 7 = 3x + 9",
-       "a": "x = 8"
+       "a": "x = 8",
+       "std": "8.11"
       },
       {
        "q": "Simplify: 3(2x − 1) − 4(x + 2)",
-       "a": "2x − 11"
+       "a": "2x − 11",
+       "std": "7.6"
       }
      ]
     },
@@ -539,19 +583,23 @@ export default {
      "problems": [
       {
        "q": "Solve: 2(x + 5) = 4x − 6",
-       "a": "x = 8"
+       "a": "x = 8",
+       "std": "8.11"
       },
       {
        "q": "Solve: {2/3}x − 1 = 5",
-       "a": "x = 9"
+       "a": "x = 9",
+       "std": "7.9"
       },
       {
        "q": "Solve: 0.5x + 2 = 0.2x + 5",
-       "a": "x = 10"
+       "a": "x = 10",
+       "std": "8.11"
       },
       {
        "q": "Solve: 3x − 2(x − 4) = 15",
-       "a": "x = 7"
+       "a": "x = 7",
+       "std": "8.11"
       }
      ]
     },
@@ -574,19 +622,23 @@ export default {
      "problems": [
       {
        "q": "How many solutions? 6x + 4 = 2(3x + 2)",
-       "a": "Infinitely many solutions"
+       "a": "Infinitely many solutions",
+       "std": "8.11"
       },
       {
        "q": "How many solutions? 5x − 3 = 5x + 1",
-       "a": "No solution"
+       "a": "No solution",
+       "std": "8.11"
       },
       {
        "q": "Solve: 3(x − 1) = 2x + 5",
-       "a": "x = 8"
+       "a": "x = 8",
+       "std": "8.11"
       },
       {
        "q": "Solve: −4x + 9 = 3x − 12",
-       "a": "x = 3"
+       "a": "x = 3",
+       "std": "8.11"
       }
      ]
     },
@@ -610,19 +662,23 @@ export default {
      "problems": [
       {
        "q": "Plan A costs $15 plus $3 per hour. Plan B costs $5 plus $5 per hour. After how many hours do they cost the same?",
-       "a": "h = 5 hours"
+       "a": "h = 5 hours",
+       "std": "8.11"
       },
       {
        "q": "Three consecutive integers add up to 63. What are they?",
-       "a": "20, 21, 22"
+       "a": "20, 21, 22",
+       "std": "8.11"
       },
       {
        "q": "Solve: 2(w + 2w + 3) = 42. What are the width and length?",
-       "a": "w = 6 (length 15)"
+       "a": "w = 6 (length 15)",
+       "std": "8.11"
       },
       {
        "q": "Solve: 2n − 5 = 4n + 7",
-       "a": "n = −6"
+       "a": "n = −6",
+       "std": "8.11"
       }
      ]
     },
@@ -646,19 +702,23 @@ export default {
      "problems": [
       {
        "q": "The legs of a right triangle are 9 and 12. Find the hypotenuse.",
-       "a": "15"
+       "a": "15",
+       "std": "8.28"
       },
       {
        "q": "(3 × 10⁴)(2 × 10³)",
-       "a": "6 × 10⁷"
+       "a": "6 × 10⁷",
+       "std": "8.6"
       },
       {
        "q": "Is √45 rational or irrational?",
-       "a": "Irrational"
+       "a": "Irrational",
+       "std": "8.4"
       },
       {
        "q": "Solve: 3(x + 2) = 21",
-       "a": "x = 5"
+       "a": "x = 5",
+       "std": "7.9"
       }
      ]
     }

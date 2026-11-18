@@ -127,7 +127,7 @@
         </div>
     </footer>
     <script type="module">
-        import { WEEKS as PUBLISHED, PERIODS, PACK, SETUP } from "./data/weeks.js?v=60";
+        import { WEEKS as PUBLISHED, PERIODS, PACK, SETUP } from "./data/weeks.js?v=61";
         // A new teacher who hasn't been through setup yet goes there first (setup.html).
         if (PACK !== "calera" && SETUP && !SETUP.done) location.replace("setup.html");
         if (PACK === "calera") { const sl = document.getElementById("setupLink"); if (sl) sl.hidden = true, sl.style.display = "none"; }

@@ -4,10 +4,11 @@
    kind, standard or skill, and week. Select questions and copy them for Claude, or update Claude's copy
    (teacher/{uid}/bank/<weekId>, js/bank.js) for every week at once.
 ========================================== */
-import { WEEKS as PUBLISHED } from "../data/weeks.js?v=60";
+import { WEEKS as PUBLISHED } from "../data/weeks.js?v=61";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { extract, norm, KINDS, saveBankWeek } from "./bank.js?v=2";
 import { rich } from "./weekSheets.js?v=59";
+import { STANDARDS } from "../data/standards.js?v=57";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -17,6 +18,11 @@ const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.s
 const LABEL = { "8th": "8th Grade", "7th": "7th Grade", "8th-acc": "8th Accelerated" };
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 const PAGE = 60;
+// Alabama standard wording by code (from data/standards.js, built from the curriculum docs), for the chip and filter labels.
+const STD_TEXT = new Map();
+Object.values(STANDARDS).forEach((c) => c.standards.forEach((s) => { if (!STD_TEXT.has(s.code)) STD_TEXT.set(s.code, s.text); }));
+const tagOf = (x) => x.std || x.skill || "";
+const short = (t, n) => (t.length > n ? t.slice(0, n - 1).replace(/\s+\S*$/, "") + "…" : t);
 
 let WEEKS = PUBLISHED, all = [], shown = PAGE, uid = "", claudeDocs = null;
 const picked = new Map();   // key -> item
@@ -36,15 +42,16 @@ function opts(sel, list, first) {
 function fill() {
     opts($("fCls"), Object.entries(LABEL).filter(([k]) => all.some((x) => x.cls === k)), "All classes");
     opts($("fKind"), KINDS.filter((k) => all.some((x) => x.kind === k)).map((k) => [k, k]), "Every kind");
-    const stds = [...new Set(all.map((x) => x.std || x.skill).filter(Boolean))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-    opts($("fStd"), stds.map((s) => [s, s]), stds.length ? "Any" : "None tagged yet");
+    // Standards first (7th, 8th, then Algebra I), then prior skills.
+    const tags = [...new Set(all.map(tagOf).filter(Boolean))].sort((a, b) => (STD_TEXT.has(b) - STD_TEXT.has(a)) || a.localeCompare(b, undefined, { numeric: true }));
+    opts($("fStd"), tags.map((s) => [s, STD_TEXT.has(s) ? s + " · " + short(STD_TEXT.get(s), 60) : s]), tags.length ? "Any" : "None tagged yet");
     const wk = []; WEEKS.slice().reverse().forEach((w) => { if (all.some((x) => x.week === w.id)) wk.push([w.id, (w.label || w.id) + (w.dates ? " · " + w.dates : "")]); });
     opts($("fWeek"), wk, "Every week");
 }
 function matches() {
     const words = norm($("q").value).split(" ").filter(Boolean), c = $("fCls").value, k = $("fKind").value, s = $("fStd").value, w = $("fWeek").value;
-    let list = all.filter((x) => (!c || x.cls === c) && (!k || x.kind === k) && (!s || (x.std || x.skill) === s) && (!w || x.week === w)
-        && (!words.length || words.every((t) => (norm(x.q) + " " + norm(x.a) + " " + norm(x.std || x.skill || "")).includes(t))));
+    let list = all.filter((x) => (!c || x.cls === c) && (!k || x.kind === k) && (!s || tagOf(x) === s) && (!w || x.week === w)
+        && (!words.length || words.every((t) => (norm(x.q) + " " + norm(x.a) + " " + norm(tagOf(x) + " " + (STD_TEXT.get(x.std) || ""))).includes(t))));
     if ($("once").checked) {
         const by = new Map();
         list.forEach((x) => { const key = x.cls + "|" + norm(x.q); const h = by.get(key); if (h) { if (!h.uses.includes(x.label)) h.uses.push(x.label); } else by.set(key, Object.assign({}, x, { uses: [x.label] })); });
@@ -59,6 +66,8 @@ function summary() {
     tile(String(uniq), "different questions", true);
     tile(String(weeks), weeks === 1 ? "week" : "weeks");
     tile(String(all.filter((x) => x.check).length), "with Claude's math check");
+    const tagged = new Set(all.filter((x) => x.std).map((x) => x.cls + "|" + norm(x.q))).size;
+    tile(tagged + " of " + uniq, "tagged with a standard");
     tile(claudeDocs == null ? "…" : String(claudeDocs), "weeks in Claude's copy");
 }
 function card(x) {
@@ -70,8 +79,15 @@ function card(x) {
     if (Array.isArray(x.choices) && x.choices.length) { const ch = el("p", "bk-ch"); x.choices.forEach((t, i) => { const s = el("span"); s.appendChild(el("b", null, "ABCDE"[i] + ". ")); s.appendChild(rich(t)); ch.appendChild(s); }); li.appendChild(ch); }
     if ($("ans").checked) { const a = el("p", "bk-a"); a.appendChild(el("b", null, "Answer: ")); a.appendChild(rich(x.a)); li.appendChild(a); }
     const meta = el("p", "bk-meta");
-    [LABEL[x.cls] || x.cls, x.kind, (x.uses ? x.uses.join(", ") : x.label) + (x.day != null && DAYS[x.day] ? " · " + DAYS[x.day] : ""), x.std || x.skill || "", x.check ? "Checked" : ""].filter(Boolean)
+    [LABEL[x.cls] || x.cls, x.kind, (x.uses ? x.uses.join(", ") : x.label) + (x.day != null && DAYS[x.day] ? " · " + DAYS[x.day] : ""), x.check ? "Checked" : ""].filter(Boolean)
         .forEach((t) => meta.appendChild(el("span", t === "Checked" ? "bk-chip ok" : "bk-chip", t)));
+    const tag = tagOf(x);
+    if (tag) {   // the standard (or prior skill): tap it to show only questions with the same tag
+        const b = el("button", "bk-chip bk-std" + (x.std ? "" : " skill"), x.std ? "AL " + x.std : tag); b.type = "button";
+        b.title = x.std ? x.std + ": " + (STD_TEXT.get(x.std) || "") + "\nTap to show every question with this standard." : "Below grade level: no standard for this class. Tap to show every question like it.";
+        b.onclick = () => { $("fStd").value = tag; shown = PAGE; draw(); window.scrollTo({ top: 0, behavior: "smooth" }); };
+        meta.appendChild(b);
+    }
     li.appendChild(meta);
     return li;
 }

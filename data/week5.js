@@ -37,19 +37,23 @@ export default {
      "problems": [
       {
        "q": "Solve: 3x + 7 = 22",
-       "a": "x = 5"
+       "a": "x = 5",
+       "std": "7.9"
       },
       {
        "q": "Solve: 2(x − 4) = 10",
-       "a": "x = 9"
+       "a": "x = 9",
+       "std": "7.9"
       },
       {
        "q": "Solve: 5x − 3 = 2x + 12",
-       "a": "x = 5"
+       "a": "x = 5",
+       "std": "8.11"
       },
       {
        "q": "Find: 180 − 47 − 68",
-       "a": "65"
+       "a": "65",
+       "std": "8.25"
       }
      ],
      "notes": {
@@ -62,15 +66,18 @@ export default {
       "warmup": [
        {
         "q": "2x + 10 = 50",
-        "a": "x = 20"
+        "a": "x = 20",
+        "std": "7.9"
        },
        {
         "q": "3x + 6 = 30",
-        "a": "x = 8"
+        "a": "x = 8",
+        "std": "7.9"
        },
        {
         "q": "x + (x + 10) = 70",
-        "a": "x = 30"
+        "a": "x = 30",
+        "std": "8.11"
        }
       ],
       "vocab": {
@@ -240,22 +247,26 @@ export default {
          {
           "n": "A1",
           "q": "A triangle has angles 70° and 45°. Find x.",
-          "a": "x = 65°"
+          "a": "x = 65°",
+          "std": "8.25"
          },
          {
           "n": "A2",
           "q": "A right triangle has an angle of 28°. Find the third angle.",
-          "a": "62°"
+          "a": "62°",
+          "std": "8.25"
          },
          {
           "n": "A3",
           "q": "A triangle has angles 112° and 33°. Find x.",
-          "a": "x = 35°"
+          "a": "x = 35°",
+          "std": "8.25"
          },
          {
           "n": "A4",
           "q": "Two angles of a triangle are the same size, x. The third angle is 80°. Find x.",
-          "a": "x = 50°"
+          "a": "x = 50°",
+          "std": "8.25"
          }
         ]
        },
@@ -265,22 +276,26 @@ export default {
          {
           "n": "B5",
           "q": "The angles are x, (x + 20), and (x + 40).",
-          "a": "x = 40; angles 40°, 60°, 80°"
+          "a": "x = 40; angles 40°, 60°, 80°",
+          "std": "8.25"
          },
          {
           "n": "B6",
           "q": "The angles are 2x, 3x, and 5x.",
-          "a": "x = 18; angles 36°, 54°, 90°"
+          "a": "x = 18; angles 36°, 54°, 90°",
+          "std": "8.25"
          },
          {
           "n": "B7",
           "q": "The angles are (x + 10), (2x − 4), and (x + 14).",
-          "a": "x = 40; angles 50°, 76°, 54°"
+          "a": "x = 40; angles 50°, 76°, 54°",
+          "std": "8.25"
          },
          {
           "n": "B8",
           "q": "The angles are (x + 3), (3x − 2), and 75°.",
-          "a": "x = 26; angles 29°, 76°, 75°"
+          "a": "x = 26; angles 29°, 76°, 75°",
+          "std": "8.25"
          }
         ]
        },
@@ -290,12 +305,14 @@ export default {
          {
           "n": "C9",
           "q": "The smallest angle of a triangle is x. The second angle is 10° more than the smallest. The third angle is 3 times the smallest. Write the equation, solve it, and find all three angles.",
-          "a": "x = 34; angles 34°, 44°, 102°"
+          "a": "x = 34; angles 34°, 44°, 102°",
+          "std": "8.25"
          },
          {
           "n": "C10",
           "q": "Can a triangle have angles 60°, 70°, and 60°? Show how you know.",
-          "a": "No. They add to 190°, not 180°."
+          "a": "No. They add to 190°, not 180°.",
+          "std": "8.25"
          }
         ]
        }
@@ -334,19 +351,23 @@ export default {
      "problems": [
       {
        "q": "Solve: 4x − 9 = 3x + 2",
-       "a": "x = 11"
+       "a": "x = 11",
+       "std": "8.11"
       },
       {
        "q": "Solve: 3(x + 2) = 21",
-       "a": "x = 5"
+       "a": "x = 5",
+       "std": "7.9"
       },
       {
        "q": "Two angles of a triangle are 35° and 80°. Find the third angle.",
-       "a": "65°"
+       "a": "65°",
+       "std": "8.25"
       },
       {
        "q": "How many solutions? 2(x + 3) = 2x + 6",
-       "a": "Infinitely many solutions"
+       "a": "Infinitely many solutions",
+       "std": "8.11"
       }
      ]
     },
@@ -375,19 +396,23 @@ export default {
      "problems": [
       {
        "q": "The angles of a triangle are x°, (x + 20)°, and 60°. Find x.",
-       "a": "x = 50"
+       "a": "x = 50",
+       "std": "8.25"
       },
       {
        "q": "Solve: 6x − 5 = 2x + 15",
-       "a": "x = 5"
+       "a": "x = 5",
+       "std": "8.11"
       },
       {
        "q": "A right triangle has an acute angle of 37°. Find the other acute angle.",
-       "a": "53°"
+       "a": "53°",
+       "std": "8.25"
       },
       {
        "q": "Solve: 0.5x + 3 = 11",
-       "a": "x = 16"
+       "a": "x = 16",
+       "std": "7.9"
       }
      ]
     },
@@ -415,11 +440,13 @@ export default {
      "problems": [
       {
        "q": "Solve: 2x + 6 = 18",
-       "a": "x = 6"
+       "a": "x = 6",
+       "std": "7.9"
       },
       {
        "q": "A triangle has angles of 90° and 40°. Find the third angle.",
-       "a": "50°"
+       "a": "50°",
+       "std": "8.25"
       }
      ]
     },
@@ -447,19 +474,23 @@ export default {
      "problems": [
       {
        "q": "Find the hypotenuse of a right triangle with legs 6 and 8.",
-       "a": "10"
+       "a": "10",
+       "std": "8.28"
       },
       {
        "q": "Multiply: (2 × 10³)(4 × 10²)",
-       "a": "8 × 10⁵"
+       "a": "8 × 10⁵",
+       "std": "8.6"
       },
       {
        "q": "Between which two whole numbers is √40?",
-       "a": "6 and 7"
+       "a": "6 and 7",
+       "std": "8.2"
       },
       {
        "q": "Write 3⁵ ÷ 3² as one power.",
-       "a": "3³"
+       "a": "3³",
+       "std": "8.3"
       }
      ]
     }
@@ -522,15 +553,18 @@ export default {
      "problems": [
       {
        "q": "Find −{2/5} + {3/10}.",
-       "a": "−{1/10}"
+       "a": "−{1/10}",
+       "std": "7.4"
       },
       {
        "q": "Find 5.6 − (−2.4).",
-       "a": "8"
+       "a": "8",
+       "std": "7.4"
       },
       {
        "q": "Find (−6)(−{7/9}).",
-       "a": "{14/3} = 4{2/3}"
+       "a": "{14/3} = 4{2/3}",
+       "std": "7.4"
       }
      ],
      "notes": {
@@ -633,36 +667,42 @@ export default {
           "n": "1",
           "q": "−{5/8} − {1/4}",
           "a": "−{7/8}",
+          "std": "7.4",
           "work": "−{5/8} − {2/8} = −{7/8}"
          },
          {
           "n": "2",
           "q": "(−0.6)(−4.5)",
           "a": "2.7",
+          "std": "7.4",
           "work": "6 × 45 = 270, two decimal places, same signs: positive. 2.70 = 2.7."
          },
          {
           "n": "3",
           "q": "−{2/3} ÷ (−{4/9})",
           "a": "{3/2}",
+          "std": "7.4",
           "work": "−{2/3} · (−{9/4}) = {18/12} = {3/2} = 1{1/2}"
          },
          {
           "n": "4",
           "q": "{1{1/2}/−{3/4}}",
           "a": "−2",
+          "std": "7.5",
           "work": "{3/2} ÷ (−{3/4}) = {3/2} · (−{4/3}) = −{12/6} = −2"
          },
          {
           "n": "5",
           "q": "A recipe uses 2{1/4} cups of flour for 3 equal batches. How much flour is in each batch?",
           "a": "{3/4} cup",
+          "std": "7.5",
           "work": "2{1/4} = {9/4}, then {9/4} ÷ 3 = {9/4} · {1/3} = {9/12} = {3/4} cup"
          },
          {
           "n": "6",
           "q": "Sam's balance is −$12.40. He deposits $30 and then pays a $2.75 fee 3 times. What is his balance?",
           "a": "$9.35",
+          "std": "7.5",
           "work": "−12.40 + 30 = 17.60; 3(2.75) = 8.25; 17.60 − 8.25 = 9.35"
          }
         ],
@@ -674,42 +714,50 @@ export default {
          {
           "n": "1",
           "q": "{3/5} − {7/10}",
-          "a": "−{1/10}"
+          "a": "−{1/10}",
+          "std": "7.4"
          },
          {
           "n": "2",
           "q": "−3.2 + 7.85",
-          "a": "4.65"
+          "a": "4.65",
+          "std": "7.4"
          },
          {
           "n": "3",
           "q": "(−{3/4})(−{8/9})",
-          "a": "{2/3}"
+          "a": "{2/3}",
+          "std": "7.4"
          },
          {
           "n": "4",
           "q": "−1{1/2} ÷ {3/4}",
-          "a": "−2"
+          "a": "−2",
+          "std": "7.4"
          },
          {
           "n": "5",
           "q": "{−2.4/0.6}",
-          "a": "−4"
+          "a": "−4",
+          "std": "7.4"
          },
          {
           "n": "6",
           "q": "−4 + 3(−2{1/2})",
-          "a": "−11{1/2} (or −11.5)"
+          "a": "−11{1/2} (or −11.5)",
+          "std": "7.5"
          },
          {
           "n": "7",
           "q": "A rope is 12{1/2} feet long. It is cut into pieces that are 2{1/2} feet long. How many pieces?",
-          "a": "5 pieces"
+          "a": "5 pieces",
+          "std": "7.5"
          },
          {
           "n": "8",
           "q": "A stock lost $1.35 each day for 5 days. What was the total change in price?",
-          "a": "−$6.75"
+          "a": "−$6.75",
+          "std": "7.5"
          }
         ]
        }
@@ -747,15 +795,18 @@ export default {
      "problems": [
       {
        "q": "Find −{3/4} ÷ (−{9/8}).",
-       "a": "{2/3}"
+       "a": "{2/3}",
+       "std": "7.4"
       },
       {
        "q": "Find (−1.5)(4).",
-       "a": "−6"
+       "a": "−6",
+       "std": "7.4"
       },
       {
        "q": "Simplify {{1/2}/{1/4}}.",
-       "a": "2"
+       "a": "2",
+       "std": "7.5"
       }
      ]
     },
@@ -781,15 +832,18 @@ export default {
      "problems": [
       {
        "q": "Find 2{1/2} − 4.",
-       "a": "−1{1/2}"
+       "a": "−1{1/2}",
+       "std": "7.4"
       },
       {
        "q": "Find −0.8 ÷ 0.2.",
-       "a": "−4"
+       "a": "−4",
+       "std": "7.4"
       },
       {
        "q": "Find 6(−{1/3} + {1/2}).",
-       "a": "1"
+       "a": "1",
+       "std": "7.5"
       }
      ]
     },
@@ -813,15 +867,18 @@ export default {
      "problems": [
       {
        "q": "Find −{1/3} + {1/6}.",
-       "a": "−{1/6}"
+       "a": "−{1/6}",
+       "std": "7.4"
       },
       {
        "q": "Find 3.5 − 6.",
-       "a": "−2.5"
+       "a": "−2.5",
+       "std": "7.4"
       },
       {
        "q": "Find (−{2/5})({5/6}).",
-       "a": "−{1/3}"
+       "a": "−{1/3}",
+       "std": "7.4"
       }
      ]
     },
@@ -846,15 +903,18 @@ export default {
      "problems": [
       {
        "q": "Find |−7| + |3|.",
-       "a": "10"
+       "a": "10",
+       "skill": "Prior skill: Absolute value"
       },
       {
        "q": "Write {3/8} as a decimal.",
-       "a": "0.375"
+       "a": "0.375",
+       "std": "7.4"
       },
       {
        "q": "Compare −{3/4} and −0.8. Use < or >.",
-       "a": "−{3/4} > −0.8"
+       "a": "−{3/4} > −0.8",
+       "skill": "Prior skill: Comparing rational numbers"
       }
      ]
     }
@@ -906,19 +966,23 @@ export default {
      "problems": [
       {
        "q": "Solve: 3x − 4 > 11",
-       "a": "x > 5"
+       "a": "x > 5",
+       "std": "Alg I.11"
       },
       {
        "q": "Solve: −2x ≤ 10",
-       "a": "x ≥ −5"
+       "a": "x ≥ −5",
+       "std": "Alg I.11"
       },
       {
        "q": "How many solutions? 2(x + 1) = 2x + 5",
-       "a": "No solution"
+       "a": "No solution",
+       "std": "8.11"
       },
       {
        "q": "Solve: 5x + 2 = 3x + 12",
-       "a": "x = 5"
+       "a": "x = 5",
+       "std": "8.11"
       }
      ],
      "notes": {
@@ -932,15 +996,18 @@ export default {
       "warmup": [
        {
         "q": "3x − 7 > 11",
-        "a": "x > 6"
+        "a": "x > 6",
+        "std": "Alg I.11"
        },
        {
         "q": "−2x + 5 ≥ 1",
-        "a": "x ≤ 2"
+        "a": "x ≤ 2",
+        "std": "Alg I.11"
        },
        {
         "q": "4x + 1 < 2x + 9",
-        "a": "x < 4"
+        "a": "x < 4",
+        "std": "Alg I.11"
        }
       ],
       "vocab": {
@@ -1100,22 +1167,26 @@ export default {
          {
           "n": "A1",
           "q": "5x − 2 > 5x + 3",
-          "a": "No solution"
+          "a": "No solution",
+          "std": "Alg I.13"
          },
          {
           "n": "A2",
           "q": "3(x − 1) ≥ 3x − 5",
-          "a": "All real numbers"
+          "a": "All real numbers",
+          "std": "Alg I.13"
          },
          {
           "n": "A3",
           "q": "2x + 8 < 2(x + 4)",
-          "a": "No solution"
+          "a": "No solution",
+          "std": "Alg I.13"
          },
          {
           "n": "A4",
           "q": "4(x + 2) ≥ 4x + 8",
-          "a": "All real numbers"
+          "a": "All real numbers",
+          "std": "Alg I.13"
          }
         ]
        },
@@ -1125,22 +1196,26 @@ export default {
          {
           "n": "B5",
           "q": "Ria has $60. Tickets cost $9 each. She wants to have at least $15 left. How many tickets t can she buy?",
-          "a": "60 − 9t ≥ 15 → t ≤ 5. At most 5 tickets."
+          "a": "60 − 9t ≥ 15 → t ≤ 5. At most 5 tickets.",
+          "std": "Alg I.11"
          },
          {
           "n": "B6",
           "q": "A phone plan costs $20 plus $0.10 per text. Marcus can spend at most $32. How many texts t can he send?",
-          "a": "20 + 0.10t ≤ 32 → t ≤ 120. At most 120 texts."
+          "a": "20 + 0.10t ≤ 32 → t ≤ 120. At most 120 texts.",
+          "std": "Alg I.11"
          },
          {
           "n": "B7",
           "q": "A rectangle is 12 cm long. Its perimeter must be less than 50 cm. What are the possible widths w?",
-          "a": "2(12 + w) < 50 → w < 13. Width must be less than 13 cm (and greater than 0)."
+          "a": "2(12 + w) < 50 → w < 13. Width must be less than 13 cm (and greater than 0).",
+          "std": "Alg I.11"
          },
          {
           "n": "B8",
           "q": "Jada scored 82 and 91 on two tests. She wants an average of at least 88 on three tests. What score x does she need on the third test?",
-          "a": "{82 + 91 + x/3} ≥ 88 → x ≥ 91."
+          "a": "{82 + 91 + x/3} ≥ 88 → x ≥ 91.",
+          "std": "Alg I.11"
          }
         ]
        },
@@ -1150,22 +1225,26 @@ export default {
          {
           "n": "C9",
           "q": "−5 < 3x + 1 < 10",
-          "a": "−2 < x < 3"
+          "a": "−2 < x < 3",
+          "std": "Alg I.11"
          },
          {
           "n": "C10",
           "q": "2 ≤ 4x − 2 ≤ 14",
-          "a": "1 ≤ x ≤ 4"
+          "a": "1 ≤ x ≤ 4",
+          "std": "Alg I.11"
          },
          {
           "n": "C11",
           "q": "3x < −6 or x + 2 > 7",
-          "a": "x < −2 or x > 5"
+          "a": "x < −2 or x > 5",
+          "std": "Alg I.11"
          },
          {
           "n": "C12",
           "q": "−4 < −2x ≤ 6",
-          "a": "−3 ≤ x < 2"
+          "a": "−3 ≤ x < 2",
+          "std": "Alg I.11"
          }
         ]
        }
@@ -1196,19 +1275,23 @@ export default {
      "problems": [
       {
        "q": "Solve: 4(x − 2) = 2x + 6",
-       "a": "x = 7"
+       "a": "x = 7",
+       "std": "8.11"
       },
       {
        "q": "Solve: {x/3} + 4 < 7",
-       "a": "x < 9"
+       "a": "x < 9",
+       "std": "Alg I.11"
       },
       {
        "q": "Solve: −3 < x + 1 < 5",
-       "a": "−4 < x < 4"
+       "a": "−4 < x < 4",
+       "std": "Alg I.11"
       },
       {
        "q": "Solve: {2/3}x − 1 = 5",
-       "a": "x = 9"
+       "a": "x = 9",
+       "std": "7.9"
       }
      ]
     },
@@ -1237,19 +1320,23 @@ export default {
      "problems": [
       {
        "q": "The angles of a triangle are x°, 2x°, and 3x°. Find x.",
-       "a": "x = 30"
+       "a": "x = 30",
+       "std": "8.25"
       },
       {
        "q": "Solve: 5 − 2x ≥ 1",
-       "a": "x ≤ 2"
+       "a": "x ≤ 2",
+       "std": "Alg I.11"
       },
       {
        "q": "How many solutions? 3(x − 1) = 3x + 4",
-       "a": "No solution"
+       "a": "No solution",
+       "std": "8.11"
       },
       {
        "q": "Two angles of a triangle are 58° and 67°. Find the third angle.",
-       "a": "55°"
+       "a": "55°",
+       "std": "8.25"
       }
      ],
      "notes": {
@@ -1262,15 +1349,18 @@ export default {
       "warmup": [
        {
         "q": "5x − 20 = 180",
-        "a": "x = 40"
+        "a": "x = 40",
+        "std": "7.9"
        },
        {
         "q": "2x + (x + 15) = 180",
-        "a": "x = 55"
+        "a": "x = 55",
+        "std": "8.11"
        },
        {
         "q": "4x + 12 = 180",
-        "a": "x = 42"
+        "a": "x = 42",
+        "std": "7.9"
        }
       ],
       "vocab": {
@@ -1396,17 +1486,20 @@ export default {
          {
           "n": "A1",
           "q": "A triangle has angles 85° and 47°. Find x.",
-          "a": "x = 48°"
+          "a": "x = 48°",
+          "std": "8.25"
          },
          {
           "n": "A2",
           "q": "A right triangle has an angle of 61°. Find the third angle.",
-          "a": "29°"
+          "a": "29°",
+          "std": "8.25"
          },
          {
           "n": "A3",
           "q": "Two angles of a triangle are the same size, x. The third angle is 104°. Find x.",
-          "a": "x = 38°"
+          "a": "x = 38°",
+          "std": "8.25"
          }
         ]
        },
@@ -1416,22 +1509,26 @@ export default {
          {
           "n": "B4",
           "q": "The angles are x, (x + 15), and (x + 30).",
-          "a": "x = 45; angles 45°, 60°, 75°"
+          "a": "x = 45; angles 45°, 60°, 75°",
+          "std": "8.25"
          },
          {
           "n": "B5",
           "q": "The angles are 2x, 4x, and 6x.",
-          "a": "x = 15; angles 30°, 60°, 90°"
+          "a": "x = 15; angles 30°, 60°, 90°",
+          "std": "8.25"
          },
          {
           "n": "B6",
           "q": "The angles are (2x + 10), (3x − 5), and (x + 25).",
-          "a": "x = 25; angles 60°, 70°, 50°"
+          "a": "x = 25; angles 60°, 70°, 50°",
+          "std": "8.25"
          },
          {
           "n": "B7",
           "q": "The angles are (4x − 3), (x + 8), and 60°.",
-          "a": "x = 23; angles 89°, 31°, 60°"
+          "a": "x = 23; angles 89°, 31°, 60°",
+          "std": "8.25"
          }
         ]
        },
@@ -1441,12 +1538,14 @@ export default {
          {
           "n": "C8",
           "q": "The second angle of a triangle is twice the first angle. The third angle is 20° more than the first angle. Write the equation, solve it, and find all three angles.",
-          "a": "x + 2x + (x + 20) = 180; x = 40; angles 40°, 80°, 60°"
+          "a": "x + 2x + (x + 20) = 180; x = 40; angles 40°, 80°, 60°",
+          "std": "8.25"
          },
          {
           "n": "C9",
           "q": "Can a triangle have two obtuse angles? Show how you know.",
-          "a": "No. Two angles greater than 90° already add to more than 180°."
+          "a": "No. Two angles greater than 90° already add to more than 180°.",
+          "std": "8.25"
          }
         ]
        }
@@ -1485,11 +1584,13 @@ export default {
      "problems": [
       {
        "q": "Solve: 7x − 5 = 4x + 10",
-       "a": "x = 5"
+       "a": "x = 5",
+       "std": "8.11"
       },
       {
        "q": "Solve: 2x + 1 > 9",
-       "a": "x > 4"
+       "a": "x > 4",
+       "std": "Alg I.11"
       }
      ]
     },
@@ -1517,19 +1618,23 @@ export default {
      "problems": [
       {
        "q": "Find the missing leg: the hypotenuse is 17 and one leg is 8.",
-       "a": "15"
+       "a": "15",
+       "std": "8.28"
       },
       {
        "q": "Multiply: (4 × 10⁻³)(5 × 10⁶)",
-       "a": "2 × 10⁴"
+       "a": "2 × 10⁴",
+       "std": "8.6"
       },
       {
        "q": "Between which two whole numbers is √90?",
-       "a": "9 and 10"
+       "a": "9 and 10",
+       "std": "8.2"
       },
       {
        "q": "Simplify: (2³)²",
-       "a": "2⁶ = 64"
+       "a": "2⁶ = 64",
+       "std": "8.3"
       }
      ]
     }
