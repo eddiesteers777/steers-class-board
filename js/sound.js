@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — timer sounds and background music.
+   Anchor Board — timer sounds and background music.
    Every sound is made right here in the browser with the Web Audio API:
    no audio files, no recordings, nothing copyrighted. The music is
    generated live from chord progressions, so it never repeats exactly.

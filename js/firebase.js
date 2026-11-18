@@ -69,8 +69,8 @@ try {
 // (firebase emulators:start). Never on the live site.
 if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
   try {
-    if (new URLSearchParams(location.search).has("emu")) sessionStorage.setItem("focal-emu", "1");
-    if (sessionStorage.getItem("focal-emu")) { connectFirestoreEmulator(db, "127.0.0.1", 8080); connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true }); }
+    if (new URLSearchParams(location.search).has("emu")) sessionStorage.setItem("anchorboard-emu", "1");
+    if (sessionStorage.getItem("anchorboard-emu")) { connectFirestoreEmulator(db, "127.0.0.1", 8080); connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true }); }
   } catch { /* storage blocked */ }
 }
 
