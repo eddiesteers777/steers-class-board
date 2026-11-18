@@ -6,7 +6,7 @@
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
 import { parseFigure, figureEl } from "./figures.js?v=1";
-import { WEEKS as ALL_WEEKS, PERIODS as PACK_PERIODS } from "../data/weeks.js?v=60";
+import { WEEKS as ALL_WEEKS, PERIODS as PACK_PERIODS } from "../data/weeks.js?v=61";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 // The public demo page passes its own sample week and periods (opts.weeks, opts.periods).
 let WEEKS = ALL_WEEKS;

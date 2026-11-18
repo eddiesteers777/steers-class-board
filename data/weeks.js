@@ -10,11 +10,11 @@ import q1w6 from "./q1w6.js?v=57";
 import q1w7 from "./q1w7.js?v=57";
 import q1w8 from "./q1w8.js?v=57";
 import week0 from "./week0.js?v=57";
-import week1 from "./week1.js?v=57";
-import week2 from "./week2.js?v=57";
-import week3 from "./week3.js?v=57";
-import week4 from "./week4.js?v=57";
-import week5 from "./week5.js?v=57";
+import week1 from "./week1.js?v=58";
+import week2 from "./week2.js?v=58";
+import week3 from "./week3.js?v=58";
+import week4 from "./week4.js?v=58";
+import week5 from "./week5.js?v=58";
 import demoWeek from "./demo-week.js?v=1";
 import { myPack, mySetup } from "../js/contentPack.js?v=2";
 

@@ -34,19 +34,23 @@ export default {
      "problems": [
       {
        "q": "Solve: 3x + 8 = 29",
-       "a": "x = 7"
+       "a": "x = 7",
+       "std": "7.9"
       },
       {
        "q": "Solve: 4(x − 2) = 24",
-       "a": "x = 8"
+       "a": "x = 8",
+       "std": "7.9"
       },
       {
        "q": "Solve: 6x − 5 = 2x + 11",
-       "a": "x = 4"
+       "a": "x = 4",
+       "std": "8.11"
       },
       {
        "q": "How many solutions? 3x + 5 = 3x − 2",
-       "a": "No solution"
+       "a": "No solution",
+       "std": "8.11"
       }
      ]
     },
@@ -69,19 +73,23 @@ export default {
      "problems": [
       {
        "q": "Solve: {1/2}x − 3 = 4",
-       "a": "x = 14"
+       "a": "x = 14",
+       "std": "7.9"
       },
       {
        "q": "Solve: 2(x + 5) = 3x + 1",
-       "a": "x = 9"
+       "a": "x = 9",
+       "std": "8.11"
       },
       {
        "q": "How many solutions? 4(x + 1) = 4x + 4",
-       "a": "Infinitely many solutions"
+       "a": "Infinitely many solutions",
+       "std": "8.11"
       },
       {
        "q": "Simplify: 5x + 3 − 2x + 7",
-       "a": "3x + 10"
+       "a": "3x + 10",
+       "std": "7.6"
       }
      ]
     },
@@ -139,19 +147,23 @@ export default {
      "problems": [
       {
        "q": "The legs of a right triangle are 5 and 12. Find the hypotenuse.",
-       "a": "13"
+       "a": "13",
+       "std": "8.28"
       },
       {
        "q": "Write 0.0072 in scientific notation.",
-       "a": "7.2 × 10⁻³"
+       "a": "7.2 × 10⁻³",
+       "std": "8.5"
       },
       {
        "q": "Is √64 rational or irrational?",
-       "a": "Rational (√64 = 8)"
+       "a": "Rational (√64 = 8)",
+       "std": "8.4"
       },
       {
        "q": "A right triangle has hypotenuse 10 and one leg 6. Find the missing leg.",
-       "a": "8"
+       "a": "8",
+       "std": "8.28"
       }
      ]
     }
@@ -219,19 +231,23 @@ export default {
      "problems": [
       {
        "q": "(−4)(6)",
-       "a": "−24"
+       "a": "−24",
+       "std": "7.4"
       },
       {
        "q": "−20 ÷ (−5)",
-       "a": "4"
+       "a": "4",
+       "std": "7.4"
       },
       {
        "q": "(−3)(−3)(−3)",
-       "a": "−27"
+       "a": "−27",
+       "std": "7.4"
       },
       {
        "q": "9 ÷ 0",
-       "a": "Undefined"
+       "a": "Undefined",
+       "std": "7.4"
       }
      ]
     },
@@ -255,19 +271,23 @@ export default {
      "problems": [
       {
        "q": "(−7)(8)",
-       "a": "−56"
+       "a": "−56",
+       "std": "7.4"
       },
       {
        "q": "−63 ÷ 9",
-       "a": "−7"
+       "a": "−7",
+       "std": "7.4"
       },
       {
        "q": "(−2)(−5)(3)",
-       "a": "30"
+       "a": "30",
+       "std": "7.4"
       },
       {
        "q": "−5 + 12",
-       "a": "7"
+       "a": "7",
+       "std": "7.4"
       }
      ]
     },
@@ -308,19 +328,23 @@ export default {
      "problems": [
       {
        "q": "What is the reciprocal of {3/5}?",
-       "a": "{5/3}"
+       "a": "{5/3}",
+       "std": "7.4"
       },
       {
        "q": "(−{1/2})(4)",
-       "a": "−2"
+       "a": "−2",
+       "std": "7.4"
       },
       {
        "q": "(0.5)(−6)",
-       "a": "−3"
+       "a": "−3",
+       "std": "7.4"
       },
       {
        "q": "Simplify {12/18}.",
-       "a": "{2/3}"
+       "a": "{2/3}",
+       "skill": "Prior skill: Simplifying fractions"
       }
      ]
     },
@@ -343,19 +367,23 @@ export default {
      "problems": [
       {
        "q": "−9 + 14",
-       "a": "5"
+       "a": "5",
+       "std": "7.4"
       },
       {
        "q": "3.2 − 5",
-       "a": "−1.8"
+       "a": "−1.8",
+       "std": "7.4"
       },
       {
        "q": "(−6)(−7)",
-       "a": "42"
+       "a": "42",
+       "std": "7.4"
       },
       {
        "q": "−{3/4} + {1/2}",
-       "a": "−{1/4}"
+       "a": "−{1/4}",
+       "std": "7.4"
       }
      ]
     }
@@ -423,19 +451,23 @@ export default {
      "problems": [
       {
        "q": "Solve: 2(3x − 4) = 4x + 6",
-       "a": "x = 7"
+       "a": "x = 7",
+       "std": "8.11"
       },
       {
        "q": "Solve: {2/3}x + 1 = 7",
-       "a": "x = 9"
+       "a": "x = 9",
+       "std": "7.9"
       },
       {
        "q": "Solve: 0.4x − 0.3 = 0.1x + 1.5",
-       "a": "x = 6"
+       "a": "x = 6",
+       "std": "8.11"
       },
       {
        "q": "How many solutions? 5(x − 2) = 5x − 10",
-       "a": "Infinitely many solutions"
+       "a": "Infinitely many solutions",
+       "std": "8.11"
       }
      ]
     },
@@ -458,19 +490,23 @@ export default {
      "problems": [
       {
        "q": "Solve: 7x − 3(x − 2) = 18",
-       "a": "x = 3"
+       "a": "x = 3",
+       "std": "8.11"
       },
       {
        "q": "Solve: {x + 6/4} = {x − 2/2}",
-       "a": "x = 10"
+       "a": "x = 10",
+       "std": "8.11"
       },
       {
        "q": "How many solutions? 3x + 9 = 3(x + 2)",
-       "a": "No solution"
+       "a": "No solution",
+       "std": "8.11"
       },
       {
        "q": "Solve: −2(x − 5) = x − 2",
-       "a": "x = 4"
+       "a": "x = 4",
+       "std": "8.11"
       }
      ]
     },
@@ -528,19 +564,23 @@ export default {
      "problems": [
       {
        "q": "A right triangle has hypotenuse 13 and one leg 5. Find the missing leg.",
-       "a": "12"
+       "a": "12",
+       "std": "8.28"
       },
       {
        "q": "(3 × 10⁵)(2 × 10⁻²)",
-       "a": "6 × 10³"
+       "a": "6 × 10³",
+       "std": "8.6"
       },
       {
        "q": "√50 is between which two whole numbers?",
-       "a": "7 and 8"
+       "a": "7 and 8",
+       "std": "8.2"
       },
       {
        "q": "Write 5⁷ ÷ 5⁴ as one power.",
-       "a": "5³"
+       "a": "5³",
+       "std": "8.3"
       }
      ]
     }

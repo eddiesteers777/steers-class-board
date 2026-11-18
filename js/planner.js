@@ -5,7 +5,7 @@
      { days: { "2026-11-18": { note, c: { "8th": "plan" } } }, weeks: { "2026-11-16": { c: { "8th": "unit or focus" } } } }
    ?demo keeps everything on this device only.
 ========================================== */
-import { WEEKS as PUBLISHED } from "../data/weeks.js?v=60";
+import { WEEKS as PUBLISHED } from "../data/weeks.js?v=61";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { LIBRARY } from "../data/library.js?v=57";
 import { suggestedUnit } from "./standardsNext.js?v=57";

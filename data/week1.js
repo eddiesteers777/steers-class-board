@@ -35,19 +35,23 @@ export default {
      "problems": [
       {
        "q": "Write 52,000 in scientific notation.",
-       "a": "5.2 × 10⁴"
+       "a": "5.2 × 10⁴",
+       "std": "8.5"
       },
       {
        "q": "Is √49 rational or irrational?",
-       "a": "Rational (√49 = 7)"
+       "a": "Rational (√49 = 7)",
+       "std": "8.4"
       },
       {
        "q": "13²",
-       "a": "169"
+       "a": "169",
+       "std": "8.4"
       },
       {
        "q": "√144",
-       "a": "12"
+       "a": "12",
+       "std": "8.4"
       }
      ]
     },
@@ -71,19 +75,23 @@ export default {
      "problems": [
       {
        "q": "(3 × 10²)(2 × 10³)",
-       "a": "6 × 10⁵"
+       "a": "6 × 10⁵",
+       "std": "8.6"
       },
       {
        "q": "√40 is between which two whole numbers?",
-       "a": "6 and 7"
+       "a": "6 and 7",
+       "std": "8.2"
       },
       {
        "q": "Solve: 2x² + 3 = 35",
-       "a": "x = ±4"
+       "a": "x = ±4",
+       "std": "8.4"
       },
       {
        "q": "What is the hypotenuse?",
-       "a": "The side across from the right angle (the longest side)"
+       "a": "The side across from the right angle (the longest side)",
+       "std": "8.28"
       }
      ]
     },
@@ -109,19 +117,23 @@ export default {
      "problems": [
       {
        "q": "Write 0.0047 in scientific notation.",
-       "a": "4.7 × 10⁻³"
+       "a": "4.7 × 10⁻³",
+       "std": "8.5"
       },
       {
        "q": "Solve: 2x³ − 5 = 49",
-       "a": "x = 3"
+       "a": "x = 3",
+       "std": "8.4"
       },
       {
        "q": "Find the distance between (2, 3) and (7, 3).",
-       "a": "5"
+       "a": "5",
+       "std": "8.27"
       },
       {
        "q": "Is 3² + 4² = 5² true?",
-       "a": "Yes (9 + 16 = 25)"
+       "a": "Yes (9 + 16 = 25)",
+       "std": "8.26"
       }
      ]
     },
@@ -144,19 +156,23 @@ export default {
      "problems": [
       {
        "q": "Write the Pythagorean Theorem.",
-       "a": "a² + b² = c²"
+       "a": "a² + b² = c²",
+       "std": "8.26"
       },
       {
        "q": "12²",
-       "a": "144"
+       "a": "144",
+       "std": "8.4"
       },
       {
        "q": "√225",
-       "a": "15"
+       "a": "15",
+       "std": "8.4"
       },
       {
        "q": "Is π rational or irrational?",
-       "a": "Irrational"
+       "a": "Irrational",
+       "std": "8.1"
       }
      ]
     },
@@ -180,19 +196,23 @@ export default {
      "problems": [
       {
        "q": "Write 7.8 × 10⁵ in standard form.",
-       "a": "780,000"
+       "a": "780,000",
+       "std": "8.5"
       },
       {
        "q": "Estimate √20 to the nearest tenth.",
-       "a": "4.5"
+       "a": "4.5",
+       "std": "8.2"
       },
       {
        "q": "Solve: 5x² + 5 = 85",
-       "a": "x = ±4"
+       "a": "x = ±4",
+       "std": "8.4"
       },
       {
        "q": "The legs of a right triangle are 6 and 8. Find the hypotenuse.",
-       "a": "10"
+       "a": "10",
+       "std": "8.28"
       }
      ]
     }
@@ -261,19 +281,23 @@ export default {
      "problems": [
       {
        "q": "−6 + 9",
-       "a": "3"
+       "a": "3",
+       "std": "7.4"
       },
       {
        "q": "{5/8} − {1/8}",
-       "a": "{1/2}"
+       "a": "{1/2}",
+       "std": "7.4"
       },
       {
        "q": "Write 7.3 with two decimal places.",
-       "a": "7.30"
+       "a": "7.30",
+       "skill": "Prior skill: Decimal place value"
       },
       {
        "q": "25¢ + 50¢. Write the total in dollars.",
-       "a": "$0.75"
+       "a": "$0.75",
+       "skill": "Prior skill: Money and decimals"
       }
      ]
     },
@@ -297,19 +321,23 @@ export default {
      "problems": [
       {
        "q": "Round 4.68 to the nearest tenth.",
-       "a": "4.7"
+       "a": "4.7",
+       "skill": "Prior skill: Rounding decimals"
       },
       {
        "q": "(−7)(2)",
-       "a": "−14"
+       "a": "−14",
+       "std": "7.4"
       },
       {
        "q": "6 × 7",
-       "a": "42"
+       "a": "42",
+       "skill": "Prior skill: Basic facts"
       },
       {
        "q": "36 ÷ 4",
-       "a": "9"
+       "a": "9",
+       "skill": "Prior skill: Basic facts"
       }
      ]
     },
@@ -334,19 +362,23 @@ export default {
      "problems": [
       {
        "q": "Write {1/4} as a decimal.",
-       "a": "0.25"
+       "a": "0.25",
+       "std": "7.4"
       },
       {
        "q": "Order from least to greatest: 0.7, 0.07, 0.77",
-       "a": "0.07, 0.7, 0.77"
+       "a": "0.07, 0.7, 0.77",
+       "skill": "Prior skill: Comparing decimals"
       },
       {
        "q": "0.5 × 10",
-       "a": "5"
+       "a": "5",
+       "std": "7.4"
       },
       {
        "q": "20 ÷ 4",
-       "a": "5"
+       "a": "5",
+       "skill": "Prior skill: Basic facts"
       }
      ]
     },
@@ -369,19 +401,23 @@ export default {
      "problems": [
       {
        "q": "What is the value of the 7 in 3.472?",
-       "a": "0.07"
+       "a": "0.07",
+       "skill": "Prior skill: Decimal place value"
       },
       {
        "q": "0.9 + 0.6",
-       "a": "1.5"
+       "a": "1.5",
+       "std": "7.4"
       },
       {
        "q": "Write {1/2} as a decimal.",
-       "a": "0.5"
+       "a": "0.5",
+       "std": "7.4"
       },
       {
        "q": "0.5 × 4",
-       "a": "2"
+       "a": "2",
+       "std": "7.4"
       }
      ]
     },
@@ -405,19 +441,23 @@ export default {
      "problems": [
       {
        "q": "−10 + 4",
-       "a": "−6"
+       "a": "−6",
+       "std": "7.4"
       },
       {
        "q": "{1/2} + {1/4}",
-       "a": "{3/4}"
+       "a": "{3/4}",
+       "std": "7.4"
       },
       {
        "q": "Round 2.35 to the nearest tenth.",
-       "a": "2.4"
+       "a": "2.4",
+       "skill": "Prior skill: Rounding decimals"
       },
       {
        "q": "5.2 − 1.7",
-       "a": "3.5"
+       "a": "3.5",
+       "std": "7.4"
       }
      ]
     }
@@ -482,19 +522,23 @@ export default {
      "problems": [
       {
        "q": "Write 52,000 in scientific notation.",
-       "a": "5.2 × 10⁴"
+       "a": "5.2 × 10⁴",
+       "std": "8.5"
       },
       {
        "q": "Is √49 rational or irrational?",
-       "a": "Rational (√49 = 7)"
+       "a": "Rational (√49 = 7)",
+       "std": "8.4"
       },
       {
        "q": "13²",
-       "a": "169"
+       "a": "169",
+       "std": "8.4"
       },
       {
        "q": "√144",
-       "a": "12"
+       "a": "12",
+       "std": "8.4"
       }
      ]
     },
@@ -518,19 +562,23 @@ export default {
      "problems": [
       {
        "q": "(3 × 10²)(2 × 10³)",
-       "a": "6 × 10⁵"
+       "a": "6 × 10⁵",
+       "std": "8.6"
       },
       {
        "q": "√40 is between which two whole numbers?",
-       "a": "6 and 7"
+       "a": "6 and 7",
+       "std": "8.2"
       },
       {
        "q": "Solve: 2x² + 3 = 35",
-       "a": "x = ±4"
+       "a": "x = ±4",
+       "std": "8.4"
       },
       {
        "q": "What is the hypotenuse?",
-       "a": "The side across from the right angle (the longest side)"
+       "a": "The side across from the right angle (the longest side)",
+       "std": "8.28"
       }
      ]
     },
@@ -556,19 +604,23 @@ export default {
      "problems": [
       {
        "q": "Write 0.0047 in scientific notation.",
-       "a": "4.7 × 10⁻³"
+       "a": "4.7 × 10⁻³",
+       "std": "8.5"
       },
       {
        "q": "Solve: 2x³ − 5 = 49",
-       "a": "x = 3"
+       "a": "x = 3",
+       "std": "8.4"
       },
       {
        "q": "Find the distance between (2, 3) and (7, 3).",
-       "a": "5"
+       "a": "5",
+       "std": "8.27"
       },
       {
        "q": "Is 3² + 4² = 5² true?",
-       "a": "Yes (9 + 16 = 25)"
+       "a": "Yes (9 + 16 = 25)",
+       "std": "8.26"
       }
      ]
     },
@@ -591,19 +643,23 @@ export default {
      "problems": [
       {
        "q": "Write the Pythagorean Theorem.",
-       "a": "a² + b² = c²"
+       "a": "a² + b² = c²",
+       "std": "8.26"
       },
       {
        "q": "12²",
-       "a": "144"
+       "a": "144",
+       "std": "8.4"
       },
       {
        "q": "√225",
-       "a": "15"
+       "a": "15",
+       "std": "8.4"
       },
       {
        "q": "Is π rational or irrational?",
-       "a": "Irrational"
+       "a": "Irrational",
+       "std": "8.1"
       }
      ]
     },
@@ -627,19 +683,23 @@ export default {
      "problems": [
       {
        "q": "Write 7.8 × 10⁵ in standard form.",
-       "a": "780,000"
+       "a": "780,000",
+       "std": "8.5"
       },
       {
        "q": "Estimate √20 to the nearest tenth.",
-       "a": "4.5"
+       "a": "4.5",
+       "std": "8.2"
       },
       {
        "q": "Solve: 5x² + 5 = 85",
-       "a": "x = ±4"
+       "a": "x = ±4",
+       "std": "8.4"
       },
       {
        "q": "The legs of a right triangle are 6 and 8. Find the hypotenuse.",
-       "a": "10"
+       "a": "10",
+       "std": "8.28"
       }
      ]
     }
