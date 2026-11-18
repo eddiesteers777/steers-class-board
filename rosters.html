@@ -12,6 +12,13 @@
     <link rel="stylesheet" href="css/console.css?v=57">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
     <meta name="theme-color" content="#081B45">
+    <style>
+        .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+        .imp { background: #fff; border: 1px solid #D5DCE9; border-radius: 16px; padding: 14px 16px; margin: 18px 0; }
+        .imp h2 { margin-top: 0; }
+        .imp select { font: inherit; min-height: 44px; border: 1px solid #D5DCE9; border-radius: 12px; padding: 8px 10px; background: #fff; }
+        #csvIn:focus-visible + #csvBtn, #csvBtn:focus-visible { outline: 3px solid #7FAEDD; outline-offset: 2px; }
+    </style>
     </head>
 <body class="console page">
     <header class="cbar">
@@ -22,17 +29,29 @@
     </header>
     <main>
         <h1>Rosters</h1>
-        <p class="sub">One name per line for each period. Names are saved only to your private account and are never part of the site's public code. The Name picker and Group maker use them.</p>
+        <p class="sub">One name per line for each period. Names are saved only to your private account and are never part of the site's public code. The Name picker and Group maker use them. First name and last initial is all the board needs.</p>
+        <section class="imp" aria-labelledby="impH">
+            <h2 id="impH">Import a class list</h2>
+            <p class="sub">A CSV from Google Classroom, PowerSchool, your gradebook or a sheet (File, Download, CSV). With a Period or Class column, each student goes to their period. Names are cut to first name and last initial before anything is saved.</p>
+            <div class="rowx">
+                <input type="file" id="csvIn" accept=".csv,.tsv,.txt,text/csv,text/plain" class="vh">
+                <label class="btn go" for="csvIn" id="csvBtn" role="button" tabindex="0">Choose a CSV file</label>
+                <label for="csvTo" class="sub" style="margin:0">No period column? Put them in</label>
+                <select id="csvTo"></select>
+            </div>
+            <p class="count2" id="csvMsg" role="status" aria-live="polite"></p>
+        </section>
         <div class="cols" id="cols"></div>
         <div class="rowx"><button class="btn go" id="save" type="button">Save rosters</button><span class="count2" id="saved"></span></div>
         <h2>Paste everything at once</h2>
         <p class="sub">Paste a full list with a line such as "1st period" above each class, then choose Fill the boxes. Check the boxes, then Save rosters.</p>
         <textarea id="all" aria-label="Paste all rosters"></textarea>
-        <div class="rowx"><button class="btn ghost" id="fill" type="button">Fill the boxes</button></div>
+        <div class="rowx"><button class="btn ghost" id="fill" type="button">Fill the boxes</button><label class="sub" style="margin:0;display:inline-flex;gap:8px;align-items:center"><input type="checkbox" id="shortOn" checked> First name and last initial only</label><button class="btn ghost" id="shorten" type="button">Shorten the names in the boxes</button></div>
     </main>
     <script type="module">
         import * as store from "./js/boardStore.js?v=58";
         import { PERIODS } from "./data/weeks.js?v=60";
+        import { parseCsv, rowsToRosters, shortNames } from "./js/rosterImport.js?v=1";
         const KEYS = PERIODS.map((p) => p[0]), $ = (id) => document.getElementById(id), boxes = {};
         const status = (t) => { const s = $("status"); s.textContent = t; s.dataset.state = /^(Live|Saved|Filled)/.test(t) ? "ok" : (/Could not|No period/.test(t) ? "bad" : "wait"); };
         KEYS.forEach((k) => {
@@ -44,10 +63,27 @@
             col.append(lab, ta, n); $("cols").appendChild(col); boxes[k] = { ta, count };
         });
         function clean(text) { return text.split(/\n/).map((x) => x.trim().replace(/\s+/g, " ")).filter(Boolean).slice(0, 60); }
+        KEYS.forEach((k) => { const o = document.createElement("option"); o.value = k; o.textContent = k + " period"; $("csvTo").appendChild(o); });
+        $("csvBtn").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("csvIn").click(); } });
+        $("csvIn").onchange = async () => {
+            const f = $("csvIn").files[0]; $("csvIn").value = ""; if (!f) return;
+            const m = $("csvMsg");
+            if (f.size > 2 * 1024 * 1024) { m.textContent = "That file is over 2 MB. Export just the class list as CSV."; return; }
+            if (/\.(xlsx?|numbers|pdf|docx?)$/i.test(f.name)) { m.textContent = "That's not a CSV. In your sheet, use File, Download, CSV, then choose that file."; return; }
+            const r = rowsToRosters(parseCsv(await f.text()), KEYS, $("csvTo").value);
+            const got = Object.keys(r.byPeriod);
+            if (!got.length && !r.unplaced.length) { m.textContent = "No names found in that file."; return; }
+            got.forEach((k) => { boxes[k].ta.value = r.byPeriod[k].join("\n"); boxes[k].count(); });
+            m.textContent = (got.length ? "Filled " + got.map((k) => k + " (" + r.byPeriod[k].length + ")").join(", ") + ". " : "")
+                + (r.unplaced.length ? "Left out, since their period isn't one of yours: " + r.unplaced.slice(0, 6).join(", ") + (r.unplaced.length > 6 ? " and " + (r.unplaced.length - 6) + " more" : "") + " · " : "")
+                + (got.length ? "Check the boxes, then Save rosters." : "");
+            status(got.length ? "Filled from " + f.name : "No period matched");
+        };
+        $("shorten").onclick = () => { KEYS.forEach((k) => { boxes[k].ta.value = shortNames(clean(boxes[k].ta.value)).join("\n"); boxes[k].count(); }); status("Filled: names shortened. Check them, then Save rosters."); };
         $("fill").onclick = () => {
             let cur = null; const got = {};
             $("all").value.split(/\n/).forEach((line) => { const m = line.trim().match(new RegExp("^(" + KEYS.join("|") + ")\\b", "i")); if (m) { cur = m[1].toLowerCase(); got[cur] = []; } else if (cur && line.trim()) got[cur].push(line.trim()); });
-            const found = Object.keys(got); found.forEach((k) => { boxes[k].ta.value = got[k].join("\n"); boxes[k].count(); });
+            const found = Object.keys(got); found.forEach((k) => { boxes[k].ta.value = ($("shortOn").checked ? shortNames(got[k]) : got[k]).join("\n"); boxes[k].count(); });
             status(found.length ? "Filled " + found.join(", ") + ". Check them, then tap Save rosters." : "No period headings found. Put a line like \"1st period\" above each class.");
         };
         const user = await store.ready();

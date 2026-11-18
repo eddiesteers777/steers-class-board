@@ -25,6 +25,7 @@ const mathEl = (tag, cls, text) => { const e = el(tag, cls); e.append(V.mathText
 const clean = (o) => JSON.parse(JSON.stringify(o));
 
 const PAGE = (() => { try { let id = sessionStorage.getItem("focal-notes-host"); if (!id) { id = Math.random().toString(36).slice(2, 10); sessionStorage.setItem("focal-notes-host", id); } return id; } catch (e) { return Math.random().toString(36).slice(2, 10); } })();
+const LEFT_OPEN = 24 * 3600 * 1000;   // a room untouched this long is closed the next time the Remote opens
 const HOST_STALE = 20000;
 const SCREENS_ON = { notes: 1, bell: 1, blank: 1, fix: 1 };   // where the Live notes panel and the board's check-in ring appear
 
@@ -55,6 +56,8 @@ export function syncNotes() {
             CODES = (d && d.codes) || CODES;
             if (hosting && H && d && d.host === PAGE) return;   // this Remote runs it: its own copy is newest
             const was = hosting; H = d && d.v === 1 && d.status === "open" ? d : null; loaded = true;
+            // A game nobody has touched for a day was left open by mistake: close it, which deletes the students' names and answers.
+            if (isRemote() && H && !hosting && Date.now() - Math.max(+H.hb || 0, +H.at || 0) > LEFT_OPEN) { autoClose(); rev++; redraw(); return; }
             if (isRemote() && H && (!H.host || H.host === PAGE || Date.now() - (+H.hb || 0) > HOST_STALE)) takeHost();
             else if (was && H && H.host !== PAGE) { hosting = false; stopPlayers(); }
             if (!H) { hosting = false; stopPlayers(); }
@@ -226,6 +229,13 @@ async function closeRoom() {
         H = null; hosting = false; note = ""; peek = ""; endArm = 0;
     } catch (e) { note = "Could not close live notes (" + ((e && e.code) || "connection") + "). Try again."; if (H) takeHost(); }
     busy = ""; panelSig = ""; rev++; redraw();
+}
+let autoClosing = false;
+async function autoClose() {
+    if (autoClosing || !H) return; autoClosing = true;
+    const since = new Date(Math.max(+H.hb || 0, +H.at || 0) || Date.now()).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+    await closeRoom(); autoClosing = false;
+    if (!H) { note = "A student game left open since " + since + " was closed. Its names and answers are deleted."; panelSig = ""; rev++; redraw(); }
 }
 function startCheck() {
     if (!H || !running()) return;

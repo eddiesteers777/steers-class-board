@@ -24,6 +24,12 @@ Home links to `lesson.html`: one class, one day. Title, learning target, bellrin
 ### PDF notes
 The Notes box on Quick lesson takes a PDF (up to 20 pages). `js/pdfNotes.js` draws each page in the browser with pdf.js (vendored in `js/vendor/pdfjs`, Apache-2.0) and saves it as a JPEG in `teacher/{uid}/pdfpages/<id>_<n>`, with `teacher/{uid}/pdfs/<id>` as the summary. The day gets `pdf: { id, title, pages, w, h }`. On Guided Notes each page is two frames (top half, bottom half) under the pen; "Whole page" shows all of it. The exit ticket follows the last page. Students on live notes see the page name, not the picture.
 
+## Rosters (rosters.html)
+"Import a class list" reads a CSV (Google Classroom, PowerSchool, a gradebook or a sheet). A Period, Class or Section column sends each student to their period; otherwise they go to the period picked on the page. `js/rosterImport.js` keeps first name and last initial only ("Ava R.", or "Ava Ro." when two would match), so full names are never saved. Paste-and-fill shortens names too unless the box is unticked.
+
+## Student games left open
+The Remote closes a Vault Raid room or live notes session that nobody has touched for 24 hours the next time it opens (js/liveRoom.js, js/liveNotes.js, `LEFT_OPEN`). Closing deletes the room and the students' names and answers, the same as tapping Close.
+
 ## Your data (account.html)
 Settings on Home links to `account.html`: a count of everything the account saved, and "Delete all my data" (type DELETE). `js/accountData.js` deletes every document under `teacher/{uid}/` (its `COLLECTIONS` list), any student game room the teacher left open, and the posted Class Pages under `pub/{uid}/`, then signs out. **When a new folder is added under `teacher/{uid}/`, add it to `COLLECTIONS`.**
 
