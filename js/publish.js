@@ -2,7 +2,7 @@
    Focal — Class Pages publishing (Phase 2 of the weekly workflow).
    Approving a week on Week Review copies a STUDENT version of it to the public read-only area
      pub/{uid}/weeks/<weekId>   { id, label, dates, monday, at, classes: { <cls>: student class } }
-     pub/{uid}/index            { weeks: [{ id, label, dates, monday }], classes: { <cls>: { label, cls } } }
+     pub/{uid}                  { weeks: [{ id, label, dates, monday }], classes: { <cls>: { label, cls } } }
    which class.html shows to students and parents without sign-in. The student version keeps only
    what a student sheet shows: no answers, worked solutions, likely wrong answers, keys, speed dating
    cards or Claude's check stamp, and never any student information (none is in a week file).
@@ -44,16 +44,16 @@ export async function publishWeek(store, uid, week, plan) {
     });
     const doc = { id: week.id, label: week.label || week.id, dates: week.dates || "", monday: week.monday || "", at: Date.now(), classes };
     await store.rooms.save("pub/" + uid + "/weeks/" + week.id, JSON.parse(JSON.stringify(doc)));
-    const idx = (await store.rooms.get("pub/" + uid + "/index")) || {};
+    const idx = (await store.rooms.get("pub/" + uid)) || {};
     const weeks = (idx.weeks || []).filter((w) => w.id !== week.id).concat([{ id: doc.id, label: doc.label, dates: doc.dates, monday: doc.monday }])
         .sort((a, b) => String(a.monday).localeCompare(String(b.monday)));
     const cl = Object.assign({}, idx.classes || {}); Object.entries(classes).forEach(([k, c]) => { cl[k] = { label: c.label, cls: c.cls || "" }; });
-    await store.rooms.save("pub/" + uid + "/index", { weeks, classes: cl, at: Date.now() });
+    await store.rooms.save("pub/" + uid, { weeks, classes: cl, at: Date.now() });
 }
 export async function unpublishWeek(store, uid, id) {
     await store.rooms.del("pub/" + uid + "/weeks/" + id);
-    const idx = (await store.rooms.get("pub/" + uid + "/index")) || {};
-    await store.rooms.save("pub/" + uid + "/index", { weeks: (idx.weeks || []).filter((w) => w.id !== id), classes: idx.classes || {}, at: Date.now() });
+    const idx = (await store.rooms.get("pub/" + uid)) || {};
+    await store.rooms.save("pub/" + uid, { weeks: (idx.weeks || []).filter((w) => w.id !== id), classes: idx.classes || {}, at: Date.now() });
 }
 
 /** The class page address for a class. */

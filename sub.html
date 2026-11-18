@@ -55,7 +55,7 @@
                 const { db } = await import("./js/firebase.js");
                 const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js");
                 const late = (ms) => new Promise((_, no) => setTimeout(() => no(new Error("slow")), ms));
-                const ix = await Promise.race([getDoc(doc(db, "pub/" + t + "/index")), late(5000)]);
+                const ix = await Promise.race([getDoc(doc(db, "pub/" + t)), late(5000)]);
                 const list = ix.exists() ? (ix.data().weeks || []).slice(-3) : [];
                 const got = await Promise.race([Promise.all(list.map((w) => getDoc(doc(db, "pub/" + t + "/weeks/" + w.id)))), late(6000)]);
                 weeks = mergeWeeks(WEEKS, got.filter((s) => s.exists()).map((s) => s.data()));

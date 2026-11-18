@@ -43,7 +43,7 @@ export async function summary() {
     const user = await waitForUser(); if (!user) return null;
     const out = [];
     for (const [id, label] of COLLECTIONS) out.push({ id, label, count: (await docsIn(`teacher/${user.uid}/${id}`)).length });
-    out.push({ id: "pub", label: "Posted Class Pages", count: (await docsIn(`pub/${user.uid}/weeks`)).length });
+    out.push({ id: "pub", label: "Posted Class Pages", count: (await docsIn(`pub/${user.uid}/weeks`)).length });   // plus the index at pub/{uid}
     return out;
 }
 
@@ -82,7 +82,7 @@ export async function deleteEverything(onProgress = () => {}) {
     }
     // Class Pages: every posted week, plus the index document if one exists (js/publish.js).
     const pub = await docsIn(`pub/${uid}/weeks`);
-    try { pub.push(...await docsIn(`pub/${uid}/index`)); } catch { /* none */ }
+    if ((await getDoc(doc(db, `pub/${uid}`))).exists()) pub.push(`pub/${uid}`);
     if (pub.length) { onProgress("Taking down posted Class Pages (" + pub.length + ")"); await deleteAll(pub); n += pub.length; }
     await deleteAll([`teacher/${uid}`]); n += 1;
     onProgress("Done");

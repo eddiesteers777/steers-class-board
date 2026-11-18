@@ -118,7 +118,7 @@ function draw() {
 async function start() {
     if (!/^[\w-]{1,128}$/.test(T) || !/^[\w-]{2,20}$/.test(C)) { fail("The link is missing part of its address. Ask your teacher for the class link."); return; }
     try {
-        const s = await getDoc(doc(db, "pub/" + T + "/index"));
+        const s = await getDoc(doc(db, "pub/" + T));
         index = s.exists() ? s.data() : null;
         if (!index || !(index.weeks || []).length) { fail("Your teacher has not posted a week yet. Check back soon."); return; }
         const t = iso(new Date()), want = qs.get("w");
