@@ -340,3 +340,9 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .pcall{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--amber);color:var(--amber-ink,#3A2A00);border-radius:16px;padding:8px 18px;box-shadow:0 8px 24px rgba(0,0,0,.35);text-align:center;animation:bump .6s ease-out;pointer-events:none;max-width:calc(100% - 32px)}
 .pcall b{font-size:1.05rem}
 .pcall span{font-size:.85rem;font-weight:600}
+/* Inequality answers: sign buttons under the box (≤ and ≥ aren't on a Chromebook keyboard). */
+.pafield:has(.pasyms){flex-wrap:wrap}
+.pasyms{flex:1 0 100%;display:flex;flex-wrap:wrap;gap:6px}
+.pasym{min-width:46px;min-height:44px;padding:4px 12px;font-weight:800;font-size:1.2rem;line-height:1;color:var(--ink);background:#fff;border:2px solid var(--line);border-radius:10px;cursor:pointer}
+.pasym:hover,.pasym:focus-visible{border-color:var(--blue);outline:none}
+.pasym:active{transform:translateY(1px)}
