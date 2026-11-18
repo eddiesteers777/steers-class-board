@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — what to teach next, from the district unit order and the private status marks.
+   Anchor Board — what to teach next, from the district unit order and the private status marks.
    Used by the Standards page ("Next up" panel) and the Planner (suggested unit for weeks not planned yet).
 
    The current unit is the first unit, in district order, that holds a standard marked Teaching.

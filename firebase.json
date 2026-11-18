@@ -1,7 +1,7 @@
 {
   "hosting": [
     {
-      "site": "focalboard",
+      "site": "anchorboard",
       "public": ".",
       "ignore": [
         "firebase.json",

@@ -1,4 +1,4 @@
-# Focal — design rules
+# Anchor Board — design rules
 
 Adopted Nov 16, 2026. The principles and the spacing, radius, type and motion numbers come from
 Eddie's other project's design system. Only the method was brought over: none of its colours,
@@ -11,7 +11,7 @@ The site works for the teacher; the teacher never works for the site. When in do
 simpler, one less thing.
 
 ## Name and logo (Nov 16, 2026)
-- The site is called **Focal**. Eddie wants a name he could sell, so the product name never includes "Steers".
+- The site is called **Anchor Board**. Eddie wants a name he could sell, so the product name never includes "Steers".
   His own class details (Mr. Steers, Calera Middle School, the class pills) stay as content.
 - Logo: the "Ring anchor" (Eddie picked option B on 2026-11-17 for the Anchor Board rebrand): the two rings open at
   the top and become an anchor's arms, white shank and crossbar, amber eye. `brand/logo.svg` (also `favicon.svg` and
@@ -19,7 +19,7 @@ simpler, one less thing.
 - `css/theme-rings.css` carries the logo onto the pages: the navy gradient (#173F86 → #0B2559 → #081B45),
   faint rings in the background, the rings mark on stage card titles and the learning target, and a
   four-colour line (paper, light blue #B9D3EE, sky, amber) under headers. Load it after `console.css`.
-- The Focal logo (`brand/logo.svg`) is on the projected board header. It replaced the Calera seal per Eddie on 2026-11-17.
+- The Anchor Board logo (`brand/logo.svg`) is on the projected board header. It replaced the Calera seal per Eddie on 2026-11-17.
 
 ## Rules
 - **One screen, one job.** One main thing to look at, one primary action, at most one secondary.

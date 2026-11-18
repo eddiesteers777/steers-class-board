@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — math tools for any whiteboard canvas.
+   Anchor Board — math tools for any whiteboard canvas.
    The model and the drawing only: no board state, no Firebase, no page layout.
    The board's whiteboard uses it through js/mathPad.js, and any other drawing
    surface (a student drawing pad, a game) can import the same two files.
@@ -8,7 +8,7 @@
      { id, k (kind), x, y (centre, 0..1 of the canvas width / height), s (width, 0..1 of the
        canvas width), r (turn, degrees), ...settings for that kind }
    Sizes follow the canvas width, so a tool keeps its shape on a board and on a Chromebook.
-   Original Focal tools; the ideas (number line, protractor, algebra tiles…) are classroom staples.
+   Original Anchor Board tools; the ideas (number line, protractor, algebra tiles…) are classroom staples.
 ========================================== */
 
 export const C = { ink: "#14213D", blue: "#10358A", pen: "#1552D6", sky: "#7FAEDD", skyFill: "rgba(127,174,221,.30)", amber: "#F2B33D", red: "#C62828", green: "#1B7F3B", paper: "#FFFFFF", glass: "rgba(235,243,252,.80)", grid: "#DCE7F5", grid2: "#B9CDE6" };
