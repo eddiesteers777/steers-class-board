@@ -5,6 +5,7 @@
    Both read and write the same state document, so whatever one device
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
+import { parseFigure, figureEl } from "./figures.js?v=1";
 import { WEEKS as ALL_WEEKS } from "../data/weeks.js?v=57";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 // The public demo page passes its own sample week and periods (opts.weeks, opts.periods).
@@ -31,6 +32,7 @@ function rich(text) {
         while (i < s.length) {
             const ch = s[i];
             if (stop && stop.includes(ch)) break;
+            if (ch === "[" && s[i + 1] === "[") { const f = parseFigure(s, i); if (f) { flush(); frag.appendChild(figureEl(f)); i = f.end; continue; } }   // a graph, table or mapping diagram (js/figures.js)
             if (ch === "{") {
                 const save = i; i++;
                 const num = parse("/}");

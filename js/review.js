@@ -11,7 +11,8 @@ import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, nineWeeksOf, parse 
 import { weekIdFor } from "./weeksLive.js?v=58";
 import { publishWeek, unpublishWeek, classUrl, parentMessage } from "./publish.js?v=59";
 import { closeoutItems, drawCloseout } from "./closeout.js?v=1";
-import { repeats, saveBankWeek } from "./bank.js?v=1";
+import { repeats, saveBankWeek, extract } from "./bank.js?v=1";
+import { figuresIn, isFunction, stripFigures } from "./figures.js?v=1";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -117,6 +118,15 @@ function checks(w, p) {
     const ws8 = w.classes["8th"] && w.classes["8th"].sub && w.classes["8th"].sub.worksheet, wsA = w.classes["8th-acc"] && w.classes["8th-acc"].sub && w.classes["8th-acc"].sub.worksheet;
     if (ws8 && wsA && JSON.stringify(ws8.pages) === JSON.stringify(wsA.pages)) bad("8th Accelerated and 8th Grade have the same sub worksheet. Accelerated never shares a paper with Regular.");
     if (p && Array.isArray(p.days) && p.days.some((d) => d && d.type === "out")) out.push(["info", "Sub day: once this week is approved, the guest board (sub.html) on the classroom computer shows it."]);
+    // Pictures: "is it a function?" answers must agree with the graph, table or mapping diagram drawn.
+    let figs = 0;
+    extract(w).forEach((x) => {
+        const fs = figuresIn(x.q); if (!fs.length) return; figs += fs.length;
+        if (fs.length !== 1) return;
+        const a = String(x.a).toLowerCase(), says = /\bnot\b|^no\b/.test(a) ? false : /\bfunction\b|^yes\b/.test(a) ? true : null, is = isFunction(fs[0]);
+        if (says !== null && is !== null && says !== is) bad((LABEL[x.cls] || x.cls) + ", " + x.kind.toLowerCase() + ": the answer says " + (says ? "it is a function" : "it is not a function") + ", but the " + (fs[0].type === "map" ? "mapping diagram" : fs[0].type) + (is ? " shows a function" : " does not show a function") + ": \u201c" + plain(stripFigures(x.q)).slice(0, 60) + "\u201d.");
+    });
+    if (figs) out.push(["info", figs + (figs === 1 ? " picture" : " pictures") + " (graphs, tables, mapping diagrams) in the week."]);
     const rp = repeats(w, bank);
     if (rp.same.length) rp.same.slice(0, 6).forEach((x) => bad((LABEL[x.cls] || x.cls) + ": the same " + x.kind.toLowerCase() + " question is in the week twice: \u201c" + plain(x.q).slice(0, 70) + "\u201d."));
     if (rp.earlier.length) out.push(["info", rp.earlier.length + (rp.earlier.length === 1 ? " question was" : " questions were") + " already used in an earlier week (fine as spiral review; the key should say so)."]);

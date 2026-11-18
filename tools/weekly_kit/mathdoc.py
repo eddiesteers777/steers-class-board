@@ -86,9 +86,16 @@ def add_runs(p, markup, size=None, bold_all=False, italic_all=False, color=None)
                 for q in its:
                     if q=="~~": it=not it; continue
                     if not q: continue
-                    r=p.add_run(q.replace('§','$')); r.bold=bold; r.italic=it
-                    if size: r.font.size=Pt(size)
-                    if color: r.font.color.rgb=color
+                    for piece in re.split(r"(@@FIG\d+@@)", q):   # pictures (figures.py) sit on their own line
+                        if not piece: continue
+                        fm=re.fullmatch(r"@@FIG(\d+)@@", piece)
+                        if fm:
+                            import figures
+                            path, w = figures.png(int(fm.group(1)))
+                            r=p.add_run(); r.add_break(); r.add_picture(path, width=Inches(w)); r.add_break(); continue
+                        r=p.add_run(piece.replace('§','$')); r.bold=bold; r.italic=it
+                        if size: r.font.size=Pt(size)
+                        if color: r.font.color.rgb=color
     return p
 
 def fmt(fr, mixed=False):

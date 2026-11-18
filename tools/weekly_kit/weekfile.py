@@ -7,8 +7,10 @@ Math markup used in any text field:
     {2/5}        stacked fraction          4{2/3}   mixed number
     {{1/2}/{1/4}} complex fraction         §        a dollar sign
 Optional: wrap a whole expression in $...$ to set all of it as an equation in Word.
+Pictures: [[graph {...}]], [[table {...}]], [[map {...}]] (see figures.py; the site draws the same token).
 """
 import json, math, re
+import figures
 from datetime import date, timedelta
 from fractions import Fraction
 
@@ -51,8 +53,8 @@ def _bar(s):
 
 
 def to_word(s):
-    """Week-file text -> mathdoc markup ($...$ equations with {a|b} fractions)."""
-    s = str(s)
+    """Week-file text -> mathdoc markup ($...$ equations with {a|b} fractions). Pictures become @@FIGn@@."""
+    s = figures.take(str(s))
     if "^{" in s and "$" not in s: raise ValueError("wrap an exponent expression in $...$: " + s)
     if "$" in s:
         return re.sub(r"\$([^$]*)\$", lambda m: "$" + _bar(m.group(1)) + "$", s)
@@ -79,7 +81,7 @@ def _powers(s):
 
 def to_plain(s):
     """Week-file text -> plain text for messages and slides: {2/5} -> 2/5."""
-    s = _powers(str(s)).replace("$", "")
+    s = _powers(figures.strip(str(s))).replace("$", "")
     def frac(t):
         out, i = "", 0
         while i < len(t):

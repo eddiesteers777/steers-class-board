@@ -15,12 +15,22 @@
              worksheet: { title, sub?, pages: [{ heading, notes: [..], example: { q, work, answer }, problems: [{ q, a, work? }] }],
                           exit?: [{ q, a }] } }
 ========================================== */
-import { rich, DAYS, dayDate } from "./weekSheets.js?v=58";
+import { rich, DAYS, dayDate } from "./weekSheets.js?v=59";
 
 const el = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
 const R = (tag, cls, text) => { const e = el(tag, cls); e.appendChild(rich(text)); return e; };
 const NAME = [["Name:", "w24"], ["Date:", "w14"], ["Class/Period:", "w8"]];
 function nameRow(page) { const p = el("p", "sh-name"); NAME.forEach(([t, w]) => { p.appendChild(el("b", null, t + " ")); p.appendChild(el("span", "rule " + w)); }); page.appendChild(p); }
+/** An item whose question has a picture: the picture goes on the left, the choices or work space beside it. */
+function figRow(it) {
+    const q = it.querySelector(":scope > .sh-q"); if (!q) return;
+    const figs = [...q.querySelectorAll(".fig, .fig-table")]; if (!figs.length) return;
+    const row = el("div", "sh-figrow"), fc = el("div", "sh-figs"), side = el("div", "sh-figside");
+    figs.forEach((f) => fc.appendChild(f));
+    let n = q.nextSibling; while (n) { const z = n.nextSibling; if (n.classList && n.classList.contains("sh-workspace")) n.className = "sh-sidews"; side.appendChild(n); n = z; }
+    if (!side.children.length) side.appendChild(el("div", "sh-sidews"));
+    row.appendChild(fc); row.appendChild(side); it.appendChild(row);
+}
 function sheet(kind, key) { return el("section", "sheet paged " + kind + (key ? " key" : "")); }
 function page(sh) { const p = el("div", "sh-page"); sh.appendChild(p); return p; }
 const LET = ["A", "B", "C", "D", "E"];
@@ -49,6 +59,7 @@ export function quizSheet(week, cid) {
             const ch = el("div", "sh-vchoices"); x.choices.forEach((t, k) => { const s = el("p"); s.appendChild(el("b", null, LET[k] + ". ")); s.appendChild(rich(t)); ch.appendChild(s); }); item.appendChild(ch);
             if (x.select) { const a = el("p", "sh-q"); a.appendChild(el("b", null, "Answer(s): ")); a.appendChild(el("span", "rule w14")); item.appendChild(a); }
         } else item.appendChild(el("div", "sh-workspace"));
+        figRow(item);
         list.appendChild(item);
     });
     paginate(sh);
@@ -101,6 +112,7 @@ export function modQuizSheet(week, cid) {
         const b = el("div", "sh-prob"); const qq = el("p", "sh-q"); qq.appendChild(el("b", null, "B" + (n + 1) + ". ")); qq.appendChild(rich(x.q)); b.appendChild(qq);
         if (x.choices && x.choices.length) { const ch = el("p", "sh-choices"); x.choices.slice(0, 3).forEach((t, k) => { const s = el("span"); s.appendChild(el("b", null, LET[k] + ". ")); s.appendChild(rich(t)); ch.appendChild(s); }); b.appendChild(ch); }
         b.appendChild(el("div", "sh-workspace small"));
+        figRow(b);
         p2.appendChild(b);
     });
     requestAnimationFrame(() => { if (sh.isConnected) { fitSpace(sh); sh.dispatchEvent(new CustomEvent("paged")); } });
@@ -149,7 +161,7 @@ export function modStudyGuideSheet(week, cid) {
         }
         pg.appendChild(el("h2", null, "Your Turn"));
         const list = el("div", "msg-turn");
-        (part.problems || []).forEach((q) => { n++; const it = el("div", "msg-prob"); const qq = el("p", "sh-q"); qq.appendChild(el("b", null, n + ". ")); qq.appendChild(rich(q.q)); it.appendChild(qq); it.appendChild(el("div", "sh-workspace small")); list.appendChild(it); });
+        (part.problems || []).forEach((q) => { n++; const it = el("div", "msg-prob"); const qq = el("p", "sh-q"); qq.appendChild(el("b", null, n + ". ")); qq.appendChild(rich(q.q)); it.appendChild(qq); it.appendChild(el("div", "sh-workspace small")); figRow(it); list.appendChild(it); });
         pg.appendChild(list);
         pg.appendChild(el("h2", null, "Check Yourself"));
         const last = k === g.parts.length - 1;
@@ -231,6 +243,7 @@ export function subWorksheetSheet(week, cid, key) {
             const it = el("div", "sh-prob"); const qq = el("p", "sh-q"); qq.appendChild(el("b", null, (n + 1) + ". ")); qq.appendChild(rich(q.q)); it.appendChild(qq);
             if (key) { const a = el("p", "sh-ans"); a.appendChild(el("b", null, "Answer: ")); a.appendChild(rich(q.a)); if (q.work) { a.appendChild(document.createTextNode("   ")); a.appendChild(R("i", null, q.work)); } it.appendChild(a); }
             else { if (room !== "exit") it.appendChild(el("p", "sh-worklbl", "Work:")); it.appendChild(el("div", "sh-workspace " + (room || "small"))); }
+            figRow(it);
             pg.appendChild(it);
         });
         const last = k === w.pages.length - 1, ex = last && (w.exit || []).length;
