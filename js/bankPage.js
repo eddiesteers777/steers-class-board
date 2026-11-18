@@ -126,6 +126,13 @@ function drawClaude() {
 ["fCls", "fKind", "fStd", "fWeek", "once", "ans"].forEach((i) => { $(i).onchange = () => { shown = PAGE; draw(); }; });
 $("more").onclick = () => { shown += PAGE; draw(); };
 $("clearSel").onclick = () => { picked.clear(); draw(); };
+// Send the picked questions to the Question Maker as a new game set (Vault Raid and the review games).
+$("toGame").onclick = () => {
+    const keep = ["q", "a", "choices", "std", "skill", "kind", "cls"];
+    const list = [...picked.values()].map((x) => { const o = {}; keep.forEach((k) => { if (x[k] != null) o[k] = x[k]; }); return o; });
+    try { localStorage.setItem("anchorboard-maker-inbox", JSON.stringify(list)); } catch (e) { status("This browser blocked it. Use Add from Question Bank in the Question Maker.", "bad"); return; }
+    location.href = "maker.html?from=bank" + (demo ? "&demo" : "");
+};
 $("copySel").onclick = async () => { try { await navigator.clipboard.writeText(forClaude()); const b = $("copySel"), o = b.textContent; b.textContent = "Copied"; setTimeout(() => (b.textContent = o), 1600); } catch (e) { status("Copy did not work on this device", "bad"); } };
 
 const user = await store.ready();

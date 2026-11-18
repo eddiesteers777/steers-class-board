@@ -307,3 +307,11 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .ppausebox{background:#fff;border-radius:20px;padding:28px 32px;text-align:center;max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
 .ppausebox b{display:block;font-family:var(--display);font-size:2.2rem;color:var(--navy)}
 .ppausebox p{margin-top:6px;font-size:1.1rem;color:#4A5A78;font-weight:600}
+/* multiple choice (questions made in the Question Maker): one tall button per choice, a letter badge on the left */
+.pachoices.mc{flex-direction:column;gap:6px}
+.pachoices.mc .pachoice{display:flex;align-items:center;gap:10px;text-align:left;min-height:48px;padding:6px 12px;font-weight:700;font-size:1.05rem}
+.pachoices.mc .pachl{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--paper);border:2px solid var(--line);font-size:.85rem;color:var(--blue)}
+.pachoices.mc .pachoice.on .pachl{background:var(--blue);border-color:var(--blue);color:#fff}
+.pachoices.mc .pacht{flex:1;min-width:0}
+@media (min-width:900px){.pachoices.mc{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
+.patabs[hidden]{display:none}

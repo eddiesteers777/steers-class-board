@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Maker | Anchor Board</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=58">
+    <link rel="stylesheet" href="css/console.css?v=58">
+    <link rel="stylesheet" href="css/theme-rings.css?v=2">
+    <link rel="stylesheet" href="css/planner.css?v=58">
+    <link rel="stylesheet" href="css/plan.css?v=62">
+    <link rel="stylesheet" href="css/maker.css?v=2">
+    <meta name="theme-color" content="#081B45">
+    <script type="module" src="js/caleraOnly.js?v=1"></script>
+</head>
+<body class="console page planner maker">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Anchor Board</b><small id="who">For teachers</small></span></a>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <a class="btn ghost" href="games.html" style="text-decoration:none">Game Library</a>
+        <a class="btn ghost" href="bank.html" style="text-decoration:none">Question Bank</a>
+    </header>
+    <main class="mk">
+        <section class="mk-head" aria-label="Question set">
+            <div class="mk-titlewrap">
+                <label class="mk-kicker" for="title">Question Maker</label>
+                <input id="title" class="mk-title" maxlength="80" placeholder="Name this set, like Rational Numbers Test Review" autocomplete="off">
+                <div class="mk-per" id="per" role="group" aria-label="Classes that use this set"></div>
+            </div>
+            <div class="mk-actions">
+                <label class="mk-open"><span class="sr">Open a set</span><select id="openSet"><option value="">Open a saved set…</option></select></label>
+                <button class="btn ghost" id="newSet" type="button">New set</button>
+                <button class="btn go" id="save" type="button">Save set</button>
+            </div>
+        </section>
+
+        <div class="mk-ready" id="ready" aria-live="polite"></div>
+
+        <div class="mk-grid">
+            <aside class="mk-list" aria-label="Questions in this set">
+                <div class="mk-listhead"><h2>Questions <span id="count"></span></h2></div>
+                <ol id="list" class="mk-items"></ol>
+                <div class="mk-add">
+                    <button class="btn" id="addQ" type="button">+ New question</button>
+                    <button class="btn ghost" id="fromBank" type="button">Add from Question Bank</button>
+                    <button class="btn ghost" id="paste" type="button">Paste a list</button>
+                </div>
+            </aside>
+
+            <section class="mk-edit" id="editor" aria-label="Edit question"></section>
+
+            <aside class="mk-side" aria-label="What students see">
+                <div class="mk-phonecap"><b>What students see</b><span id="phoneKind"></span></div>
+                <div class="mk-phone" id="phone"></div>
+                <div class="mk-try" id="try"></div>
+            </aside>
+        </div>
+    </main>
+
+    <dialog class="mk-dlg" id="bankDlg" aria-labelledby="bankHead">
+        <form method="dialog" class="mk-dlgbar"><h2 id="bankHead">Add from your Question Bank</h2><button class="btn ghost" value="close" aria-label="Close">Close</button></form>
+        <p class="mk-dlglead">Questions from the weeks on your board, already checked. Tick the ones you want; they come in with their answer and their choices.</p>
+        <div class="mk-bkfilters">
+            <label class="pw-field mk-bksearch"><span class="pw-lab">Search</span><input class="pw-in" id="bkQ" type="search" placeholder="Words, numbers or an answer" autocomplete="off"></label>
+            <label class="pw-field"><span class="pw-lab">Class</span><select class="pw-in" id="bkCls"></select></label>
+            <label class="pw-field"><span class="pw-lab">Kind</span><select class="pw-in" id="bkKind"></select></label>
+            <label class="pw-field"><span class="pw-lab">Week</span><select class="pw-in" id="bkWeek"></select></label>
+        </div>
+        <p class="mk-bkcount" id="bkCount" aria-live="polite"></p>
+        <ol class="mk-bklist" id="bkList"></ol>
+        <div class="mk-dlgfoot"><span id="bkPicked"></span><button class="btn go" id="bkAdd" type="button" disabled>Add questions</button></div>
+    </dialog>
+
+    <dialog class="mk-dlg small" id="pasteDlg" aria-labelledby="pasteHead">
+        <form method="dialog" class="mk-dlgbar"><h2 id="pasteHead">Paste a list</h2><button class="btn ghost" value="close" aria-label="Close">Close</button></form>
+        <p class="mk-dlglead">One question per line: <b>Skill | Question | Answer</b>. For multiple choice, put the choices after the answer: <b>Skill | Question | Answer | choice | choice | choice</b>. Add <b>Hint: …</b> or <b>Also: …</b> at the end of a line for a second-try hint or other answers to accept. A table from the Game Library (category, points, question, answer) works too.</p>
+        <textarea id="pasteText" class="mk-paste" spellcheck="false" placeholder="Dividing fractions | Find 1/2 ÷ 3/4 | 2/3&#10;Integers | What is −2.5 + (−3.5)? | −6 | −6 | 1 | 6"></textarea>
+        <p class="mk-pastenote" id="pasteNote" role="status"></p>
+        <div class="mk-dlgfoot"><span></span><button class="btn go" id="pasteGo" type="button">Add these questions</button></div>
+    </dialog>
+
+    <script type="module" src="js/maker.js?v=3"></script>
+</body>
+</html>

@@ -88,10 +88,17 @@ const str = (v, n) => String(v == null ? "" : v).slice(0, n);
 export function cleanSet(d) {
     if (!d || !Array.isArray(d.cats)) return null;
     const cats = d.cats.slice(0, LIMITS.cats).map((c) => ({ n: str(c && c.n, LIMITS.cat), clues: (Array.isArray(c && c.clues) ? c.clues : []).slice(0, LIMITS.clues)
-        .map((k) => ({ p: Math.max(1, Math.floor(+k.p || 0)), q: str(k.q, LIMITS.q), a: str(k.a, LIMITS.a) })).filter((k) => k.q) })).filter((c) => c.clues.length);
+        .map((k) => extras(k, { p: Math.max(1, Math.floor(+k.p || 0)), q: str(k.q, LIMITS.q), a: str(k.a, LIMITS.a) })).filter((k) => k.q) })).filter((c) => c.clues.length);
     if (!cats.length) return null;
     const f = d.final && d.final.q ? { c: str(d.final.c, LIMITS.cat) || "Final question", q: str(d.final.q, LIMITS.q), a: str(d.final.a, LIMITS.a) } : null;
-    return { id: str(d.id, 40), title: str(d.title, LIMITS.title) || "Review game", cats, final: f };
+    return Object.assign({ id: str(d.id, 40), title: str(d.title, LIMITS.title) || "Review game", cats, final: f }, d.maker ? { maker: 1 } : {});
+}
+/** What the Question Maker adds to a question (other answers to accept, a second-try hint, answer choices) survives a copy. */
+function extras(k, out) {
+    if (Array.isArray(k.al) && k.al.length) out.al = k.al.slice(0, 8).map((x) => str(x, 80));
+    if (k.h) out.h = str(k.h, 200);
+    if (Array.isArray(k.ch) && k.ch.length >= 2) out.ch = k.ch.slice(0, 5).map((x) => str(x, 80));
+    return out;
 }
 export const countClues = (set) => (set.cats || []).reduce((n, c) => n + c.clues.length, 0);
 
