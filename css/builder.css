@@ -152,6 +152,15 @@
 .sheet .sub-note{margin:0 0 4pt}
 .sheet .sub-blanks{margin:4pt 0 8pt}
 .sheet .sub-close{margin-top:6pt;font-weight:700}
+/* modified study guide */
+.sheet.smsg .sh-table td,.sheet.smsg .sh-table th{font-size:10.5pt}
+.sheet .msg-ref td:first-child{width:38%}
+.sheet .msg-turn{border:1px solid #8EA9DB;margin:2pt 0 6pt}
+.sheet .msg-prob{border-top:1px solid #8EA9DB;padding:4pt 6pt 0}
+.sheet .msg-prob:first-child{border-top:0}
+.sheet .msg-check td.ck{width:17%;white-space:nowrap}
+.sheet .msg-help{margin-top:6pt}
+.sheet .msg-score{margin:2pt 0 6pt 16pt;padding:0}.sheet .msg-score li{margin-bottom:3pt}
 /* Sudoku */
 .sheet .sdk-two{display:grid;gap:.25in}
 .sheet .sdk-box h2{margin-top:4pt}

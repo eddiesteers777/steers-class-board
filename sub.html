@@ -41,9 +41,27 @@
     </div>
     <button id="exit" type="button">Show controls</button>
     <script type="module">
-        import { startApp } from "./js/boardApp.js?v=65";
+        import { startApp } from "./js/boardApp.js?v=66";
         import * as store from "./js/localStore.js?v=57";
-        startApp({ mode: "sub", store });
+        import { WEEKS } from "./data/weeks.js?v=57";
+        import { mergeWeeks } from "./js/weeksLive.js?v=58";
+        // The teacher's approved weeks come from the public student copy (pub/{teacher}/..., no answers).
+        // ?t=<teacher> names the teacher; without it, the teacher who last signed in to the board on this computer.
+        const q = new URLSearchParams(location.search);
+        let t = q.get("t"); try { if (t) localStorage.setItem("anchor:subTeacher", t); else t = localStorage.getItem("anchor:subTeacher"); } catch (e) { /* storage off */ }
+        let weeks = null;
+        if (t && /^[\w-]{1,128}$/.test(t)) {
+            try {
+                const { db } = await import("./js/firebase.js");
+                const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js");
+                const late = (ms) => new Promise((_, no) => setTimeout(() => no(new Error("slow")), ms));
+                const ix = await Promise.race([getDoc(doc(db, "pub/" + t + "/index")), late(5000)]);
+                const list = ix.exists() ? (ix.data().weeks || []).slice(-3) : [];
+                const got = await Promise.race([Promise.all(list.map((w) => getDoc(doc(db, "pub/" + t + "/weeks/" + w.id)))), late(6000)]);
+                weeks = mergeWeeks(WEEKS, got.filter((s) => s.exists()).map((s) => s.data()));
+            } catch (e) { weeks = null; }   // no connection or no posted weeks: the published weeks still show
+        }
+        startApp({ mode: "sub", store, weeks });
     </script>
 </body>
 </html>

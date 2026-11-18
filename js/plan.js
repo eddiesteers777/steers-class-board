@@ -21,6 +21,7 @@ const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.s
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 const CLASSES = [["8th", "8th Grade", ["1st", "2nd", "4th"]], ["7th", "7th Grade", ["5th"]], ["8th-acc", "8th Accelerated", ["6th"]]];
+const ALLPERIODS = ["1st", "2nd", "4th", "5th", "6th"];
 const DAYTYPES = [["", "Regular day"], ["out", "I'm out (sub day)"], ["half", "Half day"], ["bells", "Different bells"]];
 const ACTIVITIES = ["Speed dating", "Review game", "Partner challenge", "Stations", "Gallery walk", "None"];
 const HOMEWORK = { "8th": "Homework Packet, Monday to Wednesday problems, due Thursday", "8th-acc": "Homework Packet, Monday to Wednesday problems, due Thursday", "7th": "Extra Practice, Monday to Wednesday, 3 problems a day" };
@@ -87,7 +88,8 @@ function brief() {
     const out = {
         version: 1, made: new Date().toISOString(),
         week: { id: plan.id, label: plan.label, nineWeeks: plan.nineWeeks, monday: plan.monday, dates: plan.dates,
-            days: plan.days.map((d, i) => ({ day: DAYS[i], date: d.date, school: d.school, event: d.event || "", type: d.school ? (d.type || "regular") : "no school" })) },
+            days: plan.days.map((d, i) => Object.assign({ day: DAYS[i], date: d.date, school: d.school, event: d.event || "", type: d.school ? (d.type || "regular") : "no school" },
+                d.school && d.type ? { periods: d.periods || ALLPERIODS, minutes: d.minutes || (d.type === "out" ? 55 : null) } : {})) },
         schedule: plan.schedule, shared: plan.shared, classes: {},
         prompt: "Build " + plan.label + " (" + plan.dates + ") from Anchor: read plans/" + plan.id + "."
     };
@@ -139,7 +141,18 @@ function drawDays() {
         if (!d.school) r.appendChild(el("p", "pw-off", d.event || "No school"));
         else {
             if (d.event) r.appendChild(el("p", "pw-ev", d.event));
-            const s = select(DAYTYPES, d.type || "", (v) => { d.type = v; summary(); }); s.setAttribute("aria-label", DAYS[i] + " day type"); r.appendChild(s);
+            const s = select(DAYTYPES, d.type || "", (v) => { d.type = v; if (!v) { delete d.periods; delete d.minutes; } summary(); drawDays(); }); s.setAttribute("aria-label", DAYS[i] + " day type"); r.appendChild(s);
+            if (d.type) {   // which periods meet and how long, so Claude does not have to ask (sub plans use it)
+                const all = ALLPERIODS, on = d.periods || all;
+                const g = el("div", "pw-pers"); g.setAttribute("role", "group"); g.setAttribute("aria-label", DAYS[i] + " periods that meet");
+                all.forEach((p) => { const b = el("button", null, p); b.type = "button"; b.setAttribute("aria-pressed", String(on.includes(p))); b.title = "Tap if " + p + " period does not meet";
+                    b.onclick = () => { const cur = new Set(d.periods || all); cur.has(p) ? cur.delete(p) : cur.add(p); const list = all.filter((x) => cur.has(x)); if (list.length === all.length) delete d.periods; else d.periods = list; touch(); drawDays(); }; g.appendChild(b); });
+                r.appendChild(el("small", "pw-hint", "Periods that meet"));
+                r.appendChild(g);
+                const m = el("input", "pw-in pw-min"); m.type = "number"; m.min = "10"; m.max = "90"; m.inputMode = "numeric"; m.value = d.minutes || ""; m.placeholder = d.type === "out" ? "55" : "Minutes";
+                m.setAttribute("aria-label", DAYS[i] + " minutes per period"); m.oninput = () => { const v = parseInt(m.value, 10); if (v >= 10 && v <= 90) d.minutes = v; else delete d.minutes; touch(); };
+                const ml = el("label", "pw-minrow"); ml.appendChild(m); ml.appendChild(el("span", null, "minutes per period")); r.appendChild(ml);
+            }
         }
         box.appendChild(r);
     });
@@ -238,7 +251,7 @@ function openWeek(m) {
         const d = snap.exists && snap.data;
         if (plan && (!d || d.at === plan.at)) return;   // our own save coming back: keep the page as it is
         if (plan && document.activeElement && $("view").contains(document.activeElement)) return;   // never redraw under the teacher's typing
-        plan = d && d.classes ? Object.assign(fresh, d, { days: fresh.days.map((x, i) => Object.assign(x, { type: ((d.days || [])[i] || {}).type || "" })) }) : fresh;
+        plan = d && d.classes ? Object.assign(fresh, d, { days: fresh.days.map((x, i) => { const o = (d.days || [])[i] || {}; return Object.assign(x, { type: o.type || "" }, o.periods ? { periods: o.periods } : {}, o.minutes ? { minutes: o.minutes } : {}); }) }) : fresh;
         $("skel").hidden = true; $("view").hidden = false; draw();
     }, () => { if (my !== unwatch) return; plan = fresh; $("skel").hidden = true; $("view").hidden = false; draw(); status("Could not load a saved plan", "bad"); });
 }

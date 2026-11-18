@@ -24,6 +24,8 @@
 ========================================== */
 
 import { icon } from "./icons.js";
+import { ensureUiStyles } from "./uiStyles.js";
+ensureUiStyles();
 
 const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 

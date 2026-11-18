@@ -9,7 +9,7 @@
 import { WEEKS as PUBLISHED } from "../data/weeks.js?v=58";
 import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, nineWeeksOf, parse } from "./schoolCal.js?v=58";
 import { weekIdFor } from "./weeksLive.js?v=58";
-import { publishWeek, unpublishWeek, classUrl, parentMessage } from "./publish.js?v=58";
+import { publishWeek, unpublishWeek, classUrl, parentMessage } from "./publish.js?v=59";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -73,8 +73,47 @@ function checks(w, p) {
                 else if (wr.some((v) => String((v && v.a) || v).trim() === String(x.a).trim())) bad(L + ": a likely wrong answer on card " + (n + 1) + " equals the answer.");
             });
         }
+        // Quiz or test, the modified group's papers, and sub days: the papers Week Builder prints (js/moreSheets.js)
+        const qz = c.quiz, sameAns = (x, v) => String((v && v.a) || v).trim() === String(x.a).trim();
+        if (pc && pc.assess && pc.assess.kind !== "none" && !pc.assess.teacherWrites) {
+            if (!qz || !(qz.items || []).length) warn(L + ": the plan has a " + pc.assess.kind + " on " + DAYS[DK.indexOf(pc.assess.day)] + ", but the week has no " + pc.assess.kind + " to print.");
+            else if (qz.day != null && DK[qz.day] !== pc.assess.day) bad(L + ": the " + pc.assess.kind + " is set for " + DAYS[qz.day] + " but the plan says " + DAYS[DK.indexOf(pc.assess.day)] + ".");
+        }
+        if (qz && (qz.items || []).length) {
+            const pts = qz.items.reduce((a, x) => a + (+x.pts || 2), 0);
+            qz.items.forEach((x, n) => {
+                if (!String(x.a || "").trim()) bad(L + ": " + (qz.kind || "quiz") + " question " + (n + 1) + " has no answer.");
+                else if (Array.isArray(x.choices) && x.choices.length && !String(x.a).split(/\s*;\s*/).every((v) => x.choices.includes(v))) bad(L + ": " + (qz.kind || "quiz") + " question " + (n + 1) + ": the answer is not one of its choices.");
+                if (Array.isArray(x.wrong) && x.wrong.some((v) => sameAns(x, v))) bad(L + ": a likely wrong answer on " + (qz.kind || "quiz") + " question " + (n + 1) + " equals the answer.");
+            });
+            ok(L + ": " + (qz.kind || "quiz") + " ready to print, " + qz.items.length + " questions, " + pts + " points.");
+            const m = qz.modified;
+            if (k === "8th" && !m) warn("8th Grade: the modified group has no quiz of its own this week.");
+            if (m) {
+                (m.items || []).forEach((x, n) => { if (!Array.isArray(x.choices) || x.choices.length !== 3) bad("Modified quiz question " + (n + 1) + " needs exactly 3 choices."); else if (!x.choices.includes(x.a)) bad("Modified quiz question " + (n + 1) + ": the answer is not one of its choices."); });
+                if ((m.bonus || []).length !== 6) warn("The modified quiz has " + (m.bonus || []).length + " bonus questions; the standing format is 6 (B1 to B6).");
+            }
+        }
+        if (k === "8th" && qz && qz.kind === "test" && !c.modStudyGuide) warn("8th Grade: test week, but the modified group has no study guide in the week.");
+        if (c.modStudyGuide && (c.modStudyGuide.parts || []).length !== 3) bad("The modified study guide has " + (c.modStudyGuide.parts || []).length + " parts; it needs 3 so it prints on exactly 4 pages.");
+        const sub = c.sub, outDays = p && Array.isArray(p.days) ? p.days.map((d, i) => (d && d.type === "out" ? i : -1)).filter((i) => i >= 0) : [];
+        outDays.forEach((i) => {
+            if (!sub || sub.day !== i) { bad(L + ": " + DAYS[i] + " is a sub day, but there is no sub plan for it."); return; }
+            const pd = p.days[i], ws = sub.worksheet, before = out.filter((x) => x[0] === "bad").length;
+            if (!ws || (ws.pages || []).length !== 4) bad(L + ": the sub worksheet needs 4 parts (one per page); it has " + ((ws && ws.pages) || []).length + ".");
+            else if (!(ws.exit || []).length) warn(L + ": the sub worksheet has no exit ticket.");
+            (((ws && ws.pages) || []).flatMap((x) => x.problems || []).concat((ws && ws.exit) || [])).forEach((x, n) => { if (!String(x.a || "").trim()) bad(L + ": sub worksheet problem " + (n + 1) + " has no answer."); });
+            if (pd.minutes && +(sub.minutes || 55) !== +pd.minutes) bad(L + ": the plan says " + pd.minutes + "-minute periods on " + DAYS[i] + ", but the sub plan uses " + (sub.minutes || 55) + ".");
+            const mine = { "8th": ["1st", "2nd", "4th"], "7th": ["5th"], "8th-acc": ["6th"] }[k] || [], meet = pd.periods ? mine.filter((x) => pd.periods.includes(x)) : mine, has = sub.periods || mine;
+            if (meet.join() !== has.join()) bad(L + ": the sub plan lists " + (has.join(", ") || "no periods") + " but " + (meet.join(", ") || "none of this class's periods") + " meet on " + DAYS[i] + ".");
+            else if (out.filter((x) => x[0] === "bad").length === before) ok(L + ": sub day ready to print (sub plan, 4-page worksheet, Sudoku) for " + meet.join(", ") + ".");
+        });
+        if (sub && !outDays.includes(sub.day)) warn(L + ": there is a sub plan for " + DAYS[sub.day] + ", but the plan does not mark that day \u201cI'm out\u201d.");
         (c.links || []).forEach((l) => { if (BADLINK.test((l.t || "") + " " + (l.u || ""))) bad(L + ": the link “" + (l.t || l.u) + "” looks like a key, test or Jeopardy board. Only student files are linked."); });
     });
+    const ws8 = w.classes["8th"] && w.classes["8th"].sub && w.classes["8th"].sub.worksheet, wsA = w.classes["8th-acc"] && w.classes["8th-acc"].sub && w.classes["8th-acc"].sub.worksheet;
+    if (ws8 && wsA && JSON.stringify(ws8.pages) === JSON.stringify(wsA.pages)) bad("8th Accelerated and 8th Grade have the same sub worksheet. Accelerated never shares a paper with Regular.");
+    if (p && Array.isArray(p.days) && p.days.some((d) => d && d.type === "out")) out.push(["info", "Sub day: once this week is approved, the guest board (sub.html) on the classroom computer shows it."]);
     const ck = w.checked;
     if (ck && ck.n) ok(ck.n + " answers recomputed by Claude" + (ck.at ? " on " + new Date(ck.at).toLocaleDateString([], { month: "short", day: "numeric" }) : "") + ".");
     else warn("The answers do not carry Claude's check yet. Ask Claude to check this week before approving.");

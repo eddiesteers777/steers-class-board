@@ -9,7 +9,9 @@
      quiz: { title, kind: "quiz"|"test", day: 0-4, calculator, sub?, directions?, scoring?,
              items: [{ q, choices?, select?, a, pts?, std?, skill?, work?, wrong? }],
              modified: { title?, items: [{ q, choices: [3], a, std? }], bonus: [{ q, choices?, a, std? }] } }
-     sub:  { day: 0-4, minutes?: 55, intro?, handout: [..], steps?: [[min, text]], readAloud, print?, copies?, finisher?,
+     modStudyGuide (8th, the modified group): { title, sub?, ican, words: [[word, meaning]], chart: [[topic, steps]],
+             parts: [3 × { heading, example: { q, steps: [..], answer? }, problems: [{ q, a, work?, wrong? }], check, scoreNote? }] }
+     sub:  { day: 0-4, minutes?: 55, periods?: ["1st", ..] (only the periods that meet), intro?, handout: [..], steps?: [[min, text]], readAloud, print?, copies?, finisher?,
              worksheet: { title, sub?, pages: [{ heading, notes: [..], example: { q, work, answer }, problems: [{ q, a, work? }] }],
                           exit?: [{ q, a }] } }
 ========================================== */
@@ -119,6 +121,58 @@ export function modQuizKey(week, cid) {
     return sh;
 }
 
+/* ---------- the modified group's study guide: exactly 4 pages (page 1 reference, then one part per page) ---------- */
+function twoCol(head, rows, cls) { const t = el("table", "sh-table " + (cls || "")); const h = el("tr"); head.forEach((x) => h.appendChild(el("th", null, x))); t.appendChild(h); rows.forEach((r) => { const tr = el("tr"); r.forEach((x) => { const td = el("td"); td.appendChild(rich(x)); tr.appendChild(td); }); t.appendChild(tr); }); return t; }
+function checkRows(lines) { const t = el("table", "sh-table sh-check msg-check"); lines.forEach((x) => { const tr = el("tr"), a = el("td"); a.appendChild(rich(x)); tr.appendChild(a); ["☐ Got it", "☐ Mostly", "☐ Need help"].forEach((y) => tr.appendChild(el("td", "ck", y))); t.appendChild(tr); }); return t; }
+function sgSub(week, cid, g) {
+    if (g.sub) return g.sub;
+    const q = week.classes[cid].quiz, kind = q && q.kind === "test" ? "Test" : "Quiz";
+    return (GR[cid] || week.classes[cid].label) + " Modified" + (q && q.day != null ? " • " + kind + ": " + DAYS[q.day] + " " + dayDate(week, q.day).replace(/\/\d+$/, "") : "");
+}
+export function modStudyGuideSheet(week, cid) {
+    const g = week.classes[cid].modStudyGuide, sh = sheet("smsg"), p1 = page(sh);
+    p1.appendChild(R("h1", "sh-title ws", g.title)); p1.appendChild(el("p", "sh-sub", sgSub(week, cid, g)));
+    const nr = el("p", "sh-name"); [["Name:", "w30"], ["Date:", "w14"]].forEach(([t, w]) => { nr.appendChild(el("b", null, t + " ")); nr.appendChild(el("span", "rule " + w)); }); p1.appendChild(nr);
+    if (g.ican) { const b = el("div", "sh-box"); const r = el("p"); r.appendChild(el("b", null, "I can: ")); r.appendChild(rich(g.ican)); b.appendChild(r); p1.appendChild(b); }
+    if ((g.words || []).length) { p1.appendChild(el("h2", null, "Key Words")); p1.appendChild(twoCol(["Word", "What it means"], g.words, "msg-ref")); }
+    if ((g.chart || []).length) { p1.appendChild(el("h2", null, "Reference Chart")); p1.appendChild(twoCol(["Topic", "Steps"], g.chart, "msg-ref")); }
+    let n = 0;
+    g.parts.forEach((part, k) => {
+        const pg = page(sh);
+        pg.appendChild(R("h1", "sh-title ws", "Part " + (k + 1) + ": " + part.heading));
+        const nm = el("p", "sh-name"); nm.appendChild(el("b", null, "Name: ")); nm.appendChild(el("span", "rule w30")); pg.appendChild(nm);
+        if (part.example) {
+            const b = el("div", "sh-box"); const h = el("p"); h.appendChild(el("b", null, "Worked Example. ")); h.appendChild(rich(part.example.q)); b.appendChild(h);
+            (part.example.steps || []).forEach((st, j) => { const r = el("p"); r.appendChild(document.createTextNode("Step " + (j + 1) + ": ")); r.appendChild(rich(st)); b.appendChild(r); });
+            if (part.example.answer) { const r = el("p"); r.appendChild(document.createTextNode("Answer: ")); r.appendChild(R("b", null, part.example.answer)); b.appendChild(r); }
+            pg.appendChild(b);
+        }
+        pg.appendChild(el("h2", null, "Your Turn"));
+        const list = el("div", "msg-turn");
+        (part.problems || []).forEach((q) => { n++; const it = el("div", "msg-prob"); const qq = el("p", "sh-q"); qq.appendChild(el("b", null, n + ". ")); qq.appendChild(rich(q.q)); it.appendChild(qq); it.appendChild(el("div", "sh-workspace small")); list.appendChild(it); });
+        pg.appendChild(list);
+        pg.appendChild(el("h2", null, "Check Yourself"));
+        const last = k === g.parts.length - 1;
+        pg.appendChild(checkRows(last && g.parts.length > 1 ? g.parts.map((x) => x.check || x.heading) : [part.check || part.heading]));
+        if (last) { const r = el("p", "msg-help"); r.appendChild(document.createTextNode("I still need help with: ")); r.appendChild(el("span", "rule w30")); pg.appendChild(r); }
+    });
+    requestAnimationFrame(() => { if (sh.isConnected) { fitSpace(sh); sh.dispatchEvent(new CustomEvent("paged")); } });
+    return sh;
+}
+export function modStudyGuideKey(week, cid) {
+    const g = week.classes[cid].modStudyGuide, sh = sheet("smsg", true), pg = page(sh);
+    pg.appendChild(R("h1", "sh-title", "TEACHER KEY: " + g.title));
+    pg.appendChild(el("p", "sh-sub", (g.parts.length + 1) + " pages • " + sgSub(week, cid, g).replace(/^.*Modified( • )?/, "") + " • teacher use only. Never post or link."));
+    const t = el("table", "sh-table sh-keyt"); const hr = el("tr"); ["#", "Answer", "Why", "Likely wrong answers"].forEach((h) => hr.appendChild(el("th", null, h))); t.appendChild(hr);
+    let n = 0; const ranges = [];
+    g.parts.forEach((part) => { const from = n + 1; (part.problems || []).forEach((q) => { n++; const r = el("tr"); r.appendChild(el("td", null, String(n))); [q.a, q.work || "", Array.isArray(q.wrong) ? q.wrong.map((v) => (v && v.a ? v.a + (v.why ? ": " + v.why : "") : v)).join(". ") : (q.wrong || "")].forEach((x, j) => { const td = el("td"); (j === 0 ? td.appendChild(el("b")) : td).appendChild(rich(x)); r.appendChild(td); }); t.appendChild(r); }); ranges.push([part, from, n]); });
+    pg.appendChild(t);
+    pg.appendChild(el("h2", null, "Scoring by skill"));
+    const ul = el("ul", "msg-score"); ranges.forEach(([part, a, b]) => { const li = el("li"); li.appendChild(el("b", null, part.heading + " (" + (a === b ? a : a + " to " + b) + "): ")); li.appendChild(document.createTextNode((b - a + 1) + " points." + (part.scoreNote ? " " + part.scoreNote : ""))); ul.appendChild(li); }); pg.appendChild(ul);
+    paginate(sh);
+    return sh;
+}
+
 /* ---------- sub plan: exactly 1 page, in the standing format ---------- */
 const PER = { "8th": ["1st", "2nd", "4th"], "7th": ["5th"], "8th-acc": ["6th"] };
 const GR = { "8th": "8th Grade Math", "7th": "7th Grade Math", "8th-acc": "8th Grade Accelerated Math" };
@@ -135,7 +189,7 @@ export function subPlanSheet(week, cid, opts) {
     const ban = el("div", "sub-banner"); ban.appendChild(el("b", null, "NO PASSES OUT OF CLASS TODAY.")); ban.appendChild(document.createTextNode(" No restroom, locker, or hallway passes for any period.")); pg.appendChild(ban);
     pg.appendChild(el("h2", "sub-h", "Your Classes"));
     const t = el("table", "sub-table"); const hr = el("tr"); ["Period", "Hand out", "Absent", "Off task"].forEach((h) => hr.appendChild(el("th", null, h))); t.appendChild(hr);
-    (PER[cid] || [c.label]).forEach((p) => { const r = el("tr"); r.appendChild(el("td", null, p)); r.appendChild(el("td", null, hand)); r.appendChild(el("td")); r.appendChild(el("td")); t.appendChild(r); });
+    (s.periods || PER[cid] || [c.label]).forEach((p) => { const r = el("tr"); r.appendChild(el("td", null, p)); r.appendChild(el("td", null, hand)); r.appendChild(el("td")); r.appendChild(el("td")); t.appendChild(r); });
     pg.appendChild(t);
     pg.appendChild(el("h2", "sub-h", "Plan for Every Period (" + min + " minutes)"));
     const exit = (ws.exit || []).length, work = min - 10 - (exit ? 10 : 0);   // 5 + 5 + work + 10 = the period

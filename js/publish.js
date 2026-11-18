@@ -25,7 +25,7 @@ export function studentClass(c, extra) {
     const s = strip({
         label: c.label, cls: c.cls, weekLT: c.weekLT || "",
         days: (c.days || []).map((d) => ({
-            name: d.name, title: d.title, date: d.date, agendaLine: d.agendaLine || "", agenda: d.agenda || [], supplies: d.supplies || [],
+            name: d.name, title: d.title, date: d.date, agendaLine: d.agendaLine || "", short: d.short || "", bell: d.bell || "", agenda: d.agenda || [], supplies: d.supplies || [],
             reminders: d.reminders || [], lt: d.lt || "", bellNote: d.bellNote, problems: (d.problems || []).map((p) => ({ q: p.q })), notes: d.notes || undefined
         })),
         bellringer: c.bellringer, studyGuide: c.studyGuide,

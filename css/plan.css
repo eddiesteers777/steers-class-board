@@ -78,3 +78,11 @@ textarea.pw-in{min-height:64px;resize:vertical}
 .rv-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .rv-acts .btn,.rv-page .btn{min-height:44px;display:inline-flex;align-items:center}
 #pages{margin-bottom:16px}
+
+/* sub, half-day and bell-schedule days: which periods meet, and minutes */
+.pw-pers{display:flex;flex-wrap:wrap;gap:4px}
+.pw-pers button{font:inherit;font-size:.82rem;min-height:36px;min-width:44px;padding:4px 8px;border-radius:999px;border:1.5px solid var(--c-line);background:#fff;color:var(--c-mute);text-decoration:line-through;cursor:pointer}
+.pw-pers button[aria-pressed="true"]{background:var(--c-navy,#10358A);border-color:var(--c-navy,#10358A);color:#fff;text-decoration:none}
+.pw-pers button:focus-visible{outline:3px solid #8FB0EE;outline-offset:2px}
+.pw-minrow{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-mute)}
+.pw-min{width:5.2em;min-height:40px}

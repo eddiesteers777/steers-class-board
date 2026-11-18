@@ -14,7 +14,9 @@
    Loaded by js/registerSW.js on every page that registers the worker.
 ========================================== */
 
+import { ensureUiStyles } from "./uiStyles.js";
 const APP_PAGE = !!document.getElementById("header");
+ensureUiStyles();
 let el = null;
 let hideTimer = null;
 let compactTimer = null;
