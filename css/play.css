@@ -302,3 +302,8 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .phint{align-self:stretch;text-align:left;background:#FFF6E0;border:2px solid #F6D58A;border-radius:14px;padding:10px 14px}
 .phint small{display:block;font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:.72rem;color:#8A5F00}
 .phint p{font-weight:700;color:var(--navy);line-height:1.35}
+/* paused by the teacher */
+.ppause{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(8,27,69,.86);backdrop-filter:blur(3px);padding:16px}
+.ppausebox{background:#fff;border-radius:20px;padding:28px 32px;text-align:center;max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.ppausebox b{display:block;font-family:var(--display);font-size:2.2rem;color:var(--navy)}
+.ppausebox p{margin-top:6px;font-size:1.1rem;color:#4A5A78;font-weight:600}
