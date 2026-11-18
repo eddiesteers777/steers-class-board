@@ -319,7 +319,16 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .pmbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#F2B33D,#F6C866);transition:width .6s ease}
 .pmeter small{font-size:.85rem;color:#8E1B21;font-weight:700}
 .pnote.hackon{color:#1B7F3B;font-weight:800}
-.pskip{margin-top:6px;align-self:flex-end}
+.pstepbar .pskip{margin-left:auto;min-height:34px;padding:4px 14px}
+.pstepbar{margin-top:6px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;background:#EEF5FF;border:1.5px solid #9CC3EE;border-radius:12px;padding:7px 12px}
+.pstepbar>b{flex:1 1 260px;color:var(--navy);font-size:1rem;line-height:1.3}
+.pstepbar.wait{background:#FFF6E0;border-color:#F6D58A}.pstepbar.wait>b{color:#6B4E00}
+.pstepbar.fresh{animation:shake .45s ease-in-out}
+.pstepcoins{display:flex;align-items:center;gap:6px;font-weight:700;color:#4A5A78;font-size:.92rem}
+.pstepcoins .pic.coin{width:22px;height:22px;flex:0 0 22px;animation:none}.pstepcoins .pic svg{width:100%;height:100%;display:block}
+.pstepmeter{display:inline-block;width:70px;height:8px;border-radius:99px;background:#D9E2F0;overflow:hidden}
+.pstepmeter i{display:block;height:100%;background:linear-gradient(90deg,#F2B33D,#F6C866)}
+.pstepbar small{flex-basis:100%;color:#8E1B21;font-weight:700;font-size:.85rem}
 /* paused by the teacher */
 .ppause{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(8,27,69,.86);backdrop-filter:blur(3px);padding:16px}
 .ppausebox{background:#fff;border-radius:20px;padding:28px 32px;text-align:center;max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.35)}

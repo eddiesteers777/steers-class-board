@@ -363,6 +363,20 @@ function stepFb(p, q, typed, steps, kind) {
     return { q: p.qn, ok: false, y: typed, a: "", plus: 0, x2: [], box: null, retry: 1, step: 1, kind, t: Date.now(), sp: steps.slice(0, p.sp), sn: steps.length,
         worth: Math.max(2, Math.round(V.coinsFor(1) * pay)), hack: p.sp <= 1 ? 1 : 0 };
 }
+/** Stuck: no new try for a while after a miss, so the next step drops onto their board by itself (and the coins drop like any step). */
+function stuckSteps() {
+    if (H.paused || (H.exit && !H.exit.done) || (H.redo && !H.redo.done) || H.opts.steps === false) return;
+    const now = Date.now(), sends = new Set();
+    Object.keys(H.players).forEach((id) => {
+        const p = H.players[id];
+        if (!p.sm || p.rt !== p.qn || !p.code || now - Math.max(+p.su || 0, +p.qt || 0) < V.STEP_STUCK_MS) return;
+        const q = qOf(p, p.qn), steps = V.stepsFor(q); if (p.sp >= steps.length) return;
+        p.sp++; p.su = now;
+        const last = (p.lg || []).slice().reverse().find((x) => x.i === p.ord[p.qn % p.ord.length] && !x.ok); if (last) last.sp = p.sp;
+        p.fb = stepFb(p, q, (p.la && p.la.y) || "", steps, "auto"); sends.add(id);
+    });
+    if (sends.size) { flush(sends); saveSoon(); }
+}
 /** A second (or later) try at a question in step mode. */
 function stepTry(p, q, qi, typed, ok, steps) {
     const last = (p.lg || []).slice().reverse().find((x) => x.i === qi && !x.ok);
@@ -748,6 +762,7 @@ export function tickLive() {
     if (bs) { bs.hidden = !bl; const t = bs.querySelector("b"); if (t) t.textContent = Math.ceil(bl / 1000) + " s"; }
     const crk = document.getElementById("liveCrack"); if (crk && Date.now() > +crk.dataset.until) crk.remove();
     if (hosting && H.status === "play" && H.ends && !H.paused && !(H.exit && !H.exit.done) && !(H.redo && !H.redo.done) && Date.now() >= H.ends) endGame();
+    if (hosting && H.status === "play") stuckSteps();
     if (hosting && Date.now() - lastSave > 8000) saveSoon(true);   // check in, so another screen knows this one is running the game   // check in, so another Remote knows this one is running the game
     if (endArm && Date.now() - endArm > 4000) { endArm = 0; panelSig = ""; }
     if (isRemote() && onLive() && Date.now() - panelAt > 1000) drawLivePanel(true);

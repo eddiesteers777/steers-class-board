@@ -301,8 +301,10 @@ export function answerKind(ans) {
 export const STEP_MAX = 4;
 /** Share of the coins a right answer still earns after using 0, 1, 2, 3 or 4 steps. */
 export const STEP_PAY = [1, 0.6, 0.4, 0.25, 0.2];
-/** How long a step stays on screen before the student can answer again (ms), so it gets read. */
-export const STEP_READ_MS = 8000;
+/** How long after a step appears before the student can answer again (ms), so it gets read. */
+export const STEP_READ_MS = 5000;
+/** Stuck on a step this long with no new try (ms): the next step drops onto their board by itself, so no one sits on one problem forever. */
+export const STEP_STUCK_MS = 60000;
 /** A first answer sooner than this after the question appears is a guess: it doesn't unlock a step. */
 export const STEP_TRY_MS = 12000;
 const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };

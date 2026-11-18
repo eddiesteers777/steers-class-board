@@ -137,11 +137,15 @@ async function join(code) {
         if (d.hit && d.hit.at > ST.seenHit && d.need) { ST.view = "hit"; }
         if (ST.view === "q" && ST.sentQ >= 0 && d.fb && d.fb.q === ST.sentQ) {
             if (d.fb.exit) { ST.sentQ = -1; pad.clear(); }   // exit ticket: straight on to the next question, no right or wrong
-            else {
-                ST.view = "fb"; ST.sentQ = -1; if (!d.fb.retry) pad.clear();   // a second try keeps the work
-                // Step help: note when this step came up and how much work was on the pad, for the read wait and the new-work rule.
-                if (d.fb.step && d.fb.t !== ST.stepT) { ST.stepT = d.fb.t; ST.stepInk = pad.len(); if (d.fb.kind === "step") ST.stepAt = Date.now(); }
-            }
+            else if (d.fb.step && !d.fb.ok) ST.sentQ = -1;   // step help: they stay on the question (the step is typed onto the pad below)
+            else { ST.view = "fb"; ST.sentQ = -1; if (!d.fb.retry) pad.clear(); }   // a second try keeps the work
+        }
+        // Step help: a new step (after a miss, or by itself when they've been stuck a while) is typed onto their pad.
+        if (d.fb && d.fb.step && !d.fb.ok && d.fb.t !== ST.stepT && d.q && d.q.n === d.fb.q) {
+            ST.stepT = d.fb.t; ST.stepInk = pad.len(); ST.stepNew = { kind: d.fb.kind, at: Date.now() };
+            if ((d.fb.sp || []).length && d.fb.kind !== "read") { pad.addSteps(d.fb.sp); if (d.fb.kind !== "fast") ST.stepAt = Date.now(); }
+            sfx(d.fb.kind === "auto" ? "tap" : "miss"); ST.err = "";
+            if (ST.view === "q") { draw(true); return; }   // rebuild the question card (the pad keeps its work)
         }
         if (ST.view === "guess" && ST.sentK && d.hk && d.hk.n === ST.sentK) { ST.sentK = 0; ST.guess = ""; }
         draw();
@@ -182,6 +186,14 @@ function cleanRead(raw) {
 /* ---------- the work pad ----------
    The same canvas-first whiteboard as the board: paper across most of the screen, a floating
    tool rail, and the math tools (js/mathPad.js) on a layer under the ink. */
+/* Typed steps on the pad: about the size students write (pad units are 1/1000 of its width). */
+const STEP_PX = 38, STEP_PX_PHONE = 26;   // font size in screen pixels: Chromebook, phone
+const isStep = (it) => it && it.k === "text" && /^step\d$/.test(String(it.id || ""));
+function wrapStep(t, n) {
+    const out = []; let line = "";
+    String(t).split(/\s+/).forEach((w) => { if (line && (line + " " + w).length > n) { out.push(line); line = w; } else line = line ? line + " " + w : w; });
+    if (line) out.push(line); return out;
+}
 const pad = (() => {
     const W = 1000, PENS = { ink: ["#14213D", "Navy"], blue: ["#1552D6", "Blue"], red: ["#C62828", "Red"], green: ["#1B7F3B", "Green"] }, SIZES = [3, 6, 11];
     let H = 600, strokes = [], items = [], hist = [], host = null, canvas = null, ctx = null, mp = null, cur = null, ro = null;
@@ -315,8 +327,27 @@ const pad = (() => {
         len() {
             let len = 0;
             strokes.forEach((s) => { if (s.e || s.ring) return; for (let i = 1; i < s.p.length; i++) len += Math.hypot(s.p[i][0] - s.p[i - 1][0], s.p[i][1] - s.p[i - 1][1]); });
-            (mp ? mp.items() : items).forEach((it) => { if (it.k === "text") len += 40 * String(it.txt || "").replace(/\s/g, "").length; });
+            (mp ? mp.items() : items).forEach((it) => { if (it.k === "text" && !isStep(it)) len += 40 * String(it.txt || "").replace(/\s/g, "").length; });
             return len;
+        },
+        /** Type the steps onto the pad like typed work, stacked down the right side, about the size of handwriting.
+            Steps already there are left alone (ids step1…step4), so this is safe to call again after a reload. */
+        addSteps(list) {
+            const cur = (mp ? mp.items() : items).slice(), have = new Set(cur.map((it) => it.id)), add = [];
+            // Size it to the screen, so it looks like the student's own writing on a Chromebook or a phone.
+            const cw = host && host.isConnected ? host.getBoundingClientRect().width : 1000, narrow = cw < 600;
+            const fs = Math.round(Math.min(0.085, Math.max(0.022, (narrow ? STEP_PX_PHONE : STEP_PX) / cw)) * 1e4) / 1e4, px = fs * W, lineH = px * 1.3;
+            const wrapN = Math.max(12, Math.floor((narrow ? 0.72 : 0.6) / (fs * 0.62)));
+            let y = 44;   /* under the "Show your work here" label */ cur.filter(isStep).forEach((it) => { y = Math.max(y, it.y * H + String(it.txt).split("\n").length * (it.fs || fs) * W * 1.3 / 2 + 16); });
+            (list || []).forEach((t, i) => {
+                const id = "step" + (i + 1); if (have.has(id)) return;
+                const lines = wrapStep("Step " + (i + 1) + ": " + t, wrapN), h = lines.length * lineH, w = Math.max(...lines.map((l) => l.length)) * px * 0.62;
+                add.push({ id, k: "text", x: Math.max(narrow ? 0.5 : 0.3, (W - 20 - w / 2) / W), y: Math.min(1.15, (y + h / 2) / H), s: 0.2, r: 0, txt: lines.join("\n"), fs });
+                y += h + 16;
+            });
+            if (!add.length) return 0;
+            items = cur.concat(add); if (mp) mp.setItems(items); dirty = true; paint();
+            return add.length;
         }
     };
 })();
@@ -749,8 +780,7 @@ function questionView(card) {
     left.append(top, mathEl("p", "pq", q.t));
     // Step help after a miss: the steps so far sit under the question while they work.
     const sf = !ex && !m.redo && m.fb && m.fb.step && m.fb.q === q.n ? m.fb : null;
-    if (sf && (sf.sp || []).length) left.append(stepsCard(sf, true));
-    else if (sf) left.append(el("p", "pstepwait", "Steps unlock after a real try. Work it out on your pad first."));
+    if (sf) left.append(stepStrip(sf));
     const right = el("div", "pqright");
     const f = el("form", "pform ans"), box = answerBox(q.f || "", q.ch); ST.box = box;
     const go = el("button", "pbtn go", "Submit"); go.type = "submit";
@@ -777,7 +807,7 @@ function questionView(card) {
         setTimeout(() => { if (ST.sentQ === q.n && ST.view === "q") { ST.sentQ = -1; ST.err = "Your teacher's screen didn't answer. Try Submit again, or tell your teacher."; draw(true); } }, 10000);
     };
     f.append(box.el, go); right.append(f);
-    if (sf) right.append(btn("pbtn ghost small pskip", "Skip it", () => { if (ST.sentQ === q.n) return; ST.sentQ = q.n; send({ a: { n: Date.now(), q: q.n, t: "" }, img: pad.image(), iq: q.n, it: Date.now() }); }));
+    if (sf) { const sb = left.querySelector(".pstepbar"); if (sb) sb.append(btn("pbtn ghost small pskip", "Skip it", () => { if (ST.sentQ === q.n) return; ST.sentQ = q.n; send({ a: { n: Date.now(), q: q.n, t: "" }, img: pad.image(), iq: q.n, it: Date.now() }); })); }
     note(right);
     qc.append(left, right); card.append(qc);
     const host = el("div", "wbpaper ppaper"); host.id = "padhost"; host.dataset.q = String(q.n);
@@ -785,6 +815,20 @@ function questionView(card) {
     card.append(host); pad.mount(host);
     const rw = ST.room && ST.room.rw, withWork = !!(rw && q.n === 100000 + (+rw.k || 0)); pad.setBg(withWork ? rw : null);
     if (withWork) teacherTag(host, need);
+}
+/** Under the question in step help: what just happened, and what a right answer is worth now. The steps themselves are on the pad. */
+function stepStrip(f) {
+    const sp = (f.sp || []).length, fresh = ST.stepNew && Date.now() - ST.stepNew.at < 1500, b = el("div", "pstepbar" + (fresh ? " fresh" : "") + (sp ? "" : " wait"));
+    const msg = f.kind === "fast" && !sp ? "Too quick! Take a real try first. Steps unlock after you work on it."
+        : f.kind === "read" ? "Read step " + sp + " on your board first."
+        : f.kind === "auto" ? "Step " + sp + " is on your board to keep you moving. Use it and keep going."
+        : (sp === 1 ? "Not quite. Step 1 is on your board. Use it and keep going." : "Still not it. Step " + sp + " is on your board.");
+    b.append(el("b", null, msg));
+    const full = V.coinsFor(1), now = +f.worth || full, m = el("span", "pstepcoins"); m.append(coinPic(), document.createTextNode(now + " coins if you get it now" + (f.hack && sp ? " + a hack" : "")));
+    const bar = el("i", "pstepmeter"), fill = el("i"); fill.style.width = Math.round(100 * now / full) + "%"; bar.append(fill); m.append(bar);
+    b.append(m);
+    if (sp && sp >= (f.sn || 0)) b.append(el("small", null, "That's the last step. One more miss shows the answer."));
+    return b;
 }
 /** The steps unlocked so far, newest on the bottom and highlighted. */
 function stepsCard(f, slim) {
@@ -828,7 +872,7 @@ function stepView(card, m, f, key, fresh) {
 function teacherTag(host, need) { const t = host && host.querySelector(".ptag"); if (t) t.textContent = "Your teacher's work is on your pad. Pick up where the class left off" + (need ? " and add your own work." : "."); }
 function fbView(card) {
     const m = ST.me, f = m.fb || {}, key = "fb" + f.q + (f.t ? "_" + f.t : ""), fresh = celebrated !== key;
-    if (f.step && !f.ok) return stepView(card, m, f, key, fresh);
+    if (f.step && !f.ok) { ST.view = "q"; return questionView(card); }   // step help stays on the question
     card.classList.add(f.ok ? "good" : "miss");
     if (f.ok) {
         if (fresh) card.classList.add("pop");
