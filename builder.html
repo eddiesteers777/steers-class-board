@@ -216,6 +216,7 @@
                 document.body.dataset.print = "more"; $("paper_" + which).classList.add("printing");
                 const part = /^(quiz|mod)/.test(which) ? cls().quiz : cls().sub, day = part && part.day != null ? +part.day : null;   // files are named "<n> <Day> - ..." like the Drive folder
                 document.title = (day != null && !/^mod/.test(which) ? (day + 1) + " " + DAYS[day] + " - " : "") + more[4] + (/^quiz/.test(which) && cls().quiz.title ? " - " + cls().quiz.title.replace(/^(Quiz|Test):\s*/, "") : "") + (/^modsg/.test(which) ? " - " + cls().modStudyGuide.title.replace(/^Study Guide:\s*/, "") : "") + " (" + cls().label + (/^mod/.test(which) ? " Modified" : "") + ")";
+                if (store.rooms && !demo && user && user.uid) store.rooms.save("teacher/" + user.uid + "/closeout/" + week.id, { printed: { [cid]: { [which]: Date.now() } } }, true).catch(() => {});   // ticks the paper off on Week Review's close-out list
                 window.print(); return;
             }
             document.body.dataset.print = which; const i = +$("notesDay").value, d = cls().days[i];
@@ -281,7 +282,8 @@
             watchPrivateWeeks(store, PUBLISHED, (list) => {
                 const added = list.filter((w) => !WEEKS.some((x) => x.id === w.id)); if (!added.length) return;
                 WEEKS = list; added.forEach((w) => { if (!saved[w.id]) saved[w.id] = w; });
-                const cur = $("weekSel").value; fillPickers(); $("weekSel").value = cur;
+                const cur = $("weekSel").value, wq = new URLSearchParams(location.search).get("week"); fillPickers();
+                if (wq && added.some((w) => w.id === wq) && cur !== wq && !dirty) { $("weekSel").value = wq; openWeek(wq); } else $("weekSel").value = cur;   // ?week= for a week approved on Week Review
             });
         }
     </script>

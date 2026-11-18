@@ -10,6 +10,8 @@ import { WEEKS as PUBLISHED } from "../data/weeks.js?v=58";
 import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, nineWeeksOf, parse } from "./schoolCal.js?v=58";
 import { weekIdFor } from "./weeksLive.js?v=58";
 import { publishWeek, unpublishWeek, classUrl, parentMessage } from "./publish.js?v=59";
+import { closeoutItems, drawCloseout } from "./closeout.js?v=1";
+import { repeats, saveBankWeek } from "./bank.js?v=1";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -19,7 +21,7 @@ const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.s
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 const LABEL = { "8th": "8th Grade", "7th": "7th Grade", "8th-acc": "8th Accelerated" };
 
-let index = { weeks: [] }, id = "", week = null, plan = null, cls = "8th", dirty = false, my = 0, uid = "", parentSet = { questions: "" };
+let index = { weeks: [] }, id = "", week = null, plan = null, cls = "8th", dirty = false, my = 0, uid = "", parentSet = { questions: "" }, co = {}, coSet = {}, bank = [];
 const canPublish = () => !!(store.rooms && uid);
 
 /* ---------- which weeks ---------- */
@@ -35,6 +37,7 @@ const fmtDay = (iso) => parse(iso).toLocaleDateString("en-US", { month: "long", 
 
 /* ---------- checks ---------- */
 const BADLINK = /\b(key|keys|test|jeopardy|answers?)\b/i;
+const plain = (t) => String(t == null ? "" : t).replace(/(\d)\{/g, "$1 ").replace(/[{}]/g, "").replace(/§/g, "$");
 function checks(w, p) {
     const out = [], bad = (t) => out.push(["bad", t]), warn = (t) => out.push(["warn", t]), ok = (t) => out.push(["ok", t]);
     if (!w || !w.classes) { bad("The saved week has no classes."); return out; }
@@ -114,6 +117,9 @@ function checks(w, p) {
     const ws8 = w.classes["8th"] && w.classes["8th"].sub && w.classes["8th"].sub.worksheet, wsA = w.classes["8th-acc"] && w.classes["8th-acc"].sub && w.classes["8th-acc"].sub.worksheet;
     if (ws8 && wsA && JSON.stringify(ws8.pages) === JSON.stringify(wsA.pages)) bad("8th Accelerated and 8th Grade have the same sub worksheet. Accelerated never shares a paper with Regular.");
     if (p && Array.isArray(p.days) && p.days.some((d) => d && d.type === "out")) out.push(["info", "Sub day: once this week is approved, the guest board (sub.html) on the classroom computer shows it."]);
+    const rp = repeats(w, bank);
+    if (rp.same.length) rp.same.slice(0, 6).forEach((x) => bad((LABEL[x.cls] || x.cls) + ": the same " + x.kind.toLowerCase() + " question is in the week twice: \u201c" + plain(x.q).slice(0, 70) + "\u201d."));
+    if (rp.earlier.length) out.push(["info", rp.earlier.length + (rp.earlier.length === 1 ? " question was" : " questions were") + " already used in an earlier week (fine as spiral review; the key should say so)."]);
     const ck = w.checked;
     if (ck && ck.n) ok(ck.n + " answers recomputed by Claude" + (ck.at ? " on " + new Date(ck.at).toLocaleDateString([], { month: "short", day: "numeric" }) : "") + ".");
     else warn("The answers do not carry Claude's check yet. Ask Claude to check this week before approving.");
@@ -168,8 +174,26 @@ function drawActions() {
         box.appendChild(el("p", "pw-sendp", nb ? "Fix the items marked Fix, then approve." : "Approving puts this week on the board, Planner, Library and Home for every period."));
         const ap = el("button", "btn go big", "Approve and put it on the board"); ap.type = "button"; ap.disabled = !!nb || dirty; if (dirty) ap.title = "Save your changes first"; ap.onclick = () => setApproved(true); box.appendChild(ap);
     }
-    const pr = el("a", "btn ghost", "Print in Week Builder"); pr.href = "builder.html"; pr.style.textDecoration = "none"; box.appendChild(pr);
-    drawPages();
+    const pr = el("a", "btn ghost", "Print in Week Builder"); pr.href = "builder.html?week=" + id + (demo ? "&demo" : ""); pr.style.textDecoration = "none"; box.appendChild(pr);
+    drawPages(); drawClose();
+}
+/* Close out the week: what is done and what is left, by class. */
+function deepMerge(a, b) { const o = Object.assign({}, a || {}); Object.entries(b).forEach(([k, v]) => { o[k] = v && typeof v === "object" && !Array.isArray(v) ? deepMerge(o[k], v) : v; }); return o; }
+async function mergeSave(rel, patch, cur) {
+    if (store.rooms && uid) await store.rooms.save("teacher/" + uid + "/" + rel, patch, true);
+    else await store.save(rel, deepMerge(cur, patch));
+}
+function drawClose() {
+    const box = $("closeout"); if (!box) return; box.textContent = ""; if (!week) return;
+    const items = closeoutItems(week, plan, { approved: approved(), co, settings: coSet });
+    drawCloseout(box, items, async (x, on) => {
+        status("Saving…");
+        try {
+            if (x.setting) await mergeSave("settings/closeout", { schoology: { [x.cls]: on ? Date.now() : null } }, coSet);
+            else await mergeSave("closeout/" + id, { done: { [x.key]: on ? { at: Date.now(), by: "you" } : null } }, co);
+            status(demo ? "This device only" : "Saved", "ok");
+        } catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); drawClose(); }
+    });
 }
 /* Class Pages: each class's public link and its parent message, ready to paste into Thrillshare. */
 function copyBtn(text, label) {
@@ -267,7 +291,7 @@ async function saveWeek() {
     status("Saving…");
     try {
         await store.save("weekfiles/" + id, { json: JSON.stringify(week), at: Date.now() }); dirty = false; $("saveBtn").hidden = true;
-        if (approved() && canPublish()) await publishWeek(store, uid, week, plan);   // keep the Class Pages in step
+        if (approved() && canPublish()) { await publishWeek(store, uid, week, plan); await saveBankWeek(store, uid, week, true); }   // keep the Class Pages and the question bank in step
         status(demo ? "This device only" : "Saved", "ok"); drawChecks();
     }
     catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); }
@@ -279,7 +303,7 @@ async function setApproved(on) {
     status("Saving…");
     try {
         await store.save("weekfiles/index", { weeks: list, at: Date.now() }); index = { weeks: list };
-        if (canPublish()) { if (on) await publishWeek(store, uid, week, plan); else await unpublishWeek(store, uid, id); }
+        if (canPublish()) { if (on) { await publishWeek(store, uid, week, plan); await saveBankWeek(store, uid, week, true); } else { await unpublishWeek(store, uid, id); await saveBankWeek(store, uid, week, false); } }
         status(demo ? "This device only" : on && canPublish() ? "On the board and Class Pages" : "Saved", "ok"); summary(); drawActions();
     }
     catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); }
@@ -293,6 +317,7 @@ function openWeek(wid) {
     history.replaceState(null, "", "?week=" + id + (demo ? "&demo" : ""));
     let got = 0; const both = () => { if (me === my && ++got >= 2) { $("skel").hidden = true; $("view").hidden = false; draw(); } };
     $("view").hidden = true; $("skel").hidden = false;
+    co = {}; store.watch("closeout/" + id, (s) => { if (me !== my || s.pending) return; co = (s.exists && s.data) || {}; if (got >= 2) drawClose(); }, () => {});
     store.watch("plans/" + id, (s) => { if (me !== my || s.pending) return; plan = (s.exists && s.data) || null; if (got >= 2) { summary(); if (!week) emptyState(); else drawChecks(); } else both(); }, both);
     store.watch("weekfiles/" + id, (s) => {
         if (me !== my || s.pending || dirty) return;
@@ -307,6 +332,8 @@ if (!user) location.replace("login.html");
 else {
     $("who").textContent = demo ? "This device only, nothing is saved" : (user.name ? "Signed in as " + user.name : "Signed in");
     status(demo ? "This device only" : "Live", "ok"); uid = user.uid || "";
+    if (store.rooms && uid && store.rooms.watchAll) store.rooms.watchAll("teacher/" + uid + "/bank", (docs) => { bank = docs.flatMap((d) => (d.data && d.data.items) || []); if (week && !dirty) drawChecks(); }, () => {});
+    store.watch("settings/closeout", (s) => { if (s.pending) return; coSet = (s.exists && s.data) || {}; if (week) drawClose(); }, () => {});
     store.watch("settings/parent", (s) => { if (s.pending) return; parentSet = Object.assign({ questions: "" }, (s.exists && s.data) || {}); if (week && approved() && !($("pages").contains(document.activeElement))) drawPages(); }, () => {});
     let first = true;
     store.watch("weekfiles/index", (s) => {
