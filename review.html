@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week Review | Focal</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=58">
+    <link rel="stylesheet" href="css/console.css?v=58">
+    <link rel="stylesheet" href="css/theme-rings.css?v=2">
+    <link rel="stylesheet" href="css/planner.css?v=58">
+    <link rel="stylesheet" href="css/plan.css?v=59">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="console page planner">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Class Board</small></span></a>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <button class="btn go" id="saveBtn" type="button" hidden>Save changes</button>
+        <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
+        <a class="btn ghost" href="plan.html" style="text-decoration:none">Plan the Week</a>
+    </header>
+    <main>
+        <h1>Week Review</h1>
+        <p class="pw-lead">The week Claude built, checked against your plan and the calendar. Fix any line in place, then approve it to put it on the board.</p>
+        <div class="pl-bar" id="weeks"></div>
+        <div class="pw-skel" id="skel" aria-hidden="true"><div></div><div></div><div></div></div>
+        <div id="view" hidden>
+            <div class="pl-sum" id="summary" aria-live="polite"></div>
+            <div id="checks"></div>
+            <section class="pw-send" id="actions"></section>
+            <section id="pages"></section>
+            <div id="content"></div>
+        </div>
+    </main>
+    <script type="module" src="js/review.js?v=59"></script>
+</body>
+</html>

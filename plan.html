@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan the Week | Focal</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=58">
+    <link rel="stylesheet" href="css/console.css?v=58">
+    <link rel="stylesheet" href="css/theme-rings.css?v=2">
+    <link rel="stylesheet" href="css/planner.css?v=58">
+    <link rel="stylesheet" href="css/plan.css?v=59">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="console page planner">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Focal</b><small id="who">Class Board</small></span></a>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
+        <a class="btn ghost" href="review.html" style="text-decoration:none">Week Review</a>
+    </header>
+    <main>
+        <h1>Plan the Week</h1>
+        <p class="pw-lead">Dates, days off, next standards and your usual week are filled in. Change what is different, then send it to Claude.</p>
+        <div class="pw-wkbar">
+            <button class="btn ghost" id="prevWk" type="button" aria-label="Previous school week">‹</button>
+            <h2 id="wkTitle">Loading…</h2>
+            <button class="btn ghost" id="nextWk" type="button" aria-label="Next school week">›</button>
+        </div>
+        <div class="pw-skel" id="skel" aria-hidden="true"><div></div><div></div><div></div></div>
+        <div id="view" hidden>
+            <p class="pw-built" id="builtNote" hidden>This week is already on the board. Changes here only update the plan.</p>
+            <div class="pl-sum" id="summary" aria-live="polite"></div>
+            <section class="pw-week">
+                <h2>The week</h2>
+                <div class="pw-days" id="days"></div>
+                <div class="pw-two">
+                    <label class="pw-field"><span class="pw-lab">Schedule changes</span><input class="pw-in" id="schedule" type="text" placeholder="Example: Wednesday 2-hour delay, all periods meet"></label>
+                    <label class="pw-field"><span class="pw-lab">Anything all classes share</span><input class="pw-in" id="shared" type="text" placeholder="Example: first week back from break"></label>
+                </div>
+            </section>
+            <div class="pw-classes" id="classes"></div>
+            <section class="pw-send" id="sendCard" aria-live="polite"></section>
+        </div>
+    </main>
+    <script type="module" src="js/plan.js?v=58"></script>
+</body>
+</html>

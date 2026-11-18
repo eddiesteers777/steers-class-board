@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="css/board.css?v=57">
     <link rel="stylesheet" href="css/console.css?v=57">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/builder.css?v=57">
+    <link rel="stylesheet" href="css/builder.css?v=59">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page builder">
@@ -68,6 +68,10 @@
             <button class="btn go" id="printSD" type="button">Print speed dating (cards, recording sheet, early finishers)</button>
             <button class="btn" id="printSDKey" type="button">Print speed dating key</button>
         </div>
+        <h2>Quiz, sub day and early finishers</h2>
+        <p class="sub" id="moreNone">This class has no quiz, sub day or early-finisher papers in this week yet. They come in with the week file Claude builds.</p>
+        <div class="bpick" id="moreBar"></div>
+        <ul class="bcheck" id="pageWarn" aria-live="polite"></ul>
         <h2>Preview</h2>
         <div class="papers">
             <div id="paperSheet"><h3>Student sheet</h3></div>
@@ -78,10 +82,14 @@
             <div id="paperSGKey" hidden><h3>Study guide key (never post or link)</h3></div>
             <div id="paperSD" hidden><h3>Speed dating</h3></div>
             <div id="paperSDKey" hidden><h3>Speed dating key (never post or link)</h3></div>
+            <div id="morePapers" class="morepapers"></div>
         </div>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=57";
+        import { WEEKS as PUBLISHED } from "./data/weeks.js?v=57";
+        import { watchPrivateWeeks } from "./js/weeksLive.js?v=58";
+        let WEEKS = PUBLISHED;
+        import { quizSheet, quizKey, modQuizSheet, modQuizKey, subPlanSheet, subWorksheetSheet, sudokuSheet, pageCheck } from "./js/moreSheets.js?v=60";
         import { DAYS, dayDate, bellringerSheet, bellringerKey, notesSheet, studyGuideSheet, studyGuideKey, speedDatingSheet, speedDatingKey } from "./js/weekSheets.js?v=57";
         // ?demo runs on this device only, like the guest teacher page: nothing is saved to any account.
         const demo = new URLSearchParams(location.search).has("demo");
@@ -163,8 +171,51 @@
                 const box = $(id); box.hidden = !on; while (box.children.length > 1) box.lastChild.remove();
                 if (on) { try { box.appendChild(fn(week, cid)); } catch (e) { box.appendChild(el("p", "bnote", "This part of the week file could not be read (" + e.message + ").")); } }
             }
+            previewMore();
+        }
+        /* Phase 3 papers: each shows when its part of the week is there, with a page check. */
+        const MORE = [
+            ["quiz", "Quiz or test", (c) => c.quiz && (c.quiz.items || []).length, (w, k) => quizSheet(w, k), "Quiz", null],
+            ["quizkey", "Quiz or test key", (c) => c.quiz && (c.quiz.items || []).length, (w, k) => quizKey(w, k), "TEACHER KEY - Quiz", null],
+            ["mod", "Modified quiz (2nd period group)", (c) => c.quiz && c.quiz.modified, (w, k) => modQuizSheet(w, k), "Alternate - Quiz", 2],
+            ["modkey", "Modified quiz key", (c) => c.quiz && c.quiz.modified, (w, k) => modQuizKey(w, k), "Alternate - TEACHER KEY - Quiz", null],
+            ["subplan", "Sub plan", (c) => c.sub, (w, k) => subPlanSheet(w, k, { guestUrl: new URL("sub.html", location.href).href }), "Sub Plan", 1],
+            ["subws", "Sub worksheet", (c) => c.sub && c.sub.worksheet, (w, k) => subWorksheetSheet(w, k, false), "Sub Worksheet", 4],
+            ["subwskey", "Sub worksheet key", (c) => c.sub && c.sub.worksheet, (w, k) => subWorksheetSheet(w, k, true), "TEACHER KEY - Sub Worksheet", null],
+            ["sudoku", "Sudoku early finishers", (c) => c.sub, (w, k) => sudokuSheet(w, k, false), "Early Finishers - Sudoku", 2],
+            ["sudokukey", "Sudoku key", (c) => c.sub, (w, k) => sudokuSheet(w, k, true), "TEACHER KEY - Sudoku", null]
+        ];
+        function previewMore() {
+            const c = cls(), host = $("morePapers"), bar = $("moreBar"); host.replaceChildren(); bar.replaceChildren(); $("pageWarn").replaceChildren();
+            const on = MORE.filter((m) => { try { return !!m[2](c); } catch (e) { return false; } });
+            $("moreNone").hidden = on.length > 0; bar.hidden = !on.length;
+            on.forEach(([id, label, , fn, , pages]) => {
+                const box = el("div"); box.id = "paper_" + id; box.appendChild(el("h3", null, label + (/key/.test(id) ? " (never post or link)" : ""))); host.appendChild(box);
+                let sh = null; try { sh = fn(week, cid); box.appendChild(sh); } catch (e) { box.appendChild(el("p", "bnote", "This part of the week file could not be read (" + e.message + ").")); }
+                const b = el("button", /key/.test(id) ? "btn" : "btn go", "Print " + label.toLowerCase()); b.type = "button"; b.onclick = () => print(id); bar.appendChild(b);
+                if (sh) {
+                    const check = () => {
+                        const spill = pageCheck(sh), n = sh.querySelectorAll(".sh-page").length;
+                        sh.querySelectorAll(".sh-page").forEach((p, i) => p.classList.toggle("spill", spill.some((x) => x.n === i + 1)));
+                        const msgs = [];
+                        if (spill.length) msgs.push(label + ": page " + spill.map((x) => x.n).join(", ") + " runs over by " + spill.map((x) => x.over + " in").join(", ") + ".");
+                        if (pages && n !== pages) msgs.push(label + " is " + n + " pages; it should be " + pages + ".");
+                        msgs.forEach((m) => { const li = el("li", "bad", m); li.dataset.k = id; $("pageWarn").appendChild(li); });
+                        [...$("pageWarn").children].filter((li) => li.dataset.k === id && !msgs.includes(li.textContent)).forEach((li) => li.remove());
+                    };
+                    sh.addEventListener("paged", check); requestAnimationFrame(() => requestAnimationFrame(check));
+                }
+            });
         }
         function print(which) {
+            const more = MORE.find((m) => m[0] === which);
+            if (more) {
+                document.querySelectorAll(".papers .printing").forEach((n) => n.classList.remove("printing"));
+                document.body.dataset.print = "more"; $("paper_" + which).classList.add("printing");
+                const part = /^(quiz|mod)/.test(which) ? cls().quiz : cls().sub, day = part && part.day != null ? +part.day : null;   // files are named "<n> <Day> - ..." like the Drive folder
+                document.title = (day != null && !/^mod/.test(which) ? (day + 1) + " " + DAYS[day] + " - " : "") + more[4] + (/^quiz/.test(which) && cls().quiz.title ? " - " + cls().quiz.title.replace(/^(Quiz|Test):\s*/, "") : "") + " (" + cls().label + ")";
+                window.print(); return;
+            }
             document.body.dataset.print = which; const i = +$("notesDay").value, d = cls().days[i];
             const extra = { sg: "Study Guide", sgkey: "TEACHER KEY - Study Guide", sd: "Speed Dating", sdkey: "TEACHER KEY - Speed Dating" }[which];
             if (extra) { document.title = extra + " (" + cls().label + ")"; window.print(); return; }
@@ -223,6 +274,12 @@
                     try { if (snap.exists && snap.data && snap.data.json) saved[w.id] = JSON.parse(snap.data.json); } catch { /* ignore a damaged copy */ }
                     done();
                 }, (e) => { if (got) return; got = true; status("Could not load saved changes (" + ((e && e.code) || "error") + ")", "bad"); if (--left === 0) openWeek($("weekSel").value); });
+            });
+            // Weeks approved on Week Review are private: their saved copy is the week itself.
+            watchPrivateWeeks(store, PUBLISHED, (list) => {
+                const added = list.filter((w) => !WEEKS.some((x) => x.id === w.id)); if (!added.length) return;
+                WEEKS = list; added.forEach((w) => { if (!saved[w.id]) saved[w.id] = w; });
+                const cur = $("weekSel").value; fillPickers(); $("weekSel").value = cur;
             });
         }
     </script>

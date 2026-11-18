@@ -6,6 +6,7 @@
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
 import { WEEKS as ALL_WEEKS } from "../data/weeks.js?v=57";
+import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 // The public demo page passes its own sample week and periods (opts.weeks, opts.periods).
 let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
@@ -956,6 +957,8 @@ export async function startApp(opts) {
         } catch (e) { tabs = null; }
     }
     writeState = writer("board/state");
+    // Weeks approved on the Week Review page live in private data; add them to the published weeks.
+    if (!guest) { const base = WEEKS; watchPrivateWeeks(store, base, (list) => { WEEKS = list; if (synced) { sig = ""; render(); } }); }
     store.watch("rosters/all", (snap) => { const p = (snap.exists && snap.data && snap.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); renderLayer(); }, () => {});
     store.clockSkew().then((ms) => { skew = ms; tick(); });
     const slow = setTimeout(() => { mark("board-slow", ms()); setStatus("Still connecting\u2026"); arrived(); render(); }, 10000);   // never leave the teacher on a blank board

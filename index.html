@@ -42,6 +42,8 @@
             <a class="hm-sl" href="sub.html" title="Sub view"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span class="hm-slt"><b>Sub view</b><small>No sign-in board for a guest</small></span></a>
             <a class="hm-sl" href="games.html" title="Game Library"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="hm-slt"><b>Game Library</b><small>Review games, no student logins</small></span></a>
             <p class="hm-sg">Plan</p>
+            <a class="hm-sl" href="plan.html" title="Plan the Week"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg><span class="hm-slt"><b>Plan the Week</b><small>Send next week to Claude</small></span></a>
+            <a class="hm-sl" href="review.html" title="Week Review"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="hm-slt"><b>Week Review</b><small>Check and approve a week</small></span></a>
             <a class="hm-sl" href="planner.html" title="Planner"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h2M14 14h2M8 18h2"/></svg><span class="hm-slt"><b>Planner</b><small id="st-planner">Day, week, month and year</small></span></a>
             <a class="hm-sl" href="builder.html" title="Week Builder"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V2h12v7"/><rect x="2" y="9" width="20" height="9" rx="2"/><path d="M6 14h12v8H6z"/></svg><span class="hm-slt"><b>Week Builder</b><small id="st-builder">Print the week's paperwork</small></span></a>
             <a class="hm-sl" href="library.html" title="Library"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg><span class="hm-slt"><b>Library</b><small id="st-library">Every week by class and unit</small></span></a>
@@ -110,7 +112,7 @@
             </div>
             <nav class="pub-footer-cols" aria-label="Footer">
                 <div><h2>Teach</h2><a href="board.html">Open Board</a><a href="remote.html">Remote</a><a href="sub.html">Sub view</a></div>
-                <div><h2>Plan</h2><a href="planner.html">Planner</a><a href="builder.html">Week Builder</a><a href="library.html">Library</a><a href="standards.html">Standards</a></div>
+                <div><h2>Plan</h2><a href="plan.html">Plan the Week</a><a href="review.html">Week Review</a><a href="planner.html">Planner</a><a href="builder.html">Week Builder</a><a href="library.html">Library</a><a href="standards.html">Standards</a></div>
                 <div><h2>Focal</h2><a href="index.html">Home</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div>
             </nav>
         </div>
@@ -120,7 +122,9 @@
         </div>
     </footer>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=57";
+        import { WEEKS as PUBLISHED } from "./data/weeks.js?v=57";
+        import { watchPrivateWeeks } from "./js/weeksLive.js?v=58";
+        let WEEKS = PUBLISHED;
         import * as store from "./js/boardStore.js?v=58";
         import { LIBRARY } from "./data/library.js?v=57";
         import { SCHOOL_YEAR, SCHOOL_DAYS, today as todayFn, addDays, mondayOf, eventsOn, isSchoolDay as schoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, short } from "./js/schoolCal.js?v=57";
@@ -298,7 +302,7 @@
             // Needs you
             const needs = [];
             if (bellsLoaded && !Object.keys(doc.periods || {}).length) needs.push(["Bell times are not set, so the Today panel cannot follow the clock.", "Set bell times", openSettings]);
-            if (nm && !have) needs.push(["Next week (" + short(nm, { month: "short", day: "numeric" }) + ") is not built yet.", "Open Week Builder", "builder.html"]);
+            if (nm && !have) needs.push(["Next week (" + short(nm, { month: "short", day: "numeric" }) + ") is not built yet.", "Plan the Week", "plan.html"]);
             const N = $("needs"); N.textContent = ""; N.hidden = !needs.length;
             if (needs.length) {
                 N.appendChild(el("h2", null, "Needs you"));
@@ -312,6 +316,7 @@
         if (!user) location.replace("login.html");
         else {
             $("who").textContent = "Signed in as " + (user.name || "teacher");
+            watchPrivateWeeks(store, PUBLISHED, (list) => { WEEKS = list; week = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= todayIso) week = w; statuses(todayIso); render(); });
             let loaded = false;
             store.watch("settings/bells", (snap) => { if (snap.pending) return; doc = cleanDoc(snap.exists && snap.data); useToday(); bellsLoaded = true; statuses(todayIso); if (!loaded) { loaded = true; fillBells(); } else pickers(); render(); }, () => {});
             store.watch("planner/plans", (snap) => { if (snap.pending) return; plans = (snap.exists && snap.data) || {}; glance(); }, () => {});

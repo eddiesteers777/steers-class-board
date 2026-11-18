@@ -1,0 +1,80 @@
+/* Plan the Week and Week Review. Same tiles, segments and colours as the Planner (planner.css). */
+.pw-lead{color:var(--c-mute);max-width:70ch;margin:4px 0 12px;line-height:1.5}
+.pw-wkbar{display:flex;align-items:center;gap:10px;margin:6px 0 4px}
+.pw-wkbar h2{font-family:var(--display);font-size:1.35rem;font-weight:800;letter-spacing:-.01em;margin:0;flex:1;min-width:0}
+.pw-wkbar .btn{min-width:44px;min-height:44px;font-size:1.3rem;padding:0 12px}
+.pw-built{background:#E6EEFB;color:#10358A;border-radius:12px;padding:10px 14px;font-weight:600;margin:10px 0}
+.pw-skel{display:grid;gap:12px;margin-top:14px}
+.pw-skel div{height:120px;border-radius:16px;background:linear-gradient(90deg,#E5EAF2,#F1F4F9,#E5EAF2);background-size:200% 100%;animation:pwsk 1.4s linear infinite}
+@keyframes pwsk{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.pw-skel div{animation:none}}
+.pw-week,.pw-class,.pw-send{background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:18px;padding:16px 18px;margin:0 0 16px;box-shadow:0 8px 32px rgba(8,27,69,.05)}
+.pw-week h2,.pw-class h2{font-family:var(--display);font-size:1.25rem;font-weight:800;margin:0 0 10px}
+.pw-days{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.pw-day{border:1px solid var(--c-line);border-radius:14px;padding:10px;background:#F8FAFD;display:flex;flex-direction:column;gap:6px;min-width:0}
+.pw-day.off{background:var(--c-bg);color:var(--c-mute)}
+.pw-dayh{display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+.pw-dayh span{font-size:.82rem;color:var(--c-mute)}
+.pw-off,.pw-ev{margin:0;font-size:.82rem;line-height:1.35}
+.pw-ev{color:#8A5A00}
+.pw-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pw-field{display:flex;flex-direction:column;gap:5px;margin:0 0 12px;min-width:0}
+.pw-lab{font-size:.8rem;font-weight:700;color:var(--c-mute)}
+.pw-hint{font-size:.8rem;color:var(--c-mute)}
+.pw-in{font:inherit;font-size:.95rem;min-height:44px;border:1.5px solid var(--c-line);border-radius:10px;padding:8px 10px;background:#fff;color:var(--c-ink);width:100%;box-sizing:border-box}
+.pw-in:focus{outline:3px solid #B9D3EE;border-color:#2F6FDB}
+textarea.pw-in{min-height:64px;resize:vertical}
+.pw-classes{display:grid;gap:0}
+.pw-chead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.pw-per{font-size:.85rem;color:var(--c-mute);font-weight:600}
+.pw-chips{display:flex;flex-wrap:wrap;gap:6px}
+.pw-chip{min-height:36px;padding:0 12px;border-radius:999px;border:1.5px solid var(--c-line);background:#fff;font:inherit;font-weight:700;font-size:.86rem;color:var(--c-mute);cursor:pointer}
+.pw-chip[aria-pressed="true"]{background:#081B45;border-color:#081B45;color:#fff}
+.pw-add{margin-top:6px;max-width:420px}
+.pw-std{margin:6px 0 0;padding:0 0 0 18px;font-size:.88rem;line-height:1.45;color:var(--c-ink);max-width:90ch}
+.pw-std li{margin:2px 0}
+.pw-row{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:flex-end}
+.pw-row .pw-field{min-width:180px}
+.pw-seg button{min-height:40px}
+.pw-check{display:flex;align-items:center;gap:6px;min-height:44px;margin:0 0 12px;font-weight:600;font-size:.92rem}
+.pw-check input{width:20px;height:20px}
+.pw-plans{display:grid;gap:6px}
+.pw-plan{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center}
+.pw-plan>span{font-weight:700;font-size:.88rem}
+.pw-plan.off em{color:var(--c-mute);font-size:.88rem}
+.pw-sub{background:#FFF4D6;color:#8A5A00;border-radius:999px;padding:2px 8px;font-weight:700;font-size:.75rem}
+.pw-send{display:flex;flex-wrap:wrap;gap:10px;align-items:center;border-left:5px solid var(--amber)}
+.pw-send.sent{border-left-color:#1F9D61}
+.pw-sendp{flex-basis:100%;margin:0;line-height:1.5}
+.pw-prompt{display:flex;gap:8px;align-items:center;flex:1 1 360px;background:#F3F6FB;border:1px solid var(--c-line);border-radius:12px;padding:8px 8px 8px 12px;min-width:0}
+.pw-prompt code{flex:1;font-family:inherit;font-weight:600;font-size:.95rem;overflow-wrap:anywhere}
+.pw-send .btn{min-height:44px;text-decoration:none}
+@media (max-width:760px){.pw-days{grid-template-columns:1fr 1fr}.pw-two{grid-template-columns:1fr}}
+@media (max-width:420px){.pw-days{grid-template-columns:1fr}}
+/* Week Review */
+.rv-checks{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:6px}
+.rv-checks li{display:flex;gap:10px;align-items:flex-start;background:var(--c-surface);border:1px solid var(--c-line);border-radius:12px;padding:9px 12px;line-height:1.45;font-size:.93rem}
+.rv-dot{flex:none;min-width:40px;text-align:center;font-size:.74rem;font-weight:800;border-radius:999px;padding:2px 8px}
+.rv-bad .rv-dot{background:#B4232A;color:#fff}
+.rv-warn .rv-dot{background:#FFF4D6;color:#8A5A00}
+.rv-ok .rv-dot{background:#1F9D61;color:#fff}
+.rv-info{color:var(--c-mute)}
+.rv-info .rv-dot{display:none}
+#content>.pl-seg{margin:4px 0 12px}
+.rv-extras{margin:0;color:var(--c-mute);font-size:.88rem}
+.rv-day.off{background:var(--c-bg)}
+.rv-plan{margin-left:auto;font-size:.82rem;color:#10358A;background:#E6EEFB;border-radius:999px;padding:3px 10px;font-weight:600}
+.rv-probs{display:grid;gap:6px}
+.rv-prob{display:grid;grid-template-columns:24px 1fr 200px;gap:8px;align-items:center}
+.rv-prob b{font-size:.85rem;color:var(--c-mute);text-align:center}
+.pw-send .btn:disabled{opacity:.5;cursor:not-allowed}
+@media (max-width:600px){.rv-prob{grid-template-columns:24px 1fr}.rv-prob .rv-ans{grid-column:2}}
+.rv-file{cursor:pointer;min-height:44px;display:inline-flex;align-items:center}
+.rv-h2{font-family:var(--display);font-size:1.25rem;font-weight:800;margin:6px 0 6px}
+.rv-pages{display:grid;gap:12px;margin-top:10px}
+.rv-page h3{font-family:var(--display);font-size:1.1rem;font-weight:800;margin:0 0 8px}
+.rv-page .pw-prompt{margin-bottom:10px}
+.rv-msg{font-size:.9rem;line-height:1.5;min-height:220px}
+.rv-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.rv-acts .btn,.rv-page .btn{min-height:44px;display:inline-flex;align-items:center}
+#pages{margin-bottom:16px}

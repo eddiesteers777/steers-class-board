@@ -34,7 +34,9 @@
         <div id="shelf"></div>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=57";
+        import { WEEKS as PUBLISHED } from "./data/weeks.js?v=57";
+        import { watchPrivateWeeks } from "./js/weeksLive.js?v=58";
+        let WEEKS = PUBLISHED;
         import { LIBRARY } from "./data/library.js?v=57";
         const DK = ["mon", "tue", "wed", "thu", "fri"], $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -104,9 +106,13 @@
         $("find").oninput = draw;
 
         const guest = new URLSearchParams(location.search).has("demo");   // ?demo: look without signing in (the week data is not private)
-        const user = guest ? { name: "" } : await (await import("./js/boardStore.js?v=58")).ready();
+        const store = guest ? null : await import("./js/boardStore.js?v=58");
+        const user = guest ? { name: "" } : await store.ready();
         if (!user) location.replace("login.html");
-        else { $("who").textContent = guest ? "Looking without signing in" : (user.name ? "Signed in as " + user.name : "Signed in"); draw(); }
+        else {
+            $("who").textContent = guest ? "Looking without signing in" : (user.name ? "Signed in as " + user.name : "Signed in"); draw();
+            if (store) watchPrivateWeeks(store, PUBLISHED, (list) => { WEEKS = list; draw(); });   // weeks approved on Week Review
+        }
     </script>
 </body>
 </html>
