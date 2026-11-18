@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set up | Anchor Board</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <meta name="theme-color" content="#081B45">
+    <style>
+        /* Setup for a new teacher: four short steps. Colours and sizes from DESIGN.md. */
+        :root { --bg: #EEF1F6; --ink: #0E1B3A; --muted: #55627F; --line: #D5DCE9; --amber: #F2B33D; --deep: #0B2559; --blue: #173F86; --sky: #7FAEDD; --green: #1F8A4C; --red: #B3261E; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif; }
+        .card { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--bg); }
+        @media (min-width: 560px) { body { padding: 32px 16px; } .card { min-height: 0; border-radius: 24px; overflow: hidden; box-shadow: 0 8px 32px rgba(8, 27, 69, .12); border: 1px solid var(--line); } }
+        .hd { background: linear-gradient(135deg, #173F86, #0B2559 55%, #081B45); color: #F4F7FB; padding: 18px 20px 16px; }
+        .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+        .brand img { width: 34px; height: 34px; }
+        .bar { display: flex; gap: 6px; margin-top: 14px; }
+        .bar i { flex: 1; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, .18); transition: background .25s; }
+        .bar i.on { background: var(--amber); }
+        .hd small { display: block; margin-top: 8px; color: #B9D3EE; font-size: 13px; }
+        .bd { padding: 20px 16px 24px; }
+        @media (min-width: 560px) { .bd { padding: 24px; } }
+        h1:focus { outline: none; }
+        h1 { font: 800 28px/1.15 "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif; margin: 0 0 6px; }
+        .sub { color: var(--muted); margin: 0 0 18px; font-size: 15px; }
+        label, .lab { display: block; font-weight: 600; font-size: 14px; margin: 14px 0 6px; }
+        input[type=text], input[type=time], select, textarea { width: 100%; font: inherit; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-height: 46px; }
+        input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip { font: inherit; font-weight: 600; font-size: 14px; border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 999px; padding: 9px 14px; min-height: 44px; cursor: pointer; }
+        .chip[aria-pressed=true] { background: var(--deep); color: #fff; border-color: var(--deep); }
+        .btn { display: block; width: 100%; text-align: center; font: inherit; font-weight: 700; border-radius: 16px; padding: 13px; min-height: 48px; margin-top: 20px; border: 0; cursor: pointer; text-decoration: none; }
+        .go { background: var(--amber); color: #1B1300; }
+        .ghost { background: transparent; color: var(--blue); margin-top: 6px; }
+        .back { background: transparent; color: var(--muted); margin-top: 0; font-weight: 600; }
+        .bt input { min-width: 0; padding: 8px 6px; }
+        .cls { display: grid; grid-template-columns: 84px minmax(0, 1fr) 44px; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .cls .rm { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: var(--muted); font-size: 20px; cursor: pointer; }
+        .add { width: 100%; font: inherit; font-weight: 700; color: var(--blue); background: transparent; border: 1.5px dashed var(--sky); border-radius: 16px; padding: 12px; min-height: 48px; cursor: pointer; margin-top: 4px; }
+        .bt { display: grid; grid-template-columns: 40px minmax(0, 1fr) 18px minmax(0, 1fr); gap: 6px; align-items: center; margin-bottom: 8px; }
+        .bt b { font-size: 14px; }
+        .bt span { color: var(--muted); text-align: center; font-size: 13px; }
+        details { margin-top: 14px; background: #FFF7E3; border: 1px solid #F3D99A; border-radius: 14px; padding: 10px 12px; font-size: 14px; color: #5C4500; }
+        details summary { cursor: pointer; font-weight: 600; }
+        details textarea { margin-top: 8px; min-height: 110px; font-size: 14px; }
+        details .btn { margin-top: 8px; background: #fff; color: var(--blue); border: 1px solid var(--line); }
+        .msg { min-height: 22px; font-size: 14px; color: var(--muted); margin-top: 10px; }
+        .msg.bad { color: var(--red); }
+        .mini { background: linear-gradient(135deg, #173F86, #081B45); border-radius: 14px; color: #fff; padding: 14px; }
+        .mini b { font: 800 18px/1.2 "Bricolage Grotesque", system-ui, sans-serif; display: block; }
+        .mini span { font-size: 13px; color: #B9D3EE; }
+        .hint { color: var(--muted); font-size: 13px; text-align: center; margin: 8px 0 14px; }
+        .todo { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 8px 16px; list-style: none; margin: 0; }
+        .todo li { display: flex; gap: 10px; align-items: center; min-height: 44px; }
+        .todo i { width: 22px; height: 22px; border-radius: 50%; flex: none; border: 2px solid var(--line); position: relative; }
+        .todo i.ok { background: var(--green); border-color: var(--green); }
+        .todo i.ok::after { content: ""; position: absolute; left: 6px; top: 2px; width: 6px; height: 11px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+        .todo a { color: var(--blue); font-weight: 600; }
+        [hidden] { display: none !important; }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <header class="hd">
+            <div class="brand"><img src="brand/logo.svg" alt="">Anchor Board</div>
+            <div class="bar" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            <small id="stepNo">Step 1 of 4</small>
+        </header>
+        <main class="bd" id="main">
+            <section id="s0" hidden>
+                <h1>Your account uses the Calera classes</h1>
+                <p class="sub">This setup is for new teachers. Your classes, periods and weeks stay as they are.</p>
+                <a class="btn go" href="index.html">Go to Home</a>
+            </section>
+
+            <section id="s1" hidden>
+                <h1 id="hello">Welcome</h1>
+                <p class="sub">Three quick questions and your board is ready.</p>
+                <label for="name">What should students see on the board?</label>
+                <input type="text" id="name" maxlength="40" placeholder="Ms. Rivera" autocomplete="off">
+                <label for="school">School (optional)</label>
+                <input type="text" id="school" maxlength="60" placeholder="Your school's name" autocomplete="off">
+                <span class="lab" id="gradesLab">Grades you teach</span>
+                <div class="chips" id="grades" role="group" aria-labelledby="gradesLab"></div>
+                <span class="lab" id="subjectLab">Subject</span>
+                <div class="chips" id="subject" role="group" aria-labelledby="subjectLab"></div>
+                <button class="btn go" type="button" data-next="2">Next</button>
+                <button class="btn ghost" type="button" id="skipAll">Skip setup for now</button>
+            </section>
+
+            <section id="s2" hidden>
+                <h1>Your classes</h1>
+                <p class="sub">One row for each period you teach. Same class twice? Add it twice.</p>
+                <div id="classRows"></div>
+                <button class="add" type="button" id="addRow">+ Add a period</button>
+                <div class="msg" id="msg2" role="status"></div>
+                <button class="btn go" type="button" data-next="3">Next</button>
+                <button class="btn back" type="button" data-next="1">Back</button>
+            </section>
+
+            <section id="s3" hidden>
+                <h1>Bell times</h1>
+                <p class="sub">So the board knows which class is in front of you.</p>
+                <div id="bellRows"></div>
+                <details>
+                    <summary>Paste your bell schedule</summary>
+                    <textarea id="bellPaste" aria-label="Bell schedule to paste" placeholder="1st 7:50 - 8:42&#10;2nd 8:46 - 9:38"></textarea>
+                    <button class="btn" type="button" id="bellFill">Fill the boxes</button>
+                </details>
+                <div class="msg" id="msg3" role="status"></div>
+                <button class="btn go" type="button" data-next="4">Next</button>
+                <button class="btn ghost" type="button" data-next="4" data-skipbells="1">I'll do this later</button>
+                <button class="btn back" type="button" data-next="2">Back</button>
+            </section>
+
+            <section id="s4" hidden>
+                <h1>You're set</h1>
+                <p class="sub">Run the sample lesson with your class names on it.</p>
+                <div class="mini"><b>Two-Step Equations</b><span id="firstClass">Sample week</span></div>
+                <a class="btn go" href="board.html" target="_blank" rel="noopener">Open the Board</a>
+                <p class="hint">Put the Board on your projector. Use the Remote on this device.</p>
+                <ul class="todo">
+                    <li><i class="ok"></i>Classes and periods</li>
+                    <li id="todoBells"><i></i><span>Bell times <a href="#" data-next="3">· finish</a></span></li>
+                    <li><i></i><span>Add your own questions · <a href="games.html">Game Library</a></span></li>
+                    <li><i></i><span>Roster, first names only · <a href="rosters.html">Rosters</a></span></li>
+                </ul>
+                <a class="btn ghost" href="remote.html">Open the Remote</a>
+                <a class="btn back" href="index.html">Go to Home</a>
+            </section>
+        </main>
+    </div>
+    <script type="module">
+        import * as store from "./js/boardStore.js?v=58";
+        import { PACK, SETUP } from "./data/weeks.js?v=60";
+        import { saveSetup, cleanSetup } from "./js/contentPack.js?v=2";
+
+        const $ = (id) => document.getElementById(id);
+        const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+        const ORD = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th"];
+        const GRADES = ["K-2", "3", "4", "5", "6", "7", "8", "9-12"], SUBJECTS = ["Math", "Science", "ELA", "Social studies", "Other"];
+
+        const user = await store.ready();
+        if (!user) location.replace("login.html");
+        else if (PACK === "calera") show(0);
+        else start();
+
+        function show(n) {
+            for (let i = 0; i <= 4; i++) $("s" + i).hidden = i !== n;
+            document.querySelectorAll(".bar i").forEach((b, i) => b.classList.toggle("on", n > 0 && i < n));
+            $("stepNo").textContent = n ? "Step " + n + " of 4" : "";
+            window.scrollTo(0, 0);
+            const first = $("s" + n).querySelector("h1"); if (first) { first.tabIndex = -1; first.focus({ preventScroll: true }); }
+        }
+
+        function start() {
+            const s = cleanSetup(SETUP);
+            const first = String(user.name || "").split(/\s+/)[0];
+            $("hello").textContent = first ? "Welcome, " + first : "Welcome";
+            $("name").value = s.name; $("school").value = s.school;
+            chips($("grades"), GRADES, s.grades, true);
+            chips($("subject"), SUBJECTS, s.subject ? [s.subject] : [], false);
+            (s.classes.length ? s.classes : [{ p: "1st", label: "" }]).forEach((c) => addRow(c));
+            $("addRow").onclick = () => { const used = rows().map((r) => r.p); addRow({ p: ORD.find((o) => !used.includes(o)) || "1st", label: "" }); };
+            document.querySelectorAll("[data-next]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); go(+b.dataset.next, b.dataset.skipbells === "1"); }));
+            $("skipAll").onclick = async () => { await save(true); location.href = "index.html"; };   // done: Home stops sending them here; its tile offers setup again
+            $("bellFill").onclick = fillFromPaste;
+            show(1);
+        }
+
+        function chips(host, list, on, many) {
+            list.forEach((v) => {
+                const b = el("button", "chip", v); b.type = "button"; b.dataset.v = v; b.setAttribute("aria-pressed", on.includes(v) ? "true" : "false");
+                b.onclick = () => {
+                    const was = b.getAttribute("aria-pressed") === "true";
+                    if (!many) host.querySelectorAll(".chip").forEach((x) => x.setAttribute("aria-pressed", "false"));
+                    b.setAttribute("aria-pressed", was && many ? "false" : (was && !many ? "false" : "true"));
+                };
+                host.appendChild(b);
+            });
+        }
+        const picked = (host) => [...host.querySelectorAll('.chip[aria-pressed="true"]')].map((b) => b.dataset.v);
+
+        function addRow(c) {
+            const r = el("div", "cls");
+            const sel = el("select"); sel.setAttribute("aria-label", "Period");
+            ORD.forEach((o) => { const op = el("option", null, o); op.value = o; sel.appendChild(op); }); sel.value = ORD.includes(c.p) ? c.p : "1st";
+            const inp = el("input"); inp.type = "text"; inp.maxLength = 40; inp.placeholder = "Class name, like Math 6"; inp.value = c.label || ""; inp.setAttribute("aria-label", "Class name");
+            const rm = el("button", "rm", "×"); rm.type = "button"; rm.setAttribute("aria-label", "Remove this period"); rm.onclick = () => { if ($("classRows").children.length > 1) r.remove(); else inp.value = ""; };
+            r.append(sel, inp, rm); $("classRows").appendChild(r);
+            if (!c.label) inp.focus();
+        }
+        const rows = () => [...$("classRows").children].map((r) => ({ p: r.querySelector("select").value, label: r.querySelector("input").value.trim() }));
+        const order = (list) => list.slice().sort((a, b) => ORD.indexOf(a.p) - ORD.indexOf(b.p));
+
+        function current(done) {
+            return { name: $("name").value, school: $("school").value, grades: picked($("grades")), subject: picked($("subject"))[0] || "", classes: order(rows().filter((r) => r.label)), done };
+        }
+        async function save(done) {
+            try { return await saveSetup(current(done)); }
+            catch (e) { return null; }
+        }
+
+        async function go(n, skipBells) {
+            const at = [1, 2, 3, 4].find((i) => !$("s" + i).hidden);
+            if (at === 2 && n > 2) {
+                const r = rows(), named = r.filter((x) => x.label);
+                const dup = r.map((x) => x.p).find((p, i, a) => a.indexOf(p) !== i);
+                if (!named.length) { $("msg2").textContent = "Add at least one class name."; $("msg2").className = "msg bad"; return; }
+                if (dup) { $("msg2").textContent = dup + " period is listed twice. Pick a different period for one of them."; $("msg2").className = "msg bad"; return; }
+                $("msg2").textContent = "Saving…"; $("msg2").className = "msg";
+                if (!(await save(false))) { $("msg2").textContent = "Could not save. Check the connection and try again."; $("msg2").className = "msg bad"; return; }
+                $("msg2").textContent = "";
+                bellRows();
+            }
+            if (at === 3 && n === 4) {
+                let have = false;
+                if (!skipBells) { const r = await saveBells(); if (r === null) return; have = r; }
+                else have = await bellsSet();
+                if (!(await save(true))) { $("msg3").textContent = "Could not save. Check the connection and try again."; $("msg3").className = "msg bad"; return; }
+                $("todoBells").querySelector("i").className = have ? "ok" : ""; $("todoBells").querySelector("a").hidden = have;
+                const c = current(true).classes[0]; $("firstClass").textContent = c ? "Sample week · " + c.p + " period, " + c.label : "Sample week";
+            }
+            if (n === 3 && at !== 2) bellRows();
+            show(n);
+        }
+
+        /* ---------- bell times: settings/bells { periods, schedules, today }, the same document Home uses ---------- */
+        let bellDoc = null;
+        function loadBells() {
+            if (bellDoc) return Promise.resolve(bellDoc);
+            return new Promise((resolve) => {
+                let stop = null, t = setTimeout(() => { if (stop) stop(); resolve(bellDoc = { periods: {}, schedules: {}, today: null }); }, 6000);
+                stop = store.watch("settings/bells", (snap) => {
+                    if (snap.pending) return; clearTimeout(t); if (stop) stop();
+                    const d = (snap.exists && snap.data) || {};
+                    resolve(bellDoc = { periods: d.periods || {}, schedules: d.schedules || {}, today: d.today || null });
+                }, () => {});
+            });
+        }
+        async function bellRows() {
+            const host = $("bellRows"); host.textContent = "";
+            const d = await loadBells();
+            order(rows().filter((r) => r.label)).forEach(({ p }) => {
+                const r = el("div", "bt"); r.appendChild(el("b", null, p));
+                ["start", "end"].forEach((k, i) => {
+                    const t = el("input"); t.type = "time"; t.id = "bell-" + p + "-" + k; t.value = (d.periods[p] && d.periods[p][k]) || "";
+                    t.setAttribute("aria-label", p + " period " + (k === "start" ? "starts" : "ends"));
+                    r.appendChild(t); if (!i) r.appendChild(el("span", null, "to"));
+                });
+                host.appendChild(r);
+            });
+        }
+        async function bellsSet() { const d = await loadBells(); return Object.keys(d.periods || {}).length > 0; }
+        /** Saves the boxes. Resolves true (saved some), false (none filled) or null (could not save). */
+        async function saveBells() {
+            const d = await loadBells(), periods = {}, msg = $("msg3");
+            for (const { p } of rows().filter((r) => r.label)) {
+                const a = $("bell-" + p + "-start"), b = $("bell-" + p + "-end"); if (!a || !b) continue;
+                if (a.value && b.value) {
+                    if (a.value >= b.value) { msg.textContent = p + " period ends before it starts."; msg.className = "msg bad"; return null; }
+                    periods[p] = { start: a.value, end: b.value };
+                }
+            }
+            if (!Object.keys(periods).length) return false;
+            msg.textContent = "Saving…"; msg.className = "msg";
+            try { await store.save("settings/bells", Object.assign({}, d, { periods: Object.assign({}, d.periods, periods) })); bellDoc = null; msg.textContent = ""; return true; }
+            catch (e) { msg.textContent = "Could not save bell times. Check the connection and try again."; msg.className = "msg bad"; return null; }
+        }
+        /** "1st 7:50 - 8:42" or "Period 2: 8:46 AM to 9:38 AM", one period per line. */
+        function fillFromPaste() {
+            let n = 0;
+            $("bellPaste").value.split(/\n/).forEach((line) => {
+                const per = /\b([1-9])(?:st|nd|rd|th)?\b/i.exec(line.replace(/(\d{1,2}):(\d{2})/g, " "));
+                const times = [...line.matchAll(/(\d{1,2}):(\d{2})\s*([ap]\.?m\.?)?/gi)].map((m) => {
+                    let h = +m[1]; const ap = (m[3] || "").toLowerCase();
+                    if (ap.startsWith("p") && h < 12) h += 12; else if (ap.startsWith("a") && h === 12) h = 0; else if (!ap && h >= 1 && h <= 5) h += 12;
+                    return String(h).padStart(2, "0") + ":" + m[2];
+                });
+                if (!per || times.length < 2) return;
+                const p = ORD[+per[1] - 1], a = $("bell-" + p + "-start"), b = $("bell-" + p + "-end");
+                if (a && b) { a.value = times[0]; b.value = times[1]; n++; }
+            });
+            const msg = $("msg3"); msg.className = n ? "msg" : "msg bad";
+            msg.textContent = n ? "Filled " + n + " period" + (n === 1 ? "" : "s") + ". Check them, then tap Next." : "No periods found. Put one period per line, like 1st 7:50 - 8:42.";
+        }
+    </script>
+</body>
+</html>

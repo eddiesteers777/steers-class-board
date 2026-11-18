@@ -16,7 +16,7 @@ import week3 from "./week3.js?v=57";
 import week4 from "./week4.js?v=57";
 import week5 from "./week5.js?v=57";
 import demoWeek from "./demo-week.js?v=1";
-import { myPack } from "../js/contentPack.js?v=1";
+import { myPack, mySetup } from "../js/contentPack.js?v=2";
 
 // Mr. Steers' Calera weeks. Only his account (and the guest sub page) sees them; see js/contentPack.js.
 export const CALERA_WEEKS = [q1w0, q1w1, q1w2, q1w3, q1w4, q1w5, q1w6, q1w7, q1w8, week0, week1, week2, week3, week4, week5];
@@ -25,7 +25,25 @@ export const CALERA_PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], [
 export const STARTER_PERIODS = [["1st", "demo"]];
 
 export const PACK = await myPack();
-export const WEEKS = PACK === "calera" ? CALERA_WEEKS : [demoWeek];
-export const PERIODS = PACK === "calera" ? CALERA_PERIODS : STARTER_PERIODS;
+// A new teacher's own classes and periods from setup.html (null for the Calera pack or before setup).
+export const SETUP = PACK === "calera" ? null : await mySetup();
+
+/** The sample week, copied once for each of the teacher's classes, so the board shows their own class names. */
+function starterFrom(setup) {
+    const rows = (setup && setup.classes) || [];
+    if (!rows.length) return { weeks: [demoWeek], periods: STARTER_PERIODS };
+    const sample = demoWeek.classes.demo, ids = new Map(), classes = {};
+    const periods = rows.map((r) => {
+        if (!ids.has(r.label)) {
+            const id = "c" + (ids.size + 1); ids.set(r.label, id);
+            classes[id] = Object.assign(structuredClone(sample), { label: r.label, cls: setup.name ? setup.name + " · " + r.label : r.label });
+        }
+        return [r.p, ids.get(r.label)];
+    });
+    return { weeks: [Object.assign({}, demoWeek, { classes })], periods };
+}
+const STARTER = PACK === "calera" ? null : starterFrom(SETUP);
+export const WEEKS = PACK === "calera" ? CALERA_WEEKS : STARTER.weeks;
+export const PERIODS = PACK === "calera" ? CALERA_PERIODS : STARTER.periods;
 // The ?v= number must go up every time a week file changes, here and in the
 // pages that import this file, so browsers never mix old and new files.
