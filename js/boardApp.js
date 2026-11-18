@@ -19,6 +19,7 @@ import { wbIcon } from "./wbIcons.js?v=1";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=57";
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive } from "./liveRoom.js?v=64";
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=1";
+import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -450,6 +451,7 @@ function drawWb(st, kind) {
     wrap.appendChild(wbStrip(kind === "bell" ? "Bellringer" : kind === "notes" ? "Guided Notes" : kind === "fix" ? "Fix It Together" : "Whiteboard", sub, extra));
     const paperEl = el("div", "wbpaper"); paperEl.id = "wbpaper"; wrap.appendChild(paperEl);
     const cv = makeCv(); paperEl.appendChild(cv);
+    if (kind === "notes") pdfLayer(cv);
     const card = kind === "bell" ? bellCard(d, ps) : kind === "notes" ? notesCard(d) : kind === "fix" ? fixCard() : null;
     if (card) {
         if (S.wb.card.hide) { const sb = el("button", "wbshow"); sb.type = "button"; sb.innerHTML = wbIcon("doc") + "<span>" + (kind === "bell" ? "Show problem" : kind === "fix" ? "Show card" : "Show notes") + "</span>"; sb.onclick = () => { S.wb.card.hide = false; push(); }; paperEl.appendChild(sb); }
@@ -489,6 +491,7 @@ function notesCard(d) {
     if (!frames.length) { const { c, body } = cardShell("Guided Notes"); body.appendChild(el("p", "wbq", "No guided notes are loaded for this day.")); return c; }
     if (S.note >= frames.length) S.note = frames.length - 1;
     const f = frames[S.note], shown = f.open ? f.lines.length : Math.min(S.step, f.lines.length);
+    if (f.pdf) return pdfCard(f);
     const { c, body } = cardShell(f.kind, "Guided notes: " + f.kind); c.classList.add("wbnotes");
     if (f.blanks) { const q = blanked(f.q, S.show); q.className = "wbq"; body.appendChild(q); } else body.appendChild(richEl("p", "wbq", f.q));
     const list = el("div", "nlines");
@@ -502,6 +505,38 @@ function notesCard(d) {
     const nx = el("button", "wbbtn amber"); nx.type = "button"; nx.textContent = stepLabel().replace(/^Next: /, "") || "Next"; nx.onclick = () => step(1);
     row.append(bk, nx); body.appendChild(row);
     return c;
+}
+/* PDF notes: a small card that pages through the PDF. The page itself sits on the paper under the pen (pdfLayer). */
+const pdfFrame = () => { if (S.screen !== "notes") return null; const fr = notesFrames(D()); const f = fr[Math.min(S.note, fr.length - 1)]; return f && f.pdf ? f : null; };
+function pdfCard(f) {
+    const { c, body } = cardShell(S.show ? f.kind.replace(/ · (top|bottom)$/, "") : f.kind, "PDF notes: " + f.kind); c.classList.add("wbnotes", "wbpdf");
+    const row = el("div", "wbcrow");
+    const wb = el("button", "wbbtn dark"); wb.type = "button"; wb.textContent = S.show ? "Zoom in" : "Whole page"; wb.title = S.show ? "Show half the page, bigger" : "Show the whole page"; wb.onclick = () => { S.show = !S.show; push(); }; row.appendChild(wb);
+    row.appendChild(el("span", "wbfill"));
+    const bk = el("button", "wbbtn"); bk.type = "button"; bk.textContent = "Back"; bk.onclick = () => step(-1);
+    const nx = el("button", "wbbtn amber"); nx.type = "button"; nx.textContent = stepLabel().replace(/^Next: /, "") || "Next"; nx.onclick = () => step(1);
+    row.append(bk, nx); body.appendChild(row);
+    return c;
+}
+function pdfLayer(cv) {
+    const f = pdfFrame(); if (!f) return;
+    const view = el("div", "pdfview"), clip = el("div", "pdfclip"), img = el("img"); img.alt = f.q + ", " + f.kind; img.draggable = false;
+    clip.appendChild(img); view.appendChild(clip); cv.insertBefore(view, cv.firstChild);
+    if (!signedIn) { view.appendChild(el("p", "pdfwait", "PDF notes show when you're signed in.")); return; }
+    const url = pageUrl(store, f.pdf.id, f.pdf.n, () => { sig = ""; render(); });
+    if (!url) { view.appendChild(el("p", "pdfwait", "Loading page " + (f.pdf.n + 1) + "…")); clip.hidden = true; }
+    else if (url === "x") { view.appendChild(el("p", "pdfwait", "This page could not be loaded. Upload the PDF again on Quick lesson.")); clip.hidden = true; }
+    else img.src = url;
+    pageUrl(store, f.pdf.id, f.pdf.n + 1);   // the next page, ready before it is needed
+    fitPdf();
+}
+/** Size the page to the paper: the half (or the whole page) as large as fits, centered. */
+function fitPdf() {
+    const f = pdfFrame(), view = document.querySelector(".pdfview"); if (!f || !view) return;
+    const clip = view.querySelector(".pdfclip"), img = clip.querySelector("img"), W2 = view.clientWidth, H2 = view.clientHeight; if (W2 < 10) return;
+    const ph = S.show ? f.pdf.h : f.pdf.h / 2, k = Math.min(W2 / f.pdf.w, H2 / ph), cw = f.pdf.w * k, ch = ph * k;
+    clip.style.width = cw + "px"; clip.style.height = ch + "px"; clip.style.left = (W2 - cw) / 2 + "px"; clip.style.top = (H2 - ch) / 2 + "px";
+    img.style.width = cw + "px"; img.style.height = f.pdf.h * k + "px"; img.style.top = (!S.show && f.pdf.half ? -ch : 0) + "px";
 }
 /* Put the card where it was left, kept inside the paper. */
 function placeCard() {
@@ -539,6 +574,11 @@ function pagesBar() {
 // The day's notes become a list of frames. Each frame is one thing on screen: a question, lines
 // that are revealed one tap at a time, and sometimes an answer. The whiteboard sits beside it.
 function notesFrames(d) {
+    // The teacher's own PDF notes (Quick lesson): each page is two frames, top half then bottom half.
+    const pdf = cleanPdf(d && d.pdf);
+    if (pdf) { const F = []; for (let i = 0; i < pdf.pages; i++) [0, 1].forEach((half) => F.push({ kind: "Page " + (i + 1) + " of " + pdf.pages + (half ? " · bottom" : " · top"), q: pdf.title, lines: [], open: true, pdf: { id: pdf.id, n: i, half, w: pdf.w, h: pdf.h } }));
+        const ex = d.notes && d.notes.exit; if (ex && ex.length) F.push({ kind: "Exit ticket", q: "On your own. Show every step.", lines: ex.map((p, i) => ({ m: (i + 1) + ". " + p.q })), open: true });
+        return F; }
     const n = d && d.notes; if (!n) return [];
     const F = [];
     if (n.targets && n.targets.length) F.push({ kind: "Learning targets", q: "I can…", lines: n.targets.map((t) => ({ m: t })), open: true });
@@ -669,7 +709,7 @@ function rail() {
     void cl; return t;
 }
 function retool() { const old = $("tools"); if (old) old.parentNode.replaceChild(rail(), old); }
-function sizeCanvas() { if (!canvas) return; const r = canvas.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2); if (r.width < 2) return; canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr); ctx = canvas.getContext("2d"); redraw(); if (pad) pad.resize(); }
+function sizeCanvas() { fitPdf(); if (!canvas) return; const r = canvas.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2); if (r.width < 2) return; canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr); ctx = canvas.getContext("2d"); redraw(); if (pad) pad.resize(); }
 function drawStroke(s) {
     if (!ctx || !s.p || s.p.length < 2) return; const Wd = canvas.width, H = canvas.height, p = s.p;
     ctx.globalCompositeOperation = s.e ? "destination-out" : "source-over"; ctx.strokeStyle = s.h && (s.c === "ink" || !PENS[s.c]) ? "#F2B33D" : (css(PENS[s.c] || PENS.ink) || "#14213D");
@@ -694,7 +734,7 @@ function saveInk() {
     if (JSON.stringify(body).length > 700000) { note("This board is full. Clear it to keep saving."); return; }
     note(""); inkWrite(JSON.parse(JSON.stringify(body)));
 }
-function inkBase() { return [S.week, S.period, "d" + S.day, S.screen === "notes" ? "n" + S.note : S.screen === "fix" ? "fix" + ((fixCur() || {}).n || 0) : ((S.screen === "bell" && D()) ? "p" + S.prob : "blank")].join("_"); }
+function inkBase() { return [S.week, S.period, "d" + S.day, S.screen === "notes" ? "n" + S.note + (S.show && pdfFrame() ? "w" : "") : S.screen === "fix" ? "fix" + ((fixCur() || {}).n || 0) : ((S.screen === "bell" && D()) ? "p" + S.prob : "blank")].join("_"); }
 function pageCount() { return S.wb.pages[inkBase()] || 1; }
 function pageNow() { const b = inkBase(); return S.wb.pg.k === b ? Math.min(S.wb.pg.n, pageCount() - 1) : 0; }
 function watchInk() {

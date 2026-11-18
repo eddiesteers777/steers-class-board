@@ -17,6 +17,8 @@ export const COLLECTIONS = [
     ["ink", "Whiteboard drawings"],
     ["games", "Question sets, games and game results"],
     ["weekfiles", "Weeks you built or approved"],
+    ["pdfs", "PDF notes you uploaded"],
+    ["pdfpages", "Pages of those PDF notes"],
     ["plans", "Week plans"],
     ["planner", "Planner"],
     ["standards", "Standards marked taught"],
