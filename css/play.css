@@ -284,3 +284,17 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 @media (max-width:560px){.wrme{width:72px;height:72px;font-size:48px}.wrcode{width:100%}.wravatars{grid-template-columns:repeat(4,1fr)}.wrpowers{grid-template-columns:1fr 1fr}}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* the same screen redrawn (a digit typed, a pick) doesn't slide in again */
+.pcard.still:not(.pop):not(.shake){animation:none}
+/* a student's own results after the game */
+.presults{display:flex;flex-direction:column;gap:8px;text-align:left}
+.presults .wrh{margin-top:6px}
+.pres{display:grid;grid-template-columns:28px 1fr;gap:2px 8px;align-items:start;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:#fff}
+.pres.miss{border-color:#F3C2C5;background:#FFF7F7}
+.presmark{grid-row:span 2;font-weight:900;font-size:1.2rem;line-height:1.3;color:#B4232A}
+.pres.ok .presmark{color:var(--green)}
+.presq{font-weight:700;color:var(--navy);line-height:1.3}
+.presa{grid-column:2;font-size:.95rem;color:#4A5A78}
+.presgot{border:2px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--paper)}
+.presgot summary{cursor:pointer;font-weight:800;color:var(--navy);min-height:32px;display:flex;align-items:center}
+.presgot .pres{margin-top:6px}

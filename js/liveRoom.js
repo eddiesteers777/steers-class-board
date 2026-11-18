@@ -81,6 +81,7 @@ function takeHost() {
     hosting = true; H.host = PAGE; H.hb = Date.now(); saveSoon(true);
     if (watchingCode !== H.code) {
         stopPlayers(); watchingCode = H.code; PL = {};
+        ensureRoom(H.code);
         unsubP = A.store().rooms.watchAll("rooms/" + H.code + "/p", (docs, changed) => {
             if (!hosting || !H) return;
             docs.forEach((d) => { PL[d.id] = d.data; });
@@ -90,6 +91,18 @@ function takeHost() {
             flush(sends);
         }, (e) => { note = "Can't hear the students' devices right now (" + ((e && e.code) || "connection") + "). Trying again…"; panelSig = ""; drawLivePanel(true); });
     }
+}
+/** The game's public room can be gone while this Remote still has the game open (closed from another
+    screen, or deleted while the Remote was asleep). Students then get "No game has that code" and the
+    Remote can't hear them (permission-denied, since the rules check the room's owner). Put it back. */
+async function ensureRoom(code) {
+    let there = true;
+    try { there = !!(await A.store().rooms.get("rooms/" + code)); } catch (e) { there = true; }
+    if (there || !hosting || !H || H.code !== code || !running()) return;
+    if (H.status === "lobby") { H.players = {}; H.taken = []; }   // their entries went with the room: they join again
+    try { await A.store().rooms.save("rooms/" + code, roomDoc()); note = ""; saveSoon(true); stopPlayers(); takeHost(); }   // listen again now the room is back
+    catch (e) { note = "This game's room is gone (" + ((e && e.code) || "connection") + "). Close the room and open a new one."; }
+    rev++; panelSig = ""; drawLivePanel(true); A.redraw();
 }
 function stopPlayers() { if (unsubP) { unsubP(); unsubP = null; } watchingCode = ""; PL = {}; }
 
@@ -220,7 +233,7 @@ function tally(p, qi, typed, ok) {
         const w = st.w.find((x) => x.y.toLowerCase().replace(/\s+/g, "") === k);
         if (w) w.n++; else if (st.w.length < 12) st.w.push({ y, n: 1 });
     }
-    p.lg = (p.lg || []).concat([{ i: qi, ok: ok ? 1 : 0 }]).slice(-80);
+    p.lg = (p.lg || []).concat([ok ? { i: qi, ok: 1 } : { i: qi, ok: 0, y: String(typed || "").trim().slice(0, 40) }]).slice(-80);
 }
 /** Undo the miss when the teacher counts a wrong answer as right. */
 function untally(p, qi, typed) {
@@ -257,7 +270,12 @@ function view(id, order) {
     return { n: p.sn, status: H.status, title: H.title, nm: p.nm, c: p.c, h: p.h, st: p.st, r: p.r, of: p.n, rank, players: order.length, ends: H.ends || 0,
         av: p.av, pu: p.pu || "", dbl: p.dbl || 0, blk: p.blk || 0, ins: p.ins || 0, fw: (+p.sh || 0) > Date.now() && p.code ? +p.sh : 0, bonus: +H.bonus || 0,
         code: p.code, need: !p.code, q: q ? { n: p.qn, c: q.c, t: q.q, f: V.answerKind(q.a) } : null, best: p.best, cr: p.cr, fb: p.fb, hk: p.hk, hit: p.hit,
-        targets: order.filter((x) => x.id !== id).map((x) => ({ id: x.id, nm: x.nm, av: x.av, c: x.c, sh: shielded(x) ? 1 : 0, g: p.g[x.id] || [] })) };
+        targets: order.filter((x) => x.id !== id).map((x) => ({ id: x.id, nm: x.nm, av: x.av, c: x.c, sh: shielded(x) ? 1 : 0, g: p.g[x.id] || [] })),
+        res: H.status === "done" ? results(p) : null };
+}
+/** A student's own results for their screen after the game: each question they answered, what they wrote when it was wrong, and the answer. */
+function results(p) {
+    return (p.lg || []).slice(-40).map((x) => { const q = H.qs[x.i]; return q ? (x.ok ? { t: String(q.q).slice(0, 200), ok: 1 } : { t: String(q.q).slice(0, 200), ok: 0, y: x.y || "", a: String(q.a).slice(0, 80) }) : null; }).filter(Boolean);
 }
 function flush(sends) {
     if (!sends.size) return;
@@ -347,7 +365,9 @@ async function closeRoom() {
     const code = H.code;
     try {
         stopPlayers();
-        await A.store().rooms.clear("rooms/" + code + "/s"); await A.store().rooms.clear("rooms/" + code + "/p"); await A.store().rooms.del("rooms/" + code);
+        // A room that is already gone can't be listed (the rules check its owner), so only clear one that is there.
+        let there = true; try { there = !!(await A.store().rooms.get("rooms/" + code)); } catch (e) { there = true; }
+        if (there) { await A.store().rooms.clear("rooms/" + code + "/s"); await A.store().rooms.clear("rooms/" + code + "/p"); await A.store().rooms.del("rooms/" + code); }
         await A.store().save("games/room", { v: 1, status: "none", at: Date.now() });
         H = null; hosting = false; note = ""; peek = ""; endArm = 0;
     } catch (e) { note = "Could not close the room (" + ((e && e.code) || "connection") + "). Try again."; if (H && running()) takeHost(); }
@@ -396,6 +416,35 @@ export function tickLive() {
     if (hosting && running() && Date.now() - lastSave > 8000) saveSoon(true);   // check in, so another Remote knows this one is running the game
     if (endArm && Date.now() - endArm > 4000) { endArm = 0; panelSig = ""; }
     if (isRemote() && onLive() && Date.now() - panelAt > 1000) drawLivePanel(true);
+}
+
+/* ---------- going over missed questions on the whiteboard ----------
+   After the game the board opens each missed question on the canvas-first whiteboard (js/boardApp.js),
+   with the question on a card floating over the paper like the bellringer, so the teacher can work it out. */
+/** The question being gone over, or null: { key (for the saved ink), qi, at, count, list (question numbers), title, ans }. */
+export function liveReview() {
+    if (!H || H.status !== "done" || !H.review || !H.qs || !H.qs[H.review.qi]) return null;
+    const list = missedList(), at = list.findIndex((x) => x.qi === H.review.qi);
+    return { key: "vr" + String(H.rid || H.code || "").replace(/\W/g, "") + "q" + H.review.qi, qi: H.review.qi, at, count: list.length, list: list.map((x) => x.qi), title: H.title || "Student Game", ans: !!H.review.ans };
+}
+/** Go to a missed question (null: back to the final scores), or show or hide its answer. Works from the board or the Remote. */
+export function goReview(qi, ans) { review(qi, ans); }
+/** The floating card's insides: the question, how the class did, the answers we saw, then the answer once shown. */
+export function reviewBody(body) {
+    const r = liveReview(); if (!r) return;
+    const q = H.qs[r.qi], st = (H.qst || [])[r.qi] || { n: 0, ok: 0, w: [] };
+    if (q.c) body.append(el("span", "gchip alt vrwbcat", q.c));
+    body.append(mathEl("p", "wbq", q.q));
+    const how = el("div", "vrwbhow"); how.append(el("b", null, pctOf(st.ok, st.n) + "% got it"), el("span", null, st.ok + " of " + st.n + " answers were right"));
+    body.append(how);
+    const ws = st.w.slice().sort((a, b) => b.n - a.n).slice(0, 4);
+    if (ws.length) { const chips = el("div", "vrrevw vrwbw"); chips.append(el("small", null, "Answers we saw")); ws.forEach((w) => { const c = el("span", "vrwrong"); c.append(mathEl("span", null, w.y), el("small", null, "×" + w.n)); chips.append(c); }); body.append(chips); }
+    if (r.ans) body.append(mathEl("p", "wbans", q.a));
+    const row = el("div", "vrwbbtns");
+    row.append(btn("btn ghost", r.ans ? "Hide answer" : "Show answer", () => review(r.qi, !r.ans)));
+    if (r.at + 1 < r.count) row.append(btn("btn go", "Next question", () => review(r.list[r.at + 1])));
+    else row.append(btn("btn go", "Done: final scores", () => review(null)));
+    body.append(row);
 }
 
 /* ---------- the board ---------- */
