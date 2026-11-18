@@ -336,3 +336,7 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .pnewskin > div{flex:1;text-align:left}
 .pnewskin .pbtn.small{padding:6px 14px;min-height:0;font-size:.9rem}
 .pskinon{font-weight:700;color:#8A5F00;font-size:.85rem}
+/* Called up to the board */
+.pcall{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--amber);color:var(--amber-ink,#3A2A00);border-radius:16px;padding:8px 18px;box-shadow:0 8px 24px rgba(0,0,0,.35);text-align:center;animation:bump .6s ease-out;pointer-events:none;max-width:calc(100% - 32px)}
+.pcall b{font-size:1.05rem}
+.pcall span{font-size:.85rem;font-weight:600}
