@@ -53,6 +53,16 @@ service cloud.firestore {
       }
     }
 
+    // Class Pages (class.html): the student version of each approved week, for students and parents.
+    // Anyone can read it without signing in; only that teacher writes it (Week Review's Approve).
+    // It never holds answers, keys or any student information (js/publish.js strips them).
+    //   pub/{uid}/index           the list of posted weeks and the class labels
+    //   pub/{uid}/weeks/{weekId}  one week's student version for each class
+    match /pub/{uid}/{doc=**} {
+      allow read: if true;
+      allow write: if teacher() && request.auth.uid == uid;
+    }
+
     // Early access sign-ups from the public site (site/join.html). Anyone can add one
     // well-formed entry; nobody can read, change or delete the list from the web.
     // Eddie reads it in the Firebase console.

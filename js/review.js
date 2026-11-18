@@ -9,6 +9,7 @@
 import { WEEKS as PUBLISHED } from "../data/weeks.js?v=58";
 import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, nineWeeksOf, parse } from "./schoolCal.js?v=58";
 import { weekIdFor } from "./weeksLive.js?v=58";
+import { publishWeek, unpublishWeek, classUrl, parentMessage } from "./publish.js?v=58";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -18,7 +19,8 @@ const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.s
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 const LABEL = { "8th": "8th Grade", "7th": "7th Grade", "8th-acc": "8th Accelerated" };
 
-let index = { weeks: [] }, id = "", week = null, plan = null, cls = "8th", dirty = false, my = 0;
+let index = { weeks: [] }, id = "", week = null, plan = null, cls = "8th", dirty = false, my = 0, uid = "", parentSet = { questions: "" };
+const canPublish = () => !!(store.rooms && uid);
 
 /* ---------- which weeks ---------- */
 const isSchoolWeek = (m) => [0, 1, 2, 3, 4].some((i) => isSchoolDay(addDays(m, i)));
@@ -128,6 +130,39 @@ function drawActions() {
         const ap = el("button", "btn go big", "Approve and put it on the board"); ap.type = "button"; ap.disabled = !!nb || dirty; if (dirty) ap.title = "Save your changes first"; ap.onclick = () => setApproved(true); box.appendChild(ap);
     }
     const pr = el("a", "btn ghost", "Print in Week Builder"); pr.href = "builder.html"; pr.style.textDecoration = "none"; box.appendChild(pr);
+    drawPages();
+}
+/* Class Pages: each class's public link and its parent message, ready to paste into Thrillshare. */
+function copyBtn(text, label) {
+    const b = el("button", "btn", label || "Copy"); b.type = "button";
+    b.onclick = async () => { try { await navigator.clipboard.writeText(typeof text === "function" ? text() : text); const o = b.textContent; b.textContent = "Copied"; setTimeout(() => (b.textContent = o), 1600); } catch (e) { status("Copy did not work on this device", "bad"); } };
+    return b;
+}
+function drawPages() {
+    const box = $("pages"); box.textContent = ""; if (!week || !approved()) return;
+    box.appendChild(el("h2", "rv-h2", "Class Pages and parent messages"));
+    if (!canPublish()) { box.appendChild(el("p", "rv-extras", demo ? "Class Pages are not made in this test mode." : "Class Pages could not be made from this device.")); return; }
+    box.appendChild(el("p", "rv-extras", "Each class has one link that always shows the current week, with every student paper and no answers. Put it in Schoology once; it never changes."));
+    const qf = el("label", "pw-field"); qf.appendChild(el("span", "pw-lab", "Questions line in every message"));
+    const qi = edit(parentSet.questions, (v) => { parentSet.questions = v; }, "Questions line"); qi.placeholder = "Example: Questions? Email me at …";
+    qi.oninput = () => { parentSet.questions = qi.value; clearTimeout(qi._t); qi._t = setTimeout(async () => { try { await store.save("settings/parent", parentSet); } catch (e) { /* keeps the text on screen */ } drawMsgs(); }, 600); };
+    qf.appendChild(qi); box.appendChild(qf);
+    const list = el("div", "rv-pages"); list.id = "rvMsgs"; box.appendChild(list); drawMsgs();
+}
+function drawMsgs() {
+    const list = $("rvMsgs"); if (!list) return; list.textContent = "";
+    Object.keys(week.classes).forEach((k) => {
+        const url = classUrl(uid, k), card = el("section", "pw-class rv-page");
+        card.appendChild(el("h3", null, LABEL[k] || week.classes[k].label));
+        const row = el("div", "pw-prompt"); row.appendChild(el("code", null, url)); row.appendChild(copyBtn(url, "Copy link"));
+        const open = el("a", "btn ghost", "Open"); open.href = url; open.target = "_blank"; open.rel = "noopener"; open.style.textDecoration = "none"; row.appendChild(open);
+        card.appendChild(row);
+        const msg = el("textarea", "pw-in rv-msg"); msg.rows = 12; msg.value = parentMessage(week, k, plan, url, parentSet.questions); msg.setAttribute("aria-label", (LABEL[k] || k) + " parent message");
+        card.appendChild(msg);
+        const acts = el("div", "rv-acts"); acts.appendChild(copyBtn(() => msg.value, "Copy message"));
+        const th = el("a", "btn ghost", "Open Thrillshare"); th.href = "https://scs-schools.rooms.thrillshare.com/rooms"; th.target = "_blank"; th.rel = "noopener"; th.style.textDecoration = "none"; acts.appendChild(th);
+        card.appendChild(acts); list.appendChild(card);
+    });
 }
 function drawClass() {
     const box = $("content"); box.textContent = ""; if (!week) return;
@@ -191,7 +226,11 @@ function draw() { drawPick(); summary(); $("checks").textContent = ""; $("action
 /* ---------- save and approve ---------- */
 async function saveWeek() {
     status("Saving…");
-    try { await store.save("weekfiles/" + id, { json: JSON.stringify(week), at: Date.now() }); dirty = false; $("saveBtn").hidden = true; status(demo ? "This device only" : "Saved", "ok"); drawChecks(); }
+    try {
+        await store.save("weekfiles/" + id, { json: JSON.stringify(week), at: Date.now() }); dirty = false; $("saveBtn").hidden = true;
+        if (approved() && canPublish()) await publishWeek(store, uid, week, plan);   // keep the Class Pages in step
+        status(demo ? "This device only" : "Saved", "ok"); drawChecks();
+    }
     catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); }
 }
 async function setApproved(on) {
@@ -199,7 +238,11 @@ async function setApproved(on) {
     list.push({ id, label: week.label || id, dates: week.dates || "", monday: week.monday || "", approved: !!on, at: Date.now() });
     list.sort((a, b) => String(a.monday).localeCompare(String(b.monday)));
     status("Saving…");
-    try { await store.save("weekfiles/index", { weeks: list, at: Date.now() }); index = { weeks: list }; status(demo ? "This device only" : "Saved", "ok"); summary(); drawActions(); }
+    try {
+        await store.save("weekfiles/index", { weeks: list, at: Date.now() }); index = { weeks: list };
+        if (canPublish()) { if (on) await publishWeek(store, uid, week, plan); else await unpublishWeek(store, uid, id); }
+        status(demo ? "This device only" : on && canPublish() ? "On the board and Class Pages" : "Saved", "ok"); summary(); drawActions();
+    }
     catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); }
 }
 $("saveBtn").onclick = saveWeek;
@@ -224,7 +267,8 @@ const user = await store.ready();
 if (!user) location.replace("login.html");
 else {
     $("who").textContent = demo ? "This device only, nothing is saved" : (user.name ? "Signed in as " + user.name : "Signed in");
-    status(demo ? "This device only" : "Live", "ok");
+    status(demo ? "This device only" : "Live", "ok"); uid = user.uid || "";
+    store.watch("settings/parent", (s) => { if (s.pending) return; parentSet = Object.assign({ questions: "" }, (s.exists && s.data) || {}); if (week && approved() && !($("pages").contains(document.activeElement))) drawPages(); }, () => {});
     let first = true;
     store.watch("weekfiles/index", (s) => {
         if (s.pending) return; index = (s.exists && s.data && Array.isArray(s.data.weeks)) ? s.data : { weeks: [] };

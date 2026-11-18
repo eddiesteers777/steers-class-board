@@ -70,3 +70,11 @@ textarea.pw-in{min-height:64px;resize:vertical}
 .pw-send .btn:disabled{opacity:.5;cursor:not-allowed}
 @media (max-width:600px){.rv-prob{grid-template-columns:24px 1fr}.rv-prob .rv-ans{grid-column:2}}
 .rv-file{cursor:pointer;min-height:44px;display:inline-flex;align-items:center}
+.rv-h2{font-family:var(--display);font-size:1.25rem;font-weight:800;margin:6px 0 6px}
+.rv-pages{display:grid;gap:12px;margin-top:10px}
+.rv-page h3{font-family:var(--display);font-size:1.1rem;font-weight:800;margin:0 0 8px}
+.rv-page .pw-prompt{margin-bottom:10px}
+.rv-msg{font-size:.9rem;line-height:1.5;min-height:220px}
+.rv-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.rv-acts .btn,.rv-page .btn{min-height:44px;display:inline-flex;align-items:center}
+#pages{margin-bottom:16px}
