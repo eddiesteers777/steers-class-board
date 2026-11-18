@@ -4,7 +4,7 @@
    kind, standard or skill, and week. Select questions and copy them for Claude, or update Claude's copy
    (teacher/{uid}/bank/<weekId>, js/bank.js) for every week at once.
 ========================================== */
-import { WEEKS as PUBLISHED } from "../data/weeks.js?v=58";
+import { WEEKS as PUBLISHED } from "../data/weeks.js?v=59";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { extract, norm, KINDS, saveBankWeek } from "./bank.js?v=1";
 import { rich } from "./weekSheets.js?v=58";
