@@ -298,3 +298,7 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .presgot{border:2px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--paper)}
 .presgot summary{cursor:pointer;font-weight:800;color:var(--navy);min-height:32px;display:flex;align-items:center}
 .presgot .pres{margin-top:6px}
+/* second try: the hint */
+.phint{align-self:stretch;text-align:left;background:#FFF6E0;border:2px solid #F6D58A;border-radius:14px;padding:10px 14px}
+.phint small{display:block;font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:.72rem;color:#8A5F00}
+.phint p{font-weight:700;color:var(--navy);line-height:1.35}

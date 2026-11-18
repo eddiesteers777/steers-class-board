@@ -14,7 +14,7 @@
    Closing the room deletes rooms/{code} and everything under it.
    Each student's result is saved to Class Data only when the teacher turns that on.
 ========================================== */
-import * as V from "./vaultCore.js?v=65";
+import * as V from "./vaultCore.js?v=66";
 import qrcode from "./vendor/qrcode.js?v=1";
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
@@ -33,7 +33,7 @@ let H = null, loaded = false, rev = 0, hosting = false, unsubH = null, unsubP = 
 let PL = {};                 // the latest entry from each student (rooms/{code}/p), Remote only
 let SETS = null, setsWatched = false, note = "", busy = "", tab = "players", dtab = "report", peek = "", endArm = 0;
 let saveTimer = 0, lastSave = 0, panelSig = "", panelAt = 0, padWatch = null, padFor = "", PAD = null;
-const choice = { set: "", mins: 10, names: "roster", board: true, save: false, live: false, work: true };
+const choice = { set: "", mins: 10, names: "roster", board: true, save: false, live: false, work: true, retry: true };
 
 export function mountLive(api) { A = api; }
 export const liveSig = () => rev + "#" + loaded + "#" + hosting + "#" + (PAD ? PAD.it : "");
@@ -151,23 +151,38 @@ function handle(id, d, sends) {
     const a = d.a;
     if (a && (+a.n || 0) > p.sa) {
         p.sa = +a.n;
-        if (H.status === "play" && +a.q === p.qn && p.code && !(H.opts.work !== false && !d.img)) {   // work required: an answer with no pad picture is not taken
-            const q = qOf(p, p.qn), typed = String(a.t || "").slice(0, 80), ok = V.sameAnswer(typed, q.a, q.al);
-            p.n++;
-            let plus = 0;
-            let x2 = [], box = null;
-            if (ok) {
-                p.r++; p.st++; p.best = Math.max(p.best, p.st); plus = V.coinsFor(p.st); p.h = Math.min(V.MAX_HACKS, p.h + 1);
-                if (p.dbl > 0) { plus *= 2; p.dbl--; x2.push("double"); }
-                if (bonusOn()) { plus *= 2; x2.push("bonus"); }
-                p.c += plus;
-                if (p.r % V.BOX_EVERY === 0) { box = V.rollBox(); openBox(p, box); }
+        if (H.redo && !H.redo.done) redoAnswer(id, p, a);
+        else if (H.status === "play" && +a.q === p.qn && p.code && !(H.opts.work !== false && !d.img)) {   // work required: an answer with no pad picture is not taken
+            const q = qOf(p, p.qn), typed = String(a.t || "").slice(0, 80), ok = V.sameAnswer(typed, q.a, q.al), qi = p.ord[p.qn % p.ord.length];
+            const second = p.rt === p.qn;   // this is their second try at this question
+            let plus = 0, x2 = [], box = null;
+            if (second) {
+                // Only the first try counts for percent right and the report; a fix on the second try earns half coins.
+                if (ok) {
+                    plus = Math.round(V.coinsFor(1) / 2); p.st = 1;
+                    if (bonusOn()) { plus *= 2; x2.push("bonus"); }
+                    p.c += plus;
+                    const last = (p.lg || []).slice().reverse().find((x) => x.i === qi && !x.ok); if (last) last.fx = 1;
+                }
+                p.fb = { q: p.qn, ok, y: typed, a: ok ? "" : q.a, plus, x2, box: null, second: 1 };
+                if (ok) p.la = { qi, q: p.qn, y: typed, ok, second: 1 };   // a miss keeps the first try, so "Count it" still counts that one
+                p.rt = -1; p.qn++;
+            } else {
+                p.n++;
+                if (ok) {
+                    p.r++; p.st++; p.best = Math.max(p.best, p.st); plus = V.coinsFor(p.st); p.h = Math.min(V.MAX_HACKS, p.h + 1);
+                    if (p.dbl > 0) { plus *= 2; p.dbl--; x2.push("double"); }
+                    if (bonusOn()) { plus *= 2; x2.push("bonus"); }
+                    p.c += plus;
+                    if (p.r % V.BOX_EVERY === 0) { box = V.rollBox(); openBox(p, box); }
+                }
+                else p.st = 0;
+                const retry = !ok && H.opts.retry !== false;
+                p.fb = retry ? { q: p.qn, ok, y: typed, a: "", plus: 0, x2, box: null, retry: 1, hint: V.hintFor(typed, q.a, q.q) } : { q: p.qn, ok, y: typed, a: ok ? "" : q.a, plus, x2, box };
+                p.la = { qi, q: p.qn, y: typed, ok };
+                tally(p, qi, typed, ok);
+                if (retry) p.rt = p.qn; else p.qn++;
             }
-            else p.st = 0;
-            p.fb = { q: p.qn, ok, y: typed, a: ok ? "" : q.a, plus, x2, box };
-            p.la = { qi: p.ord[p.qn % p.ord.length], q: p.qn, y: typed, ok };
-            tally(p, p.la.qi, typed, ok);
-            p.qn++;
         }
     }
     // A hack: one guess at a classmate's vault code.
@@ -175,7 +190,7 @@ function handle(id, d, sends) {
     if (k && (+k.n || 0) > p.sk) {
         p.sk = +k.n;
         const t = P(k.to), g = String(k.g || "");
-        if (H.status !== "play" || !t || k.to === id || !V.validCode(g)) p.hk = { n: p.sk, to: k.to || "", g, m: "", why: "That vault can't be hacked." };
+        if (H.status !== "play" || H.redo || !t || k.to === id || !V.validCode(g)) p.hk = { n: p.sk, to: k.to || "", g, m: "", why: "That vault can't be hacked." };
         else if (p.h < 1) p.hk = { n: p.sk, to: k.to, g, m: "", why: "No hacks left. Answer a question to earn one." };
         else if (shielded(t)) p.hk = { n: p.sk, to: k.to, g, m: "", why: t.nm + "'s vault has a firewall up. Try someone else." };
         else if (t.blk && V.codeMarks(t.code, g) === "2".repeat(V.CODE_LEN)) {
@@ -199,6 +214,57 @@ function handle(id, d, sends) {
     }
     sends.add(id);
 }
+/* ---------- send it back: everyone tries a gone-over question again ---------- */
+const REDO_COINS = 15;
+const redoN = () => 100000 + (H.redo ? H.redo.k : 0);   // a question number no regular question uses
+function redoAnswer(id, p, a) {
+    const rd = H.redo; if (+a.q !== redoN() || rd.res[id]) return;
+    const q = H.qs[rd.qi], typed = String(a.t || "").slice(0, 80), ok = V.sameAnswer(typed, q.a, q.al);
+    rd.res[id] = { ok: ok ? 1 : 0, y: typed.slice(0, 40) };
+    const plus = ok ? REDO_COINS : 0; p.c += plus;
+    p.fb = { q: redoN(), ok, y: typed, a: ok ? "" : q.a, plus, x2: [], box: null, redo: 1 };
+}
+/** After going over a missed question, send it to every student's screen once more. The game reopens just for this question. */
+function sendBack(qi) {
+    if (!H || H.status !== "done" || !H.qs[qi]) return;
+    H.redo = { qi, k: ((H.redo && H.redo.k) || 0) + 1, res: {}, at: Date.now(), done: 0 };
+    H.review = { qi, ans: false }; H.status = "play"; H.ends = 0; H.bonus = 0; H.show = null;
+    feed("Try it again!", "start"); flush(everyone()); saveSoon(true); panelSig = ""; drawLivePanel(true);
+}
+function finishRedo() {
+    const rd = H && H.redo; if (!rd || rd.done) return;
+    const r = Object.values(rd.res); rd.done = 1;
+    H.redos = (H.redos || []).filter((x) => x.qi !== rd.qi).concat([{ qi: rd.qi, ok: r.filter((x) => x.ok).length, of: r.length }]);
+    H.status = "done"; flush(everyone()); saveSoon(true); panelSig = ""; drawLivePanel(true);
+}
+const redoCount = () => { const r = Object.values((H.redo && H.redo.res) || {}); return { of: r.length, ok: r.filter((x) => x.ok).length, n: Object.keys(H.players).length }; };
+
+/* ---------- the heat map: every student's answers as green and red squares ---------- */
+const HEAT_COLS = 12;
+/** Students in the order they joined, each with their last answers: "ok", "fx" (right on the second try) or "no". */
+function heatRows() {
+    return Object.keys(H.players).map((id) => Object.assign({ id }, H.players[id])).sort((a, b) => (a.at || 0) - (b.at || 0)).map((p, i) => {
+        const cells = (p.lg || []).slice(-HEAT_COLS).map((x) => (x.ok ? "ok" : x.fx ? "fx" : "no"));
+        const tail = (p.lg || []).slice(-3);
+        return { id: p.id, i, nm: p.nm, av: p.av, cells, r: p.r, n: p.n, stuck: tail.length === 3 && tail.every((x) => !x.ok && !x.fx) };
+    });
+}
+function heatGrid(rows, names, teacher) {
+    const g = el("div", "vrheat" + (teacher ? " remote" : ""));
+    if (!rows.length) { g.append(el("p", "vrempty", "Waiting for players.")); return g; }
+    rows.forEach((r) => {
+        const row = el("div", "vrhrow" + (teacher && r.stuck ? " stuck" : ""));
+        row.append(el("span", "vrhname", names ? V.avatar(r.av)[0] + " " + r.nm : "Player " + (r.i + 1)));
+        const cells = el("span", "vrhcells");
+        for (let i = 0; i < HEAT_COLS; i++) { const k = r.cells[i]; const c = el("i", "vrhc" + (k ? " " + k : ""), k === "ok" ? "✓" : k === "fx" ? "↻" : k === "no" ? "✗" : ""); cells.append(c); }
+        row.append(cells, el("small", "vrhpct", r.n ? pctOf(r.r, r.n) + "%" : "–"));
+        if (teacher && r.stuck) row.append(el("b", "vrhstuck", "Stuck"));
+        g.append(row);
+    });
+    return g;
+}
+function setHeat(on, names) { H.heat = { on: !!on, names: !!names }; changed(true); panelSig = ""; drawLivePanel(true); }
+
 /* ---------- power-ups ---------- */
 const bonusOn = () => (+H.bonus || 0) > Date.now();
 /** A mystery box takes effect as soon as it is earned; the student's screen only shows what was in it. */
@@ -265,11 +331,13 @@ function sendErr(id, msg) { A.store().rooms.save("rooms/" + H.code + "/s/" + id,
 
 /** What one student's device is allowed to see. */
 function view(id, order) {
-    const p = P(id), q = H.status === "play" && p.code ? qOf(p, p.qn) : null, rank = order.findIndex((x) => x.id === id) + 1;
+    const p = P(id), rank = order.findIndex((x) => x.id === id) + 1;
+    const rd = H.redo && !H.redo.done ? H.redo : null, rq = rd ? H.qs[rd.qi] : null;
+    const q = rd ? null : H.status === "play" && p.code ? qOf(p, p.qn) : null;
     p.sn = (p.sn || 0) + 1;
     return { n: p.sn, status: H.status, title: H.title, nm: p.nm, c: p.c, h: p.h, st: p.st, r: p.r, of: p.n, rank, players: order.length, ends: H.ends || 0,
         av: p.av, pu: p.pu || "", dbl: p.dbl || 0, blk: p.blk || 0, ins: p.ins || 0, fw: (+p.sh || 0) > Date.now() && p.code ? +p.sh : 0, bonus: +H.bonus || 0,
-        code: p.code, need: !p.code, q: q ? { n: p.qn, c: q.c, t: q.q, f: V.answerKind(q.a) } : null, best: p.best, cr: p.cr, fb: p.fb, hk: p.hk, hit: p.hit,
+        code: p.code, need: rd ? false : !p.code, q: rd ? (rd.res[id] ? null : { n: redoN(), c: rq.c, t: rq.q, f: V.answerKind(rq.a) }) : q ? { n: p.qn, c: q.c, t: q.q, f: V.answerKind(q.a) } : null, redo: rd ? 1 : 0, best: p.best, cr: p.cr, fb: p.fb, hk: p.hk, hit: p.hit,
         targets: order.filter((x) => x.id !== id).map((x) => ({ id: x.id, nm: x.nm, av: x.av, c: x.c, sh: shielded(x) ? 1 : 0, g: p.g[x.id] || [] })),
         res: H.status === "done" ? results(p) : null };
 }
@@ -306,7 +374,7 @@ async function openRoom() {
         for (let i = 0; i < 6 && !code; i++) { const c = V.newRoomCode(); try { if (!(await A.store().rooms.get("rooms/" + c))) code = c; } catch (e) { code = c; } }
         if (!code) throw new Error("Could not find a free game code. Try again.");
         H = { v: 1, code, status: "lobby", title: set.title || meta.title || "Review", setId: meta.id, per: A.S.period, qs, mode: choice.names, names, taken: [],
-            opts: { mins: choice.mins, board: choice.board, save: choice.save, live: choice.live, work: choice.work }, players: {}, qst: qs.map(() => ({ n: 0, ok: 0, w: [] })), review: null, feed: [], show: null, ends: 0, t0: 0, rid: "", saved: false,
+            opts: { mins: choice.mins, board: choice.board, save: choice.save, live: choice.live, work: choice.work, retry: choice.retry }, heat: { on: false, names: false }, redo: null, players: {}, qst: qs.map(() => ({ n: 0, ok: 0, w: [] })), review: null, feed: [], show: null, ends: 0, t0: 0, rid: "", saved: false,
             host: PAGE, hb: Date.now(), at: Date.now() };
         await A.store().rooms.save("rooms/" + code, roomDoc());
         hosting = true; loaded = true; await A.store().save("games/room", clean(H)); takeHost(); tab = "players";
@@ -394,7 +462,8 @@ function acceptAnswer(id) {
     const q = H.qs[p.la.qi]; if (q && p.la.y && !q.al.includes(p.la.y)) q.al = q.al.concat([p.la.y]).slice(-6);
     untally(p, p.la.qi, p.la.y);
     p.la.ok = true; p.r++; p.st = 1; p.c += V.coinsFor(1); p.h = Math.min(V.MAX_HACKS, p.h + 1);
-    if (p.fb && p.fb.q === p.la.q) p.fb = Object.assign({}, p.fb, { ok: true, a: "", plus: V.coinsFor(1), fixed: 1 });
+    if (p.fb && p.fb.q === p.la.q) p.fb = Object.assign({}, p.fb, { ok: true, a: "", plus: V.coinsFor(1), fixed: 1, retry: 0, hint: "" });
+    if (p.rt === p.qn && p.la.q === p.qn) { p.rt = -1; p.qn++; }   // counted while they were on their second try: move them on
     flush(new Set([id]));
 }
 function setLive(on) { H.opts.live = on; flush(new Set(["room"])); saveSoon(true); }
@@ -423,7 +492,7 @@ export function tickLive() {
    with the question on a card floating over the paper like the bellringer, so the teacher can work it out. */
 /** The question being gone over, or null: { key (for the saved ink), qi, at, count, list (question numbers), title, ans }. */
 export function liveReview() {
-    if (!H || H.status !== "done" || !H.review || !H.qs || !H.qs[H.review.qi]) return null;
+    if (!H || !(H.status === "done" || (H.redo && !H.redo.done)) || !H.review || !H.qs || !H.qs[H.review.qi]) return null;
     const list = missedList(), at = list.findIndex((x) => x.qi === H.review.qi);
     return { key: "vr" + String(H.rid || H.code || "").replace(/\W/g, "") + "q" + H.review.qi, qi: H.review.qi, at, count: list.length, list: list.map((x) => x.qi), title: H.title || "Student Game", ans: !!H.review.ans };
 }
@@ -439,8 +508,13 @@ export function reviewBody(body) {
     body.append(how);
     const ws = st.w.slice().sort((a, b) => b.n - a.n).slice(0, 4);
     if (ws.length) { const chips = el("div", "vrrevw vrwbw"); chips.append(el("small", null, "Answers we saw")); ws.forEach((w) => { const c = el("span", "vrwrong"); c.append(mathEl("span", null, w.y), el("small", null, "×" + w.n)); chips.append(c); }); body.append(chips); }
-    if (r.ans) body.append(mathEl("p", "wbans", q.a));
+    const live = H.redo && !H.redo.done && H.redo.qi === r.qi, past = (H.redos || []).find((x) => x.qi === r.qi);
+    if (live) { const rc = redoCount(), t = el("div", "vrwbredo"); t.append(el("b", null, "Trying it again"), el("span", null, rc.of + " of " + rc.n + " answered · " + rc.ok + " right")); body.append(t); }
+    else if (past) { const t = el("div", "vrwbredo done"); t.append(el("b", null, "Second try: " + pctOf(past.ok, past.of) + "%"), el("span", null, past.ok + " of " + past.of + " right (first try " + pctOf(st.ok, st.n) + "%)")); body.append(t); }
+    if (r.ans && !live) body.append(mathEl("p", "wbans", q.a));
     const row = el("div", "vrwbbtns");
+    if (live) { row.append(btn("btn go", "Stop and show the results", finishRedo)); body.append(row); return; }
+    row.append(btn("btn ghost", "Send it back to everyone", () => sendBack(r.qi)));
     row.append(btn("btn ghost", r.ans ? "Hide answer" : "Show answer", () => review(r.qi, !r.ans)));
     if (r.at + 1 < r.count) row.append(btn("btn go", "Next question", () => review(r.list[r.at + 1])));
     else row.append(btn("btn go", "Done: final scores", () => review(null)));
@@ -495,7 +569,9 @@ export function drawLiveStage(st) {
         const fd = el("div", "vrfeed"); fd.append(el("p", "vrlab", "Latest"));
         (H.feed || []).filter((f) => f.k === "crack" || f.k === "start" || f.k === "bonus" || f.k === "block" || f.k === "box").slice(-5).reverse().forEach((f) => fd.append(el("p", "vrf " + f.k, H.opts.board ? f.txt : f.k === "crack" ? "A vault was cracked!" : f.k === "box" ? "Someone opened a mystery box" : f.k === "block" ? "A Shield blocked a crack!" : f.txt)));
         side.append(fd, el("p", "vrlate", "Joining late? " + joinUrl() + " · code " + H.code));
-        grid.append(lead, side); body.append(grid);
+        if (H.heat && H.heat.on) { const hm = el("div", "vrlead vrheatwrap"); hm.append(el("p", "vrlab", "How everyone is doing · last " + HEAT_COLS + " answers"), heatGrid(heatRows(), !!H.heat.names, false)); grid.append(hm, side); }
+        else grid.append(lead, side);
+        body.append(grid);
         const bon = el("div", "vrbonus"); bon.id = "liveBonus"; bon.hidden = !bonusOn(); bon.append(el("span", null, "BONUS ROUND · double coins"), el("b", null, "")); body.append(bon);
         // A crack in the last few seconds gets the whole board for a moment.
         const last = (H.feed || []).filter((f) => f.k === "crack" || f.k === "block").slice(-1)[0];
@@ -566,15 +642,32 @@ export function drawLivePanel(force) {
         p.append(el("p", "gpnote", n ? n + " joined. Start when everyone is in. Late students can still join." : "Waiting for the first student…"));
         const go = btn("btn go", "Start the game", startGame); go.disabled = !n; p.append(go);
         playerRows(p, false);
+    } else if (H.status === "play" && H.redo && !H.redo.done) {
+        const q = H.qs[H.redo.qi], rc = redoCount();
+        p.append(hd("Try it again"), mathEl("p", "gpnote vrredoq", q.q));
+        p.append(el("p", "gpnote", rc.of + " of " + rc.n + " answered · " + rc.ok + " right. A right answer earns " + REDO_COINS + " coins."));
+        const box = el("div", "gprows");
+        Object.keys(H.players).map((id) => Object.assign({ id }, H.players[id])).sort((a, b) => a.nm.localeCompare(b.nm)).forEach((x) => {
+            const r = H.redo.res[x.id], row = el("div", "gprow vrprow");
+            row.append(el("span", "gpname", V.avatar(x.av)[0] + " " + x.nm), el("small", "vrla " + (!r ? "" : r.ok ? "ok" : "no"), !r ? "working…" : (r.ok ? "✓ " : "✗ ") + (r.y || "(blank)")));
+            box.append(row);
+        });
+        p.append(btn("btn go", "Stop and show the results", finishRedo), box);
     } else if (H.status === "play") {
         const top = el("div", "gptimer"), c = el("b"); c.id = "livePClock"; top.append(c);
         top.append(btn("btn ghost gpend", endArm ? "Tap again to end" : "End the game", () => { if (endArm) endGame(); else { endArm = Date.now(); panelSig = ""; drawLivePanel(true); } }));
         p.append(top, el("p", "gpnote", "Code " + H.code + " · " + n + " playing"));
         const bon = btn("btn " + (bonusOn() ? "ghost" : "go") + " vrbonusbtn", bonusOn() ? "Bonus round on" : "Start a bonus round (double coins, 60 s)", startBonus); bon.id = "liveBonusBtn"; bon.disabled = bonusOn(); p.append(bon);
-        const tabs = el("div", "vrtabs"); [["players", "Players"], ["work", "Work"]].forEach(([k, label]) => { const b = btn("btn " + (tab === k ? "go" : "ghost"), label, () => { tab = k; panelSig = ""; drawLivePanel(true); }); b.setAttribute("aria-pressed", String(tab === k)); tabs.append(b); });
+        const tabs = el("div", "vrtabs"); [["players", "Players"], ["heat", "Heat map"], ["work", "Work"]].forEach(([k, label]) => { const b = btn("btn " + (tab === k ? "go" : "ghost"), label, () => { tab = k; panelSig = ""; drawLivePanel(true); }); b.setAttribute("aria-pressed", String(tab === k)); tabs.append(b); });
         p.append(tabs);
         if (H.show) p.append(btn("btn go", "Back to the scores on the board", () => showWork("")));
-        if (tab === "work") workGrid(p); else playerRows(p, true);
+        if (tab === "work") workGrid(p);
+        else if (tab === "heat") {
+            const hm = H.heat || {}, row = el("div", "vrheatctl");
+            row.append(btn("btn " + (hm.on ? "ghost" : "go"), hm.on ? "Take it off the board" : "Show it on the board", () => setHeat(!hm.on, hm.names)),
+                btn("btn ghost", hm.names ? "Board: names" : "Board: anonymous", () => setHeat(hm.on, !hm.names)));
+            p.append(row, el("p", "gpnote", "Last " + HEAT_COLS + " answers each: ✓ right, ↻ right on the second try, ✗ missed. Stuck = 3 misses in a row (only you see that)."), heatGrid(heatRows(), true, true));
+        } else playerRows(p, true);
     } else {
         const tabs = el("div", "vrtabs"); [["report", "Report"], ["players", "Standings"]].forEach(([k, label]) => { const b = btn("btn " + (dtab === k ? "go" : "ghost"), label, () => { dtab = k; panelSig = ""; drawLivePanel(true); }); b.setAttribute("aria-pressed", String(dtab === k)); tabs.append(b); });
         p.append(tabs);
@@ -607,7 +700,7 @@ function reportPanel(p) {
         row.append(btn("btn ghost", "Back", () => review(list[Math.max(0, at - 1)].qi)), btn("btn go", H.review.ans ? "Hide answer" : "Show answer", () => review(H.review.qi, !H.review.ans)),
             btn("btn ghost", at + 1 < list.length ? "Next" : "Done", () => (at + 1 < list.length ? review(list[at + 1].qi) : review(null))));
         if (at <= 0) row.firstChild.disabled = true;
-        box.append(row, btn("btn ghost", "Back to final scores", () => review(null))); p.append(box);
+        box.append(row, btn("btn go", "Send it back to everyone (+" + REDO_COINS + " coins if right)", () => sendBack(H.review.qi)), btn("btn ghost", "Back to final scores", () => review(null))); p.append(box);
     } else if (list.length) p.append(btn("btn go", "Go over the missed questions on the board (" + list.length + ")", () => review(list[0].qi)));
 
     p.append(hd("Top 3"));
@@ -653,6 +746,7 @@ function setupPanel(p) {
     const more = el("details", "gpopts"); more.append(el("summary", null, "Options"));
     more.append(check("Show names on the board", choice.board, (v) => { choice.board = v; }),
         check("Students must show work before they can submit", choice.work, (v) => { choice.work = v; }, "On: the answer button waits until there is real work on their pad."),
+        check("Second chance after a miss", choice.retry, (v) => { choice.retry = v; }, "On: a wrong answer gets a hint and one more try for half coins. Only the first try counts in the report."),
         check("See their work live as they draw", choice.live, (v) => { choice.live = v; }, "Off: you see each student's work when they answer. On: it updates every few seconds, which uses more of the free daily allowance."),
         check("Save each student's result to Class Data", choice.save, (v) => { choice.save = v; }, "Off by default. Names, coins and right answers are kept in your private account. Leave off until the district says student data can be stored."));
     p.append(more);

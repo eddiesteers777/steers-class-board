@@ -12,7 +12,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import * as V from "./vaultCore.js?v=65";
+import * as V from "./vaultCore.js?v=66";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=2";
 
@@ -88,7 +88,7 @@ async function join(code) {
         if (d.err) { ST.err = d.err; ST.step = "name"; ST.pick = null; ST.busy = false; draw(); return; }
         ST.me = d; ST.hadMe = true; ST.busy = false; ST.err = "";
         if (d.hit && d.hit.at > ST.seenHit && d.need) { ST.view = "hit"; }
-        if (ST.view === "q" && ST.sentQ >= 0 && d.fb && d.fb.q === ST.sentQ) { ST.view = "fb"; ST.sentQ = -1; pad.clear(); }
+        if (ST.view === "q" && ST.sentQ >= 0 && d.fb && d.fb.q === ST.sentQ) { ST.view = "fb"; ST.sentQ = -1; if (!d.fb.retry) pad.clear(); }   // a second try keeps the work
         if (ST.view === "guess" && ST.sentK && d.hk && d.hk.n === ST.sentK) { ST.sentK = 0; ST.guess = ""; }
         draw();
     }, () => {});
@@ -603,6 +603,7 @@ function keypad(value, set) {
 }
 function questionView(card) {
     const m = ST.me, q = m.q;
+    if (!q && m.redo) { card.classList.add("center"); card.append(el("h1", null, "Nice work!"), el("p", "plead", "Wait for your teacher. Everyone is trying that one again.")); return; }
     if (!q) { card.classList.add("wide"); card.append(el("p", "plead", "Getting your question…")); return; }
     // The question and answer sit in a slim card on top; the work pad takes the rest of the screen.
     card.classList.add("qview"); document.body.classList.add("qmode");
@@ -636,27 +637,39 @@ function fbView(card) {
     if (f.ok) {
         if (fresh) card.classList.add("pop");
         const pick = (list) => list[(f.q || 0) % list.length];
-        card.append(el("h1", null, f.fixed ? "Your teacher counted it!" : pick(RIGHT_WORDS)));
+        card.append(el("h1", null, f.fixed ? "Your teacher counted it!" : f.second ? "You fixed it!" : f.redo ? "You got it this time!" : pick(RIGHT_WORDS)));
         const win = el("div", "pwin"), amt = el("b", "pplus", fresh ? "+0" : "+" + f.plus); win.append(coinPic(), amt); card.append(win);
         const st = m.st || 1, words = STREAK_WORDS[st] || (st > 10 ? "Legendary!" : "");
         card.append(streakRow(st));
-        const chips = el("div", "pchips"); chips.append(el("span", "pgain", "+1 hack"));
+        const chips = el("div", "pchips"); if (!f.second && !f.redo) chips.append(el("span", "pgain", "+1 hack")); else chips.append(el("span", "pgain", f.second ? "Second try: half coins" : "Try-again bonus"));
         (f.x2 || []).forEach((k) => chips.append(el("span", "pgain hot", k === "bonus" ? "Bonus round ×2" : "Double coins ×2")));
         if (st > 1) chips.append(el("span", "pgain hot", words || st + " in a row"));
         if (V.coinsFor(st) > V.RIGHT_COINS) chips.append(el("span", "pgain", "Streak bonus +" + (V.coinsFor(st) - V.RIGHT_COINS)));
         card.append(chips);
         once(key, () => { countUp(amt, f.plus || 0, "+"); confetti(st >= 5 ? 170 : st >= 3 ? 120 : 80, 0.5, 0.3); });
         if (f.box) card.append(mysteryBox(f.box, key));
+    } else if (f.retry) {
+        // First miss: a hint and one more try for half coins. The answer stays hidden.
+        if (fresh) card.classList.add("shake");
+        card.append(el("h1", null, "Not quite. Try once more!"));
+        const y = el("p", "plead"); y.append(document.createTextNode("You wrote ")); if (f.y) y.append(V.mathText(f.y)); else y.append(document.createTextNode("nothing")); y.append(document.createTextNode(".")); card.append(y);
+        if (f.hint) { const h = el("div", "phint"); h.append(el("small", null, "Hint"), mathEl("p", null, f.hint)); card.append(h); }
+        once(key, () => {});
+        const row = el("div", "prow");
+        row.append(btn("pbtn go", "Try again (half coins)", () => { ST.view = "q"; ST.sentQ = -1; draw(true); }));
+        row.append(btn("pbtn ghost", "Skip it", () => { const q = m.q; if (!q) return; ST.sentQ = q.n; send({ a: { n: Date.now(), q: q.n, t: "" } }); ST.view = "q"; draw(true); }));
+        card.append(row);
+        return;
     } else {
         if (fresh) card.classList.add("shake");
-        card.append(el("h1", null, "Not quite"));
+        card.append(el("h1", null, f.second ? "Still not it" : "Not quite"));
         if (f.a) { const a = el("div", "pansbox"); a.append(el("small", null, "The answer was"), mathEl("p", null, f.a)); card.append(a); }
         const y = el("p", "plead"); y.append(document.createTextNode("You wrote ")); if (f.y) y.append(V.mathText(f.y)); else y.append(document.createTextNode("nothing")); y.append(document.createTextNode(".")); card.append(y);
         card.append(el("p", "pnote", MISS_WORDS[(f.q || 0) % MISS_WORDS.length]));
         once(key, () => {});
     }
     const row = el("div", "prow");
-    row.append(btn("pbtn go", "Next question", () => { ST.view = "q"; draw(true); }));
+    row.append(btn("pbtn go", f.redo ? "OK" : "Next question", () => { ST.view = "q"; draw(true); }));
     if (m.h > 0) row.append(btn("pbtn hack", "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }));
     card.append(row);
 }

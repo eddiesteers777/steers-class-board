@@ -177,6 +177,27 @@ export function answerKind(ans) {
     return "";
 }
 
+/** A nudge for a second try, from the question, the answer key and what the student wrote. It never gives the answer away. */
+export function hintFor(typed, answer, question) {
+    const q = String(question || "").toLowerCase(), a = norm(answer), t = norm(typed);
+    const [an] = withUnit(a), [tn] = withUnit(t), x = numberOf(tn), y = numberOf(an);
+    if (solKind(a)) return "Simplify both sides first. If the x's cancel out, compare the numbers that are left.";
+    if (x != null && y != null && x !== 0) {
+        if (Math.abs(x + y) < 1e-9) return "So close. Check your positive and negative signs.";
+        if ([10, 100, 0.1, 0.01].some((k) => Math.abs(x * k - y) < 1e-9)) return "Check where the decimal point goes.";
+        if (Math.abs(x * y - 1) < 1e-9) return "Did you flip the fraction? Check which number goes on top.";
+    }
+    if (/hypotenuse|\bleg\b/.test(q)) return "Use a² + b² = c². The hypotenuse is c, the longest side.";
+    if (/acute angle/.test(q) && /right triangle/.test(q)) return "The two acute angles in a right triangle add up to 90°.";
+    if (/triangle/.test(q) && /angle/.test(q)) return "The three angles in a triangle add up to 180°.";
+    if (/√|sqrt|square root|between which/.test(q)) return "Which perfect squares is it between? Think 36, 49, 64…";
+    if (/÷|divide/.test(q) && /\^|[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(question || "")) return "Dividing powers with the same base: keep the base and subtract the exponents.";
+    if (/×\s*10|x\s*10\^|10[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(question || "")) return "Multiply the front numbers, then add the powers of 10.";
+    if (/[×·*]|multiply/.test(q) && /\^|[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(question || "")) return "Multiplying powers with the same base: keep the base and add the exponents.";
+    if (/solve|=/.test(q) && /x/.test(q)) return "Plug your answer back in. Do both sides come out equal?";
+    return "Look back at each step on your pad. Where could it have gone wrong?";
+}
+
 /* ---------- math text (same writing as the review games) ---------- */
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const tidy = (s) => String(s == null ? "" : s).replace(/<=/g, "≤").replace(/>=/g, "≥").replace(/!=/g, "≠").replace(/sqrt\(/gi, "√(")
