@@ -14,6 +14,7 @@ import * as V from "./vaultCore.js?v=70";
 import { WEEKS as PUBLISHED } from "../data/weeks.js?v=61";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { extract, norm as bnorm, KINDS } from "./bank.js?v=2";
+import { loadStdBank, inClass, KIND as SB_KIND, WEEK_ID as SB_WEEK, WEEK_LABEL as SB_LABEL } from "./stdBank.js?v=1";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -268,7 +269,8 @@ function drawResult() {
 function drawAll() { drawHead(); drawList(); drawEditor(); drawPhone(); drawTry(); }
 
 /* ---------- from the Question Bank ---------- */
-let BANK = null, WEEKS = PUBLISHED, picked = new Map();
+let BANK = null, WEEKS = PUBLISHED, picked = new Map(), SB = [];
+loadStdBank().then((list) => { SB = list; if ($("bankDlg").open) { BANK = bankItems(); drawBank(); } });
 /** Week-file writing to what a student types: {2/3} -> 2/3, 4{2/3} -> 4 2/3, § -> $. */
 const typed = (s) => String(s == null ? "" : s).replace(/(\d)\{([^{}/]+)\/([^{}/]+)\}/g, "$1 $2/$3").replace(/\{([^{}/]+)\/([^{}/]+)\}/g, "$1/$2").replace(/§/g, "$").trim();
 const shown = (s) => String(s == null ? "" : s).replace(/(\d)\{([^{}/]+)\/([^{}/]+)\}/g, "$1 $2/$3").replace(/§/g, "$");
@@ -279,21 +281,25 @@ function bankItems() {
         const why = hasFig(x.q) ? "Has a picture (Vault Raid shows text only)" : Array.isArray(x.choices) && /;/.test(x.a) ? "Select-all question" : !String(x.a || "").trim() ? "No answer" : "";
         all.push(Object.assign({}, x, { week: w.id, wlabel: w.label || w.id, monday: w.monday || "", key, why }));
     }));
-    return all.sort((a, b) => String(b.monday).localeCompare(String(a.monday)));
+    all.sort((a, b) => String(b.monday).localeCompare(String(a.monday)));
+    // Then the standards bank: problems for every Alabama standard (js/stdBank.js), in standards order.
+    SB.forEach((x) => all.push(Object.assign({}, x, { wlabel: SB_LABEL + " · " + x.id, monday: "", key: "sb|" + x.id, why: hasFig(x.q) ? "Has a picture (Vault Raid shows text only)" : "" })));
+    return all;
 }
 function opts(sel, list, first) { const keep = sel.value; sel.textContent = ""; [["", first]].concat(list).forEach(([v, t]) => { const o = el("option", null, t); o.value = v; sel.appendChild(o); }); if ([...sel.options].some((o) => o.value === keep)) sel.value = keep; }
 function openBank() {
     BANK = bankItems(); picked = new Map();
-    opts($("bkCls"), Object.entries(CLS).filter(([k]) => BANK.some((x) => x.cls === k)), "All classes");
+    opts($("bkCls"), Object.entries(CLS).filter(([k]) => BANK.some((x) => inClass(x, k))), "All classes");
     const want = set.per.length ? (PERIODS.find((p) => p[0] === set.per[0]) || [])[1] : ""; if (want && [...$("bkCls").options].some((o) => o.value === want)) $("bkCls").value = want;
-    opts($("bkKind"), KINDS.filter((k) => BANK.some((x) => x.kind === k)).map((k) => [k, k]), "Every kind");
+    opts($("bkKind"), KINDS.concat([SB_KIND]).filter((k) => BANK.some((x) => x.kind === k)).map((k) => [k, k]), "Every kind");
     const wk = []; WEEKS.slice().reverse().forEach((w) => { if (BANK.some((x) => x.week === w.id)) wk.push([w.id, (w.label || w.id) + (w.dates ? " · " + w.dates : "")]); });
+    if (SB.length) wk.unshift([SB_WEEK, SB_LABEL + " (every standard)"]);
     opts($("bkWeek"), wk, "Every week");
     drawBank(); $("bankDlg").showModal(); $("bkQ").focus();
 }
 function drawBank() {
     const words = bnorm($("bkQ").value).split(" ").filter(Boolean), c = $("bkCls").value, k = $("bkKind").value, w = $("bkWeek").value;
-    const list = BANK.filter((x) => (!c || x.cls === c) && (!k || x.kind === k) && (!w || x.week === w) && (!words.length || words.every((t) => (bnorm(x.q) + " " + bnorm(x.a) + " " + bnorm(x.std || x.skill || "")).includes(t))));
+    const list = BANK.filter((x) => inClass(x, c) && (!k || x.kind === k) && (!w || x.week === w) && (!words.length || words.every((t) => (bnorm(x.q) + " " + bnorm(x.a) + " " + bnorm(x.std || x.skill || "")).includes(t))));
     const box = $("bkList"); box.textContent = "";
     const have = new Set(set.qs.map((y) => bnorm(y.q)));
     list.slice(0, 120).forEach((x) => {
@@ -303,7 +309,7 @@ function drawBank() {
         const body = el("span", "mk-bkbody"); body.appendChild(math("span", "mk-bkq", shown(x.q)));
         if (Array.isArray(x.choices) && x.choices.length) { const ch = el("span", "mk-bkch"); x.choices.forEach((t, i) => { const s = el("span"); s.append(el("b", null, LET[i] + ". "), V.mathText(shown(t))); ch.appendChild(s); }); body.appendChild(ch); }
         const a = el("span", "mk-bka"); a.append(el("b", null, "Answer: "), V.mathText(typed(x.a))); body.appendChild(a);
-        const meta = el("span", "mk-bkmeta"); [CLS[x.cls] || x.cls, x.kind, x.wlabel, x.std || x.skill || ""].filter(Boolean).forEach((t) => meta.appendChild(el("span", null, t)));
+        const meta = el("span", "mk-bkmeta"); [CLS[x.cls] || x.cls, x.kind, x.wlabel, x.std ? x.std + (x.part || "") : x.skill || ""].filter(Boolean).forEach((t) => meta.appendChild(el("span", null, t)));
         if (x.why) meta.appendChild(el("span", "why", x.why)); else if (have.has(bnorm(shown(x.q)))) meta.appendChild(el("span", "why", "Already in this set"));
         body.appendChild(meta); lab.append(cb, body); li.appendChild(lab); box.appendChild(li);
     });
@@ -314,9 +320,11 @@ function bankFoot() { $("bkPicked").textContent = picked.size ? picked.size + (p
 function fromBank(x) {
     const ch = Array.isArray(x.choices) && x.choices.length >= 2 ? x.choices.map((t) => typed(t)).slice(0, 5) : null;
     let a = typed(x.a), al = [];
-    if (!ch && / = /.test(a)) { const parts = a.split(/\s+=\s+/).map((t) => t.trim()).filter(Boolean); a = parts[0]; al = parts.slice(1, 4); }
+    // "{14/3} = 4{2/3}" is two ways to write one answer. "x = 5" and "A = 40°, B = 50°" are one answer each.
+    if (!ch && / = /.test(a) && !/^[a-z]\s*=/i.test(a) && !a.includes(",") && !a.includes("(")) { const parts = a.split(/\s+=\s+/).map((t) => t.trim()).filter(Boolean); a = parts[0]; al = parts.slice(1, 4); }
     if (ch && !ch.includes(a)) { const k = LET.indexOf(a.toUpperCase()); a = k >= 0 && ch[k] ? ch[k] : a; }
-    return newQ({ s: (x.skill || x.std || "").slice(0, 60), q: shown(x.q).slice(0, 400), a: a.slice(0, 200), al, ch });
+    if (!ch && Array.isArray(x.also)) x.also.forEach((t) => { const v = typed(t); if (v && v !== a && !al.includes(v) && al.length < 4) al.push(v); });   // the standards bank's other right answers
+    return newQ({ s: (x.skill || (x.std ? "AL " + x.std + (x.part || "") : "")).slice(0, 60), q: shown(x.q).slice(0, 400), a: a.slice(0, 200), al, ch });
 }
 function addQs(list) {
     if (!list.length) return;

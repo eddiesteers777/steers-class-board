@@ -9,6 +9,7 @@ import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { extract, norm, KINDS, saveBankWeek } from "./bank.js?v=2";
 import { rich } from "./weekSheets.js?v=59";
 import { STANDARDS } from "../data/standards.js?v=57";
+import { loadStdBank, inClass, coverage, LEVELS, WEEK_ID, WEEK_LABEL, KIND } from "./stdBank.js?v=1";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -24,13 +25,16 @@ Object.values(STANDARDS).forEach((c) => c.standards.forEach((s) => { if (!STD_TE
 const tagOf = (x) => x.std || x.skill || "";
 const short = (t, n) => (t.length > n ? t.slice(0, n - 1).replace(/\s+\S*$/, "") + "…" : t);
 
-let WEEKS = PUBLISHED, all = [], shown = PAGE, uid = "", claudeDocs = null;
+let WEEKS = PUBLISHED, all = [], shown = PAGE, uid = "", claudeDocs = null, SB = [];
+const openCov = new Set();   // coverage lists left open between redraws
 const picked = new Map();   // key -> item
 
 function rebuild() {
     all = [];
     WEEKS.forEach((w) => extract(w).forEach((x) => all.push(Object.assign(x, { label: w.label || w.id, monday: w.monday || "", key: w.id + "|" + x.cls + "|" + x.kind + "|" + norm(x.q) }))));
     all.sort((a, b) => String(b.monday).localeCompare(String(a.monday)));
+    // The standards bank (every Alabama standard, js/stdBank.js) comes after the weeks, in standards order.
+    SB.forEach((x) => all.push(Object.assign({}, x, { monday: "", key: "sb|" + x.id })));
     fill();
     draw();
 }
@@ -40,17 +44,18 @@ function opts(sel, list, first) {
     if ([...sel.options].some((o) => o.value === keep)) sel.value = keep;
 }
 function fill() {
-    opts($("fCls"), Object.entries(LABEL).filter(([k]) => all.some((x) => x.cls === k)), "All classes");
-    opts($("fKind"), KINDS.filter((k) => all.some((x) => x.kind === k)).map((k) => [k, k]), "Every kind");
+    opts($("fCls"), Object.entries(LABEL).filter(([k]) => all.some((x) => inClass(x, k))), "All classes");
+    opts($("fKind"), KINDS.concat([KIND]).filter((k) => all.some((x) => x.kind === k)).map((k) => [k, k]), "Every kind");
     // Standards first (7th, 8th, then Algebra I), then prior skills.
     const tags = [...new Set(all.map(tagOf).filter(Boolean))].sort((a, b) => (STD_TEXT.has(b) - STD_TEXT.has(a)) || a.localeCompare(b, undefined, { numeric: true }));
     opts($("fStd"), tags.map((s) => [s, STD_TEXT.has(s) ? s + " · " + short(STD_TEXT.get(s), 60) : s]), tags.length ? "Any" : "None tagged yet");
     const wk = []; WEEKS.slice().reverse().forEach((w) => { if (all.some((x) => x.week === w.id)) wk.push([w.id, (w.label || w.id) + (w.dates ? " · " + w.dates : "")]); });
+    if (SB.length) wk.unshift([WEEK_ID, WEEK_LABEL + " (every standard)"]);
     opts($("fWeek"), wk, "Every week");
 }
 function matches() {
-    const words = norm($("q").value).split(" ").filter(Boolean), c = $("fCls").value, k = $("fKind").value, s = $("fStd").value, w = $("fWeek").value;
-    let list = all.filter((x) => (!c || x.cls === c) && (!k || x.kind === k) && (!s || tagOf(x) === s) && (!w || x.week === w)
+    const words = norm($("q").value).split(" ").filter(Boolean), c = $("fCls").value, k = $("fKind").value, s = $("fStd").value, w = $("fWeek").value, l = $("fLvl").value;
+    let list = all.filter((x) => inClass(x, c) && (!k || x.kind === k) && (!s || tagOf(x) === s) && (!w || x.week === w) && (!l || String(x.lvl) === l)
         && (!words.length || words.every((t) => (norm(x.q) + " " + norm(x.a) + " " + norm(tagOf(x) + " " + (STD_TEXT.get(x.std) || ""))).includes(t))));
     if ($("once").checked) {
         const by = new Map();
@@ -68,6 +73,9 @@ function summary() {
     tile(String(all.filter((x) => x.check).length), "with Claude's math check");
     const tagged = new Set(all.filter((x) => x.std).map((x) => x.cls + "|" + norm(x.q))).size;
     tile(tagged + " of " + uniq, "tagged with a standard");
+    const cov = coverage(all), stds = new Set(), have = new Set();
+    Object.values(cov).forEach((list) => list.forEach((r) => { stds.add(r.code); if (r.bank + r.weeks) have.add(r.code); }));
+    tile(have.size + " of " + stds.size, "standards with questions");
     tile(claudeDocs == null ? "…" : String(claudeDocs), "weeks in Claude's copy");
 }
 function card(x) {
@@ -77,13 +85,14 @@ function card(x) {
     top.appendChild(cb);
     const q = el("div", "bk-q"); q.appendChild(rich(x.q)); top.appendChild(q); li.appendChild(top);
     if (Array.isArray(x.choices) && x.choices.length) { const ch = el("p", "bk-ch"); x.choices.forEach((t, i) => { const s = el("span"); s.appendChild(el("b", null, "ABCDE"[i] + ". ")); s.appendChild(rich(t)); ch.appendChild(s); }); li.appendChild(ch); }
-    if ($("ans").checked) { const a = el("p", "bk-a"); a.appendChild(el("b", null, "Answer: ")); a.appendChild(rich(x.a)); li.appendChild(a); }
+    if ($("ans").checked) { const a = el("p", "bk-a"); a.appendChild(el("b", null, "Answer: ")); a.appendChild(rich(x.a)); if (Array.isArray(x.also) && x.also.length) a.appendChild(el("span", "bk-also", "  Also right: " + x.also.join(", "))); li.appendChild(a); }
     const meta = el("p", "bk-meta");
-    [LABEL[x.cls] || x.cls, x.kind, (x.uses ? x.uses.join(", ") : x.label) + (x.day != null && DAYS[x.day] ? " · " + DAYS[x.day] : ""), x.check ? "Checked" : ""].filter(Boolean)
+    const where = x.sb ? (x.for || [x.cls]).map((k) => LABEL[k] || k).join(" + ") : LABEL[x.cls] || x.cls;
+    [where, x.sb ? (LEVELS[x.lvl] || "") : x.kind, x.sb ? "" : (x.uses ? x.uses.join(", ") : x.label) + (x.day != null && DAYS[x.day] ? " · " + DAYS[x.day] : ""), x.check ? "Checked" : ""].filter(Boolean)
         .forEach((t) => meta.appendChild(el("span", t === "Checked" ? "bk-chip ok" : "bk-chip", t)));
     const tag = tagOf(x);
     if (tag) {   // the standard (or prior skill): tap it to show only questions with the same tag
-        const b = el("button", "bk-chip bk-std" + (x.std ? "" : " skill"), x.std ? "AL " + x.std : tag); b.type = "button";
+        const b = el("button", "bk-chip bk-std" + (x.std ? "" : " skill"), x.std ? "AL " + x.std + (x.part || "") : tag); b.type = "button";
         b.title = x.std ? x.std + ": " + (STD_TEXT.get(x.std) || "") + "\nTap to show every question with this standard." : "Below grade level: no standard for this class. Tap to show every question like it.";
         b.onclick = () => { $("fStd").value = tag; shown = PAGE; draw(); window.scrollTo({ top: 0, behavior: "smooth" }); };
         meta.appendChild(b);
@@ -91,8 +100,27 @@ function card(x) {
     li.appendChild(meta);
     return li;
 }
+/** Every standard for the chosen class (or all three) with how many questions carry it. Tap one to show them. */
+function drawCoverage() {
+    const box = $("cover"); if (!box) return; box.textContent = "";
+    const cov = coverage(all), c = $("fCls").value, classes = c ? [c] : Object.keys(LABEL).filter((k) => cov[k]);
+    classes.forEach((cls) => {
+        const rows = cov[cls] || [], done = rows.filter((r) => r.bank + r.weeks).length;
+        const d = el("details", "bk-cov"); d.open = openCov.has(cls); d.ontoggle = () => { if (d.open) openCov.add(cls); else openCov.delete(cls); }; const sm = el("summary", null, (LABEL[cls] || cls) + ": " + done + " of " + rows.length + " standards have questions"); d.appendChild(sm);
+        const ul = el("ul", "bk-covlist");
+        rows.forEach((r) => {
+            const li = el("li", r.bank + r.weeks ? "" : "none"), b = el("button", "bk-covbtn"); b.type = "button";
+            b.appendChild(el("b", null, r.code + (r.critical ? " *" : ""))); b.appendChild(el("span", null, short(r.text, 70)));
+            b.appendChild(el("em", null, r.bank + r.weeks ? r.bank + " bank" + (r.weeks ? " · " + r.weeks + " from weeks" : "") : "None yet"));
+            b.title = r.code + ": " + r.text; if (!(r.bank + r.weeks)) b.disabled = true;
+            b.onclick = () => { $("fCls").value = cls; $("fWeek").value = ""; $("fStd").value = [...$("fStd").options].some((o) => o.value === r.code) ? r.code : ""; shown = PAGE; draw(); $("count").scrollIntoView({ behavior: "smooth" }); };
+            li.appendChild(b); ul.appendChild(li);
+        });
+        d.appendChild(ul); box.appendChild(d);
+    });
+}
 function draw() {
-    $("skel").hidden = true; summary();
+    $("skel").hidden = true; summary(); drawCoverage();
     const list = matches(), box = $("list"); box.textContent = "";
     list.slice(0, shown).forEach((x) => box.appendChild(card(x)));
     $("count").textContent = list.length ? (list.length === 1 ? "1 question" : list.length + " questions") + (list.length > shown ? ", showing " + shown : "") : all.length ? "No question matches. Try fewer words or Every week." : "No weeks on the board yet. Approved weeks fill the bank on their own.";
@@ -104,8 +132,8 @@ function selBar() {
     $("selCount").textContent = picked.size + (picked.size === 1 ? " question selected" : " questions selected");
 }
 function forClaude() {
-    const keep = ["q", "a", "choices", "wrong", "work", "check", "std", "skill"];
-    const lines = [...picked.values()].map((x) => { const o = { from: (LABEL[x.cls] || x.cls) + ", " + x.label + ", " + x.kind }; keep.forEach((k) => { if (x[k] != null) o[k] = x[k]; }); return JSON.stringify(o); });
+    const keep = ["q", "a", "choices", "also", "wrong", "work", "check", "std", "part", "skill", "lvl"];
+    const lines = [...picked.values()].map((x) => { const o = { from: x.sb ? WEEK_LABEL + " " + x.id : (LABEL[x.cls] || x.cls) + ", " + x.label + ", " + x.kind }; keep.forEach((k) => { if (x[k] != null) o[k] = x[k]; }); return JSON.stringify(o); });
     return "Reuse these checked questions from my Question Bank (recompute each check before using it):\n" + lines.join("\n");
 }
 function drawClaude() {
@@ -123,12 +151,12 @@ function drawClaude() {
 }
 
 ["q"].forEach((i) => { let t = 0; $(i).oninput = () => { clearTimeout(t); t = setTimeout(() => { shown = PAGE; draw(); }, 150); }; });
-["fCls", "fKind", "fStd", "fWeek", "once", "ans"].forEach((i) => { $(i).onchange = () => { shown = PAGE; draw(); }; });
+["fCls", "fKind", "fStd", "fWeek", "fLvl", "once", "ans"].forEach((i) => { $(i).onchange = () => { shown = PAGE; draw(); }; });
 $("more").onclick = () => { shown += PAGE; draw(); };
 $("clearSel").onclick = () => { picked.clear(); draw(); };
 // Send the picked questions to the Question Maker as a new game set (Vault Raid and the review games).
 $("toGame").onclick = () => {
-    const keep = ["q", "a", "choices", "std", "skill", "kind", "cls"];
+    const keep = ["q", "a", "choices", "also", "std", "part", "skill", "kind", "cls"];
     const list = [...picked.values()].map((x) => { const o = {}; keep.forEach((k) => { if (x[k] != null) o[k] = x[k]; }); return o; });
     try { localStorage.setItem("anchorboard-maker-inbox", JSON.stringify(list)); } catch (e) { status("This browser blocked it. Use Add from Question Bank in the Question Maker.", "bad"); return; }
     location.href = "maker.html?from=bank" + (demo ? "&demo" : "");
@@ -142,6 +170,7 @@ else {
     $("who").textContent = demo ? "This device only, nothing is saved" : (user.name ? "Signed in as " + user.name : "Signed in");
     status(demo ? "This device only" : "Live", "ok");
     rebuild(); drawClaude();
+    loadStdBank().then((list) => { SB = list; rebuild(); });
     watchPrivateWeeks(store, PUBLISHED, (list) => { WEEKS = list; rebuild(); });
     if (store.rooms && store.rooms.watchAll && uid) store.rooms.watchAll("teacher/" + uid + "/bank", (docs) => { claudeDocs = docs.length; summary(); }, () => {});
 }
