@@ -14,7 +14,7 @@
    Closing the room deletes rooms/{code} and everything under it.
    Each student's result is saved to Class Data only when the teacher turns that on.
 ========================================== */
-import * as V from "./vaultCore.js?v=70";
+import * as V from "./vaultCore.js?v=71";
 import qrcode from "./vendor/qrcode.js?v=1";
 import { drawItems } from "./mathTools.js?v=1";
 
@@ -34,7 +34,7 @@ let H = null, loaded = false, rev = 0, hosting = false, unsubH = null, unsubP = 
 let PL = {};                 // the latest entry from each student (rooms/{code}/p), Remote only
 let SETS = null, setsWatched = false, note = "", busy = "", tab = "players", dtab = "report", peek = "", endArm = 0;
 let saveTimer = 0, lastSave = 0, panelSig = "", panelAt = 0, padWatch = null, padFor = "", PAD = null;
-const choice = { set: (() => { try { return new URLSearchParams(location.search).get("vset") || ""; } catch (e) { return ""; } })(), mins: 10, names: "roster", board: true, save: false, live: false, work: true, retry: true, slow: true, snd: true, comeback: true };
+const choice = { set: (() => { try { return new URLSearchParams(location.search).get("vset") || ""; } catch (e) { return ""; } })(), mins: 10, names: "roster", board: true, save: false, live: false, work: true, retry: true, steps: true, slow: true, snd: true, comeback: true };
 
 export function mountLive(api) { A = api; }
 export const liveSig = () => rev + "#" + loaded + "#" + hosting + "#" + (PAD ? PAD.it : "");
@@ -168,7 +168,7 @@ function handle(id, d, sends) {
             while (used.has(nm.toLowerCase())) nm = base + " " + k++;
         }
         p = H.players[id] = { nm, ni, c: 0, r: 0, n: 0, st: 0, best: 0, h: 0, code: "", qn: 0, ord: shuffledOrder(), g: {}, sh: 0, la: null, fb: null, hk: null, hit: null, cr: 0, sa: 0, sk: 0, sc: 0, sn: 0, at: Date.now(),
-            av: Math.floor(Math.random() * V.AVATARS.length), pu: "", dbl: 0, blk: 0, ins: 0, box: 0, vs: 0, top: 0 };
+            av: Math.floor(Math.random() * V.AVATARS.length), pu: "", dbl: 0, blk: 0, ins: 0, box: 0, vs: 0, top: 0, qt: Date.now(), sm: 0, sp: 0, su: 0 };
         if (ni >= 0) H.taken = (H.taken || []).concat([ni]);
         feed(nm + " joined", "join"); sends.add("room");
     }
@@ -189,9 +189,11 @@ function handle(id, d, sends) {
         else if ((+p.cd || 0) > Date.now()) { /* slowing down after 2 misses in a row */ }
         else if (H.status === "play" && +a.q === p.qn && p.code && !(H.opts.work !== false && !d.img)) {   // work required: an answer with no pad picture is not taken
             const q = qOf(p, p.qn), typed = String(a.t || "").slice(0, 80), ok = V.sameAnswer(typed, q.a, q.al), qi = p.ord[p.qn % p.ord.length];
-            const second = p.rt === p.qn;   // this is their second try at this question
+            const second = p.rt === p.qn;   // this is their second (or later) try at this question
             let plus = 0, x2 = [], box = null;
-            if (second) {
+            const steps = H.opts.steps !== false ? V.stepsFor(q) : [];
+            if (second && p.sm) stepTry(p, q, qi, typed, ok, steps);
+            else if (second) {
                 // Only the first try counts for percent right and the report; a fix on the second try earns half coins.
                 if (ok) {
                     plus = Math.round(V.coinsFor(1) / 2); p.st = 1;
@@ -201,7 +203,7 @@ function handle(id, d, sends) {
                 }
                 p.fb = { q: p.qn, ok, y: typed, a: ok ? "" : q.a, plus, x2, box: null, second: 1 };
                 if (ok) p.la = { qi, q: p.qn, y: typed, ok, second: 1 };   // a miss keeps the first try, so "Count it" still counts that one
-                p.rt = -1; p.qn++; missRow(p, ok);
+                p.rt = -1; nextQ(p); missRow(p, ok);
             } else {
                 p.n++;
                 if (ok) {
@@ -213,12 +215,19 @@ function handle(id, d, sends) {
                     if (p.r % V.BOX_EVERY === 0) { box = V.rollBox(); openBox(p, box); }
                 }
                 else p.st = 0;
-                const retry = !ok && H.opts.retry !== false;
-                p.fb = retry ? { q: p.qn, ok, y: typed, a: "", plus: 0, x2, box: null, retry: 1, hint: q.h || V.hintFor(typed, q.a, q.q) } : { q: p.qn, ok, y: typed, a: ok ? "" : q.a, plus, x2, box };
+                const stepIn = !ok && steps.length > 0, retry = !ok && !stepIn && H.opts.retry !== false;
                 p.la = { qi, q: p.qn, y: typed, ok };
                 tally(p, qi, typed, ok);
-                if (retry) p.rt = p.qn; else p.qn++;
-                missRow(p, ok);
+                if (stepIn) {
+                    // Step-by-step help: a real first try unlocks step 1. A quick guess unlocks nothing yet.
+                    const fast = Date.now() - (+p.qt || 0) < V.STEP_TRY_MS;
+                    p.sm = 1; p.sp = fast ? 0 : 1; p.su = Date.now(); p.rt = p.qn;
+                    p.fb = stepFb(p, q, typed, steps, fast ? "fast" : "step");
+                } else {
+                    p.fb = retry ? { q: p.qn, ok, y: typed, a: "", plus: 0, x2, box: null, retry: 1, hint: q.h || V.hintFor(typed, q.a, q.q) } : { q: p.qn, ok, y: typed, a: ok ? "" : q.a, plus, x2, box };
+                    if (retry) p.rt = p.qn; else nextQ(p);
+                    missRow(p, ok);
+                }
             }
         }
     }
@@ -336,6 +345,60 @@ function setPause(on) {
         feed("Back to the game!", "start");
     }
     flush(everyone()); saveSoon(true); panelSig = ""; drawLivePanel(true);
+}
+
+/* ---------- step-by-step help after a miss ----------
+   How it's built to work for 12-year-olds (and not get gamed):
+   - A real try comes first. A wrong answer in the first few seconds of a question is a guess: it counts as a
+     miss and unlocks no step ("Steps unlock after a real try"). So spamming wrong answers to see steps doesn't pay.
+   - Each step costs coins: a right answer after a miss earns 60%, then 40%, 25%, 20% (V.STEP_PAY). The coin meter
+     shrinks in front of them, so trying hard before asking for the next step is the better deal (loss aversion).
+   - Solving it with one step or fewer still earns a hack, so the comeback feels like a win, not a consolation.
+   - Their phone/Chromebook makes them read a step (a few seconds) and write new work on the pad before trying again.
+   - Steps never give the final answer. After the last step, one more miss shows the answer and moves on.
+   - Only the first try counts in the report and percent right. Steps used are private: the student and the Remote. */
+function nextQ(p) { p.qn++; p.sm = 0; p.sp = 0; p.qt = Date.now(); }
+function stepFb(p, q, typed, steps, kind) {
+    const pay = V.STEP_PAY[Math.max(1, Math.min(p.sp, V.STEP_PAY.length - 1))];
+    return { q: p.qn, ok: false, y: typed, a: "", plus: 0, x2: [], box: null, retry: 1, step: 1, kind, t: Date.now(), sp: steps.slice(0, p.sp), sn: steps.length,
+        worth: Math.max(2, Math.round(V.coinsFor(1) * pay)), hack: p.sp <= 1 ? 1 : 0 };
+}
+/** A second (or later) try at a question in step mode. */
+function stepTry(p, q, qi, typed, ok, steps) {
+    const last = (p.lg || []).slice().reverse().find((x) => x.i === qi && !x.ok);
+    if (ok) {
+        let plus = Math.max(2, Math.round(V.coinsFor(1) * V.STEP_PAY[Math.max(1, Math.min(p.sp, V.STEP_PAY.length - 1))])); const x2 = [];
+        if (bonusOn()) { plus *= 2; x2.push("bonus"); }
+        p.c += plus; p.st = 1;
+        const hack = p.sp <= 1; if (hack) p.h = Math.min(V.MAX_HACKS, p.h + 1);
+        if (last) { last.fx = 1; last.sp = p.sp; }
+        p.fb = { q: p.qn, ok: true, y: typed, a: "", plus, x2, box: null, second: 1, steps: p.sp, hack: hack ? 1 : 0 };
+        p.la = { qi, q: p.qn, y: typed, ok: true, second: 1 };
+        p.rt = -1; nextQ(p); missRow(p, true);
+        return;
+    }
+    if (!typed.trim()) {   // Skip: show the answer and move on (no coins)
+        if (last) last.sp = p.sp;
+        p.fb = { q: p.qn, ok: false, y: "", a: q.a, plus: 0, x2: [], box: null, second: 1, steps: p.sp, skip: 1 };
+        p.rt = -1; nextQ(p); return;
+    }
+    if (p.sp === 0 && Date.now() - (+p.qt || 0) < V.STEP_TRY_MS) {   // still guessing fast: no step yet
+        p.fb = stepFb(p, q, typed, steps, "fast");
+        return;
+    }
+    if (p.sp > 0 && Date.now() - (+p.su || 0) < V.STEP_READ_MS - 1500) {   // tried again before reading the step: nothing new
+        p.fb = stepFb(p, q, typed, steps, "read");
+        return;
+    }
+    if (p.sp < steps.length) {   // the next step
+        p.sp++; p.su = Date.now(); if (last) last.sp = p.sp;
+        p.fb = stepFb(p, q, typed, steps, "step");
+        return;
+    }
+    // Every step used and still not it: show the answer and move on.
+    if (last) last.sp = p.sp;
+    p.fb = { q: p.qn, ok: false, y: typed, a: q.a, plus: 0, x2: [], box: null, second: 1, steps: p.sp, allsteps: 1, sp: steps.slice(0, p.sp) };
+    p.rt = -1; nextQ(p); missRow(p, false);
 }
 
 /* ---------- slow down guessing: 2 misses in a row means a short wait ---------- */
@@ -553,7 +616,7 @@ async function openRoom() {
         for (let i = 0; i < 6 && !code; i++) { const c = V.newRoomCode(); try { if (!(await A.store().rooms.get("rooms/" + c))) code = c; } catch (e) { code = c; } }
         if (!code) throw new Error("Could not find a free game code. Try again.");
         H = { v: 1, code, status: "lobby", title: set.title || meta.title || "Review", setId: meta.id, per: A.S.period, qs, mode: choice.names, names, taken: [],
-            opts: { mins: choice.mins, board: choice.board, save: choice.save, live: choice.live, work: choice.work, retry: choice.retry, slow: choice.slow, snd: choice.snd, comeback: choice.comeback }, paused: 0, exit: null, heat: { on: false, names: false }, redo: null, players: {}, qst: qs.map(() => ({ n: 0, ok: 0, w: [] })), review: null, feed: [], show: null, ends: 0, t0: 0, rid: "", saved: false,
+            opts: { mins: choice.mins, board: choice.board, save: choice.save, live: choice.live, work: choice.work, retry: choice.retry, steps: choice.steps, slow: choice.slow, snd: choice.snd, comeback: choice.comeback }, paused: 0, exit: null, heat: { on: false, names: false }, redo: null, players: {}, qst: qs.map(() => ({ n: 0, ok: 0, w: [] })), review: null, feed: [], show: null, ends: 0, t0: 0, rid: "", saved: false,
             host: PAGE, hb: Date.now(), at: Date.now() };
         await A.store().rooms.save("rooms/" + code, roomDoc());
         hosting = true; loaded = true; await A.store().save("games/room", clean(H)); takeHost(); tab = "players";
@@ -563,6 +626,7 @@ async function openRoom() {
 function startGame() {
     if (!H || H.status !== "lobby") return;
     H.status = "play"; H.t0 = Date.now(); H.ends = H.opts.mins ? H.t0 + H.opts.mins * 60000 : 0; feed("Game on!", "start"); applyStarters();
+    Object.values(H.players).forEach((p) => { p.qt = H.t0; });
     flush(everyone()); saveSoon(true);
 }
 function endGame() {
@@ -641,8 +705,8 @@ function acceptAnswer(id) {
     const q = H.qs[p.la.qi]; if (q && p.la.y && !q.al.includes(p.la.y)) q.al = q.al.concat([p.la.y]).slice(-6);
     untally(p, p.la.qi, p.la.y);
     p.la.ok = true; p.r++; p.st = 1; p.c += V.coinsFor(1); p.h = Math.min(V.MAX_HACKS, p.h + 1);
-    if (p.fb && p.fb.q === p.la.q) p.fb = Object.assign({}, p.fb, { ok: true, a: "", plus: V.coinsFor(1), fixed: 1, retry: 0, hint: "" });
-    if (p.rt === p.qn && p.la.q === p.qn) { p.rt = -1; p.qn++; }   // counted while they were on their second try: move them on
+    if (p.fb && p.fb.q === p.la.q) p.fb = Object.assign({}, p.fb, { ok: true, a: "", plus: V.coinsFor(1), fixed: 1, retry: 0, step: 0, hint: "" });
+    if (p.rt === p.qn && p.la.q === p.qn) { p.rt = -1; nextQ(p); }   // counted while they were on their second try: move them on
     flush(new Set([id]));
 }
 function setLive(on) { H.opts.live = on; flush(new Set(["room"])); saveSoon(true); }
@@ -1025,6 +1089,8 @@ function reportPanel(p) {
         const head = el("div", "vrmisshead"); head.append(el("b", "vrmisspct", pctOf(x.ok, x.n) + "%"), el("small", null, x.ok + " of " + x.n + " right" + (x.q.c ? " · " + x.q.c : "")));
         r.append(head, mathEl("p", "vrmissq", x.q.q));
         const ans = el("p", "vrmissa"); ans.append(el("small", null, "Answer "), mathEl("b", null, x.q.a)); r.append(ans);
+        const used = Object.values(H.players).map((y) => (y.lg || []).find((z) => z.i === x.qi && !z.ok && z.sp)).filter(Boolean);
+        if (used.length) r.append(el("small", "vrsub vrstepnote", used.length + (used.length === 1 ? " student" : " students") + " used steps · " + used.filter((z) => z.fx).length + " then got it"));
         if (x.w.length) { const w = el("div", "vrrevw"); x.w.slice(0, 4).forEach((y) => { const c = el("span", "vrwrong"); c.append(mathEl("span", null, y.y), el("small", null, "×" + y.n)); w.append(c); }); r.append(el("small", "vrsub", "Common wrong answers"), w); }
         r.append(btn("btn ghost", "Go over on the board", () => review(x.qi)));
         p.append(r);
@@ -1037,6 +1103,7 @@ function reportPanel(p) {
         const miss = [...new Set((x.lg || []).filter((y) => !y.ok).map((y) => y.i))].length;
         left.append(el("span", "gpname", (i + 1) + ". " + x.nm), el("small", "vrinfo", pctOf(x.r, x.n) + "% right · " + x.r + " of " + x.n + (miss ? " · missed " + miss + (miss === 1 ? " question" : " questions") : "")));
         const cats = byCategory(x).filter((c) => c.of); if (cats.length > 1) left.append(el("small", "vrsub", cats.map((c) => c.c + " " + c.ok + "/" + c.of).join(" · ")));
+        const sx = (x.lg || []).filter((y) => !y.ok && y.sp); if (sx.length) left.append(el("small", "vrsub vrstepnote", "Used steps on " + sx.length + " · fixed " + sx.filter((y) => y.fx).length + " with them"));
         r.append(left, el("b", "vrpct " + (x.n ? (x.r / x.n >= 0.8 ? "hi" : x.r / x.n >= 0.6 ? "mid" : "lo") : ""), x.n ? pctOf(x.r, x.n) + "%" : "–")); t.append(r);
     });
     p.append(t);
@@ -1071,6 +1138,7 @@ function setupPanel(p) {
         check("Sound effects on student devices", choice.snd, (v) => { choice.snd = v; }, "On: short sounds for right answers, cracks and mystery boxes. Each student can still mute their own."),
         check("Catch-up boost", choice.comeback, (v) => { choice.comeback = v; }, "On: after the first minute, students in the bottom quarter earn half again on right answers. Only they see it, never the board."),
         check("Second chance after a miss", choice.retry, (v) => { choice.retry = v; }, "On: a wrong answer gets a hint and one more try for half coins. Only the first try counts in the report."),
+        check("Step-by-step help after a miss", choice.steps, (v) => { choice.steps = v; }, "On: when a question has steps, a miss shows step 1 on the student's whiteboard, and each wrong try shows the next one. Every step lowers the coins it's worth (60%, 40%, 25%). Quick guesses unlock nothing, students must read each step and add work before trying again, and steps never show the answer. Who used steps shows on your Remote only."),
         check("See their work live as they draw", choice.live, (v) => { choice.live = v; }, "Off: you see each student's work when they answer. On: it updates every few seconds, which uses more of the free daily allowance."),
         check("Save each student's result to Class Data", choice.save, (v) => { choice.save = v; }, "Off by default. Names, coins and right answers are kept in your private account. Leave off until the district says student data can be stored."));
     p.append(more);
@@ -1086,6 +1154,7 @@ function playerRows(p, live, final) {
         const info = el("small", "vrinfo", final || live ? x.c + " coins · " + x.r + " of " + x.n + " right" + (x.cr ? " · cracked " + x.cr : "") : x.code ? "Vault set" : "Setting a vault code…");
         const left = el("div", "vrpl"); left.append(name, info);
         if (live && x.la) { const la = el("small", "vrla " + (x.la.ok ? "ok" : "no"), (x.la.ok ? "✓ " : "✗ ") + (x.la.y || "(blank)")); left.append(la); }
+        if (live && x.sm && x.rt === x.qn) { const n = V.stepsFor(qOf(x, x.qn)).length; left.append(el("small", "vrstepchip", x.sp ? "On step " + x.sp + " of " + n : "Working before step 1")); }
         r.append(left);
         if (live && x.la && !x.la.ok && x.la.y) r.append(btn("gpok", "Count it", () => acceptAnswer(x.id)));
         if (!final) { const rm = btn("gpno vrrm", "Remove", () => removePlayer(x.id)); rm.title = "Remove " + x.nm + " and free the name"; rm.setAttribute("aria-label", "Remove " + x.nm + " and free the name"); r.append(rm); }

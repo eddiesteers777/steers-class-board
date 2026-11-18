@@ -302,6 +302,24 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .phint{align-self:stretch;text-align:left;background:#FFF6E0;border:2px solid #F6D58A;border-radius:14px;padding:10px 14px}
 .phint small{display:block;font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:.72rem;color:#8A5F00}
 .phint p{font-weight:700;color:var(--navy);line-height:1.35}
+/* step-by-step help after a miss: the steps so far, and what a right answer is still worth */
+.psteps{align-self:stretch;text-align:left;background:#EEF5FF;border:2px solid #9CC3EE;border-radius:14px;padding:10px 14px}
+.psteps>small{display:block;font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:.72rem;color:#1F4E8C}
+.psteps ol{margin:6px 0 0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px}
+.psteps li{font-weight:600;color:#4A5A78;line-height:1.35}
+.psteps li.new{font-weight:800;color:var(--navy);font-size:1.08em}
+.psteps li.new::marker{color:#1552D6}
+.psteps.slim{padding:6px 12px;margin-top:6px;border-width:1.5px}
+.psteps.slim ol{gap:3px}.psteps.slim li{font-size:.95rem}.psteps.slim li.new{font-size:1rem}
+.pstepwait{margin-top:6px;font-size:.92rem;font-weight:700;color:#8A5F00;background:#FFF6E0;border-radius:10px;padding:6px 10px}
+.pmeter{align-self:stretch;text-align:left;display:flex;flex-direction:column;gap:6px}
+.pmlbl{display:flex;align-items:center;gap:6px;font-weight:600;color:#4A5A78}
+.pmlbl svg{width:22px;height:22px}.pmlbl b{color:var(--navy);font-size:1.1em}
+.pmbar{height:12px;border-radius:99px;background:#E3E8F2;overflow:hidden}
+.pmbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#F2B33D,#F6C866);transition:width .6s ease}
+.pmeter small{font-size:.85rem;color:#8E1B21;font-weight:700}
+.pnote.hackon{color:#1B7F3B;font-weight:800}
+.pskip{margin-top:6px;align-self:flex-end}
 /* paused by the teacher */
 .ppause{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(8,27,69,.86);backdrop-filter:blur(3px);padding:16px}
 .ppausebox{background:#fff;border-radius:20px;padding:28px 32px;text-align:center;max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.35)}

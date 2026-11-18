@@ -184,3 +184,5 @@ body.maker main.mk{max-width:1440px;margin:0 auto;padding:18px 20px 60px;width:1
   .mk-play{margin-left:0}
 }
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+.mk-autosteps{margin:-4px 0 8px;padding:8px 12px;border-radius:10px;background:var(--c-soft-bg,#EEF5FF)}
+.mk-autosteps ol{margin:4px 0 0;padding-left:1.3em;font-size:.9rem;line-height:1.4}

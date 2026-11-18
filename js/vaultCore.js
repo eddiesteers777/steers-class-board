@@ -292,6 +292,141 @@ export function answerKind(ans) {
     return "";
 }
 
+/* ---------- step-by-step help ----------
+   After a miss, a question can show one step at a time on the student's pad. Steps come from the
+   question set (the Question Maker's "Steps" box, `st`) or, when there are none, from autoSteps(),
+   which builds them for the kinds of problems it can read: one-variable equations and inequalities,
+   triangle angle sums, the Pythagorean theorem and two-number rational-number problems.
+   A step never gives the final answer: the last one says what to do, not what it comes to. */
+export const STEP_MAX = 4;
+/** Share of the coins a right answer still earns after using 0, 1, 2, 3 or 4 steps. */
+export const STEP_PAY = [1, 0.6, 0.4, 0.25, 0.2];
+/** How long a step stays on screen before the student can answer again (ms), so it gets read. */
+export const STEP_READ_MS = 8000;
+/** A first answer sooner than this after the question appears is a guess: it doesn't unlock a step. */
+export const STEP_TRY_MS = 12000;
+const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };
+/** A number for a step: whole numbers as they are, else a fraction with a small bottom, else a short decimal. */
+let fmtDec = false;   // the question is written in decimals: keep the steps in decimals too
+function fmt(v) {
+    if (!isFinite(v)) return "?"; const sg = v < 0 ? "−" : "", a = Math.abs(v);
+    if (Math.abs(a - Math.round(a)) < 1e-9) return sg + Math.round(a);
+    if (fmtDec && Math.abs(a * 1e4 - Math.round(a * 1e4)) < 1e-6) return sg + String(+a.toFixed(4));
+    for (let d = 2; d <= 16; d++) { const n = a * d; if (Math.abs(n - Math.round(n)) < 1e-9) return sg + Math.round(n) + "/" + d; }
+    return sg + String(+a.toFixed(4));
+}
+/** "3x", "−x", "(2/3)x" */
+function termX(a, x) { if (Math.abs(a - 1) < 1e-9) return x; if (Math.abs(a + 1) < 1e-9) return "−" + x; const f = fmt(a); return (f.includes("/") ? "(" + f + ")" : f) + x; }
+/** "3x + 4", "−x − 2", "5" */
+function lin(a, b, x) {
+    const parts = []; if (Math.abs(a) > 1e-9) parts.push(termX(a, x));
+    if (Math.abs(b) > 1e-9 || !parts.length) parts.push(parts.length ? (b < 0 ? "− " + fmt(-b) : "+ " + fmt(b)) : fmt(b));
+    return parts.join(" ");
+}
+const OPS = { "<": "<", ">": ">", "<=": "≤", ">=": "≥", "=": "=" };
+function linearSteps(src) {
+    // "Solve: 3(2x − 4) = 4x + 6" → the equation part, in the checker's plain spelling.
+    let t = norm(src).replace(/^(solve|simplify|find x|find)\b[^:]*:\s*/, "").replace(/^solve\s+/, "").replace(/\s*(for [a-z])?\.?$/, "");
+    const m = t.match(/^([^<>=]+?)\s*(<=|>=|<|>|=)\s*([^<>=]+)$/); if (!m) return null;
+    let L = m[1].trim(), R = m[3].trim(), op = m[2]; const letters = [...new Set((L + R).replace(/[^a-z]/g, ""))];
+    fmtDec = /\d\.\d/.test(t);
+    if (letters.length !== 1) return null; const x = letters[0];
+    const ev = (side, v) => evalExpr(side.replace(/(\d)\s+(?=\d)/g, "$1+"), { [x]: v });
+    const l0 = ev(L, 0), l1 = ev(L, 1), l2 = ev(L, 2), r0 = ev(R, 0), r1 = ev(R, 1), r2 = ev(R, 2);
+    if ([l0, l1, l2, r0, r1, r2].some((v) => v == null)) return null;
+    if (Math.abs((l2 - l1) - (l1 - l0)) > 1e-9 || Math.abs((r2 - r1) - (r1 - r0)) > 1e-9) return null;   // not linear
+    let La = l1 - l0, Lb = l0, Ra = r1 - r0, Rb = r0; const ineq = op !== "=", out = [];
+    const messy = /[()]/.test(L + R) || termCount(L) > 2 || termCount(R) > 2 || /\//.test(L + R);
+    if (messy) out.push("Simplify each side first (distribute and combine like terms): " + lin(La, Lb, x) + " " + OPS[op] + " " + lin(Ra, Rb, x));
+    // x on both sides with more x's on the right: work with the sides switched, so nobody divides by a negative they didn't need.
+    let swapped = false;
+    if (Math.abs(La) > 1e-9 && Math.abs(Ra) > 1e-9 && Ra > La) { [La, Lb, Ra, Rb] = [Ra, Rb, La, Lb]; op = ineq ? FLIP[op] : op; swapped = true; }
+    const O = OPS[op], k = La - Ra, c = Rb - Lb, one = Math.abs(k - 1) < 1e-9;
+    if (Math.abs(La - Ra) < 1e-9) { out.push("The " + x + "'s cancel out. Look at the numbers that are left: is that always true, or never true?"); return out; }
+    // Never show the line that IS the answer (x = 11): with 1x left, the step says what to do, not what it comes to.
+    if (Math.abs(Ra) > 1e-9) {
+        const now = one && Math.abs(Lb) < 1e-9 ? "" : " Now it's " + lin(k, Lb, x) + " " + O + " " + fmt(Rb) + ".";
+        out.push((swapped ? "Keep the " + x + "'s on the side that has more. " + (Ra > 0 ? "Subtract " : "Add ") : "Get the " + x + "'s on one side: " + (Ra > 0 ? "subtract " : "add ")) + termX(Math.abs(Ra), x) + " on both sides." + now);
+    }
+    if (Math.abs(Lb) > 1e-9) out.push("Undo the " + fmt(Math.abs(Lb)) + ": " + (Lb > 0 ? "subtract " : "add ") + fmt(Math.abs(Lb)) + " on both sides." + (one ? "" : " Now it's " + termX(k, x) + " " + O + " " + fmt(c) + "."));
+    if (!one) out.push("Divide both sides by " + fmt(k) + (Math.abs(k) < 1 && fmt(k).includes("/") ? " (same as multiplying by " + fmt(1 / k) + ")" : "") + "." + (ineq && k < 0 ? " You're dividing by a negative, so flip the sign." : ""));
+    if (out.length < 2) out.push("Check it: put your answer back in for " + x + ". Do both sides match?");
+    return out.slice(0, STEP_MAX);
+}
+function triangleSteps(src) {
+    const q = String(src || ""), lq = q.toLowerCase(); if (!/triangle/.test(lq) || !/angle/.test(lq)) return null;
+    // Angles with a letter: x°, 2x°, (x + 20)°
+    const exprs = [...q.matchAll(/\(([^()]*[a-z][^()]*)\)\s*°|(\d*[a-z])\s*°/gi)].map((m) => (m[1] || m[2]).replace(/\s+/g, " ").trim());
+    if (exprs.length >= 2 && /base angles/.test(lq)) return ["The base angles of an isosceles triangle are equal. Set them equal: " + exprs[0] + " = " + exprs[1] + ".", "Solve that for x.", "Put x back in to get a base angle. The vertex angle is 180° minus both base angles."];
+    if (exprs.length >= 3) {
+        const sum = exprs.slice(0, 3).map((e) => (/[+−-]/.test(e) ? "(" + e + ")" : e)).join(" + ");
+        const steps = ["The three angles of a triangle add up to 180°. Write it: " + sum + " = 180."];
+        const xv = (exprs.join("").match(/[a-z]/) || ["x"])[0], all = exprs.slice(0, 3).map((e) => "(" + e + ")").join("+").replace(/−/g, "-");
+        const f0 = evalExpr(all, { [xv]: 0 }), f1 = evalExpr(all, { [xv]: 1 });
+        if (f0 != null && f1 != null && Math.abs(f1 - f0) > 1e-9) {
+            const a = f1 - f0, b = f0; fmtDec = false;
+            steps.push("Combine like terms: " + lin(a, b, xv) + " = 180.");
+            steps.push("Solve for " + xv + ": " + (Math.abs(b) > 1e-9 ? (b > 0 ? "subtract " : "add ") + fmt(Math.abs(b)) + " on both sides, then " : "") + "divide by " + fmt(a) + ".");
+        }
+        if (!/find x\b|find the value of x/.test(lq)) steps.push("You found " + xv + ". Put it back in to get the angle the question asks for.");
+        return steps.slice(0, STEP_MAX);
+    }
+    const nums = [...q.matchAll(/(\d+(?:\.\d+)?)\s*°/g)].map((m) => m[1]);
+    if (/right triangle/.test(lq) && /acute/.test(lq) && nums.length >= 1) return ["A right triangle has a 90° angle, so the other two angles add up to 90°.", "Subtract the angle you know from 90."];
+    if (/isosceles/.test(lq) && /vertex/.test(lq) && nums.length >= 1) return ["The three angles add up to 180°. Take away the vertex angle: 180 − " + nums[0] + ".", "What's left is shared by the two base angles, which are equal. Split it in half."];
+    if (nums.length >= 3 && /can a triangle|could a triangle|possible/.test(lq)) return ["Add the three angles: " + nums.slice(0, 3).join(" + ") + ".", "A triangle's angles must add up to exactly 180°. Does yours?"];
+    if (nums.length >= 2 && /third|missing|other|find x/.test(lq)) return ["The three angles of a triangle add up to 180°.", "Add the two angles you know: " + nums[0] + " + " + nums[1] + ".", "Subtract that from 180."];
+    return null;
+}
+function pythagSteps(src) {
+    const lq = String(src || "").toLowerCase(); if (!/hypotenuse|\blegs?\b/.test(lq) || /\bangles?\b|°/.test(lq)) return null;
+    const nums = [...lq.matchAll(/(\d+(?:\.\d+)?)/g)].map((m) => m[1]); if (nums.length < 2) return null;
+    if (/hypotenuse is (\d+)/.test(lq)) { const c = lq.match(/hypotenuse is (\d+(?:\.\d+)?)/)[1], a = nums.find((n) => n !== c); return ["Use a² + b² = c². The hypotenuse is c = " + c + ".", "Put in what you know: " + a + "² + b² = " + c + "². Square the numbers.", "Subtract to get b² by itself, then take the square root."]; }
+    return ["Use a² + b² = c². The legs are a and b.", "Square both legs and add them: " + nums[0] + "² + " + nums[1] + "².", "Take the square root of that sum."];
+}
+/** "−2/5", "4 2/3", "-0.6", "(−6)" as a value, or null. */
+const ratOf = (s) => { const t = String(s).trim().replace(/^\((.*)\)$/, "$1").trim(); return numberOf(t); };
+function rationalSteps(src) {
+    let t = norm(src).replace(/^(find|simplify|evaluate|compute|what is)\b:?\s*/, "").replace(/[?.]\s*$/, "").trim(); fmtDec = /\d\.\d/.test(t);
+    const OPR = "([-]?\\(?\\s*-?\\d+(?:\\.\\d+)?(?: \\d+\\/\\d+|\\/\\d+)?\\s*\\)?)";
+    let m = t.match(new RegExp("^" + OPR + "\\s*([+\\-×*÷]|\\s)\\s*" + OPR + "$")) || t.match(new RegExp("^" + OPR + "\\s*" + OPR + "$"));
+    if (!m) return null;
+    const A = m[1], op = m.length === 4 ? (m[2].trim() || "×") : "×", B = m.length === 4 ? m[3] : m[2];
+    const a = ratOf(A), b = ratOf(B); if (a == null || b == null) return null;
+    const isFrac = (s) => /\//.test(s), mixed = (s) => /\d \d+\/\d+/.test(s), dec = (s) => /\./.test(s);
+    const steps = [];
+    const sgn = (v) => (v < 0 ? "negative" : "positive");
+    if (op === "-" && b < 0) steps.push("Subtracting a negative is the same as adding: change − (" + fmt(b) + ") to + " + fmt(-b) + ".");
+    if (op === "+" || op === "-") {
+        const bb = op === "-" ? -b : b;
+        if (isFrac(A) || isFrac(B)) {
+            const da = +(String(A).match(/\/(\d+)/) || [0, 1])[1], db = +(String(B).match(/\/(\d+)/) || [0, 1])[1], lcd = da * db / gcd(da, db);
+            if (mixed(A) || mixed(B)) steps.push("Change the mixed numbers to improper fractions first.");
+            steps.push("Find a common denominator: " + lcd + ". Rewrite both fractions with " + lcd + " on the bottom.");
+            steps.push((a < 0) !== (bb < 0) ? "The signs are different: subtract the tops, and keep the sign of the one that's bigger without its sign." : "Add the tops and keep " + lcd + " on the bottom.");
+            steps.push("Simplify your answer if you can.");
+        } else {
+            if ((a < 0) !== (bb < 0)) steps.push("The signs are different. Subtract the smaller size from the bigger one, and keep the sign of the bigger one.");
+            else steps.push("The signs are the same. Add the sizes and keep the sign (" + sgn(a) + ").");
+            if (dec(A) || dec(B)) steps.push("Line up the decimal points before you add or subtract.");
+        }
+    } else if (op === "×" || op === "*" || op === "÷") {
+        steps.push("Signs first: " + sgn(a) + " " + (op === "÷" ? "÷" : "×") + " " + sgn(b) + " gives a " + ((a < 0) === (b < 0) ? "positive" : "negative") + " answer.");
+        if (mixed(A) || mixed(B)) steps.push("Change the mixed numbers to improper fractions.");
+        if (op === "÷") steps.push(isFrac(B) || isFrac(A) ? "Keep, change, flip: keep the first number, change ÷ to ×, and flip the second fraction." : "Divide the sizes. " + (dec(A) || dec(B) ? "Move the decimal points so you divide by a whole number." : ""));
+        else steps.push(isFrac(A) || isFrac(B) ? "Multiply the tops, then multiply the bottoms. Simplify across first if you can." : "Multiply the sizes" + (dec(A) || dec(B) ? ", then count the decimal places." : "."));
+        if (isFrac(A) || isFrac(B)) steps.push("Simplify your answer if you can.");
+    } else return null;
+    return steps.map((s) => s.trim()).filter(Boolean).slice(0, STEP_MAX);
+}
+/** Steps for a question, built from its text when it is a kind autoSteps can read; [] when it isn't. */
+export function autoSteps(question) {
+    const q = String(question || "");
+    try { return triangleSteps(q) || pythagSteps(q) || linearSteps(q) || rationalSteps(q) || []; } catch (e) { return []; }
+}
+/** The steps a game question uses: the teacher's own (st), else automatic ones. */
+export function stepsFor(q) { const own = Array.isArray(q && q.st) ? q.st.filter(Boolean) : []; return (own.length ? own : autoSteps(q && q.q)).slice(0, STEP_MAX); }
+
 /** One question from a saved set, made ready for the game: { c, q, a, al, h, ch }.
     al: other answers to accept · h: the teacher's own second-try hint · ch: answer choices (multiple choice, 2 to 5).
     The Question Maker (maker.html) writes these; question sets made elsewhere just have q and a. */
@@ -299,7 +434,8 @@ export function gameQuestion(k, cat) {
     const ch = Array.isArray(k.ch) ? k.ch.map((x) => String(x == null ? "" : x).trim().slice(0, 80)).filter(Boolean).slice(0, 5) : [];
     return { c: String(cat || "").slice(0, 60), q: String(k.q).slice(0, 400), a: String(k.a).slice(0, 200),
         al: Array.isArray(k.al) ? k.al.map((x) => String(x).trim().slice(0, 80)).filter(Boolean).slice(0, 8) : [],
-        h: k.h ? String(k.h).trim().slice(0, 200) : "", ch: ch.length >= 2 ? ch : null };
+        h: k.h ? String(k.h).trim().slice(0, 200) : "", ch: ch.length >= 2 ? ch : null,
+        st: Array.isArray(k.st) ? k.st.map((x) => String(x == null ? "" : x).trim().slice(0, 200)).filter(Boolean).slice(0, STEP_MAX) : [] };
 }
 /** The answer box a game question gets: "mc" for multiple choice, otherwise answerKind of its answer. */
 export const formOf = (q) => (q && q.ch && q.ch.length >= 2 ? "mc" : answerKind(q && q.a));
