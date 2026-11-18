@@ -12,7 +12,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import * as V from "./vaultCore.js?v=58";
+import * as V from "./vaultCore.js?v=62";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 
@@ -48,7 +48,7 @@ const ST = {
     step: "code",        // code → name → vault → (playing)
     pick: null,          // { ni } or { nm } while joining
     view: "q",           // q (question) · fb (answer result) · targets · guess
-    sentQ: -1, sentK: 0, target: "", guess: "", vault: "", typed: "", err: "", seenHit: 0, busy: false,
+    sentQ: -1, sentK: 0, coins: null, target: "", guess: "", vault: "", typed: "", err: "", seenHit: 0, busy: false,
 };
 let unsubRoom = null, unsubMe = null, sig = "";
 
@@ -196,13 +196,112 @@ setInterval(() => {
     const img = pad.image(); pad.sent(); send({ img, iq: ST.me.q.n, it: Date.now() });
 }, 1000);
 
+/* ---------- the answer box ----------
+   Three ways to answer: a plain box, a fraction (top and bottom boxes over a bar) and a mixed
+   number. The Remote says which one fits the question; a student can still switch. */
+const KINDS = [["", "Number"], ["frac", "Fraction"], ["mixed", "Mixed number"]];
+function answerBox(kind) {
+    const wrap = el("div", "pabox"); let mode = KINDS.some((k) => k[0] === kind) ? kind : "", neg = false;
+    const tabs = el("div", "patabs"); tabs.setAttribute("role", "radiogroup"); tabs.setAttribute("aria-label", "Answer type");
+    const field = el("div", "pafield");
+    const num = (label, cls) => { const i = el("input", "pnum" + (cls ? " " + cls : "")); i.inputMode = "numeric"; i.autocomplete = "off"; i.maxLength = 7; i.setAttribute("aria-label", label); i.oninput = () => { i.value = i.value.replace(/[^\d.]/g, "").slice(0, 7); }; return i; };
+    const text = el("input", "ptext"); text.maxLength = 80; text.autocomplete = "off"; text.placeholder = "Your answer"; text.setAttribute("aria-label", "Your answer");
+    const whole = num("Whole number", "whole"), top = num("Top number (numerator)"), bot = num("Bottom number (denominator)");
+    top.onkeydown = (e) => { if (e.key === "/" || (e.key === "Enter" && top.value && !bot.value)) { e.preventDefault(); bot.focus(); } };
+    whole.onkeydown = (e) => { if (e.key === " " || (e.key === "Enter" && whole.value && !top.value)) { e.preventDefault(); top.focus(); } };
+    const sign = btn("pasign", "+/−", () => { neg = !neg; sign.classList.toggle("on", neg); sign.setAttribute("aria-pressed", String(neg)); sign.textContent = neg ? "−" : "+/−"; });
+    sign.setAttribute("aria-label", "Make it negative"); sign.setAttribute("aria-pressed", "false");
+    const frac = el("span", "pafrac"); frac.append(top, el("i"), bot);
+    function show() {
+        field.textContent = "";
+        if (mode === "") field.append(text);
+        else { field.append(sign); if (mode === "mixed") field.append(whole); field.append(frac); }
+        [...tabs.children].forEach((b) => { const on = b.dataset.k === mode; b.classList.toggle("on", on); b.setAttribute("aria-checked", String(on)); });
+    }
+    KINDS.forEach(([k, n]) => {
+        const b = btn("patab", null, () => { mode = k; show(); (mode === "" ? text : mode === "mixed" ? whole : top).focus(); });
+        b.dataset.k = k; b.setAttribute("role", "radio"); b.title = n; b.setAttribute("aria-label", n);
+        if (k === "") b.append(el("b", null, "123"));
+        else { const f = el("span", "frac"); f.append(el("span", null, "a"), el("span", null, "b")); if (k === "mixed") b.append(el("b", null, "1")); b.append(f); }
+        b.append(el("small", null, n.replace(" number", ""))); tabs.append(b);
+    });
+    wrap.append(tabs, field); show();
+    return {
+        el: wrap,
+        focus() { (mode === "" ? text : mode === "mixed" ? whole : top).focus(); },
+        /** The answer as text ("3/4", "-1 1/2", "12"), or an error message to show. */
+        read() {
+            if (mode === "") return { t: text.value.trim() };
+            const w = whole.value.trim(), a = top.value.trim(), b = bot.value.trim(), s = neg ? "-" : "";
+            if (mode === "mixed" && w && !a && !b) return { t: s + w };
+            if (!a || !b) return { err: mode === "mixed" ? "Fill in the whole number, the top and the bottom." : "Fill in the top and the bottom of the fraction." };
+            if (+b === 0) return { err: "The bottom number can't be 0." };
+            return { t: s + (mode === "mixed" && w ? w + " " : "") + a + "/" + b };
+        }
+    };
+}
+
+/* ---------- celebrations ---------- */
+const calm = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+/** A burst of paper confetti from a point on the screen (x, y as 0 to 1). */
+function confetti(n, x0, y0, colors) {
+    if (calm()) return;
+    const c = el("canvas", "pconfetti"), d = Math.min(2, window.devicePixelRatio || 1), W = innerWidth, H = innerHeight;
+    c.width = W * d; c.height = H * d; document.body.append(c); const x = c.getContext("2d"); x.scale(d, d);
+    const cols = colors || ["#F2B33D", "#7FAEDD", "#1F9D61", "#FFFFFF", "#F6D58A", "#1552D6"];
+    const ps = Array.from({ length: n }, () => { const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2, v = 7 + Math.random() * 9; return { x: W * x0, y: H * y0, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4, w: 6 + Math.random() * 6, h: 4 + Math.random() * 6, c: cols[Math.floor(Math.random() * cols.length)] }; });
+    const t0 = performance.now();
+    (function frame(t) {
+        const age = t - t0; x.clearRect(0, 0, W, H);
+        ps.forEach((p) => { p.vy += 0.32; p.vx *= 0.985; p.x += p.vx; p.y += p.vy; p.r += p.vr; x.save(); x.globalAlpha = Math.max(0, 1 - age / 2200); x.translate(p.x, p.y); x.rotate(p.r); x.fillStyle = p.c; x.fillRect(-p.w / 2, -p.h / 2, p.w, Math.abs(Math.cos(p.r * 2)) * p.h + 1); x.restore(); });
+        if (age < 2200) requestAnimationFrame(frame); else c.remove();
+    })(t0);
+}
+/** Count a number up on screen. */
+function countUp(node, to, prefix) {
+    if (calm() || to <= 0) { node.textContent = prefix + to; return; }
+    const t0 = performance.now(), ms = 700;
+    (function frame(t) { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); node.textContent = prefix + Math.round(to * e); if (k < 1) requestAnimationFrame(frame); })(t0);
+}
+let celebrated = "";
+/** Run a celebration once for this event, not on every redraw. */
+const once = (key, fn) => { if (celebrated === key) return; celebrated = key; setTimeout(fn, 60); };
+
+/* ---------- pictures (drawn here, no image files) ---------- */
+const svg = (inner, cls, vb) => { const s = el("span", "pic" + (cls ? " " + cls : "")); s.innerHTML = '<svg viewBox="' + (vb || "0 0 120 120") + '" aria-hidden="true" focusable="false">' + inner + "</svg>"; return s; };
+/** A round vault door with a dial. open: the door swings away and coins show. */
+function vaultPic(cls) {
+    const bolts = [0, 60, 120, 180, 240, 300].map((a) => { const r = a * Math.PI / 180; return '<circle cx="' + (60 + 46 * Math.cos(r)).toFixed(1) + '" cy="' + (60 + 46 * Math.sin(r)).toFixed(1) + '" r="3.2" fill="#7FAEDD"/>'; }).join("");
+    const ticks = Array.from({ length: 12 }, (_, i) => '<line x1="60" y1="36" x2="60" y2="' + (i % 3 ? 39 : 41) + '" stroke="#081B45" stroke-width="2" transform="rotate(' + i * 30 + ' 60 60)"/>').join("");
+    return svg('<g class="vcoins"><circle cx="48" cy="66" r="12" fill="#F2B33D"/><circle cx="66" cy="58" r="12" fill="#F6C866"/><circle cx="72" cy="74" r="12" fill="#F2B33D"/></g>'
+        + '<g class="vdoor"><circle cx="60" cy="60" r="56" fill="#10358A"/><circle cx="60" cy="60" r="56" fill="none" stroke="#7FAEDD" stroke-width="4"/>' + bolts
+        + '<circle cx="60" cy="60" r="30" fill="#F4F7FB"/><g class="vdial">' + ticks + '<path d="M60 60L60 24" stroke="#F2B33D" stroke-width="5" stroke-linecap="round"/><circle cx="60" cy="60" r="9" fill="#081B45"/></g></g>', "vault" + (cls ? " " + cls : ""));
+}
+const coinPic = () => svg('<circle cx="60" cy="60" r="52" fill="#F2B33D"/><circle cx="60" cy="60" r="40" fill="none" stroke="#FFE3A3" stroke-width="5"/><path d="M60 36v48M48 46h18a8 8 0 010 16H54a8 8 0 000 16h18" fill="none" stroke="#8A5F00" stroke-width="7" stroke-linecap="round"/>', "coin");
+const lockPic = () => svg('<rect x="24" y="52" width="72" height="56" rx="12" fill="#B4232A"/><path d="M40 52V38a20 20 0 0136-12" fill="none" stroke="#F4F7FB" stroke-width="9" stroke-linecap="round"/><circle cx="60" cy="78" r="8" fill="#F4F7FB"/><path d="M60 84v10" stroke="#F4F7FB" stroke-width="6" stroke-linecap="round"/>', "lock");
+function medal(rank) {
+    const c = rank === 1 ? ["#F2B33D", "#8A5F00"] : rank === 2 ? ["#C9D3E3", "#55627F"] : rank === 3 ? ["#D99A63", "#6B3F16"] : ["#7FAEDD", "#081B45"];
+    const s = svg('<path d="M38 6l14 40M82 6L68 46" stroke="#1552D6" stroke-width="12"/><circle cx="60" cy="72" r="40" fill="' + c[0] + '"/><circle cx="60" cy="72" r="31" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="4"/>', "medal");
+    s.append(el("b", null, String(rank))); s.style.setProperty("--mk", c[1]); return s;
+}
+/** Flames for the streak: one lit per right answer in a row, up to 5. */
+function streakRow(st) {
+    const r = el("div", "pstreak"); r.setAttribute("aria-label", st + " in a row");
+    for (let i = 0; i < 5; i++) r.append(svg('<path d="M60 8c4 22 30 34 30 62a30 30 0 01-60 0c0-14 8-22 14-30 2 10 8 14 12 14-4-16 0-34 4-46z"/>', "flame" + (i < st ? " lit" : ""), "0 0 120 120"));
+    return r;
+}
+const STREAK_WORDS = { 2: "Two in a row!", 3: "On a roll!", 4: "Heating up!", 5: "On fire!", 7: "Unstoppable!", 10: "Legendary!" };
+const RIGHT_WORDS = ["Right!", "Nailed it!", "Yes!", "Correct!", "Got it!"];
+const MISS_WORDS = ["Shake it off. The next one is yours.", "Close one. Check the answer and keep going.", "Mistakes help you learn. Keep going!"];
+
 /* ---------- drawing the page ---------- */
 function stats() {
     const s = $("stats"), m = ST.me;
     if (!m || !m.nm || ST.roomGone) { s.hidden = true; return; }
     s.hidden = false; s.textContent = "";
     const chip = (label, val, cls) => { const c = el("span", "pstat" + (cls ? " " + cls : "")); c.append(el("small", null, label), el("b", null, val)); s.append(c); };
-    chip("Name", m.nm); chip("Coins", String(m.c), "coin"); chip("Hacks", String(m.h)); if (m.status !== "lobby") chip("Place", m.rank + " of " + m.players);
+    const was = ST.coins; ST.coins = m.c;
+    chip("Name", m.nm); chip("Coins", String(m.c), "coin" + (was != null && m.c > was ? " up" : was != null && m.c < was ? " down" : "")); chip("Hacks", String(m.h)); if (m.status !== "lobby") chip("Place", m.rank + " of " + m.players);
     const t = el("span", "pstat"); t.append(el("small", null, "Time"), el("b", null, "")); t.id = "ptime"; s.append(t); tickTime();
 }
 function tickTime() {
@@ -231,16 +330,23 @@ function draw(force) {
     if (!m) { card.append(el("h1", null, "Joining…"), el("p", "plead", "Hang on a second.")); return; }
     if (m.status === "lobby") {
         if (m.need) return vaultStep(card, true);
-        card.append(el("h1", null, "You're in, " + m.nm + "!"), el("p", "plead", "Your vault code is"), codeShow(m.code), el("p", "plead", "Keep it secret. The game starts when your teacher says go. Watch the board."));
+        card.classList.add("lobby");
+        card.append(vaultPic("spin"), el("h1", null, "You're in, " + m.nm + "!"), el("p", "plead", "Your secret vault code"), codeShow(m.code));
+        const w = el("p", "pwait"); w.append(document.createTextNode("Waiting for your teacher to start"), el("i"), el("i"), el("i")); card.append(w, el("p", "pnote", "Keep your code secret. Watch the board."));
         return;
     }
     if (m.status === "done") {
-        card.append(el("h1", null, "Game over!"), el("p", "pbig", ordinal(m.rank) + " place"), el("p", "plead", m.c + " coins · " + m.r + " of " + m.of + " right"), el("p", "pnote", "Great work. Look at the board for the winners."));
+        card.classList.add("done");
+        card.append(el("h1", null, "Game over!"), medal(m.rank), el("p", "pbig", ordinal(m.rank) + " place"));
+        const tiles = el("div", "ptiles"), tile = (v, l) => { const t = el("div", "ptile"); t.append(el("b", null, String(v)), el("small", null, l)); tiles.append(t); };
+        tile(m.c, "coins"); tile(m.r + " of " + m.of, "right"); if (m.best != null) tile(m.best, "best streak"); if (m.cr != null) tile(m.cr, m.cr === 1 ? "vault cracked" : "vaults cracked");
+        card.append(tiles, el("p", "pnote", m.rank <= 3 ? "Top 3! Look at the board for the winners." : "Great work. Look at the board for the winners."));
+        if (m.rank <= 3) once("done", () => { confetti(160, 0.5, 0.35); setTimeout(() => confetti(90, 0.2, 0.5), 400); setTimeout(() => confetti(90, 0.8, 0.5), 700); });
         return;
     }
     if (ST.view === "hit" && m.hit) {
-        card.classList.add("alert");
-        card.append(el("h1", null, "Your vault was cracked!"), el("p", "plead", m.hit.by + " guessed your code and took " + m.hit.lost + " coins. Set a new code to lock it again."));
+        card.classList.add("alert"); if (celebrated !== "hit" + m.hit.at) card.classList.add("shake"); once("hit" + m.hit.at, () => {});
+        card.append(lockPic(), el("h1", null, "Your vault was cracked!"), el("p", "plead", m.hit.by + " guessed your code and took " + m.hit.lost + " coins. Set a new code to lock it again."));
         const b = btn("pbtn go", "Set a new code", () => { ST.seenHit = m.hit.at; ST.view = "q"; draw(true); }); card.append(b); return;
     }
     if (m.need) return vaultStep(card, true);
@@ -281,7 +387,7 @@ function nameStep(card) {
     note(card);
 }
 function vaultStep(card, again) {
-    card.append(el("h1", null, again ? "Set a new vault code" : "Set your vault code"), el("p", "plead", "Pick 3 different digits, 1 to 9. Classmates will try to guess it, so don't share it."));
+    card.append(vaultPic("small"), el("h1", null, again ? "Set a new vault code" : "Set your vault code"), el("p", "plead", "Pick 3 different digits, 1 to 9. Classmates will try to guess it, so don't share it."));
     const slots = el("div", "pslots"); for (let i = 0; i < V.CODE_LEN; i++) slots.append(el("span", "pslot" + (ST.vault[i] ? " full" : ""), ST.vault[i] || ""));
     card.append(slots, keypad(ST.vault, (v) => { ST.vault = v; draw(true); }));
     const ok = btn("pbtn go", ST.busy ? "Saving…" : again ? "Lock my vault" : "Join the game", async () => {
@@ -312,27 +418,46 @@ function questionView(card) {
     if (m.h > 0) top.append(btn("pbtn hack", "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }));
     left.append(top, mathEl("p", "pq", q.t));
     const right = el("div", "pqright");
-    const f = el("form", "pform ans"), inp = el("input", "ptext"); inp.maxLength = 80; inp.autocomplete = "off"; inp.placeholder = "Your answer"; inp.setAttribute("aria-label", "Your answer");
+    const f = el("form", "pform ans"), box = answerBox(q.f || "");
     const go = el("button", "pbtn go", "Submit"); go.type = "submit";
     f.onsubmit = (e) => {
-        e.preventDefault(); const t = inp.value.trim(); if (!t) { ST.err = "Type your answer first."; const n = $("pnote"); if (n) n.textContent = ST.err; return; }
+        e.preventDefault(); const r = box.read(), t = r.t || "";
+        if (r.err || !t) { ST.err = r.err || "Type your answer first."; const n = $("pnote"); if (n) n.textContent = ST.err; return; }
         if (need && !pad.shown()) { ST.err = "Show your work on the pad first, then submit."; const n = $("pnote"); if (n) n.textContent = ST.err; return; }
         if (ST.sentQ === q.n) return;
         ST.sentQ = q.n; ST.err = ""; go.disabled = true; go.textContent = "Checking…";
         const img = pad.image(); pad.sent(); send({ a: { n: Date.now(), q: q.n, t: t.slice(0, 80) }, img, iq: q.n, it: Date.now() });
         setTimeout(() => { if (ST.sentQ === q.n && ST.view === "q") { ST.sentQ = -1; ST.err = "Your teacher's screen didn't answer. Try Submit again, or tell your teacher."; draw(true); } }, 10000);
     };
-    f.append(inp, go); right.append(f); note(right);
+    f.append(box.el, go); right.append(f); note(right);
     qc.append(left, right); card.append(qc);
     const host = el("div", "wbpaper ppaper"); host.id = "padhost"; host.dataset.q = String(q.n);
     host.append(el("p", "ptag", need ? "Show your work here (needed to submit)" : "Show your work here"));
     card.append(host); pad.mount(host);
 }
 function fbView(card) {
-    const m = ST.me, f = m.fb || {};
+    const m = ST.me, f = m.fb || {}, key = "fb" + f.q, fresh = celebrated !== key;
     card.classList.add(f.ok ? "good" : "miss");
-    if (f.ok) card.append(el("h1", null, f.fixed ? "Your teacher counted it!" : "Right!"), el("p", "pbig", "+" + f.plus + " coins"), el("p", "plead", "+1 hack" + (m.st > 1 ? " · " + m.st + " in a row" : "")));
-    else { card.append(el("h1", null, "Not quite")); if (f.a) { const a = el("div", "pansbox"); a.append(el("small", null, "The answer was"), mathEl("p", null, f.a)); card.append(a); } card.append(el("p", "plead", "You wrote " + (f.y || "nothing") + ".")); }
+    if (f.ok) {
+        if (fresh) card.classList.add("pop");
+        const pick = (list) => list[(f.q || 0) % list.length];
+        card.append(el("h1", null, f.fixed ? "Your teacher counted it!" : pick(RIGHT_WORDS)));
+        const win = el("div", "pwin"), amt = el("b", "pplus", fresh ? "+0" : "+" + f.plus); win.append(coinPic(), amt); card.append(win);
+        const st = m.st || 1, words = STREAK_WORDS[st] || (st > 10 ? "Legendary!" : "");
+        card.append(streakRow(st));
+        const chips = el("div", "pchips"); chips.append(el("span", "pgain", "+1 hack"));
+        if (st > 1) chips.append(el("span", "pgain hot", words || st + " in a row"));
+        if (f.plus > 10) chips.append(el("span", "pgain", "Streak bonus +" + (f.plus - 10)));
+        card.append(chips);
+        once(key, () => { countUp(amt, f.plus || 0, "+"); confetti(st >= 5 ? 170 : st >= 3 ? 120 : 80, 0.5, 0.3); });
+    } else {
+        if (fresh) card.classList.add("shake");
+        card.append(el("h1", null, "Not quite"));
+        if (f.a) { const a = el("div", "pansbox"); a.append(el("small", null, "The answer was"), mathEl("p", null, f.a)); card.append(a); }
+        const y = el("p", "plead"); y.append(document.createTextNode("You wrote ")); if (f.y) y.append(V.mathText(f.y)); else y.append(document.createTextNode("nothing")); y.append(document.createTextNode(".")); card.append(y);
+        card.append(el("p", "pnote", MISS_WORDS[(f.q || 0) % MISS_WORDS.length]));
+        once(key, () => {});
+    }
     const row = el("div", "prow");
     row.append(btn("pbtn go", "Next question", () => { ST.view = "q"; draw(true); }));
     if (m.h > 0) row.append(btn("pbtn hack", "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }));
@@ -355,8 +480,8 @@ function guessView(card) {
     if (!t) { ST.view = "targets"; return targetsView(card); }
     card.classList.add("wide");
     const hk = m.hk && m.hk.to === t.id ? m.hk : null, cracked = m.hk && m.hk.steal != null && m.hk.m === "222" && m.hk.tn === t.nm && !t.g.length;
-    card.append(el("h1", null, "Hack " + t.nm + "'s vault"));
-    if (cracked) { card.classList.add("good"); card.append(el("p", "pbig", "Cracked! +" + m.hk.steal + " coins"), el("p", "plead", t.nm + " has to set a new code.")); card.append(btn("pbtn go", "Back to questions", () => { ST.view = "q"; ST.target = ""; draw(true); })); return; }
+    card.append(el("h1", null, cracked ? "You cracked " + t.nm + "'s vault!" : "Hack " + t.nm + "'s vault"));
+    if (cracked) { card.classList.add("good", "center"); if (celebrated !== "crack" + m.hk.n) card.classList.add("pop"); card.append(vaultPic("open"), el("p", "pbig", "Cracked! +" + m.hk.steal + " coins")); once("crack" + m.hk.n, () => { confetti(150, 0.5, 0.35, ["#F2B33D", "#F6C866", "#FFE3A3", "#7FAEDD", "#FFFFFF"]); }); card.append( el("p", "plead", t.nm + " has to set a new code.")); card.append(btn("pbtn go", "Back to questions", () => { ST.view = "q"; ST.target = ""; draw(true); })); return; }
     if (hk && hk.why) card.append(el("p", "pnote err", hk.why));
     const legend = el("p", "plegend"); legend.append(dot(2), document.createTextNode(" right digit, right spot  "), dot(1), document.createTextNode(" in the code, wrong spot  "), dot(0), document.createTextNode(" not in the code")); card.append(legend);
     const hist = el("div", "phist");

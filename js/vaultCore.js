@@ -104,6 +104,14 @@ export function sameAnswer(typed, answer, also) {
     });
 }
 
+/** The kind of answer box a question wants, read from its answer: "frac" (3/4), "mixed" (1 1/2) or "" (anything else). */
+export function answerKind(ans) {
+    const [n] = withUnit(norm(ans));
+    if (/^-?\d+ \d+\/\d+$/.test(n)) return "mixed";
+    if (/^-?\d+\s*\/\s*\d+$/.test(n)) return "frac";
+    return "";
+}
+
 /* ---------- math text (same writing as the review games) ---------- */
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const tidy = (s) => String(s == null ? "" : s).replace(/<=/g, "≤").replace(/>=/g, "≥").replace(/!=/g, "≠").replace(/sqrt\(/gi, "√(")
