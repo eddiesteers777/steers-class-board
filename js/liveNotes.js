@@ -16,7 +16,7 @@
    Each period keeps the same room code from day to day, so a class link posted once keeps working.
    Closing live notes deletes the room and everything students sent. Nothing is saved to Class Data.
 ========================================== */
-import * as V from "./vaultCore.js?v=69";
+import * as V from "./vaultCore.js?v=70";
 import qrcode from "./vendor/qrcode.js?v=1";
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };

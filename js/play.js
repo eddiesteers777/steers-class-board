@@ -12,7 +12,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import * as V from "./vaultCore.js?v=69";
+import * as V from "./vaultCore.js?v=70";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=2";
 
@@ -312,6 +312,7 @@ const SPECIAL = { sol: ["Choose", "✓"], mc: ["Choose", "✓"], pow: ["Exponent
 const SOLS = ["One solution", "No solution", "Infinitely many solutions"];
 function answerBox(kind, options) {
     if (kind === "mc" && !(Array.isArray(options) && options.length >= 2)) kind = "";   // multiple choice needs its choices
+    const ineq = kind === "ineq"; if (ineq || (kind && !SPECIAL[kind] && !/^list[2-4]$/.test(kind) && !KINDS.some((k) => k[0] === kind))) kind = "";   // an inequality (or a shape this page doesn't know) goes in the plain box
     const lm = /^list([2-4])$/.exec(kind || ""), sk = lm ? "list" : SPECIAL[kind] ? kind : "", count = lm ? +lm[1] : 0;
     const kinds = sk === "mc" ? [["mc", "Choose"]] : (sk ? [[sk, SPECIAL[sk][0]]] : []).concat(KINDS);   // multiple choice: tap a choice, no other box
     const wrap = el("div", "pabox"); let mode = kinds.some((k) => k[0] === kind || k[0] === sk) ? (sk || kind) : "", neg = false, choice = "";
@@ -320,7 +321,18 @@ function answerBox(kind, options) {
     const num = (label, cls) => { const i = el("input", "pnum" + (cls ? " " + cls : "")); i.inputMode = "numeric"; i.autocomplete = "off"; i.maxLength = 7; i.setAttribute("aria-label", label); i.oninput = () => { i.value = i.value.replace(/[^\d.]/g, "").slice(0, 7); }; return i; };
     // A box in a ready-made shape: numbers with a minus sign or decimal point (and letters for a base like x).
     const cell = (label, cls, letters) => { const i = el("input", "pnum" + (cls ? " " + cls : "")); i.autocomplete = "off"; i.maxLength = 8; i.inputMode = letters ? "text" : "decimal"; i.setAttribute("aria-label", label); i.oninput = () => { i.value = i.value.replace(/[−–]/g, "-").replace(letters ? /[^\da-zA-Z.\-]/g : /[^\d.\-]/g, "").slice(0, 8); }; return i; };
-    const text = el("input", "ptext"); text.maxLength = 80; text.autocomplete = "off"; text.placeholder = "Your answer"; text.setAttribute("aria-label", "Your answer");
+    const text = el("input", "ptext"); text.maxLength = 80; text.autocomplete = "off"; text.placeholder = ineq ? "Like x > 3" : "Your answer"; text.setAttribute("aria-label", "Your answer");
+    // Inequality answers get buttons for the signs a Chromebook keyboard doesn't have (≤ ≥), plus the rest.
+    const syms = el("div", "pasyms"); syms.setAttribute("aria-label", "Math symbols");
+    if (ineq) ["x", "<", ">", "≤", "≥", "−", "or", "and"].forEach((sy) => {
+        const b = btn("pasym", sy, () => {
+            const put = sy === "or" || sy === "and" ? " " + sy + " " : sy === "−" ? "-" : sy, a = text.selectionStart != null ? text.selectionStart : text.value.length, z = text.selectionEnd != null ? text.selectionEnd : a;
+            text.value = (text.value.slice(0, a) + put + text.value.slice(z)).slice(0, 80); const c = Math.min(80, a + put.length); text.focus(); try { text.setSelectionRange(c, c); } catch {}
+        });
+        b.onmousedown = (e) => e.preventDefault();   // keep the cursor in the box
+        b.setAttribute("aria-label", { "<": "less than", ">": "greater than", "≤": "less than or equal to", "≥": "greater than or equal to", "−": "negative", x: "x", or: "or", and: "and" }[sy]);
+        syms.append(b);
+    });
     const whole = num("Whole number", "whole"), top = num("Top number (numerator)"), bot = num("Bottom number (denominator)");
     top.onkeydown = (e) => { if (e.key === "/" || (e.key === "Enter" && top.value && !bot.value)) { e.preventDefault(); bot.focus(); } };
     whole.onkeydown = (e) => { if (e.key === " " || (e.key === "Enter" && whole.value && !top.value)) { e.preventDefault(); top.focus(); } };
@@ -346,7 +358,7 @@ function answerBox(kind, options) {
     const first = () => mode === "" ? text : mode === "mixed" ? whole : mode === "frac" ? top : mode === "list" ? boxes[0] : mode === "sol" || mode === "mc" ? choiceEl.firstChild : base;
     function show() {
         field.textContent = ""; field.classList.toggle("choices", mode === "sol" || mode === "mc");
-        if (mode === "") field.append(text);
+        if (mode === "") { field.append(text); if (syms.childNodes.length) field.append(syms); }
         else if (mode === "sol" || mode === "mc") field.append(choiceEl);
         else if (mode === "pow" || mode === "sci") field.append(powEl);
         else if (mode === "list") field.append(listEl);

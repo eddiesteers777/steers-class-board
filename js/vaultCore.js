@@ -123,7 +123,7 @@ function norm(s) {
         .replace(/\s*\^\s*/g, "^").replace(/\^\((-?\d+)\)/g, "^$1")                     // 3 ^ 3, 3^(3)
         .replace(/(\d)\s*(?:×|x|\*|·|•)\s*10\^/g, "$1×10^")                               // 8 x 10^5, 8*10^5
         .replace(/\s*°\s*/g, "°").replace(/(\d)\s*degrees?\b/g, "$1°");
-    return t.replace(/^\s*[a-z]\s*=\s*/, "").replace(/[.\\/\s]+$/, "").replace(/^\$\s*/, "").trim();
+    return t.replace(/^\s*[a-z]\s*=(?![<>=])\s*/, "").replace(/^(-?[\d./ ]*\d)\s*=\s*[a-z]$/, "$1").replace(/[.\\/\s]+$/, "").replace(/^\$\s*/, "").trim();
 }
 /** A plain number, fraction, mixed number or decimal as a value; null for anything else. */
 export function numberOf(s) {
@@ -193,6 +193,34 @@ function sameExpr(t, a) {
         return p != null && q != null && Math.abs(p - q) < 1e-6 * Math.max(1, Math.abs(q));
     });
 }
+/** An inequality answer read one way, so every correct way to write it matches:
+    "x > 15", "15 < x", "x>15", "x is greater than 15", "m ≤ 6" for "x ≤ 6", "-1 < x ≤ 4" or "x > -1 and x <= 4",
+    and "x < -5 or x >= 4" in either order. Returns "and:>-1,<=4" style text; null if it isn't an inequality. */
+const FLIP = { "<": ">", ">": "<", "<=": ">=", ">=": "<=" };
+function ineqOf(src) {
+    let s = String(src || "").replace(/\bis\b|\bthe\b|\bnumber\b/g, " ")
+        .replace(/greater than or equal to|more than or equal to|at least|no less than|minimum of/g, ">=")
+        .replace(/less than or equal to|at most|no more than|maximum of/g, "<=")
+        .replace(/greater than|more than|bigger than/g, ">").replace(/less than|smaller than|fewer than/g, "<")
+        .replace(/=>/g, ">=").replace(/=</g, "<=").replace(/\s+/g, " ").trim();
+    if (!/[<>]/.test(s)) return null;
+    const num = (x) => numberOf(String(x).replace(/°$/, "").trim());
+    const one = (part) => {   // "x > 3" or "3 < x" (a letter on one side, a number on the other)
+        const m = part.trim().match(/^([^<>=]+?) ?(<=|>=|<|>) ?([^<>=]+)$/); if (!m) return null;
+        const L = m[1].trim(), R = m[3].trim();
+        if (/^[a-z]$/.test(L) && num(R) != null) return [m[2], num(R)];
+        if (/^[a-z]$/.test(R) && num(L) != null) return [FLIP[m[2]], num(L)];
+        return null;
+    };
+    const key = (kind, parts) => kind + ":" + parts.map(([o, v]) => o + (+v.toFixed(9))).sort().join(",");
+    // A double inequality: -1 < x <= 4 (or 4 >= x > -1).
+    const d = s.match(/^([^<>=]+?) ?(<=|<|>=|>) ?([a-z]) ?(<=|<|>=|>) ?([^<>=]+)$/);
+    if (d && num(d[1]) != null && num(d[5]) != null && (d[2][0] === d[4][0])) return key("and", [[FLIP[d[2]], num(d[1])], [d[4], num(d[5])]]);
+    for (const [word, kind] of [[" or ", "or"], [" and ", "and"], [", ", "and"]]) {
+        if (s.includes(word)) { const ps = s.split(word).map(one); return ps.length === 2 && ps.every(Boolean) ? key(kind, ps) : null; }
+    }
+    const p = one(s); return p ? key("one", [p]) : null;
+}
 /** How-many-solutions answers: "inf", "none", "one", or "" when the answer is not one of these. */
 function solKind(a) {
     if (/infinit|^all real/.test(a)) return "inf";
@@ -227,6 +255,7 @@ export function sameAnswer(typed, answer, also) {
         const a = norm(ans); if (!a) return false;
         const sq = (x) => x.replace(/ /g, "").replace(/°/g, "");
         if (t.replace(/ /g, "") === a.replace(/ /g, "")) return true;
+        const ia = ineqOf(a); if (ia) { const it = ineqOf(t); if (it) return it === ia; }
         const sk = solKind(a); if (sk) return solTyped(t) === sk;
         // A comparison like "-3/4 > -0.8": the sign on its own is right too.
         const cmp = a.match(/^\S+ ?(<=|>=|<|>|=) ?\S+$/); if (cmp && /^(<=|>=|<|>|=)$/.test(t.replace(/ /g, ""))) return t.replace(/ /g, "") === cmp[1];
@@ -253,6 +282,7 @@ export function sameAnswer(typed, answer, also) {
 export function answerKind(ans) {
     const a = norm(ans); if (!a) return "";
     if (solKind(a)) return "sol";
+    if (ineqOf(a)) return "ineq";
     if (/^-?\d+(\.\d+)?×10\^-?\d+$/.test(a)) return "sci";
     if (/^\(?-?[a-z0-9]+\)?\^-?\d+$/.test(a)) return "pow";
     const l = listOf(a); if (l && l.length <= 4) return "list" + l.length;
@@ -279,6 +309,14 @@ export function hintFor(typed, answer, question) {
     const q = String(question || "").toLowerCase(), a = norm(answer), t = norm(typed);
     const [an] = withUnit(a), [tn] = withUnit(t), x = numberOf(tn), y = numberOf(an);
     if (solKind(a)) return "Simplify both sides first. If the x's cancel out, compare the numbers that are left.";
+    const ia = ineqOf(a);
+    if (ia) {
+        const it = ineqOf(t), flip = (k) => k && k.replace(/<=|>=|<|>/g, (o) => FLIP[o]);
+        if (x != null) return "Write your answer as an inequality, like x > 3 (use the ≤ ≥ < > buttons).";
+        if (it && (flip(it) === ia || (it.split(":")[0] === ia.split(":")[0] && it.replace(/[<>=]/g, "") === ia.replace(/[<>=]/g, "")))) return "Your number is right. Check the sign. Did you multiply or divide by a negative? Then flip it.";
+        if (ia.startsWith("or:")) return "Solve each part on its own, then join them with \"or\".";
+        if (ia.startsWith("and:")) return "Do the same step to all three parts.";
+    }
     if (x != null && y != null && x !== 0) {
         if (Math.abs(x + y) < 1e-9) return "So close. Check your positive and negative signs.";
         if ([10, 100, 0.1, 0.01].some((k) => Math.abs(x * k - y) < 1e-9)) return "Check where the decimal point goes.";
