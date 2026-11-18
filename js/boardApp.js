@@ -279,7 +279,7 @@ const unlockSound = () => snd.unlock();
 /* ---------- sound ----------
    One screen plays the sound: the board, unless the Remote picked "This device".
    Settings are shared, so the Remote turns music on and the board plays it. */
-const DEVICE = (() => { try { let id = localStorage.getItem("focal-device-id"); if (!id) { id = Math.random().toString(36).slice(2, 10); localStorage.setItem("focal-device-id", id); } return id; } catch (e) { return Math.random().toString(36).slice(2, 10); } })();
+const DEVICE = (() => { try { let id = localStorage.getItem("anchorboard-device-id"); if (!id) { id = Math.random().toString(36).slice(2, 10); localStorage.setItem("anchorboard-device-id", id); } return id; } catch (e) { return Math.random().toString(36).slice(2, 10); } })();
 function playsHere() { return mode === "sub" || (S.sound.at ? S.sound.at === DEVICE : document.body.classList.contains("board")); }
 function soundSync() { snd.set(S.sound, playsHere()); soundControls(); }
 /* Every timer, every quarter second, whatever screen is showing. */
@@ -955,7 +955,7 @@ export async function startApp(opts) {
     signedIn = true; $("who").textContent = guest ? ((opts && opts.who) || "Guest teacher view, no sign-in") : (user.name ? "Signed in as " + user.name : "Signed in");
     if (!guest && "BroadcastChannel" in window) {
         try {
-            tabs = new BroadcastChannel("focal-board-" + user.uid);
+            tabs = new BroadcastChannel("anchorboard-" + user.uid);
             tabs.onmessage = (ev) => {
                 const d = ev.data; if (!synced || !d || d.by === PAGE) return;
                 heard = { by: d.by, at: +d.at || 0 }; applyState(d); render();
@@ -1014,7 +1014,7 @@ export async function startApp(opts) {
         // The projected board has no one at its keyboard: if listening keeps failing while the device is online,
         // reload it (at most once every 5 minutes). The saved state comes straight back.
         if (mode === "board" && fails >= 4 && navigator.onLine) {
-            try { const k = "focal-board-reloaded", at = +sessionStorage.getItem(k) || 0; if (Date.now() - at > 300000) { sessionStorage.setItem(k, String(Date.now())); location.reload(); } } catch { /* storage blocked: keep retrying */ }
+            try { const k = "anchorboard-reloaded", at = +sessionStorage.getItem(k) || 0; if (Date.now() - at > 300000) { sessionStorage.setItem(k, String(Date.now())); location.reload(); } } catch { /* storage blocked: keep retrying */ }
         }
     });
     render();

@@ -1,9 +1,9 @@
 /* ==========================================
-   Focal — Vault Raid, the rules both sides share.
+   Anchor Board — Vault Raid, the rules both sides share.
    Pure functions only (no page, no store), so they can be tested on their own.
    The student page (play.html) and the teacher's Remote (js/liveRoom.js) both use them.
 
-   Vault Raid is Focal's own game: every student has a vault with a secret
+   Vault Raid is Anchor Board's own game: every student has a vault with a secret
    3-digit code. Right answers earn coins and a "hack". A hack is one guess at a
    classmate's code; the board-style marks (right spot, wrong spot, not in it)
    let a student work the code out. Cracking a vault takes a share of its coins.

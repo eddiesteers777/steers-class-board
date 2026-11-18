@@ -1,7 +1,7 @@
 # Anchor Board (formerly Focal, formerly Steers Class Board)
 
 Classroom display for Mr. Steers' math classes at Calera Middle School.
-Live at https://focalboard.web.app/
+Live at https://anchorboard.web.app/ — the free Firebase address. No custom domain is used and nothing needs to be bought.
 
 - `index.html` home: this week, with Open Remote and Open Board.
 - `remote.html` the Chromebook: pick class, day and screen, run timers, show answers.
@@ -29,7 +29,7 @@ Settings on Home links to `account.html`: a count of everything the account save
 Teacher only. Students never sign in to the teacher's pages; in a Student Game they join with a code and no account.
 
 ## Guest teacher (sub days)
-`sub.html` runs the board on one device with no sign-in: https://focalboard.web.app/sub.html
+`sub.html` runs the board on one device with no sign-in: https://anchorboard.web.app/sub.html.
 Nothing is saved and it never touches the teacher's account or rosters. Put this link in the sub plan.
 
 ## Guided Notes
@@ -74,12 +74,12 @@ Code Breaker uses the same sets and the Treasure Chests flow: each right team sc
 
 Import: the set editor on games.html can bring in a question list from another tool. Choose a CSV file or paste cells copied from a sheet. It reads the Blooket, Wayground (Quizizz), Gimkit and Kahoot spreadsheet templates, any sheet with Question and Answer columns (plus an optional Category or Topic column), and plain question, answer lists. Multiple-choice answers come in as the right option's text, with an option to write the choices into the question. Questions with no category are split into PART 1, PART 2…; the board holds 6 categories of 6. Nothing is saved until the teacher reviews the table and taps Save. The importer is js/importSet.js.
 Results: when a game reaches its final scores, the Remote saves a short summary to `teacher/{uid}/games/results` (date, period, game, set, team scores, winner, right answers per category, and the students on each team when the teams came from the Group maker). Class Data (`data.html#games`, `js/gameResults.js`) shows who won by day and period with a "Bonus given" box, each student's wins and wins still owed a bonus, and class growth over time. Names stay in the private account and never show on the board.
-The games are original to Focal. Do not copy the name, look or art of any other review-game site.
+The games are original to Anchor Board. Do not copy the name, look or art of any other review-game site.
 
 ## Student Game: Vault Raid (students on Chromebooks, no sign-in)
-The "Student Game" screen on the Remote opens a game students play on their own devices. `js/liveRoom.js` (Remote panel, board screen, referee), `play.html` + `js/play.js` (student page, focalboard.web.app/play), `js/vaultCore.js` (shared rules: answer checking, codes, names), `css/play.css`.
+The "Student Game" screen on the Remote opens a game students play on their own devices. `js/liveRoom.js` (Remote panel, board screen, referee), `play.html` + `js/play.js` (student page, anchorboard.web.app/play), `js/vaultCore.js` (shared rules: answer checking, codes, names), `css/play.css`.
 - The teacher picks a question set, a length, and whether students pick their name from the period's roster (shown as first name + last initial) or type it, then opens the room. The board shows the address and a 6-digit code.
-- Students type the code, pick their name, and set a secret vault code (3 different digits, 1 to 9). Each right answer earns coins (10, more on a streak) and a hack (up to 3). A hack is one guess at a classmate's code; each digit is marked right spot, wrong spot or not in the code. Cracking a vault takes 25% of its coins (at least 10) and the owner sets a new code behind a 45-second firewall. Focal's own game; not a copy of any other site's mode.
+- Students type the code, pick their name, and set a secret vault code (3 different digits, 1 to 9). Each right answer earns coins (10, more on a streak) and a hack (up to 3). A hack is one guess at a classmate's code; each digit is marked right spot, wrong spot or not in the code. Cracking a vault takes 25% of its coins (at least 10) and the owner sets a new code behind a 45-second firewall. Anchor Board's own game; not a copy of any other site's mode.
 - Every question has a work pad. Its picture goes to the Remote with each answer (or every few seconds with "See work live"). The Work tab shows every pad; "Show on board" puts one up, without the name unless the teacher picks "Show with name".
 - The Remote is the referee: it checks answers ("Count it" accepts a missed answer from then on) and hacks, so answers and other students' codes never reach a student's device. Keep the Remote open while a game runs; a reload picks the game back up.
 - Students sign in as anonymous guests on their own device only (a separate Firebase app, so a teacher signed in on the same device stays signed in). The Firebase project needs Anonymous sign-in turned on.
@@ -96,6 +96,6 @@ Two Claude threads (school account and personal account) push to `main`. Fetch a
 
 ## Hosting + Google
 
-- Live: https://focalboard.web.app/ via Firebase Hosting (free Spark plan). Also served at https://steers-class-board.web.app/ and via GitHub Pages (https://eddiesteers777.github.io/steers-class-board/) as fallbacks. No custom domain — the `web.app` address is the official address unless Eddie buys a domain later.
+- Live: https://anchorboard.web.app/ via Firebase Hosting (free Spark plan), and via GitHub Pages (https://eddiesteers777.github.io/steers-class-board/) as a fallback. The Firebase Hosting site `anchorboard` already exists; no custom domain is used and nothing needs to be bought. The old focalboard.web.app address is frozen at the Nov 18 release and no longer receives deploys.
 - Google Search Console: property for the Pages URL, verified by HTML file, sitemap submitted. Google indexes only the public pages (`/` and `home.html`); every app page carries `noindex` and the classroom content sits behind teacher sign-in, so it is not searchable.
 - SEO files in repo: `robots.txt`, `sitemap.xml`, `favicon.svg` + `icons/icon-192.png` / `icon-512.png` / `icon-maskable-512.png` (navy "S"), canonical + Open Graph tags on `index.html` and `home.html`, WebSite JSON-LD on `home.html`.

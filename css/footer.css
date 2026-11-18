@@ -2,9 +2,9 @@
    rings palette. Only the brand values below are specific to this site. */
 
 :root {
-    --forest: #081B45;          /* footer background: Focal stage navy */
+    --forest: #081B45;          /* footer background: Anchor Board stage navy */
     --cream: #F4F7FB;           /* big line and brand: on-navy */
-    --primary: #F2B33D;         /* accents: Focal amber */
+    --primary: #F2B33D;         /* accents: Anchor Board amber */
     --text-secondary: #C7D3E8;  /* links on navy */
     --muted: #8FA3C4;           /* legal text on navy */
     --border: rgba(244, 247, 251, .16);

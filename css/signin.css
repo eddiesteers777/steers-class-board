@@ -1,4 +1,4 @@
-/* Focal sign-in pages (home.html, login.html). Same palette and fonts as the rest of the site. */
+/* Anchor Board sign-in pages (home.html, login.html). Same palette and fonts as the rest of the site. */
 *{box-sizing:border-box;margin:0}
 html,body{min-height:100%}
 body{background:linear-gradient(135deg,#173F86 0%,#0B2559 55%,#081B45 100%);background-attachment:fixed;color:#F4F7FB;
