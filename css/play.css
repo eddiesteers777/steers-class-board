@@ -164,7 +164,7 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .patab{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;min-height:40px;padding:4px 8px;border-radius:12px;border:2px solid var(--line);background:#fff;color:var(--mute);font-weight:700}
 .patab b{font-size:.95rem;color:var(--navy)}
 .patab .frac{font-size:.8rem;font-weight:800;color:var(--navy)}
-.patab small{font-size:.78rem}
+.patab small{font-size:.78rem;white-space:nowrap}
 .patab.on{border-color:var(--blue);background:#EEF3FA;color:var(--blue)}
 .pafield{display:flex;align-items:center;gap:8px;min-height:52px}
 .pafield .ptext{flex:1}
@@ -176,6 +176,23 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .pasign{min-width:52px;height:44px;border-radius:10px;border:2px solid var(--line);background:#fff;font-weight:800;font-size:1.1rem;color:var(--mute)}
 .pasign.on{border-color:var(--red);color:var(--red);background:#FDEEEE;font-size:1.6rem}
 .pqcard .pform.ans{align-items:flex-end;flex-wrap:nowrap}
+/* ready-made answer shapes: exponent, scientific notation, one box per number, tap a choice */
+.papow{display:inline-flex;align-items:flex-start;gap:4px;padding-top:14px}
+.papow .pnum.base{width:96px;height:52px;font-size:1.5rem}
+.papow .pnum.exp{width:60px;height:38px;font-size:1.05rem;margin-top:-14px;border-style:dashed}
+.papow.sci{align-items:center}
+.papow.sci .pnum.exp{align-self:flex-start}
+.pax{font-size:1.45rem;font-weight:800;color:var(--navy);white-space:nowrap}
+.palist{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px}
+.palist .pnum.item{width:78px}
+.pajoin{font-weight:700;color:var(--mute)}
+.pafield.choices{min-height:0}
+.pachoices{display:flex;gap:6px;width:100%}
+.pachoice{flex:1 1 0;min-width:0;min-height:52px;padding:4px 8px;border-radius:12px;border:2px solid var(--line);background:#fff;font-weight:800;font-size:.95rem;line-height:1.15;color:var(--navy)}
+.pachoice.on{border-color:var(--blue);background:#EEF3FA;color:var(--blue);box-shadow:inset 0 0 0 2px var(--blue)}
+/* circle your answer on the pad */
+.prb-circle.on{background:#F2B33D;color:#13294B}
+.pcirclemsg{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:5;max-width:min(92%,420px);padding:8px 14px;border-radius:12px;background:#13294B;color:#fff;font-weight:700;font-size:.95rem;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.25);pointer-events:none}
 @media (max-width:560px){.patab small{display:none}.pnum{width:72px;height:40px}.pnum.whole{height:50px}}
 
 /* ---------- pictures and celebrations ---------- */

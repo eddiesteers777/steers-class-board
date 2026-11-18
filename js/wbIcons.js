@@ -1,6 +1,7 @@
 /* Whiteboard icons: small 24×24 stroke icons (currentColor) for the tool rail.
    Plain strings so any drawing surface (board, Remote, student pad) can use them. */
 const P = {
+    circle: '<ellipse cx="12" cy="12" rx="9.5" ry="7.5" stroke-dasharray="3.2 2.6"/><path d="M9 12.5l2 2 4-5"/>',
     pen: '<path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/>',
     hi: '<path d="M9 15l-4 5h6l2-2"/><path d="M9 15l8-11 3 3-8 11z"/>',
     eraser: '<path d="M7 20h12"/><path d="M4 15l9-10 7 7-7 8H9z"/>',
