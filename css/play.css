@@ -152,7 +152,7 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
   body.qmode .pbrand b{display:none}
   .ptag{display:none}
   .ppaper{font-size:18px}
-  body.qmode .pstat:first-child{display:none}
+  body.qmode .pstat:first-child,body.qmode .pmute{display:none}
   body.qmode .pstat{min-width:0;padding:2px 8px}
   body.qmode .pstat b{font-size:.95rem}
   .pkeys{grid-template-columns:repeat(3,64px)}
@@ -315,3 +315,24 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .pachoices.mc .pacht{flex:1;min-width:0}
 @media (min-width:900px){.pachoices.mc{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
 .patabs[hidden]{display:none}
+/* Sound switch */
+.pmute{cursor:pointer;color:inherit;font:inherit;text-align:left}
+.pmute.off b{color:var(--light);opacity:.75}
+/* Vault skins */
+.pic.vault.tiny{width:56px;height:56px}
+.pic.vault.mini{width:22px;height:22px;vertical-align:-5px;margin-right:6px}
+.pskins{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin:8px 0 14px}
+.pskin{display:flex;flex-direction:column;align-items:center;gap:2px;border:2px solid var(--line);background:var(--paper);border-radius:14px;padding:10px 8px;color:var(--ink);min-height:116px}
+.pskin b{font-size:1rem}
+.pskin small{color:var(--mute);font-size:.78rem;text-align:center}
+.pskin.on{border-color:var(--amber);box-shadow:0 0 0 3px rgba(242,179,61,.35)}
+.pskin.on small{color:#8A5F00;font-weight:700}
+.pskin:hover:not(:disabled){border-color:var(--blue)}
+.pskin:disabled{cursor:default}
+.pskin.locked .pic{filter:saturate(.55);opacity:.5}
+.pnewskin{display:flex;align-items:center;gap:12px;background:#FFF7E3;border:2px solid var(--amber);border-radius:14px;padding:8px 14px;margin:10px auto 0;max-width:420px;color:var(--ink);animation:bump .6s ease-out}
+.pnewskin small{display:block;font-size:.75rem;color:#8A5F00;font-weight:700}
+.pnewskin b{font-size:1.15rem}
+.pnewskin > div{flex:1;text-align:left}
+.pnewskin .pbtn.small{padding:6px 14px;min-height:0;font-size:.9rem}
+.pskinon{font-weight:700;color:#8A5F00;font-size:.85rem}

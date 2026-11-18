@@ -12,7 +12,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import * as V from "./vaultCore.js?v=67";
+import * as V from "./vaultCore.js?v=68";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=2";
 
@@ -49,8 +49,50 @@ const ST = {
     pick: null,          // { ni } or { nm } while joining
     view: "q",           // q (question) · fb (answer result) · targets · guess
     sentQ: -1, sentK: 0, coins: null, picks: {}, pickErr: false, opened: {}, seenBlock: 0, target: "", guess: "", vault: "", typed: "", err: "", seenHit: 0, busy: false,
+    skin: null, skinsSeen: null, skinFb: "", newSkin: -1, back: "q", lastBonus: null, lastStatus: "", endSnd: false,
 };
 let unsubRoom = null, unsubMe = null, sig = "";
+
+/* ---------- sound: short tones made right here (no sound files) ---------- */
+// The teacher can switch sound off for the whole game; each student can mute their own (kept on this device).
+let AC = null;
+const soundOn = () => store.get("mute") !== "1" && !(ST.room && ST.room.snd === false);
+const SOUNDS = {   // [frequency, start s, length s, wave, volume, slide to]
+    right: [[660, 0, .12], [880, .1, .2]],
+    streak: [[660, 0, .1], [880, .08, .1], [1175, .16, .26]],
+    miss: [[330, 0, .26, "triangle", .1, 220]],
+    box: [[1047, 0, .08], [1319, .07, .08], [1568, .14, .08], [2093, .21, .24]],
+    crack: [[523, 0, .12, "square", .05], [659, .11, .12, "square", .05], [784, .22, .12, "square", .05], [1047, .33, .4, "square", .06]],
+    hit: [[440, 0, .45, "sawtooth", .05, 130]],
+    bonus: [[220, 0, .35, "square", .04, 880], [880, .36, .18, "square", .04]],
+    start: [[523, 0, .12], [784, .12, .22]],
+    win: [[523, 0, .14], [659, .14, .14], [784, .28, .14], [1047, .42, .5]],
+    tap: [[880, 0, .06, "sine", .06]],
+};
+function sfx(k) {
+    if (!soundOn() || !SOUNDS[k]) return;
+    try {
+        AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume();
+        const t = AC.currentTime + 0.01;
+        SOUNDS[k].forEach(([f, at, len, wave, vol, to]) => {
+            const o = AC.createOscillator(), g = AC.createGain(); o.type = wave || "sine"; o.frequency.setValueAtTime(f, t + at);
+            if (to) o.frequency.exponentialRampToValueAtTime(to, t + at + len);
+            g.gain.setValueAtTime(0.0001, t + at); g.gain.exponentialRampToValueAtTime(vol || 0.12, t + at + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t + at + len);
+            o.connect(g).connect(AC.destination); o.start(t + at); o.stop(t + at + len + 0.03);
+        });
+    } catch (e) { /* no sound on this device */ }
+}
+// Browsers only allow sound after a tap, so wake the sound up on the first one.
+document.addEventListener("pointerdown", () => { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); } catch (e) { /* ok */ } }, { once: true });
+
+/* ---------- vault skins ---------- */
+/** The skin this student's vault wears: their pick on this device, else what the teacher's screen has, kept to the ones they've unlocked. */
+const mySkin = (m) => { const open = V.skinsOpen(m && m.top), i = ST.skin != null ? ST.skin : (m && m.vs) || 0; return i < open ? i : 0; };
+function pickSkin(i) {
+    ST.skin = i; sfx("tap"); draw(true);
+    // Its own small write; a site whose rules are older still keeps the look on this device.
+    setDoc(mine(), { at: Date.now(), vs: i }, { merge: true }).catch(() => {});
+}
 
 /* ---------- connecting ---------- */
 async function signIn() {
@@ -73,7 +115,11 @@ async function join(code) {
         ST.busy = false;
         if (!s.exists()) { if (ST.room) { ST.roomGone = true; } else { ST.err = "No game has that code. Check the board."; ST.step = "code"; ST.code = ""; stopAll(); } draw(); return; }
         if (s.data().kind === "notes") { stopAll(); location.replace("follow.html?code=" + code); return; }   // a Live notes code (js/follow.js)
-        ST.room = s.data(); store.set("code", code);
+        const was = ST.room; ST.room = s.data(); store.set("code", code);
+        const bn = +ST.room.bonus || 0;
+        if (was && bn > Date.now() && bn !== ST.lastBonus) sfx("bonus");
+        ST.lastBonus = bn;
+        if (was && was.status === "lobby" && ST.room.status === "play" && ST.me) sfx("start");
         if (!ST.me && ST.room.status === "done") { ST.err = "That game has ended."; ST.step = "code"; ST.code = ""; stopAll(); }
         else if (ST.step === "code") ST.step = "name";
         draw();
@@ -87,6 +133,7 @@ async function join(code) {
         const d = s.data();
         if (d.err) { ST.err = d.err; ST.step = "name"; ST.pick = null; ST.busy = false; draw(); return; }
         ST.me = d; ST.hadMe = true; ST.busy = false; ST.err = "";
+        if (ST.skinsSeen == null) ST.skinsSeen = V.skinsOpen(d.top);
         if (d.hit && d.hit.at > ST.seenHit && d.need) { ST.view = "hit"; }
         if (ST.view === "q" && ST.sentQ >= 0 && d.fb && d.fb.q === ST.sentQ) {
             if (d.fb.exit) { ST.sentQ = -1; pad.clear(); }   // exit ticket: straight on to the next question, no right or wrong
@@ -373,12 +420,15 @@ const once = (key, fn) => { if (celebrated === key) return; celebrated = key; se
 /* ---------- pictures (drawn here, no image files) ---------- */
 const svg = (inner, cls, vb) => { const s = el("span", "pic" + (cls ? " " + cls : "")); s.innerHTML = '<svg viewBox="' + (vb || "0 0 120 120") + '" aria-hidden="true" focusable="false">' + inner + "</svg>"; return s; };
 /** A round vault door with a dial. open: the door swings away and coins show. */
-function vaultPic(cls) {
-    const bolts = [0, 60, 120, 180, 240, 300].map((a) => { const r = a * Math.PI / 180; return '<circle cx="' + (60 + 46 * Math.cos(r)).toFixed(1) + '" cy="' + (60 + 46 * Math.sin(r)).toFixed(1) + '" r="3.2" fill="#7FAEDD"/>'; }).join("");
+function vaultPic(cls, vs) {
+    const k = V.skin(vs)[3];
+    const bolts = [0, 60, 120, 180, 240, 300].map((a) => { const r = a * Math.PI / 180; return '<circle cx="' + (60 + 46 * Math.cos(r)).toFixed(1) + '" cy="' + (60 + 46 * Math.sin(r)).toFixed(1) + '" r="3.2" fill="' + k.ring + '"/>'; }).join("");
+    const extra = (k.stars ? [[30, 34], [86, 30], [92, 80], [26, 82], [60, 98], [44, 18]].map(([x, y], i) => '<circle cx="' + x + '" cy="' + y + '" r="' + (i % 2 ? 1.6 : 2.4) + '" fill="#fff"/>').join("") : "")
+        + (k.shine ? '<path d="M22 40L40 22M28 52L52 28" stroke="#fff" stroke-opacity=".7" stroke-width="4" stroke-linecap="round"/><path d="M92 18l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#fff"/>' : "");
     const ticks = Array.from({ length: 12 }, (_, i) => '<line x1="60" y1="36" x2="60" y2="' + (i % 3 ? 39 : 41) + '" stroke="#081B45" stroke-width="2" transform="rotate(' + i * 30 + ' 60 60)"/>').join("");
     return svg('<g class="vcoins"><circle cx="48" cy="66" r="12" fill="#F2B33D"/><circle cx="66" cy="58" r="12" fill="#F6C866"/><circle cx="72" cy="74" r="12" fill="#F2B33D"/></g>'
-        + '<g class="vdoor"><circle cx="60" cy="60" r="56" fill="#10358A"/><circle cx="60" cy="60" r="56" fill="none" stroke="#7FAEDD" stroke-width="4"/>' + bolts
-        + '<circle cx="60" cy="60" r="30" fill="#F4F7FB"/><g class="vdial">' + ticks + '<path d="M60 60L60 24" stroke="#F2B33D" stroke-width="5" stroke-linecap="round"/><circle cx="60" cy="60" r="9" fill="#081B45"/></g></g>', "vault" + (cls ? " " + cls : ""));
+        + '<g class="vdoor"><circle cx="60" cy="60" r="56" fill="' + k.door + '"/><circle cx="60" cy="60" r="56" fill="none" stroke="' + k.ring + '" stroke-width="4"/>' + bolts + extra
+        + '<circle cx="60" cy="60" r="30" fill="' + k.face + '"/><g class="vdial">' + ticks + '<path d="M60 60L60 24" stroke="#F2B33D" stroke-width="5" stroke-linecap="round"/><circle cx="60" cy="60" r="9" fill="#081B45"/></g></g>', "vault" + (cls ? " " + cls : ""));
 }
 const coinPic = () => svg('<circle cx="60" cy="60" r="52" fill="#F2B33D"/><circle cx="60" cy="60" r="40" fill="none" stroke="#FFE3A3" stroke-width="5"/><path d="M60 36v48M48 46h18a8 8 0 010 16H54a8 8 0 000 16h18" fill="none" stroke="#8A5F00" stroke-width="7" stroke-linecap="round"/>', "coin");
 const lockPic = () => svg('<rect x="24" y="52" width="72" height="56" rx="12" fill="#B4232A"/><path d="M40 52V38a20 20 0 0136-12" fill="none" stroke="#F4F7FB" stroke-width="9" stroke-linecap="round"/><circle cx="60" cy="78" r="8" fill="#F4F7FB"/><path d="M60 84v10" stroke="#F4F7FB" stroke-width="6" stroke-linecap="round"/>', "lock");
@@ -437,6 +487,7 @@ function waitingRoom(card, m) {
     V.STARTERS.forEach(([k, n, d]) => { const b = btn("wrpower" + (k === pu ? " on" : ""), null, () => pick({ pu: k })); b.dataset.k = k; b.setAttribute("role", "radio"); b.setAttribute("aria-checked", String(k === pu)); b.append(powerIcon(k), el("b", null, n), el("small", null, d)); pus.append(b); });
     card.append(pus);
     card.append(el("p", "pnote", pickNote(pu)));
+    card.append(el("h2", "wrh", "Vault skins"), el("p", "pnote", "Earn coins in the game to unlock new looks for your vault."), skinsGrid(m, false));
 }
 const POWER_ICONS = {
     shield: '<path d="M60 10l40 14v30c0 28-18 46-40 56-22-10-40-28-40-56V24z" fill="#7FAEDD"/><path d="M60 22l28 10v22c0 20-12 33-28 41z" fill="#10358A"/>',
@@ -448,6 +499,7 @@ const POWER_ICONS = {
     hack: '<rect x="18" y="30" width="84" height="60" rx="10" fill="#081B45"/><path d="M34 52l14 10-14 10M56 74h24" fill="none" stroke="#7FFFB2" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>',
     firewall: '<path d="M60 8c8 22 30 30 30 58a30 30 0 01-60 0c0-16 10-24 14-32 2 12 8 16 12 16-4-18 0-30 4-42z" fill="#F28C28"/><path d="M60 52c4 10 14 14 14 26a14 14 0 01-28 0c0-10 8-16 14-26z" fill="#FFE3A3"/>',
 };
+POWER_ICONS.comeback = '<circle cx="60" cy="60" r="50" fill="#1F9D61"/><path d="M60 92V34M36 56l24-24 24 24" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>';
 POWER_ICONS.bonus = '<path d="M68 6L24 66h30l-8 48 46-64H60z" fill="#3A2A00"/>';
 POWER_ICONS.box = '<rect x="18" y="44" width="84" height="60" rx="8" fill="#10358A"/><rect x="12" y="30" width="96" height="20" rx="6" fill="#1552D6"/><rect x="52" y="30" width="16" height="74" fill="#F2B33D"/><path d="M60 30c-10-18-30-18-28-6 2 8 18 6 28 6 10 0 26 2 28-6 2-12-18-12-28 6z" fill="#F2B33D"/>';
 const powerIcon = (k) => svg(POWER_ICONS[k] || POWER_ICONS.box, "pwicon");
@@ -459,6 +511,7 @@ function effects(m) {
     if (m.blk) list.push(["shield", "Shield ready", ""]);
     if (m.fw > now) list.push(["firewall", "Firewall on", ""]);
     if (m.ins) list.push(["insure", "Insured", ""]);
+    if (m.cb && m.status === "play" && !m.redo && !m.exit) list.push(["comeback", "Catch-up boost: +50% coins", ""]);
     if (!list.length) return null;
     const box = el("div", "pfx"); box.id = "pfx"; list.forEach(([k, t, c]) => { const x = el("span", "pfxc" + (c ? " " + c : "")); x.append(powerIcon(k), document.createTextNode(t)); box.append(x); });
     return box;
@@ -468,7 +521,7 @@ function mysteryBox(b, key) {
     const wrap = el("div", "pbox" + (ST.opened[key] ? " open" : ""));
     const name = { bag: "Coin bag: +" + b.v + " coins", hack: "Extra hack!", double: "Double coins on your next " + b.v + " right answers", firewall: "Firewall: your vault is safe for " + b.v + " seconds" }[b.k] || "A surprise";
     if (!ST.opened[key]) {
-        const go = btn("pboxbtn", null, () => { ST.opened[key] = 1; wrap.classList.add("open"); go.replaceWith(prize()); confetti(70, 0.5, 0.55, ["#F2B33D", "#7FAEDD", "#FFFFFF"]); });
+        const go = btn("pboxbtn", null, () => { ST.opened[key] = 1; sfx("box"); wrap.classList.add("open"); go.replaceWith(prize()); confetti(70, 0.5, 0.55, ["#F2B33D", "#7FAEDD", "#FFFFFF"]); });
         go.append(powerIcon("box"), el("b", null, "Mystery box! Tap to open"));
         wrap.append(go);
     } else wrap.append(prize());
@@ -485,6 +538,10 @@ function stats() {
     const was = ST.coins; ST.coins = m.c;
     chip("Name", V.avatar(m.status === "lobby" && ST.picks.av != null ? ST.picks.av : m.av)[0] + " " + m.nm); chip("Coins", String(m.c), "coin" + (was != null && m.c > was ? " up" : was != null && m.c < was ? " down" : "")); chip("Hacks", String(m.h)); if (m.status !== "lobby") chip("Place", m.rank + " of " + m.players);
     const t = el("span", "pstat"); t.append(el("small", null, "Time"), el("b", null, "")); t.id = "ptime"; s.append(t); tickTime();
+    if (!(ST.room && ST.room.snd === false)) {
+        const on = store.get("mute") !== "1", b = btn("pstat pmute" + (on ? "" : " off"), null, () => { store.set("mute", on ? "1" : ""); stats(); if (!on) sfx("tap"); });
+        b.append(el("small", null, "Sound"), el("b", null, on ? "On" : "Off")); b.setAttribute("aria-pressed", String(on)); b.setAttribute("aria-label", on ? "Sound is on. Tap to mute." : "Sound is off. Tap to turn it on."); s.append(b);
+    }
 }
 function tickTime() {
     const t = $("ptime"); if (!t) return; const e = ST.me && ST.me.ends;
@@ -512,7 +569,7 @@ function draw(force) {
     // Keep the pad (and anything typed) while the same question stays on screen.
     const cq = curQ(m), sameQ = !force && ST.step === "play" && ST.view === "q" && cq && document.getElementById("padhost") && +$("padhost").dataset.q === cq.n && !ST.roomGone;
     sig = k; stats();
-    if (m && m.hit && m.hit.blocked && m.hit.at > ST.seenBlock) { ST.seenBlock = m.hit.at; toast("Your Shield blocked " + m.hit.by + "'s crack! Your coins are safe.", "good"); }
+    if (m && m.hit && m.hit.blocked && m.hit.at > ST.seenBlock) { ST.seenBlock = m.hit.at; toast("Your Shield blocked " + m.hit.by + "'s crack! Your coins are safe.", "good"); sfx("box"); }
     if (sameQ) { const n = $("pnote"); if (n) n.textContent = ST.err; const fx = $("pfx"); if (fx) fx.replaceWith(effects(m) || Object.assign(el("div", "pfx"), { id: "pfx" })); return; }
     document.body.classList.remove("qmode");
     const main = $("main"), y = window.scrollY; main.textContent = "";
@@ -538,11 +595,12 @@ function draw(force) {
         if (m.of) tile(Math.round(100 * m.r / m.of) + "%", "correct");
         card.append(tiles, el("p", "pnote", m.rank <= 3 ? "Top 3! Look at the board for the winners." : "Great work. Look at the board for the winners."));
         if (Array.isArray(m.res) && m.res.length) card.append(myResults(m.res));
+        if (!ST.endSnd) { ST.endSnd = true; setTimeout(() => sfx(m.rank <= 3 ? "win" : "start"), 80); }
         if (m.rank <= 3) once("done", () => { confetti(160, 0.5, 0.35); setTimeout(() => confetti(90, 0.2, 0.5), 400); setTimeout(() => confetti(90, 0.8, 0.5), 700); });
         return;
     }
     if (ST.view === "hit" && m.hit) {
-        card.classList.add("alert"); if (celebrated !== "hit" + m.hit.at) card.classList.add("shake"); once("hit" + m.hit.at, () => {});
+        card.classList.add("alert"); if (celebrated !== "hit" + m.hit.at) card.classList.add("shake"); once("hit" + m.hit.at, () => { sfx("hit"); });
         card.append(lockPic(), el("h1", null, "Your vault was cracked!"), el("p", "plead", m.hit.by + " guessed your code and took " + m.hit.lost + " coins. Set a new code to lock it again."));
         const b = btn("pbtn go", "Set a new code", () => { ST.seenHit = m.hit.at; ST.view = "q"; draw(true); }); card.append(b); return;
     }
@@ -550,6 +608,7 @@ function draw(force) {
     if (ST.view === "fb") return fbView(card);
     if (ST.view === "targets") return targetsView(card);
     if (ST.view === "guess") return guessView(card);
+    if (ST.view === "skins") return skinsView(card);
     questionView(card);
 }
 /** The student's own questions after the game: the ones to look at again first (what they wrote and the answer), then the ones they got. */
@@ -598,7 +657,7 @@ function nameStep(card) {
     note(card);
 }
 function vaultStep(card, again) {
-    card.append(vaultPic("small"), el("h1", null, again ? "Set a new vault code" : "Set your vault code"), el("p", "plead", "Pick 3 different digits, 1 to 9. Classmates will try to guess it, so don't share it."));
+    card.append(vaultPic("small", mySkin(ST.me)), el("h1", null, again ? "Set a new vault code" : "Set your vault code"), el("p", "plead", "Pick 3 different digits, 1 to 9. Classmates will try to guess it, so don't share it."));
     const slots = el("div", "pslots"); for (let i = 0; i < V.CODE_LEN; i++) slots.append(el("span", "pslot" + (ST.vault[i] ? " full" : ""), ST.vault[i] || ""));
     card.append(slots, keypad(ST.vault, (v) => { ST.vault = v; draw(true); }));
     const ok = btn("pbtn go", ST.busy ? "Saving…" : again ? "Lock my vault" : "Join the game", async () => {
@@ -666,19 +725,28 @@ function fbView(card) {
         const st = m.st || 1, words = STREAK_WORDS[st] || (st > 10 ? "Legendary!" : "");
         card.append(streakRow(st));
         const chips = el("div", "pchips"); if (!f.second && !f.redo) chips.append(el("span", "pgain", "+1 hack")); else chips.append(el("span", "pgain", f.second ? "Second try: half coins" : "Try-again bonus"));
-        (f.x2 || []).forEach((k) => chips.append(el("span", "pgain hot", k === "bonus" ? "Bonus round ×2" : "Double coins ×2")));
+        (f.x2 || []).forEach((k) => chips.append(el("span", "pgain hot", k === "bonus" ? "Bonus round ×2" : k === "comeback" ? "Catch-up boost" : "Double coins ×2")));
         if (st > 1) chips.append(el("span", "pgain hot", words || st + " in a row"));
         if (V.coinsFor(st) > V.RIGHT_COINS) chips.append(el("span", "pgain", "Streak bonus +" + (V.coinsFor(st) - V.RIGHT_COINS)));
         card.append(chips);
-        once(key, () => { countUp(amt, f.plus || 0, "+"); confetti(st >= 5 ? 170 : st >= 3 ? 120 : 80, 0.5, 0.3); });
+        once(key, () => { countUp(amt, f.plus || 0, "+"); confetti(st >= 5 ? 170 : st >= 3 ? 120 : 80, 0.5, 0.3); sfx(st >= 3 ? "streak" : "right"); });
         if (f.box) card.append(mysteryBox(f.box, key));
+        // A new vault skin unlocked by this answer's coins.
+        const open = V.skinsOpen(m.top);
+        if (ST.skinFb !== key && open > (ST.skinsSeen || 1)) { ST.skinFb = key; ST.newSkin = open - 1; ST.skinsSeen = open; }
+        if (ST.skinFb === key && ST.newSkin > 0) {
+            const k = V.skin(ST.newSkin), nb = el("div", "pnewskin"); nb.append(vaultPic("tiny", ST.newSkin));
+            const tx = el("div"); tx.append(el("small", null, "New vault skin unlocked"), el("b", null, k[1])); nb.append(tx);
+            if (mySkin(m) === ST.newSkin) nb.append(el("span", "pskinon", "Using it")); else nb.append(btn("pbtn go small", "Use it", () => pickSkin(ST.newSkin)));
+            card.append(nb);
+        }
     } else if (f.retry) {
         // First miss: a hint and one more try for half coins. The answer stays hidden.
         if (fresh) card.classList.add("shake");
         card.append(el("h1", null, "Not quite. Try once more!"));
         const y = el("p", "plead"); y.append(document.createTextNode("You wrote ")); if (f.y) y.append(V.mathText(f.y)); else y.append(document.createTextNode("nothing")); y.append(document.createTextNode(".")); card.append(y);
         if (f.hint) { const h = el("div", "phint"); h.append(el("small", null, "Hint"), mathEl("p", null, f.hint)); card.append(h); }
-        once(key, () => {});
+        once(key, () => { sfx("miss"); });
         const row = el("div", "prow");
         row.append(btn("pbtn go", "Try again (half coins)", () => { ST.view = "q"; ST.sentQ = -1; draw(true); }));
         row.append(btn("pbtn ghost", "Skip it", () => { const q = m.q; if (!q) return; ST.sentQ = q.n; send({ a: { n: Date.now(), q: q.n, t: "" } }); ST.view = "q"; draw(true); }));
@@ -690,12 +758,28 @@ function fbView(card) {
         if (f.a) { const a = el("div", "pansbox"); a.append(el("small", null, "The answer was"), mathEl("p", null, f.a)); card.append(a); }
         const y = el("p", "plead"); y.append(document.createTextNode("You wrote ")); if (f.y) y.append(V.mathText(f.y)); else y.append(document.createTextNode("nothing")); y.append(document.createTextNode(".")); card.append(y);
         card.append(el("p", "pnote", MISS_WORDS[(f.q || 0) % MISS_WORDS.length]));
-        once(key, () => {});
+        once(key, () => { sfx("miss"); });
     }
     const row = el("div", "prow");
     row.append(btn("pbtn go", f.redo ? "OK" : "Next question", () => { ST.view = "q"; draw(true); }));
     if (m.h > 0) row.append(btn("pbtn hack", "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }));
+    if (!f.redo) row.append(btn("pbtn ghost", "Vault skins", () => { ST.back = "q"; ST.view = "skins"; draw(true); }));
     card.append(row);
+}
+/** Every vault skin: the unlocked ones to pick, the rest with the coins they need. */
+function skinsGrid(m, canPick) {
+    const g = el("div", "pskins"), open = V.skinsOpen(m && m.top), on = mySkin(m);
+    V.SKINS.forEach(([, name, need], i) => {
+        const locked = i >= open, b = btn("pskin" + (i === on ? " on" : "") + (locked ? " locked" : ""), null, canPick && !locked ? () => pickSkin(i) : null);
+        b.append(vaultPic("tiny", i), el("b", null, name), el("small", null, locked ? "Unlocks at " + need + " coins" : i === on ? "Using it" : canPick ? "Tap to use" : "Unlocked"));
+        b.disabled = locked || !canPick; if (i === on) b.setAttribute("aria-current", "true"); g.append(b);
+    });
+    return g;
+}
+function skinsView(card) {
+    const m = ST.me; card.classList.add("wide");
+    card.append(el("h1", null, "Vault skins"), el("p", "plead", "The most coins you've had this game is " + (+m.top || 0) + ". Getting cracked never locks a skin again."));
+    card.append(skinsGrid(m, true), btn("pbtn go", "Back to questions", () => { ST.view = ST.back || "q"; draw(true); }));
 }
 function targetsView(card) {
     const m = ST.me; card.classList.add("wide");
@@ -703,7 +787,8 @@ function targetsView(card) {
     const list = el("div", "ptargets");
     (m.targets || []).forEach((t) => {
         const b = btn("ptarget", null, () => { ST.target = t.id; ST.guess = ""; ST.view = "guess"; draw(true); });
-        b.append(el("b", null, V.avatar(t.av)[0] + " " + t.nm), el("span", null, t.c + " coins"), el("small", null, t.sh ? "Firewall up" : t.g.length ? t.g.length + (t.g.length === 1 ? " guess so far" : " guesses so far") : "Not tried yet"));
+        const nm = el("b"); nm.append(vaultPic("mini", t.vs), document.createTextNode(V.avatar(t.av)[0] + " " + t.nm));
+        b.append(nm, el("span", null, t.c + " coins"), el("small", null, t.sh ? "Firewall up" : t.g.length ? t.g.length + (t.g.length === 1 ? " guess so far" : " guesses so far") : "Not tried yet"));
         b.disabled = !!t.sh || m.h < 1; list.append(b);
     });
     if (!(m.targets || []).length) list.append(el("p", "plead", "No one else is playing yet."));
@@ -715,7 +800,7 @@ function guessView(card) {
     card.classList.add("wide");
     const hk = m.hk && m.hk.to === t.id ? m.hk : null, cracked = m.hk && m.hk.steal != null && m.hk.m === "222" && m.hk.tn === t.nm && !t.g.length;
     card.append(el("h1", null, cracked ? "You cracked " + t.nm + "'s vault!" : "Hack " + t.nm + "'s vault"));
-    if (cracked) { card.classList.add("good", "center"); if (celebrated !== "crack" + m.hk.n) card.classList.add("pop"); card.append(vaultPic("open"), el("p", "pbig", "Cracked! +" + m.hk.steal + " coins")); once("crack" + m.hk.n, () => { confetti(150, 0.5, 0.35, ["#F2B33D", "#F6C866", "#FFE3A3", "#7FAEDD", "#FFFFFF"]); }); card.append( el("p", "plead", t.nm + " has to set a new code.")); card.append(btn("pbtn go", "Back to questions", () => { ST.view = "q"; ST.target = ""; draw(true); })); return; }
+    if (cracked) { card.classList.add("good", "center"); if (celebrated !== "crack" + m.hk.n) card.classList.add("pop"); card.append(vaultPic("open", t.vs), el("p", "pbig", "Cracked! +" + m.hk.steal + " coins")); once("crack" + m.hk.n, () => { confetti(150, 0.5, 0.35, ["#F2B33D", "#F6C866", "#FFE3A3", "#7FAEDD", "#FFFFFF"]); sfx("crack"); }); card.append( el("p", "plead", t.nm + " has to set a new code.")); card.append(btn("pbtn go", "Back to questions", () => { ST.view = "q"; ST.target = ""; draw(true); })); return; }
     if (hk && hk.why) card.append(el("p", "pnote err", hk.why));
     const legend = el("p", "plegend"); legend.append(dot(2), document.createTextNode(" right digit, right spot  "), dot(1), document.createTextNode(" in the code, wrong spot  "), dot(0), document.createTextNode(" not in the code")); card.append(legend);
     const hist = el("div", "phist");

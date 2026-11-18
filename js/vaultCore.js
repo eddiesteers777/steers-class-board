@@ -52,6 +52,28 @@ export function rollBox(rand = Math.random) {
     return k === "bag" ? { k, v: 15 + 5 * Math.floor(rand() * 4) } : k === "double" ? { k, v: 2 } : k === "firewall" ? { k, v: 60 } : { k, v: 1 };
 }
 
+/* ---------- vault skins: a new look for a student's vault, unlocked by coins ---------- */
+/** [key, name, coins needed, colors]. A skin unlocks at the most coins a student has held this game, so a crack never locks one again. */
+export const SKINS = [
+    ["steel", "Steel", 0, { door: "#10358A", ring: "#7FAEDD", face: "#F4F7FB" }],
+    ["ocean", "Ocean", 40, { door: "#0B6E8A", ring: "#5FD4E8", face: "#EFFBFD" }],
+    ["jungle", "Jungle", 80, { door: "#17663F", ring: "#6BD89A", face: "#F1FBF5" }],
+    ["lava", "Lava", 140, { door: "#8E1F1F", ring: "#F28C28", face: "#FFF3E8" }],
+    ["gold", "Gold", 220, { door: "#A86F00", ring: "#FFE3A3", face: "#FFFBEF" }],
+    ["galaxy", "Galaxy", 320, { door: "#2B1460", ring: "#B98CFF", face: "#F4EEFF", stars: 1 }],
+    ["diamond", "Diamond", 450, { door: "#2F6690", ring: "#E6F6FF", face: "#FFFFFF", shine: 1 }],
+];
+export const skin = (i) => SKINS[(Number.isInteger(+i) && +i >= 0 && +i < SKINS.length) ? +i : 0];
+/** How many skins are open at this many coins (always at least Steel). */
+export const skinsOpen = (top) => SKINS.filter((s) => (+top || 0) >= s[2]).length;
+
+/* ---------- catch-up boost: a little extra for students who fall behind ---------- */
+export const COMEBACK_AFTER = 60000, COMEBACK_SHARE = 0.5;
+/** The bottom quarter of the leaderboard (4 or more playing), when they are behind the leader. rank is 1 for first. */
+export const comebackOn = (rank, players, coins, leader) => players >= 4 && rank > Math.ceil(players * 0.75) && (+coins || 0) < (+leader || 0);
+/** Extra coins on a right answer: half again, to the nearest 5. */
+export const comebackPlus = (plus) => Math.max(5, Math.round((+plus || 0) * COMEBACK_SHARE / 5) * 5);
+
 /* ---------- names ---------- */
 /** "Rivera, Ava Maria" or "Ava Rivera" -> "Ava R." (first name and last initial only). */
 export function shortName(full) {
