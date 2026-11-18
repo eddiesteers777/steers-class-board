@@ -72,6 +72,7 @@ async function join(code) {
     unsubRoom = onSnapshot(doc(db, "rooms", code), (s) => {
         ST.busy = false;
         if (!s.exists()) { if (ST.room) { ST.roomGone = true; } else { ST.err = "No game has that code. Check the board."; ST.step = "code"; ST.code = ""; stopAll(); } draw(); return; }
+        if (s.data().kind === "notes") { stopAll(); location.replace("follow.html?code=" + code); return; }   // a Live notes code (js/follow.js)
         ST.room = s.data(); store.set("code", code);
         if (!ST.me && ST.room.status === "done") { ST.err = "That game has ended."; ST.step = "code"; ST.code = ""; stopAll(); }
         else if (ST.step === "code") ST.step = "name";
