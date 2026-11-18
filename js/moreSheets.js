@@ -148,7 +148,7 @@ export function subPlanSheet(week, cid, opts) {
     pg.appendChild(el("h2", "sub-h", "Early Finishers"));
     pg.appendChild(el("p", "sub-note", s.finisher || "Students who finish the worksheet" + (exit ? " and exit ticket" : "") + " may work on the Sudoku sheet. Quiet work only."));
     pg.appendChild(el("h2", "sub-h", "Print Before Class"));
-    pg.appendChild(el("p", "sub-note", s.print || ("One copy per student" + (s.copies ? " (about " + s.copies + ")" : "") + " of the " + wsName + " worksheet (" + (pages || 4) + " pages) and of the Sudoku sheet (2 pages).")));
+    pg.appendChild(el("p", "sub-note", s.print || ("One copy per student" + (s.copies ? " (about " + s.copies + ")" : "") + " of the " + wsName + " worksheet (" + (pages || 4) + " pages) and of the Sudoku sheet (2 pages)." + (i === 3 && cid === "8th" ? " Have students turn in the Weekly Homework Packet; keep a spot ready to stack them." : ""))));
     pg.appendChild(el("h2", "sub-h", "Notes for You"));
     const bl = el("p", "sub-blanks"); [["Seating chart:", "w14"], ["Nearby teacher:", "w14"], ["Office ext.:", "w8"]].forEach(([a, w]) => { bl.appendChild(document.createTextNode(a + " ")); bl.appendChild(el("span", "rule " + w)); }); pg.appendChild(bl);
     pg.appendChild(el("p", "sub-close", "Please leave a note on the teacher desk about how each class went. Thank you for being here today."));
