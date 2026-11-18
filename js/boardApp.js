@@ -385,7 +385,7 @@ function render() {
         (sp.steps || []).forEach((t) => ol.appendChild(el("li", null, t))); k2.c.replaceChild(ol, k2.i);
         g2.appendChild(k2.c); g2.appendChild(speedTimer()); g2.appendChild(weekCard()); g2.appendChild(ltBox(sp.lt)); st.appendChild(g2);
     } else if (S.screen === "fix") {
-        drawFix(st);
+        drawWb(st, "fix");
     } else if (S.screen === "timer") {
         st.appendChild(header("Timer", (d ? d.name + " · " : "") + ((d && d.date) || "")));
         const box = el("div", "bigtimer"); timerParts("free", box);
@@ -411,7 +411,7 @@ function render() {
    A thin strip on top, then paper edge to edge. The lesson sits on a card that floats on the paper:
    drag it by its top bar, make it bigger or smaller, or hide it. The tool rail floats on the left,
    and pages run along the bottom. Card place, size and pages are shared, so the board follows the Remote. */
-const WB_SCREENS = { bell: 1, blank: 1, notes: 1 };
+const WB_SCREENS = { bell: 1, blank: 1, notes: 1, fix: 1 };
 const CARD_W = [0.3, 0.38, 0.5];
 function wbStrip(title, sub, extra) {
     const h = el("div", "wbstrip"), im = el("img"); im.src = SEAL; im.alt = ""; h.appendChild(im);
@@ -431,14 +431,23 @@ function drawWb(st, kind) {
         const n = d && d.notes, fr = notesFrames(d); sub = n ? n.title : (d ? d.name : "");
         if (fr.length) { const at = Math.min(S.note, fr.length - 1); extra = el("div", "wbprog"); extra.setAttribute("role", "progressbar"); extra.setAttribute("aria-label", "Notes progress"); extra.setAttribute("aria-valuemin", "1"); extra.setAttribute("aria-valuemax", String(fr.length)); extra.setAttribute("aria-valuenow", String(at + 1));
             const bar = el("i"), fill = el("b"); fill.style.width = ((at + 1) / fr.length * 100) + "%"; bar.appendChild(fill); extra.appendChild(bar); extra.appendChild(el("span", null, (at + 1) + " / " + fr.length)); }
+    } else if (kind === "fix") {
+        const f = fixState(), sd = sdSet(); sub = sd && sd.title ? "Speed dating review: " + sd.title : "The cards that tripped us up";
+        if (f.list.length) {
+            extra = el("div", "fixchips"); extra.setAttribute("role", "group"); extra.setAttribute("aria-label", "Tricky cards");
+            f.list.forEach((x, i) => {
+                const b = el("button", "fixchip" + (i === f.cur ? " on" : "") + (x.done ? " done" : ""), "#" + x.n + (x.done ? " \u2713" : ""));
+                b.type = "button"; b.setAttribute("aria-label", "Card " + x.n + (x.done ? ", fixed" : "")); b.onclick = () => fixGo(i); extra.appendChild(b);
+            });
+        }
     } else sub = d ? d.name + (d.date ? " · " + d.date : "") : "Work it out";
     const wrap = el("div", "wbx");
-    wrap.appendChild(wbStrip(kind === "bell" ? "Bellringer" : kind === "notes" ? "Guided Notes" : "Whiteboard", sub, extra));
+    wrap.appendChild(wbStrip(kind === "bell" ? "Bellringer" : kind === "notes" ? "Guided Notes" : kind === "fix" ? "Fix It Together" : "Whiteboard", sub, extra));
     const paperEl = el("div", "wbpaper"); paperEl.id = "wbpaper"; wrap.appendChild(paperEl);
     const cv = makeCv(); paperEl.appendChild(cv);
-    const card = kind === "bell" ? bellCard(d, ps) : kind === "notes" ? notesCard(d) : null;
+    const card = kind === "bell" ? bellCard(d, ps) : kind === "notes" ? notesCard(d) : kind === "fix" ? fixCard() : null;
     if (card) {
-        if (S.wb.card.hide) { const sb = el("button", "wbshow"); sb.type = "button"; sb.innerHTML = wbIcon("doc") + "<span>" + (kind === "bell" ? "Show problem" : "Show notes") + "</span>"; sb.onclick = () => { S.wb.card.hide = false; push(); }; paperEl.appendChild(sb); }
+        if (S.wb.card.hide) { const sb = el("button", "wbshow"); sb.type = "button"; sb.innerHTML = wbIcon("doc") + "<span>" + (kind === "bell" ? "Show problem" : kind === "fix" ? "Show card" : "Show notes") + "</span>"; sb.onclick = () => { S.wb.card.hide = false; push(); }; paperEl.appendChild(sb); }
         else paperEl.appendChild(card);
     }
     paperEl.appendChild(pagesBar());
@@ -733,34 +742,23 @@ function fixAdd(n, q) {
     if (at >= 0) { if (q) f.list[at].q = q; fixGo(at); return; }
     f.list.push({ n, q: q || "", done: false }); fixGo(f.list.length - 1);
 }
-function drawFix(st) {
-    const f = fixState(), c = f.list[f.cur], sd = sdSet(), remote = true;   // Eddie: the picker shows on every screen, the board too
-    st.appendChild(header("Fix It Together", sd && sd.title ? "Speed dating review: " + sd.title : "The cards that tripped us up"));
-    const body = el("div", "notes fix"), left = el("div", "nleft"), right = el("div", "nright");
-    if (remote) left.appendChild(fixPicker(f, sd));
-    if (f.list.length) {
-        const chips = el("div", "fixchips");
-        f.list.forEach((x, i) => {
-            const b = el("button", "fixchip" + (i === f.cur ? " on" : "") + (x.done ? " done" : ""), "#" + x.n + (x.done ? " \u2713" : ""));
-            b.type = "button"; b.setAttribute("aria-label", "Card " + x.n + (x.done ? ", fixed" : "")); b.onclick = () => fixGo(i); chips.appendChild(b);
-        });
-        left.appendChild(chips);
-    }
+/* Fix It on the canvas-first whiteboard: the tricky card floats on the paper like the guided notes. */
+function fixCard() {
+    const f = fixState(), c = f.list[f.cur], sd = sdSet();   // Eddie: the picker shows on every screen, the board too
+    const { c: card, body } = cardShell(c ? "Card #" + c.n + " \u00b7 tricky card " + (f.cur + 1) + " of " + f.list.length : "Fix It", "Fix it card"); card.classList.add("wbfix");
+    body.appendChild(fixPicker(f, sd));
     if (c) {
-        left.appendChild(el("p", "nkind", "Card #" + c.n + " \u00b7 tricky card " + (f.cur + 1) + " of " + f.list.length));
-        left.appendChild(c.q ? richEl("p", "nq", c.q) : el("p", "nq fixnoq", "Card #" + c.n));
-        if (f.err.length) { const w = el("div", "fixerr"); w.appendChild(el("p", "fixerrh", "Watch out: common mistakes")); f.err.forEach((t) => w.appendChild(richEl("p", null, t))); left.appendChild(w); }
-        if (f.ans) left.appendChild(richEl("p", "nans", "Answer: " + f.ans));
-        if (remote) left.appendChild(fixReveal(f, c, sd));
+        body.appendChild(c.q ? richEl("p", "wbq", c.q) : el("p", "wbq fixnoq", "Card #" + c.n));
+        if (f.err.length) { const w = el("div", "fixerr"); w.appendChild(el("p", "fixerrh", "Watch out: common mistakes")); f.err.forEach((t) => w.appendChild(richEl("p", null, t))); body.appendChild(w); }
+        if (f.ans) body.appendChild(richEl("p", "wbans", f.ans));
+        body.appendChild(fixReveal(f, c, sd));
     } else {
         const e = el("div", "fixempty");
-        e.appendChild(el("p", "fixbig", "Which card tripped you up?"));
+        e.appendChild(el("p", "wbq", "Which card tripped you up?"));
         e.appendChild(el("p", null, "Check the Errors box on your card. Tell us the card number and the most common mistake."));
-        left.appendChild(e);
+        body.appendChild(e);
     }
-    body.appendChild(left);
-    const cv = makeCv();
-    right.appendChild(cv); body.appendChild(right); st.appendChild(body); bindCanvas(); sizeCanvas();
+    return card;
 }
 /* Remote only: pick a card, or type one when the week's cards are not saved in Week Builder. */
 // A dropdown cannot stack fractions: {3/4} becomes 3/4, and {{3/4}/{1/2}} becomes (3/4)/(1/2).
