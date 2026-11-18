@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick lesson | Anchor Board</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=57">
+    <link rel="stylesheet" href="css/console.css?v=57">
+    <link rel="stylesheet" href="css/theme-rings.css?v=2">
+    <meta name="theme-color" content="#081B45">
+    <style>
+        /* Quick lesson: one class, one day. Colours and sizes from DESIGN.md. */
+        .ql { max-width: 720px; }
+        .ql h1:focus { outline: none; }
+        .pick { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 10px; }
+        .chip { font: inherit; font-weight: 600; font-size: 15px; border: 1px solid #D5DCE9; background: #fff; color: #0E1B3A; border-radius: 999px; padding: 8px 16px; min-height: 44px; cursor: pointer; }
+        .chip[aria-pressed=true] { background: #0B2559; color: #fff; border-color: #0B2559; }
+        .chip.has::after { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #F2B33D; margin-left: 6px; vertical-align: 2px; }
+        .also { border: 0; padding: 0; margin: 0 0 8px; }
+        .also legend { font-size: 14px; color: #55627F; padding: 0; margin-bottom: 4px; }
+        .also label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-right: 16px; font-weight: 600; cursor: pointer; }
+        .also input { width: 20px; height: 20px; accent-color: #0B2559; }
+        .wk { display: flex; align-items: center; gap: 6px; margin: 0 0 10px; }
+        .wk b { font-weight: 700; min-width: 0; }
+        .wk button { width: 44px; height: 44px; border-radius: 12px; border: 1px solid #D5DCE9; background: #fff; font-size: 18px; cursor: pointer; color: #173F86; }
+        .box { background: #fff; border: 1px solid #D5DCE9; border-radius: 18px; padding: 14px 16px 16px; margin: 12px 0; }
+        .box h2 { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: #173F86; margin: 0 0 8px; font-family: inherit; font-weight: 700; }
+        .box input, .box textarea { width: 100%; font: inherit; color: #0E1B3A; background: #fff; border: 1px solid #D5DCE9; border-radius: 12px; padding: 10px 12px; min-height: 46px; }
+        .box input:focus-visible, .box textarea:focus-visible, .chip:focus-visible, .wk button:focus-visible, .add:focus-visible, .rm:focus-visible { outline: 3px solid #7FAEDD; outline-offset: 2px; }
+        .qa { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 150px) 44px; gap: 8px; margin-bottom: 8px; }
+        .rm { width: 44px; height: 46px; border-radius: 12px; border: 1px solid #D5DCE9; background: #fff; color: #55627F; font-size: 20px; cursor: pointer; }
+        .add { font: inherit; font-weight: 700; color: #173F86; background: none; border: 0; padding: 8px 0; cursor: pointer; min-height: 44px; }
+        .hint { font-size: 13px; color: #55627F; margin: 6px 0 0; }
+        .soon { color: #55627F; border: 1.5px dashed #D5DCE9; border-radius: 12px; padding: 12px; font-size: 14px; }
+        details.paste { background: #FFF7E3; border: 1px solid #F3D99A; border-radius: 16px; padding: 12px 14px; color: #5C4500; margin: 12px 0; }
+        details.paste summary { cursor: pointer; font-weight: 600; min-height: 28px; }
+        details.paste textarea { width: 100%; margin-top: 8px; min-height: 160px; font: inherit; font-size: 14px; border: 1px solid #E9D49B; border-radius: 12px; padding: 10px 12px; }
+        .qbar { position: sticky; bottom: 0; background: linear-gradient(transparent, #EEF1F6 30%); padding: 18px 0 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .qbar .btn { min-height: 48px; font-size: 1rem; padding: 12px 22px; }
+        #msg { font-size: 14px; color: #55627F; flex-basis: 100%; min-height: 20px; }
+        #msg.bad { color: #B3261E; }
+        @media (max-width: 520px) { .qa { grid-template-columns: minmax(0, 1fr) minmax(0, 90px) 44px; } .page h1 { font-size: 1.8rem; } }
+    </style>
+</head>
+<body class="console page">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Anchor Board</b><small id="who">For teachers</small></span></a>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
+    </header>
+    <main class="ql" id="main" hidden>
+        <h1 id="top">Quick lesson</h1>
+        <p class="sub">What the board shows for one class, one day. Type or paste. Leave out anything you don't use.</p>
+
+        <div class="wk"><button type="button" id="prevWk" aria-label="Week before">‹</button><b id="wkName"></b><button type="button" id="nextWk" aria-label="Week after">›</button></div>
+        <div class="pick" id="days" role="group" aria-label="Day"></div>
+        <div class="pick" id="classes" role="group" aria-label="Class"></div>
+        <fieldset class="also" id="alsoBox" hidden><legend>Also save this lesson to</legend><div id="also"></div></fieldset>
+        <p class="hint" id="clsHint" style="margin:-4px 0 4px"></p>
+
+        <details class="paste" id="pasteBox">
+            <summary>Have it in a doc already? Paste the whole lesson and we'll split it into the boxes for you to check.</summary>
+            <label for="paste" class="hint">Put each part under its own heading: Learning target, Bellringer, Agenda, Exit ticket. Write answers after a | like <i>6 × 4 ÷ 2 | 12</i>.</label>
+            <textarea id="paste" spellcheck="false" placeholder="Area of Triangles&#10;I can find the area of a triangle.&#10;Bellringer:&#10;6 × 4 ÷ 2 | 12&#10;Area of a rectangle 5 by 8 | 40&#10;Agenda: Bellringer · Notes · Practice · Exit ticket&#10;Exit ticket:&#10;Base 10, height 6. Area? | 30"></textarea>
+            <div class="rowx" style="margin:8px 0 0"><button class="btn ghost" type="button" id="split" style="background:#fff">Fill the boxes</button><span class="hint" id="splitMsg" role="status" style="margin:0"></span></div>
+        </details>
+
+        <section class="box"><h2><label for="title">Lesson title</label></h2><input id="title" maxlength="80" placeholder="Area of Triangles" autocomplete="off"></section>
+        <section class="box"><h2><label for="lt">Learning target</label></h2><input id="lt" maxlength="200" placeholder="I can find the area of a triangle." autocomplete="off"></section>
+        <section class="box"><h2 id="bellH">Bellringer</h2><div id="bellRows"></div><button class="add" type="button" id="addBell">+ Add a problem</button><p class="hint">Answers show only when you tap Show answer on the Remote.</p></section>
+        <section class="box"><h2><label for="agenda">Agenda</label></h2><input id="agenda" maxlength="400" placeholder="Bellringer · Notes: triangle area · Practice · Exit ticket" autocomplete="off"><p class="hint">Separate the parts with · or ;</p></section>
+        <section class="box"><h2>Notes</h2><p class="soon">Upload your own notes as a PDF: coming next. Skip this for now.</p></section>
+        <section class="box"><h2 id="exitH">Exit ticket</h2><div id="exitRows"></div><button class="add" type="button" id="addExit">+ Add a question</button><p class="hint">Shows at the end of Guided Notes on the board.</p></section>
+
+        <div class="qbar">
+            <button class="btn go" type="button" id="save">Save</button>
+            <button class="btn ghost" type="button" id="show" style="background:#fff">Save and open the Remote</button>
+            <p id="msg" role="status" aria-live="polite"></p>
+        </div>
+    </main>
+    <script type="module">
+        import * as store from "./js/boardStore.js?v=58";
+        import { WEEKS, PERIODS, PACK } from "./data/weeks.js?v=60";
+        import { watchPrivateWeeks } from "./js/weeksLive.js?v=58";
+        import { FULL, dayDate, classList, weekFor, formFrom, applyForm, splitPaste } from "./js/quickLesson.js?v=1";
+        import { today, mondayOf, addDays, short } from "./js/schoolCal.js?v=58";
+
+        const $ = (id) => document.getElementById(id);
+        const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+        const status = (t, ok) => { const s = $("status"); s.textContent = t; s.dataset.state = ok ? "ok" : (/Could not/.test(t) ? "bad" : "wait"); };
+        const msg = (t, bad) => { $("msg").textContent = t; $("msg").className = bad ? "bad" : ""; };
+        const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+
+        const user = await store.ready();
+        if (!user) location.replace("login.html");
+        else {
+            $("who").textContent = "Signed in as " + user.name;
+            const CLASSES = classList(PERIODS, WEEKS);
+            const q = new URLSearchParams(location.search);
+            // Default: today, or Monday of next week on a weekend.
+            const t = today(), wd = new Date().getDay();
+            let monday = /^\d{4}-\d{2}-\d{2}$/.test(q.get("monday") || "") ? mondayOf(q.get("monday")) : (wd === 0 || wd === 6 ? addDays(mondayOf(t), 7) : mondayOf(t));
+            let day = DK.map((k) => k.toLowerCase()).indexOf((q.get("day") || "").toLowerCase());
+            if (day < 0) day = wd >= 1 && wd <= 5 && monday === mondayOf(t) ? wd - 1 : 0;
+            let cls = (CLASSES.find((c) => c.id === q.get("class")) || CLASSES[0]).id;
+            const also = new Set();   // other classes that get the same lesson on save
+            let ALL = WEEKS, index = { weeks: [] }, loaded = false, dirty = false, cur = null;
+
+            /* ---------- problem rows ---------- */
+            function rows(host, list, ph) {
+                host.textContent = "";
+                (list.length ? list : [{ q: "", a: "" }]).forEach((p) => addRow(host, p, ph));
+            }
+            function addRow(host, p, ph) {
+                const r = el("div", "qa"), qi = el("input"), ai = el("input"), rm = el("button", "rm", "×");
+                const n = host.children.length + 1, what = host.id === "bellRows" ? "Problem " : "Question ";
+                qi.value = p.q || ""; qi.placeholder = ph[0]; qi.maxLength = 300; qi.setAttribute("aria-label", what + n); qi.autocomplete = "off";
+                ai.value = p.a || ""; ai.placeholder = ph[1]; ai.maxLength = 120; ai.setAttribute("aria-label", what + n + " answer"); ai.autocomplete = "off";
+                rm.type = "button"; rm.setAttribute("aria-label", "Remove " + what.toLowerCase() + n);
+                rm.onclick = () => { r.remove(); if (!host.children.length) addRow(host, { q: "", a: "" }, ph); dirty = true; };
+                r.append(qi, ai, rm); host.appendChild(r); return qi;
+            }
+            const BELL_PH = ["6 × 4 ÷ 2", "Answer"], EXIT_PH = ["Base 10, height 6. Area?", "Answer"];
+            const read = (host) => [...host.children].map((r) => ({ q: r.children[0].value, a: r.children[1].value })).filter((p) => p.q.trim());
+            $("addBell").onclick = () => { addRow($("bellRows"), { q: "", a: "" }, BELL_PH).focus(); };
+            $("addExit").onclick = () => { addRow($("exitRows"), { q: "", a: "" }, EXIT_PH).focus(); };
+            $("main").addEventListener("input", (e) => { if (e.target.id !== "paste" && e.target.type !== "checkbox") { dirty = true; msg(""); } });
+
+            const formNow = () => ({ title: $("title").value, lt: $("lt").value, agenda: $("agenda").value, problems: read($("bellRows")), exit: read($("exitRows")) });
+            function fill(f) {
+                $("title").value = f.title || ""; $("lt").value = f.lt || ""; $("agenda").value = f.agenda || "";
+                rows($("bellRows"), f.problems || [], BELL_PH); rows($("exitRows"), f.exit || [], EXIT_PH);
+            }
+
+            /* ---------- week, day and class pickers ---------- */
+            const hasLesson = (w, c, i) => { const d = w.classes[c] && w.classes[c].days[i]; return !!(d && (d.lt || (d.problems && d.problems.length) || d.agendaLine)); };
+            function drawPickers() {
+                $("wkName").textContent = "Week of " + short(monday, { month: "short", day: "numeric" }) + (monday === mondayOf(t) ? " (this week)" : "");
+                const D = $("days"); D.textContent = "";
+                DK.forEach((k, i) => {
+                    const b = el("button", "chip" + (hasLesson(cur.week, cls, i) ? " has" : ""), k); b.type = "button";
+                    b.setAttribute("aria-pressed", String(i === day)); b.title = FULL[i] + ", " + dayDate(monday, i) + (b.classList.contains("has") ? " (has a lesson)" : "");
+                    b.onclick = () => { if (i === day) return; if (!leave()) return; day = i; open(); }; D.appendChild(b);
+                });
+                const C = $("classes"); C.textContent = "";
+                CLASSES.forEach((c) => {
+                    const b = el("button", "chip", c.label + " · " + c.periods.join(", ")); b.type = "button"; b.setAttribute("aria-pressed", String(c.id === cls));
+                    b.onclick = () => { if (c.id === cls || !leave()) return; cls = c.id; also.delete(c.id); open(); };
+                    C.appendChild(b);
+                });
+                const A = $("also"); A.textContent = ""; $("alsoBox").hidden = CLASSES.length < 2;
+                CLASSES.filter((c) => c.id !== cls).forEach((c) => {
+                    const l = el("label"), x = el("input"); x.type = "checkbox"; x.checked = also.has(c.id);
+                    x.onchange = () => { if (x.checked) also.add(c.id); else also.delete(c.id); };
+                    l.append(x, document.createTextNode(c.label + " · " + c.periods.join(", "))); A.appendChild(l);
+                });
+            }
+            function leave() { return !dirty || confirm("Leave without saving this lesson?"); }
+            function open(quiet) {
+                cur = weekFor(monday, ALL, CLASSES);
+                fill(formFrom(cur.week.classes[cls].days[day]));
+                dirty = false; if (!quiet) msg(""); drawPickers();
+            }
+            $("prevWk").onclick = () => { if (!leave()) return; monday = addDays(monday, -7); open(); };
+            $("nextWk").onclick = () => { if (!leave()) return; monday = addDays(monday, 7); open(); };
+
+            /* ---------- paste ---------- */
+            $("split").onclick = () => {
+                const s = splitPaste($("paste").value);
+                if (!s.found.length) { $("splitMsg").textContent = "Nothing to split. Put each part under a heading."; return; }
+                const f = formNow();
+                fill({ title: s.title || f.title, lt: s.lt || f.lt, agenda: s.agenda || f.agenda, problems: s.problems.length ? s.problems : f.problems, exit: s.exit.length ? s.exit : f.exit });
+                dirty = true;
+                const NAMES = { title: "title", lt: "learning target", problems: "bellringer", agenda: "agenda", exit: "exit ticket" };
+                $("splitMsg").textContent = "Filled: " + s.found.map((k) => NAMES[k]).join(", ") + ". Check them, then Save.";
+            };
+
+            /* ---------- save ---------- */
+            let busy = false;
+            async function save() {
+                if (busy) return false; busy = true; $("save").disabled = $("show").disabled = true;
+                try {
+                    const f = formNow(), week = JSON.parse(JSON.stringify(cur.week));
+                    const picked = [cls, ...also];
+                    picked.forEach((c) => { week.classes[c].days[day] = applyForm(week.classes[c].days[day], f); });
+                    week.monday = monday;
+                    await store.save("weekfiles/" + cur.id, { json: JSON.stringify(week), at: Date.now() });
+                    const list = (index.weeks || []).filter((w) => w && w.id !== cur.id);
+                    const was = (index.weeks || []).find((w) => w && w.id === cur.id);
+                    list.push(Object.assign({}, was || {}, { id: cur.id, label: week.label || cur.id, dates: week.dates || "", monday, approved: true, at: Date.now() }));
+                    list.sort((a, b) => String(a.monday || "").localeCompare(String(b.monday || "")));
+                    if (!was || !was.approved) await store.save("weekfiles/index", Object.assign({}, index, { weeks: list, at: Date.now() }));
+                    cur.week = week; dirty = false; drawPickers();
+                    const names = picked.map((c) => CLASSES.find((x) => x.id === c).label).join(", ");
+                    msg("Saved " + FULL[day] + " for " + names + ". It's on the board and the Remote now.");
+                    status("Live", true); return true;
+                } catch (e) {
+                    msg("Could not save (" + ((e && e.code) || "connection") + "). Nothing changed. Try again.", true); return false;
+                } finally { busy = false; $("save").disabled = $("show").disabled = false; }
+            }
+            $("save").onclick = save;
+            $("show").onclick = async () => {
+                if (!(await save())) return;
+                const c = CLASSES.find((x) => x.id === cls);
+                location.href = "remote.html?week=" + encodeURIComponent(cur.id) + "&period=" + encodeURIComponent(c.periods[0]) + "&day=" + DK[day].toLowerCase() + "&screen=today";
+            };
+            window.addEventListener("beforeunload", (e) => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+
+            /* ---------- load ---------- */
+            store.watch("weekfiles/index", (s) => { if (!s.pending) index = (s.exists && s.data && Array.isArray(s.data.weeks)) ? s.data : { weeks: [] }; }, () => {});
+            const first = setTimeout(() => { if (!loaded) start("Could not reach your saved weeks yet. You can still type; Save will try again."); }, 8000);
+            watchPrivateWeeks(store, WEEKS, (list) => {
+                ALL = list;
+                if (!loaded) { clearTimeout(first); start(); }
+                else if (!dirty && !busy) open(true);   // saved here or on another device: show the latest
+            });
+            function start(warn) {
+                loaded = true; $("main").hidden = false; open();
+                if (warn) status(warn); else status("Live", true);
+                if (PACK !== "calera" && !(PERIODS.length > 1 || CLASSES[0].id !== "demo")) $("clsHint").textContent = "Using the sample class. Add your own classes in Settings, Your classes.";
+            }
+        }
+    </script>
+</body>
+</html>

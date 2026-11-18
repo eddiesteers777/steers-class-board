@@ -97,6 +97,7 @@ const PAGE = Math.random().toString(36).slice(2, 10);
 let saveFailedAt = 0;
 // Board and Remote open in the same browser hear each other's changes at once through this channel,
 // without waiting for the server. Firestore still saves every change for reloads and other devices.
+let wantWeek = "", lateWeek = "", autoWeekUntil = 0;   // a ?week= the Remote was opened with, or the saved board week, that has not loaded yet
 let tabs = null, heard = { by: "", at: 0 };   // a failed save stays on screen a few seconds, even when the connection itself is fine
 let mode = "remote", signedIn = false, sig = "", writeState = null, SEAL = "brand/logo.svg";
 
@@ -809,7 +810,8 @@ function fixReveal(f, c, sd) {
 function applyState(d) {
     if (!d) return;
     ["week", "cls", "screen"].forEach((k) => { if (typeof d[k] === "string") S[k] = d[k]; });
-    if (!WEEKS.some((w) => w.id === S.week)) S.week = defaultWeek();
+    // A private week (Quick lesson, Week Review) may not have loaded yet: show the default week for now and switch once it arrives.
+    if (!WEEKS.some((w) => w.id === S.week)) { lateWeek = typeof d.week === "string" ? d.week : ""; S.week = defaultWeek(); } else lateWeek = "";
     if (typeof d.period === "string" && PERIODS.some((p) => p[0] === d.period)) { S.period = d.period; S.cls = classOf(d.period); }
     else { const m = PERIODS.find((p) => p[1] === S.cls); if (m && classOf(S.period) !== S.cls) S.period = m[0]; }
     if (!W().classes[S.cls]) { S.cls = Object.keys(W().classes)[0]; const m = PERIODS.find((p) => p[1] === S.cls); if (m) S.period = m[0]; }
@@ -920,7 +922,7 @@ export async function startApp(opts) {
     }
     $("periodSel").onchange = function () { S.period = this.value; S.cls = classOf(this.value); resetPos(); push(); };
     document.addEventListener("click", (e) => { document.querySelectorAll("details.acct[open]").forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });
-    $("weekSel").onchange = function () { S.week = this.value; resetPos(); push(); };
+    $("weekSel").onchange = function () { autoWeekUntil = 0; S.week = this.value; resetPos(); push(); };
     $("boardBtn").onclick = () => { document.body.classList.add("board"); unlockSound(); try { const p = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ok */ } fit(); soundSync(); };
     $("exit").onclick = () => { document.body.classList.remove("board"); soundSync(); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* ok */ } fit(); };
     $("signOut").onclick = async () => { try { await store.signOut(); } finally { location.replace("login.html"); } };
@@ -964,7 +966,14 @@ export async function startApp(opts) {
     }
     writeState = writer("board/state");
     // Weeks approved on the Week Review page live in private data; add them to the published weeks.
-    if (!guest) { const base = WEEKS; watchPrivateWeeks(store, base, (list) => { WEEKS = list; if (synced) { sig = ""; render(); } }); }
+    if (!guest) { const base = WEEKS; watchPrivateWeeks(store, base, (list) => {
+        WEEKS = list;
+        // A ?week= link to a private week (Quick lesson, Library) can arrive before that week has loaded: open it once it has.
+        if (wantWeek && synced && WEEKS.some((w) => w.id === wantWeek)) { S.week = wantWeek; wantWeek = ""; lateWeek = ""; resetPos(); push(); return; }
+        if (synced && Date.now() < autoWeekUntil && !wantWeek) { const dw = defaultWeek(); if (dw !== S.week) { S.week = dw; lateWeek = ""; if (!W().classes[S.cls]) S.cls = classOf(S.period); resetPos(); push(); return; } }
+        if (lateWeek && WEEKS.some((w) => w.id === lateWeek)) { S.week = lateWeek; lateWeek = ""; if (!W().classes[S.cls]) S.cls = classOf(S.period); }
+        if (synced) { sig = ""; render(); }
+    }); }
     store.watch("rosters/all", (snap) => { const p = (snap.exists && snap.data && snap.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); renderLayer(); }, () => {});
     store.clockSkew().then((ms) => { skew = ms; tick(); });
     const slow = setTimeout(() => { mark("board-slow", ms()); setStatus("Still connecting\u2026"); arrived(); render(); }, 10000);   // never leave the teacher on a blank board
@@ -997,10 +1006,13 @@ export async function startApp(opts) {
             let changed = !snap.exists;
             // A board left on another day must not come back on that day tomorrow: on a new calendar day, start on the real day.
             if (!guest && snap.exists && snap.data.stamp !== localIso()) { S.week = defaultWeek(); S.day = realDay(); S.screen = "today"; resetPos(); changed = true; }
+            // That default was picked before private weeks loaded: for a few seconds, move to a newer one when it arrives.
+            if (!guest && changed) autoWeekUntil = Date.now() + 15000;
             const pq = q.get("period"), sq = q.get("screen");
             if (guest) { const pp = q.get("period"); if (pp && PERIODS.some((p) => p[0] === pp)) { S.period = pp; S.cls = classOf(pp); } if (di >= 0) S.day = di; S.screen = "today"; resetPos(); push(); return; }
             const wq = q.get("week");   // the Library opens a chosen week: remote.html?week=week5&class=8th&day=mon
             if (mode === "remote" && wq && WEEKS.some((w) => w.id === wq) && wq !== S.week) { S.week = wq; resetPos(); changed = true; }
+            else if (mode === "remote" && wq && !WEEKS.some((w) => w.id === wq)) wantWeek = wq;
             if (mode === "remote" && sq && SCREENS.some((x) => x[0] === sq) && sq !== S.screen) { S.screen = sq; changed = true; }
             if (mode === "remote" && pq && PERIODS.some((p) => p[0] === pq) && pq !== S.period) { S.period = pq; S.cls = classOf(pq); resetPos(); S.screen = sq && SCREENS.some((x) => x[0] === sq) ? sq : "today"; changed = true; }
             else if (mode === "remote" && c && W().classes[c] && (c !== S.cls)) { S.cls = c; S.period = (PERIODS.find((p) => p[1] === c) || [S.period])[0]; resetPos(); changed = true; }
