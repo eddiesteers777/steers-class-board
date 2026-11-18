@@ -347,7 +347,18 @@ function heatGrid(rows, names, teacher) {
     });
     return g;
 }
-function setHeat(on, names) { H.heat = { on: !!on, names: !!names }; changed(true); panelSig = ""; drawLivePanel(true); }
+/** What the board shows, picked on the Remote: the scores, the heat map, or one student's work. Only one at a time. */
+function setHeat(on, names) {
+    H.heat = { on: !!on, names: !!names };
+    if (on) { H.show = null; H.review = null; }
+    boardNow();
+}
+function boardNow() {
+    rev++; panelSig = "";
+    if (hosting && running()) saveSoon(true);
+    else A.store().save("games/room", clean(H)).catch((e) => { note = "Could not update the board (" + ((e && e.code) || "connection") + ")."; });
+    A.redraw(); drawLivePanel(true);
+}
 
 /* ---------- power-ups ---------- */
 const bonusOn = () => (+H.bonus || 0) > Date.now();
@@ -409,7 +420,7 @@ function byCategory(p) {
 }
 /** Put one question on the board to go over (null: back to the final scores). Saved straight away, even after the game. */
 function review(qi, ans) {
-    H.review = qi == null ? null : { qi, ans: !!ans }; rev++; panelSig = "";
+    H.review = qi == null ? null : { qi, ans: !!ans }; if (qi != null && H.heat) H.heat.on = false; rev++; panelSig = "";
     A.store().save("games/room", clean(H)).catch((e) => { note = "Could not update the board (" + ((e && e.code) || "connection") + ")."; });
     A.redraw(); drawLivePanel(true);
 }
@@ -556,7 +567,26 @@ function acceptAnswer(id) {
     flush(new Set([id]));
 }
 function setLive(on) { H.opts.live = on; flush(new Set(["room"])); saveSoon(true); }
-function showWork(id, withName) { H.show = id ? { id, nm: !!withName } : null; changed(true); }
+function showWork(id, withName) { H.show = id ? { id, nm: !!withName } : null; if (id && H.heat) H.heat.on = false; boardNow(); }
+/** The "On the board" switch at the top of the Remote's game panel. */
+function boardSwitch(p) {
+    const now = H.show && P(H.show.id) ? "work" : H.heat && H.heat.on ? "heat" : "lead", row = el("div", "vrboardsw");
+    row.append(el("small", null, "On the board now"));
+    const seg = el("div", "vrtabs");
+    [["lead", H.status === "done" ? "Final scores" : "Scores"], ["heat", "Heat map"]].concat(H.status === "play" ? [["work", "Student work"]] : []).forEach(([k, label]) => {
+        const b = btn("btn " + (now === k ? "go" : "ghost"), label, () => {
+            if (k === "lead") { H.show = null; if (H.heat) H.heat.on = false; H.review = null; boardNow(); }
+            else if (k === "heat") setHeat(true, H.heat && H.heat.names);
+            else { tab = "work"; panelSig = ""; drawLivePanel(true); }
+        });
+        b.setAttribute("aria-pressed", String(now === k)); seg.append(b);
+    });
+    row.append(seg);
+    if (now === "work") row.append(el("small", "vrsub", "Showing " + (H.show.nm ? P(H.show.id).nm + "'s" : "a student's") + " work. Pick another in the Work tab."));
+    else if (now === "heat") row.append(btn("btn ghost", H.heat.names ? "Heat map shows names (tap for anonymous)" : "Heat map is anonymous (tap to show names)", () => setHeat(true, !H.heat.names)));
+    else if (H.status === "play") row.append(el("small", "vrsub", "To show work, open the Work tab and tap a student."));
+    p.append(row);
+}
 
 /* ---------- each quarter second ---------- */
 export function tickLive() {
@@ -639,6 +669,49 @@ function watchPad() {
 function padOf(id) { if (isRemote() && hosting) { const d = PL[id]; return d && d.img ? { img: d.img, iq: +d.iq || 0, it: +d.it || 0 } : null; } return id && H.show && H.show.id === id ? PAD : null; }
 const nameOn = (p, i) => (H.opts.board ? p.nm : "Player " + (i + 1));
 
+/* ---------- the board's crack moment: a vault door that unlocks and swings open ----------
+   Built from layered HTML and CSS (no images): a steel frame, a thick round door in the
+   cracked student's skin, a spoked wheel that spins, locking bolts that pull back, the
+   door swinging on its hinge, and gold inside with coins flying out. A Shield block
+   jams the wheel instead. Redraws resume mid-animation (a negative delay). */
+const CRACK_MS = 4600, crackSeen = {};
+function vaultScene(last, since) {
+    const block = last.k === "block", k = V.skin(last.vs)[3], o = el("div", "vrcrack vx" + (block ? " block" : ""));
+    o.style.setProperty("--el", (-since / 1000).toFixed(2) + "s"); o.style.setProperty("--skd", k.door); o.style.setProperty("--skr", k.ring);
+    const scene = el("div", "vxscene"), frame = el("div", "vxframe");
+    for (let i = 0; i < 4; i++) frame.append(el("i", "vxhinge h" + i));
+    const inside = el("div", "vxin");
+    inside.innerHTML = '<svg viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="vxg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE7A0"/><stop offset=".5" stop-color="#F2B33D"/><stop offset="1" stop-color="#A86F00"/></linearGradient></defs>'
+        + '<rect x="30" y="98" width="140" height="6" rx="2" fill="#3A4A6B"/><rect x="30" y="150" width="140" height="6" rx="2" fill="#3A4A6B"/>'
+        + [[44, 76], [80, 76], [116, 76], [62, 60], [98, 60], [50, 128], [86, 128], [122, 128], [68, 112], [104, 112]].map(([x, y]) => '<path d="M' + x + " " + (y + 22) + "l6-18h22l6 18z" + '" fill="url(#vxg)" stroke="#8A5F00" stroke-width="1.2"/>').join("")
+        + '</svg>';
+    const door = el("div", "vxdoor"), face = el("div", "vxface"), edge = el("div", "vxedge");
+    for (let i = 0; i < 8; i++) { const b = el("i", "vxbolt"); b.style.setProperty("--a", (i * 45) + "deg"); face.append(b); }
+    for (let i = 0; i < 16; i++) { const r = el("i", "vxrivet"); r.style.setProperty("--a", (i * 22.5) + "deg"); face.append(r); }
+    const wheel = el("div", "vxwheel");
+    wheel.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="vxw" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".45" stop-color="#C9D3E3"/><stop offset="1" stop-color="#55627F"/></radialGradient></defs>'
+        + [0, 60, 120].map((a) => '<rect x="46" y="4" width="8" height="92" rx="4" fill="url(#vxw)" stroke="#2A3550" stroke-width="1.5" transform="rotate(' + a + ' 50 50)"/>').join("")
+        + [0, 60, 120, 180, 240, 300].map((a) => '<circle cx="50" cy="6" r="6" fill="url(#vxw)" stroke="#2A3550" stroke-width="1.5" transform="rotate(' + a + ' 50 50)"/>').join("")
+        + '<circle cx="50" cy="50" r="17" fill="url(#vxw)" stroke="#2A3550" stroke-width="2"/><circle cx="50" cy="50" r="6" fill="#2A3550"/></svg>';
+    face.append(el("i", "vxring r1"), el("i", "vxring r2"), wheel, el("i", "vxdial"));
+    door.append(edge, face);
+    frame.append(inside, door);
+    scene.append(el("i", "vxglow"), frame);
+    if (block) { const sh = el("div", "vxshield"); sh.innerHTML = '<svg viewBox="0 0 120 120" aria-hidden="true"><path d="M60 8l44 16v32c0 30-20 50-44 58C36 106 16 86 16 56V24z" fill="#7FAEDD" stroke="#fff" stroke-width="4"/><path d="M60 22l30 11v23c0 21-13 35-30 42z" fill="#10358A"/></svg>'; scene.append(sh); }
+    else {
+        const coins = el("div", "vxcoins");
+        for (let i = 0; i < 18; i++) {
+            const c = el("i", "vxcoin"), ang = -70 + (i * 140 / 17) + (i % 3) * 4, dist = 9 + (i % 4) * 2.6;
+            c.style.setProperty("--dx", (Math.sin(ang * Math.PI / 180) * dist).toFixed(2) + "em");
+            c.style.setProperty("--dy", (-Math.cos(ang * Math.PI / 180) * dist * 0.75 - 2).toFixed(2) + "em");
+            c.style.setProperty("--d", (1.75 + (i % 6) * 0.06).toFixed(2) + "s"); c.style.setProperty("--r", (360 + i * 47) + "deg");
+            coins.append(c);
+        }
+        scene.append(coins);
+    }
+    o.append(scene);
+    return o;
+}
 /** A small round vault in the student's skin, for the board's leaderboard. */
 function skinDot(p) { const k = V.skin(p.vs), d = el("i", "vrskin" + (k[3].stars ? " stars" : "") + (k[3].shine ? " shine" : "")); d.style.setProperty("--skd", k[3].door); d.style.setProperty("--skr", k[3].ring); d.title = k[1] + " vault"; d.setAttribute("aria-hidden", "true"); return d; }
 export function drawLiveStage(st) {
@@ -690,9 +763,10 @@ export function drawLiveStage(st) {
         const bon = el("div", "vrbonus"); bon.id = "liveBonus"; bon.hidden = !bonusOn(); bon.append(el("span", null, "BONUS ROUND · double coins"), el("b", null, "")); body.append(bon);
         // A crack in the last few seconds gets the whole board for a moment.
         const last = (H.feed || []).filter((f) => f.k === "crack" || f.k === "block").slice(-1)[0];
-        if (last && Date.now() - last.t < 4000) {
-            const o = el("div", "vrcrack" + (last.k === "block" ? " block" : "")); o.id = "liveCrack"; o.dataset.until = String(last.t + 4000);
-            o.innerHTML = '<svg viewBox="0 0 120 120" aria-hidden="true"><g class="vcoins"><circle cx="48" cy="66" r="12" fill="#F2B33D"/><circle cx="66" cy="58" r="12" fill="#F6C866"/><circle cx="72" cy="74" r="12" fill="#F2B33D"/></g><g class="vdoor"><circle cx="60" cy="60" r="56" fill="' + V.skin(last.vs)[3].door + '" stroke="' + V.skin(last.vs)[3].ring + '" stroke-width="4"/><circle cx="60" cy="60" r="30" fill="' + V.skin(last.vs)[3].face + '"/><path d="M60 60L60 24" stroke="#F2B33D" stroke-width="5" stroke-linecap="round"/><circle cx="60" cy="60" r="9" fill="#081B45"/></g></svg>';
+        if (last && !crackSeen[last.t]) crackSeen[last.t] = Date.now();   // when this board first saw it, so a redraw picks up mid-animation
+        const since = last ? Date.now() - crackSeen[last.t] : 1e9;
+        if (last && Date.now() - last.t < 12000 && since < CRACK_MS) {
+            const o = vaultScene(last, since); o.id = "liveCrack"; o.dataset.until = String(crackSeen[last.t] + CRACK_MS);
             o.append(el("p", null, last.k === "block" ? (H.opts.board ? last.txt : "A Shield blocked a crack!") : H.opts.board ? last.txt.replace(/ \(\+(\d+)\)$/, "! +$1 coins") : "A vault was cracked!"));
             body.append(o);
         }
@@ -710,6 +784,8 @@ export function drawLiveStage(st) {
         stat.append(ring, right); card.append(stat);
         if (H.review.ans) { const a = el("div", "vrrevans"); a.append(el("small", null, "Answer"), mathEl("b", null, q.a)); card.append(a); }
         body.append(card);
+    } else if (H.status === "done" && H.heat && H.heat.on) {
+        const hm = el("div", "vrlead vrheatwrap vrheatdone"); hm.append(el("p", "vrlab", "How everyone did · last " + HEAT_COLS + " answers"), heatGrid(heatRows(), !!H.heat.names, false)); body.append(hm);
     } else {
         const order = ranked(), box = el("div", "gdone");
         box.append(el("p", "gwinlab", "Game over"));
@@ -780,17 +856,18 @@ export function drawLivePanel(force) {
         const bon = btn("btn " + (bonusOn() ? "ghost" : "go") + " vrbonusbtn", bonusOn() ? "Bonus round on" : "Start a bonus round (double coins, 60 s)", startBonus); bon.id = "liveBonusBtn"; bon.disabled = bonusOn(); p.append(bon);
         const tabs = el("div", "vrtabs"); [["players", "Players"], ["heat", "Heat map"], ["work", "Work"]].forEach(([k, label]) => { const b = btn("btn " + (tab === k ? "go" : "ghost"), label, () => { tab = k; panelSig = ""; drawLivePanel(true); }); b.setAttribute("aria-pressed", String(tab === k)); tabs.append(b); });
         p.append(tabs);
-        if (H.show) p.append(btn("btn go", "Back to the scores on the board", () => showWork("")));
+        boardSwitch(p);
         if (tab === "work") workGrid(p);
         else if (tab === "heat") {
             const hm = H.heat || {}, row = el("div", "vrheatctl");
-            row.append(btn("btn " + (hm.on ? "ghost" : "go"), hm.on ? "Take it off the board" : "Show it on the board", () => setHeat(!hm.on, hm.names)),
+            row.append(btn("btn " + (hm.on ? "ghost" : "go"), hm.on ? "Back to the scores on the board" : "Show it on the board", () => setHeat(!hm.on, hm.names)),
                 btn("btn ghost", hm.names ? "Board: names" : "Board: anonymous", () => setHeat(hm.on, !hm.names)));
             p.append(row, el("p", "gpnote", "Last " + HEAT_COLS + " answers each: ✓ right, ↻ right on the second try, ✗ missed. Stuck = 3 misses in a row (only you see that)."), heatGrid(heatRows(), true, true));
         } else playerRows(p, true);
     } else {
         const tabs = el("div", "vrtabs"); [["report", "Report"], ["players", "Standings"]].forEach(([k, label]) => { const b = btn("btn " + (dtab === k ? "go" : "ghost"), label, () => { dtab = k; panelSig = ""; drawLivePanel(true); }); b.setAttribute("aria-pressed", String(dtab === k)); tabs.append(b); });
         p.append(tabs);
+        if (!H.review && !(H.exit && !H.exit.done)) boardSwitch(p);
         if (dtab === "report") {
             if (H.exit && H.exit.done) exitPanel(p, false);
             else if (Object.keys(H.players).length) p.append(btn("btn go", "Exit ticket: " + Math.min(EXIT_N, H.qs.length) + " most-missed questions (no coins)", startExit));
