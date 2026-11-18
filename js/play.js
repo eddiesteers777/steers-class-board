@@ -12,7 +12,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import * as V from "./vaultCore.js?v=62";
+import * as V from "./vaultCore.js?v=64";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 
@@ -48,7 +48,7 @@ const ST = {
     step: "code",        // code → name → vault → (playing)
     pick: null,          // { ni } or { nm } while joining
     view: "q",           // q (question) · fb (answer result) · targets · guess
-    sentQ: -1, sentK: 0, coins: null, target: "", guess: "", vault: "", typed: "", err: "", seenHit: 0, busy: false,
+    sentQ: -1, sentK: 0, coins: null, picks: {}, pickErr: false, opened: {}, seenBlock: 0, target: "", guess: "", vault: "", typed: "", err: "", seenHit: 0, busy: false,
 };
 let unsubRoom = null, unsubMe = null, sig = "";
 
@@ -294,6 +294,76 @@ const STREAK_WORDS = { 2: "Two in a row!", 3: "On a roll!", 4: "Heating up!", 5:
 const RIGHT_WORDS = ["Right!", "Nailed it!", "Yes!", "Correct!", "Got it!"];
 const MISS_WORDS = ["Shake it off. The next one is yours.", "Close one. Check the answer and keep going.", "Mistakes help you learn. Keep going!"];
 
+function toast(text, cls) {
+    const t = el("div", "ptoast" + (cls ? " " + cls : ""), text); t.setAttribute("role", "status"); document.body.append(t);
+    setTimeout(() => t.classList.add("out"), 3600); setTimeout(() => t.remove(), 4200);
+}
+// The bonus round and firewall end on their own: check every second so the badges go away.
+setInterval(() => { if (ST.view === "q" && ST.me && ST.me.status === "play") { const fx = $("pfx"); if (fx) fx.replaceWith(effects(ST.me) || Object.assign(el("div", "pfx"), { id: "pfx" })); } }, 1000);
+
+/* ---------- the waiting room: a character and a starting power-up ---------- */
+/** Character and power-up picks go in their own small write, so a site whose rules are older still lets the game run. */
+function pick(data) {
+    Object.assign(ST.picks, data); draw(true);
+    setDoc(mine(), Object.assign({ at: Date.now() }, data), { merge: true }).catch(() => { ST.pickErr = true; draw(true); });
+}
+function waitingRoom(card, m) {
+    card.classList.add("lobby", "wide", "wroom");
+    const av = ST.picks.av != null ? ST.picks.av : m.av, pu = ST.picks.pu != null ? ST.picks.pu : m.pu;
+    const head = el("div", "wrhead"), me = el("span", "wrme", V.avatar(av)[0]); me.setAttribute("aria-hidden", "true");
+    const hi = el("div"); hi.append(el("h1", null, "You're in, " + m.nm + "!"));
+    const w = el("p", "pwait"); w.append(document.createTextNode("Waiting for your teacher to start"), el("i"), el("i"), el("i")); hi.append(w);
+    const code = el("div", "wrcode"); code.append(el("small", null, "Your secret code"), codeShow(m.code));
+    head.append(me, hi, code); card.append(head);
+    card.append(el("h2", "wrh", "Pick your character"));
+    const grid = el("div", "wravatars"); grid.setAttribute("role", "radiogroup"); grid.setAttribute("aria-label", "Characters");
+    V.AVATARS.forEach(([e, n], i) => { const b = btn("wravatar" + (i === av ? " on" : ""), e, () => pick({ av: i })); b.setAttribute("role", "radio"); b.setAttribute("aria-checked", String(i === av)); b.setAttribute("aria-label", n); b.title = n; grid.append(b); });
+    card.append(grid);
+    card.append(el("h2", "wrh", "Pick a power-up for the game"));
+    const pus = el("div", "wrpowers"); pus.setAttribute("role", "radiogroup"); pus.setAttribute("aria-label", "Power-ups");
+    V.STARTERS.forEach(([k, n, d]) => { const b = btn("wrpower" + (k === pu ? " on" : ""), null, () => pick({ pu: k })); b.setAttribute("role", "radio"); b.setAttribute("aria-checked", String(k === pu)); b.append(powerIcon(k), el("b", null, n), el("small", null, d)); pus.append(b); });
+    card.append(pus);
+    if (ST.pickErr) card.append(el("p", "pnote", "Characters and power-ups aren't switched on for this game yet. You can still play."));
+    else card.append(el("p", "pnote", pu ? "Ready! You can change your picks until the game starts." : "Pick one. It works once the game starts."));
+}
+const POWER_ICONS = {
+    shield: '<path d="M60 10l40 14v30c0 28-18 46-40 56-22-10-40-28-40-56V24z" fill="#7FAEDD"/><path d="M60 22l28 10v22c0 20-12 33-28 41z" fill="#10358A"/>',
+    head: '<circle cx="60" cy="60" r="46" fill="#F2B33D"/><path d="M42 64l18-26 18 26M60 40v44" fill="none" stroke="#8A5F00" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>',
+    double: '<circle cx="46" cy="60" r="32" fill="#F6C866"/><circle cx="74" cy="60" r="32" fill="#F2B33D"/><text x="74" y="72" text-anchor="middle" font-size="34" font-weight="800" fill="#8A5F00" font-family="sans-serif">×2</text>',
+    keys: '<circle cx="40" cy="44" r="20" fill="none" stroke="#F2B33D" stroke-width="10"/><path d="M54 58l40 40M80 84l10-10M70 74l8-8" stroke="#F2B33D" stroke-width="10" stroke-linecap="round"/>',
+    insure: '<path d="M20 60a40 40 0 0180 0z" fill="#1F9D61"/><path d="M60 60v38a10 10 0 01-20 0" fill="none" stroke="#0E1B3A" stroke-width="8" stroke-linecap="round"/>',
+    bag: '<path d="M38 30h44l-8 14c20 8 30 26 30 42 0 14-14 22-44 22S16 100 16 86c0-16 10-34 30-42z" fill="#F2B33D"/><path d="M60 58v34M50 66h16a6 6 0 010 12H54a6 6 0 000 12h16" fill="none" stroke="#8A5F00" stroke-width="6" stroke-linecap="round"/>',
+    hack: '<rect x="18" y="30" width="84" height="60" rx="10" fill="#081B45"/><path d="M34 52l14 10-14 10M56 74h24" fill="none" stroke="#7FFFB2" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>',
+    firewall: '<path d="M60 8c8 22 30 30 30 58a30 30 0 01-60 0c0-16 10-24 14-32 2 12 8 16 12 16-4-18 0-30 4-42z" fill="#F28C28"/><path d="M60 52c4 10 14 14 14 26a14 14 0 01-28 0c0-10 8-16 14-26z" fill="#FFE3A3"/>',
+};
+POWER_ICONS.bonus = '<path d="M68 6L24 66h30l-8 48 46-64H60z" fill="#3A2A00"/>';
+POWER_ICONS.box = '<rect x="18" y="44" width="84" height="60" rx="8" fill="#10358A"/><rect x="12" y="30" width="96" height="20" rx="6" fill="#1552D6"/><rect x="52" y="30" width="16" height="74" fill="#F2B33D"/><path d="M60 30c-10-18-30-18-28-6 2 8 18 6 28 6 10 0 26 2 28-6 2-12-18-12-28 6z" fill="#F2B33D"/>';
+const powerIcon = (k) => svg(POWER_ICONS[k] || POWER_ICONS.box, "pwicon");
+/** What's helping right now: power-ups and the bonus round. */
+function effects(m) {
+    const list = [], now = Date.now(), bonus = Math.max(+m.bonus || 0, +(ST.room && ST.room.bonus) || 0);
+    if (bonus > now) list.push(["bonus", "Bonus round ×2 · " + Math.ceil((bonus - now) / 1000) + " s", "hot"]);
+    if (m.dbl > 0) list.push(["double", "Double coins: " + m.dbl + " left", ""]);
+    if (m.blk) list.push(["shield", "Shield ready", ""]);
+    if (m.fw > now) list.push(["firewall", "Firewall on", ""]);
+    if (m.ins) list.push(["insure", "Insured", ""]);
+    if (!list.length) return null;
+    const box = el("div", "pfx"); box.id = "pfx"; list.forEach(([k, t, c]) => { const x = el("span", "pfxc" + (c ? " " + c : "")); x.append(powerIcon(k), document.createTextNode(t)); box.append(x); });
+    return box;
+}
+/** A mystery box from a right answer. What's inside already counts; opening it shows what it was. */
+function mysteryBox(b, key) {
+    const wrap = el("div", "pbox" + (ST.opened[key] ? " open" : ""));
+    const name = { bag: "Coin bag: +" + b.v + " coins", hack: "Extra hack!", double: "Double coins on your next " + b.v + " right answers", firewall: "Firewall: your vault is safe for " + b.v + " seconds" }[b.k] || "A surprise";
+    if (!ST.opened[key]) {
+        const go = btn("pboxbtn", null, () => { ST.opened[key] = 1; wrap.classList.add("open"); go.replaceWith(prize()); confetti(70, 0.5, 0.55, ["#F2B33D", "#7FAEDD", "#FFFFFF"]); });
+        go.append(powerIcon("box"), el("b", null, "Mystery box! Tap to open"));
+        wrap.append(go);
+    } else wrap.append(prize());
+    function prize() { const p = el("div", "pboxprize"); p.append(powerIcon(b.k), el("b", null, name)); return p; }
+    return wrap;
+}
+
 /* ---------- drawing the page ---------- */
 function stats() {
     const s = $("stats"), m = ST.me;
@@ -301,7 +371,7 @@ function stats() {
     s.hidden = false; s.textContent = "";
     const chip = (label, val, cls) => { const c = el("span", "pstat" + (cls ? " " + cls : "")); c.append(el("small", null, label), el("b", null, val)); s.append(c); };
     const was = ST.coins; ST.coins = m.c;
-    chip("Name", m.nm); chip("Coins", String(m.c), "coin" + (was != null && m.c > was ? " up" : was != null && m.c < was ? " down" : "")); chip("Hacks", String(m.h)); if (m.status !== "lobby") chip("Place", m.rank + " of " + m.players);
+    chip("Name", V.avatar(m.av)[0] + " " + m.nm); chip("Coins", String(m.c), "coin" + (was != null && m.c > was ? " up" : was != null && m.c < was ? " down" : "")); chip("Hacks", String(m.h)); if (m.status !== "lobby") chip("Place", m.rank + " of " + m.players);
     const t = el("span", "pstat"); t.append(el("small", null, "Time"), el("b", null, "")); t.id = "ptime"; s.append(t); tickTime();
 }
 function tickTime() {
@@ -314,12 +384,13 @@ setInterval(tickTime, 500);
 function draw(force) {
     const m = ST.me;
     if (m && m.nm && ST.step !== "play") ST.step = "play";
-    const k = JSON.stringify([ST.step, ST.view, ST.err, ST.busy, ST.target, ST.guess, ST.vault, ST.roomGone, ST.room && [ST.room.status, ST.room.taken, ST.room.names && ST.room.names.length], m && [m.n, m.status, m.need]]);
+    const k = JSON.stringify([ST.step, ST.view, ST.err, ST.busy, ST.target, ST.guess, ST.vault, ST.roomGone, ST.room && [ST.room.status, ST.room.taken, ST.room.names && ST.room.names.length, ST.room.bonus], m && [m.n, m.status, m.need]]);
     if (k === sig && !force) return;
     // Keep the pad (and anything typed) while the same question stays on screen.
     const sameQ = !force && ST.step === "play" && ST.view === "q" && m && m.q && document.getElementById("padhost") && +$("padhost").dataset.q === m.q.n && !ST.roomGone;
     sig = k; stats();
-    if (sameQ) { const n = $("pnote"); if (n) n.textContent = ST.err; return; }
+    if (m && m.hit && m.hit.blocked && m.hit.at > ST.seenBlock) { ST.seenBlock = m.hit.at; toast("Your Shield blocked " + m.hit.by + "'s crack! Your coins are safe.", "good"); }
+    if (sameQ) { const n = $("pnote"); if (n) n.textContent = ST.err; const fx = $("pfx"); if (fx) fx.replaceWith(effects(m) || Object.assign(el("div", "pfx"), { id: "pfx" })); return; }
     document.body.classList.remove("qmode");
     const main = $("main"); main.textContent = "";
     const card = el("section", "pcard"); main.append(card);
@@ -330,10 +401,7 @@ function draw(force) {
     if (!m) { card.append(el("h1", null, "Joining…"), el("p", "plead", "Hang on a second.")); return; }
     if (m.status === "lobby") {
         if (m.need) return vaultStep(card, true);
-        card.classList.add("lobby");
-        card.append(vaultPic("spin"), el("h1", null, "You're in, " + m.nm + "!"), el("p", "plead", "Your secret vault code"), codeShow(m.code));
-        const w = el("p", "pwait"); w.append(document.createTextNode("Waiting for your teacher to start"), el("i"), el("i"), el("i")); card.append(w, el("p", "pnote", "Keep your code secret. Watch the board."));
-        return;
+        return waitingRoom(card, m);
     }
     if (m.status === "done") {
         card.classList.add("done");
@@ -414,6 +482,7 @@ function questionView(card) {
     card.classList.add("qview"); document.body.classList.add("qmode");
     const need = !!(ST.room && ST.room.work);
     const qc = el("div", "pqcard"), left = el("div", "pqleft"), top = el("div", "pqtop");
+    top.append(effects(m) || Object.assign(el("div", "pfx"), { id: "pfx" }));
     if (q.c) top.append(el("span", "pchip", q.c));
     if (m.h > 0) top.append(btn("pbtn hack", "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }));
     left.append(top, mathEl("p", "pq", q.t));
@@ -446,10 +515,12 @@ function fbView(card) {
         const st = m.st || 1, words = STREAK_WORDS[st] || (st > 10 ? "Legendary!" : "");
         card.append(streakRow(st));
         const chips = el("div", "pchips"); chips.append(el("span", "pgain", "+1 hack"));
+        (f.x2 || []).forEach((k) => chips.append(el("span", "pgain hot", k === "bonus" ? "Bonus round ×2" : "Double coins ×2")));
         if (st > 1) chips.append(el("span", "pgain hot", words || st + " in a row"));
-        if (f.plus > 10) chips.append(el("span", "pgain", "Streak bonus +" + (f.plus - 10)));
+        if (V.coinsFor(st) > V.RIGHT_COINS) chips.append(el("span", "pgain", "Streak bonus +" + (V.coinsFor(st) - V.RIGHT_COINS)));
         card.append(chips);
         once(key, () => { countUp(amt, f.plus || 0, "+"); confetti(st >= 5 ? 170 : st >= 3 ? 120 : 80, 0.5, 0.3); });
+        if (f.box) card.append(mysteryBox(f.box, key));
     } else {
         if (fresh) card.classList.add("shake");
         card.append(el("h1", null, "Not quite"));
@@ -469,7 +540,7 @@ function targetsView(card) {
     const list = el("div", "ptargets");
     (m.targets || []).forEach((t) => {
         const b = btn("ptarget", null, () => { ST.target = t.id; ST.guess = ""; ST.view = "guess"; draw(true); });
-        b.append(el("b", null, t.nm), el("span", null, t.c + " coins"), el("small", null, t.sh ? "Firewall up" : t.g.length ? t.g.length + (t.g.length === 1 ? " guess so far" : " guesses so far") : "Not tried yet"));
+        b.append(el("b", null, V.avatar(t.av)[0] + " " + t.nm), el("span", null, t.c + " coins"), el("small", null, t.sh ? "Firewall up" : t.g.length ? t.g.length + (t.g.length === 1 ? " guess so far" : " guesses so far") : "Not tried yet"));
         b.disabled = !!t.sh || m.h < 1; list.append(b);
     });
     if (!(m.targets || []).length) list.append(el("p", "plead", "No one else is playing yet."));

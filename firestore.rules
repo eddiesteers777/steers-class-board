@@ -39,7 +39,9 @@ service cloud.firestore {
         allow list, delete: if owner();
         allow create, update: if signedIn() && request.auth.uid == who
           && room().status in ['lobby', 'play']
-          && request.resource.data.keys().hasOnly(['at', 'ni', 'nm', 'code', 'cn', 'a', 'k', 'img', 'iq', 'it'])
+          && request.resource.data.keys().hasOnly(['at', 'ni', 'nm', 'code', 'cn', 'a', 'k', 'img', 'iq', 'it', 'av', 'pu'])
+          && (!('av' in request.resource.data) || (request.resource.data.av is int && request.resource.data.av >= 0 && request.resource.data.av < 32))
+          && (!('pu' in request.resource.data) || (request.resource.data.pu is string && request.resource.data.pu.size() <= 12))
           && (!('nm' in request.resource.data) || (request.resource.data.nm is string && request.resource.data.nm.size() <= 24))
           && (!('code' in request.resource.data) || (request.resource.data.code is string && request.resource.data.code.size() <= 3))
           && (!('img' in request.resource.data) || (request.resource.data.img is string && request.resource.data.img.size() <= 400000))
