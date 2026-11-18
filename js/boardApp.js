@@ -17,6 +17,7 @@ import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=57";
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive } from "./liveRoom.js?v=64";
+import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=1";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -358,9 +359,9 @@ function skeleton() {
 }
 function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
-    syncGames(); syncLive(); buildControls(); soundSync();
+    syncGames(); syncLive(); syncNotes(); buildControls(); soundSync();
     const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", WB_SCREENS[S.screen] ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : ""]);
-    renderDock(); drawGamePanel(); drawLivePanel();
+    renderDock(); drawGamePanel(); drawLivePanel(); drawNotesPanel();
     if (ns === sig) { renderLayer(); tick(); tickTools(toolApi); placeCard(); return; }
     sig = ns;
     const st = $("screenHost"); st.textContent = ""; canvas = null; ctx = null; pad = null;
@@ -452,6 +453,7 @@ function drawWb(st, kind) {
         else paperEl.appendChild(card);
     }
     paperEl.appendChild(pagesBar());
+    drawNotesOverlay(paperEl, kind);   // live notes: the check-in ring and join code (js/liveNotes.js)
     st.appendChild(wrap); bindCanvas(); sizeCanvas(); placeCard();
     const list = paperEl.querySelector(".nlines"); if (list) list.scrollTop = list.scrollHeight;
 }
@@ -908,6 +910,7 @@ export async function startApp(opts) {
     const guest = mode === "sub";
     mountGames({ S, header, store: () => store, writer, now, beep: () => snd.cue("done"), unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     mountLive({ S, header, store: () => store, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
+    mountNotes({ S, store: () => store, rosters: () => ROSTERS, redraw: () => render(), mode: () => mode, signedIn: () => signedIn, frames: () => notesFrames(D()), day: D, lesson: L, push });
     document.body.classList.toggle("board", mode === "board");
     {   // On the projected board the rail, pages and arrows fade after 4 s with nobody touching it, and come back on any touch.
         let idleT = 0; const wake = () => { document.body.classList.remove("idle"); clearTimeout(idleT); idleT = setTimeout(() => { if (document.body.classList.contains("board") && !document.querySelector(".mathmenu,.mathpanel")) document.body.classList.add("idle"); }, 4000); };
@@ -932,7 +935,7 @@ export async function startApp(opts) {
     }
     keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
     document.addEventListener("keydown", (e) => { if (e.target && (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.target.isContentEditable)) return; if (e.altKey || e.ctrlKey || e.metaKey) return; if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); step(1); } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); step(-1); } else if (e.key === "m" || e.key === "M") { S.sound.music = !S.sound.music; push(); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
-    setInterval(() => { if (!synced) return; tick(); tickTools(toolApi); tickGames(); tickLive(); soundTick(); }, 250);
+    setInterval(() => { if (!synced) return; tick(); tickTools(toolApi); tickGames(); tickLive(); tickNotes(); soundTick(); }, 250);
     { const p = el("div", "connpill"); p.id = "connPill"; p.setAttribute("role", "status"); p.hidden = true; document.body.appendChild(p); }
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && synced) { tick(); tickTools(toolApi); tickGames(); soundTick(); } });   // a tab back in view shows the right time at once
     document.body.classList.add("syncing");

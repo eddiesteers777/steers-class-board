@@ -105,3 +105,32 @@ body.board.idle .wbrail,body.board.idle .wbpages,body.board.idle .wbcb,body.boar
 .wbfix .fixempty p:not(.wbq){font-size:.7em;color:#55627F;line-height:1.35}
 .wbfix .fixnoq{color:#55627F}
 .wbfix .fixempty .wbq{color:var(--navy);font-size:1em;line-height:1.22;margin:0 0 .2em}
+
+/* Live notes (js/liveNotes.js): the check-in ring, student work and the join chip on the whiteboard paper.
+   Counts only, never names, unless the teacher picks "Show with name". */
+.lnlayer{position:absolute;inset:0;pointer-events:none;z-index:4}
+.lnlayer>*{pointer-events:auto}
+.lnci,.lnwork{position:absolute;right:1.2em;top:1em;width:min(15em,32%);background:linear-gradient(160deg,#081B45,#173F86);color:#F4F7FB;border-radius:1em;padding:.9em 1em 1em;text-align:center;box-shadow:0 .6em 2em rgba(8,27,69,.3);display:flex;flex-direction:column;gap:.35em;align-items:center}
+.lnwork{width:min(26em,45%);background:#fff;color:#0E1B3A;border:.15em solid #B9D3EE}
+.lnwork img{width:100%;border-radius:.5em;background:#fff}
+.lnlab{margin:0;font-size:.62em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.lnwork .lnlab{color:#10358A}
+.lnempty{margin:0;color:#55627F}
+.lnringwrap{position:relative;width:7.2em;height:7.2em}
+.lnring{width:100%;height:100%}
+.lnring circle{fill:none;stroke-width:11}
+.lnring .bg{stroke:rgba(255,255,255,.16)}
+.lnring .fg{stroke:#F2B33D;stroke-linecap:round;transition:stroke-dasharray .5s ease}
+.lnci.done .lnring .fg{stroke:#5FD39A}
+.lnringtxt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05}
+.lnringtxt b{font-size:1.45em;font-variant-numeric:tabular-nums}
+.lnringtxt small{font-size:.6em;opacity:.8}
+.lnbig{margin:0;font-weight:800;font-size:.95em}
+.lnsub{margin:0;font-size:.7em;opacity:.85}
+.lnjoin{position:absolute;right:1em;bottom:3.2em;display:flex;gap:.6em;align-items:center;background:rgba(255,255,255,.96);border:.1em solid #D5DCE9;border-radius:.8em;padding:.4em .7em .4em .4em;box-shadow:0 .3em 1em rgba(8,27,69,.12);color:#0E1B3A}
+.lnqr{width:3.6em;height:3.6em}
+.lnqr svg{width:100%;height:100%;display:block;border-radius:.3em}
+.lnjoin div{display:flex;flex-direction:column;line-height:1.15}
+.lnjoin small{font-size:.55em;color:#55627F;font-weight:600}
+.lnjoin b{font-size:1.05em;letter-spacing:.06em;color:#081B45}
+body.idle .lnjoin{opacity:.9}

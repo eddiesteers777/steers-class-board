@@ -1,0 +1,19 @@
+/* Focal — Live notes, student page (follow.html) and the board's check-in layer.
+   The student page builds on css/play.css (same cards, buttons, pad). */
+.lnkicker{font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.pcard.lnname,.pcard.lnfollow{max-width:760px}
+.lnme{font-size:1.25rem;min-height:64px}
+.lncard{border:2px solid var(--line);border-top:6px solid var(--sky);border-radius:16px;padding:14px 18px;background:#fff;display:flex;flex-direction:column;gap:8px}
+.lnkind{font-size:.8rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+.lnq{font-size:1.45rem;font-weight:700;color:var(--navy);line-height:1.35}
+.lnlines{display:flex;flex-direction:column;gap:4px;border-left:3px solid var(--light);padding-left:12px}
+.lnline{font-size:1.15rem;color:var(--ink)}
+.lnline.new{font-weight:700;color:var(--blue)}
+.lnans{border:2px solid var(--amber);background:#FFF8E6;border-radius:12px;padding:6px 12px;font-weight:700;color:var(--navy)}
+.lnchip{background:var(--amber);color:var(--amber-ink)}
+.lnhelp{min-height:40px!important;padding:4px 14px!important;font-size:.92rem!important;border-color:var(--amber)!important}
+.lnhelp.on{background:#FFF1D2!important;color:#6B4E00}
+.pcard.sentok{border-top:8px solid var(--blue)}
+.lncheck{width:72px;height:72px;margin:0 auto;border-radius:50%;background:var(--green);color:#fff;font-size:2.4rem;font-weight:800;display:grid;place-items:center}
+.lnwait .lnpulse{width:56px;height:56px;margin:0 auto;border-radius:50%;background:var(--sky);animation:lnpulse 1.6s ease-in-out infinite}
+@keyframes lnpulse{0%,100%{transform:scale(.8);opacity:.5}50%{transform:scale(1);opacity:1}}
