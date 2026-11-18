@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — the rest of the week's papers, printed from the week file (Phase 3 of the weekly workflow).
+   Anchor Board — the rest of the week's papers, printed from the week file (Phase 3 of the weekly workflow).
    Quiz or test + key (scored by standard), the modified group's 2-page quiz + key, the 1-page sub plan,
    the 4-page sub worksheet + key, and the 2-page 4-puzzle Sudoku early-finisher sheet + key.
    Every paper is built from fixed-size pages (.sh-page, one printed page each), so pageCheck() can say

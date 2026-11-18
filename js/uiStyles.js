@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — styles for the shared feedback pieces (js/ui.js toasts and dialogs, js/netStatus.js connection pill).
+   Anchor Board — styles for the shared feedback pieces (js/ui.js toasts and dialogs, js/netStatus.js connection pill).
    They used to live in the old site-wide style.css, which is gone; injecting them here keeps every page that
    shows a toast or dialog styled, whatever stylesheet the page itself loads.
 ========================================== */

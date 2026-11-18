@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — the student work pad, as its own module.
+   Anchor Board — the student work pad, as its own module.
    A copy of the Vault Raid pad in js/play.js (same look, same math tools), so the live
    notes student page (follow.html) can use it without touching the game page.
    createStudentPad() returns { mount(host), image(), clear(), dirty(), sent(), sentAt(), has(), shown() }.

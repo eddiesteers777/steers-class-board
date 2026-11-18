@@ -23,7 +23,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/fi
 
 export const PACKS = ["calera", "starter"];
 const FALLBACK = "calera";
-const cacheKey = (uid) => "focal-pack:" + uid;
+const cacheKey = (uid) => "anchorboard-pack:" + uid;
 
 function cached(uid) {
     try { const v = localStorage.getItem(cacheKey(uid)); return PACKS.includes(v) ? v : null; } catch { return null; }

@@ -1,10 +1,10 @@
 /* ==========================================
-   Focal — question bank (Phase 4 of the weekly workflow).
+   Anchor Board — question bank (Phase 4 of the weekly workflow).
    Every approved week's questions, with their answers, checks, standards and likely wrong answers, are kept as
      teacher/{uid}/bank/<weekId>  { id, label, dates, monday, at, items: [ item ] }
    item: { q, a, cls, kind, day?, std?, skill?, choices?, wrong?, work?, check? }
    Week Review writes a week's entry when it is approved (and on every save while approved) and removes it when the
-   week comes off the board. The Bank page (bank.html) searches them; Claude reads them through the Focal connector
+   week comes off the board. The Bank page (bank.html) searches them; Claude reads them through the Focal Firestore connector
    to reuse checked questions for spiral review, Friday bellringers, bonus sets and review games.
 ========================================== */
 export const KINDS = ["Bellringer", "Guided notes", "Homework", "Study guide", "Speed dating", "Quiz", "Test", "Modified quiz", "Bonus", "Modified study guide", "Modified notes", "Modified homework", "Sub worksheet", "Exit ticket"];

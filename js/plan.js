@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — Plan the Week (plan.html). Replaces the weekly intake Sheet.
+   Anchor Board — Plan the Week (plan.html). Replaces the weekly intake Sheet.
    Everything the site already knows is filled in: the dates and days off (district calendar), the next
    standards for each class (Standards page marks + district unit order), the Planner's unit for the week,
    last week's work, and the usual day pattern. The teacher changes what is different and taps Send to Claude.

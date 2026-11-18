@@ -2296,5 +2296,5 @@ var qrcode = function() {
     return qrcode;
 }));
 
-// Focal: exported as an ES module (qrcode-generator 1.4.4, MIT).
+// Anchor Board: exported as an ES module (qrcode-generator 1.4.4, MIT).
 export default qrcode;

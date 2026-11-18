@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — Class Page (class.html?t=<teacher>&c=<class>). Public, no sign-in.
+   Anchor Board — Class Page (class.html?t=<teacher>&c=<class>). Public, no sign-in.
    What a student or parent sees for one class: this week's plan day by day, the quiz or test, homework,
    the learning targets, every student paper ready to print (bellringer sheet, guided notes, study guide;
    never a key), and Extra Help videos. Reads only pub/{teacher}/... (see js/publish.js).

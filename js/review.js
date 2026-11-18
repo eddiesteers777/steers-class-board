@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — Week Review (review.html).
+   Anchor Board — Week Review (review.html).
    Shows the week Claude saved (teacher/{uid}/weekfiles/<id>) next to the plan it was built from
    (plans/<id>), runs the site's checks, lets the teacher fix any line in place, and Approve puts the
    week on the board, Planner, Library and Home (weekfiles/index). Math is recomputed by Claude before

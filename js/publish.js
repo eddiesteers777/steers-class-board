@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — Class Pages publishing (Phase 2 of the weekly workflow).
+   Anchor Board — Class Pages publishing (Phase 2 of the weekly workflow).
    Approving a week on Week Review copies a STUDENT version of it to the public read-only area
      pub/{uid}/weeks/<weekId>   { id, label, dates, monday, at, classes: { <cls>: student class } }
      pub/{uid}/index            { weeks: [{ id, label, dates, monday }], classes: { <cls>: { label, cls } } }

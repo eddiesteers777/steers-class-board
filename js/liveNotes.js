@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — Live notes: students follow the guided notes on their Chromebooks.
+   Anchor Board — Live notes: students follow the guided notes on their Chromebooks.
    The teacher teaches from paper guided notes as usual. Students keep a Chromebook open at
    /play (or the class link), tap their name, and see the same notes card as the board.
    At an anchor problem the teacher taps "Check in" on the Remote: every Chromebook switches
@@ -24,7 +24,7 @@ const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "bu
 const mathEl = (tag, cls, text) => { const e = el(tag, cls); e.append(V.mathText(text)); return e; };
 const clean = (o) => JSON.parse(JSON.stringify(o));
 
-const PAGE = (() => { try { let id = sessionStorage.getItem("focal-notes-host"); if (!id) { id = Math.random().toString(36).slice(2, 10); sessionStorage.setItem("focal-notes-host", id); } return id; } catch (e) { return Math.random().toString(36).slice(2, 10); } })();
+const PAGE = (() => { try { let id = sessionStorage.getItem("anchorboard-notes-host"); if (!id) { id = Math.random().toString(36).slice(2, 10); sessionStorage.setItem("anchorboard-notes-host", id); } return id; } catch (e) { return Math.random().toString(36).slice(2, 10); } })();
 const HOST_STALE = 20000;
 const SCREENS_ON = { notes: 1, bell: 1, blank: 1, fix: 1 };   // where the Live notes panel and the board's check-in ring appear
 

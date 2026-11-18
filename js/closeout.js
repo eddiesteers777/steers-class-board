@@ -1,11 +1,11 @@
 /* ==========================================
-   Focal — closing out a week (Phase 4 of the weekly workflow).
+   Anchor Board — closing out a week (Phase 4 of the weekly workflow).
    One checklist per approved week, by class, in place of Claude's end-of-week report:
      teacher/{uid}/closeout/<weekId>  { done: { "<cls>.<item>": { at, by } | null }, printed: { <cls>: { <paper>: at } } }
      teacher/{uid}/settings/closeout  { schoology: { <cls>: at | null } }   (the Class Page link is set once, not weekly)
    Items Anchor can see tick themselves: the week approved (so it is on the board and the Class Page) and the
    papers printed from Week Builder. Magma, Thrillshare and Schoology are ticked by Eddie, or by Claude through
-   the Focal connector ({ done: { "8th.magma": { at, by: "Claude" } } }, merged).
+   the Focal Firestore connector ({ done: { "8th.magma": { at, by: "Claude" } } }, merged).
 ========================================== */
 export const CLASSES = [["8th", "8th Grade"], ["7th", "7th Grade"], ["8th-acc", "8th Accelerated"]];
 const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];

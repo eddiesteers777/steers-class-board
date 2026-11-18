@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — Live notes, the student page (follow.html, opened from /play or the class link).
+   Anchor Board — Live notes, the student page (follow.html, opened from /play or the class link).
    No account and no password: like Vault Raid, the page signs in as an anonymous guest on this
    device only (its own Firebase app, "play", so a teacher signed in here stays signed in).
 
@@ -27,8 +27,8 @@ const appleTouch = /iPhone|iPad|iPod/.test(navigator.userAgent || "") || (/Macin
 const auth = getAuth(app), db = initializeFirestore(app, appleTouch ? { experimentalForceLongPolling: true } : { experimentalAutoDetectLongPolling: true });
 if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {   // local testing with the emulators only
     try {
-        if (new URLSearchParams(location.search).has("emu")) sessionStorage.setItem("focal-emu", "1");
-        if (sessionStorage.getItem("focal-emu")) { connectFirestoreEmulator(db, "127.0.0.1", 8080); connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true }); }
+        if (new URLSearchParams(location.search).has("emu")) sessionStorage.setItem("anchorboard-emu", "1");
+        if (sessionStorage.getItem("anchorboard-emu")) { connectFirestoreEmulator(db, "127.0.0.1", 8080); connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true }); }
     } catch (e) { /* storage blocked */ }
 }
 setPersistence(auth, browserLocalPersistence).catch(() => {});
@@ -38,8 +38,8 @@ const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls)
 const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "button"; if (fn) b.onclick = fn; return b; };
 const mathEl = (tag, cls, text) => { const e = el(tag, cls); e.append(V.mathText(text)); return e; };
 const store = {
-    get: (k) => { try { return localStorage.getItem("focal-follow-" + k) || ""; } catch (e) { return ""; } },
-    set: (k, v) => { try { localStorage.setItem("focal-follow-" + k, v); } catch (e) { /* ok */ } },
+    get: (k) => { try { return localStorage.getItem("anchorboard-follow-" + k) || ""; } catch (e) { return ""; } },
+    set: (k, v) => { try { localStorage.setItem("anchorboard-follow-" + k, v); } catch (e) { /* ok */ } },
 };
 
 const ST = {

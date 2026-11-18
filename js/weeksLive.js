@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — private weeks.
+   Anchor Board — private weeks.
    A week Claude writes (or the Week Builder saves) lives in the teacher's private data at
    teacher/{uid}/weekfiles/<id> as { json, at }. Once it is approved on the Week Review page its id is
    listed in weekfiles/index ({ weeks: [{ id, label, dates, monday, approved, at }] }), and every

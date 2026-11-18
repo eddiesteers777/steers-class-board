@@ -1,4 +1,4 @@
-/* Focal — the student game page (play.html). Chromebook first, works on a phone.
+/* Anchor Board — the student game page (play.html). Chromebook first, works on a phone.
    Same palette as the board: navy gradient, sky, paper, amber for the one thing to do next. */
 :root{--navy:#081B45;--deep:#0B2559;--blue:#10358A;--sky:#7FAEDD;--light:#B9D3EE;--paper:#F6F9FD;--on:#F4F7FB;--ink:#0E1B3A;--mute:#55627F;--line:#D5DCE9;
   --amber:#F2B33D;--amber-ink:#3A2A00;--green:#1F9D61;--red:#B4232A;--ui:"Instrument Sans",system-ui,sans-serif;--display:"Bricolage Grotesque","Instrument Sans",sans-serif}

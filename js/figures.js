@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — pictures inside question text: coordinate graphs, input/output tables and mapping diagrams.
+   Anchor Board — pictures inside question text: coordinate graphs, input/output tables and mapping diagrams.
    Written in any week-file text field as a token, so every place that shows the text (printed papers, the board,
    the Class Page, the Question Bank) draws the same picture:
      [[graph {"x":[-5,5],"y":[-5,5],"pts":[[1,2],[3,-1]]}]]

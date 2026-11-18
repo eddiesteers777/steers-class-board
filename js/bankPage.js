@@ -1,5 +1,5 @@
 /* ==========================================
-   Focal — Question Bank page (bank.html). Teacher only.
+   Anchor Board — Question Bank page (bank.html). Teacher only.
    Every question from the weeks on the board (published and approved private weeks), searchable by words, class,
    kind, standard or skill, and week. Select questions and copy them for Claude, or update Claude's copy
    (teacher/{uid}/bank/<weekId>, js/bank.js) for every week at once.

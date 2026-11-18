@@ -1,4 +1,4 @@
-/* Focal — Live notes, student page (follow.html) and the board's check-in layer.
+/* Anchor Board — Live notes, student page (follow.html) and the board's check-in layer.
    The student page builds on css/play.css (same cards, buttons, pad). */
 .lnkicker{font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
 .pcard.lnname,.pcard.lnfollow{max-width:760px}
