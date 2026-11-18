@@ -622,3 +622,25 @@ div.gpset{cursor:default}
 .vrwbbtns{display:flex;flex-wrap:wrap;gap:.4em;font-size:.5em;margin-top:.2em}
 .vrwbbtns .btn{min-height:2.4em;padding:.3em 1em;border-radius:.7em;font-weight:800;border:.12em solid #C9D4E5;background:#fff;color:#13294B;cursor:pointer}
 .vrwbbtns .btn.go{background:#F2B33D;border-color:#F2B33D;color:#13294B}
+/* heat map: each student's last answers */
+.vrheat{display:flex;flex-direction:column;gap:.25em}
+.vrhrow{display:grid;grid-template-columns:minmax(6em,10em) 1fr auto auto;align-items:center;gap:.5em}
+.vrhname{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vrhcells{display:grid;grid-template-columns:repeat(12,1fr);gap:.18em}
+.vrhc{display:flex;align-items:center;justify-content:center;aspect-ratio:1;border-radius:.25em;background:rgba(255,255,255,.12);font-style:normal;font-weight:900;font-size:.7em;color:#fff}
+.vrhc.ok{background:#1F9D61}.vrhc.no{background:#D64545}.vrhc.fx{background:#E0A526;color:#2B1E00}
+.vrhpct{font-weight:800;min-width:2.6em;text-align:right}
+.vrheatwrap .vrheat{font-size:1.05em}
+.vrheat.remote{font-size:.9rem;gap:4px}
+.vrheat.remote .vrhc{background:#E8EEF7;color:#fff}
+.vrheat.remote .vrhc.ok{background:#1F9D61}.vrheat.remote .vrhc.no{background:#D64545}.vrheat.remote .vrhc.fx{background:#E0A526;color:#2B1E00}
+.vrheat.remote .vrhname{color:#13294B}
+.vrheat.remote .vrhpct{color:#4A5A78}
+.vrhrow.stuck{background:#FDEEEE;border-radius:8px;padding:2px 4px}
+.vrhstuck{font-size:.75rem;color:#B4232A;text-transform:uppercase}
+.vrheatctl{display:flex;flex-wrap:wrap;gap:6px}
+/* send it back: trying a question again */
+.vrwbredo{display:flex;flex-wrap:wrap;align-items:baseline;gap:.2em .6em;font-size:.6em;background:#EEF3FA;border-radius:.6em;padding:.35em .7em;color:#13294B}
+.vrwbredo b{font-family:var(--display);font-size:1.15em;color:#1552D6}
+.vrwbredo.done b{color:#0F6B40}
+.vrredoq{font-weight:700;color:#13294B}
