@@ -88,7 +88,10 @@ async function join(code) {
         if (d.err) { ST.err = d.err; ST.step = "name"; ST.pick = null; ST.busy = false; draw(); return; }
         ST.me = d; ST.hadMe = true; ST.busy = false; ST.err = "";
         if (d.hit && d.hit.at > ST.seenHit && d.need) { ST.view = "hit"; }
-        if (ST.view === "q" && ST.sentQ >= 0 && d.fb && d.fb.q === ST.sentQ) { ST.view = "fb"; ST.sentQ = -1; if (!d.fb.retry) pad.clear(); }   // a second try keeps the work
+        if (ST.view === "q" && ST.sentQ >= 0 && d.fb && d.fb.q === ST.sentQ) {
+            if (d.fb.exit) { ST.sentQ = -1; pad.clear(); }   // exit ticket: straight on to the next question, no right or wrong
+            else { ST.view = "fb"; ST.sentQ = -1; if (!d.fb.retry) pad.clear(); }   // a second try keeps the work
+        }
         if (ST.view === "guess" && ST.sentK && d.hk && d.hk.n === ST.sentK) { ST.sentK = 0; ST.guess = ""; }
         draw();
     }, () => {});
@@ -483,17 +486,28 @@ function stats() {
 function tickTime() {
     const t = $("ptime"); if (!t) return; const e = ST.me && ST.me.ends;
     t.hidden = !(ST.me && ST.me.status === "play" && e);
-    if (!t.hidden) { const l = Math.max(0, e - Date.now()); t.lastChild.textContent = Math.floor(l / 60000) + ":" + ("0" + Math.floor((l % 60000) / 1000)).slice(-2); }
+    const pz = ST.room && +ST.room.paused;
+    if (!t.hidden) { const l = Math.max(0, e - (pz || Date.now())); t.lastChild.textContent = (pz ? "⏸ " : "") + Math.floor(l / 60000) + ":" + ("0" + Math.floor((l % 60000) / 1000)).slice(-2); }
 }
 setInterval(tickTime, 500);
 
+/** The question on a student's screen: the game's, or the exit ticket's. */
+const curQ = (m) => m && (m.q || (m.exit && m.exit.q)) || null;
+/** Paused by the teacher: a cover over everything, without redrawing (the pad and anything typed stay). */
+function pauseCover() {
+    const on = !!(ST.room && ST.room.paused && ST.room.status === "play" && ST.me && ST.me.nm && !ST.roomGone);
+    let c = $("ppause");
+    if (on && !c) { c = el("div", "ppause"); c.id = "ppause"; c.setAttribute("role", "alert"); const b = el("div", "ppausebox"); b.append(el("b", null, "Paused"), el("p", null, "Eyes up here. Your teacher has something to show you.")); c.append(b); document.body.append(c); }
+    else if (!on && c) c.remove();
+}
 function draw(force) {
+    pauseCover();
     const m = ST.me;
     if (m && m.nm && ST.step !== "play") ST.step = "play";
     const k = JSON.stringify([ST.step, ST.view, ST.err, ST.busy, ST.target, ST.guess, ST.vault, ST.roomGone, ST.room && [ST.room.status, ST.step === "name" ? [ST.room.taken, ST.room.names && ST.room.names.length] : 0, ST.room.bonus], m && [m.status === "lobby" ? 0 : m.n, m.status, m.need]]);
     if (k === sig && !force) return;
     // Keep the pad (and anything typed) while the same question stays on screen.
-    const sameQ = !force && ST.step === "play" && ST.view === "q" && m && m.q && document.getElementById("padhost") && +$("padhost").dataset.q === m.q.n && !ST.roomGone;
+    const cq = curQ(m), sameQ = !force && ST.step === "play" && ST.view === "q" && cq && document.getElementById("padhost") && +$("padhost").dataset.q === cq.n && !ST.roomGone;
     sig = k; stats();
     if (m && m.hit && m.hit.blocked && m.hit.at > ST.seenBlock) { ST.seenBlock = m.hit.at; toast("Your Shield blocked " + m.hit.by + "'s crack! Your coins are safe.", "good"); }
     if (sameQ) { const n = $("pnote"); if (n) n.textContent = ST.err; const fx = $("pfx"); if (fx) fx.replaceWith(effects(m) || Object.assign(el("div", "pfx"), { id: "pfx" })); return; }
@@ -602,7 +616,8 @@ function keypad(value, set) {
     return k;
 }
 function questionView(card) {
-    const m = ST.me, q = m.q;
+    const m = ST.me, ex = m.exit, q = curQ(m);
+    if (ex && ex.done) { card.classList.add("center"); card.append(el("h1", null, "All done!"), el("p", "plead", "Thanks. Your teacher will look at how you did. Wait for your teacher.")); return; }
     if (!q && m.redo) { card.classList.add("center"); card.append(el("h1", null, "Nice work!"), el("p", "plead", "Wait for your teacher. Everyone is trying that one again.")); return; }
     if (!q) { card.classList.add("wide"); card.append(el("p", "plead", "Getting your question…")); return; }
     // The question and answer sit in a slim card on top; the work pad takes the rest of the screen.
@@ -610,17 +625,23 @@ function questionView(card) {
     const need = !!(ST.room && ST.room.work);
     const qc = el("div", "pqcard"), left = el("div", "pqleft"), top = el("div", "pqtop");
     top.append(effects(m) || Object.assign(el("div", "pfx"), { id: "pfx" }));
-    if (q.c) top.append(el("span", "pchip", q.c));
-    if (m.h > 0) top.append(btn("pbtn hack", "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }));
+    if (q.c) top.append(el("span", "pchip", q.c + (ex ? " · " + (ex.i + 1) + " of " + ex.of : "")));
+    if (m.h > 0 && !ex && !m.redo) top.append(btn("pbtn hack", "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }));
     left.append(top, mathEl("p", "pq", q.t));
     const right = el("div", "pqright");
     const f = el("form", "pform ans"), box = answerBox(q.f || ""); ST.box = box;
     const go = el("button", "pbtn go", "Submit"); go.type = "submit";
+    // Two misses in a row: a short wait before the next answer, to look over the work.
+    const cool = () => Math.ceil(((+m.cd || 0) - Date.now()) / 1000);
+    if (!ex && !m.redo && cool() > 0) {
+        go.disabled = true; go.textContent = "Wait " + cool() + " s"; ST.err = "Two misses in a row. Look over your work on the pad first.";
+        clearInterval(ST.coolT); ST.coolT = setInterval(() => { const s = cool(); if (!go.isConnected) { clearInterval(ST.coolT); return; } if (s > 0) go.textContent = "Wait " + s + " s"; else { clearInterval(ST.coolT); go.disabled = false; go.textContent = "Submit"; ST.err = ""; const n = $("pnote"); if (n) n.textContent = ""; } }, 250);
+    }
     f.onsubmit = (e) => {
         e.preventDefault(); const r = box.read(), t = r.t || "";
         if (r.err || !t) { ST.err = r.err || "Type your answer first."; const n = $("pnote"); if (n) n.textContent = ST.err; return; }
         if (need && !pad.shown()) { ST.err = "Show your work on the pad first, then submit."; const n = $("pnote"); if (n) n.textContent = ST.err; return; }
-        if (ST.sentQ === q.n) return;
+        if (ST.sentQ === q.n || go.disabled) return;
         ST.sentQ = q.n; ST.err = ""; go.disabled = true; go.textContent = "Checking…";
         const img = pad.image(); pad.sent(); send({ a: { n: Date.now(), q: q.n, t: t.slice(0, 80) }, img, iq: q.n, it: Date.now() });
         setTimeout(() => { if (ST.sentQ === q.n && ST.view === "q") { ST.sentQ = -1; ST.err = "Your teacher's screen didn't answer. Try Submit again, or tell your teacher."; draw(true); } }, 10000);

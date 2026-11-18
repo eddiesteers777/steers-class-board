@@ -644,3 +644,18 @@ div.gpset{cursor:default}
 .vrwbredo b{font-family:var(--display);font-size:1.15em;color:#1552D6}
 .vrwbredo.done b{color:#0F6B40}
 .vrredoq{font-weight:700;color:#13294B}
+/* pause */
+.vrpaused{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);z-index:6;display:flex;flex-direction:column;align-items:center;gap:.1em;background:rgba(8,27,69,.94);border:.12em solid #F2B33D;border-radius:.6em;padding:.5em 1.6em;box-shadow:0 .4em 1.6em rgba(0,0,0,.45)}
+.vrpaused b{font-family:var(--display);font-size:3em;color:#F2B33D;line-height:1}
+.vrpaused span{font-size:1.2em;font-weight:700}
+.gbody.vr{position:relative}
+/* exit ticket */
+.vrexit{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4em;text-align:center;padding:1.5em}
+.vrexitbig{font-family:var(--display);font-size:2.2em;font-weight:800}
+.vrexitn{font-size:3.2em;font-weight:800;color:#F2B33D}
+.vrexitbar{width:min(80%,30em);height:.6em;border-radius:1em;background:rgba(255,255,255,.15);overflow:hidden}
+.vrexitbar i{display:block;height:100%;background:#1F9D61;border-radius:1em;transition:width .4s}
+.vrexitqs{margin:4px 0 6px 18px;font-size:.9rem;color:#13294B;display:flex;flex-direction:column;gap:4px}
+.vrexitqs small{color:#4A5A78}
+.gprow.vrexitlow{background:#FDEEEE}
+.vrclock.paused{opacity:.45}
