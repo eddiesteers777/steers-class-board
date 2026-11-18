@@ -53,3 +53,13 @@ Python expression that recomputes the answer (`F` is Fraction).
 The example file here holds only what is already shown on the board. Homework,
 study guide and speed dating content includes answer keys, so real week files
 with those sections are kept in Drive, never in this repo.
+
+## Pictures: graphs, tables, mapping diagrams (added 2026-11-17)
+
+Put a picture inside any question or answer text as a token. The site (js/figures.js) and this kit (figures.py, PNG via matplotlib) draw the same picture:
+
+    [[graph {"x":[-5,5],"y":[-5,5],"pts":[[1,2],[3,-1]]}]]      pts, open, seg [[a,b]], line [[a,b]] (edge to edge), curve [[x,y],...], step, size
+    [[table {"cols":["x","y"],"rows":[[1,3],[2,5]],"across":true}]]
+    [[map {"left":[1,2,3],"right":[4,5],"arrows":[[1,4],[2,5],[3,5]],"lt":"Input","rt":"Output"}]]
+
+Week Review checks "is it a function?" answers against the picture. Keep speed dating card pictures small; the 40 cards must stay on page 1.

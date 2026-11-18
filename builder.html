@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="css/board.css?v=57">
     <link rel="stylesheet" href="css/console.css?v=57">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/builder.css?v=60">
+    <link rel="stylesheet" href="css/builder.css?v=61">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page builder">
@@ -89,8 +89,8 @@
         import { WEEKS as PUBLISHED } from "./data/weeks.js?v=59";
         import { watchPrivateWeeks } from "./js/weeksLive.js?v=58";
         let WEEKS = PUBLISHED;
-        import { quizSheet, quizKey, modQuizSheet, modQuizKey, modStudyGuideSheet, modStudyGuideKey, subPlanSheet, subWorksheetSheet, sudokuSheet, pageCheck } from "./js/moreSheets.js?v=61";
-        import { DAYS, dayDate, bellringerSheet, bellringerKey, notesSheet, studyGuideSheet, studyGuideKey, speedDatingSheet, speedDatingKey } from "./js/weekSheets.js?v=57";
+        import { quizSheet, quizKey, modQuizSheet, modQuizKey, modStudyGuideSheet, modStudyGuideKey, subPlanSheet, subWorksheetSheet, sudokuSheet, pageCheck } from "./js/moreSheets.js?v=62";
+        import { DAYS, dayDate, bellringerSheet, bellringerKey, notesSheet, studyGuideSheet, studyGuideKey, speedDatingSheet, speedDatingKey } from "./js/weekSheets.js?v=59";
         // ?demo runs on this device only, like the guest teacher page: nothing is saved to any account.
         const demo = new URLSearchParams(location.search).has("demo");
         const store = await import(demo ? "./js/localStore.js?v=57" : "./js/boardStore.js?v=58");

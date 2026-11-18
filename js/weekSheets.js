@@ -7,6 +7,7 @@
    Math markup in any text: {2/5} stacked fraction, 4{2/3} mixed number,
    x^2 or x^{10} exponent, § a dollar sign, $...$ wrappers are dropped.
 ========================================== */
+import { parseFigure, figureEl } from "./figures.js?v=1";
 export const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -20,6 +21,7 @@ export function rich(text) {
         while (i < s.length) {
             const ch = s[i];
             if (stop && stop.includes(ch)) break;
+            if (ch === "[" && s[i + 1] === "[") { const f = parseFigure(s, i); if (f) { flush(); frag.appendChild(figureEl(f)); i = f.end; continue; } }   // a graph, table or mapping diagram (js/figures.js)
             if (ch === "^") {                                   // x^2, x^{10}, x^{−3}
                 const save = i; i++; let sup = null;
                 if (s[i] === "{") { i++; const inner = parse("}"); if (s[i] === "}") { i++; sup = inner; } }
