@@ -11,8 +11,10 @@
 ========================================== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import * as V from "./vaultCore.js?v=58";
+import { createMathPad } from "./mathPad.js?v=2";
+import { wbIcon } from "./wbIcons.js?v=1";
 
 // Same project as js/firebase.js. A separate app name keeps a teacher signed in on this device signed in.
 const app = initializeApp({
@@ -23,7 +25,10 @@ const app = initializeApp({
     messagingSenderId: "997357619072",
     appId: "1:997357619072:web:8e47464df7c4e329fd2365"
 }, "play");
-const auth = getAuth(app), db = getFirestore(app);
+// iPhone and iPad Safari can stall Firestore's streaming connection with no error (seen 2026-11-07 and in the
+// first live test, 2026-11-17: the first question took about 30 seconds). Those devices use plain requests.
+const appleTouch = /iPhone|iPad|iPod/.test(navigator.userAgent || "") || (/Macintosh/.test(navigator.userAgent || "") && navigator.maxTouchPoints > 1);
+const auth = getAuth(app), db = initializeFirestore(app, appleTouch ? { experimentalForceLongPolling: true } : { experimentalAutoDetectLongPolling: true });
 if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {   // local testing with the emulators only
     try {
         if (new URLSearchParams(location.search).has("emu")) sessionStorage.setItem("focal-emu", "1");
@@ -97,36 +102,93 @@ function send(data) {
     });
 }
 
-/* ---------- the work pad ---------- */
+/* ---------- the work pad ----------
+   The same canvas-first whiteboard as the board: paper across most of the screen, a floating
+   tool rail, and the math tools (js/mathPad.js) on a layer under the ink. */
 const pad = (() => {
-    const W = 900, H = 520, strokes = []; let canvas = null, ctx = null, cur = null, color = "#0E1B3A", erase = false, dirty = false, sentAt = 0;
+    const W = 1000, PENS = { ink: ["#14213D", "Navy"], blue: ["#1552D6", "Blue"], red: ["#C62828", "Red"], green: ["#1B7F3B", "Green"] }, SIZES = [3, 6, 11];
+    let H = 600, strokes = [], items = [], hist = [], host = null, canvas = null, ctx = null, mp = null, cur = null, ro = null;
+    let tool = "pen", pen = "ink", size = 1, dirty = false, sentAt = 0;
     function paint() {
-        if (!ctx) return; ctx.clearRect(0, 0, W, H);
-        strokes.forEach((s) => { ctx.globalCompositeOperation = s.e ? "destination-out" : "source-over"; ctx.strokeStyle = s.c; ctx.lineWidth = s.e ? 28 : 4; ctx.lineCap = ctx.lineJoin = "round"; ctx.beginPath(); s.p.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); if (s.p.length === 1) ctx.lineTo(s.p[0][0] + 0.1, s.p[0][1]); ctx.stroke(); });
-        ctx.globalCompositeOperation = "source-over";
+        if (!ctx) return; ctx.clearRect(0, 0, W, H); ctx.lineCap = ctx.lineJoin = "round";
+        strokes.forEach((s) => {
+            ctx.globalCompositeOperation = s.e ? "destination-out" : "source-over"; ctx.globalAlpha = s.h ? 0.35 : 1;
+            ctx.strokeStyle = s.c; ctx.lineWidth = s.w; ctx.beginPath(); s.p.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+            if (s.p.length === 1) ctx.lineTo(s.p[0][0] + 0.1, s.p[0][1]); ctx.stroke();
+        });
+        ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
     }
-    function at(e) { const r = canvas.getBoundingClientRect(); return [Math.round((e.clientX - r.left) * W / r.width), Math.round((e.clientY - r.top) * H / r.height)]; }
-    function mount(host) {
-        canvas = el("canvas", "padcv"); canvas.width = W; canvas.height = H; canvas.setAttribute("aria-label", "Work pad. Draw your work here."); ctx = canvas.getContext("2d");
-        canvas.onpointerdown = (e) => { e.preventDefault(); canvas.setPointerCapture(e.pointerId); cur = { c: color, e: erase, p: [at(e)] }; strokes.push(cur); paint(); };
+    const at = (e) => { const r = canvas.getBoundingClientRect(); return [Math.round((e.clientX - r.left) * W / r.width), Math.round((e.clientY - r.top) * H / r.height)]; };
+    const snap = () => { hist.push(JSON.stringify({ strokes, items: mp ? mp.items() : items })); if (hist.length > 60) hist.shift(); };
+    const saved = () => { if (mp) items = mp.items(); dirty = true; };
+    function undo() { const last = hist.pop(); if (!last) return; const d = JSON.parse(last); strokes = d.strokes || []; items = d.items || []; if (mp) mp.setItems(items); dirty = true; paint(); }
+    /** The paper's shape follows the screen: the width is always 1000, the height follows. */
+    function fit() {
+        if (!host || !host.isConnected) return; const r = host.getBoundingClientRect(); if (r.width < 2 || r.height < 2) return;
+        const h = Math.max(200, Math.round(W * r.height / r.width)); if (h !== H || canvas.height !== h) { H = h; canvas.height = H; paint(); }
+        if (mp) mp.resize();
+    }
+    function rail() {
+        const t = el("div", "wbrail"); t.id = "padrail"; t.setAttribute("role", "toolbar"); t.setAttribute("aria-label", "Work pad tools");
+        const moving = !!(mp && mp.on);
+        const b = (name, label, on, fn, cls) => { const x = el("button", "rb" + (cls ? " " + cls : "")); x.type = "button"; x.innerHTML = wbIcon(name); x.title = label; x.setAttribute("aria-label", label); if (on != null) x.setAttribute("aria-pressed", String(on)); x.onclick = fn; t.append(x); return x; };
+        const pick = (k) => () => { tool = k; if (mp) mp.setOn(false); retool(); };
+        b("pen", "Pen", !moving && tool === "pen", pick("pen"));
+        b("hi", "Highlighter", !moving && tool === "hi", pick("hi"));
+        b("eraser", "Eraser", !moving && tool === "eraser", pick("eraser"));
+        b("move", "Move the math tools", moving, () => { if (mp) mp.setOn(!mp.on); retool(); });
+        t.append(el("i", "rsep"));
+        const sw = el("div", "rsw");
+        Object.keys(PENS).forEach((k) => { const x = el("button", "sw"); x.type = "button"; x.style.background = PENS[k][0]; x.title = PENS[k][1] + " pen"; x.setAttribute("aria-label", x.title); x.setAttribute("aria-pressed", String(pen === k)); x.onclick = () => { pen = k; if (tool !== "pen") tool = "pen"; if (mp) mp.setOn(false); retool(); }; sw.append(x); });
+        t.append(sw);
+        const sz = el("button", "rb size"); sz.type = "button"; sz.title = ["Thin", "Medium", "Thick"][size] + " line (tap to change)"; sz.setAttribute("aria-label", sz.title);
+        const dot = el("i"); dot.style.width = dot.style.height = [0.35, 0.6, 0.9][size] + "em"; dot.style.background = tool === "hi" ? "#F2B33D" : pen === "ink" ? "#F4F7FB" : PENS[pen][0]; sz.append(dot);
+        sz.onclick = () => { size = (size + 1) % 3; retool(); }; t.append(sz);
+        t.append(el("i", "rsep"));
+        b("math", "Add a math tool", null, () => { if (mp) mp.openMenu(); }, "amber");
+        b("undo", "Undo", null, undo);
+        b("trash", "Clear the pad", null, () => { if (!strokes.length && !(mp && mp.items().length)) return; snap(); strokes = []; items = []; if (mp) mp.clear(); dirty = true; paint(); });
+        return t;
+    }
+    function retool() { const old = $("padrail"); if (old) old.replaceWith(rail()); }
+    function mount(h) {
+        host = h; canvas = el("canvas", "padcv"); canvas.width = W; canvas.height = H; canvas.setAttribute("aria-label", "Work pad. Draw your work here."); ctx = canvas.getContext("2d");
+        host.append(canvas);
+        canvas.onpointerdown = (e) => {
+            if (e.button) return; e.preventDefault(); try { canvas.setPointerCapture(e.pointerId); } catch (x) { /* ok */ }
+            if (mp) mp.closeMenu(); snap();
+            cur = tool === "eraser" ? { e: 1, c: "#000", w: [18, 32, 56][size], p: [at(e)] } : tool === "hi" ? { h: 1, c: "#F2B33D", w: [14, 22, 34][size], p: [at(e)] } : { c: PENS[pen][0], w: SIZES[size], p: [at(e)] };
+            strokes.push(cur); paint();
+        };
         canvas.onpointermove = (e) => { if (!cur) return; e.preventDefault(); const p = at(e), l = cur.p[cur.p.length - 1]; if (Math.abs(p[0] - l[0]) + Math.abs(p[1] - l[1]) > 2) { cur.p.push(p); paint(); } };
         canvas.onpointerup = canvas.onpointercancel = () => { if (cur) { cur = null; dirty = true; } };
-        host.append(canvas); paint();
-        const tools = el("div", "padtools"), pens = [];
-        const mark = () => { pens.forEach(([b, c]) => { const on = c ? !erase && color === c : erase; b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); }); };
-        [["#0E1B3A", "Black"], ["#1F5FCC", "Blue"], ["#C02631", "Red"]].forEach(([c, n]) => { const b = btn("padpen", "", () => { color = c; erase = false; mark(); }); b.style.setProperty("--pen", c); b.setAttribute("aria-label", n + " pen"); pens.push([b, c]); tools.append(b); });
-        const er = btn("padbtn", "Eraser", () => { erase = !erase; mark(); }); pens.push([er, ""]); tools.append(er); mark();
-        tools.append(btn("padbtn", "Undo", () => { strokes.pop(); dirty = true; paint(); }), btn("padbtn", "Clear", () => { strokes.length = 0; dirty = true; paint(); }));
-        host.append(tools);
+        mp = createMathPad(host, canvas, { change: snap, commit: saved, onMode: () => retool() });
+        mp.setItems(items); host.append(rail());
+        if (ro) ro.disconnect();
+        if (window.ResizeObserver) { ro = new ResizeObserver(() => fit()); ro.observe(host); }
+        requestAnimationFrame(fit); paint();
     }
-    /** A small picture of the work for the teacher (white background, about 600 px wide). */
+    /** A picture of the work for the teacher: the math tools under the ink, on white. */
     function image() {
-        if (!strokes.length) return "";
-        const c = document.createElement("canvas"); c.width = 600; c.height = Math.round(600 * H / W); const x = c.getContext("2d");
-        x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(canvas, 0, 0, c.width, c.height);
-        return c.toDataURL("image/png");
+        if (!strokes.length && !(mp ? mp.items() : items).length) return "";
+        const c = document.createElement("canvas"); c.width = 640; c.height = Math.round(640 * H / W); const x = c.getContext("2d");
+        x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height);
+        if (mp && mp.el.width) x.drawImage(mp.el, 0, 0, c.width, c.height);
+        x.drawImage(canvas, 0, 0, c.width, c.height);
+        let url = c.toDataURL("image/png"); if (url.length > 380000) url = c.toDataURL("image/jpeg", 0.7);
+        return url.length > 395000 ? c.toDataURL("image/jpeg", 0.45) : url;
     }
-    return { mount, image, clear() { strokes.length = 0; dirty = false; paint(); }, dirty: () => dirty, sent() { dirty = false; sentAt = Date.now(); }, sentAt: () => sentAt, has: () => strokes.length > 0 };
+    return {
+        mount, image,
+        clear() { strokes = []; items = []; hist = []; dirty = false; if (mp) mp.clear(); paint(); },
+        dirty: () => dirty, sent() { dirty = false; sentAt = Date.now(); }, sentAt: () => sentAt, has: () => strokes.length > 0,
+        /** Real work on the pad: pen strokes (not eraser) adding up to more than a quick tap, or math typed in a text box. */
+        shown() {
+            let len = 0;
+            strokes.forEach((s) => { if (s.e) return; for (let i = 1; i < s.p.length; i++) len += Math.hypot(s.p[i][0] - s.p[i - 1][0], s.p[i][1] - s.p[i - 1][1]); });
+            return len >= 60 || (mp ? mp.items() : items).some((it) => it.k === "text" && String(it.txt || "").replace(/\s/g, "").length >= 2);
+        }
+    };
 })();
 // Live work: when the teacher turns it on, the pad is sent every few seconds while it changes.
 setInterval(() => {
@@ -159,6 +221,7 @@ function draw(force) {
     const sameQ = !force && ST.step === "play" && ST.view === "q" && m && m.q && document.getElementById("padhost") && +$("padhost").dataset.q === m.q.n && !ST.roomGone;
     sig = k; stats();
     if (sameQ) { const n = $("pnote"); if (n) n.textContent = ST.err; return; }
+    document.body.classList.remove("qmode");
     const main = $("main"); main.textContent = "";
     const card = el("section", "pcard"); main.append(card);
     if (ST.roomGone) { card.append(el("h1", null, "The game is closed"), el("p", "plead", "Thanks for playing! Your teacher closed the game.")); return; }
@@ -239,22 +302,31 @@ function keypad(value, set) {
     return k;
 }
 function questionView(card) {
-    const m = ST.me, q = m.q; card.classList.add("wide");
-    if (!q) { card.append(el("p", "plead", "Getting your question…")); return; }
-    const top = el("div", "pqtop"); if (q.c) top.append(el("span", "pchip", q.c)); if (m.h > 0) top.append(btn("pbtn hack", "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }));
-    card.append(top, mathEl("p", "pq", q.t));
+    const m = ST.me, q = m.q;
+    if (!q) { card.classList.add("wide"); card.append(el("p", "plead", "Getting your question…")); return; }
+    // The question and answer sit in a slim card on top; the work pad takes the rest of the screen.
+    card.classList.add("qview"); document.body.classList.add("qmode");
+    const need = !!(ST.room && ST.room.work);
+    const qc = el("div", "pqcard"), left = el("div", "pqleft"), top = el("div", "pqtop");
+    if (q.c) top.append(el("span", "pchip", q.c));
+    if (m.h > 0) top.append(btn("pbtn hack", "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }));
+    left.append(top, mathEl("p", "pq", q.t));
+    const right = el("div", "pqright");
     const f = el("form", "pform ans"), inp = el("input", "ptext"); inp.maxLength = 80; inp.autocomplete = "off"; inp.placeholder = "Your answer"; inp.setAttribute("aria-label", "Your answer");
     const go = el("button", "pbtn go", "Submit"); go.type = "submit";
     f.onsubmit = (e) => {
         e.preventDefault(); const t = inp.value.trim(); if (!t) { ST.err = "Type your answer first."; const n = $("pnote"); if (n) n.textContent = ST.err; return; }
+        if (need && !pad.shown()) { ST.err = "Show your work on the pad first, then submit."; const n = $("pnote"); if (n) n.textContent = ST.err; return; }
         if (ST.sentQ === q.n) return;
         ST.sentQ = q.n; ST.err = ""; go.disabled = true; go.textContent = "Checking…";
         const img = pad.image(); pad.sent(); send({ a: { n: Date.now(), q: q.n, t: t.slice(0, 80) }, img, iq: q.n, it: Date.now() });
         setTimeout(() => { if (ST.sentQ === q.n && ST.view === "q") { ST.sentQ = -1; ST.err = "Your teacher's screen didn't answer. Try Submit again, or tell your teacher."; draw(true); } }, 10000);
     };
-    f.append(inp, go); card.append(f); note(card);
-    const host = el("div", "padhost"); host.id = "padhost"; host.dataset.q = String(q.n); host.append(el("p", "padlab", "Show your work"));
-    pad.mount(host); card.append(host);
+    f.append(inp, go); right.append(f); note(right);
+    qc.append(left, right); card.append(qc);
+    const host = el("div", "wbpaper ppaper"); host.id = "padhost"; host.dataset.q = String(q.n);
+    host.append(el("p", "ptag", need ? "Show your work here (needed to submit)" : "Show your work here"));
+    card.append(host); pad.mount(host);
 }
 function fbView(card) {
     const m = ST.me, f = m.fb || {};
