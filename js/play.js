@@ -12,7 +12,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import * as V from "./vaultCore.js?v=70";
+import * as V from "./vaultCore.js?v=71";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=2";
 
@@ -137,7 +137,15 @@ async function join(code) {
         if (d.hit && d.hit.at > ST.seenHit && d.need) { ST.view = "hit"; }
         if (ST.view === "q" && ST.sentQ >= 0 && d.fb && d.fb.q === ST.sentQ) {
             if (d.fb.exit) { ST.sentQ = -1; pad.clear(); }   // exit ticket: straight on to the next question, no right or wrong
+            else if (d.fb.step && !d.fb.ok) ST.sentQ = -1;   // step help: they stay on the question (the step is typed onto the pad below)
             else { ST.view = "fb"; ST.sentQ = -1; if (!d.fb.retry) pad.clear(); }   // a second try keeps the work
+        }
+        // Step help: a new step (after a miss, or by itself when they've been stuck a while) is typed onto their pad.
+        if (d.fb && d.fb.step && !d.fb.ok && d.fb.t !== ST.stepT && d.q && d.q.n === d.fb.q) {
+            ST.stepT = d.fb.t; ST.stepInk = pad.len(); ST.stepNew = { kind: d.fb.kind, at: Date.now() };
+            if ((d.fb.sp || []).length && d.fb.kind !== "read") { pad.addSteps(d.fb.sp); if (d.fb.kind !== "fast") ST.stepAt = Date.now(); }
+            sfx(d.fb.kind === "auto" ? "tap" : "miss"); ST.err = "";
+            if (ST.view === "q") { draw(true); return; }   // rebuild the question card (the pad keeps its work)
         }
         if (ST.view === "guess" && ST.sentK && d.hk && d.hk.n === ST.sentK) { ST.sentK = 0; ST.guess = ""; }
         draw();
@@ -178,10 +186,36 @@ function cleanRead(raw) {
 /* ---------- the work pad ----------
    The same canvas-first whiteboard as the board: paper across most of the screen, a floating
    tool rail, and the math tools (js/mathPad.js) on a layer under the ink. */
+/* Typed steps on the pad: about the size students write (pad units are 1/1000 of its width). */
+const STEP_PX = 38, STEP_PX_PHONE = 26;   // font size in screen pixels: Chromebook, phone
+const isStep = (it) => it && it.k === "text" && /^step\d$/.test(String(it.id || ""));
+function wrapStep(t, n) {
+    const out = []; let line = "";
+    String(t).split(/\s+/).forEach((w) => { if (line && (line + " " + w).length > n) { out.push(line); line = w; } else line = line ? line + " " + w : w; });
+    if (line) out.push(line); return out;
+}
 const pad = (() => {
     const W = 1000, PENS = { ink: ["#14213D", "Navy"], blue: ["#1552D6", "Blue"], red: ["#C62828", "Red"], green: ["#1B7F3B", "Green"] }, SIZES = [3, 6, 11];
     let H = 600, strokes = [], items = [], hist = [], host = null, canvas = null, ctx = null, mp = null, cur = null, ro = null;
     let tool = "pen", pen = "ink", size = 1, dirty = false, sentAt = 0;
+    // The teacher's work, sent with a question that was gone over (Send it back): a picture under the student's ink.
+    // bg = { k, src, img, box: [x, y, w, h] in pad units }. The eraser and Clear only touch the student's own work.
+    let bg = null, bgEl = null;
+    function placeBg() {
+        if (!bgEl) return; if (!bg || !host) { bgEl.remove(); return; }
+        const [x, y, w, h] = bg.box; Object.assign(bgEl.style, { left: x / W * 100 + "%", top: y / H * 100 + "%", width: w / W * 100 + "%", height: h / H * 100 + "%" });
+        if (!bgEl.isConnected) { const cv = host.querySelector(".padcv"); host.insertBefore(bgEl, cv || null); }
+    }
+    function setBg(rw) {
+        if (!rw || !rw.img) { if (bg) { bg = null; placeBg(); } return; }
+        if (bg && bg.k === rw.k) { placeBg(); return; }
+        // Fit it in the top left, past the tool rail, about as wide as it was on the board, leaving room to keep working.
+        const ar = (+rw.w || 1) / (+rw.h || 1), maxW = W - 110, maxH = H * 0.7;
+        let w = Math.min(maxW, Math.max(120, (+rw.fw || 0.5) * W)), h = w / ar; if (h > maxH) { h = maxH; w = h * ar; }
+        const img = new Image(); img.src = rw.img; img.alt = "";
+        bg = { k: rw.k, src: rw.img, img, box: [96, 14, Math.round(w), Math.round(h)] };
+        bgEl = el("img", "padbg"); bgEl.src = rw.img; bgEl.alt = "Your teacher's work"; bgEl.draggable = false; placeBg();
+    }
     function paint() {
         if (!ctx) return; ctx.clearRect(0, 0, W, H); ctx.lineCap = ctx.lineJoin = "round";
         strokes.forEach((s) => {
@@ -199,7 +233,7 @@ const pad = (() => {
     /** The paper's shape follows the screen: the width is always 1000, the height follows. */
     function fit() {
         if (!host || !host.isConnected) return; const r = host.getBoundingClientRect(); if (r.width < 2 || r.height < 2) return;
-        const h = Math.max(200, Math.round(W * r.height / r.width)); if (h !== H || canvas.height !== h) { H = h; canvas.height = H; paint(); }
+        const h = Math.max(200, Math.round(W * r.height / r.width)); if (h !== H || canvas.height !== h) { H = h; canvas.height = H; paint(); placeBg(); }
         if (mp) mp.resize();
     }
     function rail() {
@@ -269,27 +303,51 @@ const pad = (() => {
         mp.setItems(items); host.append(rail());
         if (ro) ro.disconnect();
         if (window.ResizeObserver) { ro = new ResizeObserver(() => fit()); ro.observe(host); }
+        if (bgEl) bgEl.remove(); placeBg();
         requestAnimationFrame(fit); paint();
     }
     /** A picture of the work for the teacher: the math tools under the ink, on white. */
     function image() {
-        if (!strokes.length && !(mp ? mp.items() : items).length) return "";
+        if (!strokes.length && !(mp ? mp.items() : items).length && !bg) return "";
         const c = document.createElement("canvas"); c.width = 640; c.height = Math.round(640 * H / W); const x = c.getContext("2d");
         x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height);
+        if (bg && bg.img.complete && bg.img.naturalWidth) { const [bx, by, bw, bh] = bg.box, sx = c.width / W, sy = c.height / H; try { x.drawImage(bg.img, bx * sx, by * sy, bw * sx, bh * sy); } catch (e) { /* the picture didn't load: send the student's own work */ } }
         if (mp && mp.el.width) x.drawImage(mp.el, 0, 0, c.width, c.height);
         x.drawImage(canvas, 0, 0, c.width, c.height);
         let url = c.toDataURL("image/png"); if (url.length > 380000) url = c.toDataURL("image/jpeg", 0.7);
         return url.length > 395000 ? c.toDataURL("image/jpeg", 0.45) : url;
     }
     return {
-        mount, image,
-        clear() { strokes = []; items = []; hist = []; dirty = false; if (mp) mp.clear(); paint(); },
+        mount, image, setBg,
+        clear() { strokes = []; items = []; hist = []; dirty = false; bg = null; placeBg(); if (mp) mp.clear(); paint(); },
         dirty: () => dirty, sent() { dirty = false; sentAt = Date.now(); }, sentAt: () => sentAt, has: () => strokes.length > 0,
         /** Real work on the pad: pen strokes (not eraser) adding up to more than a quick tap, or math typed in a text box. */
-        shown() {
+        shown() { return this.len() >= 60; },
+        /** How much work is on the pad: pen length in pad units, plus 40 for each character typed in a text box. */
+        len() {
             let len = 0;
             strokes.forEach((s) => { if (s.e || s.ring) return; for (let i = 1; i < s.p.length; i++) len += Math.hypot(s.p[i][0] - s.p[i - 1][0], s.p[i][1] - s.p[i - 1][1]); });
-            return len >= 60 || (mp ? mp.items() : items).some((it) => it.k === "text" && String(it.txt || "").replace(/\s/g, "").length >= 2);
+            (mp ? mp.items() : items).forEach((it) => { if (it.k === "text" && !isStep(it)) len += 40 * String(it.txt || "").replace(/\s/g, "").length; });
+            return len;
+        },
+        /** Type the steps onto the pad like typed work, stacked down the right side, about the size of handwriting.
+            Steps already there are left alone (ids step1…step4), so this is safe to call again after a reload. */
+        addSteps(list) {
+            const cur = (mp ? mp.items() : items).slice(), have = new Set(cur.map((it) => it.id)), add = [];
+            // Size it to the screen, so it looks like the student's own writing on a Chromebook or a phone.
+            const cw = host && host.isConnected ? host.getBoundingClientRect().width : 1000, narrow = cw < 600;
+            const fs = Math.round(Math.min(0.085, Math.max(0.022, (narrow ? STEP_PX_PHONE : STEP_PX) / cw)) * 1e4) / 1e4, px = fs * W, lineH = px * 1.3;
+            const wrapN = Math.max(12, Math.floor((narrow ? 0.72 : 0.6) / (fs * 0.62)));
+            let y = 44;   /* under the "Show your work here" label */ cur.filter(isStep).forEach((it) => { y = Math.max(y, it.y * H + String(it.txt).split("\n").length * (it.fs || fs) * W * 1.3 / 2 + 16); });
+            (list || []).forEach((t, i) => {
+                const id = "step" + (i + 1); if (have.has(id)) return;
+                const lines = wrapStep("Step " + (i + 1) + ": " + t, wrapN), h = lines.length * lineH, w = Math.max(...lines.map((l) => l.length)) * px * 0.62;
+                add.push({ id, k: "text", x: Math.max(narrow ? 0.5 : 0.3, (W - 20 - w / 2) / W), y: Math.min(1.15, (y + h / 2) / H), s: 0.2, r: 0, txt: lines.join("\n"), fs });
+                y += h + 16;
+            });
+            if (!add.length) return 0;
+            items = cur.concat(add); if (mp) mp.setItems(items); dirty = true; paint();
+            return add.length;
         }
     };
 })();
@@ -593,13 +651,14 @@ function draw(force) {
     pauseCover(); callBanner();
     const m = ST.me;
     if (m && m.nm && ST.step !== "play") ST.step = "play";
-    const k = JSON.stringify([ST.step, ST.view, ST.err, ST.busy, ST.target, ST.guess, ST.vault, ST.roomGone, ST.room && [ST.room.status, ST.step === "name" ? [ST.room.taken, ST.room.names && ST.room.names.length] : 0, ST.room.bonus], m && [m.status === "lobby" ? 0 : m.n, m.status, m.need]]);
+    const k = JSON.stringify([ST.step, ST.view, ST.err, ST.busy, ST.target, ST.guess, ST.vault, ST.roomGone, ST.room && [ST.room.status, ST.step === "name" ? [ST.room.taken, ST.room.names && ST.room.names.length] : 0, ST.room.bonus, ST.room.rw ? ST.room.rw.k : 0], m && [m.status === "lobby" ? 0 : m.n, m.status, m.need]]);
     if (k === sig && !force) return;
     // Keep the pad (and anything typed) while the same question stays on screen.
     const cq = curQ(m), sameQ = !force && ST.step === "play" && ST.view === "q" && cq && document.getElementById("padhost") && +$("padhost").dataset.q === cq.n && !ST.roomGone;
     sig = k; stats();
     if (m && m.hit && m.hit.blocked && m.hit.at > ST.seenBlock) { ST.seenBlock = m.hit.at; toast("Your Shield blocked " + m.hit.by + "'s crack! Your coins are safe.", "good"); sfx("box"); }
-    if (sameQ) { const n = $("pnote"); if (n) n.textContent = ST.err; const fx = $("pfx"); if (fx) fx.replaceWith(effects(m) || Object.assign(el("div", "pfx"), { id: "pfx" })); return; }
+    if (sameQ) { const rw = ST.room && ST.room.rw; if (rw && cq.n === 100000 + (+rw.k || 0)) { pad.setBg(rw); teacherTag($("padhost"), !!(ST.room && ST.room.work !== false)); }
+        const n = $("pnote"); if (n) n.textContent = ST.err; const fx = $("pfx"); if (fx) fx.replaceWith(effects(m) || Object.assign(el("div", "pfx"), { id: "pfx" })); return; }
     document.body.classList.remove("qmode");
     const main = $("main"), y = window.scrollY; main.textContent = "";
     const card = el("section", "pcard"); main.append(card);
@@ -719,6 +778,9 @@ function questionView(card) {
     if (q.c) top.append(el("span", "pchip", q.c + (ex ? " · " + (ex.i + 1) + " of " + ex.of : "")));
     if (m.h > 0 && !ex && !m.redo) top.append(btn("pbtn hack", "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }));
     left.append(top, mathEl("p", "pq", q.t));
+    // Step help after a miss: the steps so far sit under the question while they work.
+    const sf = !ex && !m.redo && m.fb && m.fb.step && m.fb.q === q.n ? m.fb : null;
+    if (sf) left.append(stepStrip(sf));
     const right = el("div", "pqright");
     const f = el("form", "pform ans"), box = answerBox(q.f || "", q.ch); ST.box = box;
     const go = el("button", "pbtn go", "Submit"); go.type = "submit";
@@ -728,23 +790,89 @@ function questionView(card) {
         go.disabled = true; go.textContent = "Wait " + cool() + " s"; ST.err = "Two misses in a row. Look over your work on the pad first.";
         clearInterval(ST.coolT); ST.coolT = setInterval(() => { const s = cool(); if (!go.isConnected) { clearInterval(ST.coolT); return; } if (s > 0) go.textContent = "Wait " + s + " s"; else { clearInterval(ST.coolT); go.disabled = false; go.textContent = "Submit"; ST.err = ""; const n = $("pnote"); if (n) n.textContent = ""; } }, 250);
     }
+    // A new step: read it first. Submit waits a few seconds (the game checks this too).
+    const readLeft = () => (sf && (sf.sp || []).length ? Math.ceil(((+ST.stepAt || 0) + V.STEP_READ_MS - Date.now()) / 1000) : 0);
+    if (readLeft() > 0 && !go.disabled) {
+        go.disabled = true; go.textContent = "Read the step · " + readLeft();
+        clearInterval(ST.readT); ST.readT = setInterval(() => { const s = readLeft(); if (!go.isConnected) { clearInterval(ST.readT); return; } if (s > 0) go.textContent = "Read the step · " + s; else { clearInterval(ST.readT); go.disabled = false; go.textContent = "Submit"; } }, 250);
+    }
     f.onsubmit = (e) => {
         e.preventDefault(); const r = box.read(), t = r.t || "";
         if (r.err || !t) { ST.err = r.err || "Type your answer first."; const n = $("pnote"); if (n) n.textContent = ST.err; return; }
         if (need && !pad.shown()) { ST.err = "Show your work on the pad first, then submit."; const n = $("pnote"); if (n) n.textContent = ST.err; return; }
+        if (sf && need && pad.len() - (+ST.stepInk || 0) < 40) { ST.err = (sf.sp || []).length ? "Use the step: add new work on your pad, then submit." : "Change something in your work on the pad first, then submit."; const n = $("pnote"); if (n) n.textContent = ST.err; return; }
         if (ST.sentQ === q.n || go.disabled) return;
         ST.sentQ = q.n; ST.err = ""; go.disabled = true; go.textContent = "Checking…";
         const img = pad.image(); pad.sent(); send({ a: { n: Date.now(), q: q.n, t: t.slice(0, 80) }, img, iq: q.n, it: Date.now() });
         setTimeout(() => { if (ST.sentQ === q.n && ST.view === "q") { ST.sentQ = -1; ST.err = "Your teacher's screen didn't answer. Try Submit again, or tell your teacher."; draw(true); } }, 10000);
     };
-    f.append(box.el, go); right.append(f); note(right);
+    f.append(box.el, go); right.append(f);
+    if (sf) { const sb = left.querySelector(".pstepbar"); if (sb) sb.append(btn("pbtn ghost small pskip", "Skip it", () => { if (ST.sentQ === q.n) return; ST.sentQ = q.n; send({ a: { n: Date.now(), q: q.n, t: "" }, img: pad.image(), iq: q.n, it: Date.now() }); })); }
+    note(right);
     qc.append(left, right); card.append(qc);
     const host = el("div", "wbpaper ppaper"); host.id = "padhost"; host.dataset.q = String(q.n);
     host.append(el("p", "ptag", need ? "Show your work here (needed to submit)" : "Show your work here"));
     card.append(host); pad.mount(host);
+    const rw = ST.room && ST.room.rw, withWork = !!(rw && q.n === 100000 + (+rw.k || 0)); pad.setBg(withWork ? rw : null);
+    if (withWork) teacherTag(host, need);
 }
+/** Under the question in step help: what just happened, and what a right answer is worth now. The steps themselves are on the pad. */
+function stepStrip(f) {
+    const sp = (f.sp || []).length, fresh = ST.stepNew && Date.now() - ST.stepNew.at < 1500, b = el("div", "pstepbar" + (fresh ? " fresh" : "") + (sp ? "" : " wait"));
+    const msg = f.kind === "fast" && !sp ? "Too quick! Take a real try first. Steps unlock after you work on it."
+        : f.kind === "read" ? "Read step " + sp + " on your board first."
+        : f.kind === "auto" ? "Step " + sp + " is on your board to keep you moving. Use it and keep going."
+        : (sp === 1 ? "Not quite. Step 1 is on your board. Use it and keep going." : "Still not it. Step " + sp + " is on your board.");
+    b.append(el("b", null, msg));
+    const full = V.coinsFor(1), now = +f.worth || full, m = el("span", "pstepcoins"); m.append(coinPic(), document.createTextNode(now + " coins if you get it now" + (f.hack && sp ? " + a hack" : "")));
+    const bar = el("i", "pstepmeter"), fill = el("i"); fill.style.width = Math.round(100 * now / full) + "%"; bar.append(fill); m.append(bar);
+    b.append(m);
+    if (sp && sp >= (f.sn || 0)) b.append(el("small", null, "That's the last step. One more miss shows the answer."));
+    return b;
+}
+/** The steps unlocked so far, newest on the bottom and highlighted. */
+function stepsCard(f, slim) {
+    const list = f.sp || [], c = el("div", "psteps" + (slim ? " slim" : ""));
+    c.append(el("small", null, "Step " + list.length + " of " + (f.sn || list.length)));
+    const ol = el("ol"); list.forEach((t, i) => { const li = mathEl("li", i === list.length - 1 ? "new" : "", t); ol.append(li); }); c.append(ol);
+    return c;
+}
+/** What a right answer is worth now, as a bar that shrinks with each step. */
+function stepMeter(f) {
+    const full = V.coinsFor(1), now = +f.worth || full, w = el("div", "pmeter");
+    const bar = el("div", "pmbar"), fill = el("i"); fill.style.width = Math.round(100 * now / full) + "%"; bar.append(fill);
+    const lbl = el("p", "pmlbl"); lbl.append(coinPic(), el("b", null, now + " coins"), document.createTextNode(" if you get it now"));
+    w.append(lbl, bar);
+    const sp = (f.sp || []).length, next = sp < (f.sn || 0) ? Math.max(2, Math.round(full * V.STEP_PAY[Math.min(sp + 1, V.STEP_PAY.length - 1)])) : 0;
+    if (next && sp > 0) w.append(el("small", null, "Another miss shows step " + (sp + 1) + " and drops it to " + next + "."));
+    else if (sp && sp >= (f.sn || 0)) w.append(el("small", null, "That's the last step. One more miss shows the answer."));
+    return w;
+}
+/** A miss with step help: a real try unlocks the next step; each step lowers the coins. */
+function stepView(card, m, f, key, fresh) {
+    card.classList.add("miss", "pstepcard"); if (fresh) card.classList.add("shake");
+    const sp = (f.sp || []).length;
+    if (f.kind === "fast" || (f.kind === "read" && !sp)) {
+        card.append(el("h1", null, "Too quick! Take a real try first."), el("p", "plead", "Steps only unlock after you work on it. Use your pad, then try again."));
+        card.append(stepMeter(f));
+    } else if (f.kind === "read") {
+        card.append(el("h1", null, "Read the step first"), el("p", "plead", "Take a few seconds with it and add it to your work."), stepsCard(f, false), stepMeter(f));
+    } else {
+        card.append(el("h1", null, sp === 1 ? "Not quite. Here's a step to help." : "Still not it. Here's step " + sp + "."));
+        const y = el("p", "plead"); y.append(document.createTextNode("You wrote ")); if (f.y) y.append(V.mathText(f.y)); else y.append(document.createTextNode("nothing")); y.append(document.createTextNode(".")); card.append(y);
+        card.append(stepsCard(f, false), stepMeter(f));
+        if (f.hack) card.append(el("p", "pnote hackon", "Get it with this step and you still earn a hack."));
+    }
+    once(key, () => { sfx("miss"); });
+    const row = el("div", "prow");
+    row.append(btn("pbtn go", sp ? "Try it with this step" : "Back to my work", () => { ST.view = "q"; ST.sentQ = -1; draw(true); }));
+    card.append(row);
+}
+/** The pad's label when the teacher's work came with the question. */
+function teacherTag(host, need) { const t = host && host.querySelector(".ptag"); if (t) t.textContent = "Your teacher's work is on your pad. Pick up where the class left off" + (need ? " and add your own work." : "."); }
 function fbView(card) {
-    const m = ST.me, f = m.fb || {}, key = "fb" + f.q, fresh = celebrated !== key;
+    const m = ST.me, f = m.fb || {}, key = "fb" + f.q + (f.t ? "_" + f.t : ""), fresh = celebrated !== key;
+    if (f.step && !f.ok) { ST.view = "q"; return questionView(card); }   // step help stays on the question
     card.classList.add(f.ok ? "good" : "miss");
     if (f.ok) {
         if (fresh) card.classList.add("pop");
@@ -753,7 +881,9 @@ function fbView(card) {
         const win = el("div", "pwin"), amt = el("b", "pplus", fresh ? "+0" : "+" + f.plus); win.append(coinPic(), amt); card.append(win);
         const st = m.st || 1, words = STREAK_WORDS[st] || (st > 10 ? "Legendary!" : "");
         card.append(streakRow(st));
-        const chips = el("div", "pchips"); if (!f.second && !f.redo) chips.append(el("span", "pgain", "+1 hack")); else chips.append(el("span", "pgain", f.second ? "Second try: half coins" : "Try-again bonus"));
+        const chips = el("div", "pchips"); if (!f.second && !f.redo) chips.append(el("span", "pgain", "+1 hack"));
+        else if (f.steps != null) { chips.append(el("span", "pgain", f.steps ? "Solved with " + f.steps + (f.steps === 1 ? " step" : " steps") : "Solved on your own")); if (f.hack) chips.append(el("span", "pgain hot", "+1 hack")); }
+        else chips.append(el("span", "pgain", f.second ? "Second try: half coins" : "Try-again bonus"));
         (f.x2 || []).forEach((k) => chips.append(el("span", "pgain hot", k === "bonus" ? "Bonus round ×2" : k === "comeback" ? "Catch-up boost" : "Double coins ×2")));
         if (st > 1) chips.append(el("span", "pgain hot", words || st + " in a row"));
         if (V.coinsFor(st) > V.RIGHT_COINS) chips.append(el("span", "pgain", "Streak bonus +" + (V.coinsFor(st) - V.RIGHT_COINS)));
@@ -783,10 +913,11 @@ function fbView(card) {
         return;
     } else {
         if (fresh) card.classList.add("shake");
-        card.append(el("h1", null, f.second ? "Still not it" : "Not quite"));
+        card.append(el("h1", null, f.skip ? "Skipped" : f.second ? "Still not it" : "Not quite"));
         if (f.a) { const a = el("div", "pansbox"); a.append(el("small", null, "The answer was"), mathEl("p", null, f.a)); card.append(a); }
-        const y = el("p", "plead"); y.append(document.createTextNode("You wrote ")); if (f.y) y.append(V.mathText(f.y)); else y.append(document.createTextNode("nothing")); y.append(document.createTextNode(".")); card.append(y);
-        card.append(el("p", "pnote", MISS_WORDS[(f.q || 0) % MISS_WORDS.length]));
+        if (f.allsteps && (f.sp || []).length) { card.append(stepsCard(f, false)); card.append(el("p", "pnote", "Look at how each step leads to the answer. You'll see this kind again.")); }
+        if (!f.skip) { const y = el("p", "plead"); y.append(document.createTextNode("You wrote ")); if (f.y) y.append(V.mathText(f.y)); else y.append(document.createTextNode("nothing")); y.append(document.createTextNode(".")); card.append(y); }
+        card.append(el("p", "pnote", f.skip ? "Check how the answer works, then keep going." : MISS_WORDS[(f.q || 0) % MISS_WORDS.length]));
         once(key, () => { sfx("miss"); });
     }
     const row = el("div", "prow");

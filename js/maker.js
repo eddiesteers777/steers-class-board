@@ -10,7 +10,7 @@
      teacher/{uid}/games/index    { sets: [{ id, title, cats, clues, final, per, maker, at }] }
    Vault Raid uses every question (js/vaultCore.js gameQuestion); the Review Board shows the first 6 skills x 6.
 ========================================== */
-import * as V from "./vaultCore.js?v=70";
+import * as V from "./vaultCore.js?v=71";
 import { WEEKS as PUBLISHED } from "../data/weeks.js?v=61";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { extract, norm as bnorm, KINDS } from "./bank.js?v=2";
@@ -36,13 +36,15 @@ const TOOLS = [["−", "−", "Minus sign"], ["×", "×", "Times"], ["÷", "÷",
 const uidOf = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 let uid = "", SETS = [], set = blank(), sel = 0, dirty = false, saving = false, tryText = "";
 function blank() { return { id: "", title: "", per: qs.get("per") && PERIODS.some((p) => p[0] === qs.get("per")) ? [qs.get("per")] : [], qs: [newQ()] }; }
-function newQ(o) { return Object.assign({ k: uidOf(), s: "", q: "", a: "", al: [], h: "", ch: null }, o || {}); }
+function newQ(o) { return Object.assign({ k: uidOf(), s: "", q: "", a: "", al: [], h: "", st: "", ch: null }, o || {}); }
+/** The teacher's own steps: one per line, at most 4, each up to 200 characters. */
+const stepLines = (t) => String(t || "").split(/\n+/).map((x) => x.trim().slice(0, 200)).filter(Boolean).slice(0, V.STEP_MAX);
 const cur = () => set.qs[sel];
 
 /* ---------- reading and writing a set ---------- */
 function fromDoc(d, meta) {
     const out = { id: d.id || meta.id, title: d.title || meta.title || "", per: Array.isArray(meta.per) ? meta.per.slice() : Array.isArray(d.per) ? d.per.slice() : [], qs: [] };
-    (d.cats || []).forEach((c) => (c.clues || []).forEach((k) => { if (k && k.q) out.qs.push(newQ({ s: c.n || "", q: k.q, a: k.a || "", al: Array.isArray(k.al) ? k.al.slice() : [], h: k.h || "", ch: Array.isArray(k.ch) && k.ch.length >= 2 ? k.ch.slice() : null })); }));
+    (d.cats || []).forEach((c) => (c.clues || []).forEach((k) => { if (k && k.q) out.qs.push(newQ({ s: c.n || "", q: k.q, a: k.a || "", al: Array.isArray(k.al) ? k.al.slice() : [], h: k.h || "", st: Array.isArray(k.st) ? k.st.join("\n") : "", ch: Array.isArray(k.ch) && k.ch.length >= 2 ? k.ch.slice() : null })); }));
     if (d.final && d.final.q) out.qs.push(newQ({ s: d.final.c || "Final", q: d.final.q, a: d.final.a || "" }));
     if (!out.qs.length) out.qs.push(newQ());
     return out;
@@ -55,6 +57,7 @@ function toDoc() {
         const c = by.get(key), k = { p: 100 * (c.clues.length + 1), q: x.q.trim().slice(0, 400), a: x.a.trim().slice(0, 200) };
         if (x.al.length) k.al = x.al.slice(0, 8);
         if (x.h.trim()) k.h = x.h.trim().slice(0, 200);
+        if (stepLines(x.st).length) k.st = stepLines(x.st);
         if (x.ch) k.ch = x.ch.map((t) => t.trim()).filter(Boolean).slice(0, 5);
         c.clues.push(k);
     });
@@ -152,7 +155,7 @@ function drawEditor() {
 
     // Question with a math toolbar
     const qa = el("textarea", "mk-in mk-q"); qa.id = "q"; qa.value = x.q; qa.maxLength = 400; qa.rows = 3; qa.placeholder = "Type the question. 3/4 shows as a stacked fraction, 2 1/2 as a mixed number, 10^4 as an exponent.";
-    qa.oninput = () => { x.q = qa.value; touch(); drawList(); drawPhone(); drawTry(); drawIssues(); };
+    qa.oninput = () => { x.q = qa.value; touch(); drawList(); drawPhone(); drawTry(); drawIssues(); drawAutoSteps(); };
     const bar = el("div", "mk-tools"); bar.setAttribute("role", "toolbar"); bar.setAttribute("aria-label", "Math symbols");
     TOOLS.forEach(([t, ins, label]) => { const b = btn("mk-tool", t, () => { insertAt(qa, ins); qa.dispatchEvent(new Event("input")); }, label); b.title = label; bar.appendChild(b); });
     const qwrap = el("div", "mk-field"); qwrap.append(el("span", "mk-lab", "Question"), bar, qa);
@@ -208,7 +211,23 @@ function drawEditor() {
     h.oninput = () => { x.h = h.value; touch(); drawTry(); };
     box.appendChild(field("Second-try hint (optional)", h, "Shown after a wrong first answer when Second chance is on. Never give the answer away."));
 
+    // Steps for step-by-step help in Vault Raid
+    const st = el("textarea", "mk-in"); st.rows = 3; st.maxLength = 820; st.value = x.st || "";
+    st.placeholder = "One step per line, up to 4. Never write the final answer.";
+    const auto2 = el("div", "mk-autosteps"); auto2.id = "autoSteps";
+    st.oninput = () => { x.st = st.value; touch(); drawAutoSteps(); };
+    box.appendChild(field("Steps (optional)", st, "Vault Raid shows one step after each real wrong try, and each step lowers the coins. Leave blank to use the steps below, when Vault Raid can build them."));
+    box.appendChild(auto2); drawAutoSteps();
+
     const iss = el("div", "mk-issues"); iss.id = "issues"; box.appendChild(iss); drawIssues();
+}
+function drawAutoSteps() {
+    const box = $("autoSteps"), x = cur(); if (!box || !x) return; box.textContent = "";
+    if (stepLines(x.st).length) { box.hidden = true; return; }
+    const auto = V.autoSteps(x.q); box.hidden = false;
+    if (!auto.length) { box.appendChild(el("small", "mk-hint", "No automatic steps for this one. Type your own above, or students get the regular second try.")); return; }
+    box.appendChild(el("small", "mk-hint", "Automatic steps students would see:"));
+    const ol = el("ol"); auto.forEach((t) => { const li = el("li"); li.append(V.mathText(t)); ol.appendChild(li); }); box.appendChild(ol);
 }
 function drawIssues() {
     const box = $("issues"), x = cur(); if (!box || !x) return; box.textContent = "";
@@ -324,7 +343,8 @@ function fromBank(x) {
     if (!ch && / = /.test(a) && !/^[a-z]\s*=/i.test(a) && !a.includes(",") && !a.includes("(")) { const parts = a.split(/\s+=\s+/).map((t) => t.trim()).filter(Boolean); a = parts[0]; al = parts.slice(1, 4); }
     if (ch && !ch.includes(a)) { const k = LET.indexOf(a.toUpperCase()); a = k >= 0 && ch[k] ? ch[k] : a; }
     if (!ch && Array.isArray(x.also)) x.also.forEach((t) => { const v = typed(t); if (v && v !== a && !al.includes(v) && al.length < 4) al.push(v); });   // the standards bank's other right answers
-    return newQ({ s: (x.skill || (x.std ? "AL " + x.std + (x.part || "") : "")).slice(0, 60), q: shown(x.q).slice(0, 400), a: a.slice(0, 200), al, ch });
+    const st = Array.isArray(x.steps) ? x.steps.map((t) => typed(t)).join("\n") : "";   // the bank's own steps, when it has them
+    return newQ({ s: (x.skill || (x.std ? "AL " + x.std + (x.part || "") : "")).slice(0, 60), q: shown(x.q).slice(0, 400), a: a.slice(0, 200), al, ch, st });
 }
 function addQs(list) {
     if (!list.length) return;

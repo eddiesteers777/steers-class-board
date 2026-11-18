@@ -97,6 +97,7 @@ export function cleanSet(d) {
 function extras(k, out) {
     if (Array.isArray(k.al) && k.al.length) out.al = k.al.slice(0, 8).map((x) => str(x, 80));
     if (k.h) out.h = str(k.h, 200);
+    if (Array.isArray(k.st) && k.st.length) out.st = k.st.slice(0, 4).map((x) => str(x, 200)).filter(Boolean);
     if (Array.isArray(k.ch) && k.ch.length >= 2) out.ch = k.ch.slice(0, 5).map((x) => str(x, 80));
     return out;
 }
