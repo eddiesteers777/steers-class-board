@@ -89,10 +89,17 @@ export function cleanTyped(s) {
 
 /* ---------- answers ---------- */
 const UNITS = /^(?:[a-z]+(?:\^?[23²³])?|°|degrees?|%)$/;
+const SUP = { "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9", "⁻": "-" };
+/** Exponents written as superscripts (10⁵, 3³, cm²) become ^ (10^5, 3^3, cm^2), the same way a student types them. */
+const supToCaret = (s) => s.replace(/([0-9a-z)])([⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+)/g, (m, b, e) => b + "^" + [...e].map((c) => SUP[c]).join(""));
 function norm(s) {
-    return String(s == null ? "" : s).toLowerCase()
-        .replace(/[−‒–—]/g, "-").replace(/[ \s]+/g, " ").replace(/(\d),(?=\d{3}\b)/g, "$1")
-        .replace(/^\s*[a-z]\s*=\s*/, "").replace(/[.\s]+$/, "").replace(/^\$\s*/, "").trim();
+    let t = String(s == null ? "" : s).toLowerCase()
+        .replace(/[−‒–—]/g, "-").replace(/[ \s]+/g, " ").replace(/(\d),(?=\d{3}\b)/g, "$1");
+    t = supToCaret(t)
+        .replace(/\s*\^\s*/g, "^").replace(/\^\((-?\d+)\)/g, "^$1")                     // 3 ^ 3, 3^(3)
+        .replace(/(\d)\s*(?:×|x|\*|·|•)\s*10\^/g, "$1×10^")                               // 8 x 10^5, 8*10^5
+        .replace(/\s*°\s*/g, "°").replace(/(\d)\s*degrees?\b/g, "$1°");
+    return t.replace(/^\s*[a-z]\s*=\s*/, "").replace(/[.\\/\s]+$/, "").replace(/^\$\s*/, "").trim();
 }
 /** A plain number, fraction, mixed number or decimal as a value; null for anything else. */
 export function numberOf(s) {
@@ -109,26 +116,62 @@ function withUnit(s) {
     const m = s.match(/^(-?[\d./ ]*\d)\s*([a-z°%²³^23]+)$/);
     return m && UNITS.test(m[2]) ? [m[1].trim(), m[2].replace(/^degrees?$/, "°")] : [s, ""];
 }
+/** How-many-solutions answers: "inf", "none", "one", or "" when the answer is not one of these. */
+function solKind(a) {
+    if (/infinit|^all real/.test(a)) return "inf";
+    if (/^(no|zero|0) (real )?solutions?$|^none$/.test(a)) return "none";
+    if (/^(exactly )?(one|1) solutions?$/.test(a)) return "one";
+    return "";
+}
+/** What a student wrote, read as a how-many-solutions answer (forgiving of spelling: "infinite", "infnet soultions"). */
+function solTyped(t) {
+    if (/\binf|∞/.test(t) || /^all real( numbers)?$/.test(t)) return "inf";
+    if (/^(no|zero|0) (real )?(solution|soultion|solutoin|answer)s?$|^none$|^no$|^∅$/.test(t)) return "none";
+    if (/^(exactly )?(one|1)( (solution|soultion)s?)?$/.test(t)) return "one";
+    return "";
+}
+/** "6 and 7", "6, 7", "40°, 60°, and 80° (x = 20)" as a sorted list of numbers; null unless it is 2 or more numbers. */
+function listOf(s) {
+    const parts = s.replace(/\([^)]*\)/g, " ").split(/\s*(?:,|;|&|\band\b|\bto\b)\s*/).map((x) => x.trim()).filter(Boolean);
+    if (parts.length < 2) return null;
+    const v = parts.map((x) => numberOf(withUnit(x.replace(/^[a-z]\s*=\s*/, ""))[0]));
+    return v.every((x) => x != null) ? v.sort((a, b) => a - b) : null;
+}
 /** Is what the student typed the same as the answer (or one of the other answers the teacher accepted)?
-    Matches ignoring case, spaces, "x =", trailing units the student left off, and equal numbers
-    written differently (0.5 and 1/2). */
+    Matches ignoring case, spaces, "x =", trailing units the student left off, equal numbers
+    written differently (0.5 and 1/2), exponents typed with ^ (3^3 for 3³), scientific notation
+    typed with x or * (8x10^5), lists in any order or with commas ("6, 7" for "6 and 7"), and the
+    usual ways of writing how many solutions ("infinite", "no solutions"). */
 export function sameAnswer(typed, answer, also) {
     const t = norm(typed); if (!t) return false;
     const list = [answer].concat(also || []);
     return list.some((ans) => {
         const a = norm(ans); if (!a) return false;
+        const sq = (x) => x.replace(/ /g, "").replace(/°/g, "");
         if (t.replace(/ /g, "") === a.replace(/ /g, "")) return true;
+        const sk = solKind(a); if (sk) return solTyped(t) === sk;
         const [tn, tu] = withUnit(t), [an, au] = withUnit(a);
         if (tu && au && tu !== au) return false;
         const x = numberOf(tn), y = numberOf(an);
         if (x != null && y != null) return Math.abs(x - y) < 1e-9;
+        if (a.includes("^") && sq(t) === sq(a)) return true;
+        const lt = listOf(t), la = listOf(a);
+        if (lt && la) return lt.length === la.length && lt.every((v, i) => Math.abs(v - la[i]) < 1e-9);
         return au && !tu ? tn.replace(/ /g, "") === an.replace(/ /g, "") : false;
     });
 }
 
-/** The kind of answer box a question wants, read from its answer: "frac" (3/4), "mixed" (1 1/2) or "" (anything else). */
+/** The kind of answer box a question wants, read from its answer:
+    "frac" (3/4), "mixed" (1 1/2), "sol" (how many solutions: tap a choice), "pow" (3³: base and exponent),
+    "sci" (8 × 10⁵: number and power of 10), "list2" / "list3" / "list4" (6 and 7: one box each),
+    or "" (a plain box). */
 export function answerKind(ans) {
-    const [n] = withUnit(norm(ans));
+    const a = norm(ans); if (!a) return "";
+    if (solKind(a)) return "sol";
+    if (/^-?\d+(\.\d+)?×10\^-?\d+$/.test(a)) return "sci";
+    if (/^\(?-?[a-z0-9]+\)?\^-?\d+$/.test(a)) return "pow";
+    const l = listOf(a); if (l && l.length <= 4) return "list" + l.length;
+    const [n] = withUnit(a);
     if (/^-?\d+ \d+\/\d+$/.test(n)) return "mixed";
     if (/^-?\d+\s*\/\s*\d+$/.test(n)) return "frac";
     return "";
