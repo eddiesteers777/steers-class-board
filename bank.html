@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="css/console.css?v=58">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
     <link rel="stylesheet" href="css/planner.css?v=58">
-    <link rel="stylesheet" href="css/plan.css?v=62">
+    <link rel="stylesheet" href="css/plan.css?v=63">
     <meta name="theme-color" content="#081B45">
     <script type="module" src="js/caleraOnly.js?v=1"></script>
 </head>
@@ -25,7 +25,7 @@
     </header>
     <main>
         <h1>Question Bank</h1>
-        <p class="pw-lead">Every question from the weeks on your board, with its answer. Teacher only: nothing here is ever on the public site. Claude reuses these checked questions for spiral review, Friday bellringers, bonus sets and review games.</p>
+        <p class="pw-lead">Every question from the weeks on your board, plus the standards bank (problems for every Alabama standard in 7th, 8th and 8th Accelerated), with its answer. Teacher only: nothing here is ever on the public site. Claude reuses these checked questions for spiral review, Friday bellringers, bonus sets and review games.</p>
         <div class="pl-sum" id="summary" aria-live="polite"></div>
         <section class="bk-tools" aria-label="Find questions">
             <label class="pw-field bk-search"><span class="pw-lab">Search</span><input class="pw-in" id="q" type="search" placeholder="Words, numbers or an answer, like slope or 3/4" autocomplete="off"></label>
@@ -34,12 +34,14 @@
                 <label class="pw-field"><span class="pw-lab">Kind</span><select class="pw-in" id="fKind"></select></label>
                 <label class="pw-field"><span class="pw-lab">Standard or skill</span><select class="pw-in" id="fStd"></select></label>
                 <label class="pw-field"><span class="pw-lab">Week</span><select class="pw-in" id="fWeek"></select></label>
+                <label class="pw-field"><span class="pw-lab">Level</span><select class="pw-in" id="fLvl"><option value="">Any level</option><option value="1">On-ramp</option><option value="2">On level</option><option value="3">Stretch</option></select></label>
             </div>
             <div class="bk-opts">
                 <label class="pw-check"><input type="checkbox" id="once" checked> Show each question once</label>
                 <label class="pw-check"><input type="checkbox" id="ans" checked> Show answers</label>
             </div>
         </section>
+        <section class="bk-cover" id="cover" aria-label="Standards coverage"></section>
         <div class="bk-bar" id="selBar" hidden>
             <span id="selCount"></span>
             <button class="btn go" id="toGame" type="button">Make a game set</button>
@@ -52,6 +54,6 @@
         <button class="btn ghost" id="more" type="button" hidden>Show more</button>
         <section class="bk-claude" id="claude"></section>
     </main>
-    <script type="module" src="js/bankPage.js?v=4"></script>
+    <script type="module" src="js/bankPage.js?v=5"></script>
 </body>
 </html>
