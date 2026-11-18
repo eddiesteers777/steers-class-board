@@ -9,6 +9,12 @@ Live at https://focalboard.web.app/
 - `js/boardApp.js` the app (screens, timers, whiteboard). `js/boardStore.js` saves live state under `teacher/{uid}/` in Firestore.
 - `data/weekN.js` one file of lesson content per week; `data/weeks.js` lists them.
 
+## Other teachers (content packs)
+The Calera weeks, periods and classes in `data/weeks.js` belong to Mr. Steers' account. `js/contentPack.js` gives each account a pack, saved once at `teacher/{uid}/settings/pack`:
+- `calera`: every account that already had board, week or roster data before packs existed (so Mr. Steers' account is unchanged).
+- `starter`: a brand-new account. It gets the made-up sample week (`data/demo-week.js`) and one sample class, and Home hides the Calera-only planning pages (Plan the Week, Week Review, Question Bank, Planner, Week Builder, Standards).
+Signed out (the sub page) and student guests still see the Calera weeks. If the choice can't be read, the page shows the Calera weeks and saves nothing. `?pack=starter` or `?pack=calera` on a signed-in page sets it by hand.
+
 ## Adding a week
 1. Copy `data/week5.js` to `data/weekN.js` and replace the content (dates, agenda, supplies, reminders, learning targets, bellringer problems with verified answers, file links).
 2. Add it to `data/weeks.js`. The newest week whose Monday has arrived opens by default.

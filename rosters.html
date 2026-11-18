@@ -32,7 +32,8 @@
     </main>
     <script type="module">
         import * as store from "./js/boardStore.js?v=58";
-        const KEYS = ["1st", "2nd", "4th", "5th", "6th"], $ = (id) => document.getElementById(id), boxes = {};
+        import { PERIODS } from "./data/weeks.js?v=59";
+        const KEYS = PERIODS.map((p) => p[0]), $ = (id) => document.getElementById(id), boxes = {};
         const status = (t) => { const s = $("status"); s.textContent = t; s.dataset.state = /^(Live|Saved|Filled)/.test(t) ? "ok" : (/Could not|No period/.test(t) ? "bad" : "wait"); };
         KEYS.forEach((k) => {
             const col = document.createElement("div"); col.className = "col";
@@ -45,7 +46,7 @@
         function clean(text) { return text.split(/\n/).map((x) => x.trim().replace(/\s+/g, " ")).filter(Boolean).slice(0, 60); }
         $("fill").onclick = () => {
             let cur = null; const got = {};
-            $("all").value.split(/\n/).forEach((line) => { const m = line.trim().match(/^(1st|2nd|4th|5th|6th)\b/i); if (m) { cur = m[1].toLowerCase(); got[cur] = []; } else if (cur && line.trim()) got[cur].push(line.trim()); });
+            $("all").value.split(/\n/).forEach((line) => { const m = line.trim().match(new RegExp("^(" + KEYS.join("|") + ")\\b", "i")); if (m) { cur = m[1].toLowerCase(); got[cur] = []; } else if (cur && line.trim()) got[cur].push(line.trim()); });
             const found = Object.keys(got); found.forEach((k) => { boxes[k].ta.value = got[k].join("\n"); boxes[k].count(); });
             status(found.length ? "Filled " + found.join(", ") + ". Check them, then tap Save rosters." : "No period headings found. Put a line like \"1st period\" above each class.");
         };

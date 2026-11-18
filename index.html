@@ -123,14 +123,16 @@
         </div>
     </footer>
     <script type="module">
-        import { WEEKS as PUBLISHED } from "./data/weeks.js?v=57";
+        import { WEEKS as PUBLISHED, PERIODS, PACK } from "./data/weeks.js?v=59";
         import { watchPrivateWeeks } from "./js/weeksLive.js?v=58";
         import { closeoutItems, closeoutSummary, closeoutDue } from "./js/closeout.js?v=1";
         let WEEKS = PUBLISHED;
+        // A new teacher (starter pack) doesn't get Mr. Steers' Calera planning pages yet: they are built
+        // around his classes, calendar and Alabama standards (js/contentPack.js).
+        if (PACK !== "calera") document.querySelectorAll(["plan", "review", "bank", "planner", "builder", "standards"].map((p) => 'a[href="' + p + '.html"]').join(",")).forEach((a) => { a.hidden = true; a.style.display = "none"; });
         import * as store from "./js/boardStore.js?v=58";
         import { LIBRARY } from "./data/library.js?v=57";
         import { SCHOOL_YEAR, SCHOOL_DAYS, today as todayFn, addDays, mondayOf, eventsOn, isSchoolDay as schoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, short } from "./js/schoolCal.js?v=57";
-        const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
         const DAYKEYS = ["mon", "tue", "wed", "thu", "fri"], $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
         const iso = (d) => d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
@@ -164,14 +166,14 @@
             const cur = current(), c = week.classes[classOf(cur.p || PERIODS[0][0])], d = c.days[di];
             document.querySelector(".nowfacts").hidden = !cur.p;
             $("nowWhen").textContent = cur.p ? cur.label + " · " + cur.p + " period · " + c.label : cur.label;
-            $("nowTitle").textContent = cur.p ? d.agendaLine : d.name + ", " + d.date;
+            $("nowTitle").textContent = cur.p ? d.agendaLine : d.name + (d.date ? ", " + d.date : "");
             $("nowLT").textContent = cur.p ? d.lt : cur.note;
             $("nowSup").textContent = (d.supplies || []).join(", ");
             $("nowRem").textContent = (d.reminders || []).join(". ");
             fileLinks($("nowFiles"), c.links); $("nowFilesBox").hidden = !(c.links && c.links.length);
             if (cur.p) { $("nowStart").textContent = "Start " + cur.p + " period"; $("nowStart").href = startUrl(cur.p); $("nowStart").onclick = null; }
             else { $("nowStart").textContent = cur.go[0]; $("nowStart").href = cur.go[1]; $("nowStart").onclick = cur.go[1] === "#bells" ? (e) => { e.preventDefault(); openSettings(); } : null; }
-            $("todayTitle").textContent = (isSchoolDay ? d.name + ", " + d.date : "Monday, " + d.date) + ", period by period";
+            $("todayTitle").textContent = (isSchoolDay ? d.name : "Monday") + (d.date ? ", " + d.date : "") + ", period by period";
             { const sc = schedOf(todayId()), ex = (sc.extra || []).filter((x) => x.label && mins(x.start) != null).sort((a, b) => mins(a.start) - mins(b.start)), bits = [];
               if (todayId() !== "regular") bits.push(sc.name + " schedule today.");
               if (ex.length) bits.push("Also today: " + ex.map((x) => x.label + " " + nice(x.start) + (mins(x.end) != null ? " to " + nice(x.end) : "")).join(" · "));
@@ -183,7 +185,7 @@
                 const a = el("div", "pwho"); a.appendChild(el("b", null, p + " period")); a.appendChild(el("span", null, k.label + (when ? " · " + when : ""))); row.appendChild(a);
                 const b = el("div", "pwhat"); b.appendChild(el("b", null, day.agendaLine)); b.appendChild(el("span", null, day.lt)); row.appendChild(b);
                 const f = el("div", "pfiles"); fileLinks(f, k.links); row.appendChild(f);
-                const sl = el("a", "sublink", "Sub link"); sl.href = "sub.html?period=" + encodeURIComponent(p) + "&day=" + DAYKEYS[di]; sl.title = "A no-sign-in view of this period for a guest teacher"; f.appendChild(sl);
+                const sl = el("a", "sublink", "Sub link"); sl.href = "sub.html?period=" + encodeURIComponent(p) + "&day=" + DAYKEYS[di]; sl.title = "A no-sign-in view of this period for a guest teacher"; if (PACK === "calera") f.appendChild(sl);
                 const go = el("a", "btn" + (p === cur.p ? " go" : " ghost"), "Start"); go.href = startUrl(p); go.setAttribute("aria-label", "Start " + p + " period"); row.appendChild(go);
                 host.appendChild(row);
             });
@@ -250,7 +252,7 @@
             wide.addEventListener("change", () => drawer(false));
         }
         /* ---------- at a glance ---------- */
-        const CLS = [["8th", "8th Grade"], ["7th", "7th Grade"], ["8th-acc", "8th Accelerated"]];
+        const CLS = PACK === "calera" ? [["8th", "8th Grade"], ["7th", "7th Grade"], ["8th-acc", "8th Accelerated"]] : PERIODS.map(([, c]) => [c, (WEEKS[0].classes[c] || {}).label || c]);
         const ORD = ["", "1st", "2nd", "3rd", "4th"];
         let plans = null, progress = null;
         function nextBreak(from) {
@@ -268,6 +270,13 @@
         }
         function glance() {
             const t = todayFn(), G = $("glance"); G.textContent = "";
+            if (PACK !== "calera") {
+                // New teacher: the school calendar and planning tiles are Mr. Steers' (Calera), so show a start tile instead.
+                const w = el("a", "hm-gt accent"); w.href = "remote.html"; w.style.gridColumn = "1 / -1"; w.style.textDecoration = "none";
+                w.appendChild(el("b", null, "Try the sample lesson"));
+                w.appendChild(el("span", null, "Open the Board on your projector and the Remote on this device. A made-up sample week is loaded so you can run a full class period."));
+                G.appendChild(w); statuses(t); return;
+            }
             const tile = (big, small, cls) => { const d = el("div", "hm-gt" + (cls ? " " + cls : "")); d.appendChild(el("b", null, big)); d.appendChild(el("span", null, small)); G.appendChild(d); };
             const n = dayNumber(t), q = nineWeeksOf(t);
             if (n) tile("Day " + n, "of " + SCHOOL_DAYS.length + " school days", "accent");
@@ -304,7 +313,7 @@
             // Needs you
             const needs = [];
             if (bellsLoaded && !Object.keys(doc.periods || {}).length) needs.push(["Bell times are not set, so the Today panel cannot follow the clock.", "Set bell times", openSettings]);
-            if (nm && !have) needs.push(["Next week (" + short(nm, { month: "short", day: "numeric" }) + ") is not built yet.", "Plan the Week", "plan.html"]);
+            if (PACK === "calera" && nm && !have) needs.push(["Next week (" + short(nm, { month: "short", day: "numeric" }) + ") is not built yet.", "Plan the Week", "plan.html"]);
             coNeeds.forEach((n) => needs.push(n));
             const N = $("needs"); N.textContent = ""; N.hidden = !needs.length;
             if (needs.length) {

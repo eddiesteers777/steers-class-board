@@ -6,7 +6,7 @@
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
 import { parseFigure, figureEl } from "./figures.js?v=1";
-import { WEEKS as ALL_WEEKS } from "../data/weeks.js?v=57";
+import { WEEKS as ALL_WEEKS, PERIODS as PACK_PERIODS } from "../data/weeks.js?v=59";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 // The public demo page passes its own sample week and periods (opts.weeks, opts.periods).
 let WEEKS = ALL_WEEKS;
@@ -58,7 +58,7 @@ function richEl(tag, cls, text) { const e = el(tag, cls); e.appendChild(rich(tex
 const SCREENS = [["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["speed", "Speed Dating"], ["fix", "Fix It"], ["game", "Review Game"], ["live", "Student Game"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
 const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 // Each period and the class plan it follows.
-let PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
+let PERIODS = PACK_PERIODS;
 const classOf = (period) => (PERIODS.find((p) => p[0] === period) || PERIODS[0])[1];
 const ROUND = 240, GAP = 10, CHECK = 600;   // speed dating: 4:00 rounds, 10 s to rotate; 10:00 to go over the master problems
 const PRESETS = [1, 2, 3, 5, 10, 15];

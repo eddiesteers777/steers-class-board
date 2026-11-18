@@ -8,7 +8,7 @@
    ?demo keeps everything on this device. ?week=week6 opens a given week.
 ========================================== */
 import { STANDARDS } from "../data/standards.js?v=58";
-import { WEEKS as PUBLISHED } from "../data/weeks.js?v=58";
+import { WEEKS as PUBLISHED } from "../data/weeks.js?v=59";
 import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, eventsOn, nineWeeksOf, daysLeftInNineWeeks, short, parse } from "./schoolCal.js?v=58";
 import { nextUp } from "./standardsNext.js?v=58";
 import { watchPrivateWeeks, weekIdFor } from "./weeksLive.js?v=58";
