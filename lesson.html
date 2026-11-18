@@ -35,6 +35,17 @@
         .rm { width: 44px; height: 46px; border-radius: 12px; border: 1px solid #D5DCE9; background: #fff; color: #55627F; font-size: 20px; cursor: pointer; }
         .add { font: inherit; font-weight: 700; color: #173F86; background: none; border: 0; padding: 8px 0; cursor: pointer; min-height: 44px; }
         .hint { font-size: 13px; color: #55627F; margin: 6px 0 0; }
+        .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+        .drop { display: block; text-align: center; border: 1.5px dashed #7FAEDD; border-radius: 14px; padding: 16px 12px; cursor: pointer; color: #173F86; background: #F7FAFE; }
+        .drop b { display: block; font-size: 16px; }
+        .drop span { display: block; font-size: 13px; color: #55627F; margin-top: 2px; }
+        .drop.over, .drop:hover { background: #EAF2FC; }
+        #pdfIn:focus-visible + .drop { outline: 3px solid #7FAEDD; outline-offset: 2px; }
+        .pdfon { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; gap: 10px; align-items: center; }
+        .pdfon[hidden] { display: none; }
+        .pdfic { width: 44px; height: 44px; border-radius: 10px; background: #B3261E; color: #fff; font-weight: 800; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+        .pdfon b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pdfon small { display: block; color: #55627F; font-size: 13px; }
         .soon { color: #55627F; border: 1.5px dashed #D5DCE9; border-radius: 12px; padding: 12px; font-size: 14px; }
         details.paste { background: #FFF7E3; border: 1px solid #F3D99A; border-radius: 16px; padding: 12px 14px; color: #5C4500; margin: 12px 0; }
         details.paste summary { cursor: pointer; font-weight: 600; min-height: 28px; }
@@ -73,7 +84,12 @@
         <section class="box"><h2><label for="lt">Learning target</label></h2><input id="lt" maxlength="200" placeholder="I can find the area of a triangle." autocomplete="off"></section>
         <section class="box"><h2 id="bellH">Bellringer</h2><div id="bellRows"></div><button class="add" type="button" id="addBell">+ Add a problem</button><p class="hint">Answers show only when you tap Show answer on the Remote.</p></section>
         <section class="box"><h2><label for="agenda">Agenda</label></h2><input id="agenda" maxlength="400" placeholder="Bellringer · Notes: triangle area · Practice · Exit ticket" autocomplete="off"><p class="hint">Separate the parts with · or ;</p></section>
-        <section class="box"><h2>Notes</h2><p class="soon">Upload your own notes as a PDF: coming next. Skip this for now.</p></section>
+        <section class="box"><h2 id="notesH">Notes</h2>
+            <input type="file" id="pdfIn" accept="application/pdf,.pdf" class="vh">
+            <label class="drop" id="drop" for="pdfIn"><b>Upload your notes as a PDF</b><span>Guided notes, a worksheet or slides saved as PDF. Up to 20 pages. Saved only to your account.</span></label>
+            <div class="pdfon" id="pdfOn" hidden><span class="pdfic" aria-hidden="true">PDF</span><span><b id="pdfName"></b><small id="pdfInfo"></small></span><button class="rm" type="button" id="pdfRm" aria-label="Remove the PDF">×</button></div>
+            <p class="hint" id="pdfMsg" role="status"></p>
+        </section>
         <section class="box"><h2 id="exitH">Exit ticket</h2><div id="exitRows"></div><button class="add" type="button" id="addExit">+ Add a question</button><p class="hint">Shows at the end of Guided Notes on the board.</p></section>
 
         <div class="qbar">
@@ -86,8 +102,9 @@
         import * as store from "./js/boardStore.js?v=58";
         import { WEEKS, PERIODS, PACK } from "./data/weeks.js?v=60";
         import { watchPrivateWeeks } from "./js/weeksLive.js?v=58";
-        import { FULL, dayDate, classList, weekFor, formFrom, applyForm, splitPaste } from "./js/quickLesson.js?v=1";
+        import { FULL, dayDate, classList, weekFor, formFrom, applyForm, splitPaste } from "./js/quickLesson.js?v=2";
         import { today, mondayOf, addDays, short } from "./js/schoolCal.js?v=58";
+        import { savePdf, cleanPdf, MAX_PAGES } from "./js/pdfNotes.js?v=1";
 
         const $ = (id) => document.getElementById(id);
         const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
@@ -130,14 +147,41 @@
             $("addExit").onclick = () => { addRow($("exitRows"), { q: "", a: "" }, EXIT_PH).focus(); };
             $("main").addEventListener("input", (e) => { if (e.target.id !== "paste" && e.target.type !== "checkbox") { dirty = true; msg(""); } });
 
-            const formNow = () => ({ title: $("title").value, lt: $("lt").value, agenda: $("agenda").value, problems: read($("bellRows")), exit: read($("exitRows")) });
+            let PDF = null;   // the day's PDF notes: { id, title, pages, w, h }
+            const formNow = () => ({ title: $("title").value, lt: $("lt").value, agenda: $("agenda").value, problems: read($("bellRows")), exit: read($("exitRows")), pdf: PDF });
             function fill(f) {
                 $("title").value = f.title || ""; $("lt").value = f.lt || ""; $("agenda").value = f.agenda || "";
                 rows($("bellRows"), f.problems || [], BELL_PH); rows($("exitRows"), f.exit || [], EXIT_PH);
+                showPdf(cleanPdf(f.pdf)); $("pdfMsg").textContent = "";
             }
 
+            /* ---------- PDF notes ---------- */
+            function showPdf(p) {
+                PDF = p; $("pdfOn").hidden = !p; $("drop").hidden = !!p;
+                if (p) { $("pdfName").textContent = p.title; $("pdfInfo").textContent = p.pages + (p.pages === 1 ? " page" : " pages") + " · shows on Guided Notes"; }
+            }
+            const PDF_ERR = { "not-pdf": "That file isn't a PDF. Save it as PDF first (File, Download, PDF).", "too-big": "That PDF is over 40 MB. Try saving it again with smaller pictures.", password: "That PDF has a password. Save a copy without one.", unreadable: "That PDF could not be opened. Try saving it again as PDF.", "page-too-big": "A page is too detailed to save. Try a smaller PDF." };
+            async function takePdf(file) {
+                if (!file) return;
+                dirty = true; $("drop").hidden = true; $("save").disabled = $("show").disabled = true;
+                const m = $("pdfMsg"); m.textContent = "Reading the PDF…";
+                try {
+                    const p = await savePdf(store, file, (t) => { m.textContent = "Saving " + t; });
+                    showPdf(p); dirty = true;
+                    m.textContent = (p.skipped ? "Only the first " + MAX_PAGES + " pages were kept. " : "") + "Uploaded. Press Save to put it on " + FULL[day] + ".";
+                } catch (e) {
+                    showPdf(PDF); m.textContent = PDF_ERR[e && e.code] || "Could not save the PDF (" + ((e && e.code) || "connection") + "). Try again.";
+                } finally { $("save").disabled = $("show").disabled = false; $("pdfIn").value = ""; }
+            }
+            $("pdfIn").onchange = () => takePdf($("pdfIn").files[0]);
+            $("pdfRm").onclick = () => { showPdf(null); dirty = true; $("pdfMsg").textContent = "Removed. Press Save to take it off " + FULL[day] + "."; };
+            const drop = $("drop");
+            ["dragenter", "dragover"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+            ["dragleave", "drop"].forEach((t) => drop.addEventListener(t, () => drop.classList.remove("over")));
+            drop.addEventListener("drop", (e) => { e.preventDefault(); takePdf(e.dataTransfer && e.dataTransfer.files[0]); });
+
             /* ---------- week, day and class pickers ---------- */
-            const hasLesson = (w, c, i) => { const d = w.classes[c] && w.classes[c].days[i]; return !!(d && (d.lt || (d.problems && d.problems.length) || d.agendaLine)); };
+            const hasLesson = (w, c, i) => { const d = w.classes[c] && w.classes[c].days[i]; return !!(d && (d.lt || (d.problems && d.problems.length) || d.agendaLine || d.pdf)); };
             function drawPickers() {
                 $("wkName").textContent = "Week of " + short(monday, { month: "short", day: "numeric" }) + (monday === mondayOf(t) ? " (this week)" : "");
                 const D = $("days"); D.textContent = "";
@@ -173,7 +217,7 @@
                 const s = splitPaste($("paste").value);
                 if (!s.found.length) { $("splitMsg").textContent = "Nothing to split. Put each part under a heading."; return; }
                 const f = formNow();
-                fill({ title: s.title || f.title, lt: s.lt || f.lt, agenda: s.agenda || f.agenda, problems: s.problems.length ? s.problems : f.problems, exit: s.exit.length ? s.exit : f.exit });
+                fill({ title: s.title || f.title, lt: s.lt || f.lt, agenda: s.agenda || f.agenda, problems: s.problems.length ? s.problems : f.problems, exit: s.exit.length ? s.exit : f.exit, pdf: f.pdf });
                 dirty = true;
                 const NAMES = { title: "title", lt: "learning target", problems: "bellringer", agenda: "agenda", exit: "exit ticket" };
                 $("splitMsg").textContent = "Filled: " + s.found.map((k) => NAMES[k]).join(", ") + ". Check them, then Save.";

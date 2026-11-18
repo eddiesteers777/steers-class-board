@@ -134,3 +134,8 @@ body.board.idle .wbrail,body.board.idle .wbpages,body.board.idle .wbcb,body.boar
 .lnjoin small{font-size:.55em;color:#55627F;font-weight:600}
 .lnjoin b{font-size:1.05em;letter-spacing:.06em;color:#081B45}
 body.idle .lnjoin{opacity:.9}
+/* PDF notes (js/pdfNotes.js): the page sits on the paper under the pen. */
+.cv .pdfview{position:absolute;inset:0;pointer-events:none}
+.cv .pdfclip{position:absolute;overflow:hidden;background:#fff;box-shadow:0 .2em 1em rgba(8,27,69,.25)}
+.cv .pdfclip img{position:absolute;left:0;max-width:none;user-select:none}
+.cv .pdfwait{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;margin:0;color:var(--mute,#55627F);font-size:.8em;text-align:center;padding:1em}

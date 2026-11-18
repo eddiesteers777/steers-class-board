@@ -38,7 +38,8 @@ export function formFrom(day) {
         lt: d.lt || "",
         problems: pairs(d.problems),
         agenda: (Array.isArray(d.agenda) ? d.agenda : []).join(" · "),
-        exit: pairs(n.exit)
+        exit: pairs(n.exit),
+        pdf: d.pdf && typeof d.pdf === "object" ? d.pdf : null
     };
 }
 
@@ -52,6 +53,8 @@ export function applyForm(day, f) {
     d.lt = lt;
     d.problems = pairs(f.problems);
     d.agenda = agenda;
+    if (f.pdf) d.pdf = { id: String(f.pdf.id), title: clean(f.pdf.title, 60) || "Notes", pages: +f.pdf.pages || 0, w: +f.pdf.w || 0, h: +f.pdf.h || 0 };
+    else delete d.pdf;
     const exit = pairs(f.exit);
     if (d.notes || exit.length) {
         d.notes = Object.assign({ title: title || d.name, targets: lt ? [lt.replace(/^I can\s*/i, "")] : [] }, d.notes || {});

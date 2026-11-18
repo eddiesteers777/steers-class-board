@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
     <link rel="stylesheet" href="css/boardnav.css?v=1">
     <link rel="stylesheet" href="css/games.css?v=65">
-    <link rel="stylesheet" href="css/wb.css?v=3">
+    <link rel="stylesheet" href="css/wb.css?v=4">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console">
@@ -59,7 +59,7 @@
     </aside>
     <button id="exit" type="button">Show controls</button>
     <script type="module">
-        import { startApp } from "./js/boardApp.js?v=70";
+        import { startApp } from "./js/boardApp.js?v=71";
         startApp({ mode: "remote" });
         import("./js/boardStore.js?v=58").then(async (store) => { if (await store.ready()) (await import("./js/tally.js?v=57")).mount({ store, period: () => document.getElementById("periodSel").value || "1st" }); }).catch(() => {});
         import("./js/recorder.js?v=57").then((m) => m.mount());
