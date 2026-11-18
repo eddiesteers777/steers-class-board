@@ -24,6 +24,7 @@ const mathEl = (tag, cls, text) => { const e = el(tag, cls); e.append(V.mathText
 // This Remote's mark as the referee. Kept for the tab's life, so a reload carries on running the game.
 const PAGE = (() => { try { let id = sessionStorage.getItem("anchorboard-live-host"); if (!id) { id = Math.random().toString(36).slice(2, 10); sessionStorage.setItem("anchorboard-live-host", id); } return id; } catch (e) { return Math.random().toString(36).slice(2, 10); } })();
 const LENGTHS = [[5, "5 minutes"], [8, "8 minutes"], [10, "10 minutes"], [15, "15 minutes"], [20, "20 minutes"], [0, "Until I end it"]];
+const LEFT_OPEN = 24 * 3600 * 1000;   // a room untouched this long is closed the next time the Remote opens
 const HOST_STALE = 20000;    // another Remote that has not checked in for this long can be taken over
 const JOIN_PATH = "play";
 
@@ -62,6 +63,8 @@ export function syncLive() {
             const d = snap.exists ? snap.data : null;
             if (hosting && H && d && d.host === PAGE) return;           // this Remote is the referee: its own copy is newest
             const was = hosting; H = d && d.v === 1 && d.status && d.status !== "none" ? d : null; loaded = true;
+            // A game nobody has touched for a day was left open by mistake: close it, which deletes the students' names and answers.
+            if (isRemote() && H && !hosting && Date.now() - Math.max(+H.hb || 0, +H.at || 0) > LEFT_OPEN) { autoClose(); rev++; A.redraw(); return; }
             if (isRemote() && H && running() && (!H.host || H.host === PAGE || Date.now() - (+H.hb || 0) > HOST_STALE)) takeHost();
             else if (was && H && H.host !== PAGE) { hosting = false; stopPlayers(); }
             if (!H) { hosting = false; stopPlayers(); }
@@ -349,6 +352,13 @@ async function closeRoom() {
         H = null; hosting = false; note = ""; peek = ""; endArm = 0;
     } catch (e) { note = "Could not close the room (" + ((e && e.code) || "connection") + "). Try again."; if (H && running()) takeHost(); }
     busy = ""; panelSig = ""; rev++; A.redraw();
+}
+let autoClosing = false;
+async function autoClose() {
+    if (autoClosing || !H) return; autoClosing = true;
+    const since = new Date(Math.max(+H.hb || 0, +H.at || 0) || Date.now()).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+    await closeRoom(); autoClosing = false;
+    if (!H) { note = "A student game left open since " + since + " was closed. Its names and answers are deleted."; panelSig = ""; rev++; A.redraw(); }
 }
 function removePlayer(id) {
     const p = P(id); if (!p) return;
