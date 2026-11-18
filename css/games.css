@@ -516,3 +516,66 @@ div.gpset{cursor:default}
 .vrnone{display:grid;place-items:center;aspect-ratio:900/520;background:var(--c-bg);border-radius:6px;font-size:.75rem;color:var(--c-mute)}
 .vrpeek{border:1.5px solid var(--c-line);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:6px}
 .vrpeek img{width:100%;border:1px solid var(--c-line);border-radius:8px;background:#fff}
+
+/* Vault Raid: going over a missed question on the board */
+.vrclass{margin-top:.8em;font-size:1.1em;font-weight:700;color:var(--soft)}
+.vrrev{flex:1;min-height:0;display:flex;flex-direction:column;gap:.7em;background:var(--navy);border:.13em solid var(--sky);border-radius:.8em;padding:1em 1.4em;overflow:hidden}
+.vrrevtop{display:flex;gap:.5em;flex-wrap:wrap}
+.vrrevtop .gchip.alt{background:var(--deep);color:var(--soft);border:.07em solid var(--sky)}
+.vrrevq{font-size:2.2em;font-weight:700;line-height:1.25}
+.vrrevstats{display:flex;align-items:center;gap:1.4em;flex-wrap:wrap}
+.vrrevpct{--p:0;flex:none;width:7em;height:7em;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(closest-side,var(--navy) 78%,transparent 79% 100%),conic-gradient(var(--amber,#F2B33D) calc(var(--p) * 1%),rgba(185,211,238,.25) 0)}
+.vrrevpct b{font-family:var(--display,inherit);font-size:1.9em;font-weight:800;line-height:1}
+.vrrevpct small{font-size:.75em;color:var(--soft)}
+.vrrevside{display:flex;flex-direction:column;gap:.35em;min-width:0}
+.vrrevside .vrlab{text-transform:none;letter-spacing:0;font-size:1em}
+.vrrevw{display:flex;flex-wrap:wrap;gap:.4em}
+.vrwrong{display:inline-flex;align-items:baseline;gap:.35em;background:var(--deep);border:.07em solid #F08A8F;border-radius:2em;padding:.15em .8em;font-size:1.2em;font-weight:700}
+.vrwrong small{font-size:.7em;color:#F6B4B7}
+.vrrevans{align-self:flex-start;display:flex;align-items:baseline;gap:.6em;background:#E3F5EC;color:#0F6B40;border-radius:.6em;padding:.3em 1em;animation:pop .3s ease-out}
+.vrrevans small{font-size:.9em;font-weight:700}
+.vrrevans b{font-size:2em}
+/* the Remote's report */
+.vrtiles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}
+.vrtile{background:#F6F9FD;border:1px solid var(--c-line,#D5DCE9);border-radius:10px;padding:6px;text-align:center;display:flex;flex-direction:column}
+.vrtile b{font-size:1.35rem;color:var(--c-navy,#081B45)}
+.vrtile small{font-size:.75rem;color:var(--c-mute,#55627F);font-weight:600}
+.vrrevctl{border:2px solid var(--amber,#F2B33D);background:#FFF8E6;border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;margin:6px 0}
+.vrmedal{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.85rem;color:#fff;background:#7FAEDD}
+.vrmedal.m1{background:#E0A11F}.vrmedal.m2{background:#8E9BB2}.vrmedal.m3{background:#B9763E}
+.vrmiss{border:1px solid var(--c-line,#D5DCE9);border-radius:12px;padding:8px 10px;margin:6px 0;display:flex;flex-direction:column;gap:4px}
+.vrmiss.on{border-color:var(--amber,#F2B33D);background:#FFF8E6}
+.vrmisshead{display:flex;align-items:baseline;gap:8px}
+.vrmisspct{font-size:1.2rem;color:#B4232A}
+.vrmisshead small{color:var(--c-mute,#55627F);font-size:.8rem}
+.vrmissq{font-weight:600;line-height:1.3}
+.vrmissa{font-size:.9rem;color:#0F6B40}
+.vrmiss .vrsub{padding-left:0}
+.vrmiss .vrrevw{gap:4px}
+.vrmiss .vrwrong{background:#FDEEEE;color:#8A1C22;border-color:#F3C2C5;font-size:.9rem}
+.vrmiss .vrwrong small{color:#B4232A}
+.vrmiss .btn{align-self:flex-start}
+.vrpct{font-size:1rem;min-width:3.2em;text-align:right}
+.vrpct.hi{color:#0F6B40}.vrpct.mid{color:#8A5F00}.vrpct.lo{color:#B4232A}
+.vrtop3{grid-template-columns:auto minmax(0,1fr) auto;align-items:center}
+.vrstep small.vrsteppct{color:var(--soft);font-weight:600}
+
+/* Vault Raid upgrades: bonus round, a crack takes over the board, characters */
+.vr{position:relative}
+.vrbonus{position:absolute;left:50%;bottom:.3em;transform:translateX(-50%);display:flex;align-items:center;gap:.8em;background:var(--amber,#F2B33D);color:#3A2A00;font-weight:800;letter-spacing:.06em;border-radius:2em;padding:.3em 1.2em;box-shadow:0 0 1.2em rgba(242,179,61,.6);animation:bonuspulse 1.2s ease-in-out infinite;z-index:3}
+.vrbonus[hidden]{display:none}
+.vrbonus b{font-variant-numeric:tabular-nums}
+.vrcrack{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6em;background:radial-gradient(circle,rgba(16,53,138,.92),rgba(8,27,69,.97));border-radius:.8em;animation:crackin .35s ease-out both}
+.vrcrack svg{width:9em;height:9em;filter:drop-shadow(0 0 1.5em rgba(242,179,61,.55))}
+.vrcrack .vdoor{transform-origin:4px 60px;animation:dooropen .9s .25s cubic-bezier(.3,1.4,.5,1) both}
+.vrcrack.block .vdoor{animation:none}
+.vrcrack.block .vcoins{display:none}
+.vrcrack p{font-family:var(--display,inherit);font-size:2.4em;font-weight:800;text-align:center;color:var(--amber,#F2B33D);padding:0 1em}
+.vrcrack.block p{color:#7FB2FF}
+.vravatar{font-style:normal;font-size:2em;line-height:1.1}
+.vrbonusbtn{width:100%;margin:4px 0}
+@keyframes bonuspulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.06)}}
+@keyframes crackin{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+@keyframes dooropen{from{transform:perspective(300px) rotateY(0)}to{transform:perspective(300px) rotateY(-78deg)}}
+@media (prefers-reduced-motion:reduce){.vrbonus,.vrcrack,.vrcrack .vdoor{animation:none}}

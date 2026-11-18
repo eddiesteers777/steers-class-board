@@ -30,6 +30,28 @@ export function codeMarks(secret, guess) {
 /** Coins a crack takes from a vault holding this many. */
 export const stealFrom = (coins) => Math.max(0, Math.min(coins, Math.max(STEAL_MIN, Math.round(coins * STEAL_SHARE))));
 
+/* ---------- characters and power-ups ---------- */
+/** Characters a student picks in the waiting room (an index into this list is saved). */
+export const AVATARS = [["🦊", "Fox"], ["🐼", "Panda"], ["🐸", "Frog"], ["🐙", "Octopus"], ["🦁", "Lion"], ["🐯", "Tiger"], ["🐵", "Monkey"], ["🦄", "Unicorn"],
+    ["🐲", "Dragon"], ["🐧", "Penguin"], ["🦉", "Owl"], ["🐢", "Turtle"], ["🤖", "Robot"], ["👾", "Alien"], ["🦈", "Shark"], ["🐝", "Bee"]];
+export const avatar = (i) => AVATARS[(+i >= 0 && +i < AVATARS.length) ? +i : 0];
+/** The power-up a student picks before the game starts. Each helps once or all game, as it says. */
+export const STARTERS = [
+    ["shield", "Shield", "Blocks the first hack that would crack your vault."],
+    ["head", "Head start", "Start the game with 25 coins."],
+    ["double", "Double down", "Your first 3 right answers earn double coins."],
+    ["keys", "Master keys", "Start with 2 hacks ready to use."],
+    ["insure", "Insurance", "If your vault is cracked, you lose half as much. All game."],
+];
+export const starter = (k) => STARTERS.find((x) => x[0] === k) || null;
+export const BOX_EVERY = 3, BONUS_MS = 60000;
+/** What a mystery box can hold (every 3rd right answer earns one). */
+export const BOXES = [["bag", "Coin bag"], ["hack", "Extra hack"], ["double", "Double coins"], ["firewall", "Firewall"]];
+export function rollBox(rand = Math.random) {
+    const k = BOXES[Math.floor(rand() * BOXES.length)][0];
+    return k === "bag" ? { k, v: 15 + 5 * Math.floor(rand() * 4) } : k === "double" ? { k, v: 2 } : k === "firewall" ? { k, v: 60 } : { k, v: 1 };
+}
+
 /* ---------- names ---------- */
 /** "Rivera, Ava Maria" or "Ava Rivera" -> "Ava R." (first name and last initial only). */
 export function shortName(full) {
@@ -102,6 +124,14 @@ export function sameAnswer(typed, answer, also) {
         if (x != null && y != null) return Math.abs(x - y) < 1e-9;
         return au && !tu ? tn.replace(/ /g, "") === an.replace(/ /g, "") : false;
     });
+}
+
+/** The kind of answer box a question wants, read from its answer: "frac" (3/4), "mixed" (1 1/2) or "" (anything else). */
+export function answerKind(ans) {
+    const [n] = withUnit(norm(ans));
+    if (/^-?\d+ \d+\/\d+$/.test(n)) return "mixed";
+    if (/^-?\d+\s*\/\s*\d+$/.test(n)) return "frac";
+    return "";
 }
 
 /* ---------- math text (same writing as the review games) ---------- */
