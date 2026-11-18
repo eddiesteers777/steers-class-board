@@ -1,7 +1,7 @@
 {
-    "name": "Focal",
-    "short_name": "Focal",
-    "description": "Focal: class board, remote and planner for Mr. Steers' math classes. Teacher-only.",
+    "name": "Anchor Board",
+    "short_name": "Anchor Board",
+    "description": "Anchor Board: class board, remote and planner for Mr. Steers' math classes. Teacher-only.",
     "start_url": "index.html",
     "scope": "./",
     "display": "standalone",
