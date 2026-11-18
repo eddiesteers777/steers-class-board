@@ -103,6 +103,9 @@
             <div class="rowx"><button class="btn ghost" id="extraAdd" type="button">Add a time</button></div>
             <div class="rowx"><button class="btn" id="bellSave" type="button">Save bell times</button><span class="count2" id="bellNote"></span></div>
           </div>
+          <h3 class="bellh">Your classes and your data</h3>
+          <p class="sub">Change your classes and periods, see everything your account has saved, or delete it all.</p>
+          <div class="rowx"><a class="btn ghost" href="setup.html" id="setupLink" style="text-decoration:none">Your classes</a><a class="btn ghost" href="account.html" style="text-decoration:none">Your data</a></div>
         </dialog>
     </main>
     <footer class="pub-footer">
@@ -126,6 +129,7 @@
         import { WEEKS as PUBLISHED, PERIODS, PACK, SETUP } from "./data/weeks.js?v=60";
         // A new teacher who hasn't been through setup yet goes there first (setup.html).
         if (PACK !== "calera" && SETUP && !SETUP.done) location.replace("setup.html");
+        if (PACK === "calera") { const sl = document.getElementById("setupLink"); if (sl) sl.hidden = true, sl.style.display = "none"; }
         import { watchPrivateWeeks } from "./js/weeksLive.js?v=58";
         import { closeoutItems, closeoutSummary, closeoutDue } from "./js/closeout.js?v=2";
         let WEEKS = PUBLISHED;

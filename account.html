@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your data | Anchor Board</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=57">
+    <link rel="stylesheet" href="css/console.css?v=57">
+    <link rel="stylesheet" href="css/theme-rings.css?v=2">
+    <meta name="theme-color" content="#081B45">
+    <style>
+        .acct { max-width: 640px; }
+        .acct table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #D5DCE9; border-radius: 16px; overflow: hidden; margin: 8px 0 24px; }
+        .acct td { padding: 10px 14px; border-top: 1px solid #D5DCE9; font-size: 15px; }
+        .acct tr:first-child td { border-top: 0; }
+        .acct td.n { text-align: right; font-variant-numeric: tabular-nums; color: #55627F; width: 90px; }
+        .danger { background: #fff; border: 1px solid #E8B4AE; border-radius: 16px; padding: 16px; }
+        .danger h2 { margin-top: 0; color: #8A1C14; }
+        .danger input { width: 100%; max-width: 260px; font: inherit; padding: 10px 12px; border: 1px solid #D5DCE9; border-radius: 12px; min-height: 46px; }
+        .danger .btn.del { background: #B3261E; color: #fff; border-color: #B3261E; }
+        .danger .btn.del:disabled { opacity: .45; cursor: not-allowed; }
+        #log { font-size: 14px; color: #55627F; margin-top: 10px; white-space: pre-line; }
+    </style>
+</head>
+<body class="console page">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Anchor Board</b><small id="who">For teachers</small></span></a>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
+    </header>
+    <main class="acct">
+        <h1>Your data</h1>
+        <p class="sub">Everything below is saved only to your own account. Nobody else can see it, and it is never part of the site's public code.</p>
+        <table id="counts" aria-label="What your account has saved"><tr><td>Counting…</td><td class="n"></td></tr></table>
+        <div class="danger">
+            <h2>Delete all my data</h2>
+            <p class="sub">This erases everything in the list above, closes any student game you left open, and takes down your posted Class Pages. Then it signs you out. It cannot be undone.</p>
+            <label for="confirm" class="sub" style="display:block;margin:0 0 6px">Type DELETE to confirm</label>
+            <input type="text" id="confirm" autocomplete="off" spellcheck="false">
+            <div class="rowx"><button class="btn del" id="del" type="button" disabled>Delete all my data</button></div>
+            <div id="log" role="status" aria-live="polite"></div>
+        </div>
+    </main>
+    <script type="module">
+        import * as store from "./js/boardStore.js?v=58";
+        import { summary, deleteEverything } from "./js/accountData.js?v=1";
+        import { logout } from "./js/auth.js";
+        const $ = (id) => document.getElementById(id);
+        const status = (t, ok) => { const s = $("status"); s.textContent = t; s.dataset.state = ok ? "ok" : (/Could not/.test(t) ? "bad" : "wait"); };
+        const user = await store.ready();
+        if (!user) location.replace("login.html");
+        else {
+            $("who").textContent = "Signed in as " + user.name;
+            try {
+                const rows = await summary(), t = $("counts"); t.textContent = "";
+                rows.forEach((r) => { const tr = t.insertRow(); tr.insertCell().textContent = r.label; const c = tr.insertCell(); c.className = "n"; c.textContent = r.count ? r.count + (r.count === 1 ? " item" : " items") : "none"; });
+                status("Live", true);
+            } catch (e) { status("Could not count your data (" + ((e && e.code) || "connection") + ")"); }
+            $("confirm").addEventListener("input", () => { $("del").disabled = $("confirm").value.trim() !== "DELETE"; });
+            $("del").onclick = async () => {
+                if ($("confirm").value.trim() !== "DELETE") return;
+                $("del").disabled = true; $("confirm").disabled = true; const log = $("log"); log.textContent = "";
+                try {
+                    const n = await deleteEverything((t) => { log.textContent += t + "\n"; });
+                    try { Object.keys(localStorage).filter((k) => /^(focal-|school-)/.test(k)).forEach((k) => localStorage.removeItem(k)); } catch { /* storage unavailable */ }
+                    log.textContent += "Deleted " + n + " items. Signing you out…";
+                    setTimeout(async () => { try { await logout(); } catch { /* already out */ } location.replace("home.html"); }, 1500);
+                } catch (e) {
+                    log.textContent += "Stopped: could not delete everything (" + ((e && e.code) || "connection") + "). What was deleted stays deleted. Try again.";
+                    $("del").disabled = false; $("confirm").disabled = false;
+                }
+            };
+        }
+    </script>
+</body>
+</html>
