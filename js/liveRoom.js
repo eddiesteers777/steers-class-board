@@ -15,6 +15,7 @@
    Each student's result is saved to Class Data only when the teacher turns that on.
 ========================================== */
 import * as V from "./vaultCore.js?v=58";
+import qrcode from "./vendor/qrcode.js?v=1";
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "button"; if (fn) b.onclick = fn; return b; };
@@ -39,6 +40,17 @@ const onLive = () => A && A.S.screen === "live";
 const isRemote = () => A.mode() === "remote";
 const running = () => H && (H.status === "lobby" || H.status === "play");
 const joinUrl = () => location.host + "/" + JOIN_PATH;
+/** A QR code that opens the student page with this game's code already typed in. */
+function qrSvg(code) {
+    const q = qrcode(0, "M"); q.addData(location.origin + "/play.html?code=" + code); q.make();
+    const n = q.getModuleCount(), m = 2, NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 " + (n + 2 * m) + " " + (n + 2 * m)); svg.setAttribute("shape-rendering", "crispEdges");
+    svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "QR code to join game " + code);
+    let d = ""; for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += "M" + (c + m) + " " + (r + m) + "h1v1h-1z";
+    const bg = document.createElementNS(NS, "rect"); bg.setAttribute("width", "100%"); bg.setAttribute("height", "100%"); bg.setAttribute("fill", "#fff");
+    const path = document.createElementNS(NS, "path"); path.setAttribute("d", d); path.setAttribute("fill", "#081B45");
+    svg.append(bg, path); return svg;
+}
 const clean = (o) => JSON.parse(JSON.stringify(o));
 
 /* ---------- following the game ---------- */
@@ -298,7 +310,8 @@ export function drawLiveStage(st) {
         const join = el("div", "vrjoin"), how = el("div", "vrhow");
         how.append(el("p", "vrlab", "Go to"), el("p", "vrurl", joinUrl()), el("p", "vrlab", "Game code"), el("p", "vrcode", H.code.slice(0, 3) + " " + H.code.slice(3)));
         const who = el("div", "vrwho"), names = Object.values(H.players);
-        who.append(el("p", "vrcount", names.length + (names.length === 1 ? " player is in" : " players are in")));
+        const qr = el("div", "vrqr"), head = el("div", "vrwhohead"); qr.append(qrSvg(H.code), el("p", null, "Scan to join"));
+        head.append(qr, el("p", "vrcount", names.length + (names.length === 1 ? " player is in" : " players are in"))); who.append(head);
         if (H.opts.board) { const chips = el("div", "vrchips"); names.slice(-40).forEach((p) => chips.append(el("span", "vrchip", p.nm))); who.append(chips); }
         who.append(el("p", "vrrule", "Pick your name, then set a secret vault code: 3 different digits, 1 to 9. Right answers earn coins and hacks. Use a hack to guess a classmate's code and take a share of their coins."));
         join.append(how, who); body.append(join);
@@ -362,7 +375,8 @@ export function drawLivePanel(force) {
     const n = Object.keys(H.players).length;
     if (H.status === "lobby") {
         p.append(hd("Students, join now"));
-        const code = el("div", "vrpcode"); code.append(el("small", null, "Go to " + joinUrl() + " and type"), el("b", null, H.code)); p.append(code);
+        const code = el("div", "vrpcode"); code.append(el("small", null, "Go to " + joinUrl() + " and type"), el("b", null, H.code));
+        const qr = el("div", "vrpqr"); qr.append(qrSvg(H.code), el("small", null, "Or scan this. The board shows it too.")); code.append(qr); p.append(code);
         p.append(el("p", "gpnote", n ? n + " joined. Start when everyone is in. Late students can still join." : "Waiting for the first student…"));
         const go = btn("btn go", "Start the game", startGame); go.disabled = !n; p.append(go);
         playerRows(p, false);
