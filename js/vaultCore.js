@@ -116,6 +116,8 @@ const SUP = { "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5
 const supToCaret = (s) => s.replace(/([0-9a-z)])([⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+)/g, (m, b, e) => b + "^" + [...e].map((c) => SUP[c]).join(""));
 function norm(s) {
     let t = String(s == null ? "" : s).toLowerCase()
+        // Stacked fractions written for the board, {1/10} and 4{2/3}, read as 1/10 and 4 2/3.
+        .replace(/(\d)\s*\{([^{}/]+)\/([^{}/]+)\}/g, "$1 $2/$3").replace(/\{([^{}/]+)\/([^{}/]+)\}/g, "$1/$2")
         .replace(/[−‒–—]/g, "-").replace(/≥/g, ">=").replace(/≤/g, "<=").replace(/≠/g, "!=").replace(/[ \s]+/g, " ").replace(/(\d),(?=\d{3}\b)/g, "$1");
     t = supToCaret(t)
         .replace(/\s*\^\s*/g, "^").replace(/\^\((-?\d+)\)/g, "^$1")                     // 3 ^ 3, 3^(3)
@@ -219,12 +221,18 @@ function listOf(s) {
     usual ways of writing how many solutions ("infinite", "no solutions"). */
 export function sameAnswer(typed, answer, also) {
     const t = norm(typed); if (!t) return false;
-    const list = [answer].concat(also || []);
+    // An answer key with two forms, like "14/3 = 4 2/3", accepts either one.
+    const list = [answer].concat(also || []).flatMap((x) => { const parts = String(x == null ? "" : x).split(/\s+=\s+|\s*=\s*(?=[-−\d{])/); return parts.length > 1 && parts.every((p) => numberOf(withUnit(norm(p))[0]) != null) ? parts : [x]; });
     return list.some((ans) => {
         const a = norm(ans); if (!a) return false;
         const sq = (x) => x.replace(/ /g, "").replace(/°/g, "");
         if (t.replace(/ /g, "") === a.replace(/ /g, "")) return true;
         const sk = solKind(a); if (sk) return solTyped(t) === sk;
+        // A comparison like "-3/4 > -0.8": the sign on its own is right too.
+        const cmp = a.match(/^\S+ ?(<=|>=|<|>|=) ?\S+$/); if (cmp && /^(<=|>=|<|>|=)$/.test(t.replace(/ /g, ""))) return t.replace(/ /g, "") === cmp[1];
+        // A repeating decimal, "0.8333… (the 3 repeats)": 0.83, 0.833 or 5/6 are right.
+        if (/…|\.\.\.|repeat/.test(a)) { const base = parseFloat(a.replace(/^[^\d-]*/, "")), v = numberOf(t.replace(/…|\.\.\./g, "")), dec = (t.split(".")[1] || "").replace(/\D/g, "").length;
+            if (isFinite(base) && v != null && ((dec >= 2 && Math.abs(v - base) < Math.pow(10, -dec)) || (t.includes("/") && Math.abs(v - base) < 1e-3))) return true; }
         const [tn, tu] = withUnit(t), [an, au] = withUnit(a);
         if (tu && au && tu !== au) return false;
         const x = numberOf(tn), y = numberOf(an);
