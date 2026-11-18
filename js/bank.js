@@ -7,7 +7,7 @@
    week comes off the board. The Bank page (bank.html) searches them; Claude reads them through the Focal connector
    to reuse checked questions for spiral review, Friday bellringers, bonus sets and review games.
 ========================================== */
-export const KINDS = ["Bellringer", "Guided notes", "Homework", "Study guide", "Speed dating", "Quiz", "Test", "Modified quiz", "Bonus", "Modified study guide", "Sub worksheet", "Exit ticket"];
+export const KINDS = ["Bellringer", "Guided notes", "Homework", "Study guide", "Speed dating", "Quiz", "Test", "Modified quiz", "Bonus", "Modified study guide", "Modified notes", "Modified homework", "Sub worksheet", "Exit ticket"];
 const KEEP = ["q", "a", "choices", "wrong", "work", "check", "std", "skill"];
 export const norm = (q) => String(q == null ? "" : q).toLowerCase().replace(/[−–]/g, "-").replace(/\s+/g, " ").replace(/[.?!:]+$/, "").trim();
 
@@ -34,6 +34,7 @@ export function extract(week) {
         (c.days || []).forEach((d, i) => {
             (d.problems || []).forEach((p) => { if (p && p.q && p.a) out.push(pick(p, Object.assign({ kind: "Bellringer", day: i }, at))); });
             if (d.notes) walk(d.notes, Object.assign({ kind: "Guided notes", day: i }, at), out, (k, cur) => (k === "exit" ? "Exit ticket" : cur));
+            if (d.modNotes) walk(d.modNotes, Object.assign({ kind: "Modified notes", day: i }, at), out);
         });
         if (c.homework) walk(c.homework, Object.assign({ kind: "Homework" }, at), out);
         if (c.studyGuide) walk(c.studyGuide, Object.assign({ kind: "Study guide" }, at), out);
@@ -44,6 +45,7 @@ export function extract(week) {
             const m = c.quiz.modified;
             if (m) { (m.items || []).forEach((x) => { if (x && x.q && x.a) out.push(pick(x, Object.assign({ kind: "Modified quiz" }, at))); }); (m.bonus || []).forEach((x) => { if (x && x.q && x.a) out.push(pick(x, Object.assign({ kind: "Bonus" }, at))); }); }
         }
+        if (c.modHomework) (c.modHomework.days || []).forEach((d) => walk(d.problems, Object.assign({ kind: "Modified homework", day: d.day }, at), out));
         if (c.modStudyGuide) walk(c.modStudyGuide.parts, Object.assign({ kind: "Modified study guide" }, at), out);
         if (c.sub && c.sub.worksheet) { walk(c.sub.worksheet.pages, Object.assign({ kind: "Sub worksheet", day: c.sub.day }, at), out); walk(c.sub.worksheet.exit, Object.assign({ kind: "Exit ticket", day: c.sub.day }, at), out); }
     });
@@ -57,7 +59,7 @@ export function extract(week) {
 export function repeats(week, bankItems) {
     const items = extract(week), seen = new Map(), same = [], earlier = [];
     items.forEach((x) => {
-        if (x.kind === "Bellringer" || x.kind === "Guided notes") return;   // a bellringer may echo the notes on purpose
+        if (x.kind === "Bellringer" || x.kind === "Guided notes" || x.kind === "Modified notes") return;   // a bellringer may echo the notes on purpose
         const k = x.cls + "|" + x.kind + "|" + norm(x.q);
         if (seen.has(k)) same.push(x); else seen.set(k, x);
     });

@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="css/board.css?v=57">
     <link rel="stylesheet" href="css/console.css?v=57">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/builder.css?v=61">
+    <link rel="stylesheet" href="css/builder.css?v=62">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page builder">
@@ -89,7 +89,7 @@
         import { WEEKS as PUBLISHED } from "./data/weeks.js?v=59";
         import { watchPrivateWeeks } from "./js/weeksLive.js?v=58";
         let WEEKS = PUBLISHED;
-        import { quizSheet, quizKey, modQuizSheet, modQuizKey, modStudyGuideSheet, modStudyGuideKey, subPlanSheet, subWorksheetSheet, sudokuSheet, pageCheck } from "./js/moreSheets.js?v=62";
+        import { quizSheet, quizKey, modQuizSheet, modQuizKey, modStudyGuideSheet, modStudyGuideKey, modNotesSheet, modNotesKey, modHomeworkSheet, modHomeworkKey, subPlanSheet, subWorksheetSheet, sudokuSheet, pageCheck } from "./js/moreSheets.js?v=63";
         import { DAYS, dayDate, bellringerSheet, bellringerKey, notesSheet, studyGuideSheet, studyGuideKey, speedDatingSheet, speedDatingKey } from "./js/weekSheets.js?v=59";
         // ?demo runs on this device only, like the guest teacher page: nothing is saved to any account.
         const demo = new URLSearchParams(location.search).has("demo");
@@ -181,15 +181,26 @@
             ["modkey", "Modified quiz key", (c) => c.quiz && c.quiz.modified, (w, k) => modQuizKey(w, k), "Alternate - TEACHER KEY - Quiz", null],
             ["modsg", "Modified study guide (2nd period group)", (c) => c.modStudyGuide && (c.modStudyGuide.parts || []).length, (w, k) => modStudyGuideSheet(w, k), "0 Weekly - Study Guide", 4],
             ["modsgkey", "Modified study guide key", (c) => c.modStudyGuide && (c.modStudyGuide.parts || []).length, (w, k) => modStudyGuideKey(w, k), "0 Weekly - TEACHER KEY - Study Guide", null],
+            ["modhw", "Modified homework packet", (c) => c.modHomework && (c.modHomework.days || []).length, (w, k) => modHomeworkSheet(w, k), "0 Weekly - Modified Homework Packet (Due Thursday)", null],
+            ["modhwkey", "Modified homework key", (c) => c.modHomework && (c.modHomework.days || []).length, (w, k) => modHomeworkKey(w, k), "0 Weekly - TEACHER KEY - Modified Homework Packet", null],
             ["subplan", "Sub plan", (c) => c.sub, (w, k) => subPlanSheet(w, k, { guestUrl: new URL("sub.html", location.href).href }   /* the classroom computer remembers the teacher from the board sign-in */), "Sub Plan", 1],
             ["subws", "Sub worksheet", (c) => c.sub && c.sub.worksheet, (w, k) => subWorksheetSheet(w, k, false), "Sub Worksheet", 4],
             ["subwskey", "Sub worksheet key", (c) => c.sub && c.sub.worksheet, (w, k) => subWorksheetSheet(w, k, true), "TEACHER KEY - Sub Worksheet", null],
             ["sudoku", "Sudoku early finishers", (c) => c.sub, (w, k) => sudokuSheet(w, k, false), "Early Finishers - Sudoku", 2],
             ["sudokukey", "Sudoku key", (c) => c.sub, (w, k) => sudokuSheet(w, k, true), "TEACHER KEY - Sudoku", null]
         ];
+        /* The fixed list plus one modified guided notes paper (and key) for each day that has them. */
+        function moreList(c) {
+            const out = MORE.slice(), at = MORE.findIndex((m) => m[0] === "modhw");
+            const days = (c.days || []).map((d, i) => [d, i]).filter(([d]) => d && d.modNotes);
+            const extra = days.flatMap(([d, i]) => [
+                ["modnotes" + i, "Modified guided notes, " + DAYS[i], () => true, (w, k) => modNotesSheet(w, k, i), "Guided Notes - " + d.modNotes.title, 2, i],
+                ["modnoteskey" + i, "Modified guided notes key, " + DAYS[i], () => true, (w, k) => modNotesKey(w, k, i), "TEACHER KEY - Guided Notes - " + d.modNotes.title, null, i]]);
+            out.splice(at, 0, ...extra); return out;
+        }
         function previewMore() {
             const c = cls(), host = $("morePapers"), bar = $("moreBar"); host.replaceChildren(); bar.replaceChildren(); $("pageWarn").replaceChildren();
-            const on = MORE.filter((m) => { try { return !!m[2](c); } catch (e) { return false; } });
+            const on = moreList(c).filter((m) => { try { return !!m[2](c); } catch (e) { return false; } });
             $("moreNone").hidden = on.length > 0; bar.hidden = !on.length;
             on.forEach(([id, label, , fn, , pages]) => {
                 const box = el("div"); box.id = "paper_" + id; box.appendChild(el("h3", null, label + (/key/.test(id) ? " (never post or link)" : ""))); host.appendChild(box);
@@ -210,12 +221,12 @@
             });
         }
         function print(which) {
-            const more = MORE.find((m) => m[0] === which);
+            const more = moreList(cls()).find((m) => m[0] === which);
             if (more) {
                 document.querySelectorAll(".papers .printing").forEach((n) => n.classList.remove("printing"));
                 document.body.dataset.print = "more"; $("paper_" + which).classList.add("printing");
-                const part = /^(quiz|mod)/.test(which) ? cls().quiz : cls().sub, day = part && part.day != null ? +part.day : null;   // files are named "<n> <Day> - ..." like the Drive folder
-                document.title = (day != null && !/^mod/.test(which) ? (day + 1) + " " + DAYS[day] + " - " : "") + more[4] + (/^quiz/.test(which) && cls().quiz.title ? " - " + cls().quiz.title.replace(/^(Quiz|Test):\s*/, "") : "") + (/^modsg/.test(which) ? " - " + cls().modStudyGuide.title.replace(/^Study Guide:\s*/, "") : "") + " (" + cls().label + (/^mod/.test(which) ? " Modified" : "") + ")";
+                const part = /^(quiz|mod)/.test(which) ? cls().quiz : cls().sub, day = more[6] != null ? more[6] : part && part.day != null ? +part.day : null;   // files are named "<n> <Day> - ..." like the Drive folder
+                document.title = (day != null && (!/^mod/.test(which) || /^modnotes/.test(which)) ? (day + 1) + " " + DAYS[day] + " - " : "") + more[4] + (/^quiz/.test(which) && cls().quiz.title ? " - " + cls().quiz.title.replace(/^(Quiz|Test):\s*/, "") : "") + (/^modsg/.test(which) ? " - " + cls().modStudyGuide.title.replace(/^Study Guide:\s*/, "") : "") + " (" + cls().label + (/^mod/.test(which) ? " Modified" : "") + ")";
                 if (store.rooms && !demo && user && user.uid) store.rooms.save("teacher/" + user.uid + "/closeout/" + week.id, { printed: { [cid]: { [which]: Date.now() } } }, true).catch(() => {});   // ticks the paper off on Week Review's close-out list
                 window.print(); return;
             }

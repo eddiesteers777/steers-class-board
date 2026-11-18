@@ -6,7 +6,7 @@
 ========================================== */
 import { WEEKS as PUBLISHED } from "../data/weeks.js?v=59";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
-import { extract, norm, KINDS, saveBankWeek } from "./bank.js?v=1";
+import { extract, norm, KINDS, saveBankWeek } from "./bank.js?v=2";
 import { rich } from "./weekSheets.js?v=59";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");

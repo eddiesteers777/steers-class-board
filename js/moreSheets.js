@@ -11,6 +11,9 @@
              modified: { title?, items: [{ q, choices: [3], a, std? }], bonus: [{ q, choices?, a, std? }] } }
      modStudyGuide (8th, the modified group): { title, sub?, ican, words: [[word, meaning]], chart: [[topic, steps]],
              parts: [3 × { heading, example: { q, steps: [..], answer? }, problems: [{ q, a, work?, wrong? }], check, scoreNote? }] }
+     modHomework (8th): { title?, sub?, due?, intro?, days: [{ day: 0-4, example: { q, steps: [..], answer? }, problems: [{ q, a, work? }] }], errors?: [..] }
+     on a day, modNotes (8th): { title, sub?, ican: [..], idea, steps?, examples: [{ title, q, steps: [..], answer?, turn: { q, a, work? } }],
+             practice: [{ q, a, work? }], errors?: [..] }
      sub:  { day: 0-4, minutes?: 55, periods?: ["1st", ..] (only the periods that meet), intro?, handout: [..], steps?: [[min, text]], readAloud, print?, copies?, finisher?,
              worksheet: { title, sub?, pages: [{ heading, notes: [..], example: { q, work, answer }, problems: [{ q, a, work? }] }],
                           exit?: [{ q, a }] } }
@@ -181,6 +184,72 @@ export function modStudyGuideKey(week, cid) {
     pg.appendChild(t);
     pg.appendChild(el("h2", null, "Scoring by skill"));
     const ul = el("ul", "msg-score"); ranges.forEach(([part, a, b]) => { const li = el("li"); li.appendChild(el("b", null, part.heading + " (" + (a === b ? a : a + " to " + b) + "): ")); li.appendChild(document.createTextNode((b - a + 1) + " points." + (part.scoreNote ? " " + part.scoreNote : ""))); ul.appendChild(li); }); pg.appendChild(ul);
+    paginate(sh);
+    return sh;
+}
+
+/* ---------- the modified group's guided notes: 2 pages per day (examples, then practice) ---------- */
+function headRow(pg, title, sub) {
+    pg.appendChild(R("h1", "sh-title ws", title)); if (sub) pg.appendChild(el("p", "sh-sub", sub)); nameRow(pg);
+}
+function steps(box, list) { (list || []).forEach((t) => box.appendChild(R("p", "mn-step", t))); }
+export function modNotesSheet(week, cid, i) {
+    const d = week.classes[cid].days[i], n = d.modNotes, sh = sheet("smnotes");
+    const p1 = page(sh);
+    headRow(p1, n.title, n.sub || ((GR[cid] || week.classes[cid].label) + " Modified • " + DAYS[i] + " " + dayDate(week, i).replace(/\/\d+$/, "")));
+    if ((n.ican || []).length) { p1.appendChild(el("h2", null, "I can...")); const ul = el("ul", "mn-ican"); n.ican.forEach((t) => ul.appendChild(R("li", null, t))); p1.appendChild(ul); }
+    if (n.idea) { p1.appendChild(el("h2", null, "Key Idea")); const b = el("div", "sh-box"); b.appendChild(R("p", "mn-idea", n.idea)); if ((n.steps || []).length) { const r = el("p"); r.appendChild(el("b", null, "Steps: ")); r.appendChild(rich(n.steps.map((t, k) => (k + 1) + ") " + t).join("  "))); b.appendChild(r); } p1.appendChild(b); }
+    (n.examples || []).forEach((ex, k) => {
+        const it = el("div", "mn-ex"); it.appendChild(R("h2", null, "Example " + (k + 1) + (ex.title ? ": " + ex.title : "")));
+        const b = el("div", "sh-box white"); b.appendChild(R("p", "sh-q", ex.q)); steps(b, ex.steps); if (ex.answer) { const r = el("p"); r.appendChild(el("b", null, "Answer: ")); r.appendChild(rich(ex.answer)); b.appendChild(r); } it.appendChild(b);
+        if (ex.turn) { const t = el("div", "sh-prob"); const q = el("p", "sh-q"); q.appendChild(el("b", null, "Your turn: ")); q.appendChild(rich(ex.turn.q)); t.appendChild(q); t.appendChild(el("div", "sh-workspace small")); figRow(t); it.appendChild(t); }
+        p1.appendChild(it);
+    });
+    if ((n.practice || []).length) {
+        const p2 = page(sh); p2.appendChild(el("h2", null, "Practice")); p2.appendChild(el("p", "sh-dir", "Use the examples on page 1. Show every step."));
+        n.practice.forEach((q, k) => { const t = el("div", "sh-prob"); const qq = el("p", "sh-q"); qq.appendChild(el("b", null, (k + 1) + ". ")); qq.appendChild(rich(q.q)); t.appendChild(qq); t.appendChild(el("div", "sh-workspace")); figRow(t); p2.appendChild(t); });
+    }
+    requestAnimationFrame(() => { if (sh.isConnected) { fitSpace(sh); sh.dispatchEvent(new CustomEvent("paged")); } });
+    return sh;
+}
+function keyTable(rows) {
+    const t = el("table", "sh-table sh-keyt"); const hr = el("tr"); ["#", "Answer", "Work"].forEach((h) => hr.appendChild(el("th", null, h))); t.appendChild(hr);
+    rows.forEach(([n, x]) => { const r = el("tr"); r.appendChild(el("td", null, n)); const a = el("td"); a.appendChild(el("b")).appendChild(rich(x.a)); r.appendChild(a); const w = el("td"); w.appendChild(rich(x.work || "")); r.appendChild(w); t.appendChild(r); });
+    return t;
+}
+export function modNotesKey(week, cid, i) {
+    const n = week.classes[cid].days[i].modNotes, sh = sheet("smnotes", true), pg = page(sh);
+    pg.appendChild(R("h1", "sh-title", "TEACHER KEY: " + n.title + " (Modified)"));
+    pg.appendChild(el("p", "sh-sub", (GR[cid] || "") + " Modified • " + DAYS[i] + " " + dayDate(week, i).replace(/\/\d+$/, "") + " • Teacher only. Never post or link."));
+    const ex = (n.examples || []).filter((x) => x.turn); if (ex.length) { pg.appendChild(el("h2", null, "Your turn")); pg.appendChild(keyTable(ex.map((x, k) => ["Ex " + (k + 1), x.turn]))); }
+    if ((n.practice || []).length) { pg.appendChild(el("h2", null, "Practice")); pg.appendChild(keyTable(n.practice.map((x, k) => [String(k + 1), x]))); }
+    if ((n.errors || []).length) { pg.appendChild(el("h2", null, "Likely errors")); const ul = el("ul", "msg-score"); n.errors.forEach((t) => ul.appendChild(R("li", null, t))); pg.appendChild(ul); }
+    paginate(sh);
+    return sh;
+}
+
+/* ---------- the modified group's homework packet (due Thursday), a worked example for each day ---------- */
+export function modHomeworkSheet(week, cid) {
+    const h = week.classes[cid].modHomework, sh = sheet("smhw"), pg = page(sh);
+    const mon = (() => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(week.monday || ""); return m ? new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString("en-US", { month: "long", day: "numeric" }) : week.dates; })();
+    headRow(pg, h.title || "Modified Homework Packet: Week of " + mon, h.sub || ((GR[cid] || "") + " Modified"));
+    const due = h.due || ("Thursday " + dayDate(week, 3).replace(/\/\d+$/, ""));
+    pg.appendChild(R("p", "sh-dir", h.intro || ("Due " + due + ". Do the problems for each day. Show every step. Look at the worked example first. No homework Friday.")));
+    (h.days || []).forEach((d) => {
+        const day = el("div", "mh-day"); pg.appendChild(day);   // a day stays together when the packet runs onto page 2
+        day.appendChild(el("h2", null, DAYS[d.day] + " Problems"));
+        if (d.example) { const b = el("div", "sh-box white"); const q = el("p"); q.appendChild(el("b", null, "Worked example: ")); q.appendChild(rich(d.example.q)); b.appendChild(q); steps(b, d.example.steps); if (d.example.answer) { const r = el("p"); r.appendChild(el("b", null, "Answer: ")); r.appendChild(rich(d.example.answer)); b.appendChild(r); } day.appendChild(b); }
+        (d.problems || []).forEach((q, k) => { const t = el("div", "sh-prob"); const qq = el("p", "sh-q"); qq.appendChild(el("b", null, (k + 1) + ". ")); qq.appendChild(rich(q.q)); t.appendChild(qq); t.appendChild(el("div", "sh-workspace tight")); const a = el("p", "mn-ans"); a.appendChild(el("b", null, "Answer: ")); a.appendChild(el("span", "rule w22")); t.appendChild(a); figRow(t); day.appendChild(t); });
+    });
+    paginate(sh);
+    return sh;
+}
+export function modHomeworkKey(week, cid) {
+    const h = week.classes[cid].modHomework, sh = sheet("smhw", true), pg = page(sh);
+    pg.appendChild(R("h1", "sh-title", "TEACHER KEY: " + (h.title || "Modified Homework Packet")));
+    pg.appendChild(el("p", "sh-sub", (GR[cid] || "") + " Modified • due " + (h.due || "Thursday " + dayDate(week, 3).replace(/\/\d+$/, "")) + " • Teacher only. Never post or link."));
+    (h.days || []).forEach((d) => { pg.appendChild(el("h2", null, DAYS[d.day])); pg.appendChild(keyTable((d.problems || []).map((x, k) => [String(k + 1), x]))); });
+    if ((h.errors || []).length) { pg.appendChild(el("h2", null, "Likely errors")); const ul = el("ul", "msg-score"); h.errors.forEach((t) => ul.appendChild(R("li", null, t))); pg.appendChild(ul); }
     paginate(sh);
     return sh;
 }

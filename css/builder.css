@@ -161,6 +161,13 @@
 .sheet .sh-sidews{flex:1;min-height:.35in}
 .sheet .fig-table{font-size:10.5pt}
 .sheet .sh-modbox .fig{width:8.5em!important}
+/* modified guided notes and homework packet */
+.sheet.smnotes{font-size:12pt}.sheet.smhw{font-size:11.5pt}
+.sheet .mn-ican{margin:0 0 4pt 18pt;padding:0}.sheet .mn-ican li{margin-bottom:1pt}
+.sheet .mn-idea{font-weight:700;margin-bottom:3pt}
+.sheet .mn-step{margin:0 0 1pt 10pt}
+.sheet .mn-ex{break-inside:avoid}
+.sheet .mn-ans{margin:2pt 0 0}
 /* modified study guide */
 .sheet.smsg .sh-table td,.sheet.smsg .sh-table th{font-size:10.5pt}
 .sheet .msg-ref td:first-child{width:38%}

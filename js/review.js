@@ -10,8 +10,8 @@ import { WEEKS as PUBLISHED } from "../data/weeks.js?v=59";
 import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, nineWeeksOf, parse } from "./schoolCal.js?v=58";
 import { weekIdFor } from "./weeksLive.js?v=58";
 import { publishWeek, unpublishWeek, classUrl, parentMessage } from "./publish.js?v=59";
-import { closeoutItems, drawCloseout } from "./closeout.js?v=1";
-import { repeats, saveBankWeek, extract } from "./bank.js?v=1";
+import { closeoutItems, drawCloseout } from "./closeout.js?v=2";
+import { repeats, saveBankWeek, extract } from "./bank.js?v=2";
 import { figuresIn, isFunction, stripFigures } from "./figures.js?v=1";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
@@ -99,6 +99,13 @@ function checks(w, p) {
             }
         }
         if (k === "8th" && qz && qz.kind === "test" && !c.modStudyGuide) warn("8th Grade: test week, but the modified group has no study guide in the week.");
+        if (k === "8th") {
+            const noMod = c.days.map((d, i) => (d && d.notes && !d.modNotes ? DAYS[i] : "")).filter(Boolean);
+            if (noMod.length) warn("8th Grade: " + noMod.join(", ") + (noMod.length === 1 ? " has" : " have") + " guided notes but no modified notes for the 4-student group.");
+            if (c.homework && !c.modHomework) warn("8th Grade: the modified group has no homework packet this week.");
+            c.days.forEach((d, i) => { const n = d && d.modNotes; if (!n) return; [...(n.examples || []).map((x) => x.turn).filter(Boolean), ...(n.practice || [])].forEach((x, j) => { if (!String(x.a || "").trim()) bad("8th Grade, " + DAYS[i] + ": a modified notes problem has no answer (" + plain(x.q).slice(0, 40) + ")."); }); });
+            ((c.modHomework && c.modHomework.days) || []).forEach((d) => (d.problems || []).forEach((x) => { if (!String(x.a || "").trim()) bad("8th Grade: a modified homework problem for " + DAYS[d.day] + " has no answer."); }));
+        }
         if (c.modStudyGuide && (c.modStudyGuide.parts || []).length !== 3) bad("The modified study guide has " + (c.modStudyGuide.parts || []).length + " parts; it needs 3 so it prints on exactly 4 pages.");
         const sub = c.sub, outDays = p && Array.isArray(p.days) ? p.days.map((d, i) => (d && d.type === "out" ? i : -1)).filter((i) => i >= 0) : [];
         outDays.forEach((i) => {

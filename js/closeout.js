@@ -26,6 +26,9 @@ export function closeoutItems(week, plan, o) {
         if (c.quiz && (c.quiz.items || []).length) add("quiz", "Printed the " + (c.quiz.kind === "test" ? "test" : "quiz") + " and its key", has("quiz", "quizkey"));
         if (c.quiz && c.quiz.modified) add("mod", "Printed the modified quiz and key", has("mod", "modkey"));
         if (c.modStudyGuide) add("modsg", "Printed the modified study guide and key", has("modsg", "modsgkey"));
+        const mn = (c.days || []).map((d, i) => (d && d.modNotes ? i : -1)).filter((i) => i >= 0);
+        if (mn.length) add("modnotes", "Printed the modified guided notes and keys", has(...mn.flatMap((i) => ["modnotes" + i, "modnoteskey" + i])));
+        if (c.modHomework) add("modhw", "Printed the modified homework packet and key", has("modhw", "modhwkey"));
         if (c.sub) add("sub", "Printed the sub folder: sub plan, worksheet and key, Sudoku", has("subplan", "subws", "subwskey", "sudoku"));
         if (kind !== "none" || c.quiz) {
             const word = kind === "test" ? "test" : "quiz", day = pc && pc.assess && pc.assess.day ? " for " + pc.assess.day : "";
@@ -43,7 +46,7 @@ export function closeoutItems(week, plan, o) {
 /** "3 of 12" and the short names of what is left, for Home. */
 export function closeoutSummary(items) {
     const left = items.filter((x) => !x.done);
-    const short = (x) => ({ magma: "Magma", bonus: "Magma bonus", magmaMod: "modified Magma", thrillshare: "Thrillshare", schoology: "Schoology link", approved: "approve", quiz: "print the quiz", mod: "print the modified quiz", modsg: "print the modified study guide", sub: "print the sub folder" }[x.key.split(".")[1]] || x.label);
+    const short = (x) => ({ magma: "Magma", bonus: "Magma bonus", magmaMod: "modified Magma", thrillshare: "Thrillshare", schoology: "Schoology link", approved: "approve", quiz: "print the quiz", mod: "print the modified quiz", modsg: "print the modified study guide", modnotes: "print the modified notes", modhw: "print the modified homework", sub: "print the sub folder" }[x.key.split(".")[1]] || x.label);
     const names = []; left.forEach((x) => { const n = short(x); if (!names.includes(n)) names.push(n); });
     return { done: items.length - left.length, total: items.length, left: left.length, names };
 }
