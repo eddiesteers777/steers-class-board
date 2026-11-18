@@ -844,11 +844,18 @@ function setupPanel(p) {
     const mine = SETS.filter((s) => !Array.isArray(s.per) || !s.per.length || s.per.includes(A.S.period)), list = mine.length ? mine : SETS;
     if (!list.some((s) => s.id === choice.set)) choice.set = list.slice().sort((a, b) => (b.at || 0) - (a.at || 0))[0].id;
     const row = (label, ctl) => { const l = el("label", "gpchk vrfield"); l.append(el("span", null, label), ctl); return l; };
-    const sel = el("select"); list.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach((s) => { const o = el("option", null, (s.title || "Review game") + " (" + (s.clues || 0) + ")"); o.value = s.id; sel.append(o); }); sel.value = choice.set; sel.onchange = () => { choice.set = sel.value; panelSig = ""; };
+    const sel = el("select"); list.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach((s) => { const o = el("option", null, (s.title || "Review game") + " (" + (s.clues || 0) + ")"); o.value = s.id; sel.append(o); }); // The last options open the Question Maker: edit the picked set, or start a new one.
+    const per = "&per=" + encodeURIComponent(A.S.period), tools = el("optgroup"); tools.label = "Question Maker";
+    const edit = el("option", null, "✎ Edit this set's questions"); edit.value = "__edit"; const make = el("option", null, "+ Make a new question set"); make.value = "__new";
+    tools.append(edit, make); sel.append(tools);
+    sel.value = choice.set; sel.onchange = () => {
+        if (sel.value === "__edit") { location.href = "maker.html?set=" + encodeURIComponent(choice.set) + per; sel.value = choice.set; return; }
+        if (sel.value === "__new") { location.href = "maker.html?" + per.slice(1); sel.value = choice.set; return; }
+        choice.set = sel.value; panelSig = "";
+    };
     const len = el("select"); LENGTHS.forEach(([m, t]) => { const o = el("option", null, t); o.value = String(m); len.append(o); }); len.value = String(choice.mins); len.onchange = () => { choice.mins = +len.value; panelSig = ""; };
     const nm = el("select"); [["roster", "Pick from my class list"], ["typed", "Type their name"]].forEach(([v, t]) => { const o = el("option", null, t); o.value = v; nm.append(o); }); nm.value = choice.names; nm.onchange = () => { choice.names = nm.value; panelSig = ""; };
-    const mk = el("a", "gplink vrmake", "Make or edit questions in the Question Maker"); mk.href = "maker.html?set=" + encodeURIComponent(choice.set) + "&per=" + encodeURIComponent(A.S.period);
-    p.append(row("Question set", sel), mk, row("Length", len), row("Students", nm));
+    p.append(row("Question set", sel), row("Length", len), row("Students", nm));
     if (choice.names === "roster") p.append(el("p", "gpnote", "Names show as first name and last initial (" + A.S.period + " period's list on the Rosters page)."));
     const more = el("details", "gpopts"); more.append(el("summary", null, "Options"));
     more.append(check("Show names on the board", choice.board, (v) => { choice.board = v; }),
