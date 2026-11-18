@@ -12,9 +12,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import * as V from "./vaultCore.js?v=64";
+import * as V from "./vaultCore.js?v=65";
 import { createMathPad } from "./mathPad.js?v=2";
-import { wbIcon } from "./wbIcons.js?v=1";
+import { wbIcon } from "./wbIcons.js?v=2";
 
 // Same project as js/firebase.js. A separate app name keeps a teacher signed in on this device signed in.
 const app = initializeApp({
@@ -103,6 +103,28 @@ function send(data) {
     });
 }
 
+/* ---------- reading handwriting ----------
+   Chrome's Handwriting Recognition API runs on the device (it is on Chromebooks); nothing is sent
+   anywhere. Where it is missing, the Circle tool is simply not shown. */
+const CAN_READ = typeof navigator !== "undefined" && "createHandwritingRecognizer" in navigator;
+let reader = null;
+async function readInk(list) {
+    if (!reader) reader = await navigator.createHandwritingRecognizer({ languages: ["en"] });
+    const d = reader.startDrawing({ recognitionType: "text", alternatives: 3 });
+    let t = 0;
+    list.slice().sort((a, b) => Math.min(...a.p.map((p) => p[0])) - Math.min(...b.p.map((p) => p[0]))).forEach((s) => {
+        const hs = new HandwritingStroke(); s.p.forEach(([x, y]) => { hs.addPoint({ x, y, t }); t += 8; }); t += 120; d.addStroke(hs);
+    });
+    const preds = await d.getPrediction(); d.clear();
+    return cleanRead(preds && preds[0] ? preds[0].text : "");
+}
+/** Tidy what the reader saw: letters that look like digits in a number (O for 0, l for 1), a long dash for minus. */
+function cleanRead(raw) {
+    let t = String(raw || "").replace(/[−–—]/g, "-").replace(/\s+/g, " ").trim().slice(0, 40);
+    if (/\d/.test(t) && !/[a-np-z]{2,}/i.test(t.replace(/[oOlI|]/g, "")) ) t = t.replace(/(?<=[\d.\-\/ ]|^)[oO](?=[\d.\/ ]|$)/g, "0").replace(/(?<=[\d.\-\/ ]|^)[lI|](?=[\d.\/ ]|$)/g, "1");
+    return t.replace(/(\d) (?=\d)/g, "$1");
+}
+
 /* ---------- the work pad ----------
    The same canvas-first whiteboard as the board: paper across most of the screen, a floating
    tool rail, and the math tools (js/mathPad.js) on a layer under the ink. */
@@ -114,10 +136,11 @@ const pad = (() => {
         if (!ctx) return; ctx.clearRect(0, 0, W, H); ctx.lineCap = ctx.lineJoin = "round";
         strokes.forEach((s) => {
             ctx.globalCompositeOperation = s.e ? "destination-out" : "source-over"; ctx.globalAlpha = s.h ? 0.35 : 1;
+            ctx.setLineDash(s.ring ? [14, 10] : []);
             ctx.strokeStyle = s.c; ctx.lineWidth = s.w; ctx.beginPath(); s.p.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
             if (s.p.length === 1) ctx.lineTo(s.p[0][0] + 0.1, s.p[0][1]); ctx.stroke();
         });
-        ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+        ctx.setLineDash([]); ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
     }
     const at = (e) => { const r = canvas.getBoundingClientRect(); return [Math.round((e.clientX - r.left) * W / r.width), Math.round((e.clientY - r.top) * H / r.height)]; };
     const snap = () => { hist.push(JSON.stringify({ strokes, items: mp ? mp.items() : items })); if (hist.length > 60) hist.shift(); };
@@ -138,6 +161,7 @@ const pad = (() => {
         b("hi", "Highlighter", !moving && tool === "hi", pick("hi"));
         b("eraser", "Eraser", !moving && tool === "eraser", pick("eraser"));
         b("move", "Move the math tools", moving, () => { if (mp) mp.setOn(!mp.on); retool(); });
+        if (CAN_READ) b("circle", "Circle your answer to put it in the answer box", !moving && tool === "circle", pick("circle"), "prb-circle" + (tool === "circle" && !moving ? " on" : ""));
         t.append(el("i", "rsep"));
         const sw = el("div", "rsw");
         Object.keys(PENS).forEach((k) => { const x = el("button", "sw"); x.type = "button"; x.style.background = PENS[k][0]; x.title = PENS[k][1] + " pen"; x.setAttribute("aria-label", x.title); x.setAttribute("aria-pressed", String(pen === k)); x.onclick = () => { pen = k; if (tool !== "pen") tool = "pen"; if (mp) mp.setOn(false); retool(); }; sw.append(x); });
@@ -152,17 +176,45 @@ const pad = (() => {
         return t;
     }
     function retool() { const old = $("padrail"); if (old) old.replaceWith(rail()); }
+    /* Circle your answer: the pen strokes inside the loop are read as handwriting (the browser's own
+       handwriting reader, which Chromebooks have) and the result goes into the answer box. The loop
+       stays on the pad as a dashed ring so the teacher can see what was circled. */
+    async function circled(ring) {
+        const poly = ring.p; strokes = strokes.filter((s) => !s.ring || s === ring);
+        if (poly.length < 6) { strokes = strokes.filter((s) => s !== ring); paint(); return; }
+        const inside = ([x, y]) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+        const picked = strokes.filter((s) => !s.ring && !s.e && !s.h && s.p.filter(inside).length >= s.p.length * 0.6);
+        dirty = true; paint();
+        if (!picked.length) { padMsg("Circle the answer you wrote with the pen."); return; }
+        padMsg("Reading your answer…");
+        let text = "";
+        try { text = await readInk(picked); } catch (e) { text = ""; }
+        if (!text) { padMsg("Couldn't read that. Write it a little bigger, or type it in the box."); return; }
+        if (ST.box) ST.box.fill(text);
+        padMsg("Put " + text + " in the answer box. Check it, then Submit.");
+    }
+    function padMsg(t) {
+        if (!host) return; let m = host.querySelector(".pcirclemsg");
+        if (!m) { m = el("div", "pcirclemsg"); m.setAttribute("role", "status"); host.append(m); }
+        m.textContent = t; clearTimeout(padMsg.t); padMsg.t = setTimeout(() => m.remove(), 4500);
+    }
     function mount(h) {
         host = h; canvas = el("canvas", "padcv"); canvas.width = W; canvas.height = H; canvas.setAttribute("aria-label", "Work pad. Draw your work here."); ctx = canvas.getContext("2d");
         host.append(canvas);
         canvas.onpointerdown = (e) => {
             if (e.button) return; e.preventDefault(); try { canvas.setPointerCapture(e.pointerId); } catch (x) { /* ok */ }
-            if (mp) mp.closeMenu(); snap();
+            if (mp) mp.closeMenu();
+            if (tool === "circle") { cur = { ring: 1, c: "#F2B33D", w: 4, p: [at(e)] }; strokes.push(cur); paint(); return; }
+            snap();
             cur = tool === "eraser" ? { e: 1, c: "#000", w: [18, 32, 56][size], p: [at(e)] } : tool === "hi" ? { h: 1, c: "#F2B33D", w: [14, 22, 34][size], p: [at(e)] } : { c: PENS[pen][0], w: SIZES[size], p: [at(e)] };
             strokes.push(cur); paint();
         };
         canvas.onpointermove = (e) => { if (!cur) return; e.preventDefault(); const p = at(e), l = cur.p[cur.p.length - 1]; if (Math.abs(p[0] - l[0]) + Math.abs(p[1] - l[1]) > 2) { cur.p.push(p); paint(); } };
-        canvas.onpointerup = canvas.onpointercancel = () => { if (cur) { cur = null; dirty = true; } };
+        canvas.onpointerup = canvas.onpointercancel = () => {
+            if (!cur) return;
+            if (cur.ring) { const ring = cur; cur = null; circled(ring); return; }
+            cur = null; dirty = true;
+        };
         mp = createMathPad(host, canvas, { change: snap, commit: saved, onMode: () => retool() });
         mp.setItems(items); host.append(rail());
         if (ro) ro.disconnect();
@@ -186,7 +238,7 @@ const pad = (() => {
         /** Real work on the pad: pen strokes (not eraser) adding up to more than a quick tap, or math typed in a text box. */
         shown() {
             let len = 0;
-            strokes.forEach((s) => { if (s.e) return; for (let i = 1; i < s.p.length; i++) len += Math.hypot(s.p[i][0] - s.p[i - 1][0], s.p[i][1] - s.p[i - 1][1]); });
+            strokes.forEach((s) => { if (s.e || s.ring) return; for (let i = 1; i < s.p.length; i++) len += Math.hypot(s.p[i][0] - s.p[i - 1][0], s.p[i][1] - s.p[i - 1][1]); });
             return len >= 60 || (mp ? mp.items() : items).some((it) => it.k === "text" && String(it.txt || "").replace(/\s/g, "").length >= 2);
         }
     };
@@ -198,14 +250,22 @@ setInterval(() => {
 }, 1000);
 
 /* ---------- the answer box ----------
-   Three ways to answer: a plain box, a fraction (top and bottom boxes over a bar) and a mixed
-   number. The Remote says which one fits the question; a student can still switch. */
+   A plain box, a fraction (top and bottom boxes over a bar) and a mixed number, plus a ready-made
+   shape when the answer needs one: tap a choice for how many solutions, a base and an exponent
+   (3³), scientific notation (8 × 10⁵) or one box per number (6 and 7). The Remote says which one
+   fits the question (V.answerKind); a student can still switch to a plain box. */
 const KINDS = [["", "Number"], ["frac", "Fraction"], ["mixed", "Mixed number"]];
+const SPECIAL = { sol: ["Choose", "✓"], pow: ["Exponent", "xⁿ"], sci: ["Sci. notation", "×10ⁿ"], list: ["Boxes", "□ □"] };
+const SOLS = ["One solution", "No solution", "Infinitely many solutions"];
 function answerBox(kind) {
-    const wrap = el("div", "pabox"); let mode = KINDS.some((k) => k[0] === kind) ? kind : "", neg = false;
+    const lm = /^list([2-4])$/.exec(kind || ""), sk = lm ? "list" : SPECIAL[kind] ? kind : "", count = lm ? +lm[1] : 0;
+    const kinds = (sk ? [[sk, SPECIAL[sk][0]]] : []).concat(KINDS);
+    const wrap = el("div", "pabox"); let mode = kinds.some((k) => k[0] === kind || k[0] === sk) ? (sk || kind) : "", neg = false, choice = "";
     const tabs = el("div", "patabs"); tabs.setAttribute("role", "radiogroup"); tabs.setAttribute("aria-label", "Answer type");
     const field = el("div", "pafield");
     const num = (label, cls) => { const i = el("input", "pnum" + (cls ? " " + cls : "")); i.inputMode = "numeric"; i.autocomplete = "off"; i.maxLength = 7; i.setAttribute("aria-label", label); i.oninput = () => { i.value = i.value.replace(/[^\d.]/g, "").slice(0, 7); }; return i; };
+    // A box in a ready-made shape: numbers with a minus sign or decimal point (and letters for a base like x).
+    const cell = (label, cls, letters) => { const i = el("input", "pnum" + (cls ? " " + cls : "")); i.autocomplete = "off"; i.maxLength = 8; i.inputMode = letters ? "text" : "decimal"; i.setAttribute("aria-label", label); i.oninput = () => { i.value = i.value.replace(/[−–]/g, "-").replace(letters ? /[^\da-zA-Z.\-]/g : /[^\d.\-]/g, "").slice(0, 8); }; return i; };
     const text = el("input", "ptext"); text.maxLength = 80; text.autocomplete = "off"; text.placeholder = "Your answer"; text.setAttribute("aria-label", "Your answer");
     const whole = num("Whole number", "whole"), top = num("Top number (numerator)"), bot = num("Bottom number (denominator)");
     top.onkeydown = (e) => { if (e.key === "/" || (e.key === "Enter" && top.value && !bot.value)) { e.preventDefault(); bot.focus(); } };
@@ -213,26 +273,62 @@ function answerBox(kind) {
     const sign = btn("pasign", "+/−", () => { neg = !neg; sign.classList.toggle("on", neg); sign.setAttribute("aria-pressed", String(neg)); sign.textContent = neg ? "−" : "+/−"; });
     sign.setAttribute("aria-label", "Make it negative"); sign.setAttribute("aria-pressed", "false");
     const frac = el("span", "pafrac"); frac.append(top, el("i"), bot);
+    // The ready-made shapes.
+    const base = cell(kind === "pow" ? "Base" : "Number", "base", kind === "pow"), exp = cell("Exponent", "exp");
+    exp.maxLength = 4;
+    // Only one of these shapes is ever offered for a question, so they can share the two boxes.
+    const powEl = el("span", "papow" + (sk === "sci" ? " sci" : ""));
+    if (sk === "sci") powEl.append(base, el("span", "pax", "× 10"), exp); else powEl.append(base, exp);
+    const boxes = Array.from({ length: count }, (_, i) => cell("Answer " + (i + 1) + " of " + count, "item"));
+    const listEl = el("span", "palist"); boxes.forEach((b, i) => { if (i) listEl.append(el("span", "pajoin", i === count - 1 ? (count > 2 ? ", and" : "and") : ",")); listEl.append(b); });
+    boxes.forEach((b, i) => { b.onkeydown = (e) => { if ((e.key === "," || e.key === " " || (e.key === "Enter" && b.value)) && boxes[i + 1] && !boxes[i + 1].value) { e.preventDefault(); boxes[i + 1].focus(); } }; });
+    base.onkeydown = (e) => { if ((e.key === "^" || (e.key === "Enter" && base.value && !exp.value))) { e.preventDefault(); exp.focus(); } };
+    const choiceEl = el("div", "pachoices"); choiceEl.setAttribute("role", "radiogroup"); choiceEl.setAttribute("aria-label", "How many solutions?");
+    SOLS.forEach((label) => {
+        const c = btn("pachoice", label, () => { choice = label; [...choiceEl.children].forEach((x) => { const on = x === c; x.classList.toggle("on", on); x.setAttribute("aria-checked", String(on)); }); });
+        c.setAttribute("role", "radio"); c.setAttribute("aria-checked", "false"); choiceEl.append(c);
+    });
+    const first = () => mode === "" ? text : mode === "mixed" ? whole : mode === "frac" ? top : mode === "list" ? boxes[0] : mode === "sol" ? choiceEl.firstChild : base;
     function show() {
-        field.textContent = "";
+        field.textContent = ""; field.classList.toggle("choices", mode === "sol");
         if (mode === "") field.append(text);
+        else if (mode === "sol") field.append(choiceEl);
+        else if (mode === "pow" || mode === "sci") field.append(powEl);
+        else if (mode === "list") field.append(listEl);
         else { field.append(sign); if (mode === "mixed") field.append(whole); field.append(frac); }
         [...tabs.children].forEach((b) => { const on = b.dataset.k === mode; b.classList.toggle("on", on); b.setAttribute("aria-checked", String(on)); });
     }
-    KINDS.forEach(([k, n]) => {
-        const b = btn("patab", null, () => { mode = k; show(); (mode === "" ? text : mode === "mixed" ? whole : top).focus(); });
+    kinds.forEach(([k, n]) => {
+        const b = btn("patab", null, () => { mode = k; show(); first().focus(); });
         b.dataset.k = k; b.setAttribute("role", "radio"); b.title = n; b.setAttribute("aria-label", n);
         if (k === "") b.append(el("b", null, "123"));
+        else if (SPECIAL[k]) b.append(el("b", null, SPECIAL[k][1]));
         else { const f = el("span", "frac"); f.append(el("span", null, "a"), el("span", null, "b")); if (k === "mixed") b.append(el("b", null, "1")); b.append(f); }
         b.append(el("small", null, n.replace(" number", ""))); tabs.append(b);
     });
     wrap.append(tabs, field); show();
     return {
         el: wrap,
-        focus() { (mode === "" ? text : mode === "mixed" ? whole : top).focus(); },
-        /** The answer as text ("3/4", "-1 1/2", "12"), or an error message to show. */
+        focus() { first().focus(); },
+        /** Put an answer read from the work pad into the box: into the fraction or exponent boxes when it fits them, otherwise the plain box. */
+        fill(t) {
+            t = String(t || "").trim(); if (!t) return;
+            let m;
+            if ((mode === "frac" || mode === "mixed") && (m = /^(-?)(?:(\d+) )?(\d+)\/(\d+)$/.exec(t))) { if (neg !== !!m[1]) sign.click(); whole.value = m[2] || ""; top.value = m[3]; bot.value = m[4]; if (m[2] && mode === "frac") { mode = "mixed"; show(); } return; }
+            if (mode === "pow" && (m = /^(-?[\da-z.]+)\^(-?\d+)$/i.exec(t))) { base.value = m[1]; exp.value = m[2]; return; }
+            if (mode === "list") { const parts = t.split(/\s*(?:,|and|&)\s*|\s+/).filter(Boolean); if (parts.length === count) { boxes.forEach((b, i) => { b.value = parts[i]; }); return; } }
+            mode = ""; text.value = t.slice(0, 80); show();
+        },
+        /** The answer as text ("3/4", "-1 1/2", "12", "3^3", "8 × 10^5", "6, 7"), or an error message to show. */
         read() {
             if (mode === "") return { t: text.value.trim() };
+            if (mode === "sol") return choice ? { t: choice } : { err: "Tap one of the choices." };
+            if (mode === "pow" || mode === "sci") {
+                const x = base.value.trim(), e = exp.value.trim();
+                if (!x || !e) return { err: mode === "pow" ? "Fill in the base and the exponent." : "Fill in the number and the power of 10." };
+                return { t: mode === "pow" ? x + "^" + e : x + " × 10^" + e };
+            }
+            if (mode === "list") { const v = boxes.map((b) => b.value.trim()); if (v.some((x) => !x)) return { err: "Fill in every box." }; return { t: v.join(", ") }; }
             const w = whole.value.trim(), a = top.value.trim(), b = bot.value.trim(), s = neg ? "-" : "";
             if (mode === "mixed" && w && !a && !b) return { t: s + w };
             if (!a || !b) return { err: mode === "mixed" ? "Fill in the whole number, the top and the bottom." : "Fill in the top and the bottom of the fraction." };
@@ -488,7 +584,7 @@ function questionView(card) {
     if (m.h > 0) top.append(btn("pbtn hack", "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }));
     left.append(top, mathEl("p", "pq", q.t));
     const right = el("div", "pqright");
-    const f = el("form", "pform ans"), box = answerBox(q.f || "");
+    const f = el("form", "pform ans"), box = answerBox(q.f || ""); ST.box = box;
     const go = el("button", "pbtn go", "Submit"); go.type = "submit";
     f.onsubmit = (e) => {
         e.preventDefault(); const r = box.read(), t = r.t || "";
