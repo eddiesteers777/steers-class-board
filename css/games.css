@@ -659,3 +659,9 @@ div.gpset{cursor:default}
 .vrexitqs small{color:#4A5A78}
 .gprow.vrexitlow{background:#FDEEEE}
 .vrclock.paused{opacity:.45}
+/* Vault skins on the board: a small vault in each student's look */
+.vrrow{grid-template-columns:2.2em auto 1fr auto}
+.vrskin{display:inline-block;width:1.15em;height:1.15em;border-radius:50%;background:radial-gradient(circle at 50% 50%,#F4F7FB 0 28%,var(--skd,#10358A) 30%);border:.14em solid var(--skr,#7FAEDD);box-sizing:border-box;font-style:normal}
+.vrskin.stars{background:radial-gradient(circle at 30% 30%,#fff 0 5%,transparent 7%),radial-gradient(circle at 72% 64%,#fff 0 5%,transparent 7%),radial-gradient(circle at 50% 50%,#F4EEFF 0 28%,var(--skd) 30%)}
+.vrskin.shine{background:linear-gradient(135deg,transparent 30%,rgba(255,255,255,.7) 45%,transparent 60%),radial-gradient(circle at 50% 50%,#fff 0 28%,var(--skd) 30%)}
+.vrstep .vravatar{display:inline-grid;place-items:center;width:1.6em;height:1.6em;border-radius:50%;background:var(--skd,transparent);border:.08em solid var(--skr,transparent)}

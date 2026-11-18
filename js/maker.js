@@ -10,7 +10,7 @@
      teacher/{uid}/games/index    { sets: [{ id, title, cats, clues, final, per, maker, at }] }
    Vault Raid uses every question (js/vaultCore.js gameQuestion); the Review Board shows the first 6 skills x 6.
 ========================================== */
-import * as V from "./vaultCore.js?v=67";
+import * as V from "./vaultCore.js?v=68";
 import { WEEKS as PUBLISHED } from "../data/weeks.js?v=61";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { extract, norm as bnorm, KINDS } from "./bank.js?v=2";

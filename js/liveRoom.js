@@ -14,7 +14,7 @@
    Closing the room deletes rooms/{code} and everything under it.
    Each student's result is saved to Class Data only when the teacher turns that on.
 ========================================== */
-import * as V from "./vaultCore.js?v=67";
+import * as V from "./vaultCore.js?v=68";
 import qrcode from "./vendor/qrcode.js?v=1";
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
@@ -33,7 +33,7 @@ let H = null, loaded = false, rev = 0, hosting = false, unsubH = null, unsubP = 
 let PL = {};                 // the latest entry from each student (rooms/{code}/p), Remote only
 let SETS = null, setsWatched = false, note = "", busy = "", tab = "players", dtab = "report", peek = "", endArm = 0;
 let saveTimer = 0, lastSave = 0, panelSig = "", panelAt = 0, padWatch = null, padFor = "", PAD = null;
-const choice = { set: (() => { try { return new URLSearchParams(location.search).get("vset") || ""; } catch (e) { return ""; } })(), mins: 10, names: "roster", board: true, save: false, live: false, work: true, retry: true, slow: true };
+const choice = { set: (() => { try { return new URLSearchParams(location.search).get("vset") || ""; } catch (e) { return ""; } })(), mins: 10, names: "roster", board: true, save: false, live: false, work: true, retry: true, slow: true, snd: true, comeback: true };
 
 export function mountLive(api) { A = api; }
 export const liveSig = () => rev + "#" + loaded + "#" + hosting + "#" + (PAD ? PAD.it : "");
@@ -121,7 +121,7 @@ const ranked = () => Object.keys(H.players).map((id) => Object.assign({ id }, H.
 const qOf = (p, n) => H.qs[p.ord[n % p.ord.length]];
 const shielded = (p) => !p.code || (+p.sh || 0) > Date.now();
 function shuffledOrder() { const o = H.qs.map((_, i) => i); for (let i = o.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [o[i], o[j]] = [o[j], o[i]]; } return o; }
-function feed(txt, kind) { H.feed = (H.feed || []).concat([{ t: Date.now(), txt, k: kind || "" }]).slice(-12); }
+function feed(txt, kind, vs) { H.feed = (H.feed || []).concat([Object.assign({ t: Date.now(), txt, k: kind || "" }, vs ? { vs } : {})]).slice(-12); }
 
 function handle(id, d, sends) {
     let p = P(id);
@@ -138,13 +138,15 @@ function handle(id, d, sends) {
             while (used.has(nm.toLowerCase())) nm = base + " " + k++;
         }
         p = H.players[id] = { nm, ni, c: 0, r: 0, n: 0, st: 0, best: 0, h: 0, code: "", qn: 0, ord: shuffledOrder(), g: {}, sh: 0, la: null, fb: null, hk: null, hit: null, cr: 0, sa: 0, sk: 0, sc: 0, sn: 0, at: Date.now(),
-            av: Math.floor(Math.random() * V.AVATARS.length), pu: "", dbl: 0, blk: 0, ins: 0, box: 0 };
+            av: Math.floor(Math.random() * V.AVATARS.length), pu: "", dbl: 0, blk: 0, ins: 0, box: 0, vs: 0, top: 0 };
         if (ni >= 0) H.taken = (H.taken || []).concat([ni]);
         feed(nm + " joined", "join"); sends.add("room");
     }
     // Waiting room: a character any time, a starting power-up until the game starts.
     if (d.av != null && Number.isInteger(+d.av) && +d.av >= 0 && +d.av < V.AVATARS.length && +d.av !== p.av) { p.av = +d.av; sends.add("room"); }
     if (d.pu != null && H.status === "lobby" && (d.pu === "" || V.starter(d.pu))) p.pu = d.pu;
+    // A vault skin, any time, once the student has held enough coins to unlock it.
+    if (d.vs != null && Number.isInteger(+d.vs) && +d.vs >= 0 && +d.vs < V.skinsOpen(Math.max(+p.top || 0, p.c)) && +d.vs !== (p.vs || 0)) p.vs = +d.vs;
     // A new vault code.
     if ((+d.cn || 0) > p.sc) { p.sc = +d.cn; if (V.validCode(d.code)) { p.code = d.code; p.hit = null; } }
     // An answer to the question on their screen.
@@ -176,6 +178,7 @@ function handle(id, d, sends) {
                     p.r++; p.st++; p.best = Math.max(p.best, p.st); plus = V.coinsFor(p.st); p.h = Math.min(V.MAX_HACKS, p.h + 1);
                     if (p.dbl > 0) { plus *= 2; p.dbl--; x2.push("double"); }
                     if (bonusOn()) { plus *= 2; x2.push("bonus"); }
+                    if (comeback(id)) { const cb = V.comebackPlus(plus); plus += cb; x2.push("comeback"); }
                     p.c += plus;
                     if (p.r % V.BOX_EVERY === 0) { box = V.rollBox(); openBox(p, box); }
                 }
@@ -211,7 +214,7 @@ function handle(id, d, sends) {
                 steal = V.stealFrom(t.c); if (t.ins) steal = Math.round(steal / 2); t.c -= steal; p.c += steal; p.cr++;
                 t.code = ""; t.sh = Date.now() + V.SHIELD_MS; t.hit = { by: p.nm, lost: steal, at: Date.now() };
                 Object.values(H.players).forEach((x) => { delete x.g[k.to]; });   // the old code is gone for everyone
-                feed(p.nm + " cracked " + t.nm + "'s vault (+" + steal + ")", "crack"); sends.add(k.to);
+                feed(p.nm + " cracked " + t.nm + "'s vault (+" + steal + ")", "crack", t.vs || 0); sends.add(k.to);
             }
             p.hk = { n: p.sk, to: k.to, g, m, steal, tn: t.nm };
         }
@@ -348,6 +351,9 @@ function setHeat(on, names) { H.heat = { on: !!on, names: !!names }; changed(tru
 
 /* ---------- power-ups ---------- */
 const bonusOn = () => (+H.bonus || 0) > Date.now();
+/** Catch-up boost: after the first minute, the bottom quarter of the leaderboard earns half again on a right answer. Only that student sees it. */
+function comebackRank(rank, order) { return H.opts.comeback !== false && H.status === "play" && !H.redo && !H.exit && Date.now() - (+H.t0 || 0) >= V.COMEBACK_AFTER && !!order.length && V.comebackOn(rank, order.length, (order[rank - 1] || {}).c, order[0].c); }
+function comeback(id) { const order = ranked(), i = order.findIndex((x) => x.id === id); return i >= 0 && comebackRank(i + 1, order); }
 /** A mystery box takes effect as soon as it is earned; the student's screen only shows what was in it. */
 function openBox(p, b) {
     if (b.k === "bag") p.c += b.v;
@@ -415,11 +421,11 @@ function view(id, order) {
     const p = P(id), rank = order.findIndex((x) => x.id === id) + 1;
     const rd = H.redo && !H.redo.done ? H.redo : null, rq = rd ? H.qs[rd.qi] : null, ex = H.exit && !H.exit.done ? H.exit : null;
     const q = rd ? null : H.status === "play" && p.code ? qOf(p, p.qn) : null;
-    p.sn = (p.sn || 0) + 1;
+    p.sn = (p.sn || 0) + 1; p.top = Math.max(+p.top || 0, p.c);
     return { n: p.sn, status: H.status, title: H.title, nm: p.nm, c: p.c, h: p.h, st: p.st, r: p.r, of: p.n, rank, players: order.length, ends: H.ends || 0,
         av: p.av, pu: p.pu || "", dbl: p.dbl || 0, blk: p.blk || 0, ins: p.ins || 0, fw: (+p.sh || 0) > Date.now() && p.code ? +p.sh : 0, bonus: +H.bonus || 0,
-        code: p.code, need: rd || ex ? false : !p.code, exit: ex ? exitView(id) : null, cd: +p.cd || 0, q: ex ? null : rd ? (rd.res[id] ? null : { n: redoN(), c: rq.c, t: rq.q, f: V.formOf(rq), ch: rq.ch || null }) : q ? { n: p.qn, c: q.c, t: q.q, f: V.formOf(q), ch: q.ch || null } : null, redo: rd ? 1 : 0, best: p.best, cr: p.cr, fb: p.fb, hk: p.hk, hit: p.hit,
-        targets: order.filter((x) => x.id !== id).map((x) => ({ id: x.id, nm: x.nm, av: x.av, c: x.c, sh: shielded(x) ? 1 : 0, g: p.g[x.id] || [] })),
+        vs: p.vs || 0, top: p.top, cb: (p.cbv = comebackRank(rank, order) ? 1 : 0), code: p.code, need: rd || ex ? false : !p.code, exit: ex ? exitView(id) : null, cd: +p.cd || 0, q: ex ? null : rd ? (rd.res[id] ? null : { n: redoN(), c: rq.c, t: rq.q, f: V.formOf(rq), ch: rq.ch || null }) : q ? { n: p.qn, c: q.c, t: q.q, f: V.formOf(q), ch: q.ch || null } : null, redo: rd ? 1 : 0, best: p.best, cr: p.cr, fb: p.fb, hk: p.hk, hit: p.hit,
+        targets: order.filter((x) => x.id !== id).map((x) => ({ id: x.id, nm: x.nm, av: x.av, vs: x.vs || 0, c: x.c, sh: shielded(x) ? 1 : 0, g: p.g[x.id] || [] })),
         res: H.status === "done" ? results(p) : null };
 }
 /** A student's own results for their screen after the game: each question they answered, what they wrote when it was wrong, and the answer. */
@@ -429,6 +435,8 @@ function results(p) {
 function flush(sends) {
     if (!sends.size) return;
     const order = ranked(), list = [];
+    // The catch-up badge follows the leaderboard: tell anyone whose boost just turned on or off.
+    order.forEach((x, i) => { const on = comebackRank(i + 1, order) ? 1 : 0; if (on !== (H.players[x.id].cbv || 0)) sends.add(x.id); });
     if (sends.has("room")) list.push({ path: "rooms/" + H.code, data: roomDoc(), merge: false });
     sends.forEach((id) => { if (id !== "room" && P(id)) list.push({ path: "rooms/" + H.code + "/s/" + id, data: view(id, order) }); });
     A.store().rooms.many(list).catch((e) => { note = "Could not reach the students' devices (" + ((e && e.code) || "connection") + ")."; panelSig = ""; });
@@ -437,7 +445,7 @@ function flush(sends) {
 const everyone = () => { const s = new Set(Object.keys(H.players)); s.add("room"); return s; };
 function roomDoc() {
     return { owner: A.store().rooms.uid(), status: H.status, title: H.title, mode: H.mode, names: H.mode === "roster" ? H.names : [], taken: H.taken || [],
-        live: !!H.opts.live, work: H.opts.work !== false, ends: H.ends || 0, bonus: +H.bonus || 0, paused: +H.paused || 0, at: Date.now() };
+        live: !!H.opts.live, work: H.opts.work !== false, ends: H.ends || 0, bonus: +H.bonus || 0, paused: +H.paused || 0, snd: H.opts.snd !== false, at: Date.now() };
 }
 
 /* ---------- teacher moves ---------- */
@@ -455,7 +463,7 @@ async function openRoom() {
         for (let i = 0; i < 6 && !code; i++) { const c = V.newRoomCode(); try { if (!(await A.store().rooms.get("rooms/" + c))) code = c; } catch (e) { code = c; } }
         if (!code) throw new Error("Could not find a free game code. Try again.");
         H = { v: 1, code, status: "lobby", title: set.title || meta.title || "Review", setId: meta.id, per: A.S.period, qs, mode: choice.names, names, taken: [],
-            opts: { mins: choice.mins, board: choice.board, save: choice.save, live: choice.live, work: choice.work, retry: choice.retry, slow: choice.slow }, paused: 0, exit: null, heat: { on: false, names: false }, redo: null, players: {}, qst: qs.map(() => ({ n: 0, ok: 0, w: [] })), review: null, feed: [], show: null, ends: 0, t0: 0, rid: "", saved: false,
+            opts: { mins: choice.mins, board: choice.board, save: choice.save, live: choice.live, work: choice.work, retry: choice.retry, slow: choice.slow, snd: choice.snd, comeback: choice.comeback }, paused: 0, exit: null, heat: { on: false, names: false }, redo: null, players: {}, qst: qs.map(() => ({ n: 0, ok: 0, w: [] })), review: null, feed: [], show: null, ends: 0, t0: 0, rid: "", saved: false,
             host: PAGE, hb: Date.now(), at: Date.now() };
         await A.store().rooms.save("rooms/" + code, roomDoc());
         hosting = true; loaded = true; await A.store().save("games/room", clean(H)); takeHost(); tab = "players";
@@ -613,6 +621,8 @@ function watchPad() {
 function padOf(id) { if (isRemote() && hosting) { const d = PL[id]; return d && d.img ? { img: d.img, iq: +d.iq || 0, it: +d.it || 0 } : null; } return id && H.show && H.show.id === id ? PAD : null; }
 const nameOn = (p, i) => (H.opts.board ? p.nm : "Player " + (i + 1));
 
+/** A small round vault in the student's skin, for the board's leaderboard. */
+function skinDot(p) { const k = V.skin(p.vs), d = el("i", "vrskin" + (k[3].stars ? " stars" : "") + (k[3].shine ? " shine" : "")); d.style.setProperty("--skd", k[3].door); d.style.setProperty("--skr", k[3].ring); d.title = k[1] + " vault"; d.setAttribute("aria-hidden", "true"); return d; }
 export function drawLiveStage(st) {
     const per = A.S.period + " period";
     if (!loaded) { st.append(A.header("Student Game", per), el("div", "gbody")); return; }
@@ -651,7 +661,7 @@ export function drawLiveStage(st) {
         const order = ranked();
         lead.append(el("p", "vrlab", "Richest vaults"));
         if (!order.length) lead.append(el("p", "vrempty", "Waiting for players."));
-        order.slice(0, 8).forEach((p, i) => { const r = el("div", "vrrow" + (i === 0 ? " vrfirst" : "")); r.append(el("b", "vrrank", String(i + 1)), el("span", "vrname", (H.opts.board ? V.avatar(p.av)[0] + " " : "") + nameOn(p, i)), el("b", "vrcoins", p.c + " coins")); lead.append(r); });
+        order.slice(0, 8).forEach((p, i) => { const r = el("div", "vrrow" + (i === 0 ? " vrfirst" : "")); r.append(el("b", "vrrank", String(i + 1)), skinDot(p), el("span", "vrname", (H.opts.board ? V.avatar(p.av)[0] + " " : "") + nameOn(p, i)), el("b", "vrcoins", p.c + " coins")); lead.append(r); });
         const clock = el("div", "vrclockbox"); const c = el("p", "vrclock"); c.id = "liveClock"; clock.append(el("p", "vrlab", "Time left"), c); side.append(clock);
         const fd = el("div", "vrfeed"); fd.append(el("p", "vrlab", "Latest"));
         (H.feed || []).filter((f) => f.k === "crack" || f.k === "start" || f.k === "bonus" || f.k === "block" || f.k === "box").slice(-5).reverse().forEach((f) => fd.append(el("p", "vrf " + f.k, H.opts.board ? f.txt : f.k === "crack" ? "A vault was cracked!" : f.k === "box" ? "Someone opened a mystery box" : f.k === "block" ? "A Shield blocked a crack!" : f.txt)));
@@ -664,7 +674,7 @@ export function drawLiveStage(st) {
         const last = (H.feed || []).filter((f) => f.k === "crack" || f.k === "block").slice(-1)[0];
         if (last && Date.now() - last.t < 4000) {
             const o = el("div", "vrcrack" + (last.k === "block" ? " block" : "")); o.id = "liveCrack"; o.dataset.until = String(last.t + 4000);
-            o.innerHTML = '<svg viewBox="0 0 120 120" aria-hidden="true"><g class="vcoins"><circle cx="48" cy="66" r="12" fill="#F2B33D"/><circle cx="66" cy="58" r="12" fill="#F6C866"/><circle cx="72" cy="74" r="12" fill="#F2B33D"/></g><g class="vdoor"><circle cx="60" cy="60" r="56" fill="#10358A" stroke="#7FAEDD" stroke-width="4"/><circle cx="60" cy="60" r="30" fill="#F4F7FB"/><path d="M60 60L60 24" stroke="#F2B33D" stroke-width="5" stroke-linecap="round"/><circle cx="60" cy="60" r="9" fill="#081B45"/></g></svg>';
+            o.innerHTML = '<svg viewBox="0 0 120 120" aria-hidden="true"><g class="vcoins"><circle cx="48" cy="66" r="12" fill="#F2B33D"/><circle cx="66" cy="58" r="12" fill="#F6C866"/><circle cx="72" cy="74" r="12" fill="#F2B33D"/></g><g class="vdoor"><circle cx="60" cy="60" r="56" fill="' + V.skin(last.vs)[3].door + '" stroke="' + V.skin(last.vs)[3].ring + '" stroke-width="4"/><circle cx="60" cy="60" r="30" fill="' + V.skin(last.vs)[3].face + '"/><path d="M60 60L60 24" stroke="#F2B33D" stroke-width="5" stroke-linecap="round"/><circle cx="60" cy="60" r="9" fill="#081B45"/></g></svg>';
             o.append(el("p", null, last.k === "block" ? (H.opts.board ? last.txt : "A Shield blocked a crack!") : H.opts.board ? last.txt.replace(/ \(\+(\d+)\)$/, "! +$1 coins") : "A vault was cracked!"));
             body.append(o);
         }
@@ -685,7 +695,8 @@ export function drawLiveStage(st) {
     } else {
         const order = ranked(), box = el("div", "gdone");
         box.append(el("p", "gwinlab", "Game over"));
-        if (order.length) { const pod = el("div", "vrpod"); order.slice(0, 3).forEach((p, i) => { const s = el("div", "vrstep s" + (i + 1)); s.append(el("b", null, ["1st", "2nd", "3rd"][i]), el("i", "vravatar", V.avatar(p.av)[0]), el("span", null, nameOn(p, i)), el("small", null, p.c + " coins"), el("small", "vrsteppct", pctOf(p.r, p.n) + "% right")); pod.append(s); }); box.append(pod); }
+        if (order.length) { const pod = el("div", "vrpod"); order.slice(0, 3).forEach((p, i) => { const s = el("div", "vrstep s" + (i + 1)); const av = el("i", "vravatar", V.avatar(p.av)[0]), sk = V.skin(p.vs)[3]; av.style.setProperty("--skd", sk.door); av.style.setProperty("--skr", sk.ring); av.title = V.skin(p.vs)[1] + " vault";
+            s.append(el("b", null, ["1st", "2nd", "3rd"][i]), av, el("span", null, nameOn(p, i)), el("small", null, p.c + " coins"), el("small", "vrsteppct", pctOf(p.r, p.n) + "% right")); pod.append(s); }); box.append(pod); }
         if (order.length) { const all = order.reduce((a, p) => [a[0] + p.r, a[1] + p.n], [0, 0]); box.append(el("p", "vrclass", "Class: " + pctOf(all[0], all[1]) + "% right on " + all[1] + " answers")); }
         else box.append(el("p", "gwin", "No players"));
         body.append(box);
@@ -843,6 +854,8 @@ function setupPanel(p) {
     more.append(check("Show names on the board", choice.board, (v) => { choice.board = v; }),
         check("Students must show work before they can submit", choice.work, (v) => { choice.work = v; }, "On: the answer button waits until there is real work on their pad."),
         check("Slow down guessing", choice.slow, (v) => { choice.slow = v; }, "On: after 2 misses in a row, a student waits " + COOL_S + " seconds before the next answer."),
+        check("Sound effects on student devices", choice.snd, (v) => { choice.snd = v; }, "On: short sounds for right answers, cracks and mystery boxes. Each student can still mute their own."),
+        check("Catch-up boost", choice.comeback, (v) => { choice.comeback = v; }, "On: after the first minute, students in the bottom quarter earn half again on right answers. Only they see it, never the board."),
         check("Second chance after a miss", choice.retry, (v) => { choice.retry = v; }, "On: a wrong answer gets a hint and one more try for half coins. Only the first try counts in the report."),
         check("See their work live as they draw", choice.live, (v) => { choice.live = v; }, "Off: you see each student's work when they answer. On: it updates every few seconds, which uses more of the free daily allowance."),
         check("Save each student's result to Class Data", choice.save, (v) => { choice.save = v; }, "Off by default. Names, coins and right answers are kept in your private account. Leave off until the district says student data can be stored."));
