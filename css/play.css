@@ -314,7 +314,7 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .pstepwait{margin-top:6px;font-size:.92rem;font-weight:700;color:#8A5F00;background:#FFF6E0;border-radius:10px;padding:6px 10px}
 .pmeter{align-self:stretch;text-align:left;display:flex;flex-direction:column;gap:6px}
 .pmlbl{display:flex;align-items:center;gap:6px;font-weight:600;color:#4A5A78}
-.pmlbl svg{width:22px;height:22px}.pmlbl b{color:var(--navy);font-size:1.1em}
+.pmlbl .pic.coin{width:24px;height:24px;flex:0 0 24px;animation:none}.pmlbl .pic svg{width:100%;height:100%;display:block}.pmlbl b{color:var(--navy);font-size:1.1em}
 .pmbar{height:12px;border-radius:99px;background:#E3E8F2;overflow:hidden}
 .pmbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#F2B33D,#F6C866);transition:width .6s ease}
 .pmeter small{font-size:.85rem;color:#8E1B21;font-weight:700}

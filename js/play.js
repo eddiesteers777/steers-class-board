@@ -872,8 +872,8 @@ function fbView(card) {
         card.append(el("h1", null, f.skip ? "Skipped" : f.second ? "Still not it" : "Not quite"));
         if (f.a) { const a = el("div", "pansbox"); a.append(el("small", null, "The answer was"), mathEl("p", null, f.a)); card.append(a); }
         if (f.allsteps && (f.sp || []).length) { card.append(stepsCard(f, false)); card.append(el("p", "pnote", "Look at how each step leads to the answer. You'll see this kind again.")); }
-        const y = el("p", "plead"); y.append(document.createTextNode("You wrote ")); if (f.y) y.append(V.mathText(f.y)); else y.append(document.createTextNode("nothing")); y.append(document.createTextNode(".")); card.append(y);
-        card.append(el("p", "pnote", MISS_WORDS[(f.q || 0) % MISS_WORDS.length]));
+        if (!f.skip) { const y = el("p", "plead"); y.append(document.createTextNode("You wrote ")); if (f.y) y.append(V.mathText(f.y)); else y.append(document.createTextNode("nothing")); y.append(document.createTextNode(".")); card.append(y); }
+        card.append(el("p", "pnote", f.skip ? "Check how the answer works, then keep going." : MISS_WORDS[(f.q || 0) % MISS_WORDS.length]));
         once(key, () => { sfx("miss"); });
     }
     const row = el("div", "prow");
