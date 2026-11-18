@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anchor Board — Security and privacy</title>
+    <meta name="description" content="Anchor Board security and privacy at a glance, for school technology staff.">
+    <link rel="canonical" href="https://anchorboard.web.app/security.html">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Anchor Board">
+    <meta property="og:title" content="Anchor Board — Security and privacy">
+    <meta property="og:url" content="https://anchorboard.web.app/security.html">
+    <meta name="twitter:card" content="summary">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=57">
+    <link rel="stylesheet" href="css/console.css?v=57">
+    <link rel="stylesheet" href="css/theme-rings.css?v=2">
+    <link rel="stylesheet" href="css/footer.css?v=2">
+    <meta name="theme-color" content="#081B45">
+    <style>
+        .legal { max-width: 680px; margin: 0 auto; padding: 28px 20px 64px; line-height: 1.65; color: #0E1B3A; }
+        .legal h1 { font-family: "Bricolage Grotesque", "Instrument Sans", sans-serif; font-size: 32px; line-height: 1.2; margin: 8px 0 4px; }
+        .legal h2 { font-family: "Bricolage Grotesque", "Instrument Sans", sans-serif; font-size: 20px; margin: 28px 0 8px; }
+        .legal p { margin: 0 0 12px; }
+        .glance { width: 100%; border-collapse: collapse; margin: 16px 0 8px; background: #fff; border: 1px solid #D5DCE9; border-radius: 16px; overflow: hidden; }
+        .glance th, .glance td { text-align: left; vertical-align: top; padding: 12px 14px; border-top: 1px solid #D5DCE9; font-size: 15px; line-height: 1.5; }
+        .glance tr:first-child th, .glance tr:first-child td { border-top: 0; }
+        .glance th { width: 34%; font-weight: 700; }
+        @media (max-width: 520px) { .glance th, .glance td { display: block; width: auto; } .glance td { border-top: 0; padding-top: 0; } }
+        .legal .fine { color: #55627F; }
+    </style>
+</head>
+<body class="console page">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Anchor Board</b><small>For teachers</small></span></a>
+    </header>
+    <main class="legal">
+        <h1>Security and privacy at a glance</h1>
+        <p class="fine">For school and district technology staff. Last updated: November 18, 2026</p>
+        <p>The full details are in the <a href="privacy.html">Privacy Policy</a> and <a href="terms.html">Terms</a>. Questions: Edgar Steers, eddiesteers777@gmail.com.</p>
+        <table class="glance">
+            <tr><th scope="row">Who signs in</th><td>Teachers, with Google. Students never make accounts or sign in with Google.</td></tr>
+            <tr><th scope="row">Student data collected</th><td>During a game or live notes: the name the student picks (first name and last initial), answers, score and work-pad drawings. Deleted when the teacher closes it. Anything else is saved only if the teacher chooses to.</td></tr>
+            <tr><th scope="row">Not collected</th><td>Student email, student ID, birth date, home address, or photos of students. A student guest gets a random sign-in ID that is not linked to their name outside the game.</td></tr>
+            <tr><th scope="row">Where it's stored</th><td>Google Firebase (Firestore database, Firebase Authentication, Firebase Hosting).</td></tr>
+            <tr><th scope="row">Encryption</th><td>HTTPS for all traffic. Encrypted at rest by Google.</td></tr>
+            <tr><th scope="row">Who can see it</th><td>Database rules lock each teacher's data to that teacher's sign-in. A student guest can write only their own game entry. Class Pages are public and never hold student information.</td></tr>
+            <tr><th scope="row">Ads, selling, AI training</th><td>None. No advertising, no selling or renting data, and no use of student data to train AI.</td></tr>
+            <tr><th scope="row">Tracking</th><td>No analytics or tracking scripts. Pages load fonts from Google Fonts.</td></tr>
+            <tr><th scope="row">Deletion</th><td>Teachers delete everything from Settings, Your data. Schools can ask for deletion and get written confirmation within 30 days.</td></tr>
+            <tr><th scope="row">Breach notice</th><td>Affected teachers and schools are told without unreasonable delay, and as the law requires.</td></tr>
+            <tr><th scope="row">FERPA and COPPA</th><td>Acts for the school as a school official. Classroom use relies on school consent for students under 13. We can review your district's student data privacy agreement.</td></tr>
+            <tr><th scope="row">Works with</th><td>Chromebooks, laptops, iPads and phones in a current browser. Students join with a 6-digit code or a QR code. No app to install.</td></tr>
+        </table>
+    </main>
+    <footer class="pub-footer">
+        <div class="pub-footer-top">
+            <div class="pub-footer-lead">
+                <a href="index.html" class="pub-footer-brand" aria-label="Anchor Board home"><img src="brand/logo.svg" alt="" class="brand-mark"><span class="pub-footer-word"><span class="brand-word">Anchor Board</span> <span class="pub-footer-sub">For teachers</span></span></a>
+                <p class="pub-footer-line">Teach from one board.</p>
+            </div>
+            <nav class="pub-footer-cols" aria-label="Footer">
+                <div><h2>Teach</h2><a href="board.html">Open Board</a><a href="remote.html">Remote</a><a href="sub.html">Sub view</a></div>
+                <div><h2>Plan</h2><a href="planner.html">Planner</a><a href="builder.html">Week Builder</a><a href="library.html">Library</a><a href="standards.html">Standards</a></div>
+                <div><h2>Anchor Board</h2><a href="index.html">Home</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="security.html">Security</a></div>
+            </nav>
+        </div>
+        <div class="pub-footer-legal">
+            <p class="pub-footer-signin">Anchor Board signs you in with Google. It uses your name and email only to open your account. <a href="privacy.html">How your data is used</a></p>
+            <p>&copy; 2026 Anchor Board · Made by Edgar Steers</p>
+        </div>
+    </footer>
+</body>
+</html>
