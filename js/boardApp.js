@@ -17,7 +17,7 @@ import * as snd from "./sound.js?v=58";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=58";
-import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=77";
+import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=78";
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=6";
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 
@@ -746,6 +746,7 @@ function note(t) { const n = $("inknote"); if (n) n.textContent = t; }
 function saveInk() {
     if (pad) padItems = pad.items();
     if (!inkWrite) return; const body = { strokes, items: padItems, paper, at: Date.now() };
+    if (canvas && canvas.width > 2 && canvas.height > 2) body.ar = +(canvas.width / canvas.height).toFixed(3);   // the page's shape, so a copy of it (Vault Raid's Send it back) isn't stretched
     if (JSON.stringify(body).length > 700000) { note("This board is full. Clear it to keep saving."); return; }
     note(""); inkWrite(JSON.parse(JSON.stringify(body)));
 }

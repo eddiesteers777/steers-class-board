@@ -352,3 +352,7 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .wrpeek{margin-top:2px;padding:4px 12px;min-height:32px;border-radius:999px;border:2px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:.8rem;cursor:pointer}
 .wrpeek:hover,.wrpeek:focus-visible{border-color:var(--blue);outline:none}
 @media (prefers-reduced-motion:reduce){.wrcode .pcodeshow{transition:none}}
+/* Send it back: the teacher's work from the board, under the student's ink. */
+.ppaper>.padbg{position:absolute;pointer-events:none;user-select:none;object-fit:contain;object-position:left top;border-radius:10px;outline:2px dashed rgba(21,82,214,.28);outline-offset:4px;animation:padbgin .45s ease-out}
+@keyframes padbgin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.ppaper>.padbg{animation:none}}

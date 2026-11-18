@@ -182,6 +182,24 @@ const pad = (() => {
     const W = 1000, PENS = { ink: ["#14213D", "Navy"], blue: ["#1552D6", "Blue"], red: ["#C62828", "Red"], green: ["#1B7F3B", "Green"] }, SIZES = [3, 6, 11];
     let H = 600, strokes = [], items = [], hist = [], host = null, canvas = null, ctx = null, mp = null, cur = null, ro = null;
     let tool = "pen", pen = "ink", size = 1, dirty = false, sentAt = 0;
+    // The teacher's work, sent with a question that was gone over (Send it back): a picture under the student's ink.
+    // bg = { k, src, img, box: [x, y, w, h] in pad units }. The eraser and Clear only touch the student's own work.
+    let bg = null, bgEl = null;
+    function placeBg() {
+        if (!bgEl) return; if (!bg || !host) { bgEl.remove(); return; }
+        const [x, y, w, h] = bg.box; Object.assign(bgEl.style, { left: x / W * 100 + "%", top: y / H * 100 + "%", width: w / W * 100 + "%", height: h / H * 100 + "%" });
+        if (!bgEl.isConnected) { const cv = host.querySelector(".padcv"); host.insertBefore(bgEl, cv || null); }
+    }
+    function setBg(rw) {
+        if (!rw || !rw.img) { if (bg) { bg = null; placeBg(); } return; }
+        if (bg && bg.k === rw.k) { placeBg(); return; }
+        // Fit it in the top left, past the tool rail, about as wide as it was on the board, leaving room to keep working.
+        const ar = (+rw.w || 1) / (+rw.h || 1), maxW = W - 110, maxH = H * 0.7;
+        let w = Math.min(maxW, Math.max(120, (+rw.fw || 0.5) * W)), h = w / ar; if (h > maxH) { h = maxH; w = h * ar; }
+        const img = new Image(); img.src = rw.img; img.alt = "";
+        bg = { k: rw.k, src: rw.img, img, box: [96, 14, Math.round(w), Math.round(h)] };
+        bgEl = el("img", "padbg"); bgEl.src = rw.img; bgEl.alt = "Your teacher's work"; bgEl.draggable = false; placeBg();
+    }
     function paint() {
         if (!ctx) return; ctx.clearRect(0, 0, W, H); ctx.lineCap = ctx.lineJoin = "round";
         strokes.forEach((s) => {
@@ -199,7 +217,7 @@ const pad = (() => {
     /** The paper's shape follows the screen: the width is always 1000, the height follows. */
     function fit() {
         if (!host || !host.isConnected) return; const r = host.getBoundingClientRect(); if (r.width < 2 || r.height < 2) return;
-        const h = Math.max(200, Math.round(W * r.height / r.width)); if (h !== H || canvas.height !== h) { H = h; canvas.height = H; paint(); }
+        const h = Math.max(200, Math.round(W * r.height / r.width)); if (h !== H || canvas.height !== h) { H = h; canvas.height = H; paint(); placeBg(); }
         if (mp) mp.resize();
     }
     function rail() {
@@ -269,21 +287,23 @@ const pad = (() => {
         mp.setItems(items); host.append(rail());
         if (ro) ro.disconnect();
         if (window.ResizeObserver) { ro = new ResizeObserver(() => fit()); ro.observe(host); }
+        if (bgEl) bgEl.remove(); placeBg();
         requestAnimationFrame(fit); paint();
     }
     /** A picture of the work for the teacher: the math tools under the ink, on white. */
     function image() {
-        if (!strokes.length && !(mp ? mp.items() : items).length) return "";
+        if (!strokes.length && !(mp ? mp.items() : items).length && !bg) return "";
         const c = document.createElement("canvas"); c.width = 640; c.height = Math.round(640 * H / W); const x = c.getContext("2d");
         x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height);
+        if (bg && bg.img.complete && bg.img.naturalWidth) { const [bx, by, bw, bh] = bg.box, sx = c.width / W, sy = c.height / H; try { x.drawImage(bg.img, bx * sx, by * sy, bw * sx, bh * sy); } catch (e) { /* the picture didn't load: send the student's own work */ } }
         if (mp && mp.el.width) x.drawImage(mp.el, 0, 0, c.width, c.height);
         x.drawImage(canvas, 0, 0, c.width, c.height);
         let url = c.toDataURL("image/png"); if (url.length > 380000) url = c.toDataURL("image/jpeg", 0.7);
         return url.length > 395000 ? c.toDataURL("image/jpeg", 0.45) : url;
     }
     return {
-        mount, image,
-        clear() { strokes = []; items = []; hist = []; dirty = false; if (mp) mp.clear(); paint(); },
+        mount, image, setBg,
+        clear() { strokes = []; items = []; hist = []; dirty = false; bg = null; placeBg(); if (mp) mp.clear(); paint(); },
         dirty: () => dirty, sent() { dirty = false; sentAt = Date.now(); }, sentAt: () => sentAt, has: () => strokes.length > 0,
         /** Real work on the pad: pen strokes (not eraser) adding up to more than a quick tap, or math typed in a text box. */
         shown() {
@@ -593,13 +613,14 @@ function draw(force) {
     pauseCover(); callBanner();
     const m = ST.me;
     if (m && m.nm && ST.step !== "play") ST.step = "play";
-    const k = JSON.stringify([ST.step, ST.view, ST.err, ST.busy, ST.target, ST.guess, ST.vault, ST.roomGone, ST.room && [ST.room.status, ST.step === "name" ? [ST.room.taken, ST.room.names && ST.room.names.length] : 0, ST.room.bonus], m && [m.status === "lobby" ? 0 : m.n, m.status, m.need]]);
+    const k = JSON.stringify([ST.step, ST.view, ST.err, ST.busy, ST.target, ST.guess, ST.vault, ST.roomGone, ST.room && [ST.room.status, ST.step === "name" ? [ST.room.taken, ST.room.names && ST.room.names.length] : 0, ST.room.bonus, ST.room.rw ? ST.room.rw.k : 0], m && [m.status === "lobby" ? 0 : m.n, m.status, m.need]]);
     if (k === sig && !force) return;
     // Keep the pad (and anything typed) while the same question stays on screen.
     const cq = curQ(m), sameQ = !force && ST.step === "play" && ST.view === "q" && cq && document.getElementById("padhost") && +$("padhost").dataset.q === cq.n && !ST.roomGone;
     sig = k; stats();
     if (m && m.hit && m.hit.blocked && m.hit.at > ST.seenBlock) { ST.seenBlock = m.hit.at; toast("Your Shield blocked " + m.hit.by + "'s crack! Your coins are safe.", "good"); sfx("box"); }
-    if (sameQ) { const n = $("pnote"); if (n) n.textContent = ST.err; const fx = $("pfx"); if (fx) fx.replaceWith(effects(m) || Object.assign(el("div", "pfx"), { id: "pfx" })); return; }
+    if (sameQ) { const rw = ST.room && ST.room.rw; if (rw && cq.n === 100000 + (+rw.k || 0)) { pad.setBg(rw); teacherTag($("padhost"), !!(ST.room && ST.room.work !== false)); }
+        const n = $("pnote"); if (n) n.textContent = ST.err; const fx = $("pfx"); if (fx) fx.replaceWith(effects(m) || Object.assign(el("div", "pfx"), { id: "pfx" })); return; }
     document.body.classList.remove("qmode");
     const main = $("main"), y = window.scrollY; main.textContent = "";
     const card = el("section", "pcard"); main.append(card);
@@ -742,7 +763,11 @@ function questionView(card) {
     const host = el("div", "wbpaper ppaper"); host.id = "padhost"; host.dataset.q = String(q.n);
     host.append(el("p", "ptag", need ? "Show your work here (needed to submit)" : "Show your work here"));
     card.append(host); pad.mount(host);
+    const rw = ST.room && ST.room.rw, withWork = !!(rw && q.n === 100000 + (+rw.k || 0)); pad.setBg(withWork ? rw : null);
+    if (withWork) teacherTag(host, need);
 }
+/** The pad's label when the teacher's work came with the question. */
+function teacherTag(host, need) { const t = host && host.querySelector(".ptag"); if (t) t.textContent = "Your teacher's work is on your pad. Pick up where the class left off" + (need ? " and add your own work." : "."); }
 function fbView(card) {
     const m = ST.me, f = m.fb || {}, key = "fb" + f.q, fresh = celebrated !== key;
     card.classList.add(f.ok ? "good" : "miss");

@@ -16,6 +16,7 @@
 ========================================== */
 import * as V from "./vaultCore.js?v=70";
 import qrcode from "./vendor/qrcode.js?v=1";
+import { drawItems } from "./mathTools.js?v=1";
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "button"; if (fn) b.onclick = fn; return b; };
@@ -86,7 +87,7 @@ let cmdSeen = -1, cmdWatched = false;
 const hostAlive = () => !!(H && H.host && Date.now() - (+H.hb || 0) < HOST_STALE);
 function doMove(op, qi, ans) {
     if (op === "review") review(qi, ans);
-    else if (op === "send") { if (isRemote() && !hosting) takeHost(); sendBack(qi); }
+    else if (op === "send") { if (isRemote() && !hosting) takeHost(); sendBack(qi, !!ans); }
     else if (op === "finish") finishRedo();
 }
 function ask(op, qi, ans) {
@@ -260,12 +261,60 @@ function redoAnswer(id, p, a) {
     const plus = ok ? REDO_COINS : 0; p.c += plus;
     p.fb = { q: redoN(), ok, y: typed, a: ok ? "" : q.a, plus, x2: [], box: null, redo: 1 };
 }
-/** After going over a missed question, send it to every student's screen once more. The game reopens just for this question. */
-function sendBack(qi) {
+/** After going over a missed question, send it to every student's screen once more. The game reopens just for this question.
+    Unless the teacher sends it blank, the work on the board's whiteboard page goes with it: each student's pad starts
+    with the teacher's work on it (a picture under their own ink), so they pick up where the class left off. */
+function sendBack(qi, blank) {
     if (!H || H.status !== "done" || !H.qs[qi]) return;
-    H.redo = { qi, k: ((H.redo && H.redo.k) || 0) + 1, res: {}, at: Date.now(), done: 0 };
-    H.review = { qi, ans: false }; H.status = "play"; H.ends = 0; H.bonus = 0; H.show = null;
+    const key = reviewInkKey(qi);
+    H.redo = { qi, k: ((H.redo && H.redo.k) || 0) + 1, res: {}, at: Date.now(), done: 0, mine: blank ? 0 : 1 };
+    H.review = { qi, ans: false }; H.status = "play"; H.ends = 0; H.bonus = 0; H.show = null; redoWork = null;
     feed("Try it again!", "start"); flush(everyone()); saveSoon(true); panelSig = ""; drawLivePanel(true);
+    if (!blank) { const k = H.redo.k; teacherWork(key).then((w) => { if (!H || !H.redo || H.redo.k !== k || H.redo.done) return; redoWork = w ? Object.assign({ k }, w) : null; H.redo.mine = w ? 1 : 0; flush(new Set(["room"])); panelSig = ""; drawLivePanel(true); }); }
+}
+let redoWork = null;   // { k, img, w, h }: the picture of the teacher's work for the redo now running (kept off H so heartbeats stay small)
+/** The whiteboard page the board shows for a gone-over question (the same key boardApp's whiteboard uses). */
+function reviewInkKey(qi) {
+    const S = A.S, base = [S.week, S.period, "d" + S.day, "vr" + String(H.rid || H.code || "").replace(/\W/g, "") + "q" + qi].join("_");
+    const pg = S.wb && S.wb.pg && S.wb.pg.k === base ? Math.max(0, Math.floor(+S.wb.pg.n || 0)) : 0;
+    return base + (pg ? "_pg" + pg : "");
+}
+/** The teacher's whiteboard page as a picture: math tools under the ink, cut down to just the part with work on it.
+    Transparent where there is no work, so it sits on the student's paper. null when the page is empty. */
+async function teacherWork(key) {
+    let d = null; try { d = await A.store().rooms.get("teacher/" + A.store().rooms.uid() + "/ink/" + key); } catch (e) { d = null; }
+    const strokes = d && Array.isArray(d.strokes) ? d.strokes : [], items = d && Array.isArray(d.items) ? d.items : [];
+    if (!strokes.length && !items.length) return null;
+    const ar = +d.ar > 0.3 && +d.ar < 5 ? +d.ar : 1.85, W = 1400, Hh = Math.round(W / ar);
+    const mk = () => { const c = document.createElement("canvas"); c.width = W; c.height = Hh; return c; };
+    const ink = mk(), x = ink.getContext("2d"), css = (v, f) => (getComputedStyle(document.documentElement).getPropertyValue(v).trim() || f);
+    const PEN = { ink: css("--pen-ink", "#14213D"), blue: css("--pen-blue", "#1552D6"), red: css("--pen-red", "#C62828"), green: css("--pen-green", "#1B7F3B") }, SIZES = [3, 6, 11];
+    x.lineCap = "round"; x.lineJoin = "round";
+    strokes.forEach((st) => {   // the same drawing as the board's whiteboard (boardApp drawStroke)
+        const p = st && st.p; if (!Array.isArray(p) || p.length < 2) return;
+        x.globalCompositeOperation = st.e ? "destination-out" : "source-over"; x.globalAlpha = st.h ? 0.38 : 1;
+        x.strokeStyle = st.h && (st.c === "ink" || !PEN[st.c]) ? "#F2B33D" : (PEN[st.c] || PEN.ink);
+        x.lineWidth = (st.e ? 5 : st.h ? 3.4 : 1) * (SIZES[st.w] || 6) * W / 1400;
+        x.beginPath(); x.moveTo(p[0] / 10000 * W, p[1] / 10000 * Hh); if (p.length === 2) x.lineTo(p[0] / 10000 * W + 0.1, p[1] / 10000 * Hh);
+        for (let i = 2; i < p.length; i += 2) x.lineTo(p[i] / 10000 * W, p[i + 1] / 10000 * Hh);
+        x.stroke();
+    });
+    x.globalCompositeOperation = "source-over"; x.globalAlpha = 1;
+    const all = mk(), y = all.getContext("2d");
+    try { if (items.length) drawItems(y, items, W, Hh); } catch (e) { /* a tool that won't draw: the ink still goes */ }
+    y.drawImage(ink, 0, 0);
+    // Crop to the work, with a margin.
+    const px = y.getImageData(0, 0, W, Hh).data; let x0 = W, y0 = Hh, x1 = -1, y1 = -1;
+    for (let j = 0; j < Hh; j += 2) for (let i = 0; i < W; i += 2) if (px[(j * W + i) * 4 + 3] > 24) { if (i < x0) x0 = i; if (i > x1) x1 = i; if (j < y0) y0 = j; if (j > y1) y1 = j; }
+    if (x1 < 0) return null;
+    const m = 24; x0 = Math.max(0, x0 - m); y0 = Math.max(0, y0 - m); x1 = Math.min(W, x1 + m); y1 = Math.min(Hh, y1 + m);
+    const cw = x1 - x0, ch = y1 - y0, sc = Math.min(1, 900 / Math.max(cw, ch)), out = document.createElement("canvas");
+    out.width = Math.max(1, Math.round(cw * sc)); out.height = Math.max(1, Math.round(ch * sc));
+    out.getContext("2d").drawImage(all, x0, y0, cw, ch, 0, 0, out.width, out.height);
+    let img = out.toDataURL("image/png"); if (img.length > 300000) img = out.toDataURL("image/webp", 0.85);
+    if (img.length > 600000 || !/^data:image\/(png|webp)/.test(img)) img = out.toDataURL("image/webp", 0.6);
+    // How big it was on the board, as a share of the board's width, so the student sees it at about the same size.
+    return img.length > 700000 ? null : { img, w: out.width, h: out.height, fw: +(cw / W).toFixed(3) };
 }
 function finishRedo() {
     const rd = H && H.redo; if (!rd || rd.done) return;
@@ -485,7 +534,8 @@ function flush(sends) {
 const everyone = () => { const s = new Set(Object.keys(H.players)); s.add("room"); return s; };
 function roomDoc() {
     return { owner: A.store().rooms.uid(), status: H.status, title: H.title, mode: H.mode, names: H.mode === "roster" ? H.names : [], taken: H.taken || [],
-        live: !!H.opts.live, work: H.opts.work !== false, ends: H.ends || 0, bonus: +H.bonus || 0, paused: +H.paused || 0, snd: H.opts.snd !== false, call: H.status === "play" && H.show ? H.show.id : "", at: Date.now() };
+        live: !!H.opts.live, work: H.opts.work !== false, ends: H.ends || 0, bonus: +H.bonus || 0, paused: +H.paused || 0, snd: H.opts.snd !== false, call: H.status === "play" && H.show ? H.show.id : "",
+        rw: H.status === "play" && H.redo && !H.redo.done && redoWork && redoWork.k === H.redo.k ? { k: redoWork.k, img: redoWork.img, w: redoWork.w, h: redoWork.h, fw: redoWork.fw } : null, at: Date.now() };
 }
 
 /* ---------- teacher moves ---------- */
@@ -630,7 +680,7 @@ export function tickLive() {
     if (c) { c.textContent = txt.replace("Paused · ", ""); c.classList.toggle("hot", left >= 0 && left < 30000 && !H.paused); c.classList.toggle("paused", !!H.paused); }
     if (pc) pc.textContent = txt;
     const bl = H.bonus ? Math.max(0, +H.bonus - Date.now()) : 0, bb = document.getElementById("liveBonusBtn"), bs = document.getElementById("liveBonus");
-    if (bb) { bb.textContent = bl ? "Bonus round on · " + Math.ceil(bl / 1000) + " s" : "Start a bonus round (double coins, 60 s)"; bb.disabled = !!bl; bb.className = "btn " + (bl ? "ghost" : "go") + " vrbonusbtn"; }
+    if (bb) { const l = bb.querySelector(".vrtl"), sub = bb.querySelector(".vrts"); if (l) l.textContent = bl ? "Bonus on" : "Bonus round"; if (sub) sub.textContent = bl ? Math.ceil(bl / 1000) + " s left" : "2× coins · 60 s"; bb.disabled = !!bl; bb.classList.toggle("on", !!bl); }
     if (bs) { bs.hidden = !bl; const t = bs.querySelector("b"); if (t) t.textContent = Math.ceil(bl / 1000) + " s"; }
     const crk = document.getElementById("liveCrack"); if (crk && Date.now() > +crk.dataset.until) crk.remove();
     if (hosting && H.status === "play" && H.ends && !H.paused && !(H.exit && !H.exit.done) && !(H.redo && !H.redo.done) && Date.now() >= H.ends) endGame();
@@ -685,7 +735,7 @@ export function reviewBody(body) {
     if (r.ans && !live) body.append(mathEl("p", "wbans", q.a));
     const row = el("div", "vrwbbtns");
     if (live) { row.append(btn("btn go", "Stop and show the results", () => ask("finish"))); body.append(row); return; }
-    row.append(btn("btn ghost", "Send it back to everyone", () => ask("send", r.qi)));
+    row.append(btn("btn ghost", "Send it back with my work", () => ask("send", r.qi)), btn("btn ghost", "Send it back blank", () => ask("send", r.qi, true)));
     row.append(btn("btn ghost", r.ans ? "Hide answer" : "Show answer", () => ask("review", r.qi, !r.ans)));
     if (r.at + 1 < r.count) row.append(btn("btn go", "Next question", () => ask("review", r.list[r.at + 1])));
     else row.append(btn("btn go", "Done: final scores", () => ask("review", null)));
@@ -840,6 +890,21 @@ function panelEl() {
     return p;
 }
 const hd = (text) => el("p", "gph", text);
+const sec = (text) => el("p", "vrsec", text);
+/** The panel's header card: what state the game is in, the set, the room code, and the numbers that matter now. */
+function hero(p, state, label, main, stats) {
+    const h = el("div", "vrhero s-" + state), top = el("div", "vrhtop"), pill = el("span", "vrpill"); pill.append(el("i"), document.createTextNode(label));
+    top.append(pill); if (H && H.code && H.status !== "done") top.append(el("span", "vrhcode", "Code " + H.code));
+    h.append(top, el("p", "vrhtitle", (H && H.title) || "Vault Raid"));
+    if (main) h.append(main);
+    if (stats && stats.length) { const st = el("div", "vrhstats"); stats.forEach(([v, l]) => { const x = el("span"); x.append(el("b", null, String(v)), el("small", null, l)); st.append(x); }); h.append(st); }
+    p.append(h); return h;
+}
+/** A big control button: an icon, a label and a short line under it. */
+function tileBtn(cls, icon, label, sub, fn) {
+    const b = btn("vrtilebtn " + cls, null, fn); b.append(el("span", "vrti", icon), el("span", "vrtl", label)); if (sub) b.append(el("small", "vrts", sub)); return b;
+}
+const liveStats = () => { const order = ranked(), all = order.reduce((a, x) => [a[0] + x.r, a[1] + x.n], [0, 0]); return { n: order.length, ans: all[1], pct: all[1] ? pctOf(all[0], all[1]) + "%" : "–" }; };
 function check(label, on, fn, sub) { const l = el("label", "gpchk"), i = el("input"); i.type = "checkbox"; i.checked = on; i.onchange = () => fn(i.checked); l.append(i, document.createTextNode(label)); if (sub) l.append(el("small", "vrsub", sub)); return l; }
 
 export function drawLivePanel(force) {
@@ -863,33 +928,39 @@ export function drawLivePanel(force) {
     }
     const n = Object.keys(H.players).length;
     if (H.status === "lobby") {
-        p.append(hd("Students, join now"));
+        hero(p, "lobby", "Waiting room", null, [[n, n === 1 ? "student in" : "students in"], [H.qs.length, "questions"], [H.opts.mins ? H.opts.mins + " min" : "No limit", "game length"]]);
+        p.append(sec("Students, join now"));
         const code = el("div", "vrpcode"); code.append(el("small", null, "Go to " + joinUrl() + " and type"), el("b", null, H.code));
         const qr = el("div", "vrpqr"); qr.append(qrSvg(H.code), el("small", null, "Or scan this. The board shows it too.")); code.append(qr); p.append(code);
         p.append(el("p", "gpnote", n ? n + " joined. Start when everyone is in. Late students can still join." : "Waiting for the first student…"));
-        const go = btn("btn go", "Start the game", startGame); go.disabled = !n; p.append(go);
+        const go = btn("btn go vrbig", "Start the game", startGame); go.disabled = !n; p.append(go);
+        if (n) p.append(sec("In the room"));
         playerRows(p, false);
     } else if (H.status === "play" && H.exit && !H.exit.done) {
+        hero(p, "redo", "Exit ticket", null, [[n, "students"], [Math.min(EXIT_N, H.qs.length), "questions"], ["0", "coins"]]);
         exitPanel(p, true);
     } else if (H.status === "play" && H.redo && !H.redo.done) {
         const q = H.qs[H.redo.qi], rc = redoCount();
-        p.append(hd("Try it again"), mathEl("p", "gpnote vrredoq", q.q));
-        p.append(el("p", "gpnote", rc.of + " of " + rc.n + " answered · " + rc.ok + " right. A right answer earns " + REDO_COINS + " coins."));
+        hero(p, "redo", "Trying it again", mathEl("p", "vrhq", q.q), [[rc.of + "/" + rc.n, "answered"], [rc.ok, "right"], ["+" + REDO_COINS, "coins if right"]]);
+        if (H.redo.mine) p.append(el("p", "gpnote vrmine", redoWork && redoWork.k === H.redo.k ? "Your board work is on their pads. They pick up where you left off." : "Sending your board work to their pads…"));
         const box = el("div", "gprows");
         Object.keys(H.players).map((id) => Object.assign({ id }, H.players[id])).sort((a, b) => a.nm.localeCompare(b.nm)).forEach((x) => {
             const r = H.redo.res[x.id], row = el("div", "gprow vrprow");
-            row.append(el("span", "gpname", V.avatar(x.av)[0] + " " + x.nm), el("small", "vrla " + (!r ? "" : r.ok ? "ok" : "no"), !r ? "working…" : (r.ok ? "✓ " : "✗ ") + (r.y || "(blank)")));
+            row.append(el("span", "vrav", V.avatar(x.av)[0]), el("span", "gpname", x.nm), el("small", "vrla " + (!r ? "" : r.ok ? "ok" : "no"), !r ? "working…" : (r.ok ? "✓ " : "✗ ") + (r.y || "(blank)")));
             const on = H.show && H.show.id === x.id;
             row.append(btn("btn " + (on ? "go" : "ghost") + " vrcall", on ? "On the board" : "Call on", () => showWork(on ? "" : x.id, true)));
             box.append(row);
         });
-        p.append(btn("btn go", "Stop and show the results", () => ask("finish")), box);
+        p.append(btn("btn go vrbig", "Stop and show the results", () => ask("finish")), sec("Students"), box);
     } else if (H.status === "play") {
-        const top = el("div", "gptimer"), c = el("b"); c.id = "livePClock"; top.append(c);
-        top.append(btn("btn ghost gpend", endArm ? "Tap again to end" : "End the game", () => { if (endArm) endGame(); else { endArm = Date.now(); panelSig = ""; drawLivePanel(true); } }));
-        p.append(top, el("p", "gpnote", "Code " + H.code + " · " + n + " playing"));
-        p.append(btn("btn " + (H.paused ? "go" : "ghost") + " vrpausebtn", H.paused ? "Resume the game" : "Pause (freeze the clock and every screen)", () => setPause(!H.paused)));
-        const bon = btn("btn " + (bonusOn() ? "ghost" : "go") + " vrbonusbtn", bonusOn() ? "Bonus round on" : "Start a bonus round (double coins, 60 s)", startBonus); bon.id = "liveBonusBtn"; bon.disabled = bonusOn(); p.append(bon);
+        const ls = liveStats(), clock = el("b", "vrhclock"); clock.id = "livePClock";
+        hero(p, H.paused ? "paused" : bonusOn() ? "bonus" : "live", H.paused ? "Paused" : bonusOn() ? "Bonus round" : "Live", clock, [[ls.n, "playing"], [ls.pct, "right so far"], [ls.ans, "answers"]]);
+        const ctl = el("div", "vrctl");
+        ctl.append(tileBtn("vrpausebtn" + (H.paused ? " on" : ""), H.paused ? "▶" : "❚❚", H.paused ? "Resume" : "Pause", H.paused ? "Unfreeze screens" : "Freeze every screen", () => setPause(!H.paused)));
+        const bon = tileBtn("vrbonusbtn" + (bonusOn() ? " on" : ""), "⚡", bonusOn() ? "Bonus on" : "Bonus round", "2× coins · 60 s", startBonus); bon.id = "liveBonusBtn"; bon.disabled = bonusOn(); ctl.append(bon);
+        ctl.append(tileBtn("vrendbtn" + (endArm ? " armed" : ""), "■", endArm ? "Tap again to end" : "End the game", endArm ? "Ends for everyone" : "Tap twice", () => { if (endArm) endGame(); else { endArm = Date.now(); panelSig = ""; drawLivePanel(true); } }));
+        p.append(ctl);
+        p.append(sec("What you see"));
         const tabs = el("div", "vrtabs"); [["players", "Players"], ["heat", "Heat map"], ["work", "Work"]].forEach(([k, label]) => { const b = btn("btn " + (tab === k ? "go" : "ghost"), label, () => { tab = k; panelSig = ""; drawLivePanel(true); }); b.setAttribute("aria-pressed", String(tab === k)); tabs.append(b); });
         p.append(tabs);
         boardSwitch(p);
@@ -901,18 +972,20 @@ export function drawLivePanel(force) {
             p.append(row, el("p", "gpnote", "Last " + HEAT_COLS + " answers each: ✓ right, ↻ right on the second try, ✗ missed. Stuck = 3 misses in a row (only you see that)."), heatGrid(heatRows(), true, true));
         } else playerRows(p, true);
     } else {
+        const ls = liveStats(); hero(p, "done", "Game over", null, [[ls.pct, "class right"], [ls.ans, "answers"], [ls.n, "players"]]);
         const tabs = el("div", "vrtabs"); [["report", "Report"], ["players", "Standings"]].forEach(([k, label]) => { const b = btn("btn " + (dtab === k ? "go" : "ghost"), label, () => { dtab = k; panelSig = ""; drawLivePanel(true); }); b.setAttribute("aria-pressed", String(dtab === k)); tabs.append(b); });
         p.append(tabs);
         if (!H.review && !(H.exit && !H.exit.done)) boardSwitch(p);
         if (dtab === "report") {
             if (H.exit && H.exit.done) exitPanel(p, false);
-            else if (Object.keys(H.players).length) p.append(btn("btn go", "Exit ticket: " + Math.min(EXIT_N, H.qs.length) + " most-missed questions (no coins)", startExit));
+            else if (Object.keys(H.players).length) p.append(tileBtn("vrwide vrexitbtn", "✎", "Exit ticket", Math.min(EXIT_N, H.qs.length) + " most-missed questions, no coins", startExit));
             reportPanel(p); saveRow(p);
         }
         else { p.append(hd("Final standings")); saveRow(p); playerRows(p, false, true); }
     }
-    p.append(el("p", "gpnote", H.status === "done" ? "Closing the room deletes the names, answers and work from this game." : "Closing the room ends the game for everyone and deletes the names, answers and work."));
-    const close = btn("btn ghost gpend", busy === "close" ? "Closing…" : "Close the room", closeRoom); close.disabled = !!busy; p.append(close);
+    const foot = el("div", "vrfoot"), close = btn("btn ghost gpend", busy === "close" ? "Closing…" : "Close the room", closeRoom); close.disabled = !!busy;
+    foot.append(close, el("p", "gpnote", H.status === "done" ? "Closing the room deletes the names, answers and work from this game." : "Closing the room ends the game for everyone and deletes the names, answers and work."));
+    p.append(foot);
     p.scrollTop = keep;
 }
 function saveRow(p) {
@@ -928,7 +1001,7 @@ function reportPanel(p) {
     if (!order.length) { p.append(el("p", "gpnote", "No one played.")); return; }
     const all = order.reduce((a, x) => [a[0] + x.r, a[1] + x.n], [0, 0]);
     const tiles = el("div", "vrtiles"), tile = (v, l) => { const t = el("div", "vrtile"); t.append(el("b", null, v), el("small", null, l)); tiles.append(t); };
-    tile(pctOf(all[0], all[1]) + "%", "class right"); tile(String(all[1]), "answers"); tile(String(order.length), "players"); p.append(tiles);
+    void tiles; void tile;   // the header card shows class right, answers and players now
 
     if (H.review) {
         const box = el("div", "vrrevctl"), at = list.findIndex((x) => x.qi === H.review.qi);
@@ -937,8 +1010,8 @@ function reportPanel(p) {
         row.append(btn("btn ghost", "Back", () => review(list[Math.max(0, at - 1)].qi)), btn("btn go", H.review.ans ? "Hide answer" : "Show answer", () => review(H.review.qi, !H.review.ans)),
             btn("btn ghost", at + 1 < list.length ? "Next" : "Done", () => (at + 1 < list.length ? review(list[at + 1].qi) : review(null))));
         if (at <= 0) row.firstChild.disabled = true;
-        box.append(row, btn("btn go", "Send it back to everyone (+" + REDO_COINS + " coins if right)", () => ask("send", H.review.qi)), btn("btn ghost", "Back to final scores", () => review(null))); p.append(box);
-    } else if (list.length) p.append(btn("btn go", "Go over the missed questions on the board (" + list.length + ")", () => review(list[0].qi)));
+        box.append(row, btn("btn go", "Send it back with my work (+" + REDO_COINS + " coins if right)", () => ask("send", H.review.qi)), btn("btn ghost", "Send it back blank", () => ask("send", H.review.qi, true)), btn("btn ghost", "Back to final scores", () => review(null))); p.append(box);
+    } else if (list.length) p.append(tileBtn("vrwide vrgoover", "↺", "Go over the missed questions", list.length + (list.length === 1 ? " question" : " questions") + " on the board, then send them back", () => review(list[0].qi)));
 
     p.append(hd("Top 3"));
     const pod = el("div", "gprows");
@@ -969,7 +1042,10 @@ function reportPanel(p) {
     p.append(t);
 }
 function setupPanel(p) {
-    p.append(hd("Student game: Vault Raid"), el("p", "gpnote", "Students play on their Chromebooks with a game code and their name. No sign-in. Right answers earn coins and hacks; a hack guesses a classmate's 3-digit vault code to take some of their coins. Each question has a pad to show their work, which you can see here and put on the board."));
+    const intro = el("div", "vrhero s-setup"), pill = el("span", "vrpill"); pill.append(el("i"), document.createTextNode("Student game"));
+    const how = el("details", "vrhow"); how.append(el("summary", null, "How it works"), el("p", null, "Students play on their Chromebooks with a game code and their name. No sign-in. Right answers earn coins and hacks; a hack guesses a classmate's 3-digit vault code to take some of their coins. Each question has a pad to show their work, which you can see here and put on the board."));
+    const tt = el("div", "vrhtop"); tt.append(pill); intro.append(tt, el("p", "vrhbig", "Vault Raid"), el("p", "vrhsub", "Chromebooks, a code and a name. No sign-in."), how); p.append(intro);
+    p.append(sec("Set up the game"));
     if (!SETS) { p.append(el("p", "gpnote", "Getting your question sets…")); return; }
     if (!SETS.length) { p.append(el("p", "gpnote", "No question sets are saved yet.")); const a = el("a", "btn go gplink", "Make a question set"); a.href = "maker.html?per=" + encodeURIComponent(A.S.period); p.append(a); return; }
     const mine = SETS.filter((s) => !Array.isArray(s.per) || !s.per.length || s.per.includes(A.S.period)), list = mine.length ? mine : SETS;
@@ -998,20 +1074,21 @@ function setupPanel(p) {
         check("See their work live as they draw", choice.live, (v) => { choice.live = v; }, "Off: you see each student's work when they answer. On: it updates every few seconds, which uses more of the free daily allowance."),
         check("Save each student's result to Class Data", choice.save, (v) => { choice.save = v; }, "Off by default. Names, coins and right answers are kept in your private account. Leave off until the district says student data can be stored."));
     p.append(more);
-    const go = btn("btn go", busy === "open" ? "Opening…" : "Open the room", openRoom); go.disabled = !!busy; p.append(go);
+    const go = btn("btn go vrbig", busy === "open" ? "Opening…" : "Open the room", openRoom); go.disabled = !!busy; p.append(go);
 }
 function playerRows(p, live, final) {
     const order = ranked(); if (!order.length) return;
     const box = el("div", "gprows");
     order.forEach((x, i) => {
         const r = el("div", "gprow vrprow");
-        const name = el("span", "gpname", (final ? (i + 1) + ". " : "") + V.avatar(x.av)[0] + " " + x.nm + (H.status === "lobby" && x.pu && V.starter(x.pu) ? " · " + V.starter(x.pu)[1] : ""));
+        const name = el("span", "gpname", (final ? (i + 1) + ". " : "") + x.nm + (H.status === "lobby" && x.pu && V.starter(x.pu) ? " · " + V.starter(x.pu)[1] : ""));
+        r.append(el("span", "vrav", V.avatar(x.av)[0]));
         const info = el("small", "vrinfo", final || live ? x.c + " coins · " + x.r + " of " + x.n + " right" + (x.cr ? " · cracked " + x.cr : "") : x.code ? "Vault set" : "Setting a vault code…");
         const left = el("div", "vrpl"); left.append(name, info);
         if (live && x.la) { const la = el("small", "vrla " + (x.la.ok ? "ok" : "no"), (x.la.ok ? "✓ " : "✗ ") + (x.la.y || "(blank)")); left.append(la); }
         r.append(left);
         if (live && x.la && !x.la.ok && x.la.y) r.append(btn("gpok", "Count it", () => acceptAnswer(x.id)));
-        if (!final) { const rm = btn("gpno", "Remove", () => removePlayer(x.id)); rm.setAttribute("aria-label", "Remove " + x.nm + " and free the name"); r.append(rm); }
+        if (!final) { const rm = btn("gpno vrrm", "Remove", () => removePlayer(x.id)); rm.title = "Remove " + x.nm + " and free the name"; rm.setAttribute("aria-label", "Remove " + x.nm + " and free the name"); r.append(rm); }
         box.append(r);
     });
     p.append(box);
