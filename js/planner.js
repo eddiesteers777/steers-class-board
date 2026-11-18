@@ -5,7 +5,8 @@
      { days: { "2026-11-18": { note, c: { "8th": "plan" } } }, weeks: { "2026-11-16": { c: { "8th": "unit or focus" } } } }
    ?demo keeps everything on this device only.
 ========================================== */
-import { WEEKS } from "../data/weeks.js?v=57";
+import { WEEKS as PUBLISHED } from "../data/weeks.js?v=57";
+import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { LIBRARY } from "../data/library.js?v=57";
 import { suggestedUnit } from "./standardsNext.js?v=57";
 import { SCHOOL_YEAR, iso, parse, addDays, today, weekday, mondayOf, eventsOn, isSchoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, schoolDaysBetween, SCHOOL_DAYS, short } from "./schoolCal.js?v=57";
@@ -22,8 +23,9 @@ const KIND = { off: "No school", work: "No students", term: "School", early: "Ea
 const ORD = ["", "1st", "2nd", "3rd", "4th"];
 
 // Published lessons by date: iso -> { week, i }
-const PUB = {};
-WEEKS.forEach((w) => { if (w.monday) for (let i = 0; i < 5; i++) PUB[addDays(w.monday, i)] = { week: w, i }; });
+let WEEKS = PUBLISHED, PUB = {};
+function indexWeeks() { PUB = {}; WEEKS.forEach((w) => { if (w.monday) for (let i = 0; i < 5; i++) PUB[addDays(w.monday, i)] = { week: w, i }; }); }
+indexWeeks();
 const weekOf = (mon) => WEEKS.find((w) => w.monday === mon);
 
 const keep = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch { return null; } };
@@ -248,6 +250,7 @@ if (!user) location.replace("login.html");
 else {
     $("who").textContent = demo ? "This device only, nothing is saved" : "Signed in as " + user.name;
     let first = true;
+    watchPrivateWeeks(store, PUBLISHED, (list) => { WEEKS = list; indexWeeks(); if (!first && !(document.activeElement && document.activeElement.classList.contains("pl-in"))) draw(); });
     store.watch("standards/progress", (snap) => {
         if (snap.pending) return;
         const d = (snap.exists && snap.data) || {}; stdProgress = d && typeof d === "object" ? d : {}; stdLoaded = true;

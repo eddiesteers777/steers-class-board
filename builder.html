@@ -81,7 +81,9 @@
         </div>
     </main>
     <script type="module">
-        import { WEEKS } from "./data/weeks.js?v=57";
+        import { WEEKS as PUBLISHED } from "./data/weeks.js?v=57";
+        import { watchPrivateWeeks } from "./js/weeksLive.js?v=58";
+        let WEEKS = PUBLISHED;
         import { DAYS, dayDate, bellringerSheet, bellringerKey, notesSheet, studyGuideSheet, studyGuideKey, speedDatingSheet, speedDatingKey } from "./js/weekSheets.js?v=57";
         // ?demo runs on this device only, like the guest teacher page: nothing is saved to any account.
         const demo = new URLSearchParams(location.search).has("demo");
@@ -223,6 +225,12 @@
                     try { if (snap.exists && snap.data && snap.data.json) saved[w.id] = JSON.parse(snap.data.json); } catch { /* ignore a damaged copy */ }
                     done();
                 }, (e) => { if (got) return; got = true; status("Could not load saved changes (" + ((e && e.code) || "error") + ")", "bad"); if (--left === 0) openWeek($("weekSel").value); });
+            });
+            // Weeks approved on Week Review are private: their saved copy is the week itself.
+            watchPrivateWeeks(store, PUBLISHED, (list) => {
+                const added = list.filter((w) => !WEEKS.some((x) => x.id === w.id)); if (!added.length) return;
+                WEEKS = list; added.forEach((w) => { if (!saved[w.id]) saved[w.id] = w; });
+                const cur = $("weekSel").value; fillPickers(); $("weekSel").value = cur;
             });
         }
     </script>
