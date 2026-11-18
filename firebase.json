@@ -6,7 +6,8 @@
       "ignore": [
         "firebase.json",
         "**/.*",
-        "**/node_modules/**"
+        "**/node_modules/**",
+        "redirect/**"
       ],
       "redirects": [
         {
@@ -27,7 +28,8 @@
       "ignore": [
         "firebase.json",
         "**/.*",
-        "**/node_modules/**"
+        "**/node_modules/**",
+        "redirect/**"
       ],
       "redirects": [
         {
@@ -39,6 +41,30 @@
           "source": "/join",
           "destination": "/play.html",
           "type": 301
+        }
+      ]
+    },
+    {
+      "site": "focalboard",
+      "public": "redirect",
+      "ignore": [
+        "**/.*"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
         }
       ]
     }

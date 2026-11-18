@@ -21,4 +21,4 @@ Disallow: /css/
 Disallow: /data/
 Disallow: /components/
 
-Sitemap: https://anchorboard.app/sitemap.xml
+Sitemap: https://anchorboard.web.app/sitemap.xml

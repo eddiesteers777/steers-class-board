@@ -1,5 +1,5 @@
 /* ==========================================
-   Anchor Board — the student page for Vault Raid (play.html, anchorboard.app/play).
+   Anchor Board — the student page for Vault Raid (play.html, anchorboard.web.app/play).
    No account and no password: the page signs in as an anonymous guest on this
    device only, so the game can tell this Chromebook's answers from the others'.
    It never touches the teacher's sign-in (it runs as its own Firebase app, "play").
