@@ -88,7 +88,7 @@ export function cleanTyped(s) {
 }
 
 /* ---------- answers ---------- */
-const UNITS = /^(?:[a-z]+(?:\^?[23²³])?|°|degrees?|%)$/;
+const UNITS = /^(?:[a-z]+(?:\^?[23²³])?|°[cf]?|degrees?|%)$/;
 const SUP = { "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9", "⁻": "-" };
 /** Exponents written as superscripts (10⁵, 3³, cm²) become ^ (10^5, 3^3, cm^2), the same way a student types them. */
 const supToCaret = (s) => s.replace(/([0-9a-z)])([⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+)/g, (m, b, e) => b + "^" + [...e].map((c) => SUP[c]).join(""));
@@ -176,6 +176,18 @@ export function answerKind(ans) {
     if (/^-?\d+\s*\/\s*\d+$/.test(n)) return "frac";
     return "";
 }
+
+/** One question from a saved set, made ready for the game: { c, q, a, al, h, ch }.
+    al: other answers to accept · h: the teacher's own second-try hint · ch: answer choices (multiple choice, 2 to 5).
+    The Question Maker (maker.html) writes these; question sets made elsewhere just have q and a. */
+export function gameQuestion(k, cat) {
+    const ch = Array.isArray(k.ch) ? k.ch.map((x) => String(x == null ? "" : x).trim().slice(0, 80)).filter(Boolean).slice(0, 5) : [];
+    return { c: String(cat || "").slice(0, 60), q: String(k.q).slice(0, 400), a: String(k.a).slice(0, 200),
+        al: Array.isArray(k.al) ? k.al.map((x) => String(x).trim().slice(0, 80)).filter(Boolean).slice(0, 8) : [],
+        h: k.h ? String(k.h).trim().slice(0, 200) : "", ch: ch.length >= 2 ? ch : null };
+}
+/** The answer box a game question gets: "mc" for multiple choice, otherwise answerKind of its answer. */
+export const formOf = (q) => (q && q.ch && q.ch.length >= 2 ? "mc" : answerKind(q && q.a));
 
 /** A nudge for a second try, from the question, the answer key and what the student wrote. It never gives the answer away. */
 export function hintFor(typed, answer, question) {

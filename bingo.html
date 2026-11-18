@@ -32,7 +32,7 @@
         <div id="cards" class="bgcards"></div>
     </main>
     <script type="module">
-        import { cleanSet, mathRich, bingoPool, bingoSize, bingoCard } from "./js/games.js?v=57";
+        import { cleanSet, mathRich, bingoPool, bingoSize, bingoCard } from "./js/games.js?v=58";
         const q = new URLSearchParams(location.search), demo = q.has("demo");
         const store = await import(demo ? "./js/localStore.js?v=57" : "./js/boardStore.js?v=58");
         const $ = (id) => document.getElementById(id);

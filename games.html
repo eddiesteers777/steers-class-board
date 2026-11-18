@@ -32,7 +32,8 @@
         </section>
 
         <section class="gsbox">
-            <div class="glhead"><h2>Your question sets</h2><button class="btn go" id="newSet" type="button">New question set</button></div>
+            <div class="glhead"><h2>Your question sets</h2><a class="btn go" href="maker.html" style="text-decoration:none">Question Maker</a><button class="btn ghost" id="newSet" type="button">Paste a table</button></div>
+            <p class="sub">The <b>Question Maker</b> builds a set one question at a time with a preview of the student's screen, multiple choice, and questions from your Question Bank. Pasting a table still works for the board games.</p>
             <div class="glbar">
                 <div class="tabs" id="perTabs" role="group" aria-label="Show sets for"></div>
                 <label class="glsearch"><span class="sr">Search sets</span><input type="search" id="find" placeholder="Search sets"></label>
@@ -70,7 +71,7 @@
     </main>
     <script type="module">
         import { parseTable, readQuestions, toTable } from "./js/importSet.js?v=57";
-        import { parseSet, setToText, cleanSet, countClues, mathRich, LIMITS } from "./js/games.js?v=57";
+        import { parseSet, setToText, cleanSet, countClues, mathRich, LIMITS } from "./js/games.js?v=58";
         import { WEEKS } from "./data/weeks.js?v=61";
         const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
         const store = await import(demo ? "./js/localStore.js?v=57" : "./js/boardStore.js?v=58");
@@ -113,6 +114,7 @@
             if (view !== "all" && opts.some(([p]) => p === view)) sel.value = view;
             const lab = el("label", null, "Class "); lab.append(sel); box.append(lab);
             GAMES.forEach(([k, name]) => { const a = el("a", "btn ghost", name); a.href = "#"; a.onclick = (e) => { e.preventDefault(); location.href = "remote.html?" + new URLSearchParams({ screen: "game", period: sel.value, set: m.id, game: k }).toString(); }; row.append(a); });
+            const vr = el("a", "btn go", "Vault Raid on Chromebooks"); vr.href = "#"; vr.onclick = (e) => { e.preventDefault(); location.href = "remote.html?" + new URLSearchParams({ screen: "live", period: sel.value, vset: m.id }).toString(); }; row.prepend(vr);
             box.append(row, el("p", "sub", "Opens the Remote with this game ready for that class. If a game is already running there, it asks you to end it first."));
             return box;
         }
@@ -121,7 +123,7 @@
             const set = await new Promise((done) => { let got = false; const u = store.watch("games/s_" + m.id, (snap) => { if (got || snap.pending) return; got = true; setTimeout(() => u && u(), 0); done(snap.exists ? cleanSet(snap.data) : null); }, () => done(null)); });
             if (!set) { status("Could not copy that set", "bad"); return; }
             const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title = ("Copy of " + set.title).slice(0, LIMITS.title);
-            const copy = cleanSet(Object.assign({}, set, { id, title })), meta = { id, title, cats: copy.cats.length, clues: countClues(copy), final: !!copy.final, per: perOf(m), at: Date.now() };
+            const copy = cleanSet(Object.assign({}, set, { id, title })), meta = Object.assign({ id, title, cats: copy.cats.length, clues: countClues(copy), final: !!copy.final, per: perOf(m), at: Date.now() }, copy.maker ? { maker: 1 } : {});
             try { await store.save("games/s_" + id, Object.assign({ at: meta.at }, copy)); index = [...index, meta]; await store.save("games/index", { sets: index, at: meta.at }); status("Copied", "ok"); drawSets(); }
             catch (e) { status("Could not copy (" + ((e && e.code) || "connection") + ")", "bad"); }
         }
@@ -141,7 +143,8 @@
                 d.appendChild(chips);
                 const acts = el("div", "glacts");
                 const play = el("button", "btn go", playing === m.id ? "Close" : "Play"); play.type = "button"; play.onclick = () => { playing = playing === m.id ? "" : m.id; drawSets(); }; acts.appendChild(play);
-                const ed = el("button", "bx2", "Edit"); ed.type = "button"; ed.onclick = () => edit(m); acts.appendChild(ed);
+                const ed = el("button", "bx2", "Edit"); ed.type = "button"; ed.onclick = () => (m.maker ? (location.href = "maker.html?set=" + encodeURIComponent(m.id)) : edit(m)); acts.appendChild(ed);
+                if (!m.maker) { const mk = el("a", "bx2", "Question Maker"); mk.href = "maker.html?set=" + encodeURIComponent(m.id); mk.style.textDecoration = "none"; acts.appendChild(mk); }
                 const cp = el("button", "bx2", "Copy"); cp.type = "button"; cp.onclick = () => copySet(m); acts.appendChild(cp);
                 const rm = el("button", "bx2", "Remove"); rm.type = "button";
                 rm.onclick = async () => {

@@ -14,7 +14,7 @@
    Closing the room deletes rooms/{code} and everything under it.
    Each student's result is saved to Class Data only when the teacher turns that on.
 ========================================== */
-import * as V from "./vaultCore.js?v=66";
+import * as V from "./vaultCore.js?v=67";
 import qrcode from "./vendor/qrcode.js?v=1";
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
@@ -33,7 +33,7 @@ let H = null, loaded = false, rev = 0, hosting = false, unsubH = null, unsubP = 
 let PL = {};                 // the latest entry from each student (rooms/{code}/p), Remote only
 let SETS = null, setsWatched = false, note = "", busy = "", tab = "players", dtab = "report", peek = "", endArm = 0;
 let saveTimer = 0, lastSave = 0, panelSig = "", panelAt = 0, padWatch = null, padFor = "", PAD = null;
-const choice = { set: "", mins: 10, names: "roster", board: true, save: false, live: false, work: true, retry: true, slow: true };
+const choice = { set: (() => { try { return new URLSearchParams(location.search).get("vset") || ""; } catch (e) { return ""; } })(), mins: 10, names: "roster", board: true, save: false, live: false, work: true, retry: true, slow: true };
 
 export function mountLive(api) { A = api; }
 export const liveSig = () => rev + "#" + loaded + "#" + hosting + "#" + (PAD ? PAD.it : "");
@@ -181,7 +181,7 @@ function handle(id, d, sends) {
                 }
                 else p.st = 0;
                 const retry = !ok && H.opts.retry !== false;
-                p.fb = retry ? { q: p.qn, ok, y: typed, a: "", plus: 0, x2, box: null, retry: 1, hint: V.hintFor(typed, q.a, q.q) } : { q: p.qn, ok, y: typed, a: ok ? "" : q.a, plus, x2, box };
+                p.fb = retry ? { q: p.qn, ok, y: typed, a: "", plus: 0, x2, box: null, retry: 1, hint: q.h || V.hintFor(typed, q.a, q.q) } : { q: p.qn, ok, y: typed, a: ok ? "" : q.a, plus, x2, box };
                 p.la = { qi, q: p.qn, y: typed, ok };
                 tally(p, qi, typed, ok);
                 if (retry) p.rt = p.qn; else p.qn++;
@@ -291,7 +291,7 @@ function exitView(id) {
     const ex = H.exit, mine = ex.res[id] || [], i = mine.length;
     if (i >= ex.qis.length) return { done: 1, of: ex.qis.length };
     const q = H.qs[ex.qis[i]];
-    return { i, of: ex.qis.length, q: { n: exitN(i), c: "Exit ticket", t: q.q, f: V.answerKind(q.a) } };
+    return { i, of: ex.qis.length, q: { n: exitN(i), c: "Exit ticket", t: q.q, f: V.formOf(q), ch: q.ch || null } };
 }
 function finishExit() {
     const ex = H && H.exit; if (!ex || ex.done) return;
@@ -418,7 +418,7 @@ function view(id, order) {
     p.sn = (p.sn || 0) + 1;
     return { n: p.sn, status: H.status, title: H.title, nm: p.nm, c: p.c, h: p.h, st: p.st, r: p.r, of: p.n, rank, players: order.length, ends: H.ends || 0,
         av: p.av, pu: p.pu || "", dbl: p.dbl || 0, blk: p.blk || 0, ins: p.ins || 0, fw: (+p.sh || 0) > Date.now() && p.code ? +p.sh : 0, bonus: +H.bonus || 0,
-        code: p.code, need: rd || ex ? false : !p.code, exit: ex ? exitView(id) : null, cd: +p.cd || 0, q: ex ? null : rd ? (rd.res[id] ? null : { n: redoN(), c: rq.c, t: rq.q, f: V.answerKind(rq.a) }) : q ? { n: p.qn, c: q.c, t: q.q, f: V.answerKind(q.a) } : null, redo: rd ? 1 : 0, best: p.best, cr: p.cr, fb: p.fb, hk: p.hk, hit: p.hit,
+        code: p.code, need: rd || ex ? false : !p.code, exit: ex ? exitView(id) : null, cd: +p.cd || 0, q: ex ? null : rd ? (rd.res[id] ? null : { n: redoN(), c: rq.c, t: rq.q, f: V.formOf(rq), ch: rq.ch || null }) : q ? { n: p.qn, c: q.c, t: q.q, f: V.formOf(q), ch: q.ch || null } : null, redo: rd ? 1 : 0, best: p.best, cr: p.cr, fb: p.fb, hk: p.hk, hit: p.hit,
         targets: order.filter((x) => x.id !== id).map((x) => ({ id: x.id, nm: x.nm, av: x.av, c: x.c, sh: shielded(x) ? 1 : 0, g: p.g[x.id] || [] })),
         res: H.status === "done" ? results(p) : null };
 }
@@ -446,8 +446,8 @@ async function openRoom() {
     busy = "open"; note = ""; panelSig = ""; drawLivePanel(true);
     try {
         const set = await A.store().rooms.get("teacher/" + A.store().rooms.uid() + "/games/s_" + meta.id);
-        const qs = []; ((set && set.cats) || []).forEach((c) => (c.clues || []).forEach((k) => { if (k && k.q && k.a) qs.push({ c: String(c.n || "").slice(0, 60), q: String(k.q).slice(0, 400), a: String(k.a).slice(0, 200), al: [] }); }));
-        if (set && set.final && set.final.q) qs.push({ c: String(set.final.c || "Final").slice(0, 60), q: String(set.final.q).slice(0, 400), a: String(set.final.a).slice(0, 200), al: [] });
+        const qs = []; ((set && set.cats) || []).forEach((c) => (c.clues || []).forEach((k) => { if (k && k.q && k.a) qs.push(V.gameQuestion(k, c.n)); }));
+        if (set && set.final && set.final.q && set.final.a) qs.push(V.gameQuestion(set.final, set.final.c || "Final"));
         if (qs.length < 3) throw new Error("That set needs at least 3 questions.");
         const roster = (A.rosters()[A.S.period] || []).filter(Boolean), names = choice.names === "roster" ? V.shortNames(roster) : [];
         if (choice.names === "roster" && !names.length) throw new Error("There is no class list for " + A.S.period + " period. Add one on the Rosters page, or let students type a name.");
@@ -829,14 +829,15 @@ function reportPanel(p) {
 function setupPanel(p) {
     p.append(hd("Student game: Vault Raid"), el("p", "gpnote", "Students play on their Chromebooks with a game code and their name. No sign-in. Right answers earn coins and hacks; a hack guesses a classmate's 3-digit vault code to take some of their coins. Each question has a pad to show their work, which you can see here and put on the board."));
     if (!SETS) { p.append(el("p", "gpnote", "Getting your question sets…")); return; }
-    if (!SETS.length) { p.append(el("p", "gpnote", "No question sets are saved yet.")); const a = el("a", "btn go gplink", "Make a question set"); a.href = "games.html"; p.append(a); return; }
+    if (!SETS.length) { p.append(el("p", "gpnote", "No question sets are saved yet.")); const a = el("a", "btn go gplink", "Make a question set"); a.href = "maker.html?per=" + encodeURIComponent(A.S.period); p.append(a); return; }
     const mine = SETS.filter((s) => !Array.isArray(s.per) || !s.per.length || s.per.includes(A.S.period)), list = mine.length ? mine : SETS;
     if (!list.some((s) => s.id === choice.set)) choice.set = list.slice().sort((a, b) => (b.at || 0) - (a.at || 0))[0].id;
     const row = (label, ctl) => { const l = el("label", "gpchk vrfield"); l.append(el("span", null, label), ctl); return l; };
     const sel = el("select"); list.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach((s) => { const o = el("option", null, (s.title || "Review game") + " (" + (s.clues || 0) + ")"); o.value = s.id; sel.append(o); }); sel.value = choice.set; sel.onchange = () => { choice.set = sel.value; panelSig = ""; };
     const len = el("select"); LENGTHS.forEach(([m, t]) => { const o = el("option", null, t); o.value = String(m); len.append(o); }); len.value = String(choice.mins); len.onchange = () => { choice.mins = +len.value; panelSig = ""; };
     const nm = el("select"); [["roster", "Pick from my class list"], ["typed", "Type their name"]].forEach(([v, t]) => { const o = el("option", null, t); o.value = v; nm.append(o); }); nm.value = choice.names; nm.onchange = () => { choice.names = nm.value; panelSig = ""; };
-    p.append(row("Question set", sel), row("Length", len), row("Students", nm));
+    const mk = el("a", "gplink vrmake", "Make or edit questions in the Question Maker"); mk.href = "maker.html?set=" + encodeURIComponent(choice.set) + "&per=" + encodeURIComponent(A.S.period);
+    p.append(row("Question set", sel), mk, row("Length", len), row("Students", nm));
     if (choice.names === "roster") p.append(el("p", "gpnote", "Names show as first name and last initial (" + A.S.period + " period's list on the Rosters page)."));
     const more = el("details", "gpopts"); more.append(el("summary", null, "Options"));
     more.append(check("Show names on the board", choice.board, (v) => { choice.board = v; }),

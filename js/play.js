@@ -12,7 +12,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import * as V from "./vaultCore.js?v=66";
+import * as V from "./vaultCore.js?v=67";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=2";
 
@@ -258,11 +258,12 @@ setInterval(() => {
    (3³), scientific notation (8 × 10⁵) or one box per number (6 and 7). The Remote says which one
    fits the question (V.answerKind); a student can still switch to a plain box. */
 const KINDS = [["", "Number"], ["frac", "Fraction"], ["mixed", "Mixed number"]];
-const SPECIAL = { sol: ["Choose", "✓"], pow: ["Exponent", "xⁿ"], sci: ["Sci. notation", "×10ⁿ"], list: ["Boxes", "□ □"] };
+const SPECIAL = { sol: ["Choose", "✓"], mc: ["Choose", "✓"], pow: ["Exponent", "xⁿ"], sci: ["Sci. notation", "×10ⁿ"], list: ["Boxes", "□ □"] };
 const SOLS = ["One solution", "No solution", "Infinitely many solutions"];
-function answerBox(kind) {
+function answerBox(kind, options) {
+    if (kind === "mc" && !(Array.isArray(options) && options.length >= 2)) kind = "";   // multiple choice needs its choices
     const lm = /^list([2-4])$/.exec(kind || ""), sk = lm ? "list" : SPECIAL[kind] ? kind : "", count = lm ? +lm[1] : 0;
-    const kinds = (sk ? [[sk, SPECIAL[sk][0]]] : []).concat(KINDS);
+    const kinds = sk === "mc" ? [["mc", "Choose"]] : (sk ? [[sk, SPECIAL[sk][0]]] : []).concat(KINDS);   // multiple choice: tap a choice, no other box
     const wrap = el("div", "pabox"); let mode = kinds.some((k) => k[0] === kind || k[0] === sk) ? (sk || kind) : "", neg = false, choice = "";
     const tabs = el("div", "patabs"); tabs.setAttribute("role", "radiogroup"); tabs.setAttribute("aria-label", "Answer type");
     const field = el("div", "pafield");
@@ -286,16 +287,17 @@ function answerBox(kind) {
     const listEl = el("span", "palist"); boxes.forEach((b, i) => { if (i) listEl.append(el("span", "pajoin", i === count - 1 ? (count > 2 ? ", and" : "and") : ",")); listEl.append(b); });
     boxes.forEach((b, i) => { b.onkeydown = (e) => { if ((e.key === "," || e.key === " " || (e.key === "Enter" && b.value)) && boxes[i + 1] && !boxes[i + 1].value) { e.preventDefault(); boxes[i + 1].focus(); } }; });
     base.onkeydown = (e) => { if ((e.key === "^" || (e.key === "Enter" && base.value && !exp.value))) { e.preventDefault(); exp.focus(); } };
-    const choiceEl = el("div", "pachoices"); choiceEl.setAttribute("role", "radiogroup"); choiceEl.setAttribute("aria-label", "How many solutions?");
-    SOLS.forEach((label) => {
-        const c = btn("pachoice", label, () => { choice = label; [...choiceEl.children].forEach((x) => { const on = x === c; x.classList.toggle("on", on); x.setAttribute("aria-checked", String(on)); }); });
+    const choiceEl = el("div", "pachoices" + (sk === "mc" ? " mc" : "")); choiceEl.setAttribute("role", "radiogroup"); choiceEl.setAttribute("aria-label", sk === "mc" ? "Answer choices" : "How many solutions?");
+    (sk === "mc" ? options : SOLS).forEach((label, k) => {
+        const c = btn("pachoice", sk === "mc" ? null : label, () => { choice = label; [...choiceEl.children].forEach((x) => { const on = x === c; x.classList.toggle("on", on); x.setAttribute("aria-checked", String(on)); }); });
+        if (sk === "mc") { c.append(el("b", "pachl", "ABCDE"[k]), mathEl("span", "pacht", label)); c.setAttribute("aria-label", "ABCDE"[k] + ": " + label); }
         c.setAttribute("role", "radio"); c.setAttribute("aria-checked", "false"); choiceEl.append(c);
     });
-    const first = () => mode === "" ? text : mode === "mixed" ? whole : mode === "frac" ? top : mode === "list" ? boxes[0] : mode === "sol" ? choiceEl.firstChild : base;
+    const first = () => mode === "" ? text : mode === "mixed" ? whole : mode === "frac" ? top : mode === "list" ? boxes[0] : mode === "sol" || mode === "mc" ? choiceEl.firstChild : base;
     function show() {
-        field.textContent = ""; field.classList.toggle("choices", mode === "sol");
+        field.textContent = ""; field.classList.toggle("choices", mode === "sol" || mode === "mc");
         if (mode === "") field.append(text);
-        else if (mode === "sol") field.append(choiceEl);
+        else if (mode === "sol" || mode === "mc") field.append(choiceEl);
         else if (mode === "pow" || mode === "sci") field.append(powEl);
         else if (mode === "list") field.append(listEl);
         else { field.append(sign); if (mode === "mixed") field.append(whole); field.append(frac); }
@@ -309,6 +311,7 @@ function answerBox(kind) {
         else { const f = el("span", "frac"); f.append(el("span", null, "a"), el("span", null, "b")); if (k === "mixed") b.append(el("b", null, "1")); b.append(f); }
         b.append(el("small", null, n.replace(" number", ""))); tabs.append(b);
     });
+    if (sk === "mc") tabs.hidden = true;   // only one way to answer
     wrap.append(tabs, field); show();
     return {
         el: wrap,
@@ -325,7 +328,7 @@ function answerBox(kind) {
         /** The answer as text ("3/4", "-1 1/2", "12", "3^3", "8 × 10^5", "6, 7"), or an error message to show. */
         read() {
             if (mode === "") return { t: text.value.trim() };
-            if (mode === "sol") return choice ? { t: choice } : { err: "Tap one of the choices." };
+            if (mode === "sol" || mode === "mc") return choice ? { t: choice } : { err: "Tap one of the choices." };
             if (mode === "pow" || mode === "sci") {
                 const x = base.value.trim(), e = exp.value.trim();
                 if (!x || !e) return { err: mode === "pow" ? "Fill in the base and the exponent." : "Fill in the number and the power of 10." };
@@ -629,7 +632,7 @@ function questionView(card) {
     if (m.h > 0 && !ex && !m.redo) top.append(btn("pbtn hack", "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }));
     left.append(top, mathEl("p", "pq", q.t));
     const right = el("div", "pqright");
-    const f = el("form", "pform ans"), box = answerBox(q.f || ""); ST.box = box;
+    const f = el("form", "pform ans"), box = answerBox(q.f || "", q.ch); ST.box = box;
     const go = el("button", "pbtn go", "Submit"); go.type = "submit";
     // Two misses in a row: a short wait before the next answer, to look over the work.
     const cool = () => Math.ceil(((+m.cd || 0) - Date.now()) / 1000);
