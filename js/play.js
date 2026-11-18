@@ -294,10 +294,13 @@ const pad = (() => {
     };
 })();
 // Live work: when the teacher turns it on, the pad is sent every few seconds while it changes.
+// A student the teacher called up to the board sends it about every second, so the class watches it live.
+const calledUp = () => !!(ST.room && ST.uid && ST.room.call === ST.uid && ST.room.status === "play");
 setInterval(() => {
-    if (!ST.room || !ST.room.live || !ST.me || ST.me.status !== "play" || !ST.me.q || ST.view !== "q" || !pad.dirty() || Date.now() - pad.sentAt() < 5000) return;
-    const img = pad.image(); pad.sent(); send({ img, iq: ST.me.q.n, it: Date.now() });
-}, 1000);
+    const called = calledUp(), q = curQ(ST.me);
+    if (!ST.room || !(ST.room.live || called) || !ST.me || ST.me.status !== "play" || !q || ST.view !== "q" || !pad.dirty() || Date.now() - pad.sentAt() < (called ? 900 : 5000)) return;
+    const img = pad.image(); pad.sent(); send({ img, iq: q.n, it: Date.now() });
+}, 300);
 
 /* ---------- the answer box ----------
    A plain box, a fraction (top and bottom boxes over a bar) and a mixed number, plus a ready-made
@@ -560,8 +563,15 @@ function pauseCover() {
     if (on && !c) { c = el("div", "ppause"); c.id = "ppause"; c.setAttribute("role", "alert"); const b = el("div", "ppausebox"); b.append(el("b", null, "Paused"), el("p", null, "Eyes up here. Your teacher has something to show you.")); c.append(b); document.body.append(c); }
     else if (!on && c) c.remove();
 }
+/** Called up to the board: a banner, without redrawing (the pad and anything typed stay). */
+function callBanner() {
+    const on = calledUp() && !!(ST.me && ST.me.nm) && !ST.roomGone;
+    let c = $("pcall");
+    if (on && !c) { c = el("div", "pcall"); c.id = "pcall"; c.setAttribute("role", "status"); c.append(el("b", null, "You're on the board!"), el("span", null, "Work it out on your pad. The class sees it live.")); document.body.append(c); sfx("start"); }
+    else if (!on && c) c.remove();
+}
 function draw(force) {
-    pauseCover();
+    pauseCover(); callBanner();
     const m = ST.me;
     if (m && m.nm && ST.step !== "play") ST.step = "play";
     const k = JSON.stringify([ST.step, ST.view, ST.err, ST.busy, ST.target, ST.guess, ST.vault, ST.roomGone, ST.room && [ST.room.status, ST.step === "name" ? [ST.room.taken, ST.room.names && ST.room.names.length] : 0, ST.room.bonus], m && [m.status === "lobby" ? 0 : m.n, m.status, m.need]]);

@@ -75,7 +75,36 @@ export function syncLive() {
         setsWatched = true;
         A.store().watch("games/index", (snap) => { if (snap.pending) return; SETS = ((snap.exists && snap.data && snap.data.sets) || []).filter((s) => s && s.id).slice(0, 200); panelSig = ""; drawLivePanel(true); }, () => { SETS = []; panelSig = ""; drawLivePanel(true); });
     }
+    watchCmd();
     watchPad();
+}
+/* ---------- moves made on a screen that isn't running the game ----------
+   Only the Remote running the game writes the game. When the board (or another Remote)
+   taps Next question, Send it back or Stop, it asks that Remote through
+   teacher/{uid}/games/cmd, so its older copy of the game never overwrites the newer one. */
+let cmdSeen = -1, cmdWatched = false;
+const hostAlive = () => !!(H && H.host && Date.now() - (+H.hb || 0) < HOST_STALE);
+function doMove(op, qi, ans) {
+    if (op === "review") review(qi, ans);
+    else if (op === "send") { if (isRemote() && !hosting) takeHost(); sendBack(qi); }
+    else if (op === "finish") finishRedo();
+}
+function ask(op, qi, ans) {
+    if (!H) return;
+    if ((isRemote() && hosting) || (isRemote() && !hostAlive())) return doMove(op, qi, ans);
+    if (!hostAlive() && op === "review") return review(qi, ans);   // no Remote is running it: nobody else is writing
+    A.store().save("games/cmd", { op, qi: qi == null ? -1 : qi, ans: !!ans, n: Date.now(), by: PAGE }).catch((e) => { note = "Could not reach the Remote (" + ((e && e.code) || "connection") + ")."; });
+    if (op === "review") { H.review = qi == null ? null : { qi, ans: !!ans }; rev++; A.redraw(); }   // show it here at once; the Remote's copy follows
+}
+function watchCmd() {
+    if (cmdWatched || !isRemote()) return; cmdWatched = true;
+    A.store().watch("games/cmd", (snap) => {
+        if (snap.pending) return;
+        const d = snap.exists ? snap.data : null, n = d ? +d.n || 0 : 0;
+        if (cmdSeen < 0) { cmdSeen = n; return; }   // just opened: never replay an old move
+        if (n <= cmdSeen) return; cmdSeen = n;
+        if (hosting && H && d.by !== PAGE) doMove(d.op, +d.qi < 0 ? null : +d.qi, !!d.ans);
+    }, () => {});
 }
 function takeHost() {
     hosting = true; H.host = PAGE; H.hb = Date.now(); saveSoon(true);
@@ -240,7 +269,7 @@ function sendBack(qi) {
 }
 function finishRedo() {
     const rd = H && H.redo; if (!rd || rd.done) return;
-    const r = Object.values(rd.res); rd.done = 1;
+    const r = Object.values(rd.res); rd.done = 1; H.show = null;
     H.redos = (H.redos || []).filter((x) => x.qi !== rd.qi).concat([{ qi: rd.qi, ok: r.filter((x) => x.ok).length, of: r.length }]);
     H.status = "done"; flush(everyone()); saveSoon(true); panelSig = ""; drawLivePanel(true);
 }
@@ -456,7 +485,7 @@ function flush(sends) {
 const everyone = () => { const s = new Set(Object.keys(H.players)); s.add("room"); return s; };
 function roomDoc() {
     return { owner: A.store().rooms.uid(), status: H.status, title: H.title, mode: H.mode, names: H.mode === "roster" ? H.names : [], taken: H.taken || [],
-        live: !!H.opts.live, work: H.opts.work !== false, ends: H.ends || 0, bonus: +H.bonus || 0, paused: +H.paused || 0, snd: H.opts.snd !== false, at: Date.now() };
+        live: !!H.opts.live, work: H.opts.work !== false, ends: H.ends || 0, bonus: +H.bonus || 0, paused: +H.paused || 0, snd: H.opts.snd !== false, call: H.status === "play" && H.show ? H.show.id : "", at: Date.now() };
 }
 
 /* ---------- teacher moves ---------- */
@@ -567,7 +596,11 @@ function acceptAnswer(id) {
     flush(new Set([id]));
 }
 function setLive(on) { H.opts.live = on; flush(new Set(["room"])); saveSoon(true); }
-function showWork(id, withName) { H.show = id ? { id, nm: !!withName } : null; if (id && H.heat) H.heat.on = false; boardNow(); }
+function showWork(id, withName) {
+    H.show = id ? { id, nm: !!withName } : null; if (id && H.heat) H.heat.on = false;
+    if (hosting && running()) flush(new Set(["room"]));   // the room says who is on the board, so that screen sends its work live
+    boardNow();
+}
 /** The "On the board" switch at the top of the Remote's game panel. */
 function boardSwitch(p) {
     const now = H.show && P(H.show.id) ? "work" : H.heat && H.heat.on ? "heat" : "lead", row = el("div", "vrboardsw");
@@ -601,7 +634,7 @@ export function tickLive() {
     if (bs) { bs.hidden = !bl; const t = bs.querySelector("b"); if (t) t.textContent = Math.ceil(bl / 1000) + " s"; }
     const crk = document.getElementById("liveCrack"); if (crk && Date.now() > +crk.dataset.until) crk.remove();
     if (hosting && H.status === "play" && H.ends && !H.paused && !(H.exit && !H.exit.done) && !(H.redo && !H.redo.done) && Date.now() >= H.ends) endGame();
-    if (hosting && running() && Date.now() - lastSave > 8000) saveSoon(true);   // check in, so another Remote knows this one is running the game
+    if (hosting && Date.now() - lastSave > 8000) saveSoon(true);   // check in, so another screen knows this one is running the game   // check in, so another Remote knows this one is running the game
     if (endArm && Date.now() - endArm > 4000) { endArm = 0; panelSig = ""; }
     if (isRemote() && onLive() && Date.now() - panelAt > 1000) drawLivePanel(true);
 }
@@ -630,11 +663,12 @@ export function liveSound() {
 }
 export function liveReview() {
     if (!H || !(H.status === "done" || (H.redo && !H.redo.done)) || !H.review || !H.qs || !H.qs[H.review.qi]) return null;
+    if (H.status === "play" && H.show && P(H.show.id)) return null;   // a student is called up: their screen has the board
     const list = missedList(), at = list.findIndex((x) => x.qi === H.review.qi);
     return { key: "vr" + String(H.rid || H.code || "").replace(/\W/g, "") + "q" + H.review.qi, qi: H.review.qi, at, count: list.length, list: list.map((x) => x.qi), title: H.title || "Student Game", ans: !!H.review.ans };
 }
 /** Go to a missed question (null: back to the final scores), or show or hide its answer. Works from the board or the Remote. */
-export function goReview(qi, ans) { review(qi, ans); }
+export function goReview(qi, ans) { ask("review", qi, ans); }
 /** The floating card's insides: the question, how the class did, the answers we saw, then the answer once shown. */
 export function reviewBody(body) {
     const r = liveReview(); if (!r) return;
@@ -650,11 +684,11 @@ export function reviewBody(body) {
     else if (past) { const t = el("div", "vrwbredo done"); t.append(el("b", null, "Second try: " + pctOf(past.ok, past.of) + "%"), el("span", null, past.ok + " of " + past.of + " right (first try " + pctOf(st.ok, st.n) + "%)")); body.append(t); }
     if (r.ans && !live) body.append(mathEl("p", "wbans", q.a));
     const row = el("div", "vrwbbtns");
-    if (live) { row.append(btn("btn go", "Stop and show the results", finishRedo)); body.append(row); return; }
-    row.append(btn("btn ghost", "Send it back to everyone", () => sendBack(r.qi)));
-    row.append(btn("btn ghost", r.ans ? "Hide answer" : "Show answer", () => review(r.qi, !r.ans)));
-    if (r.at + 1 < r.count) row.append(btn("btn go", "Next question", () => review(r.list[r.at + 1])));
-    else row.append(btn("btn go", "Done: final scores", () => review(null)));
+    if (live) { row.append(btn("btn go", "Stop and show the results", () => ask("finish"))); body.append(row); return; }
+    row.append(btn("btn ghost", "Send it back to everyone", () => ask("send", r.qi)));
+    row.append(btn("btn ghost", r.ans ? "Hide answer" : "Show answer", () => ask("review", r.qi, !r.ans)));
+    if (r.at + 1 < r.count) row.append(btn("btn go", "Next question", () => ask("review", r.list[r.at + 1])));
+    else row.append(btn("btn go", "Done: final scores", () => ask("review", null)));
     body.append(row);
 }
 
@@ -741,7 +775,7 @@ export function drawLiveStage(st) {
         body.append(card);
     } else if (H.status === "play" && H.show && P(H.show.id)) {
         const p = P(H.show.id), pad = padOf(H.show.id), wrap = el("div", "vrpad");
-        const q = pad ? qOf(p, pad.iq) : null;
+        const q = pad ? (pad.iq >= 100000 && H.redo ? H.qs[H.redo.qi] : qOf(p, pad.iq)) : null;
         const top = el("div", "vrpadtop"); top.append(el("span", "gchip", H.show.nm ? p.nm + "'s work" : "Student work"));
         if (q) top.append(mathEl("p", "vrpadq", q.q));
         wrap.append(top);
@@ -845,9 +879,11 @@ export function drawLivePanel(force) {
         Object.keys(H.players).map((id) => Object.assign({ id }, H.players[id])).sort((a, b) => a.nm.localeCompare(b.nm)).forEach((x) => {
             const r = H.redo.res[x.id], row = el("div", "gprow vrprow");
             row.append(el("span", "gpname", V.avatar(x.av)[0] + " " + x.nm), el("small", "vrla " + (!r ? "" : r.ok ? "ok" : "no"), !r ? "working…" : (r.ok ? "✓ " : "✗ ") + (r.y || "(blank)")));
+            const on = H.show && H.show.id === x.id;
+            row.append(btn("btn " + (on ? "go" : "ghost") + " vrcall", on ? "On the board" : "Call on", () => showWork(on ? "" : x.id, true)));
             box.append(row);
         });
-        p.append(btn("btn go", "Stop and show the results", finishRedo), box);
+        p.append(btn("btn go", "Stop and show the results", () => ask("finish")), box);
     } else if (H.status === "play") {
         const top = el("div", "gptimer"), c = el("b"); c.id = "livePClock"; top.append(c);
         top.append(btn("btn ghost gpend", endArm ? "Tap again to end" : "End the game", () => { if (endArm) endGame(); else { endArm = Date.now(); panelSig = ""; drawLivePanel(true); } }));
@@ -901,7 +937,7 @@ function reportPanel(p) {
         row.append(btn("btn ghost", "Back", () => review(list[Math.max(0, at - 1)].qi)), btn("btn go", H.review.ans ? "Hide answer" : "Show answer", () => review(H.review.qi, !H.review.ans)),
             btn("btn ghost", at + 1 < list.length ? "Next" : "Done", () => (at + 1 < list.length ? review(list[at + 1].qi) : review(null))));
         if (at <= 0) row.firstChild.disabled = true;
-        box.append(row, btn("btn go", "Send it back to everyone (+" + REDO_COINS + " coins if right)", () => sendBack(H.review.qi)), btn("btn ghost", "Back to final scores", () => review(null))); p.append(box);
+        box.append(row, btn("btn go", "Send it back to everyone (+" + REDO_COINS + " coins if right)", () => ask("send", H.review.qi)), btn("btn ghost", "Back to final scores", () => review(null))); p.append(box);
     } else if (list.length) p.append(btn("btn go", "Go over the missed questions on the board (" + list.length + ")", () => review(list[0].qi)));
 
     p.append(hd("Top 3"));
@@ -989,7 +1025,7 @@ function workGrid(p) {
         const x = P(peek), pad = padOf(peek), big = el("div", "vrpeek");
         big.append(el("b", null, x.nm));
         if (pad && pad.img) { const q = qOf(x, pad.iq); big.append(mathEl("p", "gpnote", q.q)); const im = el("img"); im.src = pad.img; im.alt = x.nm + "'s work"; big.append(im); } else big.append(el("p", "gpnote", "No work yet."));
-        const row = el("div", "gpbtns"); row.append(btn("btn go", "Show on board", () => showWork(peek, false)), btn("btn ghost", "Show with name", () => showWork(peek, true)), btn("btn ghost", "Close", () => { peek = ""; panelSig = ""; drawLivePanel(true); }));
+        const row = el("div", "gpbtns"); row.append(btn("btn go", "Call on them (live on the board)", () => showWork(peek, true)), btn("btn ghost", "Show it without their name", () => showWork(peek, false)), btn("btn ghost", "Close", () => { peek = ""; panelSig = ""; drawLivePanel(true); }));
         big.append(row); p.append(big);
     }
     const grid = el("div", "vrgrid");
