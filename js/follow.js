@@ -11,7 +11,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import * as V from "./vaultCore.js?v=68";
+import * as V from "./vaultCore.js?v=69";
 import { createStudentPad } from "./studentPad.js?v=1";
 
 const app = initializeApp({

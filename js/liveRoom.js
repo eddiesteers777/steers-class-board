@@ -14,7 +14,7 @@
    Closing the room deletes rooms/{code} and everything under it.
    Each student's result is saved to Class Data only when the teacher turns that on.
 ========================================== */
-import * as V from "./vaultCore.js?v=68";
+import * as V from "./vaultCore.js?v=69";
 import qrcode from "./vendor/qrcode.js?v=1";
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };

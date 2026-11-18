@@ -116,7 +116,7 @@ const SUP = { "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5
 const supToCaret = (s) => s.replace(/([0-9a-z)])([⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+)/g, (m, b, e) => b + "^" + [...e].map((c) => SUP[c]).join(""));
 function norm(s) {
     let t = String(s == null ? "" : s).toLowerCase()
-        .replace(/[−‒–—]/g, "-").replace(/[ \s]+/g, " ").replace(/(\d),(?=\d{3}\b)/g, "$1");
+        .replace(/[−‒–—]/g, "-").replace(/≥/g, ">=").replace(/≤/g, "<=").replace(/≠/g, "!=").replace(/[ \s]+/g, " ").replace(/(\d),(?=\d{3}\b)/g, "$1");
     t = supToCaret(t)
         .replace(/\s*\^\s*/g, "^").replace(/\^\((-?\d+)\)/g, "^$1")                     // 3 ^ 3, 3^(3)
         .replace(/(\d)\s*(?:×|x|\*|·|•)\s*10\^/g, "$1×10^")                               // 8 x 10^5, 8*10^5
@@ -136,7 +136,60 @@ export function numberOf(s) {
 /** Split "12 cm" into ["12", "cm"]; anything else stays whole. */
 function withUnit(s) {
     const m = s.match(/^(-?[\d./ ]*\d)\s*([a-z°%²³^23]+)$/);
-    return m && UNITS.test(m[2]) ? [m[1].trim(), m[2].replace(/^degrees?$/, "°")] : [s, ""];
+    return m && UNITS.test(m[2]) ? [m[1].trim(), unitName(m[2].replace(/^degrees?$/, "°"))] : [s, ""];
+}
+/** One name for each unit, so "12 in" and "12 inches" match. */
+const UNIT_NAMES = [["in", /^(in|inch|inches)$/], ["ft", /^(ft|foot|feet)$/], ["yd", /^(yd|yds|yard|yards)$/], ["mi", /^(mi|mile|miles)$/],
+    ["cm", /^(cm|centimeters?|centimetres?)$/], ["mm", /^(mm|millimeters?)$/], ["km", /^(km|kilometers?)$/], ["m", /^(m|meters?|metres?)$/],
+    ["hr", /^(h|hr|hrs|hours?)$/], ["min", /^(min|mins|minutes?)$/], ["s", /^(s|sec|secs|seconds?)$/], ["day", /^days?$/], ["wk", /^(wk|wks|weeks?)$/],
+    ["lb", /^(lb|lbs|pounds?)$/], ["oz", /^(oz|ounces?)$/], ["g", /^(g|grams?)$/], ["kg", /^(kg|kilograms?)$/], ["gal", /^(gal|gallons?)$/], ["qt", /^(qt|quarts?)$/],
+    ["c", /^cups?$/], ["l", /^(l|liters?|litres?)$/], ["ml", /^(ml|milliliters?)$/], ["mph", /^mph$/]];
+function unitName(u) {
+    const sq = u.match(/^(.*?)(\^?[23²³])$/), base = sq && !/^(m|s)$/.test(u) ? sq[1] : u, pow = sq && base !== u ? "^" + sq[2].replace("²", "2").replace("³", "3").replace("^", "") : "";
+    const hit = UNIT_NAMES.find(([, re]) => re.test(base));
+    return (hit ? hit[0] : base) + pow;
+}
+/** An ordered pair like (2, 3): [2, 3] in that order; null otherwise. */
+function pairOf(s, needParens) {
+    const m = s.replace(/ /g, "").match(needParens ? /^\((-?[\d./]+),(-?[\d./]+)\)$/ : /^\(?(-?[\d./]+),(-?[\d./]+)\)?$/);
+    if (!m) return null; const a = numberOf(m[1]), b = numberOf(m[2]);
+    return a != null && b != null ? [a, b] : null;
+}
+/** Work out an expression like "5x+3" or "2(x-4)" for the given letter values; null if it isn't one. */
+function evalExpr(src, vals) {
+    const s = src.replace(/ /g, ""); if (!/^[0-9a-z.+\-*/^()×·]+$/.test(s) || s.length > 60) return null;
+    const tok = s.match(/\d*\.?\d+|[a-z]|[+\-*/^()×·]/g); if (!tok || tok.join("") !== s) return null;
+    // Put in the multiplication a student leaves out: 5x, 2(x+1), (x+1)(x-1), x(3).
+    const t = []; tok.forEach((k, i) => { const p = t[t.length - 1]; if (i && (/[\d.a-z)]$/.test(p)) && (/^[\d.a-z(]/.test(k))) t.push("*"); t.push(k === "×" || k === "·" ? "*" : k); });
+    let i = 0;
+    const peek = () => t[i], take = () => t[i++];
+    function expr() { let v = term(); while (peek() === "+" || peek() === "-") { const o = take(), r = term(); if (r == null || v == null) return null; v = o === "+" ? v + r : v - r; } return v; }
+    function term() { let v = unary(); while (peek() === "*" || peek() === "/") { const o = take(), r = unary(); if (r == null || v == null) return null; v = o === "*" ? v * r : v / r; } return v; }
+    function unary() { if (peek() === "-") { take(); const v = unary(); return v == null ? null : -v; } if (peek() === "+") { take(); return unary(); } return power(); }
+    function power() { const b = atom(); if (peek() === "^") { take(); const e = unary(); return b == null || e == null ? null : Math.pow(b, e); } return b; }
+    function atom() {
+        const k = take(); if (k == null) return null;
+        if (k === "(") { const v = expr(); return take() === ")" ? v : null; }
+        if (/^[a-z]$/.test(k)) return k in vals ? vals[k] : null;
+        return /^\d*\.?\d+$/.test(k) ? +k : null;
+    }
+    const v = expr(); return i === t.length && v != null && isFinite(v) ? v : null;
+}
+/** Terms at the top level: "5x+3" has 2, "-3x+7" has 2, "2(x+3)" has 1. */
+const termCount = (x) => { let n = 1, depth = 0; const s = x.replace(/ /g, ""); for (let i = 1; i < s.length; i++) { const c = s[i]; if (c === "(") depth++; else if (c === ")") depth--; else if (!depth && (c === "+" || c === "-") && !/[\^*/(+\-]/.test(s[i - 1])) n++; } return n; };
+/** The same expression written another way: 3+5x for 5x+3, 7-3x for -3x+7. Not a longer one (x+x for 2x: that's the
+    question typed back), and parentheses on one side only don't count (2x+6 for 2(x+3) would be the unfactored question). */
+function sameExpr(t, a) {
+    const letters = (x) => [...new Set(x.replace(/[^a-z]/g, ""))].sort().join("");
+    const lt = letters(t), la = letters(a);
+    if (!la || lt !== la || la.length > 2 || /[=<>!]/.test(t + a)) return false;
+    if (t.includes("(") !== a.includes("(")) return false;
+    if (termCount(t) > termCount(a)) return false;
+    return [[1.37, -0.61], [-2.29, 1.83], [0.53, 2.71]].every(([x, y]) => {
+        const vals = {}; [...la].forEach((c, j) => { vals[c] = j ? y : x; });
+        const p = evalExpr(t, vals), q = evalExpr(a, vals);
+        return p != null && q != null && Math.abs(p - q) < 1e-6 * Math.max(1, Math.abs(q));
+    });
 }
 /** How-many-solutions answers: "inf", "none", "one", or "" when the answer is not one of these. */
 function solKind(a) {
@@ -177,8 +230,10 @@ export function sameAnswer(typed, answer, also) {
         const x = numberOf(tn), y = numberOf(an);
         if (x != null && y != null) return Math.abs(x - y) < 1e-9;
         if (a.includes("^") && sq(t) === sq(a)) return true;
+        const pa = pairOf(a, true); if (pa) { const pt = pairOf(t, false); return !!pt && Math.abs(pt[0] - pa[0]) < 1e-9 && Math.abs(pt[1] - pa[1]) < 1e-9; }   // a point: same order
         const lt = listOf(t), la = listOf(a);
         if (lt && la) return lt.length === la.length && lt.every((v, i) => Math.abs(v - la[i]) < 1e-9);
+        if (sameExpr(t, a)) return true;
         return au && !tu ? tn.replace(/ /g, "") === an.replace(/ /g, "") : false;
     });
 }
