@@ -491,7 +491,14 @@ function waitingRoom(card, m) {
     const head = el("div", "wrhead"), me = el("span", "wrme", V.avatar(av)[0]); me.setAttribute("aria-hidden", "true");
     const hi = el("div"); hi.append(el("h1", null, "You're in, " + m.nm + "!"));
     const w = el("p", "pwait"); w.append(document.createTextNode("Waiting for your teacher to start"), el("i"), el("i"), el("i")); hi.append(w);
-    const code = el("div", "wrcode"); code.append(el("small", null, "Your secret code"), codeShow(m.code));
+    // The code stays blurred so classmates can't read it off the screen. Tap to see it for 3 seconds.
+    const code = el("div", "wrcode"), digits = codeShow(m.code), peek = btn("wrpeek", null, () => {
+        ST.peekUntil = Date.now() + 3000; hide(false);
+        clearTimeout(ST.peekT); ST.peekT = setTimeout(() => { const d = document.querySelector(".wrcode .pcodeshow"), b = document.querySelector(".wrpeek"); if (d) d.classList.add("hid"); if (b) { b.textContent = "Tap to see it"; b.setAttribute("aria-pressed", "false"); } }, 3000);
+    });
+    const hide = (on) => { digits.classList.toggle("hid", on); peek.textContent = on ? "Tap to see it" : "Hiding in 3 s"; peek.setAttribute("aria-pressed", String(!on)); };
+    peek.setAttribute("aria-label", "Show my secret code for 3 seconds"); hide(!((ST.peekUntil || 0) > Date.now()));
+    code.append(el("small", null, "Your secret code"), digits, peek);
     head.append(me, hi, code); card.append(head);
     card.append(el("h2", "wrh", "Pick your character"));
     const grid = el("div", "wravatars"); grid.setAttribute("role", "radiogroup"); grid.setAttribute("aria-label", "Characters");
