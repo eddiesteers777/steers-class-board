@@ -90,3 +90,18 @@ body.board .cv .inknote:empty{display:none}
 body.board.idle .wbrail,body.board.idle .wbpages,body.board.idle .wbcb,body.board.idle .bnav,body.board.idle #exit{opacity:.12}
 @media (prefers-reduced-motion:reduce){.wbrail,.wbpages,.wbdots button{transition:none}}
 @media (max-width:699px){.wbpaper .mathpanel{top:auto;bottom:.5em}.wbcard{left:2.6em}}
+
+/* Fix It: the tricky card on the paper, chips in the strip */
+.wbstrip .fixchips{flex:none;flex-wrap:nowrap;margin-left:.3em}
+.wbstrip .fixchip{font-size:.56em;padding:.1em .7em}
+.wbfix .fixctl{font-size:.62em}
+.wbfix .fixrow select,.wbfix .fixrow input{border-color:#DCE7F5;background:#F6F9FD}
+.wbfix .fixbtns{margin-top:.15em}
+.wbfix .fixbtns button{background:#EEF3FA;color:var(--blue);min-height:2.2em}
+.wbfix .fixbtns button.alt{background:transparent;color:#55627F;border:.12em solid #DCE7F5}
+.wbfix .fixhint{color:#55627F}
+.wbfix .fixerr{font-size:.75em}
+.wbfix .fixempty{margin:0;color:var(--ink)}
+.wbfix .fixempty p:not(.wbq){font-size:.7em;color:#55627F;line-height:1.35}
+.wbfix .fixnoq{color:#55627F}
+.wbfix .fixempty .wbq{color:var(--navy);font-size:1em;line-height:1.22;margin:0 0 .2em}
