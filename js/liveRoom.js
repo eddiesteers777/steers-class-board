@@ -580,6 +580,24 @@ export function tickLive() {
    After the game the board opens each missed question on the canvas-first whiteboard (js/boardApp.js),
    with the question on a card floating over the paper like the bellringer, so the teacher can work it out. */
 /** The question being gone over, or null: { key (for the saved ink), qi, at, count, list (question numbers), title, ans }. */
+/* ---------- the board's sound: the theme song's mood, and a sound for each big moment ---------- */
+const FEED_CUES = { join: "join", start: "start", crack: "crack", block: "block", box: "box", bonus: "bonus", end: "win" };
+let heardT = -1, lastPhase = "";
+/** What the game sounds like right now: { phase: "" | lobby | play | rush | paused, cues: [names of moments that just happened] }. */
+export function liveSound() {
+    if (!H || !loaded) { heardT = -1; lastPhase = ""; return { phase: "", cues: [] }; }
+    const t = Date.now(), ends = +H.ends || 0, calm = (H.exit && !H.exit.done) || (H.redo && !H.redo.done);
+    const phase = H.status === "lobby" ? "lobby" : H.status !== "play" ? "" : H.paused ? "paused" : calm ? "lobby" : ends && ends > t && ends - t <= 30000 ? "rush" : "play";
+    const feedList = H.feed || [], newest = feedList.reduce((m, f) => Math.max(m, +f.t || 0), 0), cues = [];
+    if (heardT < 0) heardT = newest;   // just opened: don't replay old moments
+    else {
+        feedList.filter((f) => (+f.t || 0) > heardT && FEED_CUES[f.k]).slice(-3).forEach((f) => cues.push(FEED_CUES[f.k]));
+        heardT = Math.max(heardT, newest);
+        if (phase === "rush" && lastPhase === "play") cues.push("rush");
+    }
+    lastPhase = phase;
+    return { phase, cues };
+}
 export function liveReview() {
     if (!H || !(H.status === "done" || (H.redo && !H.redo.done)) || !H.review || !H.qs || !H.qs[H.review.qi]) return null;
     const list = missedList(), at = list.findIndex((x) => x.qi === H.review.qi);

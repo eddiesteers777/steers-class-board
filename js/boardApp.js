@@ -13,11 +13,11 @@ let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
 import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=57";
-import * as snd from "./sound.js?v=57";
+import * as snd from "./sound.js?v=58";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=58";
-import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody } from "./liveRoom.js?v=72";
+import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=73";
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=5";
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 
@@ -90,7 +90,7 @@ function cleanWb(o) {
 }
 const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0,
     timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", fix: null, tools: defaultTools(), wb: defaultWb(),
-    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "" } };
+    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true } };
 
 // This page's own mark on what it saves, so a change from another tab of the same browser can be shown
 // before the server confirms it (those tabs share one offline copy, where it first arrives as "pending").
@@ -289,6 +289,8 @@ function soundTick() {
     const sec = (t) => Math.max(0, Math.floor((t.running ? now() - t.t0 : t.elapsed) / 1000));
     ["bell", "free", "check"].forEach((k) => { const t = S.timers[k]; snd.watchTimer({ kind: k, running: t.running, secs: sec(t), total: secsFor(k) }); });
     const r = S.timers.round; snd.watchTimer({ kind: "round", running: r.running, secs: sec(r), round: { len: ROUND, gap: GAP } });
+    // Vault Raid: the theme song follows the game, and each big moment has its own sound.
+    const g = liveSound(); snd.gamePhase(g.phase); g.cues.forEach((c) => snd.cue(c));
 }
 function soundPanel() {
     const rail = document.querySelector(".rail"); if (!rail || $("soundMenu")) return;
@@ -301,12 +303,13 @@ function soundPanel() {
     const sty = el("div", "seg sndsty"); sty.id = "sndStyle"; sty.setAttribute("role", "group"); sty.setAttribute("aria-label", "Music style"); b.appendChild(sty);
     const mv = slider("sndMv", "Music volume");
     mv.oninput = () => { S.sound.mv = +mv.value / 100; soundSync(); quiet(); };
-    toggle("sndFx", "Timer sounds").onclick = () => { S.sound.fx = !S.sound.fx; snd.unlock(); push(); };
-    const fv = slider("sndFv", "Timer volume");
+    toggle("sndGame", "Game theme song").onclick = () => { S.sound.game = !S.sound.game; snd.unlock(); push(); };
+    toggle("sndFx", "Sound effects").onclick = () => { S.sound.fx = !S.sound.fx; snd.unlock(); push(); };
+    const fv = slider("sndFv", "Effects volume");
     fv.oninput = () => { S.sound.fxv = +fv.value / 100; soundSync(); quiet(); };
     fv.onchange = () => snd.preview("warn");
     const tr = el("div", "sndtry"); tr.appendChild(el("span", null, "Hear:"));
-    [["go", "Start"], ["tick", "Tick"], ["rotate", "Rotate"], ["done", "Time up"]].forEach(([k, label]) => { const x = el("button", null, label); x.type = "button"; x.onclick = () => snd.preview(k); tr.appendChild(x); });
+    [["go", "Start"], ["tick", "Tick"], ["rotate", "Rotate"], ["done", "Time up"], ["crack", "Vault crack"], ["bonus", "Bonus"]].forEach(([k, label]) => { const x = el("button", null, label); x.type = "button"; x.onclick = () => snd.preview(k); tr.appendChild(x); });
     b.appendChild(tr);
     if (mode !== "sub") {
         b.appendChild(el("p", "sndlab", "Sound plays on"));
@@ -328,14 +331,14 @@ function soundControls() {
     if (!box) return;
     const so = S.sound, here = playsHere();
     const on = (id, v) => { const x = $(id); x.setAttribute("aria-pressed", String(v)); x.querySelector("i").textContent = v ? "On" : "Off"; };
-    on("sndMusic", so.music); on("sndFx", so.fx);
+    on("sndMusic", so.music); on("sndFx", so.fx); on("sndGame", so.game);
     seg($("sndStyle"), snd.STYLES, so.style, (v) => { S.sound.style = v; S.sound.music = true; snd.unlock(); push(); });
     [["sndMv", so.mv], ["sndFv", so.fxv]].forEach(([id, v]) => { const r = $(id); if (document.activeElement !== r) r.value = String(Math.round(v * 100)); });
     if ($("sndAt")) seg($("sndAt"), [["board", "The board"], ["here", "This device"]], so.at && so.at === DEVICE ? "here" : (so.at ? "other" : "board"), (v) => { S.sound.at = v === "here" ? DEVICE : ""; snd.unlock(); push(); });
     $("soundCount").textContent = so.music ? "Music on" : "";
     const q = $("musicBtn"); if (q) { q.textContent = so.music ? "Music on" : "Music off"; q.setAttribute("aria-pressed", String(so.music)); }
     let note;
-    if (!so.music && !so.fx) note = "Sound is off.";
+    if (!so.music && !so.fx && !so.game) note = "Sound is off.";
     else if (here) note = snd.running() ? "Playing on this device." : "Tap this screen once to let it play sound.";
     else if (so.at) note = "Playing on another device.";
     else note = "Playing on the board. If it stays quiet, tap the board once.";
@@ -876,7 +879,7 @@ function applyState(d) {
     S.fix = cleanFix(d.fix);
     S.wb = cleanWb(d.wb);
     { const o = d.sound || {}, v = (x, def) => (typeof x === "number" && x >= 0 && x <= 1 ? x : def);
-        S.sound = { fx: o.fx !== false, fxv: v(o.fxv, 0.7), music: !!o.music, mv: v(o.mv, 0.35), style: snd.STYLES.some((x) => x[0] === o.style) ? o.style : "focus", at: typeof o.at === "string" ? o.at.slice(0, 20) : "" }; }
+        S.sound = { fx: o.fx !== false, fxv: v(o.fxv, 0.7), music: !!o.music, mv: v(o.mv, 0.35), style: snd.STYLES.some((x) => x[0] === o.style) ? o.style : "focus", at: typeof o.at === "string" ? o.at.slice(0, 20) : "", game: o.game !== false }; }
     ["bell", "round", "check", "free"].forEach((k) => { const t = d.timers && d.timers[k]; if (t) { S.timers[k] = { running: !!t.running, t0: +t.t0 || 0, elapsed: +t.elapsed || 0 }; if (k === "free") S.timers.free.dur = +t.dur || 300; } });
 }
 /* One-tap lesson flow: Weekly Agenda -> Today -> each bellringer problem and its answer -> the day's activity. */
