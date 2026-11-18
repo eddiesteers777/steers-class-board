@@ -17,7 +17,7 @@ import * as snd from "./sound.js?v=57";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=57";
-import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive } from "./liveRoom.js?v=66";
+import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody } from "./liveRoom.js?v=67";
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=3";
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 
@@ -364,7 +364,7 @@ function skeleton() {
 function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
     syncGames(); syncLive(); syncNotes(); buildControls(); soundSync();
-    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", WB_SCREENS[S.screen] ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : ""]);
+    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : ""]);
     renderDock(); drawGamePanel(); drawLivePanel(); drawNotesPanel();
     if (ns === sig) { renderLayer(); tick(); tickTools(toolApi); placeCard(); return; }
     sig = ns;
@@ -403,7 +403,8 @@ function render() {
     } else if (S.screen === "game") {
         drawGame(st); tickGames();
     } else if (S.screen === "live") {
-        drawLiveStage(st); tickLive();
+        if (liveReview()) drawWb(st, "vr"); else drawLiveStage(st);   // going over missed questions: the whiteboard
+        tickLive();
     } else if (S.screen === "tools") {
         st.appendChild(header("Classroom Tools", (d ? d.name + " · " : "") + ((d && d.date) || "")));
         const box = el("div", "toolsbody"); box.appendChild(el("p", "toolempty", Object.keys(S.tools.on).length ? "" : "Turn tools on from the Tools row on the Remote. Drag a tool by its title to move it, and drag its corner to resize it.")); st.appendChild(box);
@@ -418,6 +419,8 @@ function render() {
    drag it by its top bar, make it bigger or smaller, or hide it. The tool rail floats on the left,
    and pages run along the bottom. Card place, size and pages are shared, so the board follows the Remote. */
 const WB_SCREENS = { bell: 1, blank: 1, notes: 1, fix: 1 };
+/** Which whiteboard is up: one of WB_SCREENS, "vr" while going over a Student Game's missed questions, or "". */
+const wbKind = () => (WB_SCREENS[S.screen] ? S.screen : S.screen === "live" && liveReview() ? "vr" : "");
 const CARD_W = [0.3, 0.38, 0.5];
 function wbStrip(title, sub, extra) {
     const h = el("div", "wbstrip"), im = el("img"); im.src = SEAL; im.alt = ""; h.appendChild(im);
@@ -446,15 +449,19 @@ function drawWb(st, kind) {
                 b.type = "button"; b.setAttribute("aria-label", "Card " + x.n + (x.done ? ", fixed" : "")); b.onclick = () => fixGo(i); extra.appendChild(b);
             });
         }
+    } else if (kind === "vr") {
+        const r = liveReview(); sub = r.title + " · the questions we missed";
+        extra = el("div", "fixchips"); extra.setAttribute("role", "group"); extra.setAttribute("aria-label", "Missed questions");
+        r.list.forEach((qi, i) => { const b = el("button", "fixchip" + (qi === r.qi ? " on" : "") + (i < r.at ? " done" : ""), String(i + 1)); b.type = "button"; b.setAttribute("aria-label", "Missed question " + (i + 1)); b.onclick = () => goReview(qi); extra.appendChild(b); });
     } else sub = d ? d.name + (d.date ? " · " + d.date : "") : "Work it out";
     const wrap = el("div", "wbx");
-    wrap.appendChild(wbStrip(kind === "bell" ? "Bellringer" : kind === "notes" ? "Guided Notes" : kind === "fix" ? "Fix It Together" : "Whiteboard", sub, extra));
+    wrap.appendChild(wbStrip(kind === "bell" ? "Bellringer" : kind === "notes" ? "Guided Notes" : kind === "fix" ? "Fix It Together" : kind === "vr" ? "Let's go over it" : "Whiteboard", sub, extra));
     const paperEl = el("div", "wbpaper"); paperEl.id = "wbpaper"; wrap.appendChild(paperEl);
     const cv = makeCv(); paperEl.appendChild(cv);
     if (kind === "notes") pdfLayer(cv);
-    const card = kind === "bell" ? bellCard(d, ps) : kind === "notes" ? notesCard(d) : kind === "fix" ? fixCard() : null;
+    const card = kind === "bell" ? bellCard(d, ps) : kind === "notes" ? notesCard(d) : kind === "fix" ? fixCard() : kind === "vr" ? vrCard() : null;
     if (card) {
-        if (S.wb.card.hide) { const sb = el("button", "wbshow"); sb.type = "button"; sb.innerHTML = wbIcon("doc") + "<span>" + (kind === "bell" ? "Show problem" : kind === "fix" ? "Show card" : "Show notes") + "</span>"; sb.onclick = () => { S.wb.card.hide = false; push(); }; paperEl.appendChild(sb); }
+        if (S.wb.card.hide) { const sb = el("button", "wbshow"); sb.type = "button"; sb.innerHTML = wbIcon("doc") + "<span>" + (kind === "bell" || kind === "vr" ? "Show problem" : kind === "fix" ? "Show card" : "Show notes") + "</span>"; sb.onclick = () => { S.wb.card.hide = false; push(); }; paperEl.appendChild(sb); }
         else paperEl.appendChild(card);
     }
     paperEl.appendChild(pagesBar());
@@ -474,6 +481,11 @@ function cardShell(label, aria) {
     const body = el("div", "wbcbody"); c.appendChild(body);
     dragCard(c, top);
     return { c, body };
+}
+/* A missed Student Game question floats on the paper like the bellringer (js/liveRoom.js fills it). */
+function vrCard() {
+    const r = liveReview(); const { c, body } = cardShell("Missed question " + (r.at + 1) + " of " + r.count, "Missed question"); c.classList.add("wbvr");
+    reviewBody(body); return c;
 }
 function bellCard(d, ps) {
     const p = ps[S.prob];
@@ -734,7 +746,7 @@ function saveInk() {
     if (JSON.stringify(body).length > 700000) { note("This board is full. Clear it to keep saving."); return; }
     note(""); inkWrite(JSON.parse(JSON.stringify(body)));
 }
-function inkBase() { return [S.week, S.period, "d" + S.day, S.screen === "notes" ? "n" + S.note + (S.show && pdfFrame() ? "w" : "") : S.screen === "fix" ? "fix" + ((fixCur() || {}).n || 0) : ((S.screen === "bell" && D()) ? "p" + S.prob : "blank")].join("_"); }
+function inkBase() { return [S.week, S.period, "d" + S.day, S.screen === "notes" ? "n" + S.note + (S.show && pdfFrame() ? "w" : "") : S.screen === "fix" ? "fix" + ((fixCur() || {}).n || 0) : S.screen === "live" ? (liveReview() || { key: "live" }).key : ((S.screen === "bell" && D()) ? "p" + S.prob : "blank")].join("_"); }
 function pageCount() { return S.wb.pages[inkBase()] || 1; }
 function pageNow() { const b = inkBase(); return S.wb.pg.k === b ? Math.min(S.wb.pg.n, pageCount() - 1) : 0; }
 function watchInk() {

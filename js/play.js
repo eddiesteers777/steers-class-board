@@ -360,7 +360,7 @@ function countUp(node, to, prefix) {
     const t0 = performance.now(), ms = 700;
     (function frame(t) { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); node.textContent = prefix + Math.round(to * e); if (k < 1) requestAnimationFrame(frame); })(t0);
 }
-let celebrated = "";
+let celebrated = "", lastScreen = "";
 /** Run a celebration once for this event, not on every redraw. */
 const once = (key, fn) => { if (celebrated === key) return; celebrated = key; setTimeout(fn, 60); };
 
@@ -401,9 +401,19 @@ setInterval(() => { if (ST.view === "q" && ST.me && ST.me.status === "play") { c
 /* ---------- the waiting room: a character and a starting power-up ---------- */
 /** Character and power-up picks go in their own small write, so a site whose rules are older still lets the game run. */
 function pick(data) {
-    Object.assign(ST.picks, data); draw(true);
-    setDoc(mine(), Object.assign({ at: Date.now() }, data), { merge: true }).catch(() => { ST.pickErr = true; draw(true); });
+    Object.assign(ST.picks, data); showPicks();
+    setDoc(mine(), Object.assign({ at: Date.now() }, data), { merge: true }).catch(() => { ST.pickErr = true; showPicks(); });
 }
+/** Mark the picks in place, so tapping a character or a power-up doesn't redraw the page. */
+function showPicks() {
+    const m = ST.me || {}, av = ST.picks.av != null ? ST.picks.av : m.av, pu = ST.picks.pu != null ? ST.picks.pu : m.pu;
+    document.querySelectorAll(".wravatar").forEach((b, i) => { const on = i === av; b.classList.toggle("on", on); b.setAttribute("aria-checked", String(on)); });
+    document.querySelectorAll(".wrpower").forEach((b) => { const on = b.dataset.k === pu; b.classList.toggle("on", on); b.setAttribute("aria-checked", String(on)); });
+    const me = document.querySelector(".wrme"); if (me) me.textContent = V.avatar(av)[0];
+    const n = document.querySelector(".wroom > .pnote"); if (n) n.textContent = pickNote(pu);
+    const nm = document.querySelector("#stats .pstat b"); if (nm && m.nm) nm.textContent = V.avatar(av)[0] + " " + m.nm;
+}
+const pickNote = (pu) => (ST.pickErr ? "Characters and power-ups aren't switched on for this game yet. You can still play." : pu ? "Ready! You can change your picks until the game starts." : "Pick one. It works once the game starts.");
 function waitingRoom(card, m) {
     card.classList.add("lobby", "wide", "wroom");
     const av = ST.picks.av != null ? ST.picks.av : m.av, pu = ST.picks.pu != null ? ST.picks.pu : m.pu;
@@ -418,10 +428,9 @@ function waitingRoom(card, m) {
     card.append(grid);
     card.append(el("h2", "wrh", "Pick a power-up for the game"));
     const pus = el("div", "wrpowers"); pus.setAttribute("role", "radiogroup"); pus.setAttribute("aria-label", "Power-ups");
-    V.STARTERS.forEach(([k, n, d]) => { const b = btn("wrpower" + (k === pu ? " on" : ""), null, () => pick({ pu: k })); b.setAttribute("role", "radio"); b.setAttribute("aria-checked", String(k === pu)); b.append(powerIcon(k), el("b", null, n), el("small", null, d)); pus.append(b); });
+    V.STARTERS.forEach(([k, n, d]) => { const b = btn("wrpower" + (k === pu ? " on" : ""), null, () => pick({ pu: k })); b.dataset.k = k; b.setAttribute("role", "radio"); b.setAttribute("aria-checked", String(k === pu)); b.append(powerIcon(k), el("b", null, n), el("small", null, d)); pus.append(b); });
     card.append(pus);
-    if (ST.pickErr) card.append(el("p", "pnote", "Characters and power-ups aren't switched on for this game yet. You can still play."));
-    else card.append(el("p", "pnote", pu ? "Ready! You can change your picks until the game starts." : "Pick one. It works once the game starts."));
+    card.append(el("p", "pnote", pickNote(pu)));
 }
 const POWER_ICONS = {
     shield: '<path d="M60 10l40 14v30c0 28-18 46-40 56-22-10-40-28-40-56V24z" fill="#7FAEDD"/><path d="M60 22l28 10v22c0 20-12 33-28 41z" fill="#10358A"/>',
@@ -468,7 +477,7 @@ function stats() {
     s.hidden = false; s.textContent = "";
     const chip = (label, val, cls) => { const c = el("span", "pstat" + (cls ? " " + cls : "")); c.append(el("small", null, label), el("b", null, val)); s.append(c); };
     const was = ST.coins; ST.coins = m.c;
-    chip("Name", V.avatar(m.av)[0] + " " + m.nm); chip("Coins", String(m.c), "coin" + (was != null && m.c > was ? " up" : was != null && m.c < was ? " down" : "")); chip("Hacks", String(m.h)); if (m.status !== "lobby") chip("Place", m.rank + " of " + m.players);
+    chip("Name", V.avatar(m.status === "lobby" && ST.picks.av != null ? ST.picks.av : m.av)[0] + " " + m.nm); chip("Coins", String(m.c), "coin" + (was != null && m.c > was ? " up" : was != null && m.c < was ? " down" : "")); chip("Hacks", String(m.h)); if (m.status !== "lobby") chip("Place", m.rank + " of " + m.players);
     const t = el("span", "pstat"); t.append(el("small", null, "Time"), el("b", null, "")); t.id = "ptime"; s.append(t); tickTime();
 }
 function tickTime() {
@@ -481,7 +490,7 @@ setInterval(tickTime, 500);
 function draw(force) {
     const m = ST.me;
     if (m && m.nm && ST.step !== "play") ST.step = "play";
-    const k = JSON.stringify([ST.step, ST.view, ST.err, ST.busy, ST.target, ST.guess, ST.vault, ST.roomGone, ST.room && [ST.room.status, ST.room.taken, ST.room.names && ST.room.names.length, ST.room.bonus], m && [m.n, m.status, m.need]]);
+    const k = JSON.stringify([ST.step, ST.view, ST.err, ST.busy, ST.target, ST.guess, ST.vault, ST.roomGone, ST.room && [ST.room.status, ST.step === "name" ? [ST.room.taken, ST.room.names && ST.room.names.length] : 0, ST.room.bonus], m && [m.status === "lobby" ? 0 : m.n, m.status, m.need]]);
     if (k === sig && !force) return;
     // Keep the pad (and anything typed) while the same question stays on screen.
     const sameQ = !force && ST.step === "play" && ST.view === "q" && m && m.q && document.getElementById("padhost") && +$("padhost").dataset.q === m.q.n && !ST.roomGone;
@@ -489,8 +498,12 @@ function draw(force) {
     if (m && m.hit && m.hit.blocked && m.hit.at > ST.seenBlock) { ST.seenBlock = m.hit.at; toast("Your Shield blocked " + m.hit.by + "'s crack! Your coins are safe.", "good"); }
     if (sameQ) { const n = $("pnote"); if (n) n.textContent = ST.err; const fx = $("pfx"); if (fx) fx.replaceWith(effects(m) || Object.assign(el("div", "pfx"), { id: "pfx" })); return; }
     document.body.classList.remove("qmode");
-    const main = $("main"); main.textContent = "";
+    const main = $("main"), y = window.scrollY; main.textContent = "";
     const card = el("section", "pcard"); main.append(card);
+    // Only a new screen slides in. Redrawing the same screen (a typed digit, a pick) stays still and keeps its scroll spot.
+    const screen = [ST.step, ST.view, m && m.status, m && m.need, ST.roomGone].join("|");
+    if (screen === lastScreen) { card.classList.add("still"); requestAnimationFrame(() => window.scrollTo(0, y)); }
+    lastScreen = screen;
     if (ST.roomGone) { card.append(el("h1", null, "The game is closed"), el("p", "plead", "Thanks for playing! Your teacher closed the game.")); return; }
     if (ST.step === "code") return codeStep(card);
     if (ST.step === "name") return nameStep(card);
@@ -505,7 +518,9 @@ function draw(force) {
         card.append(el("h1", null, "Game over!"), medal(m.rank), el("p", "pbig", ordinal(m.rank) + " place"));
         const tiles = el("div", "ptiles"), tile = (v, l) => { const t = el("div", "ptile"); t.append(el("b", null, String(v)), el("small", null, l)); tiles.append(t); };
         tile(m.c, "coins"); tile(m.r + " of " + m.of, "right"); if (m.best != null) tile(m.best, "best streak"); if (m.cr != null) tile(m.cr, m.cr === 1 ? "vault cracked" : "vaults cracked");
+        if (m.of) tile(Math.round(100 * m.r / m.of) + "%", "correct");
         card.append(tiles, el("p", "pnote", m.rank <= 3 ? "Top 3! Look at the board for the winners." : "Great work. Look at the board for the winners."));
+        if (Array.isArray(m.res) && m.res.length) card.append(myResults(m.res));
         if (m.rank <= 3) once("done", () => { confetti(160, 0.5, 0.35); setTimeout(() => confetti(90, 0.2, 0.5), 400); setTimeout(() => confetti(90, 0.8, 0.5), 700); });
         return;
     }
@@ -519,6 +534,20 @@ function draw(force) {
     if (ST.view === "targets") return targetsView(card);
     if (ST.view === "guess") return guessView(card);
     questionView(card);
+}
+/** The student's own questions after the game: the ones to look at again first (what they wrote and the answer), then the ones they got. */
+function myResults(res) {
+    const box = el("div", "presults"), miss = res.filter((x) => !x.ok), got = res.filter((x) => x.ok);
+    if (miss.length) {
+        box.append(el("h2", "wrh", "Look at these again (" + miss.length + ")"));
+        miss.forEach((x) => { const r = el("div", "pres miss"); r.append(el("span", "presmark", "✗"), mathEl("p", "presq", x.t)); const d = el("p", "presa"); d.append(document.createTextNode("You wrote "), x.y ? V.mathText(x.y) : document.createTextNode("nothing"), document.createTextNode(" · Answer: "), V.mathText(x.a)); r.append(d); box.append(r); });
+    } else box.append(el("h2", "wrh", "You got every one right!"));
+    if (got.length) {
+        const det = el("details", "presgot"); det.append(el("summary", null, "You got these right (" + got.length + ")"));
+        got.forEach((x) => { const r = el("div", "pres ok"); r.append(el("span", "presmark", "✓"), mathEl("p", "presq", x.t)); det.append(r); });
+        box.append(det);
+    }
+    return box;
 }
 const ordinal = (n) => n + (n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th");
 function codeShow(code) { const b = el("div", "pcodeshow"); [...String(code || "")].forEach((d) => b.append(el("span", null, d))); return b; }

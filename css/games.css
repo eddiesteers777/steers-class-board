@@ -610,3 +610,15 @@ div.gpset{cursor:default}
 .lnpanel>*{flex-shrink:0}
 .lnpanel .lnq{min-height:4.6em}
 .lnpanel .vrpeek img{max-height:240px;width:100%;object-fit:contain;background:#fff}
+/* going over a missed Student Game question on the whiteboard (floating card, like the bellringer) */
+.wbvr .wbcbody{gap:.45em}
+.wbvr .vrwbcat{align-self:flex-start;font-size:.55em}
+.vrwbhow{display:flex;align-items:baseline;flex-wrap:wrap;gap:.2em .6em;font-size:.6em;color:#4A5A78}
+.vrwbhow b{font-family:var(--display);font-size:1.25em;color:#B4232A}
+.vrwbw{align-items:center;font-size:.55em}
+.vrwbw > small{font-weight:700;color:#4A5A78;margin-right:.2em}
+.vrwbw .vrwrong{background:#FDEEEE;color:#8A1C22;border-color:#F3C2C5;font-size:1em}
+.vrwbw .vrwrong small{color:#B4232A}
+.vrwbbtns{display:flex;flex-wrap:wrap;gap:.4em;font-size:.5em;margin-top:.2em}
+.vrwbbtns .btn{min-height:2.4em;padding:.3em 1em;border-radius:.7em;font-weight:800;border:.12em solid #C9D4E5;background:#fff;color:#13294B;cursor:pointer}
+.vrwbbtns .btn.go{background:#F2B33D;border-color:#F2B33D;color:#13294B}
