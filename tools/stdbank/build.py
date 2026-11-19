@@ -67,9 +67,11 @@ def main():
                 if not (1 <= len(st) <= 4) or any(not t.strip() or len(t) > 200 for t in st):
                     sys.exit("Steps for %s: 1 to 4 steps, each under 200 characters" % o["id"])
                 for t in st:
-                    plain = re.sub(r"\{[^{}]*\}", "", t)
+                    plain, prev = t.replace("^{", "{"), None   # ^{t} and ^{{1/2}} are raised powers
+                    while plain != prev:
+                        plain, prev = re.sub(r"\{[^{}]*\}", "", plain), plain
                     if "/" in plain or "^" in plain or "$" in t:
-                        sys.exit("Steps for %s: write fractions as {3/4}, powers as ², and § for a dollar sign: %s" % (o["id"], t))
+                        sys.exit("Steps for %s: write fractions as {3/4}, powers as ² or ^{t}, and § for a dollar sign: %s" % (o["id"], t))
                 o["steps"] = st
             items.append(o)
         missing = [s["code"] for s in S[cls]["standards"] if s["code"] not in count and (cls != "8th-acc" or s["code"].startswith("Alg"))]

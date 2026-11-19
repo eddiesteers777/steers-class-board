@@ -435,12 +435,20 @@ export function stepsFor(q) { const own = Array.isArray(q && q.st) ? q.st.filter
 /** Write a step the way it looks in math class: 3/4 as a stacked fraction {3/4}, (2/3)x as {2/3}x, x/4 as {x/4}, 2 1/2 as 2{1/2},
     and powers like x^2 as x². The whiteboard and the step cards draw {a/b} as a real fraction. */
 const SUPS = { 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹" };
+const fracs = (t) => t
+    .replace(/(\d+) (\d+)\/(\d+)(?![\w}\/]|\.\d)/g, "$1{$2/$3}")
+    .replace(/\((−?-?)(\d+)\/(\d+)\)(?=[a-z])/g, (m, sg, n, d) => (sg ? "−" : "") + "{" + n + "/" + d + "}")
+    .replace(/(?<![\w{}\/.])([a-z]|\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?|[a-z])(?![\w}\/]|\.\d)/g, "{$1/$2}");
 export function mathify(t) {
-    return String(t || "")
-        .replace(/(\d+) (\d+)\/(\d+)(?![\w}\/]|\.\d)/g, "$1{$2/$3}")
-        .replace(/\((−?-?)(\d+)\/(\d+)\)(?=[a-z])/g, (m, sg, n, d) => (sg ? "−" : "") + "{" + n + "/" + d + "}")
-        .replace(/(?<![\w{}\/.])([a-z]|\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?|[a-z])(?![\w}\/]|\.\d)/g, "{$1/$2}")
-        .replace(/\^(\d)(?!\d)/g, (m, d) => SUPS[d]);
+    /* Only text outside {…} gets new fractions, so a written {7 − 4/6 − 0} stays one fraction. */
+    let out = "", buf = "", depth = 0;
+    for (const ch of String(t || "")) {
+        if (ch === "{") { if (!depth) { out += fracs(buf); buf = ""; } depth++; buf += ch; }
+        else if (ch === "}" && depth) { buf += ch; if (!--depth) { out += buf; buf = ""; } }
+        else buf += ch;
+    }
+    out += depth ? buf : fracs(buf);
+    return out.replace(/\^(\d)(?!\d)/g, (m, d) => SUPS[d]);
 }
 
 /** One question from a saved set, made ready for the game: { c, q, a, al, h, ch }.
