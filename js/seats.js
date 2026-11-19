@@ -30,10 +30,12 @@ export const KINDS = {
     shelf: { n: "Shelf", g: "Room", w: 150, h: 42, label: "Shelf", resize: true, edit: true },
     station: { n: "Station", g: "Room", w: 140, h: 84, label: "Station", resize: true, edit: true },
     rug: { n: "Rug", g: "Room", w: 220, h: 150, label: "", resize: true, edit: true },
+    lamp: { n: "Lamp", g: "Room", w: 54, h: 54, round: true, label: "", resize: true },
     label: { n: "Label", g: "Room", w: 150, h: 40, label: "Label", resize: true, edit: true },
 };
 export const isSeat = (k) => !!(KINDS[k] && KINDS[k].cells);
-export const sizeOf = (it) => { const K = KINDS[it.k] || KINDS.desk; return { w: K.resize && it.w ? it.w : K.w, h: K.resize && it.h ? it.h : K.h }; };
+export const sizeOf = (it) => { const K = KINDS[it.k] || KINDS.desk; return { w: it.w || K.w, h: it.h || K.h }; };
+export const MIN = { w: 20, h: 10 };
 export const uid = () => Math.random().toString(36).slice(2, 8);
 export const snap = (v) => Math.round(v / SNAP) * SNAP;
 
@@ -43,7 +45,7 @@ const str = (v, n) => (typeof v === "string" ? v.slice(0, n) : "");
 export function cleanItem(o) {
     if (!o || typeof o !== "object" || !KINDS[o.k]) return null;
     const it = { id: str(o.id, 16) || uid(), k: o.k, x: num(o.x, -200, ROOM.W, 0), y: num(o.y, -200, ROOM.H, 0), r: ((Math.round(num(o.r, -720, 720, 0)) % 360) + 360) % 360 };
-    if (KINDS[o.k].resize) { if (o.w) it.w = num(o.w, 20, ROOM.W, KINDS[o.k].w); if (o.h) it.h = num(o.h, 10, ROOM.H, KINDS[o.k].h); }
+    if (o.w) it.w = num(o.w, MIN.w, ROOM.W, KINDS[o.k].w); if (o.h) it.h = num(o.h, MIN.h, ROOM.H, KINDS[o.k].h);
     if (typeof o.label === "string") it.label = o.label.slice(0, 40);
     return it;
 }
@@ -134,7 +136,7 @@ export function drawRoom(host, p, opts = {}) {
     items.forEach((it) => {
         const K = KINDS[it.k], s = sizeOf(it);
         const x = opts.flip ? ROOM.W - it.x - s.w : it.x, y = opts.flip ? ROOM.H - it.y - s.h : it.y, r = (it.r + (opts.flip ? 180 : 0)) % 360;
-        const d = el("div", "sit k-" + it.k + (K.round ? " round" : "") + (opts.sel === it.id ? " sel" : ""));
+        const d = el("div", "sit k-" + it.k + (K.round ? " round" : "") + (opts.sel && (opts.sel.has ? opts.sel.has(it.id) : opts.sel === it.id) ? " sel" : ""));
         d.dataset.id = it.id;
         d.style.left = pct(x, ROOM.W); d.style.top = pct(y, ROOM.H); d.style.width = pct(s.w, ROOM.W); d.style.height = pct(s.h, ROOM.H);
         d.style.transform = r ? "rotate(" + r + "deg)" : "";
