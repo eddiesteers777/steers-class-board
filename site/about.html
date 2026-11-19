@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>About | Anchor Board</title>
-<meta name="description" content="Anchor Board was built by a middle school math teacher for his own classes.">
+<meta name="description" content="Anchor Board was built by Eddie Steers, a middle school math teacher, for his own classes.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#081B45">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
@@ -12,20 +12,56 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-<link rel="stylesheet" href="site.css?v=1">
+<link rel="stylesheet" href="site.css?v=2">
+<style>
+/* About page only: Eddie's photo beside the intro, then his note on paper */
+.about-hero{padding:clamp(48px,7vw,88px) 0}
+.about-hero-grid{display:grid;grid-template-columns:auto 1fr;gap:clamp(28px,5vw,64px);align-items:center}
+.about-photo{margin:0;position:relative;width:clamp(200px,26vw,320px)}
+.about-photo img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;border-radius:28px;box-shadow:var(--shadow)}
+.about-photo::after{content:"";position:absolute;left:18px;right:18px;bottom:-10px;height:8px;border-radius:4px;background:var(--bar)}
+.about-kicker{color:var(--amber) !important;font-weight:700;font-size:16px !important;margin:0 0 8px !important}
+.about-hero h1{font-size:clamp(36px,5.4vw,60px);line-height:1.05}
+.about-hero h1 + p{font-size:clamp(18px,1.9vw,21px);line-height:1.5;max-width:30em}
+.about-note{max-width:40em;margin:0 auto}
+.about-note h2{font:800 clamp(26px,3vw,34px)/1.15 var(--font-display);color:var(--navy);margin:0 0 22px}
+.about-note p{font-size:clamp(18px,1.6vw,20px);line-height:1.7;color:var(--ink);margin:0 0 1.1em}
+.about-sign{font:700 clamp(26px,3vw,32px)/1 var(--font-display) !important;color:var(--navy) !important;margin-top:28px !important}
+@media (max-width:760px){
+  .about-hero-grid{grid-template-columns:1fr;text-align:left}
+  .about-photo{width:220px}
+}
+</style>
 </head>
 <body>
 <header id="siteHeader"></header>
 <main id="main">
 
-<section class="page-hero"><div class="wrap">
-  <h1>About</h1>
-  <p>Built by a teacher, for a real classroom.</p>
+<section class="page-hero about-hero" aria-labelledby="aboutHead"><div class="wrap about-hero-grid">
+  <figure class="about-photo">
+    <img src="img/eddie-steers.jpg" srcset="img/eddie-steers-sm.jpg 360w, img/eddie-steers.jpg 720w" sizes="(max-width:760px) 220px, 340px" width="720" height="720" alt="Eddie Steers, smiling, in a green polo">
+  </figure>
+  <div>
+    <p class="about-kicker">About</p>
+    <h1 id="aboutHead">Hi, I'm Eddie Steers.</h1>
+    <p>I teach 7th and 8th grade math in Shelby County, Alabama, and I coach our middle school boys' soccer team. I built Anchor Board for my own classroom.</p>
+  </div>
 </div></section>
-<section class="sec"><div class="wrap prose">
-  <h2>How it started</h2>
-  <p>I teach 7th and 8th grade math in Alabama. Every day I was building slides for three different classes and clicking through them at the front of the room.</p>
-  <p>So I built a board instead. The agenda, the bellringer, the notes and the timers live in one place, and I run it from my Chromebook while I walk the room.</p>
+
+<section class="sec"><div class="wrap">
+  <article class="about-note" aria-labelledby="noteHead">
+    <h2 id="noteHead">A note from me</h2>
+    <p>To my students I'm Mr. Steers. I teach regular and accelerated math, and a lot of my students walk in still building the foundations everything else stands on: fractions, negative numbers, what an equation is really asking. My classes are sixty minutes long, and I want every one of those minutes to count for them.</p>
+    <p>For a long time I built slides every day for three different classes and clicked through them from the front of the room. It worked, but it kept me at the front of the room. The agenda lived in one place, the bellringer in another, the timer in a third, and every switch cost a minute and a little of the room's attention.</p>
+    <p>So I started building the board I wished I had. The agenda, the bellringer, the notes, the timers and the review games are all on one screen, and I run it from my Chromebook while I walk around and look at what students are actually writing. That part of teaching, sitting next to a kid while the idea clicks, is the part I never want to give up.</p>
+    <p>Everything on it gets tried in my own room first. If something slows a lesson down or leaves a student lost, it gets fixed or it gets cut. Worked examples show every step, because a student who sees why a step happens can do the next problem on their own.</p>
+    <p>I'm still learning, too. I'm working on a master's in secondary mathematics education at the University of Montevallo and a National Certificate for STEM Teaching. Both keep me asking how my students learn best, and the answers keep finding their way onto this board.</p>
+    <p>If you teach and any of this sounds like your classroom, I'd love to hear from you.</p>
+    <p class="about-sign">Eddie</p>
+  </article>
+</div></section>
+
+<section class="sec sec-alt"><div class="wrap prose">
   <h2>What I care about</h2>
   <ul>
     <li><b>Calm.</b> One screen, one job. Nothing covers the lesson.</li>
