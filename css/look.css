@@ -90,3 +90,27 @@ body[data-bg="snow"] #stage .hdr::before,body[data-bg="lights"] #stage .hdr::bef
 .lookpick.compact .lookmk .lnm{display:none}
 .lookpick.compact .lookmk.on .lmk{box-shadow:0 0 0 2px #fff,0 0 0 4px #F2B33D}
 @media (prefers-reduced-motion:reduce){.lookmk .lmk{transition:none}}
+
+/* ---- falling effects (js/effects.js): faint, slow, behind the lesson ---- */
+.stagefx{position:absolute;inset:0;pointer-events:none;z-index:-1;overflow:hidden;border-radius:inherit}
+.stagefx i{position:absolute;top:-3em;font-style:normal;line-height:1;opacity:.5;animation:fxFall linear infinite;will-change:top}
+.stagefx b{display:block;font-weight:700;color:#DDEBFA;animation:fxSway ease-in-out infinite alternate}
+body[data-fx="pumpkins"] .stagefx i,body[data-fx="turkeys"] .stagefx i,body[data-fx="leaves"] .stagefx i{opacity:.6}
+body[data-fx="confetti"] .stagefx i{opacity:.65}
+@keyframes fxFall{from{top:-3em}to{top:calc(100% + 1em)}}
+@keyframes fxSway{from{transform:translateX(-.9em) rotate(-14deg)}to{transform:translateX(.9em) rotate(14deg)}}
+@media (prefers-reduced-motion:reduce){.stagefx i{animation:none;top:var(--y)}.stagefx b{animation:none}}
+/* the picker tiles */
+.lookfxs{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.lookfx{display:flex;flex-direction:column;gap:6px;background:transparent;border:0;color:inherit;font:inherit;padding:0;text-align:left;cursor:pointer}
+.lookfx .lfx{display:flex;align-items:center;justify-content:center;aspect-ratio:16/9;border-radius:10px;font-size:18px;font-weight:700;color:#DDEBFA;letter-spacing:.1em;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);transition:box-shadow .2s}
+.lookfx .fx-none::before{content:"\2014";font-size:15px;opacity:.6}
+.lookfx .fx-math{color:#F2B33D}.lookfx .fx-stars{color:#F2B33D}.lookfx .fx-hearts{color:#F28DA6}.lookfx .fx-confetti{color:#7FAEDD}
+.lookfx.on .lfx{box-shadow:0 0 0 2px #081B45,0 0 0 4px #F2B33D}
+.lookfx .lnm{font-size:13px;font-weight:600}
+.lookpick.compact .lookfxs{grid-template-columns:repeat(3,1fr);gap:6px}
+.lookpick.compact .lookfx{color:var(--c-ink,#0E1B3A)}
+.lookpick.compact .lookfx .lfx{font-size:12px;border-radius:7px}
+.lookpick.compact .lookfx .fx-none::before{font-size:11px}
+.lookpick.compact .lookfx .lnm{font-size:11.5px}
+.lookpick.compact .lookfx.on .lfx{box-shadow:0 0 0 2px #fff,0 0 0 4px #F2B33D}
