@@ -6,7 +6,7 @@
    Seating Chart screen follows it live. Rosters come from rosters/all.
    ?demo uses made-up names and a this-tab store: nothing is saved.
 ========================================== */
-import { ROOM, KINDS, TEMPLATES, MIN, SAVED_MAX, cleanSaved, isSeat, sizeOf, uid, snap, cleanChart, cleanPeriod, seatList, seatCount, drawRoom } from "./seats.js?v=5";
+import { ROOM, KINDS, TEMPLATES, MIN, SAVED_MAX, FOLDER_MAX, perFolder, cleanSaved, isSeat, sizeOf, uid, snap, cleanChart, cleanPeriod, seatList, seatCount, drawRoom } from "./seats.js?v=6";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
@@ -39,7 +39,8 @@ function save() {
         saving = false; if (again) { again = false; go(); }
     }, 450);
 }
-let SAVED = { list: [] };
+let SAVED = { folders: [], list: [] };
+let fview = null; // the saved-layouts folder that is open, or null for all folders
 const locked = () => !!P().lock;
 function lockedNote() { toast("This chart is locked. Tap Locked at the top to unlock it."); const b = $("lockBtn"); b.classList.remove("nudge"); void b.offsetWidth; b.classList.add("nudge"); }
 /** Every change goes through here: one undo step, redraw, save. A locked chart refuses every change. */
@@ -322,53 +323,147 @@ function nudge(dx, dy) { const many = selItems(); if (many.length) change(() => 
 let toastT = 0;
 function toast(t) { $("foot").textContent = t; clearTimeout(toastT); toastT = setTimeout(render, 6000); }
 
-/* ---------- saved layouts (teacher/{uid}/seats/saved) ---------- */
+/* ---------- saved layouts in folders (teacher/{uid}/seats/saved) ---------- */
+const FOLDER_IDEAS = ["Test days", "Group work", "Partner work", "Stations", "Fridays", "Sub days"];
 async function writeSaved() {
     try { await store.save("seats/saved", JSON.parse(JSON.stringify(SAVED))); return true; }
     catch (e) { $("saveMsg").textContent = "Could not save (" + ((e && e.code) || "connection") + "). Nothing changed."; return false; }
 }
-function openSaved() { $("saveMsg").textContent = ""; $("saveName").value = ""; drawSaved(); $("savedDlg").showModal(); setTimeout(() => $("saveName").focus(), 30); }
-async function saveLayout() {
-    const p = P(), n = $("saveName").value.trim().slice(0, 40);
-    if (!p.items.length) { $("saveMsg").textContent = "This period has no room yet. Set one up first."; return; }
-    if (!n) { $("saveMsg").textContent = "Give the layout a name first."; $("saveName").focus(); return; }
-    if (SAVED.list.length >= SAVED_MAX) { $("saveMsg").textContent = "You have " + SAVED_MAX + " saved layouts. Delete one to save another."; return; }
-    const same = SAVED.list.find((x) => x.n.toLowerCase() === n.toLowerCase() && x.per === per);
-    const entry = { id: same ? same.id : uid(), n, per, at: Date.now(), items: JSON.parse(JSON.stringify(p.items)), seats: Object.assign({}, p.seats) };
-    const old = SAVED.list.slice();
-    SAVED.list = [entry].concat(SAVED.list.filter((x) => x !== same));
-    if (await writeSaved()) { $("saveMsg").textContent = (same ? "Updated \u201c" : "Saved \u201c") + n + "\u201d."; $("saveName").value = ""; } else SAVED.list = old;
+/** Change SAVED, write it, and put it back if the write fails. */
+async function editSaved(fn, msg) {
+    const old = JSON.parse(JSON.stringify(SAVED));
+    fn();
+    if (await writeSaved()) { if (msg) $("saveMsg").textContent = msg; } else SAVED = old;
     drawSaved();
 }
+/** Every folder: one per period (class periods first, then any old period that still has layouts), then the teacher's own. */
+function folders() {
+    const out = PERIODS.map((p) => ({ id: perFolder(p[0]), n: p[0] + " period", per: p[0] }));
+    SAVED.list.forEach((x) => { if (x.f.startsWith("p:") && !out.some((f) => f.id === x.f)) out.push({ id: x.f, n: x.f.slice(2) + " period", per: x.f.slice(2) }); });
+    SAVED.folders.forEach((f) => out.push({ id: f.id, n: f.n, mine: true }));
+    return out;
+}
+const folderOf = (id) => folders().find((f) => f.id === id);
+const inFolder = (id) => SAVED.list.filter((x) => x.f === id);
+function openSaved() { $("saveMsg").textContent = ""; $("saveName").value = ""; fview = null; drawSaved(); $("savedDlg").showModal(); setTimeout(() => $("saveName").focus(), 30); }
+async function saveLayout() {
+    const p = P(), n = $("saveName").value.trim().slice(0, 40), f = $("saveFolder").value || perFolder(per);
+    if (!p.items.length) { $("saveMsg").textContent = "This period has no room yet. Set one up first."; return; }
+    if (!n) { $("saveMsg").textContent = "Give the layout a name first."; $("saveName").focus(); return; }
+    const same = SAVED.list.find((x) => x.n.toLowerCase() === n.toLowerCase() && x.f === f);
+    if (!same && SAVED.list.length >= SAVED_MAX) { $("saveMsg").textContent = "You have " + SAVED_MAX + " saved layouts. Delete one to save another."; return; }
+    const entry = { id: same ? same.id : uid(), n, per, f, at: Date.now(), items: JSON.parse(JSON.stringify(p.items)), seats: Object.assign({}, p.seats) };
+    const fo = folderOf(f);
+    await editSaved(() => { SAVED.list = [entry].concat(SAVED.list.filter((x) => x !== same)); },
+        (same ? "Updated “" : "Saved “") + n + "” in " + (fo ? fo.n : "its folder") + ".");
+    if ($("saveMsg").textContent.startsWith("Could not")) return;
+    $("saveName").value = ""; fview = f; drawSaved();
+}
+function folderSelect(sel, value) {
+    sel.textContent = "";
+    folders().forEach((f) => { const o = el("option", null, f.n); o.value = f.id; sel.appendChild(o); });
+    sel.value = value;
+}
+const ICON_FOLDER = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
 function drawSaved() {
-    const host = $("savedList"); host.textContent = "";
-    if (!SAVED.list.length) { host.appendChild(el("p", "se-hint", "No saved layouts yet.")); return; }
-    const mine = SAVED.list.filter((x) => x.per === per), rest = SAVED.list.filter((x) => x.per !== per);
-    [[mine, per + " period"], [rest, "Other periods"]].forEach(([list, h]) => {
-        if (!list.length) return; host.appendChild(el("p", "pg", h));
-        list.forEach((x) => {
-            const row = el("div", "se-saveit"), th = el("div", "se-savethumb"); drawRoom(th, cleanPeriod(x), {}); row.appendChild(th);
-            const tx = el("div", "se-savetx"); tx.appendChild(el("b", null, x.n));
-            const n = Object.keys(x.seats).length; tx.appendChild(el("small", null, (x.per ? x.per + " period · " : "") + seatCount(x) + " seats" + (n ? ", " + n + " students" : "") + " · " + new Date(x.at).toLocaleDateString()));
-            row.appendChild(tx);
-            const go = el("button", "btn", "Restore"); go.type = "button";
-            go.onclick = () => {
-                if (locked()) { $("saveMsg").textContent = "This chart is locked. Unlock it to restore a layout."; return; }
-                const names = new Set(roster());
-                change(() => { P().items = JSON.parse(JSON.stringify(x.items)); P().seats = Object.assign({}, x.seats); });
-                const away = Object.values(P().seats).filter((nm) => names.size && !names.has(nm)).length;
-                sels = new Set(); $("savedDlg").close();
-                toast("Restored \u201c" + x.n + "\u201d." + (away ? " " + away + " name" + (away > 1 ? "s are" : " is") + " not on this period's class list (dashed red)." : "") + " Undo puts the last chart back.");
-            };
-            const dl = el("button", "btn ghost se-savedel", "Delete"); dl.type = "button";
-            dl.onclick = async () => {
-                if (dl.dataset.sure !== "1") { dl.dataset.sure = "1"; dl.textContent = "Delete it?"; setTimeout(() => { if (dl.isConnected) { dl.dataset.sure = ""; dl.textContent = "Delete"; } }, 4000); return; }
-                const old = SAVED.list.slice(); SAVED.list = SAVED.list.filter((y) => y.id !== x.id);
-                if (await writeSaved()) $("saveMsg").textContent = "Deleted \u201c" + x.n + "\u201d."; else SAVED.list = old;
-                drawSaved();
-            };
-            row.appendChild(go); row.appendChild(dl); host.appendChild(row);
-        });
+    if (fview && !folderOf(fview)) fview = null;
+    folderSelect($("saveFolder"), fview || perFolder(per));
+    const crumb = $("savedCrumb"), host = $("savedList");
+    crumb.textContent = ""; host.textContent = "";
+    const all = el("button", "se-crumbbtn", "All folders"); all.type = "button"; all.onclick = () => { fview = null; drawSaved(); };
+    if (fview) all.setAttribute("aria-current", "false"); else all.setAttribute("aria-current", "page");
+    crumb.appendChild(all);
+    if (!fview) return drawFolders(host);
+    const fo = folderOf(fview);
+    crumb.appendChild(el("span", "se-crumbsep", "›"));
+    crumb.appendChild(el("b", null, fo.n));
+    if (fo.mine) folderTools(crumb, fo);
+    drawLayouts(host, inFolder(fview));
+}
+function drawFolders(host) {
+    const grid = el("div", "se-folders");
+    folders().forEach((f) => {
+        const list = inFolder(f.id);
+        if (f.per && !PERIODS.some((p) => p[0] === f.per) && !list.length) return;
+        const b = el("button", "se-folder" + (f.mine ? " mine" : "") + (f.per === per ? " here" : "")); b.type = "button";
+        b.innerHTML = ICON_FOLDER;
+        const tx = el("span"); tx.appendChild(el("b", null, f.n));
+        tx.appendChild(el("small", null, (list.length ? list.length + " layout" + (list.length > 1 ? "s" : "") : "Empty") + (f.per === per ? " · this period" : "")));
+        b.appendChild(tx);
+        b.onclick = () => { fview = f.id; drawSaved(); };
+        grid.appendChild(b);
+    });
+    host.appendChild(grid);
+    // a new folder for days and activities
+    const add = el("div", "se-newfolder");
+    if (SAVED.folders.length >= FOLDER_MAX) { add.appendChild(el("p", "se-hint", "You have " + FOLDER_MAX + " folders of your own. Delete one to make another.")); host.appendChild(add); return; }
+    const row = el("div", "se-saverow"), inp = el("input"); inp.id = "newFolder"; inp.maxLength = 30; inp.placeholder = "New folder, like “Test days”"; inp.autocomplete = "off"; inp.setAttribute("aria-label", "New folder name");
+    const go = el("button", "btn", "New folder"); go.type = "button"; go.id = "newFolderGo";
+    const make = (name) => {
+        const n = String(name || "").trim().slice(0, 30);
+        if (!n) { inp.focus(); return; }
+        const have = SAVED.folders.find((f) => f.n.toLowerCase() === n.toLowerCase());
+        if (have) { fview = have.id; drawSaved(); return; }
+        const id = "f" + uid();
+        editSaved(() => { SAVED.folders.push({ id, n }); fview = id; }, "Made the folder “" + n + "”. Save a layout into it above.");
+    };
+    go.onclick = () => make(inp.value);
+    inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); make(inp.value); } });
+    row.appendChild(inp); row.appendChild(go); add.appendChild(row);
+    const ideas = FOLDER_IDEAS.filter((n) => !SAVED.folders.some((f) => f.n.toLowerCase() === n.toLowerCase()));
+    if (ideas.length) {
+        const chips = el("div", "se-ideas"); chips.appendChild(el("small", null, "Ideas:"));
+        ideas.forEach((n) => { const c = el("button", "se-idea", n); c.type = "button"; c.onclick = () => make(n); chips.appendChild(c); });
+        add.appendChild(chips);
+    }
+    host.appendChild(add);
+}
+function folderTools(crumb, fo) {
+    const box = el("span", "se-crumbtools");
+    const rn = el("button", "btn ghost", "Rename"); rn.type = "button";
+    rn.onclick = () => {
+        box.textContent = "";
+        const inp = el("input"); inp.value = fo.n; inp.maxLength = 30; inp.setAttribute("aria-label", "Folder name");
+        const ok = el("button", "btn go", "Done"); ok.type = "button";
+        const done = () => { const n = inp.value.trim().slice(0, 30); if (!n || n === fo.n) return drawSaved(); editSaved(() => { const f = SAVED.folders.find((x) => x.id === fo.id); if (f) f.n = n; }, "Renamed to “" + n + "”."); };
+        ok.onclick = done; inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); done(); } if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); drawSaved(); } });
+        box.appendChild(inp); box.appendChild(ok); inp.focus(); inp.select();
+    };
+    const dl = el("button", "btn ghost se-savedel", "Delete folder"); dl.type = "button";
+    dl.onclick = () => {
+        const n = inFolder(fo.id).length;
+        if (dl.dataset.sure !== "1") { dl.dataset.sure = "1"; dl.textContent = n ? "Delete folder? Its " + n + " layout" + (n > 1 ? "s go" : " goes") + " back to period folders" : "Delete folder?"; setTimeout(() => { if (dl.isConnected) { dl.dataset.sure = ""; dl.textContent = "Delete folder"; } }, 5000); return; }
+        fview = null;
+        editSaved(() => { SAVED.list.forEach((x) => { if (x.f === fo.id) x.f = perFolder(x.per || per); }); SAVED.folders = SAVED.folders.filter((f) => f.id !== fo.id); }, "Deleted the folder “" + fo.n + "”." + (n ? " Its layouts are back in their period folders." : ""));
+    };
+    box.appendChild(rn); box.appendChild(dl); crumb.appendChild(box);
+}
+function drawLayouts(host, list) {
+    if (!list.length) { host.appendChild(el("p", "se-hint se-empty", "Nothing in this folder yet. Name this period's layout above and press Save.")); return; }
+    list.forEach((x) => {
+        const row = el("div", "se-saveit"), th = el("div", "se-savethumb"); drawRoom(th, cleanPeriod(x), {}); row.appendChild(th);
+        const tx = el("div", "se-savetx"); tx.appendChild(el("b", null, x.n));
+        const n = Object.keys(x.seats).length; tx.appendChild(el("small", null, (x.per ? "From " + x.per + " period · " : "") + seatCount(x) + " seats" + (n ? ", " + n + " students" : "") + " · " + new Date(x.at).toLocaleDateString()));
+        const mv = el("select", "se-move"); mv.setAttribute("aria-label", "Move “" + x.n + "” to a folder"); mv.title = "Move to another folder";
+        folderSelect(mv, x.f);
+        mv.onchange = () => { const to = folderOf(mv.value); editSaved(() => { const y = SAVED.list.find((z) => z.id === x.id); if (y) y.f = mv.value; }, "Moved “" + x.n + "” to " + (to ? to.n : "that folder") + "."); };
+        tx.appendChild(mv);
+        row.appendChild(tx);
+        const go = el("button", "btn", "Restore"); go.type = "button";
+        go.onclick = () => {
+            if (locked()) { $("saveMsg").textContent = "This chart is locked. Unlock it to restore a layout."; return; }
+            const names = new Set(roster());
+            change(() => { P().items = JSON.parse(JSON.stringify(x.items)); P().seats = Object.assign({}, x.seats); });
+            const away = Object.values(P().seats).filter((nm) => names.size && !names.has(nm)).length;
+            sels = new Set(); $("savedDlg").close();
+            toast("Restored “" + x.n + "” to " + per + " period." + (away ? " " + away + " name" + (away > 1 ? "s are" : " is") + " not on this period's class list (dashed red)." : "") + " Undo puts the last chart back.");
+        };
+        const dl = el("button", "btn ghost se-savedel", "Delete"); dl.type = "button";
+        dl.onclick = () => {
+            if (dl.dataset.sure !== "1") { dl.dataset.sure = "1"; dl.textContent = "Delete it?"; setTimeout(() => { if (dl.isConnected) { dl.dataset.sure = ""; dl.textContent = "Delete"; } }, 4000); return; }
+            editSaved(() => { SAVED.list = SAVED.list.filter((y) => y.id !== x.id); }, "Deleted “" + x.n + "”.");
+        };
+        row.appendChild(go); row.appendChild(dl); host.appendChild(row);
     });
 }
 
