@@ -65,11 +65,10 @@
 /* the Seating Chart screen on the stage */
 .seatbody{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:1em 1.8em 1.2em;position:relative}
 .seatbody .seatroom{max-height:100%;width:auto;height:100%;max-width:100%}
-/* the board view turned a quarter: a tall box, with the wide room turned inside it */
-.seatturn{position:relative;container-type:size;width:100%}
-.seatturn>.seatroom{position:absolute;left:50%;top:50%;width:100cqh;translate:-50% -50%}
-.seatbody .seatturn{height:100%;width:auto;max-width:100%;max-height:100%}
-.seatbody .seatturn>.seatroom{height:auto;max-height:none;max-width:none}
+/* the board view turned or flipped: the walls stay, the room's contents turn inside them */
+.srstuff{position:absolute;inset:0;transform-origin:0 0;pointer-events:none}
+.srstuff>*{pointer-events:auto}
+.srstuff .srfront{pointer-events:none}
 /* the Remote's view buttons for the board: turn and mirror the room */
 .seatfoot{position:absolute;left:1.8em;right:1.8em;bottom:.2em;display:flex;align-items:center;justify-content:space-between;gap:1em}
 .seatfoot .seatedit{position:static;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
