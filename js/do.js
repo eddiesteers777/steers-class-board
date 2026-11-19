@@ -15,9 +15,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import * as V from "./vaultCore.js?v=71";
-import * as C from "./assignCore.js?v=1";
-import { answerBox } from "./answerBox.js?v=1";
+import * as V from "./vaultCore.js?v=72";
+import * as C from "./assignCore.js?v=2";
+import { answerBox } from "./answerBox.js?v=2";
 
 // Same project and app name as the Vault Raid page, so a Chromebook is the same guest in both.
 const app = initializeApp({
