@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walkthroughs | Anchor Board</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=58">
+    <link rel="stylesheet" href="css/console.css?v=58">
+    <link rel="stylesheet" href="css/theme-rings.css?v=2">
+    <link rel="stylesheet" href="css/planner.css?v=58">
+    <link rel="stylesheet" href="css/plan.css?v=64">
+    <link rel="stylesheet" href="css/steps.css?v=1">
+    <meta name="theme-color" content="#081B45">
+    <script type="module" src="js/caleraOnly.js?v=1"></script>
+</head>
+<body class="console page planner wkpage">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Anchor Board</b><small id="who">For teachers</small></span></a>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <a class="btn ghost" href="bank.html" style="text-decoration:none">Question Bank</a>
+        <a class="btn ghost" href="remote.html" style="text-decoration:none">Remote</a>
+    </header>
+    <main class="wk">
+        <h1>Walkthroughs</h1>
+        <p class="pw-lead">The work for problems in your standards bank, written out one step at a time with each move animated. The site writes every step and checks it: each line has to have the same answer as the problem, and the last line has to match the answer key, or the walkthrough is held back. Watch one, then tap <b>Looks right</b>. Only walkthroughs you have checked go on the board.</p>
+        <div class="wk-sum" id="summary" aria-live="polite"></div>
+        <div class="wk-grid">
+            <section class="wk-list" aria-label="Problems">
+                <div class="wk-filters">
+                    <label class="pw-field"><span class="pw-lab">Class</span><select class="pw-in" id="fCls"></select></label>
+                    <label class="pw-field"><span class="pw-lab">Standard</span><select class="pw-in" id="fStd"></select></label>
+                    <label class="pw-field"><span class="pw-lab">Show</span><select class="pw-in" id="fShow"><option value="">All</option><option value="new">Not checked yet</option><option value="ok">Checked</option></select></label>
+                </div>
+                <p class="wk-stdtext" id="stdText"></p>
+                <ol class="wk-items" id="list"></ol>
+                <p class="wk-none" id="none"></p>
+            </section>
+            <section class="wk-play" aria-label="Walkthrough">
+                <div class="wk-q" id="qHead"></div>
+                <div class="wk-player" id="player"></div>
+                <div class="wk-acts" id="acts"></div>
+                <div class="wk-edit" id="edit" hidden></div>
+            </section>
+        </div>
+    </main>
+    <script type="module" src="js/walkPage.js?v=1"></script>
+</body>
+</html>
