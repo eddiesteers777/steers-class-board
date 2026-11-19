@@ -75,3 +75,18 @@ body[data-bg="snow"] #stage .hdr::before,body[data-bg="lights"] #stage .hdr::bef
 .lookpick.compact .lookpresets .lookbg .lpv{font-size:3px}
 .lookpick.compact .lookh{color:var(--c-mute,#5A6785);font-size:11.5px;margin:0}
 .lookpick.compact .lookh.xmas::before{color:#2C6FB0}
+
+/* ---- the logo picker: the mark drawn in the chosen colours ---- */
+.lookmarks{display:flex;flex-wrap:wrap;gap:10px}
+.lookmk{display:flex;flex-direction:column;align-items:center;gap:6px;background:transparent;border:0;color:inherit;font:inherit;padding:4px;border-radius:12px;cursor:pointer;min-width:64px}
+.lookmk .lmk{width:48px;height:48px;border-radius:12px;display:block;transition:box-shadow .2s,transform .15s}
+.lookmk:hover .lmk{transform:scale(1.06)}
+.lookmk.on .lmk{box-shadow:0 0 0 3px #081B45,0 0 0 5px #F2B33D}
+.lookmk .lnm{font-size:13px;font-weight:600}
+.lookbg .lpv .lpm{position:absolute;left:6%;top:9%;width:16%;aspect-ratio:1;border-radius:22%;z-index:1}
+.lookpick.compact .lookmarks{gap:4px}
+.lookpick.compact .lookmk{min-width:0;padding:2px;color:var(--c-ink,#0E1B3A)}
+.lookpick.compact .lookmk .lmk{width:32px;height:32px;border-radius:8px}
+.lookpick.compact .lookmk .lnm{display:none}
+.lookpick.compact .lookmk.on .lmk{box-shadow:0 0 0 2px #fff,0 0 0 4px #F2B33D}
+@media (prefers-reduced-motion:reduce){.lookmk .lmk{transition:none}}

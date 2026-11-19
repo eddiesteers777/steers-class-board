@@ -8,6 +8,8 @@
    inside the shared board state, so the board and the Remote always match.
 ========================================== */
 import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene } from "./boardTools.js?v=58";
+import { MARKS, markUrl } from "./marks.js?v=1";
+export { MARKS };
 
 const LESSON = new Set(LESSON_PANELS.map((x) => x[0]));
 export const labelOf = (k) => (PANEL_LIST.find((x) => x[0] === k) || [k, k])[1];
@@ -277,22 +279,36 @@ export const LOOK_THEMES = [
     ["evergreen", "Evergreen", ["#1E6B43", "#0F4229", "#072617"]], ["cranberry", "Cranberry", ["#9A1F33", "#5E0F1E", "#320710"]],
     ["winter", "Winter night", ["#2C4A8C", "#182A57", "#0A1433"]],
 ];
-export const LOOK_BGS = [["anchor", "Anchor"], ["plain", "Plain"], ["rings", "Rings"], ["grid", "Graph paper"], ["dots", "Dots"], ["glow", "Glow"],
+export const LOOK_BGS = [["anchor", "Big logo"], ["plain", "Plain"], ["rings", "Rings"], ["grid", "Graph paper"], ["dots", "Dots"], ["glow", "Glow"],
     ["snow", "Snowfall"], ["lights", "Christmas lights"], ["trees", "Snowy pines"], ["candy", "Candy cane"]];
-/* One tap for a whole holiday look: [id, name, colours, background]. */
-export const LOOK_PRESETS = [["xmas-lights", "Christmas lights", "evergreen", "lights"], ["xmas-snow", "Snowy night", "winter", "snow"],
-    ["xmas-pines", "Winter forest", "evergreen", "trees"], ["xmas-candy", "Candy cane", "cranberry", "candy"]];
+/* One tap for a whole holiday look: [id, name, colours, background, logo]. */
+export const LOOK_PRESETS = [["xmas-lights", "Christmas lights", "evergreen", "lights", "ornament"], ["xmas-snow", "Snowy night", "winter", "snow", "snowflake"],
+    ["xmas-pines", "Winter forest", "evergreen", "trees", "tree"], ["xmas-candy", "Candy cane", "cranberry", "candy", "star"]];
 const XMAS = new Set(["evergreen", "cranberry", "winter"]);
-export const defaultLook = () => ({ theme: "navy", bg: "anchor" });
-export function cleanLook(o) { const d = defaultLook(); if (!o || typeof o !== "object") return d; if (LOOK_THEMES.some((t) => t[0] === o.theme)) d.theme = o.theme; if (LOOK_BGS.some((b) => b[0] === o.bg)) d.bg = o.bg; return d; }
+export const defaultLook = () => ({ theme: "navy", bg: "anchor", mark: "anchor" });
+export function cleanLook(o) { const d = defaultLook(); if (!o || typeof o !== "object") return d; if (LOOK_THEMES.some((t) => t[0] === o.theme)) d.theme = o.theme; if (LOOK_BGS.some((b) => b[0] === o.bg)) d.bg = o.bg; if (MARKS.some((m) => m[0] === o.mark)) d.mark = o.mark; return d; }
+const themeCols = (id) => (LOOK_THEMES.find((x) => x[0] === id) || LOOK_THEMES[0])[2];
 const gradOf = (id) => { const t = LOOK_THEMES.find((x) => x[0] === id) || LOOK_THEMES[0]; return "linear-gradient(135deg," + t[2][0] + " 0%," + t[2][1] + " 55%," + t[2][2] + " 100%)"; };
-let lookApplied = "";
+let lookApplied = "", seal = "brand/logo.svg";
+/** The header logo for the current look (brand/logo.svg for Navy + Anchor). */
+export const lookSeal = () => seal;
+const MARK_VARS = ["--ring-mark", "--ring-mark-light", "--ring-wm"];
 export function applyLook(look) {
-    const key = look.theme + "|" + look.bg; if (key === lookApplied) return; lookApplied = key;
+    const key = look.theme + "|" + look.bg + "|" + (look.mark || "anchor"); if (key === lookApplied) return; lookApplied = key;
     const b = document.body, t = LOOK_THEMES.find((x) => x[0] === look.theme) || LOOK_THEMES[0];
     if (t[0] === "navy") { b.style.removeProperty("--ring-grad"); b.style.removeProperty("--look-out"); b.style.removeProperty("--look-mid"); b.style.removeProperty("--look-hi"); }
     else { b.style.setProperty("--ring-grad", gradOf(t[0])); b.style.setProperty("--look-out", t[2][2]); b.style.setProperty("--look-mid", t[2][1]); b.style.setProperty("--look-hi", t[2][0]); }
     b.dataset.theme = t[0]; b.dataset.bg = look.bg;
+    // The logo follows the colour scheme; Navy + Anchor keeps the brand files exactly as they are
+    const mk = look.mark || "anchor";
+    if (t[0] === "navy" && mk === "anchor") { MARK_VARS.forEach((v) => b.style.removeProperty(v)); seal = "brand/logo.svg"; }
+    else {
+        const u = (kind) => 'url("' + markUrl(mk, t[2], kind, t[0]) + '")';
+        b.style.setProperty("--ring-mark", u("dark")); b.style.setProperty("--ring-mark-light", u("light")); b.style.setProperty("--ring-wm", u("wm"));
+        seal = markUrl(mk, t[2], "tile", t[0]);
+    }
+    b.dataset.mark = mk;
+    document.querySelectorAll("#stage .hdr > img, #stage .wbstrip > img").forEach((im) => { if (im.getAttribute("src") !== seal) im.src = seal; });
 }
 /** Swatches for the colour scheme and tiles for the background. compact: the Remote's rail. */
 export function lookPicker(api, compact) {
@@ -301,25 +317,35 @@ export function lookPicker(api, compact) {
     {   // Christmas: colours and background together, one tap
         box.appendChild(el("p", "lookh xmas", compact ? "Christmas" : "Christmas looks"));
         const pr = el("div", "lookbgs lookpresets"); pr.setAttribute("role", "group"); pr.setAttribute("aria-label", "Christmas looks");
-        LOOK_PRESETS.forEach(([, name, th0, bg0]) => {
+        LOOK_PRESETS.forEach(([, name, th0, bg0, mk0]) => {
             const on = S.look.theme === th0 && S.look.bg === bg0, b = el("button", "lookbg" + (on ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(on));
-            const pv = el("span", "lpv"); pv.style.background = gradOf(th0); pv.appendChild(el("span", "stagebg pv-" + bg0)); b.appendChild(pv); b.appendChild(el("span", "lnm", name));
-            b.onclick = () => { S.look = { theme: th0, bg: bg0 }; api.push(); refreshSheet(); }; pr.appendChild(b);
+            const pv = el("span", "lpv"); pv.style.background = gradOf(th0); pv.appendChild(el("span", "stagebg pv-" + bg0)); const pm = el("img", "lpm"); pm.alt = ""; pm.src = markUrl(mk0, themeCols(th0), "tile", th0); pv.appendChild(pm); b.appendChild(pv); b.appendChild(el("span", "lnm", name));
+            b.onclick = () => { S.look = { theme: th0, bg: bg0, mark: mk0 }; api.push(); refreshSheet(); }; pr.appendChild(b);
         });
         box.appendChild(pr); box.appendChild(el("p", "lookh", "Colors"));
     }
     LOOK_THEMES.forEach(([id, name]) => {
         const b = el("button", "lookth" + (XMAS.has(id) ? " xmas" : "") + (S.look.theme === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(S.look.theme === id)); b.title = name;
         const sw = el("span", "lsw"); sw.style.background = gradOf(id); b.appendChild(sw); b.appendChild(el("span", "lnm", name));
-        b.onclick = () => { S.look = { theme: id, bg: S.look.bg }; api.push(); refreshSheet(); }; th.appendChild(b);
+        b.onclick = () => { S.look = Object.assign({}, S.look, { theme: id }); api.push(); refreshSheet(); }; th.appendChild(b);
     });
     box.appendChild(th);
+    box.appendChild(el("p", "lookh", "Logo"));   // drawn in the colours picked above
+    const mks = el("div", "lookmarks"); mks.setAttribute("role", "group"); mks.setAttribute("aria-label", "Board logo");
+    const cur = S.look.mark || "anchor";
+    MARKS.forEach(([id, name]) => {
+        const b = el("button", "lookmk" + (cur === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(cur === id)); b.title = name;
+        const im = el("img", "lmk"); im.alt = ""; im.src = S.look.theme === "navy" && id === "anchor" ? "brand/logo.svg" : markUrl(id, themeCols(S.look.theme), "tile", S.look.theme);
+        b.appendChild(im); b.appendChild(el("span", "lnm", name));
+        b.onclick = () => { S.look = Object.assign({}, S.look, { mark: id }); api.push(); refreshSheet(); }; mks.appendChild(b);
+    });
+    box.appendChild(mks);
     box.appendChild(el("p", "lookh", "Background"));
     const bg = el("div", "lookbgs"); bg.setAttribute("role", "group"); bg.setAttribute("aria-label", "Board background");
     LOOK_BGS.forEach(([id, name]) => {
         const b = el("button", "lookbg" + (S.look.bg === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(S.look.bg === id));
         const pv = el("span", "lpv"); pv.style.background = gradOf(S.look.theme); pv.appendChild(el("span", "stagebg pv-" + id)); b.appendChild(pv); b.appendChild(el("span", "lnm", name));
-        b.onclick = () => { S.look = { theme: S.look.theme, bg: id }; api.push(); refreshSheet(); }; bg.appendChild(b);
+        b.onclick = () => { S.look = Object.assign({}, S.look, { bg: id }); api.push(); refreshSheet(); }; bg.appendChild(b);
     });
     box.appendChild(bg);
     return box;

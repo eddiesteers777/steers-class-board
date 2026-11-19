@@ -13,7 +13,7 @@ let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
 import { tickTools, defaultTools, mergeTools, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=58";
-import { buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker } from "./panels.js?v=3";
+import { buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal } from "./panels.js?v=4";
 import * as snd from "./sound.js?v=58";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
@@ -101,7 +101,7 @@ let saveFailedAt = 0;
 // without waiting for the server. Firestore still saves every change for reloads and other devices.
 let wantWeek = "", lateWeek = "", autoWeekUntil = 0;   // a ?week= the Remote was opened with, or the saved board week, that has not loaded yet
 let tabs = null, heard = { by: "", at: 0 };   // a failed save stays on screen a few seconds, even when the connection itself is fine
-let mode = "remote", signedIn = false, sig = "", writeState = null, SEAL = "brand/logo.svg";
+let mode = "remote", signedIn = false, sig = "", writeState = null;
 
 function writer(path) {
     let busy = false, next = null;
@@ -221,7 +221,7 @@ function fit() {
 }
 
 function header(title, sub) {
-    const l = L(), h = el("div", "hdr"), im = el("img"); im.src = SEAL; im.alt = ""; h.appendChild(im);
+    const l = L(), h = el("div", "hdr"), im = el("img"); im.src = lookSeal(); im.alt = ""; h.appendChild(im);
     const t = el("div", "ttl"); t.appendChild(el("h1", null, title)); t.appendChild(el("p", null, sub || "")); h.appendChild(t);
     h.appendChild(el("p", "cls", (l && l.cls) || "")); return h;
 }
@@ -445,7 +445,7 @@ const WB_SCREENS = { bell: 1, blank: 1, notes: 1, fix: 1 };
 const wbKind = () => (WB_SCREENS[S.screen] ? S.screen : S.screen === "live" && liveReview() ? "vr" : "");
 const CARD_W = [0.3, 0.38, 0.5];
 function wbStrip(title, sub, extra) {
-    const h = el("div", "wbstrip"), im = el("img"); im.src = SEAL; im.alt = ""; h.appendChild(im);
+    const h = el("div", "wbstrip"), im = el("img"); im.src = lookSeal(); im.alt = ""; h.appendChild(im);
     h.appendChild(el("h1", null, title)); if (sub) h.appendChild(el("p", "wbsub", sub));
     if (extra) h.appendChild(extra);
     h.appendChild(el("span", "wbfill"));
@@ -675,7 +675,7 @@ let lookSig = "";
 function renderLookFold() {
     const tm = $("toolsMenu"); if (!tm) return;
     let f = $("lookMenu"); if (!f) { f = el("details", "menu fold"); f.id = "lookMenu"; f.open = window.innerWidth > 860; const sm = el("summary", null, "Board look "); const c = el("span", "count"); c.id = "lookCount"; sm.appendChild(c); f.appendChild(sm); f.appendChild(el("div", "lookhost")); tm.after(f); }
-    const k = S.look.theme + "|" + S.look.bg; if (k === lookSig) return; lookSig = k;
+    const k = S.look.theme + "|" + S.look.bg + "|" + S.look.mark; if (k === lookSig) return; lookSig = k;
     const host = f.querySelector(".lookhost"); host.textContent = ""; host.appendChild(lookPicker(toolApi, true));
 }
 /* One small icon button in a panel's title bar. */
