@@ -24,8 +24,10 @@ export function defaultTools() {
         dice: { n: 2, vals: [3, 5], roll: 0 }, score: { teams: [{ n: "Team 1", s: 0 }, { n: "Team 2", s: 0 }] },
         goal: { text: "", target: 20, pts: {} },
         sw: { running: false, t0: 0, elapsed: 0 },
-        pick: { period: "", cur: -1, used: [] }, groups: { period: "", size: 3, order: [] }, absent: { day: "", periods: {} } };
+        pick: { period: "", cur: -1, used: [] }, groups: { period: "", size: 3, order: [] }, absent: { day: "", periods: {} },
+        palert: { on: true, at: [5, 1], sound: true } };   // Period clock alerts: minutes before the end of class (0 = the bell)
 }
+export const PALERT_MINS = [15, 10, 5, 2, 1, 0];
 export function mergeTools(d) {
     const t = defaultTools(); if (!d || typeof d !== "object") return t;
     if (d.on && typeof d.on === "object") { t.on = {}; PANEL_LIST.forEach(([k]) => { if (d.on[k]) t.on[k] = true; }); }
@@ -37,6 +39,7 @@ export function mergeTools(d) {
     if (!Number.isFinite(t.agenda.at)) t.agenda.at = -1;
     // v 2: tools sit on a shelf unless the teacher floats them. Positions saved before that are dropped once.
     if (d.v === 2 && d.pos && typeof d.pos === "object") PANEL_LIST.forEach(([k]) => { const q = d.pos[k]; if (q) t.pos[k] = { x: Math.min(95, Math.max(0, +q.x || 0)), y: Math.min(92, Math.max(0, +q.y || 0)), s: Math.min(3, Math.max(0.5, +q.s || 1)) }; });
+    if (d.palert && typeof d.palert === "object") t.palert = { on: d.palert.on !== false, sound: d.palert.sound !== false, at: Array.isArray(d.palert.at) ? PALERT_MINS.filter((m) => d.palert.at.includes(m)) : t.palert.at };
     if (["green", "yellow", "red"].includes(d.traffic)) t.traffic = d.traffic;
     if (WORK.some((w) => w[0] === d.work)) t.work = d.work;
     if (typeof d.text === "string") t.text = d.text.slice(0, 600);
