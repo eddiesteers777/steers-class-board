@@ -22,7 +22,7 @@
      asg/{code}/p/{guest}           one student's own entry: who they are and every attempt
      asg/{code}/r/{guest}           a released quiz or test result, written by the teacher
 ========================================== */
-import { sameAnswer, stepsFor, answerKind } from "./vaultCore.js?v=71";
+import { sameAnswer, stepsFor, answerKind } from "./vaultCore.js?v=72";
 
 export const TYPES = {
     practice: { label: "Practice", word: "practice", blurb: "Mastery: each skill asks for a number right. Instant feedback and fresh problems after a miss." },
