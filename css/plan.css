@@ -148,3 +148,50 @@ textarea.pw-in{min-height:64px;resize:vertical}
 .bk-covlist li.none .bk-covbtn em{color:#9A4A00}
 .bk-covbtn:hover,.bk-covbtn:focus-visible{outline:2px solid #10358A;outline-offset:1px}
 .bk-std:hover,.bk-std:focus-visible{outline:2px solid currentColor;outline-offset:1px}
+/* Plan the Week: what the data says, review standards, day plans (Nov 19) */
+.pw-evd{background:#F3F6FB;border:1px solid var(--c-line);border-radius:14px;padding:12px 14px;margin:0 0 14px}
+.pw-evh{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.pw-evh b{font-size:.92rem}
+.pw-evd .pw-hint{margin:4px 0 0;display:block}
+.pw-evl{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.pw-evl li{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--c-line);border-radius:12px;padding:8px 10px}
+.pw-evt{flex:1 1 320px;min-width:0;font-size:.9rem;line-height:1.45}
+.pw-evt small{display:block;color:var(--c-mute);font-size:.8rem}
+.pw-evk{display:inline-block;background:#FFF4D6;color:#8A5A00;border-radius:999px;padding:1px 8px;font-weight:800;font-size:.74rem;margin-right:6px}
+.pw-evk.re{background:#FBE3E4;color:#B4232A}
+.pw-eva{display:flex;gap:6px;flex-wrap:wrap}
+.pw-eva .btn{min-height:40px;font-size:.85rem}
+.pw-eva .btn:disabled{opacity:.6;cursor:default}
+.pw-plan{grid-template-columns:44px 1fr auto auto}
+.pw-dayb{min-height:44px;font-size:.85rem;white-space:nowrap}
+.pw-dayb.has{border-color:#2F6FDB;color:#10358A}
+.pw-drawer{margin:2px 0 8px 52px;border:1.5px solid #B9D3EE;border-radius:14px;background:#F8FAFD;padding:12px 14px}
+.pw-bells{margin:0 0 6px;padding:0 0 0 20px;display:grid;gap:6px}
+.pw-bells li{display:grid;grid-template-columns:1fr auto auto auto;gap:6px 10px;align-items:center;font-size:.92rem}
+.pw-ba{color:#1F6B45;font-weight:600;font-size:.85rem}
+.pw-bstd{font-size:.75rem;font-weight:800;color:#10358A;background:#E6EEFB;border-radius:999px;padding:1px 8px}
+.pw-bx{min-height:36px;min-width:36px;padding:0}
+.pw-brow{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 6px}
+.pw-brow .btn{min-height:44px;display:inline-flex;align-items:center;text-decoration:none}
+@media (max-width:600px){.pw-plan{grid-template-columns:40px 1fr}.pw-plan .pw-dayb{grid-column:2}.pw-drawer{margin-left:0}.pw-bells li{grid-template-columns:1fr auto auto}.pw-bq{grid-column:1/-1}}
+.pw-bx{width:auto!important;justify-self:end}
+/* Standards bank picker (js/bankPick.js) */
+dialog.bp{margin:auto;width:min(760px,calc(100vw - 24px));max-height:calc(100vh - 32px);border:none;border-radius:18px;padding:16px 18px;box-shadow:0 8px 32px rgba(8,27,69,.2);color:var(--c-ink);background:var(--c-surface)}
+dialog.bp::backdrop{background:rgba(8,27,69,.45)}
+.bp-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bp-head h2{font-family:var(--display);font-size:1.2rem;font-weight:800;margin:0;flex:1}
+.bp-head .btn{min-height:44px}
+.bp-other{margin:8px 0;max-width:360px}
+.bp-text{font-size:.88rem;color:var(--c-mute);margin:0 0 8px;line-height:1.45}
+.bp-lv{margin-bottom:10px}
+.bp-list{display:grid;gap:8px}
+.bp-item{display:flex;gap:10px;align-items:center;border:1px solid var(--c-line);border-radius:12px;padding:10px 12px}
+.bp-txt{flex:1;min-width:0;display:grid;gap:3px;line-height:1.45}
+.bp-a{color:#1F6B45;font-weight:600;font-size:.88rem}
+.bp-meta{font-size:.78rem;color:var(--c-mute)}
+.bp-item .btn{min-height:44px;min-width:76px}
+.rv-planbox{border:1.5px solid #B9D3EE;background:#F3F6FB;border-radius:12px;padding:10px 12px;margin:8px 0;display:grid;gap:6px}
+.rv-planbox .btn{min-height:44px;justify-self:start;text-decoration:none;display:inline-flex;align-items:center}
+.rv-paste{flex-basis:100%;display:grid;gap:8px}
+.rv-paste .btn{justify-self:start;min-height:44px}
+.rv-day .rv-acts{margin-top:6px}
