@@ -149,3 +149,15 @@ body.board .setup.pnote{display:none}
 #stage .card h3 .close,.toolshelf .card h3 .close,.card.lifting h3 .close{color:#0B2559}
 #stage .card h3 .pbtn:hover,.toolshelf .card h3 .pbtn:hover{background:rgba(11,37,89,.08)}
 #stage .float h3{padding-right:.5em}
+
+/* Period clock alerts: the setting row (Remote only) and the banner across the board */
+.palerts{margin-top:.5em;align-items:center}
+.palerts .palh{font-size:.62em;font-weight:700;color:var(--ink,#0E1B3A);margin-right:.2em}
+.palerts .palsnd,.palerts .paloff{border-style:dashed}
+.palert{position:absolute;left:50%;top:1.2em;z-index:40;transform:translate(-50%,-160%);opacity:0;pointer-events:none;
+  background:#F2B33D;color:#1A1300;font-weight:800;font-size:2.1em;line-height:1.15;padding:.45em 1.1em;border-radius:.6em;white-space:nowrap;
+  box-shadow:0 .5em 1.6em rgba(0,0,0,.35);transition:transform .45s cubic-bezier(.2,.9,.3,1.2),opacity .3s}
+.palert.show{transform:translate(-50%,0);opacity:1;animation:palPulse 1.4s ease-in-out 3 .5s}
+.palert.last{background:#E5484D;color:#fff}
+@keyframes palPulse{50%{box-shadow:0 0 0 .35em rgba(242,179,61,.45),0 .5em 1.6em rgba(0,0,0,.35)}}
+@media (prefers-reduced-motion:reduce){.palert{transition:opacity .2s}.palert.show{animation:none}}

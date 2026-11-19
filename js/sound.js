@@ -11,7 +11,7 @@
 let ctx = null, master = null, fxBus = null, musicBus = null, gameBus = null, duckGain = null, verb = null, noise = null;
 let cfg = { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", game: true }, here = false;
 
-const STYLES = [["calm", "Calm"], ["focus", "Focus"], ["upbeat", "Upbeat"]];
+const STYLES = [["calm", "Calm"], ["chill", "Chill"], ["focus", "Focus"], ["upbeat", "Upbeat"], ["christmas", "Christmas"], ["thanksgiving", "Thanksgiving"]];
 export { STYLES };
 
 /** Start (or wake) the audio engine. Browsers only allow this after a tap or key press. */
@@ -167,7 +167,7 @@ export function preview(name) {
    Generated, not recorded: a chord progression, a bass line, a few
    melody notes from the key's pentatonic scale and (for Focus and
    Upbeat) a quiet beat. Keys and progressions change every few bars. */
-const QUAL = { M7: [0, 4, 7, 11], m7: [0, 3, 7, 10], add9: [0, 4, 7, 14], m9: [0, 3, 7, 10, 14], sus: [0, 5, 7, 10], M9: [0, 4, 7, 11, 14], six: [0, 4, 7, 9] };
+const QUAL = { M: [0, 4, 7], m: [0, 3, 7], M7: [0, 4, 7, 11], m7: [0, 3, 7, 10], add9: [0, 4, 7, 14], m9: [0, 3, 7, 10, 14], sus: [0, 5, 7, 10], M9: [0, 4, 7, 11, 14], six: [0, 4, 7, 9] };
 const PROGS = [
     [[0, "M7"], [9, "m7"], [5, "M7"], [7, "add9"]],
     [[2, "m7"], [7, "sus"], [0, "M9"], [9, "m9"]],
@@ -175,13 +175,28 @@ const PROGS = [
     [[9, "m9"], [5, "M7"], [0, "add9"], [7, "sus"]],
     [[0, "six"], [5, "M9"], [2, "m7"], [7, "sus"]],
 ];
+// Warm, plain major progressions for the holiday styles (I vi IV V and friends)
+const PROGS_MAJOR = [
+    [[0, "M"], [9, "m"], [5, "M"], [7, "M"]],
+    [[0, "add9"], [5, "M"], [2, "m7"], [7, "sus"]],
+    [[5, "M"], [0, "M"], [7, "M"], [9, "m"]],
+    [[0, "six"], [4, "m"], [5, "M7"], [7, "M"]],
+];
 const KEYS = [62, 65, 60, 67, 63, 58];     // D, F, C, G, Eb, Bb
 const PENTA = [0, 2, 4, 7, 9];
 const STYLE = {
     calm: { bpm: 66, drums: 0, bars: 2, mel: 0.22, pad: 1, keys: 0.6 },
     focus: { bpm: 78, drums: 1, bars: 1, mel: 0.3, pad: 0.6, keys: 1, swing: 0.16 },
     upbeat: { bpm: 102, drums: 2, bars: 1, mel: 0.38, pad: 0.35, keys: 0.9, swing: 0.06 },
+    // Lo-fi: slow, swung, soft drums, a darker sound
+    chill: { bpm: 72, drums: 1, bars: 2, mel: 0.18, pad: 0.8, keys: 0.85, swing: 0.24, soft: true },
+    // Christmas: sleigh-bell shaker, a glockenspiel tune, bright major chords
+    christmas: { bpm: 96, drums: 0, bars: 1, mel: 0.45, pad: 0.45, keys: 0.8, swing: 0.1, sleigh: true, bellMel: true, major: true, keys2: [62, 67, 65, 60] },
+    // Thanksgiving: a warm, rolling arpeggio like a fingerpicked guitar, no drums
+    thanksgiving: { bpm: 84, drums: 0, bars: 2, mel: 0.2, pad: 0.55, keys: 0.7, swing: 0.08, arp: true, major: true, keys2: [60, 65, 67, 62] },
 };
+const progsOf = (st) => (st.major ? PROGS_MAJOR : PROGS);
+const keysOf = (st) => st.keys2 || KEYS;
 
 let mus = null;   // { out, timer, next, step, bar, key, prog, style, lastMel }
 function voice(root, q) {
@@ -220,7 +235,8 @@ function startMusic() {
     const out = ctx.createGain(); out.gain.setValueAtTime(0.0001, ctx.currentTime); out.gain.exponentialRampToValueAtTime(1, ctx.currentTime + 2.5); out.connect(musicBus);
     const send2 = ctx.createGain(); send2.connect(verb);
     send2.gain.setValueAtTime(0.0001, ctx.currentTime); send2.gain.exponentialRampToValueAtTime(1, ctx.currentTime + 2.5);
-    mus = { out, send: send2, step: 0, bar: 0, next: ctx.currentTime + 0.15, key: KEYS[Math.floor(Math.random() * KEYS.length)], prog: Math.floor(Math.random() * PROGS.length), lastMel: 2, style: cfg.style };
+    const st0 = STYLE[cfg.style] || STYLE.focus, ks = keysOf(st0);
+    mus = { out, send: send2, step: 0, bar: 0, next: ctx.currentTime + 0.15, key: ks[Math.floor(Math.random() * ks.length)], prog: Math.floor(Math.random() * progsOf(st0).length), lastMel: 2, style: cfg.style };
     mus.timer = setInterval(schedule, 120); schedule();
 }
 function stopMusic() {
@@ -241,40 +257,51 @@ function schedule() {
     const st = STYLE[mus.style] || STYLE.focus, sixteenth = 60 / st.bpm / 4, ahead = ctx.currentTime + 1.2, d = mus.out;
     while (mus.next < ahead) {
         const s = mus.step % 16, t = mus.next + (s % 2 === 1 ? sixteenth * (st.swing || 0) : 0);
-        const prog = PROGS[mus.prog], ci = Math.floor(mus.bar / st.bars) % prog.length, [deg, q] = prog[ci], root = mus.key + deg, chordLen = sixteenth * 16 * st.bars;
+        const PR = progsOf(st), prog = PR[mus.prog % PR.length], ci = Math.floor(mus.bar / st.bars) % prog.length, [deg, q] = prog[ci], root = mus.key + deg, chordLen = sixteenth * 16 * st.bars;
         const firstOfChord = s === 0 && mus.bar % st.bars === 0;
         if (firstOfChord) {
             const v = voice(root, q);
             if (st.pad) v.forEach((m) => pad(t, m, chordLen, 0.035 * st.pad, d));
-            if (st.keys) v.forEach((m, i) => epiano(t + i * (mus.style === "calm" ? 0.09 : 0.015), m, chordLen * 0.5, 0.06 * st.keys, d));
+            if (st.keys && !st.arp) v.forEach((m, i) => epiano(t + i * (mus.style === "calm" ? 0.09 : 0.015), m, chordLen * 0.5, (st.soft ? 0.045 : 0.06) * st.keys, d));
             let b = root; while (b > 47) b -= 12; while (b < 36) b += 12;
             bass(t, b, mus.style === "upbeat" ? sixteenth * 3 : chordLen * 0.45, 0.24, d);
-        } else if (s === 8 && st.keys && mus.style !== "calm") {
+        } else if (s === 8 && st.keys && !st.arp && mus.style !== "calm") {
             voice(root, q).slice(-3).forEach((m) => epiano(t, m, sixteenth * 6, 0.04 * st.keys, d));
             let b = root + 7; while (b > 50) b -= 12; while (b < 36) b += 12;
             bass(t, b, sixteenth * 3, 0.16, d);
         } else if (mus.style === "upbeat" && (s === 6 || s === 14)) {
             let b = root; while (b > 47) b -= 12; while (b < 36) b += 12; bass(t, b + 12, sixteenth * 1.5, 0.12, d);
         }
+        if (st.arp && s % 2 === 0) {   // fingerpicked: up and back down the chord, an 8th note each
+            const v = voice(root, q), seq = v.concat(v.slice(1, -1).reverse()), m = seq[(s / 2) % seq.length] + (s % 8 === 4 ? 12 : 0);
+            epiano(t, m, sixteenth * 3, 0.042 * st.keys, d);
+        }
+        if (st.sleigh) {   // sleigh bells on every 8th, a little louder on the beat
+            if (s % 2 === 0) { noiseHit(t, s % 4 === 0 ? 0.045 : 0.028, d, "highpass", 9000, 0.06); noiseHit(t, 0.012, d, "bandpass", 6200, 0.08, 4); }
+            if (s === 4 || s === 12) noiseHit(t, 0.03, d, "bandpass", 2600, 0.09, 0.9);
+        }
         if (st.drums) {
-            if (s === 0 || (s === 10 && st.drums === 1) || (st.drums === 2 && (s === 4 || s === 8 || s === 12))) kick(t, st.drums === 2 ? 0.34 : 0.4, d);
-            if (s === 4 || s === 12) noiseHit(t, 0.08, d, "bandpass", 1900, 0.13, 0.7);
-            if (s % 2 === 0) noiseHit(t, s % 4 === 2 ? 0.05 : 0.03, d, "highpass", 7500, 0.035);
+            const sv = st.soft ? 0.6 : 1;
+            if (s === 0 || (s === 10 && st.drums === 1) || (st.drums === 2 && (s === 4 || s === 8 || s === 12))) kick(t, (st.drums === 2 ? 0.34 : 0.4) * sv, d);
+            if (s === 4 || s === 12) noiseHit(t, 0.08 * sv, d, "bandpass", st.soft ? 1400 : 1900, 0.13, 0.7);
+            if (s % 2 === 0) noiseHit(t, (s % 4 === 2 ? 0.05 : 0.03) * sv, d, "highpass", st.soft ? 6000 : 7500, 0.035);
             if (st.drums === 2 && s % 2 === 1 && Math.random() < 0.3) noiseHit(t, 0.02, d, "highpass", 8500, 0.025);
         }
         // Melody: a few notes per bar, stepping around the pentatonic scale.
-        const slot = mus.style === "calm" ? s % 4 === 0 : s % 2 === 0;
+        const slot = mus.style === "calm" || mus.style === "chill" ? s % 4 === 0 : s % 2 === 0;
         if (slot && s !== 0 && Math.random() < st.mel) {
             mus.lastMel = Math.max(0, Math.min(9, mus.lastMel + [-2, -1, -1, 1, 1, 2][Math.floor(Math.random() * 6)]));
             const m = mus.key + 12 + PENTA[mus.lastMel % 5] + 12 * Math.floor(mus.lastMel / 5);
-            if (mus.style === "calm") bell(t, hz(m), 0.05, d, 2.2); else epiano(t, m, sixteenth * 3, 0.05, d);
+            if (mus.style === "calm") bell(t, hz(m), 0.05, d, 2.2);
+            else if (st.bellMel) { bell(t, hz(m + 12), 0.06, d, 1.4); epiano(t, m, sixteenth * 2, 0.025, d); }   // glockenspiel doubled softly
+            else epiano(t, m, sixteenth * 3, st.soft ? 0.04 : 0.05, d);
         }
         mus.next += sixteenth; mus.step++;
         if (mus.step % 16 === 0) {
             mus.bar++;
             if (mus.bar % (prog.length * st.bars * 2) === 0) {   // after two passes, move on
-                mus.prog = (mus.prog + 1 + Math.floor(Math.random() * (PROGS.length - 1))) % PROGS.length;
-                if (Math.random() < 0.5) mus.key = KEYS[Math.floor(Math.random() * KEYS.length)];
+                mus.prog = (mus.prog + 1 + Math.floor(Math.random() * (PR.length - 1))) % PR.length;
+                if (Math.random() < 0.5) { const ks = keysOf(st); mus.key = ks[Math.floor(Math.random() * ks.length)]; }
             }
         }
     }

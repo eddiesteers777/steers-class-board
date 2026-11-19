@@ -23,6 +23,8 @@
 .k-station{background:rgba(127,174,221,.16);border:.2cqw dashed #7FAEDD;border-radius:1cqw}
 .k-rug{background:radial-gradient(circle at 50% 50%,rgba(242,179,61,.22),rgba(242,179,61,.1));border:.25cqw solid rgba(242,179,61,.45);border-radius:1.4cqw}
 .k-rug .slab{align-items:flex-end;padding-bottom:.6cqw;color:#8A6410}
+.k-lamp{border-radius:50%;background:radial-gradient(circle at 50% 50%,#FFF8E1 0 22%,#FFD36B 23% 40%,rgba(242,179,61,.35) 41% 62%,rgba(242,179,61,0) 72%);box-shadow:0 0 2.4cqw 1.2cqw rgba(255,206,92,.38)}
+.k-lamp::after{content:"";position:absolute;inset:34%;border-radius:50%;border:.18cqw solid #C98F1F;opacity:.55}
 .k-label .slab{font-family:var(--display,'Bricolage Grotesque',sans-serif);font-weight:700;font-size:1.25cqw;color:var(--sr-mute)}
 
 /* desks and their seats */

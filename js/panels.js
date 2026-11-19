@@ -7,7 +7,7 @@
    set the screen and the panels in one tap. All of it lives in S.tools
    inside the shared board state, so the board and the Remote always match.
 ========================================== */
-import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene } from "./boardTools.js?v=58";
+import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene, PALERT_MINS } from "./boardTools.js?v=59";
 import { MARKS, markUrl } from "./marks.js?v=1";
 import { EFFECTS, applyEffect, effectSample } from "./effects.js?v=1";
 export { MARKS };
@@ -125,6 +125,13 @@ export function buildPanel(k, api) {
         const t = el("p", "bigtime"); t.dataset.pclock = "time"; b.appendChild(t);
         const ln = el("p", "vsub"); ln.dataset.pclock = "line"; b.appendChild(ln);
         const bar = el("div", "goalbar pbar"); bar.dataset.pclock = "bar"; bar.appendChild(el("i")); b.appendChild(bar);
+        // Alerts before the end of class (Remote only): which minutes, sound, on/off
+        const A = S.tools.palert, row = el("div", "minis setup palerts"); row.appendChild(el("span", "palh", "Alerts"));
+        PALERT_MINS.forEach((m) => { const x = el("button", null, m ? m + " min" : "Bell"); x.type = "button"; const on = A.at.includes(m); x.setAttribute("aria-pressed", String(A.on && on));
+            x.onclick = () => { const at = on ? A.at.filter((y) => y !== m) : A.at.concat(m); S.tools.palert = Object.assign({}, A, { on: true, at: PALERT_MINS.filter((y) => at.includes(y)) }); api.push(); }; row.appendChild(x); });
+        const snd = el("button", "palsnd", A.sound ? "Sound on" : "Sound off"); snd.type = "button"; snd.setAttribute("aria-pressed", String(A.sound)); snd.onclick = () => { S.tools.palert = Object.assign({}, A, { sound: !A.sound }); api.push(); }; row.appendChild(snd);
+        const off = el("button", "paloff", A.on ? "Alerts on" : "Alerts off"); off.type = "button"; off.setAttribute("aria-pressed", String(A.on)); off.onclick = () => { S.tools.palert = Object.assign({}, A, { on: !A.on }); api.push(); }; row.appendChild(off);
+        b.appendChild(row);
         periodTick(api, b);
     }
     return c.c;
@@ -194,8 +201,31 @@ export function chip(k, api, onOpen) {
     return b;
 }
 
+/* End-of-class alerts: a banner across the board and a chime, once per threshold, whether or not the
+   Period clock panel is showing. Fires only inside the first few seconds of a threshold, so opening
+   a page mid-class never replays an old alert. */
+const fired = new Set();
+let bannerTimer = 0;
+function periodAlerts(api) {
+    const A = api.S.tools.palert; if (!A || !A.on || !A.at.length) return;
+    const bells = api.bells(), p = api.S.period, bt = bells && bells[p], e = mins(bt && bt.end), s = mins(bt && bt.start); if (e == null || s == null) return;
+    const d = new Date(api.now()); if (d.getDay() < 1 || d.getDay() > 5) return;
+    const nowS = d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds(), leftS = e * 60 - nowS; if (nowS < s * 60) return;
+    A.at.forEach((m) => {
+        const k = d.toDateString() + "|" + p + "|" + m; if (fired.has(k)) return;
+        if (leftS <= m * 60 && leftS > m * 60 - 6) { fired.add(k); showAlert(m); if (A.sound && api.cue) api.cue(m === 0 ? "done" : "warn"); }
+    });
+}
+function showAlert(m) {
+    const stage = document.getElementById("stage"); if (!stage) return;
+    let b = document.getElementById("palertBanner"); if (!b) { b = document.createElement("div"); b.id = "palertBanner"; b.className = "palert"; b.setAttribute("role", "status"); stage.appendChild(b); }
+    b.textContent = m === 0 ? "That's the bell. Class is over." : m === 1 ? "1 minute left in class" : m + " minutes left in class";
+    b.classList.remove("show"); void b.offsetWidth; b.classList.add("show"); b.classList.toggle("last", m <= 1);
+    clearTimeout(bannerTimer); bannerTimer = setTimeout(() => b.classList.remove("show"), 9000);
+}
 /** Four times a second: timers, the period clock and the chips. */
 export function tickPanels(api) {
+    periodAlerts(api);
     const v = api.freeView();
     document.querySelectorAll('[data-ring="free"]').forEach((r) => {
         r.querySelector(".ptime").textContent = v.txt; r.querySelector(".arc").style.strokeDashoffset = String(100 - v.frac * 100);
