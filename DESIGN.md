@@ -25,6 +25,9 @@ simpler, one less thing.
 - **One screen, one job.** One main thing to look at, one primary action, at most one secondary.
 - **Nothing covers the lesson.** Tools sit on the shelf beside the stage. Only something the
   teacher chose to float may sit over lesson content. Nothing ever covers a control.
+- **Panels (Nov 18).** Every tool and lesson panel works the same way: on the shelf, floating, minimized to a
+  live chip at the foot of the shelf, or off. One card style for panels wherever they sit (the ring-theme card).
+  A layout sets the screen and the panels together. Panel controls on the projected board fade with the rest after 4 s.
 - **Never show the wrong thing while loading.** Show the shape of the screen (a skeleton) until
   the real state arrives. No spinners, and never a flash of another day or period.
 - **Never claim what the site cannot know.** No "current period" without bell times. If the
