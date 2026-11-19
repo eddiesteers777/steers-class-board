@@ -113,7 +113,15 @@ async function join(code) {
     ST.code = code; ST.room = null; ST.me = null; ST.hadMe = false; ST.roomGone = false;
     unsubRoom = onSnapshot(doc(db, "rooms", code), (s) => {
         ST.busy = false;
-        if (!s.exists()) { if (ST.room) { ST.roomGone = true; } else { ST.err = "No game has that code. Check the board."; ST.step = "code"; ST.code = ""; stopAll(); } draw(); return; }
+        if (!s.exists()) {
+            if (ST.room) { ST.roomGone = true; draw(); return; }
+            // Not a game: it may be an assignment code (do.html), so one join page works for both.
+            stopAll(); getDoc(doc(db, "asg", code)).then((a) => a.exists(), () => false).then((isAsg) => {
+                if (isAsg) { location.replace("do.html?c=" + code); return; }
+                ST.err = "No game has that code. Check the board."; ST.step = "code"; ST.code = ""; draw();
+            });
+            return;
+        }
         if (s.data().kind === "notes") { stopAll(); location.replace("follow.html?code=" + code); return; }   // a Live notes code (js/follow.js)
         const was = ST.room; ST.room = s.data(); store.set("code", code);
         const bn = +ST.room.bonus || 0;

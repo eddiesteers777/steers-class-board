@@ -12,6 +12,9 @@ import { WEEKS as PUBLISHED } from "../data/weeks.js?v=61";
 import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, eventsOn, nineWeeksOf, daysLeftInNineWeeks, short, parse } from "./schoolCal.js?v=58";
 import { nextUp } from "./standardsNext.js?v=58";
 import { watchPrivateWeeks, weekIdFor } from "./weeksLive.js?v=58";
+import { watchEvidence, classEvidence, evidenceForBrief, weekStandards } from "./planEvidence.js?v=1";
+import { openBankPicker, bankFor } from "./bankPick.js?v=1";
+import { rich } from "./weekSheets.js?v=59";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -27,6 +30,10 @@ const ACTIVITIES = ["Speed dating", "Review game", "Partner challenge", "Station
 const HOMEWORK = { "8th": "Homework Packet, Monday to Wednesday problems, due Thursday", "8th-acc": "Homework Packet, Monday to Wednesday problems, due Thursday", "7th": "Extra Practice, Monday to Wednesday, 3 problems a day" };
 
 let WEEKS = PUBLISHED, progress = {}, planner = { weeks: {} }, rosters = {}, plan = null, mon = "", saveT = 0, dirty = false;
+let evDocs = null, sets = [], asgs = [];
+const openDays = new Set();   // which day drawers are open ("8th:2")
+const CUT = (() => { try { const v = parseFloat(localStorage.getItem("anchorboard-progress-cut")); return v > 0 && v < 1 ? v : 0.7; } catch (e) { return 0.7; } })();
+const TEMPLATES = ["Guided notes", "Practice", "Speed dating", "Review game", "Stations", "Practice + study guide", "Quiz", "Test", "Reteach + practice", "Review"];
 
 /* ---------- which week ---------- */
 const schoolDaysOf = (m) => [0, 1, 2, 3, 4].map((i) => addDays(m, i)).filter(isSchoolDay);
@@ -78,15 +85,16 @@ function freshPlan(m) {
 function touch() { dirty = true; status("Saving…"); clearTimeout(saveT); saveT = setTimeout(save, 600); summary(); }
 async function save() {
     if (!plan) return; plan.at = Date.now();
-    try { await store.save("plans/" + plan.id, plan); dirty = false; status(demo ? "This device only" : "Saved", "ok"); }
-    catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); }
+    try { await store.save("plans/" + plan.id, JSON.parse(JSON.stringify(plan))); dirty = false; status(demo ? "This device only" : "Saved", "ok"); return true; }   // JSON copy: Firestore refuses undefined values
+    catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); return false; }
 }
 
 /* ---------- the brief Claude reads ---------- */
 function brief() {
     const last = [...WEEKS].filter((w) => w.monday && w.monday < plan.monday).pop();
     const out = {
-        version: 1, made: new Date().toISOString(),
+        version: 2, made: new Date().toISOString(),
+        rules: "Day plans are the teacher's own: keep each picked bellringer exactly as written (they are checked standards-bank problems, bankId), keep the day's learning target if one is given, and build everything else around them. Use the review standards for spiral bellringers. Evidence is counts only.",
         week: { id: plan.id, label: plan.label, nineWeeks: plan.nineWeeks, monday: plan.monday, dates: plan.dates,
             days: plan.days.map((d, i) => Object.assign({ day: DAYS[i], date: d.date, school: d.school, event: d.event || "", type: d.school ? (d.type || "regular") : "no school" },
                 d.school && d.type ? { periods: d.periods || ALLPERIODS, minutes: d.minutes || (d.type === "out" ? 55 : null) } : {})) },
@@ -94,22 +102,45 @@ function brief() {
         prompt: "Build " + plan.label + " (" + plan.dates + ") from Anchor: read plans/" + plan.id + "."
     };
     CLASSES.forEach(([cls, label, periods]) => {
-        const c = plan.classes[cls], lw = last && last.classes[cls];
+        const c = plan.classes[cls], lw = last && last.classes[cls], ev = evidenceOf(cls);
+        const words = (code) => { const s = stdOf(cls, code); return s ? { code, critical: !!s.critical, text: s.text } : { code, text: "" }; };
         out.classes[cls] = {
             label, periods, students: Object.fromEntries(periods.map((p) => [p, (rosters[p] || []).length])),
             topic: c.topic,
             standards: c.standards.map((code) => { const s = stdOf(cls, code); return s ? { code, critical: !!s.critical, text: s.text, parts: (s.parts || []).map((p) => (p.l ? p.l + ". " : "") + (p.t || "")).filter(Boolean) } : { code, text: "" }; }),
             assess: c.assess, activity: c.activity, plans: c.plans, homework: c.homework, notes: c.notes,
-            lastWeek: lw ? { id: last.id, label: last.label, target: lw.weekLT || "", days: lw.days.map((d) => d.agendaLine || "") } : null
+            lastWeek: lw ? { id: last.id, label: last.label, target: lw.weekLT || "", days: lw.days.map((d) => d.agendaLine || ""), standards: weekStandards(last, cls) } : null,
+            // Bellringer review standards (spiral), what the scores say, and the teacher's own day plans.
+            review: (c.spiral || []).map(words),
+            evidence: ev ? evidenceForBrief(ev, (code) => stdOf(cls, code), CUT, lw ? weekStandards(last, cls) : []) : null,
+            dayPlans: dayPlansFor(c)
         };
     });
     return out;
 }
+/** The day plans as Claude reads them: only days with something in them. */
+function dayPlansFor(c) {
+    return (c.day || []).map((d, i) => {
+        if (!d || !plan.days[i].school) return null;
+        const o = { day: DAYS[i], plan: c.plans[i] };
+        if ((d.lt || "").trim()) o.target = d.lt.trim();
+        if ((d.bell || []).length) o.bellringers = d.bell.map((b) => ({ q: b.q, a: b.a, std: b.std, bankId: b.id }));
+        if (d.set) o.reviewGame = d.set.title;
+        if (d.asg) o.assignment = d.asg.title + (d.asg.code ? " (code " + d.asg.code + ")" : "");
+        if ((d.note || "").trim()) o.notes = d.note.trim();
+        return Object.keys(o).length > 2 ? o : null;
+    }).filter(Boolean);
+}
+/** The whole plan as text, for a Claude chat that cannot read Anchor Board directly. */
+function briefText() { return plan.brief.prompt + "\n\nIf you cannot open Anchor Board, here is the whole plan (JSON). Return the finished week as one week file (JSON) with id \"" + plan.id + "\" so it can be pasted into Week Review.\n\n" + JSON.stringify(plan.brief, null, 1); }
 async function send() {
     const problems = CLASSES.filter(([cls]) => !plan.classes[cls].topic.trim() || !plan.classes[cls].standards.length).map(([, l]) => l);
     if (problems.length) { status("Add a topic and at least one standard for " + problems.join(" and "), "bad"); return; }
+    const was = { brief: plan.brief, status: plan.status, sentAt: plan.sentAt };
     plan.brief = brief(); plan.status = "sent"; plan.sentAt = Date.now();
-    clearTimeout(saveT); await save(); draw();
+    clearTimeout(saveT);
+    if (!(await save())) { Object.assign(plan, was); if (!was.brief) delete plan.brief; draw(); status("Not sent: the plan could not be saved. Try again.", "bad"); return; }
+    draw();
     $("sendCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
@@ -161,6 +192,7 @@ function drawDays() {
 function drawClass(cls, label, periods) {
     const c = plan.classes[cls], card = el("section", "pw-class"), s = suggest(cls);
     const head = el("div", "pw-chead"); head.appendChild(el("h2", null, label)); head.appendChild(el("span", "pw-per", periods.join(", ") + (periods.length === 1 ? " period" : " periods"))); card.appendChild(head);
+    const evBox = el("div", "pw-evd"); evBox.id = "ev-" + cls; card.appendChild(evBox); drawEvidence(cls, evBox);
     card.appendChild(field("Topic this week", input(c.topic, (v) => { c.topic = v; }, "Unit or topic"), s.unit && s.unit !== c.topic ? "Next up on the Standards page: " + s.unit : ""));
 
     // Standards: the suggestions as toggles, plus any other standard of the class.
@@ -180,6 +212,20 @@ function drawClass(cls, label, periods) {
     const picked = c.standards.map((code) => stdOf(cls, code)).filter(Boolean);
     if (picked.length) { const ul = el("ul", "pw-std"); picked.forEach((x) => { const li = el("li"); li.appendChild(el("b", null, x.code + " ")); li.appendChild(document.createTextNode(x.text)); ul.appendChild(li); }); sw.appendChild(ul); }
     card.appendChild(sw);
+
+    // Review standards: what the bellringers spiral back to (reteach and below-cut standards land here).
+    const rv = el("div", "pw-field"); rv.appendChild(el("span", "pw-lab", "Bellringer review"));
+    const spiral = c.spiral || [];
+    const rchips = el("div", "pw-chips");
+    spiral.forEach((code) => { const st = stdOf(cls, code), b = el("button", "pw-chip", code + " ×"); b.type = "button"; b.setAttribute("aria-pressed", "true"); b.setAttribute("aria-label", "Remove " + code + " from review"); if (st) b.title = st.text; b.onclick = () => { c.spiral = spiral.filter((x) => x !== code); touch(); drawClasses(); }; rchips.appendChild(b); });
+    const radd = el("select", "pw-in pw-add"); radd.setAttribute("aria-label", "Add a " + label + " review standard");
+    const r0 = el("option", null, spiral.length ? "Add another review standard…" : "Add a standard to spiral back to…"); r0.value = ""; radd.appendChild(r0);
+    (STANDARDS[cls] || { standards: [] }).standards.filter((x) => !spiral.includes(x.code)).forEach((x) => { const o = el("option", null, x.code + (x.critical ? " ★ " : " · ") + (x.text.length > 60 ? x.text.slice(0, 57) + "…" : x.text)); o.value = x.code; radd.appendChild(o); });
+    radd.onchange = () => { if (radd.value) { c.spiral = [...spiral, radd.value]; touch(); drawClasses(); } };
+    if (spiral.length) rv.appendChild(rchips);
+    rv.appendChild(radd);
+    rv.appendChild(el("small", "pw-hint", "Claude mixes these into the bellringers. The day picker offers their bank problems too."));
+    card.appendChild(rv);
 
     // Quiz or test
     const qa = el("div", "pw-row");
@@ -204,8 +250,17 @@ function drawClass(cls, label, periods) {
     c.plans.forEach((p, i) => {
         const row = el("label", "pw-plan" + (plan.days[i].school ? "" : " off")); row.appendChild(el("span", null, DK[i]));
         if (!plan.days[i].school) row.appendChild(el("em", null, plan.days[i].event || "No school"));
-        else { const inp = input(p, (v) => { c.plans[i] = v; }); inp.setAttribute("aria-label", label + " " + DAYS[i] + " plan"); row.appendChild(inp); if (plan.days[i].type === "out") row.appendChild(el("small", "pw-sub", "Sub")); }
+        else {
+            const inp = input(p, (v) => { c.plans[i] = v; }); inp.setAttribute("aria-label", label + " " + DAYS[i] + " plan"); inp.setAttribute("list", "pwTemplates"); row.appendChild(inp);
+            const key = cls + ":" + i, d = (c.day || [])[i] || {}, n = (d.bell || []).length + (d.lt ? 1 : 0) + (d.set ? 1 : 0) + (d.asg ? 1 : 0) + (d.note ? 1 : 0);
+            const tg = el("button", "btn ghost pw-dayb" + (n ? " has" : ""), n ? "Day plan · " + n : "Plan day"); tg.type = "button"; tg.setAttribute("aria-expanded", String(openDays.has(key)));
+            tg.setAttribute("aria-label", "Plan " + label + " " + DAYS[i] + " in detail");
+            tg.onclick = (e) => { e.preventDefault(); openDays.has(key) ? openDays.delete(key) : openDays.add(key); drawClasses(); };
+            row.appendChild(tg);
+            if (plan.days[i].type === "out") row.appendChild(el("small", "pw-sub", "Sub"));
+        }
         grid.appendChild(row);
+        if (plan.days[i].school && openDays.has(cls + ":" + i)) grid.appendChild(dayDrawer(cls, label, i));
     });
     dd.appendChild(grid); card.appendChild(dd);
 
@@ -214,6 +269,99 @@ function drawClass(cls, label, periods) {
     card.appendChild(field("Notes for Claude", ta));
     return card;
 }
+/* ---------- one day, in detail: target, bellringers from the bank, and the day's materials ---------- */
+function dayOf(c, i) { if (!Array.isArray(c.day)) c.day = [{}, {}, {}, {}, {}]; if (!c.day[i]) c.day[i] = {}; return c.day[i]; }
+function pickCodes(cls, c) {
+    const ev = evidenceOf(cls), out = [...c.standards, ...(c.spiral || [])];
+    if (ev) { ev.reteach.forEach((x) => out.push(x)); ev.below.forEach((x) => out.push(x.code)); }
+    return [...new Set(out)];
+}
+function dayDrawer(cls, label, i) {
+    const c = plan.classes[cls], d = dayOf(c, i), box = el("div", "pw-drawer"); box.setAttribute("role", "group"); box.setAttribute("aria-label", label + " " + DAYS[i] + " day plan");
+    box.appendChild(field("Learning target for " + DAYS[i], input(d.lt, (v) => { d.lt = v; }, "I can …"), "Leave empty and Claude writes one."));
+    // Bellringers
+    const bw = el("div", "pw-field"); bw.appendChild(el("span", "pw-lab", "Bellringers"));
+    const list = el("ol", "pw-bells");
+    (d.bell || []).forEach((b, k) => {
+        const li = el("li"), q = el("span", "pw-bq"); q.appendChild(rich(b.q));
+        const a = el("span", "pw-ba"); a.appendChild(document.createTextNode("Answer ")); a.appendChild(rich(b.a));
+        const tag = el("span", "pw-bstd", b.std);
+        const x = el("button", "btn ghost pw-bx", "×"); x.type = "button"; x.setAttribute("aria-label", "Remove bellringer " + (k + 1)); x.onclick = () => { d.bell.splice(k, 1); touch(); drawClasses(); };
+        li.append(q, a, tag, x); list.appendChild(li);
+    });
+    if ((d.bell || []).length) bw.appendChild(list);
+    const brow = el("div", "pw-brow");
+    const pick = el("button", "btn", "Pick from the bank"); pick.type = "button";
+    pick.onclick = () => openBankPicker({
+        cls, codes: pickCodes(cls, c), extra: (STANDARDS[cls] || { standards: [] }).standards.map((x) => x.code), stdOf: (code) => stdOf(cls, code),
+        taken: (d.bell || []).map((b) => b.id), title: label + ", " + DAYS[i] + " bellringers",
+        onAdd: (x) => { d.bell = [...(d.bell || []), x]; touch(); }, onClose: () => drawClasses()
+    });
+    brow.appendChild(pick);
+    if ((d.bell || []).length < 4) {
+        const fill = el("button", "btn ghost", (d.bell || []).length ? "Fill to 4" : "Fill 4 for me"); fill.type = "button"; fill.title = "On-level bank problems spread across this week's and review standards, none used elsewhere this week";
+        fill.onclick = async () => {
+            const used = new Set(); (c.day || []).forEach((y) => (y && y.bell || []).forEach((b) => used.add(b.id)));
+            const add = await bankFor(cls, pickCodes(cls, c), 4 - (d.bell || []).length, used);
+            d.bell = [...(d.bell || []), ...add.map((x) => ({ id: x.id, q: x.q, a: x.a, std: x.std, lvl: x.lvl, also: x.also }))]; touch(); drawClasses();
+        };
+        brow.appendChild(fill);
+    }
+    bw.appendChild(brow);
+    bw.appendChild(el("small", "pw-hint", (d.bell || []).length ? "Claude keeps these exactly as picked. Their answers were checked when the bank was built." : "Empty is fine: Claude writes the bellringers."));
+    box.appendChild(bw);
+    // Materials
+    const mrow = el("div", "pw-row");
+    const mySets = [["", sets.length ? "None" : "No saved sets yet"]].concat(sets.map((x) => [x.id, x.title || "Untitled set"]));
+    const ss = select(mySets, (d.set && d.set.id) || "", (v) => { const x = sets.find((y) => y.id === v); d.set = x ? { id: x.id, title: x.title || "" } : null; drawClasses(); }); ss.setAttribute("aria-label", DAYS[i] + " review game set");
+    mrow.appendChild(field("Review game set", ss));
+    const mine = asgs.filter((x) => !x.cls || x.cls === cls);
+    const as = select([["", mine.length ? "None" : "No assignments yet"]].concat(mine.map((x) => [x.id, (x.title || "Assignment") + (x.code ? " · " + x.code : "")])), (d.asg && d.asg.id) || "", (v) => { const x = asgs.find((y) => y.id === v); d.asg = x ? { id: x.id, title: x.title || "", code: x.code || "" } : null; drawClasses(); }); as.setAttribute("aria-label", DAYS[i] + " assignment");
+    mrow.appendChild(field("Assignment", as));
+    box.appendChild(mrow);
+    const links = el("div", "pw-brow");
+    const a1 = el("a", "btn ghost", d.set ? "Open the set" : "Make a set"); a1.href = d.set ? "maker.html?set=" + encodeURIComponent(d.set.id) : "maker.html"; a1.target = "_blank"; a1.rel = "noopener"; links.appendChild(a1);
+    const a2 = el("a", "btn ghost", d.asg ? "Open the assignment" : "Make an assignment"); a2.href = d.asg ? "assign.html?a=" + encodeURIComponent(d.asg.id) : "assign.html"; a2.target = "_blank"; a2.rel = "noopener"; links.appendChild(a2);
+    box.appendChild(links);
+    const ta = el("textarea", "pw-in"); ta.rows = 2; ta.value = d.note || ""; ta.placeholder = "Anything Claude should know about this day"; ta.oninput = () => { d.note = ta.value; touch(); };
+    box.appendChild(field("Notes for this day", ta));
+    return box;
+}
+
+/* ---------- what the data says ---------- */
+function evidenceOf(cls) {
+    if (!evDocs || !evDocs.ready) return null;
+    const C = STANDARDS[cls], periods = (CLASSES.find((x) => x[0] === cls) || [])[2] || [];
+    return classEvidence(evDocs, C, periods, progress[cls] || {}, CUT);
+}
+function drawEvidence(cls, box) {
+    box.textContent = ""; if (!plan) return;
+    const c = plan.classes[cls], ev = evidenceOf(cls), last = [...WEEKS].filter((w) => w.monday && w.monday < plan.monday).pop();
+    const h = el("div", "pw-evh"); h.appendChild(el("b", null, "What the data says")); box.appendChild(h);
+    if (!ev) { box.appendChild(el("p", "pw-hint", "Reading this class's scores…")); return; }
+    const pct = (v) => Math.round(v * 100) + "%";
+    const rows = [];
+    ev.reteach.forEach((code) => rows.push({ code, kind: "Reteach", why: "Marked Reteach" }));
+    ev.below.forEach((x) => { if (!ev.reteach.includes(x.code)) rows.push({ code: x.code, kind: "Below " + pct(CUT), why: x.low + " of " + x.n + " students under " + pct(CUT) + " · class " + pct(x.avg) }); });
+    if (!rows.length) box.appendChild(el("p", "pw-hint", ev.scored ? "Nothing below " + pct(CUT) + " and nothing marked Reteach. " + ev.scored + (ev.scored === 1 ? " standard has" : " standards have") + " scores." : "No scores yet. Class Data, Vault Raid and assignment scores tagged with a standard show up here."));
+    const ul = el("ul", "pw-evl");
+    rows.forEach((r) => {
+        const st = stdOf(cls, r.code), li = el("li");
+        const t = el("div", "pw-evt"); t.append(el("span", "pw-evk" + (r.kind === "Reteach" ? " re" : ""), r.kind), el("b", null, r.code + " "), document.createTextNode(st ? (st.text.length > 90 ? st.text.slice(0, 88) + "…" : st.text) : ""));
+        t.appendChild(el("small", null, r.why)); li.appendChild(t);
+        const acts = el("div", "pw-eva"), inWeek = c.standards.includes(r.code), inRev = (c.spiral || []).includes(r.code);
+        const b1 = el("button", "btn ghost", inWeek ? "In this week" : "Teach this week"); b1.type = "button"; b1.disabled = inWeek; b1.onclick = () => { c.standards = [...c.standards, r.code]; touch(); drawClasses(); };
+        const b2 = el("button", "btn ghost", inRev ? "In review" : "Bellringer review"); b2.type = "button"; b2.disabled = inRev; b2.onclick = () => { c.spiral = [...(c.spiral || []), r.code]; touch(); drawClasses(); };
+        acts.append(b1, b2); li.appendChild(acts); ul.appendChild(li);
+    });
+    if (rows.length) box.appendChild(ul);
+    const lw = last ? weekStandards(last, cls) : [];
+    const foot = el("p", "pw-hint", (last ? last.label + " covered " + (lw.length ? lw.join(", ") : "no tagged standards") + ". " : "") + "Counts only go to Claude, never names. ");
+    const a = el("a", null, "Student Progress"); a.href = "progress.html"; foot.appendChild(a);
+    box.appendChild(foot);
+}
+function drawEvidenceAll() { CLASSES.forEach(([cls]) => { const b = $("ev-" + cls); if (b && !b.contains(document.activeElement)) drawEvidence(cls, b); }); }
+
 function drawClasses() { const box = $("classes"); box.textContent = ""; CLASSES.forEach(([cls, label, periods]) => box.appendChild(drawClass(cls, label, periods))); }
 
 function drawSend() {
@@ -228,6 +376,9 @@ function drawSend() {
     const cp = el("button", "btn", "Copy"); cp.type = "button";
     cp.onclick = async () => { try { await navigator.clipboard.writeText(plan.brief.prompt); cp.textContent = "Copied"; setTimeout(() => (cp.textContent = "Copy"), 1600); } catch (e) { const r = document.createRange(); r.selectNodeContents(code); getSelection().removeAllRanges(); getSelection().addRange(r); } };
     pr.appendChild(cp); box.appendChild(pr);
+    const all = el("button", "btn", "Copy the whole plan"); all.type = "button"; all.title = "For a Claude chat that cannot open Anchor Board: the prompt plus the full plan";
+    all.onclick = async () => { try { await navigator.clipboard.writeText(briefText()); all.textContent = "Copied"; setTimeout(() => (all.textContent = "Copy the whole plan"), 1600); } catch (e) { status("Copy did not work on this device", "bad"); } };
+    box.appendChild(all);
     const again = el("button", "btn ghost", "Update the brief"); again.type = "button"; again.title = "Send again after a change"; again.onclick = send; box.appendChild(again);
     const rv = el("a", "btn ghost", "Week Review"); rv.href = "review.html?week=" + plan.id + (demo ? "&demo" : ""); rv.style.textDecoration = "none"; box.appendChild(rv);
 }
@@ -271,6 +422,9 @@ else {
     store.watch("planner/plans", (s) => { if (s.pending) return; planner = (s.exists && s.data) || { weeks: {} }; if (!planner.weeks) planner.weeks = {}; ready(); }, ready);
     store.watch("rosters/all", (s) => { if (s.pending) return; rosters = (s.exists && s.data && s.data.periods) || {}; ready(); }, ready);
     watchPrivateWeeks(store, PUBLISHED, (list) => { WEEKS = list; if (plan) summary(); });
+    watchEvidence(store, (d) => { evDocs = d; if (plan) drawEvidenceAll(); });
+    store.watch("games/index", (s) => { if (s.pending) return; sets = ((s.exists && s.data && s.data.sets) || []).filter((x) => x && x.id); }, () => {});
+    store.watch("asg/index", (s) => { if (s.pending) return; asgs = ((s.exists && s.data && s.data.list) || []).filter((x) => x && x.id && !x.removed); }, () => {});
 }
 function findMonday(id) {   // ?week=week6 → its Monday
     for (let m = mondayOf(SCHOOL_YEAR.first); m <= SCHOOL_YEAR.last; m = addDays(m, 7)) { const { n, q } = weekNumber(m); if (isSchoolWeek(m) && weekIdFor(n, q) === id) return m; }
