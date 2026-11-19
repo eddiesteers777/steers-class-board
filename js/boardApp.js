@@ -59,7 +59,7 @@ function rich(text) {
 }
 function richEl(tag, cls, text) { const e = el(tag, cls); e.appendChild(rich(text)); return e; }
 
-const SCREENS = [["seats", "Seating Chart"], ["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["speed", "Speed Dating"], ["fix", "Fix It"], ["game", "Review Game"], ["live", "Student Game"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
+const SCREENS = [["seats", "Seating Chart"], ["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["steps", "Show Steps"], ["speed", "Speed Dating"], ["fix", "Fix It"], ["game", "Review Game"], ["live", "Student Game"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
 const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 // Each period and the class plan it follows.
 let PERIODS = PACK_PERIODS;
@@ -93,7 +93,7 @@ function cleanWb(o) {
 }
 const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0,
     timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", fix: null, tools: defaultTools(), wb: defaultWb(),
-    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true }, look: defaultLook(), seatHi: null, bplan: cleanBplan(null) };
+    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true }, look: defaultLook(), seatHi: null, bplan: cleanBplan(null), walk: { id: "", step: 0 } };
 
 // This page's own mark on what it saves, so a change from another tab of the same browser can be shown
 // before the server confirms it (those tabs share one offline copy, where it first arrives as "pending").
@@ -221,7 +221,7 @@ function buildControls() {
             const b = el("button", null, "Go to today"); b.type = "button"; b.onclick = () => { S.week = defaultWeek(); S.day = rd; resetPos(); push(); }; nt.appendChild(b);
         }
     }
-    seg($("screens"), SCREENS.filter((x) => mode !== "sub" || (x[0] !== "game" && x[0] !== "live" && x[0] !== "seats")), S.screen, (id) => { S.screen = id; S.show = false; push(); });
+    seg($("screens"), SCREENS.filter((x) => mode !== "sub" || (x[0] !== "game" && x[0] !== "live" && x[0] !== "seats" && x[0] !== "steps")), S.screen, (id) => { S.screen = id; S.show = false; push(); });
     const sel = $("weekSel"); sel.textContent = "";
     WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + x.dates); o.value = x.id; sel.appendChild(o); });
     sel.value = w.id; $("weekField").hidden = WEEKS.length < 2;
@@ -428,14 +428,16 @@ function skeleton() {
 function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
     syncGames(); syncLive(); syncNotes(); buildControls(); soundSync(); applyLook(S.look); renderLookFold(); renderEditLink();
-    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : "", S.screen === "seats" ? seatSig() : ""]);
+    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : "", S.screen === "seats" ? seatSig() : "", S.screen === "steps" ? stepsSig() : ""]);
     renderDock(); drawGamePanel(); drawLivePanel(); drawNotesPanel();
     if (sheetOpen()) refreshSheet();
-    if (ns === sig) { renderLayer(); tick(); tickTools(toolApi); placeCard(); return; }
+    if (ns === sig) { if (S.screen === "steps") stepsSync(); renderLayer(); tick(); tickTools(toolApi); placeCard(); return; }
     sig = ns;
     if (S.screen !== "seats") seatLast = "";
+    if (stepPlayer) { stepPlayer.destroy(); stepPlayer = null; stepFor = ""; }
     const st = $("screenHost"); st.textContent = ""; canvas = null; ctx = null; pad = null;
     if (S.screen === "seats") { drawSeats(st); renderLayer(); watchInk(); return; }
+    if (S.screen === "steps") { drawSteps(st); renderLayer(); watchInk(); return; }
     if (!l) { st.appendChild(el("div", "empty", "No lesson found for this class and week.")); watchInk(); return; }
     const w = W();
     if (S.screen === "agenda") {
@@ -480,6 +482,74 @@ function render() {
     }
     renderLayer(); watchInk(); tick();
 }
+
+/* ---------- Show Steps: a worked example from the standards bank, one step at a time (js/walk.js, js/stepPlayer.js) ----------
+   The Remote picks the problem and steps through it (or plays it); the board follows step by step, with the moves animated.
+   Only walkthroughs the teacher has checked (walk.html, or "Looks right" here on the Remote) are ever shown on the board. */
+let walkMods = null, WALKITEMS = null, WALKOK = {}, WALKED = {}, walkIn = false, stepPlayer = null, stepFor = "", stepReady = false;
+function stepsLoad() {
+    if (!walkMods) walkMods = Promise.all([import("./walkBank.js?v=1"), import("./stepPlayer.js?v=1"), import("./walk.js?v=1")]).then(async ([wb, sp, wk]) => { WALKITEMS = await wb.loadWalkItems(); return { wb, sp, wk }; });
+    return walkMods;
+}
+function stepsSig() { return JSON.stringify([S.walk.id, !!WALKOK[S.walk.id], walkIn, WALKED[S.walk.id] || null, mode === "remote" ? S.cls : ""]); }
+function stepsSync() {
+    if (!stepPlayer || !stepReady || stepFor !== S.walk.id) return;
+    const i = Math.min(S.walk.step, stepPlayer.count - 1);
+    if (i !== stepPlayer.index) stepPlayer.go(i, i === stepPlayer.index + 1);
+}
+function drawSteps(st) {
+    const remote = mode === "remote", id = S.walk.id;
+    st.appendChild(header("Show Steps", "Watch each move, then try the next one yourself"));
+    const body = el("div", "body stepsbody"); st.appendChild(body);
+    const pick = remote ? el("div", "steppick") : null;
+    if (pick) body.appendChild(pick);
+    const host = el("div", "stepshost"); body.appendChild(host);
+    if (!walkIn && !guestMode()) return;
+    stepsLoad().then(({ wb, sp, wk }) => {
+        if (S.screen !== "steps" || S.walk.id !== id || !host.isConnected) return;
+        const mine = WALKITEMS.filter((x) => (x.cls === S.cls || (x.for || []).includes(S.cls)) && wb.walkOf(x).ok);
+        if (pick) {
+            const lab = el("label", "steppicklab"); lab.appendChild(el("span", null, "Problem"));
+            const sel = el("select"); sel.appendChild(Object.assign(el("option", null, mine.length ? "Pick a problem…" : "No walkthroughs for this class yet"), { value: "" }));
+            let grp = null, last = "";
+            mine.forEach((x) => { if (x.std !== last) { grp = el("optgroup"); grp.label = x.std; sel.appendChild(grp); last = x.std; } const o = el("option", null, (WALKOK[x.id] ? "✓ " : "") + plainQ(x.q)); o.value = x.id; grp.appendChild(o); });
+            sel.value = id; sel.onchange = () => { S.walk = { id: sel.value, step: 0 }; push(); };
+            lab.appendChild(sel); pick.appendChild(lab);
+            const more = el("a", "steplink", "All walkthroughs"); more.href = "walk.html" + (id ? "?id=" + encodeURIComponent(id) : ""); pick.appendChild(more);
+        }
+        const item = id && WALKITEMS.find((x) => x.id === id), w = item && wb.walkOf(item);
+        if (!id || !w || !w.ok) {
+            const e = el("div", "stepempty");
+            e.appendChild(el("h2", null, id ? "That walkthrough is not available" : remote ? "Pick a problem above" : "Pick a problem on the Remote"));
+            e.appendChild(el("p", null, remote ? "Choose one of this class's walkthroughs. You can also open the Walkthroughs page to watch and check them first." : "The worked example shows here, one step at a time."));
+            host.appendChild(e); return;
+        }
+        if (!WALKOK[id]) {
+            if (!remote) { const e = el("div", "stepempty"); e.appendChild(el("h2", null, "Not checked yet")); e.appendChild(el("p", null, "This walkthrough shows here after the teacher checks it on the Remote.")); host.appendChild(e); return; }
+            const n = el("div", "stepcheck"); n.appendChild(el("p", null, "Only you can see this. Watch it, and when it looks right it goes on the board."));
+            const b = el("button", "btn go", "Looks right, show it"); b.type = "button";
+            b.onclick = async () => { b.disabled = true; const ids = Object.assign({}, WALKOK, { [id]: Date.now() }); WALKOK = ids; try { await store.save("walk/ok", { ids, at: Date.now() }); } catch (e) { setStatus("Could not save (" + ((e && e.code) || "connection") + ")."); } render(); };
+            n.appendChild(b); host.appendChild(n);
+        }
+        const q = el("div", "stepq"); q.appendChild(el("span", "stepstd", item.std)); const qt = el("span", "stepqt"); qt.appendChild(sp.drawDT(wk.keyDT(item.q))); q.appendChild(qt); host.appendChild(q);
+        const box = el("div", "stepbox"); host.appendChild(box);
+        stepReady = false;
+        stepPlayer = sp.createStepPlayer(box, wb.withEdits(w, WALKED[id]), { big: true, controls: false, onStep: (i) => { if (remote && stepReady && i !== S.walk.step) { S.walk.step = i; push(); } } });
+        stepFor = id;
+        stepPlayer.go(Math.min(S.walk.step, w.steps.length - 1), false);
+        stepReady = true;
+        if (pick) {
+            const play = el("button", "btn ghost onnavy", "Play"); play.type = "button";
+            play.onclick = () => { if (!stepPlayer) return; if (play.dataset.on) { stepPlayer.pause(); delete play.dataset.on; play.textContent = "Play"; } else { stepPlayer.play(); play.dataset.on = "1"; play.textContent = "Pause"; } };
+            const again = el("button", "btn ghost onnavy", "Replay"); again.type = "button";
+            again.onclick = () => { if (stepPlayer) { delete play.dataset.on; play.textContent = "Play"; S.walk.step = 0; push(); } };
+            pick.append(play, again);
+        }
+        buildControls();
+    });
+}
+const plainQ = (t) => String(t).replace(/§/g, "$").replace(/(\d+)\{(\d+)\/(\d+)\}/g, "$1 $2/$3").replace(/\{([^{}/]+)\/([^{}/]+)\}/g, "$1/$2").slice(0, 90);
+const guestMode = () => mode === "sub";
 
 /* ---------- Seating Chart: the period's room from seats.html, so students can find their seat ----------
    Names show here because the teacher put them here (Eddie asked for it, Nov 19). On the Remote, tap a
@@ -1060,6 +1130,7 @@ function applyState(d) {
     S.look = cleanLook(d.look);
     S.bplan = cleanBplan(d.bplan);
     S.seatHi = d.seatHi && typeof d.seatHi.n === "string" && typeof d.seatHi.at === "number" ? { n: d.seatHi.n.slice(0, 60), at: d.seatHi.at } : null;
+    S.walk = d.walk && typeof d.walk.id === "string" ? { id: d.walk.id.slice(0, 40), step: Math.max(0, Math.min(40, Math.floor(+d.walk.step || 0))) } : { id: "", step: 0 };
     { const o = d.sound || {}, v = (x, def) => (typeof x === "number" && x >= 0 && x <= 1 ? x : def);
         S.sound = { fx: o.fx !== false, fxv: v(o.fxv, 0.7), music: !!o.music, mv: v(o.mv, 0.35), style: snd.STYLES.some((x) => x[0] === o.style) ? o.style : "focus", at: typeof o.at === "string" ? o.at.slice(0, 20) : "", game: o.game !== false }; }
     ["bell", "round", "check", "free"].forEach((k) => { const t = d.timers && d.timers[k]; if (t) { S.timers[k] = { running: !!t.running, t0: +t.t0 || 0, elapsed: +t.elapsed || 0 }; if (k === "free") S.timers.free.dur = +t.dur || 300; } });
@@ -1068,6 +1139,10 @@ function applyState(d) {
 function isSpeedDay() { const d = D(); return !!d && /speed dating/i.test((d.agendaLine || "") + " " + (d.agenda || []).join(" ")); }
 function flow(n) {
     if (S.screen === "game") { gameFlow(n); return; }
+    if (S.screen === "steps") {   // Next and Back step through the walkthrough; past either end, the screen changes
+        if (stepPlayer && stepFor === S.walk.id) { const j = S.walk.step + n; if (j >= 0 && j < stepPlayer.count) { S.walk.step = j; push(); } }
+        return;
+    }
     const d = D(), len = (d && d.problems && d.problems.length) || 0, frames = notesFrames(d), hasNotes = frames.length > 0;
     const afterBell = () => { if (hasNotes) { S.screen = "notes"; S.note = 0; S.step = 0; S.show = false; } else if (isSpeedDay()) { S.screen = "speed"; S.show = false; } else return false; return true; };
     if (n > 0) {
@@ -1102,14 +1177,14 @@ function flow(n) {
 }
 /* Next/Back for the clicker, the arrow keys and the board's own arrows. The lesson flow goes first; when it has
    nowhere to go, move to the next (or previous) screen in the Screens list, so the board never needs the side panel. */
-const screenOrder = () => SCREENS.filter((x) => mode !== "sub" || (x[0] !== "game" && x[0] !== "live" && x[0] !== "seats")).map((x) => x[0]);
+const screenOrder = () => SCREENS.filter((x) => mode !== "sub" || (x[0] !== "game" && x[0] !== "live" && x[0] !== "seats" && x[0] !== "steps")).map((x) => x[0]);
 function nextScreen(n) {   // skips Guided Notes and Speed Dating on days that have none
     const d = D(), skip = { notes: !notesFrames(d).length, speed: !isSpeedDay() };
     const o = screenOrder().filter((id) => id === S.screen || !skip[id]), j = o.indexOf(S.screen) + n;
     return j >= 0 && j < o.length ? o[j] : null;
 }
 const screenName = (id) => (SCREENS.find((x) => x[0] === id) || ["", ""])[1];
-const stateSig = () => JSON.stringify([S.screen, S.prob, S.show, S.note, S.step, S.fix, S.screen === "game" ? gameSig() : ""]);
+const stateSig = () => JSON.stringify([S.screen, S.prob, S.show, S.note, S.step, S.fix, S.screen === "game" ? gameSig() : "", S.screen === "steps" ? S.walk : ""]);
 function step(n) {
     const before = stateSig();
     flow(n);
@@ -1118,9 +1193,10 @@ function step(n) {
     S.screen = t; S.show = false; push();
 }
 function stepLabel() { const l = flowLabel(); if (l !== "Next") return l; const t = nextScreen(1); return t ? "Next: " + screenName(t) : "Next"; }
-function backLabel() { if (["today", "bell", "notes", "speed", "fix"].includes(S.screen)) return "Back"; const t = nextScreen(-1); return t ? "Back: " + screenName(t) : "Back"; }
+function backLabel() { if (["today", "bell", "notes", "speed", "fix"].includes(S.screen) || (S.screen === "steps" && S.walk.step > 0)) return "Back"; const t = nextScreen(-1); return t ? "Back: " + screenName(t) : "Back"; }
 function flowLabel() {
     if (S.screen === "game") return gameFlowLabel();
+    if (S.screen === "steps") return stepPlayer && stepFor === S.walk.id && S.walk.step < stepPlayer.count - 1 ? "Next: Step " + (S.walk.step + 2) : "Next";
     const d = D(), len = (d && d.problems && d.problems.length) || 0, frames = notesFrames(d), hasNotes = frames.length > 0;
     const after = hasNotes ? "Next: Guided Notes" : (isSpeedDay() ? "Next: Speed Dating" : "Next");
     if (S.screen === "agenda") return "Next: Today";
@@ -1218,6 +1294,10 @@ export async function startApp(opts) {
         if (synced) { sig = ""; render(); }
     }); }
     store.watch("rosters/all", (snap) => { const p = (snap.exists && snap.data && snap.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); renderLayer(); }, () => {});
+    if (!guest) {
+        store.watch("walk/ok", (snap) => { if (snap.pending) return; import("./walkBank.js?v=1").then((wb) => { WALKOK = wb.cleanOk(snap.exists ? snap.data : null); walkIn = true; if (synced && S.screen === "steps") render(); }); }, () => { walkIn = true; });
+        store.watch("walk/edits", (snap) => { if (snap.pending) return; import("./walkBank.js?v=1").then((wb) => { WALKED = wb.cleanEdits(snap.exists ? snap.data : null); if (synced && S.screen === "steps") render(); }); }, () => {});
+    } else walkIn = true;
     if (!guest) store.watch("seats/chart", (snap) => { if (snap.pending) return; SEATS = cleanChart(snap.exists ? snap.data : null); seatsIn = true; if (synced && S.screen === "seats") render(); }, () => { seatsIn = true; });
     else seatsIn = true;
     if (!guest) store.watch("settings/bells", (snap) => {   // today's bell times, for the Period clock panel (Home edits them)
@@ -1265,6 +1345,8 @@ export async function startApp(opts) {
             if (mode === "remote" && wq && WEEKS.some((w) => w.id === wq) && wq !== S.week) { S.week = wq; resetPos(); changed = true; }
             else if (mode === "remote" && wq && !WEEKS.some((w) => w.id === wq)) wantWeek = wq;
             if (mode === "remote" && sq && SCREENS.some((x) => x[0] === sq) && sq !== S.screen) { S.screen = sq; changed = true; }
+            const wq2 = q.get("walk");   // the Walkthroughs page sends one to the board: remote.html?screen=steps&walk=8.11-05
+            if (mode === "remote" && wq2 && /^[\w. -]{1,40}$/.test(wq2)) { S.walk = { id: wq2, step: 0 }; S.screen = "steps"; changed = true; }
             if (mode === "remote" && pq && PERIODS.some((p) => p[0] === pq) && pq !== S.period) { S.period = pq; S.cls = classOf(pq); resetPos(); S.screen = sq && SCREENS.some((x) => x[0] === sq) ? sq : "today"; changed = true; }
             else if (mode === "remote" && c && W().classes[c] && (c !== S.cls)) { S.cls = c; S.period = (PERIODS.find((p) => p[1] === c) || [S.period])[0]; resetPos(); changed = true; }
             if (mode === "remote" && di >= 0 && di !== S.day) { S.day = di; resetPos(); changed = true; }
