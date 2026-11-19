@@ -12,7 +12,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import * as V from "./vaultCore.js?v=72";
+import * as V from "./vaultCore.js?v=73";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=2";
 
@@ -197,9 +197,13 @@ function cleanRead(raw) {
 /* Typed steps on the pad: about the size students write (pad units are 1/1000 of its width). */
 const STEP_PX = 38, STEP_PX_PHONE = 26;   // font size in screen pixels: Chromebook, phone
 const isStep = (it) => it && it.k === "text" && /^step\d$/.test(String(it.id || ""));
+/** How wide a bit of step text looks: a stacked fraction {12/5} is as wide as its longer part. */
+const visLen = (t) => String(t).replace(/\{([^{}/]*)\/([^{}]*)\}/g, (m, a, b) => (a.length > b.length ? a : b)).length;
 function wrapStep(t, n) {
     const out = []; let line = "";
-    String(t).split(/\s+/).forEach((w) => { if (line && (line + " " + w).length > n) { out.push(line); line = w; } else line = line ? line + " " + w : w; });
+    // Keep a math sign with the number after it, so "9 ÷ 3" never breaks between ÷ and 3.
+    const words = []; String(t).split(/\s+/).forEach((w) => { const k = words.length - 1; if (k >= 0 && (/^[÷×+−=<>≤≥]$/.test(w) || /(^|\s)[÷×+−=<>≤≥]$/.test(words[k])) && visLen(words[k]) < 14) words[k] += " " + w; else words.push(w); });
+    words.forEach((w) => { if (line && visLen(line + " " + w) > n) { out.push(line); line = w; } else line = line ? line + " " + w : w; });
     if (line) out.push(line); return out;
 }
 const pad = (() => {
@@ -344,12 +348,14 @@ const pad = (() => {
             const cur = (mp ? mp.items() : items).slice(), have = new Set(cur.map((it) => it.id)), add = [];
             // Size it to the screen, so it looks like the student's own writing on a Chromebook or a phone.
             const cw = host && host.isConnected ? host.getBoundingClientRect().width : 1000, narrow = cw < 600;
-            const fs = Math.round(Math.min(0.085, Math.max(0.022, (narrow ? STEP_PX_PHONE : STEP_PX) / cw)) * 1e4) / 1e4, px = fs * W, lineH = px * 1.3;
+            const fs = Math.round(Math.min(0.085, Math.max(0.022, (narrow ? STEP_PX_PHONE : STEP_PX) / cw)) * 1e4) / 1e4, px = fs * W;
+            // A line with a stacked fraction is taller than a plain one.
+            const tall = (txt, p) => String(txt).split("\n").reduce((n, l) => n + p * (/\{[^{}]*\/[^{}]*\}/.test(l) ? 2 : 1.3), 0);
             const wrapN = Math.max(12, Math.floor((narrow ? 0.72 : 0.6) / (fs * 0.62)));
-            let y = 44;   /* under the "Show your work here" label */ cur.filter(isStep).forEach((it) => { y = Math.max(y, it.y * H + String(it.txt).split("\n").length * (it.fs || fs) * W * 1.3 / 2 + 16); });
+            let y = 44;   /* under the "Show your work here" label */ cur.filter(isStep).forEach((it) => { y = Math.max(y, it.y * H + tall(it.txt, (it.fs || fs) * W) / 2 + 16); });
             (list || []).forEach((t, i) => {
                 const id = "step" + (i + 1); if (have.has(id)) return;
-                const lines = wrapStep("Step " + (i + 1) + ": " + t, wrapN), h = lines.length * lineH, w = Math.max(...lines.map((l) => l.length)) * px * 0.62;
+                const lines = wrapStep("Step " + (i + 1) + ": " + V.mathify(t), wrapN), h = tall(lines.join("\n"), px), w = Math.max(...lines.map(visLen)) * px * 0.62;
                 add.push({ id, k: "text", x: Math.max(narrow ? 0.5 : 0.3, (W - 20 - w / 2) / W), y: Math.min(1.15, (y + h / 2) / H), s: 0.2, r: 0, txt: lines.join("\n"), fs });
                 y += h + 16;
             });

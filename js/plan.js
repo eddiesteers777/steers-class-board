@@ -13,7 +13,7 @@ import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, eventsOn, nineWeeks
 import { nextUp } from "./standardsNext.js?v=58";
 import { watchPrivateWeeks, weekIdFor } from "./weeksLive.js?v=58";
 import { watchEvidence, classEvidence, evidenceForBrief, weekStandards } from "./planEvidence.js?v=1";
-import { openBankPicker, bankFor } from "./bankPick.js?v=1";
+import { openBankPicker, bankFor } from "./bankPick.js?v=2";
 import { rich } from "./weekSheets.js?v=59";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");

@@ -13,7 +13,7 @@ import { publishWeek, unpublishWeek, classUrl, parentMessage } from "./publish.j
 import { closeoutItems, drawCloseout } from "./closeout.js?v=2";
 import { repeats, saveBankWeek, extract } from "./bank.js?v=2";
 import { figuresIn, isFunction, stripFigures } from "./figures.js?v=1";
-import { bankFor, openBankPicker } from "./bankPick.js?v=1";
+import { bankFor, openBankPicker } from "./bankPick.js?v=2";
 import { STANDARDS } from "../data/standards.js?v=58";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");

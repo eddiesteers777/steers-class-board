@@ -14,7 +14,7 @@
    Closing the room deletes rooms/{code} and everything under it.
    Each student's result is saved to Class Data only when the teacher turns that on.
 ========================================== */
-import * as V from "./vaultCore.js?v=72";
+import * as V from "./vaultCore.js?v=73";
 import qrcode from "./vendor/qrcode.js?v=1";
 import { drawItems } from "./mathTools.js?v=1";
 
