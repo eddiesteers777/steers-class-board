@@ -13,6 +13,8 @@ import { publishWeek, unpublishWeek, classUrl, parentMessage } from "./publish.j
 import { closeoutItems, drawCloseout } from "./closeout.js?v=2";
 import { repeats, saveBankWeek, extract } from "./bank.js?v=2";
 import { figuresIn, isFunction, stripFigures } from "./figures.js?v=1";
+import { bankFor, openBankPicker } from "./bankPick.js?v=2";
+import { STANDARDS } from "../data/standards.js?v=58";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -65,17 +67,26 @@ function checks(w, p) {
             const di = DK.indexOf(pc.assess.day), d = c.days[di];
             if (d && !/quiz|test/i.test((d.agendaLine || "") + " " + (d.agenda || []).join(" "))) warn(L + ": the plan has a " + pc.assess.kind + " on " + DAYS[di] + ", but that day does not mention it.");
         }
+        // The teacher's own bellringer picks (Plan the Week, day plans) must be in the week as picked.
+        ((pc && pc.day) || []).forEach((pd, i) => {
+            if (pd && (pd.lt || "").trim() && c.days[i] && String(c.days[i].lt || "").replace(/^I can\s*/i, "").trim().toLowerCase() !== pd.lt.replace(/^I can\s*/i, "").trim().toLowerCase()) warn(L + ", " + DAYS[i] + ": the learning target is not the one in your day plan (“" + pd.lt.trim() + "”).");
+            const picks = (pd && pd.bell) || []; if (!picks.length || !c.days[i]) return;
+            const have = new Set((c.days[i].problems || []).map((q) => String(q.q).trim()));
+            const miss = picks.filter((b) => !have.has(String(b.q).trim())).length;
+            if (miss) warn(L + ", " + DAYS[i] + ": " + miss + " of the " + picks.length + " bellringers you picked " + (miss === 1 ? "is" : "are") + " not in the week. Use “Use my picks” on that day.");
+        });
         const sd = c.speedDating;
         if (sd && Array.isArray(sd.cards)) {
-            const qsx = sd.cards.map((x) => String((x && x.q) || "").trim().toLowerCase());
+            const qsx = sd.cards.map((x) => String((x && x.q) || "").trim().toLowerCase()), noWrong = [];
             if (sd.cards.length !== 40) bad(L + ": speed dating has " + sd.cards.length + " cards, not 40.");
             if (new Set(qsx).size !== qsx.length) bad(L + ": two speed dating cards are the same.");
             sd.cards.forEach((x, n) => {
                 const wr = Array.isArray(x.wrong) ? x.wrong : [];
                 if (!x.a) bad(L + ": speed dating card " + (n + 1) + " has no answer.");
-                else if (!wr.length) warn(L + ": speed dating card " + (n + 1) + " has no likely wrong answers.");
+                else if (!wr.length) noWrong.push(n + 1);
                 else if (wr.some((v) => String((v && v.a) || v).trim() === String(x.a).trim())) bad(L + ": a likely wrong answer on card " + (n + 1) + " equals the answer.");
             });
+            if (noWrong.length) warn(L + ": " + (noWrong.length === sd.cards.length ? "no speed dating card has" : "speed dating " + (noWrong.length === 1 ? "card " : "cards ") + noWrong.join(", ") + (noWrong.length === 1 ? " has" : " have")) + " likely wrong answers for the key." + (sd.cards.some((x) => x && x.src === "bank") ? " Bank problems carry answers only; add the common mistakes by hand or ask Claude." : ""));
         }
         // Quiz or test, the modified group's papers, and sub days: the papers Week Builder prints (js/moreSheets.js)
         const qz = c.quiz, sameAns = (x, v) => String((v && v.a) || v).trim() === String(x.a).trim();
@@ -258,6 +269,13 @@ function drawClass() {
     if (c.studyGuide) extras.push("Study guide");
     const nd = c.days.filter((d) => d.notes).length; if (nd) extras.push("Guided notes on " + nd + (nd === 1 ? " day" : " days"));
     if (extras.length) top.appendChild(el("p", "rv-extras", extras.join(" · ")));
+    if (!c.speedDating && pc && pc.activity && pc.activity.type === "Speed dating") {
+        const b = el("button", "btn", "Build speed dating from the bank"); b.type = "button";
+        b.title = "40 different standards-bank problems for this week's standards, then the review standards, then the rest of the unit";
+        b.onclick = () => buildSpeedDating(cls, pc, b);
+        const row = el("div", "rv-acts"); row.appendChild(b); row.appendChild(el("span", "rv-extras", "The plan has speed dating on " + DAYS[DK.indexOf(pc.activity.day)] + " but the week has no cards."));
+        top.appendChild(row);
+    }
     box.appendChild(top);
     c.days.forEach((d, i) => {
         const date = week.monday ? addDays(week.monday, i) : "", school = date ? isSchoolDay(date) : true;
@@ -277,10 +295,54 @@ function drawClass() {
                 });
                 card.appendChild(t);
             }
+            const pd = pc && pc.day && pc.day[i];
+            if (pd && ((pd.bell || []).length || pd.set || pd.asg || pd.lt || pd.note)) card.appendChild(planBox(d, pd, i));
+            const sw = el("div", "rv-acts"); const pk = el("button", "btn ghost", "Add a bellringer from the bank"); pk.type = "button";
+            pk.onclick = () => openBankPicker({ cls, codes: [...new Set([...((pc && pc.standards) || []), ...((pc && pc.spiral) || [])])], extra: ((STANDARDS[cls] || {}).standards || []).map((x) => x.code), stdOf: (code) => ((STANDARDS[cls] || {}).standards || []).find((x) => x.code === code),
+                title: (LABEL[cls] || cls) + ", " + DAYS[i] + " bellringer", onAdd: (x) => { d.problems = [...(d.problems || []), { q: x.q, a: x.a, std: x.std, src: "bank", bankId: x.id }]; touch(); }, onClose: () => drawClass() });
+            sw.appendChild(pk); card.appendChild(sw);
             if (d.notes) card.appendChild(el("p", "rv-extras", "Guided notes: " + (d.notes.title || "") + " · " + ((d.notes.examples || []).length) + " worked examples · " + ((d.notes.practice || []).reduce((a, p) => a + (p.problems || []).length, 0)) + " practice problems"));
         }
         box.appendChild(card);
     });
+}
+/* What the teacher planned for this day on Plan the Week: target, picked bellringers, linked materials. */
+function planBox(d, pd, i) {
+    const b = el("div", "rv-planbox"); b.appendChild(el("span", "pw-lab", "From your day plan"));
+    const bits = [];
+    if (pd.lt) bits.push("Target: " + pd.lt);
+    if (pd.note) bits.push("Notes: " + pd.note);
+    bits.forEach((t) => b.appendChild(el("p", "rv-extras", t)));
+    if (pd.lt && String(d.lt || "").trim() !== pd.lt.trim()) { const u = el("button", "btn ghost", "Use my target"); u.type = "button"; u.onclick = () => { d.lt = pd.lt.trim(); touch(); drawClass(); }; b.appendChild(u); }
+    const picks = pd.bell || [];
+    if (picks.length) {
+        const have = new Set((d.problems || []).map((q) => String(q.q).trim())), miss = picks.filter((x) => !have.has(String(x.q).trim()));
+        b.appendChild(el("p", "rv-extras", picks.length + " picked bellringers, " + (miss.length ? miss.length + " not in the week yet." : "all in the week.")));
+        if (miss.length) {
+            const use = el("button", "btn", "Use my picks"); use.type = "button"; use.title = "Put your picked bellringers first; Claude's extra ones stay after them";
+            use.onclick = () => { const mine = picks.map((x) => ({ q: x.q, a: x.a, std: x.std, src: "bank", bankId: x.id })), keep = (d.problems || []).filter((q) => !picks.some((x) => String(x.q).trim() === String(q.q).trim())); d.problems = mine.concat(keep).slice(0, Math.max(picks.length, (d.problems || []).length)); touch(); drawClass(); };
+            b.appendChild(use);
+        }
+    }
+    const acts = el("div", "rv-acts");
+    if (pd.set) { const a = el("a", "btn ghost", "Review game: " + (pd.set.title || "set")); a.href = "maker.html?set=" + encodeURIComponent(pd.set.id); a.target = "_blank"; a.rel = "noopener"; acts.appendChild(a); }
+    if (pd.asg) { const a = el("a", "btn ghost", "Assignment: " + (pd.asg.title || "") + (pd.asg.code ? " · " + pd.asg.code : "")); a.href = "assign.html?a=" + encodeURIComponent(pd.asg.id); a.target = "_blank"; a.rel = "noopener"; acts.appendChild(a); }
+    if (acts.children.length) b.appendChild(acts);
+    return b;
+}
+/* Speed dating built on the site: 40 different bank problems (week standards first, then review, then the unit). */
+async function buildSpeedDating(k, pc, btn) {
+    btn.disabled = true; btn.textContent = "Building…";
+    const C = STANDARDS[k] || { standards: [], units: [] }, first = [...new Set([...(pc.standards || []), ...(pc.spiral || [])])];
+    const unit = (C.units || []).find((u) => u.standards.some((x) => first.includes(x.code)));
+    const tiers = [first, unit ? unit.standards.map((x) => x.code).filter((c) => !first.includes(c)) : []];
+    const used = new Set(), cards = [];
+    for (const codes of tiers) { if (cards.length >= 40 || !codes.length) continue; const got = await bankFor(k, codes, 40 - cards.length, used); got.forEach((x) => { used.add(x.id); cards.push(x); }); }
+    const seen = new Set(), uniq = cards.filter((x) => { const n = String(x.q).trim().toLowerCase(); if (seen.has(n)) return false; seen.add(n); return true; });
+    if (uniq.length < 40) { status("Only " + uniq.length + " different bank problems for these standards. Add a standard on Plan the Week, or ask Claude for the deck.", "bad"); btn.disabled = false; btn.textContent = "Build speed dating from the bank"; return; }
+    week.classes[k].speedDating = { title: (pc.topic || "Review").replace(/^(Topic|Unit)\s+\w+:\s*/i, ""), rounds: 8, standardNote: "Built from the standards bank on Anchor Board.",
+        cards: uniq.slice(0, 40).map((x) => ({ q: x.q, a: x.a, skill: x.std, std: x.std, src: "bank", bankId: x.id, wrong: [] })) };
+    touch(); drawClass();
 }
 function emptyState() {
     const box = $("content"); box.textContent = "";
@@ -292,14 +354,25 @@ function emptyState() {
     const lab = el("label", "btn ghost rv-file"); lab.textContent = "Load a week file"; const inp = el("input"); inp.type = "file"; inp.accept = ".json,application/json"; inp.hidden = true; lab.appendChild(inp);
     inp.onchange = async () => {
         const f = inp.files[0]; inp.value = ""; if (!f) return;
-        try {
-            const w = JSON.parse(await f.text());
-            if (!w || w.id !== id || !w.classes || !Object.values(w.classes).every((c) => Array.isArray(c.days) && c.days.length === 5)) { status(w && w.id && w.id !== id ? "That file is " + w.id + ", not " + id : "That file is not a week file", "bad"); return; }
-            week = w; await saveWeek(); draw();
-        } catch (e) { status("That file is not a week file", "bad"); }
+        loadWeekText(await f.text());
     };
     s.appendChild(lab);
+    const pb = el("button", "btn ghost", "Paste a week"); pb.type = "button";
+    pb.onclick = () => {
+        if (s.querySelector(".rv-paste")) return;
+        const w = el("div", "rv-paste"), ta = el("textarea", "pw-in"); ta.rows = 6; ta.placeholder = "Paste the week file Claude gave you (it starts with {)"; ta.setAttribute("aria-label", "Week file text");
+        const go = el("button", "btn go", "Load it"); go.type = "button"; go.onclick = () => loadWeekText(ta.value);
+        w.append(ta, go); s.appendChild(w); ta.focus();
+    };
+    s.appendChild(pb);
     box.appendChild(s);
+}
+/** A week file as text (from a file or pasted from a Claude chat). Code fences and text around the JSON are dropped. */
+async function loadWeekText(text) {
+    let w = null; const t = String(text || ""), a = t.indexOf("{"), b = t.lastIndexOf("}");
+    try { w = JSON.parse(a >= 0 && b > a ? t.slice(a, b + 1) : t); } catch (e) { status("That is not a week file", "bad"); return; }
+    if (!w || w.id !== id || !w.classes || !Object.values(w.classes).every((c) => Array.isArray(c.days) && c.days.length === 5)) { status(w && w.id && w.id !== id ? "That week is " + w.id + ", not " + id : "That is not a week file", "bad"); return; }
+    week = w; await saveWeek(); draw();
 }
 function draw() { drawPick(); summary(); $("checks").textContent = ""; $("actions").textContent = ""; if (week) { drawChecks(); drawClass(); } else emptyState(); }
 

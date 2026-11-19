@@ -1,0 +1,151 @@
+/* Anchor Board — panels (js/panels.js). Load after board.css, console.css and theme-rings.css.
+   Inside the stage and shelf everything is in em, like the rest of the stage. The Panels sheet is in px. */
+
+/* ---------- the shelf: panels at the top, minimized chips at the foot ---------- */
+.toolshelf{align-self:center;justify-content:flex-start;transition:outline-color .2s}
+.toolshelf.dropok{outline:.16em dashed var(--amber,#F2B33D);outline-offset:.15em;border-radius:.8em}
+#stage.floatok::after{content:"";position:absolute;inset:.4em;border:.16em dashed rgba(242,179,61,.7);border-radius:.8em;pointer-events:none;z-index:4}
+.pholder{flex:none;border:.14em dashed var(--sky);border-radius:.7em;background:rgba(127,174,221,.1)}
+.lifting{position:fixed!important;z-index:50;pointer-events:none;margin:0;transform:rotate(-1deg) scale(1.03);box-shadow:0 1.4em 3em rgba(4,12,34,.5)!important}
+.float.moving{box-shadow:0 1.2em 2.6em rgba(4,12,34,.55)}
+.enter{animation:pIn .26s cubic-bezier(.2,.8,.2,1)}
+@keyframes pIn{from{opacity:0;transform:translateY(.5em) scale(.97)}}
+.float{animation:none}
+.float.enter{animation:pIn .26s cubic-bezier(.2,.8,.2,1)}
+
+/* title bar buttons: minimize, float or dock, close */
+.card h3 .pbtn{display:inline-grid;place-items:center;width:1.55em;height:1.55em;padding:0;border-radius:.4em;opacity:.75;font-size:1em}
+.card h3 .pbtn:hover{opacity:1;background:rgba(244,247,251,.14)}
+.card h3 .pbtn svg{width:1em;height:1em}
+.docked h3,.float h3{gap:.3em}
+.docked h3{cursor:grab;touch-action:none;user-select:none}
+/* On the projected board the controls stay, quietly, and fade out with the rest when nobody touches it. */
+body.board .docked .close,body.board .float .close{display:inline-grid;opacity:.5;transition:opacity .25s}
+body.board.idle .docked .close,body.board.idle .float .close,body.board.idle .float .grip{opacity:0}
+
+/* ---------- minimized panels: live chips ---------- */
+.ptray{margin-top:auto;display:flex;flex-direction:column;gap:.4em;flex:none}
+.pchip{display:flex;align-items:center;gap:.55em;width:100%;text-align:left;background:var(--navy);color:var(--on);border:.1em solid rgba(127,174,221,.35);border-radius:.8em;padding:.45em .7em .45em .5em;box-shadow:0 .25em .9em rgba(4,12,34,.28);position:relative;overflow:hidden;transition:transform .15s,border-color .2s}
+.pchip:hover{border-color:var(--sky)}
+.pchip:active{transform:scale(.97)}
+.pchip::before{content:"";position:absolute;left:0;top:0;bottom:0;width:.28em;background:var(--sky);transition:background .25s}
+.pchip .pci{flex:none;width:1.9em;height:1.9em;border-radius:50%;display:grid;place-items:center;background:rgba(127,174,221,.18);color:var(--soft)}
+.pchip .pci svg{width:1.1em;height:1.1em}
+.pchip .pct{display:flex;flex-direction:column;min-width:0;line-height:1.15}
+.pchip .pct b{font-size:.62em;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:.06em}
+.pchip .pcv{font-family:var(--display,inherit);font-size:1.05em;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pchip[data-tone="green"]::before{background:#2FB46B}
+.pchip[data-tone="amber"]::before{background:var(--amber,#F2B33D)}
+.pchip[data-tone="red"]::before{background:#E5484D}
+.pchip[data-tone="red"] .pcv{color:#FF8A8E}
+.pchip[data-tone="amber"] .pcv{color:var(--amber,#F2B33D)}
+.pchip[data-tone="v-silent"]::before{background:#E5484D}.pchip[data-tone="v-whisper"]::before{background:#E08A2B}
+.pchip[data-tone="v-partner"]::before{background:var(--sky)}.pchip[data-tone="v-group"]::before{background:#2FB46B}
+.toollayer>.ptray{position:absolute;right:.6em;bottom:.6em;flex-direction:row;flex-wrap:wrap;justify-content:flex-end;max-width:92%;pointer-events:auto}
+.toollayer>.ptray .pchip{width:auto;max-width:13em}
+
+/* ---------- lesson panels ---------- */
+.float.tool-ptimer,.float.tool-period{width:15em}.float.tool-target{width:22em}.float.tool-agenda{width:17em}
+.pring{position:relative;width:min(100%,9.5em);aspect-ratio:1;margin:.1em auto .2em}
+.pring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.pring circle{fill:none;stroke-width:7}
+.pring .trk{stroke:rgba(16,53,138,.12)}
+.pring .arc{stroke:var(--blue);stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:0;transition:stroke-dashoffset .3s linear,stroke .3s}
+.pring.run .arc{stroke:#1F9D61}
+.pring.hot .arc{stroke:var(--amber,#F2B33D)}
+.pring.done .arc{stroke:#E5484D}
+.pring .ptime{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display,inherit);font-size:2.3em;font-weight:800;font-variant-numeric:tabular-nums;color:var(--navy);letter-spacing:-.02em}
+.pring.done .ptime{color:#B4232A}
+.tool-target .in{align-items:flex-start;text-align:left;justify-content:flex-start;gap:.5em;padding:.7em .9em .9em}
+.tool-target .chip{font-size:.7em;font-weight:700;border-radius:2em;padding:.25em .9em}
+.ptarget{font-size:1.15em;font-weight:600;line-height:1.3;color:var(--navy)}
+.tool-agenda .in{align-items:stretch;justify-content:flex-start;text-align:left;gap:.4em}
+.pagenda{list-style:none;padding:0;display:flex;flex-direction:column;gap:.2em}
+.pagenda button{display:flex;align-items:flex-start;gap:.55em;width:100%;text-align:left;background:transparent;border:0;border-radius:.5em;padding:.3em .45em;color:var(--ink);font-size:.95em;font-weight:500;line-height:1.25;transition:background .2s}
+.pagenda button:hover{background:rgba(127,174,221,.15)}
+.pagenda i{flex:none;width:.8em;height:.8em;margin-top:.2em;border-radius:50%;border:.14em solid var(--sky);transition:background .2s,border-color .2s}
+.pagenda .done button{color:#6A7895}
+.pagenda .done i{background:#2FB46B;border-color:#2FB46B}
+.pagenda .now button{background:#FFF1CC;color:var(--navy);font-weight:700;box-shadow:inset .22em 0 0 var(--amber,#F2B33D)}
+.pagenda .now i{background:var(--amber,#F2B33D);border-color:var(--amber,#F2B33D);box-shadow:0 0 0 .25em rgba(242,179,61,.3)}
+.tool-period .bigtime{font-size:2.4em}
+.tool-period .vsub{text-align:center;line-height:1.3}
+.pbar{margin-top:.2em}
+.pbar[hidden]{display:none}
+
+/* ---------- the Remote's rail: layouts, then every panel ---------- */
+.console .rail .toolchips .dockh{font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute);padding:10px 10px 2px}
+.console .rail .toolchips .dockh:first-child{padding-top:2px}
+.console .rail .toolchips .rscenes{display:flex;flex-wrap:wrap;gap:6px;padding:4px 8px 4px}
+.console .rail .toolchips .rscenes button{width:auto;padding:6px 12px;border-radius:999px;border:1.5px solid var(--c-line);background:#fff;font-size:.82rem;font-weight:600;min-height:34px}
+.console .rail .toolchips .rscenes button::before,.console .rail .toolchips .more::before{display:none}
+.console .rail .toolchips .rscenes button.on{background:var(--c-ink);border-color:var(--c-ink);color:#fff}
+.console .rail .toolchips .dmin{margin-left:auto;font-size:.7rem;font-weight:600;color:#1B4FBF;background:#E6EEFB;border-radius:999px;padding:1px 8px}
+.console .rail .toolchips .more{margin-top:8px;color:#1B4FBF;font-weight:600}
+.console .rail .toolchips .more svg{width:18px;height:18px;flex:none}
+
+/* ---------- Panels button on the projected board ---------- */
+.bpanels{display:none}
+body.board .bpanels{display:inline-flex;align-items:center;gap:8px;position:fixed;right:10px;bottom:58px;z-index:5;background:rgba(8,27,69,.75);color:var(--on);border:2px solid var(--sky);border-radius:999px;padding:8px 16px;font:600 15px/1 var(--ui,system-ui),sans-serif;opacity:.55;transition:opacity .25s;cursor:pointer}
+body.board .bpanels:hover,body.board .bpanels:focus-visible{opacity:1}
+body.board.idle .bpanels{opacity:.12}
+.bpanels svg{width:18px;height:18px}
+
+/* ---------- the Panels sheet (board and Remote) ---------- */
+.psheet{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:rgba(4,12,34,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;transition:opacity .24s}
+.psheet.open{opacity:1}
+.psheet[hidden]{display:none}
+.pbox{width:min(980px,100%);max-height:min(88vh,900px);overflow:auto;background:linear-gradient(160deg,#173F86 0%,#0B2559 45%,#081B45 100%);color:#F4F7FB;border:1px solid rgba(127,174,221,.35);border-radius:20px;padding:24px;box-shadow:0 24px 64px rgba(4,12,34,.5);font-family:var(--ui,'Instrument Sans',system-ui,sans-serif);transform:translateY(10px) scale(.985);transition:transform .26s cubic-bezier(.2,.8,.2,1)}
+.psheet.open .pbox{transform:none}
+.phead{display:flex;align-items:flex-start;gap:16px;margin-bottom:8px}
+.phead>div{flex:1}
+.phead h2{font-family:var(--display,'Bricolage Grotesque',system-ui,sans-serif);font-size:30px;font-weight:800;line-height:1.1;letter-spacing:-.01em}
+.phead p{font-size:15px;line-height:1.5;color:#B9D3EE;margin-top:4px;max-width:46em}
+.pclose{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(185,211,238,.35);background:rgba(255,255,255,.06);color:#F4F7FB;display:grid;place-items:center;cursor:pointer}
+.pclose svg{width:20px;height:20px}
+.pclose:hover{background:rgba(255,255,255,.14)}
+.psec{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7FAEDD;margin:20px 0 8px}
+.pscenes{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.pscene{position:relative;display:flex;flex-direction:column;gap:3px;text-align:left;min-height:68px;padding:12px 30px 12px 14px;border-radius:14px;border:1px solid rgba(185,211,238,.25);background:rgba(255,255,255,.06);color:inherit;font:inherit;cursor:pointer;transition:background .2s,border-color .2s,transform .1s}
+.pscene:hover{background:rgba(255,255,255,.11);border-color:rgba(185,211,238,.5)}
+.pscene:active{transform:scale(.98)}
+.pscene b{font-size:16px;font-weight:700}
+.pscene span{font-size:13px;line-height:1.35;color:#B9D3EE}
+.pscene.on{background:#F2B33D;border-color:#F2B33D;color:#3A2A00}
+.pscene.on span{color:#5A4300}
+.pdel{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;opacity:.6}
+.pdel:hover{opacity:1;background:rgba(0,0,0,.15)}
+.pdel svg{width:14px;height:14px}
+.psave{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.psave input{flex:1;min-width:200px;height:44px;border-radius:12px;border:1px solid rgba(185,211,238,.35);background:rgba(255,255,255,.08);color:#F4F7FB;padding:0 14px;font:inherit;font-size:15px}
+.psave input::placeholder{color:#8FA6C8}
+.psave input:focus-visible{outline:3px solid #7FAEDD;outline-offset:1px}
+.psave button{height:44px;border-radius:12px;border:0;background:#F4F7FB;color:#081B45;font:inherit;font-weight:700;font-size:15px;padding:0 18px;cursor:pointer}
+.psave button:disabled{opacity:.45;cursor:default}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.ptile{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 12px;text-align:left;border-radius:14px;border:1px solid rgba(185,211,238,.22);background:rgba(255,255,255,.05);color:inherit;font:inherit;cursor:pointer;transition:background .2s,border-color .2s,transform .1s}
+.ptile:hover{background:rgba(255,255,255,.1)}
+.ptile:active{transform:scale(.98)}
+.pti{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(127,174,221,.16);color:#B9D3EE;transition:background .2s,color .2s}
+.pti svg{width:22px;height:22px}
+.ptt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ptt b{font-size:15px;font-weight:700}
+.ptt span{font-size:12.5px;line-height:1.35;color:#9FB8D8}
+.pst{flex:none;font-size:12px;font-weight:700;border-radius:999px;padding:4px 10px;border:1px solid rgba(242,179,61,.7);color:#F2B33D}
+.ptile.on,.ptile.float,.ptile.min{border-color:rgba(127,174,221,.6);background:rgba(127,174,221,.14)}
+.ptile.on .pti,.ptile.float .pti{background:#7FAEDD;color:#081B45}
+.ptile.on .pst{background:#1F9D61;border-color:#1F9D61;color:#fff}
+.ptile.float .pst,.ptile.min .pst{border-color:#7FAEDD;color:#B9D3EE}
+.pclear{margin-top:18px;background:transparent;border:0;color:#FF9EA2;font:inherit;font-weight:600;font-size:14px;padding:8px 0;cursor:pointer}
+.pclear:hover{text-decoration:underline}
+@media (max-width:600px){.pbox{padding:18px;border-radius:16px}.phead h2{font-size:24px}.pgrid,.pscenes{grid-template-columns:1fr 1fr}.ptile{flex-direction:column;align-items:flex-start}.ptt span{display:none}}
+@media (prefers-reduced-motion:reduce){.enter,.float.enter{animation:none}.psheet,.pbox{transition:none}}
+.pnote{font-size:.62em;text-align:center;color:#6A7895;margin-top:.1em}
+body.board .setup.pnote{display:none}
+/* Shelf panels wear the same ring-theme card as panels on the stage (css/theme-rings.css), so a panel looks the same wherever it sits. */
+.toolshelf .card,.card.lifting{border-radius:1em;box-shadow:0 .35em 1.2em rgba(4,12,32,.28)}
+.toolshelf .card h3,.card.lifting h3{background:transparent;color:#0B2559;border-bottom:0;padding:.55em .5em .1em 2.35em;position:relative;font-weight:700}
+.toolshelf .card h3::before,.card.lifting h3::before{content:"";position:absolute;left:.85em;top:50%;width:1.15em;height:1.15em;margin-top:-.5em;background:var(--ring-mark-light) center/contain no-repeat}
+#stage .card h3 .close,.toolshelf .card h3 .close,.card.lifting h3 .close{color:#0B2559}
+#stage .card h3 .pbtn:hover,.toolshelf .card h3 .pbtn:hover{background:rgba(11,37,89,.08)}
+#stage .float h3{padding-right:.5em}
