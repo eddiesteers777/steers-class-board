@@ -73,7 +73,6 @@
 .seatroom.edit.room .sit.round.sel{border-radius:50%}
 .seatroom.edit.room .sit.drag{z-index:6;filter:drop-shadow(0 1cqw 1.4cqw rgba(8,27,69,.28))}
 .seatroom.edit.room .scell .stag{opacity:.6}
-.srgrab{position:absolute;right:-1cqw;bottom:-1cqw;width:2cqw;height:2cqw;border-radius:50%;background:#F2B33D;border:.25cqw solid #fff;box-shadow:0 .2cqw .6cqw rgba(0,0,0,.25);cursor:nwse-resize;z-index:7}
 .se-ghost{position:fixed;left:0;top:0;z-index:50;pointer-events:none;background:#fff;border:2px solid #F2B33D;color:var(--c-ink);border-radius:12px;padding:8px 14px;font-weight:700;font-family:var(--display);box-shadow:0 14px 34px rgba(8,27,69,.3);transform:translate(-50%,-60%) rotate(-2deg);white-space:nowrap}
 .se-selbar{position:sticky;bottom:14px;margin:12px auto 0;width:max-content;max-width:100%;display:flex;align-items:center;gap:6px;background:var(--c-surface);border:1px solid var(--c-line);border-radius:16px;padding:6px 8px 6px 14px;box-shadow:0 10px 30px rgba(8,27,69,.18);z-index:8}
 .se-selname{font-weight:700;font-size:.9rem;margin-right:4px}
@@ -104,3 +103,14 @@
     .se-print .seatroom{box-shadow:none;border:1px solid #9DB7DA;print-color-adjust:exact;-webkit-print-color-adjust:exact}
     .se-print .sit{print-color-adjust:exact;-webkit-print-color-adjust:exact}
 }
+/* handles on the one selected item: every corner and side resizes, the round one turns it */
+.srgrab{position:absolute;width:1.5cqw;height:1.5cqw;min-width:12px;min-height:12px;border-radius:.35cqw;background:#fff;border:.2cqw solid #F2B33D;box-shadow:0 .15cqw .5cqw rgba(8,27,69,.25);z-index:7;transform:translate(-50%,-50%);right:auto;bottom:auto}
+.srgrab.g-nw{left:0;top:0;cursor:nwse-resize}.srgrab.g-n{left:50%;top:0;cursor:ns-resize}.srgrab.g-ne{left:100%;top:0;cursor:nesw-resize}.srgrab.g-e{left:100%;top:50%;cursor:ew-resize}
+.srgrab.g-se{left:100%;top:100%;cursor:nwse-resize}.srgrab.g-s{left:50%;top:100%;cursor:ns-resize}.srgrab.g-sw{left:0;top:100%;cursor:nesw-resize}.srgrab.g-w{left:0;top:50%;cursor:ew-resize}
+.srgrab.g-n,.srgrab.g-s{width:2.2cqw;height:1cqw;border-radius:1cqw}.srgrab.g-e,.srgrab.g-w{width:1cqw;height:2.2cqw;border-radius:1cqw}
+.srturn{position:absolute;left:50%;top:-3.4cqw;width:2cqw;height:2cqw;min-width:16px;min-height:16px;transform:translateX(-50%);border-radius:50%;background:#F2B33D;border:.25cqw solid #fff;box-shadow:0 .2cqw .6cqw rgba(0,0,0,.25);cursor:grab;z-index:7}
+.srturn::before{content:"";position:absolute;left:50%;top:100%;width:.18cqw;height:1.5cqw;background:#F2B33D;transform:translateX(-50%)}
+.srturn::after{content:"";position:absolute;inset:22%;border-radius:50%;border:.22cqw solid #3A2A00;border-top-color:transparent}
+.srbox{position:absolute;z-index:9;border:.2cqw dashed #F2B33D;background:rgba(242,179,61,.12);border-radius:.4cqw;pointer-events:none}
+.seatroom.edit.room{cursor:crosshair}
+.se-each{height:40px;font-size:.82rem}
