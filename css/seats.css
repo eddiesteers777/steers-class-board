@@ -65,6 +65,20 @@
 /* the Seating Chart screen on the stage */
 .seatbody{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:1em 1.8em 1.2em;position:relative}
 .seatbody .seatroom{max-height:100%;width:auto;height:100%;max-width:100%}
+/* the board view turned or flipped: the walls stay, the room's contents turn inside them */
+.srstuff{position:absolute;inset:0;transform-origin:0 0;pointer-events:none}
+.srstuff>*{pointer-events:auto}
+.srstuff .srfront{pointer-events:none}
+/* the Remote's view buttons for the board: turn and mirror the room */
+.seatfoot{position:absolute;left:1.8em;right:1.8em;bottom:.2em;display:flex;align-items:center;justify-content:space-between;gap:1em}
+.seatfoot .seatedit{position:static;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seatview{flex:none;display:flex;align-items:center;gap:.3em;font-size:.8em;color:var(--soft,#B9D4EE)}
+.seatview>span{margin-right:.2em;font-weight:600}
+.seatview button{display:inline-flex;align-items:center;gap:.3em;min-height:2.3em;padding:0 .7em;border-radius:.7em;border:1px solid rgba(185,212,238,.35);background:rgba(255,255,255,.08);color:#fff;font:inherit;font-weight:600;cursor:pointer}
+.seatview button:hover{background:rgba(255,255,255,.16)}
+.seatview button[aria-pressed="true"]{background:var(--amber,#F2B33D);border-color:var(--amber,#F2B33D);color:#3A2A00}
+.seatview svg{width:1.2em;height:1.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+body.board .seatfoot{display:none}
 .seatempty{background:var(--paper,#F6F9FD);color:var(--ink,#10358A);border-radius:1em;padding:1.6em 2em;max-width:34em;text-align:center}
 .seatempty h2{font-family:var(--display,'Bricolage Grotesque',sans-serif);font-size:1.6em;margin-bottom:.3em}
 .seatempty p{font-size:1em;line-height:1.4;margin-bottom:1em}

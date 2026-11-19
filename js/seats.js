@@ -184,17 +184,62 @@ function shrinkSpill(room) {
     });
 }
 
+/* ---------- board view: turn the whole room in quarter turns, and mirror it ----------
+   { rot: 0|90|180|270, mx (left and right swap), my (front and back swap) }. Names and labels always stay readable. */
+export function cleanView(v) {
+    const o = v && typeof v === "object" ? v : {};
+    return { rot: [0, 90, 180, 270].includes(o.rot) ? o.rot : 0, mx: o.mx === true, my: o.my === true };
+}
+const M = {
+    rot(a) { const t = a * Math.PI / 180, c = Math.cos(t), s = Math.sin(t); return [c, -s, s, c]; },
+    sc(x, y) { return [x, 0, 0, y]; },
+    mul(p, q) { return [p[0] * q[0] + p[1] * q[2], p[0] * q[1] + p[1] * q[3], p[2] * q[0] + p[3] * q[2], p[2] * q[1] + p[3] * q[3]]; },
+};
+/**
+ * CSS transform for the contents layer. A flip or half turn mirrors about the room's centre, so nothing moves size.
+ * A quarter turn centres what is in the room and shrinks it only as much as it needs to fit between the walls.
+ */
+function viewTransform(items, V) {
+    const sx = V.mx ? -1 : 1, sy = V.my ? -1 : 1;
+    let cx = ROOM.W / 2, cy = ROOM.H / 2, k = 1;
+    if (V.rot % 180) {
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        items.forEach((it) => {
+            const s = sizeOf(it), mx = it.x + s.w / 2, my = it.y + s.h / 2, t = (it.r || 0) * Math.PI / 180;
+            const hw = (Math.abs(Math.cos(t)) * s.w + Math.abs(Math.sin(t)) * s.h) / 2, hh = (Math.abs(Math.sin(t)) * s.w + Math.abs(Math.cos(t)) * s.h) / 2;
+            x0 = Math.min(x0, mx - hw); x1 = Math.max(x1, mx + hw); y0 = Math.min(y0, my - hh); y1 = Math.max(y1, my + hh);
+        });
+        // the front label sits at the top middle
+        y0 = Math.min(y0, 30); x0 = Math.min(x0, ROOM.W / 2 - 90); x1 = Math.max(x1, ROOM.W / 2 + 90);
+        if (isFinite(x0)) { cx = (x0 + x1) / 2; cy = (y0 + y1) / 2; k = Math.min(1, (ROOM.W - 30) / (y1 - y0 + 20), (ROOM.H - 30) / (x1 - x0 + 20)); }
+    }
+    const f = (v) => +v.toFixed(3);
+    return "translate(50%,50%) scale(" + f(k) + ") rotate(" + V.rot + "deg) scale(" + sx + "," + sy + ") translate(" + f(-cx / ROOM.W * 100) + "%," + f(-cy / ROOM.H * 100) + "%)";
+}
+/** On screen, does a matrix read upside down? (its x axis points left) */
+const upside = (m) => m[0] < -0.01 || (Math.abs(m[0]) <= 0.01 && m[2] < 0);
+
 /**
  * Draw one period's room into host. Returns the room element.
  * opts: { flip (teacher's view: front at the bottom), edit (editor marks), hi (a name to light up),
  *         roster (names on the class list, to mark seated names that are not), sel (selected item id),
- *         pick (the name picked in the tray), count (number the empty seats) }
+ *         pick (the name picked in the tray), count (number the empty seats),
+ *         view (the board's turn and mirror, see cleanView) }
  */
 export function drawRoom(host, p, opts = {}) {
     const room = el("div", "seatroom" + (opts.edit ? " edit" : "") + (opts.flip ? " flip" : ""));
     room.style.aspectRatio = ROOM.W + " / " + ROOM.H;
+    const V = cleanView(opts.view), sx = V.mx ? -1 : 1, sy = V.my ? -1 : 1, turned = V.rot || V.mx || V.my;
+    const VM = M.mul(M.rot(V.rot), M.sc(sx, sy));   // the room's contents on screen
+    const unview = turned ? " scale(" + sx + "," + sy + ") rotate(" + (-V.rot) + "deg)" : "";   // undoes VM, so text stands upright
     const floor = el("div", "srfloor"); room.appendChild(floor);
-    const front = el("div", "srfront", "Front of the room"); front.setAttribute("aria-hidden", "true"); room.appendChild(front);
+    // The walls and floor stay put. When the board view is turned or flipped, everything in the room
+    // (desks, furniture, the front label) sits on one layer that turns and flips inside the walls.
+    const stuff = turned ? el("div", "srstuff") : room;
+    if (turned) { stuff.style.transform = viewTransform(p.items, V); room.appendChild(stuff); }
+    const front = el("div", "srfront", "Front of the room"); front.setAttribute("aria-hidden", "true"); stuff.appendChild(front);
+    // the front label keeps running along its wall, unmirrored and never upside down
+    if (turned) front.style.transform = "translateX(-50%) scale(" + sx + "," + sy + ")" + (upside(M.rot(V.rot)) ? " rotate(180deg)" : "");
     const roster = opts.roster ? new Set(opts.roster) : null;
     const order = opts.count ? new Map(seatList(p).map((s, i) => [s.key, i + 1])) : null;
     // Floor things first (rug), then furniture, so desks always sit on top of a rug.
@@ -214,9 +259,9 @@ export function drawRoom(host, p, opts = {}) {
                 const cell = el("div", "scell ch-" + c[4] + (name ? " full" : " open") + (opts.hi && name === opts.hi ? " hi" : "") + (roster && name && !roster.has(name) ? " gone" : ""));
                 cell.dataset.seat = key;
                 cell.style.left = pct(c[0], 1); cell.style.top = pct(c[1], 1); cell.style.width = pct(c[2], 1); cell.style.height = pct(c[3], 1);
-                const tag = el("div", "stag"); tag.style.transform = "translate(-50%,-50%)" + (r ? " rotate(" + (-r) + "deg)" : "");
-                // the name stands upright, so on a desk turned sideways its room is the desk's height
-                const side = Math.round(((r % 180) + 180) % 180 / 90) === 1;
+                const tag = el("div", "stag"); tag.style.transform = "translate(-50%,-50%)" + (r ? " rotate(" + (-r) + "deg)" : "") + unview;
+                // the name stands upright, so on a desk that looks sideways on screen its room is the desk's height
+                const IM = M.mul(VM, M.rot(r)), side = Math.abs(IM[2]) > 0.7;
                 const room = (side ? c[3] * s.h : c[2] * s.w) - 8;
                 tag.style.width = (room / ROOM.W * 100) + "cqw";
                 if (name) {
@@ -230,9 +275,16 @@ export function drawRoom(host, p, opts = {}) {
             });
         } else {
             const lab = (typeof it.label === "string" ? it.label : K.label) || "";
-            if (lab) { const t = el("span", "slab", lab); if (r > 90 && r <= 270) t.style.transform = "rotate(180deg)"; d.appendChild(t); }
+            if (lab) {
+                const t = el("span", "slab", lab), mir = sx * sy < 0;
+                // undo a mirror inside the item's own box (it keeps its shape), then turn it over if it reads upside down
+                const T = M.mul(M.mul(VM, M.rot(r)), mir ? M.sc(-1, 1) : M.sc(1, 1));
+                const tf = (mir ? "scaleX(-1)" : "") + (upside(T) ? " rotate(180deg)" : "");
+                if (tf) t.style.transform = tf.trim();
+                d.appendChild(t);
+            }
         }
-        room.appendChild(d);
+        stuff.appendChild(d);
     });
     host.appendChild(room);
     shrinkSpill(room);

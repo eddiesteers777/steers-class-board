@@ -22,7 +22,7 @@ import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, l
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=9";
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=1";
-import { cleanChart, cleanPeriod, seatCount, drawRoom } from "./seats.js?v=6";
+import { cleanChart, cleanPeriod, cleanView, seatCount, drawRoom } from "./seats.js?v=7";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -93,7 +93,7 @@ function cleanWb(o) {
 }
 const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0,
     timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", fix: null, tools: defaultTools(), wb: defaultWb(),
-    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true }, look: defaultLook(), seatHi: null, bplan: cleanBplan(null), walk: { id: "", step: 0 } };
+    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true }, look: defaultLook(), seatHi: null, seatView: cleanView(null), bplan: cleanBplan(null), walk: { id: "", step: 0 } };
 
 // This page's own mark on what it saves, so a change from another tab of the same browser can be shown
 // before the server confirms it (those tabs share one offline copy, where it first arrives as "pending").
@@ -556,7 +556,7 @@ const guestMode = () => mode === "sub";
    name to light that seat up on the board for 15 seconds. */
 const SEAT_HI_MS = 15000;
 const seatHiNow = () => (S.seatHi && now() - S.seatHi.at < SEAT_HI_MS ? S.seatHi.n : "");
-function seatSig() { const p = SEATS.periods[S.period]; return JSON.stringify([seatsIn, p ? p.at : 0, p ? p.items.length : 0, seatHiNow(), (ROSTERS[S.period] || []).length]); }
+function seatSig() { const p = SEATS.periods[S.period]; return JSON.stringify([seatsIn, p ? p.at : 0, p ? p.items.length : 0, seatHiNow(), (ROSTERS[S.period] || []).length, S.seatView]); }
 function drawSeats(st) {
     const p = SEATS.periods[S.period] || cleanPeriod(null), n = Object.keys(p.seats).length, hi = seatHiNow();
     const hd = header("Find Your Seat", S.period + " period" + (n ? " \u00b7 " + n + " students" : "")); st.appendChild(hd);
@@ -568,7 +568,7 @@ function drawSeats(st) {
         e.appendChild(el("p", null, "Set up the room and drag each student to a desk. It shows here as soon as you save."));
         const a = el("a", null, "Make the seating chart"); a.href = editHref; e.appendChild(a); body.appendChild(e); return;
     }
-    const room = drawRoom(body, p, { hi });
+    const room = drawRoom(body, p, { hi, view: S.seatView });
     if (seatLast !== S.period) { room.classList.add("enter"); seatLast = S.period; }
     if (hi) {
         room.classList.add("lit");
@@ -581,8 +581,35 @@ function drawSeats(st) {
         });
         const ed = el("p", "seatedit"); const a = el("a", null, "Edit seating chart"); a.href = editHref; ed.appendChild(a);
         ed.appendChild(document.createTextNode(" \u00b7 Tap a name to light up that seat on the board"));
-        body.appendChild(ed);
+        const foot = el("div", "seatfoot"); foot.appendChild(ed); foot.appendChild(seatViewBar()); body.appendChild(foot);
     }
+}
+
+/** The Remote's buttons to turn and mirror the room on the board, for a board that faces the room another way. */
+const SV_ICONS = {
+    l: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
+    r: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+    mx: '<path d="M12 3v18"/><path d="M8 7 3 12l5 5"/><path d="m16 7 5 5-5 5"/>',
+    my: '<path d="M3 12h18"/><path d="M7 8l5-5 5 5"/><path d="m7 16 5 5 5-5"/>',
+};
+function seatViewBar() {
+    const v = S.seatView, bar = el("div", "seatview"); bar.setAttribute("role", "group"); bar.setAttribute("aria-label", "Turn or flip the room on the board");
+    bar.appendChild(el("span", null, "Board view"));
+    const set = (fn) => { const n = Object.assign({}, S.seatView); fn(n); S.seatView = cleanView(n); push(); };
+    const btn = (icon, label, title, fn, pressed) => {
+        const b = el("button"); b.type = "button"; b.title = title; b.setAttribute("aria-label", title);
+        b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + SV_ICONS[icon] + "</svg>";
+        if (label) b.appendChild(el("span", null, label));
+        if (pressed != null) b.setAttribute("aria-pressed", pressed ? "true" : "false");
+        b.onclick = (e) => { e.stopPropagation(); set(fn); };
+        bar.appendChild(b);
+    };
+    btn("l", "", "Turn the room left", (n) => { n.rot = (n.rot + 270) % 360; });
+    btn("r", "", "Turn the room right", (n) => { n.rot = (n.rot + 90) % 360; });
+    btn("mx", "Left\u2013right", "Flip left and right", (n) => { n.mx = !n.mx; }, v.mx);
+    btn("my", "Top\u2013bottom", "Flip top and bottom", (n) => { n.my = !n.my; }, v.my);
+    if (v.rot || v.mx || v.my) { const b = el("button", null, "Reset"); b.type = "button"; b.title = "Back to the room as you set it up"; b.onclick = (e) => { e.stopPropagation(); set((n) => { n.rot = 0; n.mx = false; n.my = false; }); }; bar.appendChild(b); }
+    return bar;
 }
 
 /* ---------- canvas-first whiteboard: Bellringer, Whiteboard and Guided Notes ----------
@@ -1129,6 +1156,7 @@ function applyState(d) {
     S.wb = cleanWb(d.wb);
     S.look = cleanLook(d.look);
     S.bplan = cleanBplan(d.bplan);
+    S.seatView = cleanView(d.seatView);
     S.seatHi = d.seatHi && typeof d.seatHi.n === "string" && typeof d.seatHi.at === "number" ? { n: d.seatHi.n.slice(0, 60), at: d.seatHi.at } : null;
     S.walk = d.walk && typeof d.walk.id === "string" ? { id: d.walk.id.slice(0, 40), step: Math.max(0, Math.min(40, Math.floor(+d.walk.step || 0))) } : { id: "", step: 0 };
     { const o = d.sound || {}, v = (x, def) => (typeof x === "number" && x >= 0 && x <= 1 ? x : def);
