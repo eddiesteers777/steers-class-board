@@ -12,9 +12,9 @@ import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { tickTools, defaultTools, mergeTools, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=58";
-import { buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal } from "./panels.js?v=6";
-import * as snd from "./sound.js?v=58";
+import { tickTools, defaultTools, mergeTools, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=59";
+import { buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal } from "./panels.js?v=7";
+import * as snd from "./sound.js?v=59";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=59";
@@ -163,7 +163,7 @@ const planApi = { S, el, now, push: () => push(), mode: () => mode, today: () =>
         d.today = id === "regular" ? null : { date, id }; if (d.days) delete d.days[date];
         try { await store.save("settings/bells", d); return true; } catch (e) { return false; }
     } };
-const toolApi = { S, el, push, quiet, now, card, rosters: () => ROSTERS, redraw: () => { layerSig = ""; renderLayer(); },
+const toolApi = { S, el, push, quiet, now, card, rosters: () => ROSTERS, cue: (n) => snd.cue(n), redraw: () => { layerSig = ""; renderLayer(); },
     // panels (js/panels.js)
     day: () => D(), lesson: () => L(), rich, bells: () => BELLS, guest: () => mode === "sub", panelOk: (k) => panelOk(k), screenOk: (id) => screenOk(id),
     defaultPos: (k) => { const d = DEFAULT_POS[k] || [10, 30]; return { x: d[0], y: d[1], s: 1 }; }, bellSeconds: () => { const l = L(); return (l && l.bellSeconds) || 300; },
