@@ -90,3 +90,9 @@
   .hm-menu{display:inline-flex}
 }
 @media (prefers-reduced-motion:reduce){.hm-side,body.hm-home,.hm-sl,.hm-sl svg,.hm-smin{transition:none}.hm-wk{transition:none}.hm-wk:hover{transform:none}}
+
+/* Bell times: Plan ahead (a date that starts on another schedule) */
+.bpick2 input[type=date]{font:inherit;color:var(--c-ink);border:1.5px solid var(--c-line);border-radius:8px;padding:6px 8px;background:#fff;min-height:40px}
+.aheadrow{gap:8px 14px}
+.aheadrow .aheaddate{min-width:9.5em;font-weight:600}
+.aheadrow .aheadname{flex:1}

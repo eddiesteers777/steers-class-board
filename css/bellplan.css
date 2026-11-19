@@ -1,0 +1,32 @@
+/* Bell timeline (js/bellPlan.js): the rail fold on the Remote and Board pages, and its step editor dialog */
+.bpbox{display:flex;flex-direction:column;gap:8px;padding:6px 10px 4px}
+.bpbox .field select{width:100%}
+.bpbox .field{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--c-mute)}
+.bpbox select,.bped select,.bped input{box-sizing:border-box;max-width:100%;font:inherit;font-size:.9rem;color:var(--c-ink);border:1.5px solid var(--c-line);border-radius:10px;padding:7px 8px;background:#fff;min-height:40px}
+.bpline{margin:0;font-size:.85rem;line-height:1.45;color:var(--c-ink)}
+.bphint{margin:0;font-size:.8rem;line-height:1.5;color:var(--c-mute)}
+.bphint:empty{display:none}
+.bprow{display:flex;flex-wrap:wrap;gap:6px}
+.bprow .btn{min-height:40px;font-size:.85rem;padding:8px 12px}
+.bpskip[aria-pressed="true"]{border-color:#F2B33D;background:#FFF6E0}
+.bpdlg{margin:auto;inset:0;border:0;border-radius:18px;padding:0;width:min(680px,calc(100vw - 32px));max-height:calc(100vh - 48px);box-shadow:0 8px 32px rgba(11,37,89,.18);color:var(--c-ink,#0E1B3A);background:var(--c-surface,#fff)}
+.bpdlg::backdrop{background:rgba(8,27,69,.45)}
+.bpdlg[open]{display:flex;flex-direction:column;gap:12px;padding:20px 24px 24px;overflow:auto}
+.bpdhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.bpdhead h2{margin:0;font:700 1.25rem/1.3 "Bricolage Grotesque",system-ui,sans-serif}
+.bped{display:flex;flex-direction:column;gap:12px}
+.bped .field{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--c-mute);max-width:320px}
+.bplist{display:flex;flex-direction:column;gap:8px}
+.bpstep{display:grid;grid-template-columns:72px minmax(150px,auto) auto 1fr auto;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid var(--c-line);border-radius:14px;background:var(--c-bg,#EEF1F6)}
+.bpstep .bparrow{font-size:.85rem;color:var(--c-mute)}
+.bpstep .bpmin{width:72px}
+.bpstep .bpat{grid-column:1/-1;font-size:.8rem;color:var(--c-mute)}
+.bpstep .bpat:empty{display:none}
+.bpdel{min-height:40px;font-size:.85rem;padding:6px 12px}
+@media (max-width:620px){
+  .bpdlg[open]{padding:16px}
+  .bpstep{grid-template-columns:72px 1fr}
+  .bpstep .bparrow{display:none}
+  .bpstep .bpgo{grid-column:1/-1}
+  .bpstep .bpdel{grid-column:1/-1;justify-self:start}
+}
