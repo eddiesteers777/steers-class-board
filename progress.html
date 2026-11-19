@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Progress | Anchor Board</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=57">
+    <link rel="stylesheet" href="css/console.css?v=57">
+    <link rel="stylesheet" href="css/theme-rings.css?v=2">
+    <link rel="stylesheet" href="css/progress.css?v=1">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="console page">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Anchor Board</b><small id="who">For teachers</small></span></a>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
+        <a class="btn ghost" href="data.html" style="text-decoration:none">Class Data</a>
+    </header>
+    <main>
+        <h1>Student Progress</h1>
+        <p class="sub">Who needs help, on what, and what to do next. Built from your Class Data sets, Vault Raid games and the class tally, matched to each roster name. Only you can see this page.</p>
+
+        <div class="pgBarRow">
+            <div class="tabs" id="periodTabs" role="group" aria-label="Period"></div>
+            <label class="field"><span>Needs help below</span><select id="cut"><option value="0.6">60%</option><option value="0.7" selected>70%</option><option value="0.8">80%</option></select></label>
+        </div>
+        <nav class="pgViews tabs" id="views" role="tablist" aria-label="View">
+            <button type="button" data-v="today" role="tab">Today</button>
+            <button type="button" data-v="class" role="tab">Class</button>
+            <button type="button" data-v="students" role="tab">Students</button>
+            <button type="button" data-v="questions" role="tab">Questions</button>
+        </nav>
+
+        <div id="out" aria-live="polite">
+            <div class="pgSkel" aria-hidden="true"><i></i><i></i><i></i></div>
+        </div>
+
+        <details class="pgHow">
+            <summary>How these numbers are made</summary>
+            <ul>
+                <li><b>Scores</b> come from Class Data sets (anything you import, plus Vault Raid when you save results). One point per set: the average of that student's columns.</li>
+                <li><b>Start and targets.</b> A student's start is the average of their first 2 sets. Typical target closes a third of the gap between the start and 100%; Stretch closes two thirds. Targets show after 3 sets. They are set from the student's own scores on this site. They are not grade-level norms, percentiles or a state-test prediction.</li>
+                <li><b>Growth never counts against a student.</b> A dip shows as 0 points earned, not a minus. Effort is kept apart: tries, misses they came back and fixed, steps used and time come only from Vault Raid.</li>
+                <li><b>Behaviour is not learning.</b> The class tally shows only on a student's own page, under its own heading, and never changes a score, group or target.</li>
+                <li><b>Names.</b> Everything is matched to your Rosters page (first name and last initial). A pasted full name is matched and shown by its roster name; a name with no roster match shows as first name and last initial, marked "not on roster".</li>
+                <li><b>Vault Raid effort</b> is saved only for games where you save results to Class Data. Games before Nov 19, 2026 have scores but no effort detail.</li>
+            </ul>
+        </details>
+    </main>
+
+    <dialog id="kid" class="pgKid" aria-labelledby="kidName"></dialog>
+
+    <script type="module">
+        import { mountProgress } from "./js/progressPage.js?v=1";
+        mountProgress();
+    </script>
+</body>
+</html>
