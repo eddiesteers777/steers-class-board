@@ -4,7 +4,7 @@
    js/progress.js and draws one view at a time: Today, Class, Students, Questions.
    ?demo fills a this-tab store with made-up students (js/progressDemo.js) and saves nothing.
 ========================================== */
-import { buildProgress, distribution, standardOverTime, needGroups, missedOn, heatmap, engagement, fidelity, studentSummary, stdIn, BAND_WORD } from "./progress.js?v=1";
+import { buildProgress, distribution, standardOverTime, needGroups, missedOn, heatmap, engagement, fidelity, studentSummary, stdIn, BAND_WORD } from "./progress.js?v=2";
 import { lineChart, sparkline, bandBar, meter } from "./charts.js?v=1";
 import { STANDARDS } from "../data/standards.js?v=57";
 
@@ -62,7 +62,7 @@ export async function mountProgress() {
     // ---------- the model for the period on screen ----------
     function model() {
         const cls = CLS[S.period], C = STANDARDS[cls] || { standards: [], units: [] }, codes = new Set(C.standards.map((s) => s.code));
-        const imports = [...D.imports.values()].filter(Boolean), vrIds = new Set(imports.filter((i) => i.source === "Vault Raid").map((i) => String(i.id).replace(/^vr/, "")));
+        const imports = [...D.imports.values()].filter(Boolean), vrIds = new Set(imports.filter((i) => i.source === "Vault Raid" || i.source === "Assignment").map((i) => String(i.id).replace(/^vr/, "")));
         const details = [...D.details.values()].filter(Boolean).map((g) => Object.assign({}, g, { vr: vrIds.has(g.id), qs: (g.qs || []).map((q) => Object.assign({}, q, { std: stdIn(q.c, codes) })) }));
         const cut = +$("cut").value;
         const P = buildProgress({ roster: (D.rosters[S.period] || []).map((n) => String(n).slice(0, 60)), codes, imports, results: D.results, details, tally: [...D.tally.values()], period: S.period, cut });
