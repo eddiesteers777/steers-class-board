@@ -77,7 +77,7 @@
 .se-selbar{position:sticky;bottom:14px;margin:12px auto 0;width:max-content;max-width:100%;display:flex;align-items:center;gap:6px;background:var(--c-surface);border:1px solid var(--c-line);border-radius:16px;padding:6px 8px 6px 14px;box-shadow:0 10px 30px rgba(8,27,69,.18);z-index:8}
 .se-selname{font-weight:700;font-size:.9rem;margin-right:4px}
 .se-lab input{height:40px;border:1.5px solid var(--c-line);border-radius:10px;padding:0 10px;font:inherit;font-size:.9rem;width:150px}
-.se-dlg{border:0;border-radius:20px;padding:24px;max-width:440px;width:calc(100% - 32px);box-shadow:0 20px 60px rgba(8,27,69,.35)}
+.se-dlg{margin:auto;border:0;border-radius:20px;padding:24px;max-width:440px;width:calc(100% - 32px);box-shadow:0 20px 60px rgba(8,27,69,.35)}
 .se-dlg::backdrop{background:rgba(8,27,69,.45)}
 .se-dlg h2{font-family:var(--display);font-size:1.3rem;margin-bottom:6px}
 .se-dlg p{color:var(--c-mute);font-size:.9rem;line-height:1.5}
@@ -114,3 +114,27 @@
 .srbox{position:absolute;z-index:9;border:.2cqw dashed #F2B33D;background:rgba(242,179,61,.12);border-radius:.4cqw;pointer-events:none}
 .seatroom.edit.room{cursor:crosshair}
 .se-each{height:40px;font-size:.82rem}
+/* lock */
+.se-lock{display:inline-flex;align-items:center;gap:6px}
+.se-lock svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.se-lock[aria-pressed="true"]{background:var(--amber);border-color:#D79A22;color:var(--amber-ink);box-shadow:0 3px 0 #C98F1F}
+.se-lock.nudge{animation:seNudge .38s ease}
+@keyframes seNudge{0%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.seatroom.locked{cursor:not-allowed}
+.seatroom.locked .sit{cursor:not-allowed}
+.srlock{position:absolute;right:1.2cqw;bottom:1.1cqw;z-index:8;background:#F2B33D;color:#3A2A00;font:700 1.05cqw/1 var(--ui,'Instrument Sans',sans-serif);padding:.5cqw 1cqw;border-radius:99px;box-shadow:0 .3cqw .9cqw rgba(8,27,69,.2);pointer-events:none}
+body.se-locked .se-act,body.se-locked .se-tpl button,body.se-locked .se-pal button,body.se-locked .se-chip{opacity:.5}
+/* saved layouts */
+.se-saved{max-width:560px}
+.se-saverow{display:flex;gap:8px;margin-top:14px}
+.se-saverow input{flex:1;min-width:0;height:44px;border:1.5px solid var(--c-line);border-radius:12px;padding:0 12px;font:inherit}
+.se-savemsg{min-height:1.4em;margin:8px 0 4px;font-size:.86rem;color:#0F6B40}
+.se-savelist{max-height:min(52vh,420px);overflow:auto;display:grid;gap:8px;margin:4px 0 14px}
+.se-savelist .pg{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c-mute);margin:6px 2px 0}
+.se-saveit{display:grid;grid-template-columns:96px 1fr auto auto;gap:10px;align-items:center;border:1.5px solid var(--c-line);border-radius:14px;padding:8px}
+.se-savethumb .seatroom{border-radius:6px;box-shadow:none;pointer-events:none}
+.se-savetx b{display:block;font-size:.95rem}
+.se-savetx small{display:block;font-size:.76rem;color:var(--c-mute);margin-top:2px}
+.se-saveit .btn{min-height:40px}
+.se-savedel[data-sure="1"]{background:#FBE9EA;border-color:#D46A70;color:#8E1B21}
+@media (max-width:520px){.se-saveit{grid-template-columns:72px 1fr}.se-saveit .btn{grid-column:span 1}}

@@ -52,7 +52,7 @@ export function cleanItem(o) {
     return it;
 }
 export function cleanPeriod(o) {
-    const p = { items: [], seats: {}, at: 0 };
+    const p = { items: [], seats: {}, at: 0 };   // + lock: true when the teacher locked the chart
     if (!o || typeof o !== "object") return p;
     const seen = new Set();
     (Array.isArray(o.items) ? o.items : []).slice(0, 120).forEach((x) => { const it = cleanItem(x); if (it && !seen.has(it.id)) { seen.add(it.id); p.items.push(it); } });
@@ -60,6 +60,7 @@ export function cleanPeriod(o) {
     const names = new Set();
     Object.keys(o.seats || {}).forEach((k) => { const n = str(o.seats[k], 60).trim(); if (ok.has(k) && n && !names.has(n)) { names.add(n); p.seats[k] = n; } });
     p.at = num(o.at, 0, 9e15, 0);
+    if (o.lock === true) p.lock = true;
     return p;
 }
 export function cleanChart(o) {
@@ -68,6 +69,18 @@ export function cleanChart(o) {
     Object.keys(o.periods || {}).slice(0, 20).forEach((k) => { c.periods[str(k, 20)] = cleanPeriod(o.periods[k]); });
     c.at = num(o.at, 0, 9e15, 0);
     return c;
+}
+
+/** Saved layouts (teacher/{uid}/seats/saved): { list: [{ id, n (name), per (period it came from), at, items, seats }] }. */
+export const SAVED_MAX = 40;
+export function cleanSaved(o) {
+    const list = [];
+    (o && Array.isArray(o.list) ? o.list : []).slice(0, SAVED_MAX).forEach((x) => {
+        if (!x || typeof x !== "object") return;
+        const p = cleanPeriod(x); if (!p.items.length) return;
+        list.push({ id: str(x.id, 16) || uid(), n: str(x.n, 40).trim() || "Saved layout", per: str(x.per, 20), at: num(x.at, 0, 9e15, 0), items: p.items, seats: p.seats });
+    });
+    return { list };
 }
 
 /* ---------- geometry ---------- */
