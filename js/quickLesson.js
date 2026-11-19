@@ -1,6 +1,6 @@
 /* ==========================================
    Anchor Board — Quick lesson (lesson.html).
-   One class, one day: title, learning target, bellringer problems, agenda and exit ticket.
+   One class, one day: title, learning target, bellringer problems, agenda, supplies, reminders and exit ticket.
    It saves the same week format the board already reads, as a private week:
      teacher/{uid}/weekfiles/<id> = { json, at }, listed (approved) in weekfiles/index.
    A week that is already private (Week Review, Week Builder) is edited in place. A published week
@@ -38,6 +38,8 @@ export function formFrom(day) {
         lt: d.lt || "",
         problems: pairs(d.problems),
         agenda: (Array.isArray(d.agenda) ? d.agenda : []).join(" · "),
+        supplies: (Array.isArray(d.supplies) ? d.supplies : []).join(" · "),
+        reminders: (Array.isArray(d.reminders) ? d.reminders : []).join(" · "),
         exit: pairs(n.exit),
         pdf: d.pdf && typeof d.pdf === "object" ? d.pdf : null
     };
@@ -53,6 +55,10 @@ export function applyForm(day, f) {
     d.lt = lt;
     d.problems = pairs(f.problems);
     d.agenda = agenda;
+    // Supplies and reminders: only when the form sent them, so an older form never wipes them
+    const list = (v, n) => String(v || "").split(/\s*(?:·|•|;|\n)\s*/).map((t) => clean(t, n)).filter(Boolean).slice(0, 8);
+    if (f.supplies !== undefined) d.supplies = list(f.supplies, 60);
+    if (f.reminders !== undefined) d.reminders = list(f.reminders, 160);
     if (f.pdf) d.pdf = { id: String(f.pdf.id), title: clean(f.pdf.title, 60) || "Notes", pages: +f.pdf.pages || 0, w: +f.pdf.w || 0, h: +f.pdf.h || 0 };
     else delete d.pdf;
     const exit = pairs(f.exit);

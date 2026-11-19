@@ -8,6 +8,8 @@
    inside the shared board state, so the board and the Remote always match.
 ========================================== */
 import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene } from "./boardTools.js?v=58";
+import { MARKS, markUrl } from "./marks.js?v=1";
+export { MARKS };
 
 const LESSON = new Set(LESSON_PANELS.map((x) => x[0]));
 export const labelOf = (k) => (PANEL_LIST.find((x) => x[0] === k) || [k, k])[1];
@@ -224,9 +226,11 @@ export function refreshSheet() {
     const scroll = sheet.querySelector(".pbox") ? sheet.querySelector(".pbox").scrollTop : 0;
     sheet.textContent = "";
     const box = el("div", "pbox");
-    const hd = el("div", "phead"), ht = el("div"); ht.appendChild(el("h2", null, "Panels")); ht.appendChild(el("p", null, "Tap a layout to set up the room, or add panels one at a time. Drag a panel by its title to move it."));
+    const hd = el("div", "phead"), ht = el("div"); ht.appendChild(el("h2", null, "Panels and look")); ht.appendChild(el("p", null, "Pick the board\u2019s colors and background, tap a layout to set up the room, or add panels one at a time. Drag a panel by its title to move it."));
     const x = el("button", "pclose"); x.type = "button"; x.innerHTML = icon("x"); x.setAttribute("aria-label", "Close"); x.onclick = closeSheet; hd.append(ht, x); box.appendChild(hd);
 
+    box.appendChild(el("p", "psec", "Board look"));
+    box.appendChild(lookPicker(api, false));
     box.appendChild(el("p", "psec", "Layouts"));
     const sc = el("div", "pscenes");
     const sceneBtn = (raw, own) => {
@@ -264,3 +268,85 @@ export function refreshSheet() {
     if (hadFocus) { const i = sheet.querySelector(".psave input"); i.focus(); }
 }
 const describe = (sc) => { const ks = Object.keys(sc.on || {}); return ks.length ? ks.map(labelOf).slice(0, 3).join(", ") + (ks.length > 3 ? " +" + (ks.length - 3) : "") : "No panels"; };
+
+/* ---------- Board look: colour scheme and background, shared like everything else ---------- */
+export const LOOK_THEMES = [
+    ["navy", "Navy", ["#173F86", "#0B2559", "#081B45"]], ["midnight", "Midnight", ["#1C2448", "#0D132E", "#05081A"]],
+    ["ocean", "Ocean", ["#11607C", "#0A3D5A", "#06243A"]], ["forest", "Forest", ["#1F5C47", "#123B2E", "#0A251C"]],
+    ["plum", "Plum", ["#4B2E75", "#2D1B4B", "#1A0F2E"]], ["slate", "Slate", ["#3B4659", "#242C3B", "#141A24"]],
+    ["crimson", "Crimson", ["#6E2533", "#42161F", "#260B12"]],
+    // Christmas
+    ["evergreen", "Evergreen", ["#1E6B43", "#0F4229", "#072617"]], ["cranberry", "Cranberry", ["#9A1F33", "#5E0F1E", "#320710"]],
+    ["winter", "Winter night", ["#2C4A8C", "#182A57", "#0A1433"]],
+];
+export const LOOK_BGS = [["anchor", "Big logo"], ["plain", "Plain"], ["rings", "Rings"], ["grid", "Graph paper"], ["dots", "Dots"], ["glow", "Glow"],
+    ["snow", "Snowfall"], ["lights", "Christmas lights"], ["trees", "Snowy pines"], ["candy", "Candy cane"]];
+/* One tap for a whole holiday look: [id, name, colours, background, logo]. */
+export const LOOK_PRESETS = [["xmas-lights", "Christmas lights", "evergreen", "lights", "ornament"], ["xmas-snow", "Snowy night", "winter", "snow", "snowflake"],
+    ["xmas-pines", "Winter forest", "evergreen", "trees", "tree"], ["xmas-candy", "Candy cane", "cranberry", "candy", "star"]];
+const XMAS = new Set(["evergreen", "cranberry", "winter"]);
+export const defaultLook = () => ({ theme: "navy", bg: "anchor", mark: "anchor" });
+export function cleanLook(o) { const d = defaultLook(); if (!o || typeof o !== "object") return d; if (LOOK_THEMES.some((t) => t[0] === o.theme)) d.theme = o.theme; if (LOOK_BGS.some((b) => b[0] === o.bg)) d.bg = o.bg; if (MARKS.some((m) => m[0] === o.mark)) d.mark = o.mark; return d; }
+const themeCols = (id) => (LOOK_THEMES.find((x) => x[0] === id) || LOOK_THEMES[0])[2];
+const gradOf = (id) => { const t = LOOK_THEMES.find((x) => x[0] === id) || LOOK_THEMES[0]; return "linear-gradient(135deg," + t[2][0] + " 0%," + t[2][1] + " 55%," + t[2][2] + " 100%)"; };
+let lookApplied = "", seal = "brand/logo.svg";
+/** The header logo for the current look (brand/logo.svg for Navy + Anchor). */
+export const lookSeal = () => seal;
+const MARK_VARS = ["--ring-mark", "--ring-mark-light", "--ring-wm"];
+export function applyLook(look) {
+    const key = look.theme + "|" + look.bg + "|" + (look.mark || "anchor"); if (key === lookApplied) return; lookApplied = key;
+    const b = document.body, t = LOOK_THEMES.find((x) => x[0] === look.theme) || LOOK_THEMES[0];
+    if (t[0] === "navy") { b.style.removeProperty("--ring-grad"); b.style.removeProperty("--look-out"); b.style.removeProperty("--look-mid"); b.style.removeProperty("--look-hi"); }
+    else { b.style.setProperty("--ring-grad", gradOf(t[0])); b.style.setProperty("--look-out", t[2][2]); b.style.setProperty("--look-mid", t[2][1]); b.style.setProperty("--look-hi", t[2][0]); }
+    b.dataset.theme = t[0]; b.dataset.bg = look.bg;
+    // The logo follows the colour scheme; Navy + Anchor keeps the brand files exactly as they are
+    const mk = look.mark || "anchor";
+    if (t[0] === "navy" && mk === "anchor") { MARK_VARS.forEach((v) => b.style.removeProperty(v)); seal = "brand/logo.svg"; }
+    else {
+        const u = (kind) => 'url("' + markUrl(mk, t[2], kind, t[0]) + '")';
+        b.style.setProperty("--ring-mark", u("dark")); b.style.setProperty("--ring-mark-light", u("light")); b.style.setProperty("--ring-wm", u("wm"));
+        seal = markUrl(mk, t[2], "tile", t[0]);
+    }
+    b.dataset.mark = mk;
+    document.querySelectorAll("#stage .hdr > img, #stage .wbstrip > img").forEach((im) => { if (im.getAttribute("src") !== seal) im.src = seal; });
+}
+/** Swatches for the colour scheme and tiles for the background. compact: the Remote's rail. */
+export function lookPicker(api, compact) {
+    const { S, el } = api, box = el("div", "lookpick" + (compact ? " compact" : ""));
+    const th = el("div", "lookthemes"); th.setAttribute("role", "group"); th.setAttribute("aria-label", "Board colors");
+    {   // Christmas: colours and background together, one tap
+        box.appendChild(el("p", "lookh xmas", compact ? "Christmas" : "Christmas looks"));
+        const pr = el("div", "lookbgs lookpresets"); pr.setAttribute("role", "group"); pr.setAttribute("aria-label", "Christmas looks");
+        LOOK_PRESETS.forEach(([, name, th0, bg0, mk0]) => {
+            const on = S.look.theme === th0 && S.look.bg === bg0, b = el("button", "lookbg" + (on ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(on));
+            const pv = el("span", "lpv"); pv.style.background = gradOf(th0); pv.appendChild(el("span", "stagebg pv-" + bg0)); const pm = el("img", "lpm"); pm.alt = ""; pm.src = markUrl(mk0, themeCols(th0), "tile", th0); pv.appendChild(pm); b.appendChild(pv); b.appendChild(el("span", "lnm", name));
+            b.onclick = () => { S.look = { theme: th0, bg: bg0, mark: mk0 }; api.push(); refreshSheet(); }; pr.appendChild(b);
+        });
+        box.appendChild(pr); box.appendChild(el("p", "lookh", "Colors"));
+    }
+    LOOK_THEMES.forEach(([id, name]) => {
+        const b = el("button", "lookth" + (XMAS.has(id) ? " xmas" : "") + (S.look.theme === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(S.look.theme === id)); b.title = name;
+        const sw = el("span", "lsw"); sw.style.background = gradOf(id); b.appendChild(sw); b.appendChild(el("span", "lnm", name));
+        b.onclick = () => { S.look = Object.assign({}, S.look, { theme: id }); api.push(); refreshSheet(); }; th.appendChild(b);
+    });
+    box.appendChild(th);
+    box.appendChild(el("p", "lookh", "Logo"));   // drawn in the colours picked above
+    const mks = el("div", "lookmarks"); mks.setAttribute("role", "group"); mks.setAttribute("aria-label", "Board logo");
+    const cur = S.look.mark || "anchor";
+    MARKS.forEach(([id, name]) => {
+        const b = el("button", "lookmk" + (cur === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(cur === id)); b.title = name;
+        const im = el("img", "lmk"); im.alt = ""; im.src = S.look.theme === "navy" && id === "anchor" ? "brand/logo.svg" : markUrl(id, themeCols(S.look.theme), "tile", S.look.theme);
+        b.appendChild(im); b.appendChild(el("span", "lnm", name));
+        b.onclick = () => { S.look = Object.assign({}, S.look, { mark: id }); api.push(); refreshSheet(); }; mks.appendChild(b);
+    });
+    box.appendChild(mks);
+    box.appendChild(el("p", "lookh", "Background"));
+    const bg = el("div", "lookbgs"); bg.setAttribute("role", "group"); bg.setAttribute("aria-label", "Board background");
+    LOOK_BGS.forEach(([id, name]) => {
+        const b = el("button", "lookbg" + (S.look.bg === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(S.look.bg === id));
+        const pv = el("span", "lpv"); pv.style.background = gradOf(S.look.theme); pv.appendChild(el("span", "stagebg pv-" + id)); b.appendChild(pv); b.appendChild(el("span", "lnm", name));
+        b.onclick = () => { S.look = Object.assign({}, S.look, { bg: id }); api.push(); refreshSheet(); }; bg.appendChild(b);
+    });
+    box.appendChild(bg);
+    return box;
+}
