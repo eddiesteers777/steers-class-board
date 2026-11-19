@@ -1,0 +1,316 @@
+/* ==========================================
+   Anchor Board — the seating chart editor (seats.html).
+   Two modes: "Seat students" (drag names onto desks, swap, fill, shuffle) and
+   "Arrange room" (layouts, add/move/turn/copy/remove desks and furniture).
+   Everything saves on its own to teacher/{uid}/seats/chart, and the board's
+   Seating Chart screen follows it live. Rosters come from rosters/all.
+   ?demo uses made-up names and a this-tab store: nothing is saved.
+========================================== */
+import { ROOM, KINDS, TEMPLATES, isSeat, sizeOf, uid, snap, cleanChart, cleanPeriod, seatList, seatCount, drawRoom } from "./seats.js?v=1";
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const Q = new URLSearchParams(location.search), DEMO = Q.has("demo");
+const PAGE = Math.random().toString(36).slice(2, 10);
+const DEMO_NAMES = ["Ava R.", "Liam T.", "Mia C.", "Noah B.", "Zoe K.", "Eli W.", "Nora P.", "Jalen M.", "Ivy S.", "Owen D.", "Lucy H.", "Mason G.", "Ruby F.", "Caleb J.", "Stella N.", "Isaiah L.", "Hazel A.", "Wyatt E.", "Maya O.", "Grayson V.", "Layla Q.", "Kai Z."];
+
+let store, PERIODS = [], ROSTERS = {}, chart = cleanChart(null);
+let per = "1st", mode = "seat", sel = null, pick = null, flip = false, loaded = false;
+const undo = {}, redo = {};
+try { flip = localStorage.getItem("anchor:seatsFlip") === "1"; } catch (e) { /* storage off */ }
+
+const P = () => (chart.periods[per] || (chart.periods[per] = cleanPeriod(null)));
+const roster = () => (ROSTERS[per] || []).slice();
+const seatedNames = () => new Set(Object.values(P().seats));
+const status = (t, st) => { const s = $("status"); s.textContent = t; s.dataset.state = st || (/^(Live|Saved|Sample)/.test(t) ? "ok" : /Could not/.test(t) ? "bad" : "wait"); };
+
+/* ---------- saving ---------- */
+let saveT = 0, saving = false, again = false;
+function save() {
+    clearTimeout(saveT); status("Saving…", "wait");
+    saveT = setTimeout(async function go() {
+        if (saving) { again = true; return; }
+        saving = true; chart.at = Date.now(); chart.by = PAGE;
+        try { await store.save("seats/chart", JSON.parse(JSON.stringify(chart))); status(DEMO ? "Sample, nothing is saved" : "Saved"); }
+        catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); }
+        saving = false; if (again) { again = false; go(); }
+    }, 450);
+}
+/** Every change goes through here: one undo step, redraw, save. */
+function change(fn) {
+    const before = JSON.stringify(P());
+    fn();
+    const after = JSON.stringify(P()); if (after === before) { render(); return; }
+    (undo[per] = undo[per] || []).push(before); if (undo[per].length > 80) undo[per].shift(); redo[per] = [];
+    P().at = Date.now(); render(); save();
+}
+function stepHist(from, to) {
+    const a = from[per]; if (!a || !a.length) return;
+    (to[per] = to[per] || []).push(JSON.stringify(P())); chart.periods[per] = cleanPeriod(JSON.parse(a.pop()));
+    if (sel && !P().items.some((x) => x.id === sel)) sel = null;
+    render(); save();
+}
+
+/* ---------- seat moves ---------- */
+const seatOf = (name) => Object.keys(P().seats).find((k) => P().seats[k] === name);
+function place(name, key) {
+    const s = P().seats, from = seatOf(name), other = s[key];
+    if (from === key) return;
+    if (from) delete s[from];
+    if (other && other !== name) { if (from) s[from] = other; else delete s[key]; }
+    s[key] = name;
+}
+function unseat(name) { const k = seatOf(name); if (k) delete P().seats[k]; }
+const shuffled = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function fill(names) { const open = seatList(P()).filter((s) => !P().seats[s.key]); names.forEach((n, i) => { if (open[i]) P().seats[open[i].key] = n; }); }
+
+/* ---------- drawing ---------- */
+function render() {
+    document.querySelectorAll(".se-mode button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
+    $("seatPane").hidden = mode !== "seat"; $("roomPane").hidden = mode !== "room";
+    $("flipBtn").setAttribute("aria-pressed", String(flip));
+    $("undo").disabled = !(undo[per] || []).length; $("redo").disabled = !(redo[per] || []).length;
+    $("showBoard").href = "remote.html?screen=seats&period=" + encodeURIComponent(per);
+    const p = P(), r = roster(), seated = seatedNames(), seats = seatCount(p);
+    $("title").textContent = per + " period";
+    $("sub").textContent = !p.items.length ? "No room yet. Pick a layout to start." : seats + " seats · " + [...seated].filter((n) => r.includes(n)).length + " of " + r.length + " students seated";
+    // the room
+    const host = $("stageHost"); host.textContent = "";
+    if (!p.items.length) {
+        const e = el("div", "seatempty"); e.appendChild(el("h2", null, "Set up the room for " + per + " period")); e.appendChild(el("p", null, "Start from a layout, then move the desks to match your room. Or copy a room you already made for another period."));
+        const go = el("a", null, "Pick a layout"); go.href = "#"; go.onclick = (ev) => { ev.preventDefault(); mode = "room"; render(); }; e.appendChild(go);
+        host.appendChild(e);
+    } else {
+        const room = drawRoom(host, p, { edit: true, flip, roster: r, sel: mode === "room" ? sel : null, count: mode === "seat" });
+        room.classList.add(mode);
+        if (mode === "seat" && pick) { const k = seatOf(pick); const c = k && room.querySelector('[data-seat="' + k + '"]'); if (c) c.classList.add("picked"); }
+        if (mode === "room" && sel) { const s = room.querySelector('[data-id="' + sel + '"]'), it = P().items.find((x) => x.id === sel); if (s && it && KINDS[it.k].resize) { const g = el("div", "srgrab"); g.dataset.grab = "1"; s.appendChild(g); } }
+        bindRoom(room);
+    }
+    // the tray
+    const tray = $("tray"); tray.textContent = "";
+    const out = r.filter((n) => !seated.has(n)).sort((a, b) => a.localeCompare(b));
+    out.forEach((n) => { const c = el("button", "se-chip", n); c.type = "button"; c.dataset.name = n; c.setAttribute("aria-pressed", String(pick === n)); tray.appendChild(c); bindChip(c, n); });
+    if (!r.length) tray.appendChild(el("p", "se-hint", DEMO ? "" : "No class list for " + per + " period yet. Add it on the Rosters page."));
+    else if (!out.length) tray.appendChild(el("p", "se-done", "Everyone has a seat."));
+    $("trayCount").textContent = String(out.length);
+    const gone = [...seated].filter((n) => !r.includes(n));
+    $("trayHint").textContent = (pick ? "Now tap a desk for " + pick + ". " : "Drag a name onto a desk, or tap a name and then a desk. Drag a seated student onto someone else to swap them. ")
+        + (gone.length ? gone.length + " seated name" + (gone.length > 1 ? "s are" : " is") + " not on the class list (dashed red). Drag them back here to remove." : "")
+        + (out.length > seats - seated.size && p.items.length ? " There are more students than open seats: add desks in Arrange room." : "");
+    // the selected item's bar
+    const it = mode === "room" && sel ? P().items.find((x) => x.id === sel) : null;
+    $("selBar").hidden = !it;
+    if (it) {
+        const K = KINDS[it.k]; $("selName").textContent = K.n;
+        $("labWrap").hidden = !K.edit; if (K.edit && document.activeElement !== $("labIn")) $("labIn").value = typeof it.label === "string" ? it.label : K.label;
+    }
+    $("foot").textContent = mode === "room" ? "Drag to move. Arrow keys nudge the selected item, R turns it, Delete removes it. Desks snap to a grid; hold Alt to place freely." : (flip ? "Teacher view: the front of the room is at the bottom, as you see it from your desk. The board always shows the students' view." : "Students' view: the front of the room is at the top, the way the class sees it on the board.");
+}
+
+/* ---------- pointer work: one drag helper for everything ---------- */
+function roomPt(room, e) {
+    const r = room.getBoundingClientRect(); let x = (e.clientX - r.left) / r.width * ROOM.W, y = (e.clientY - r.top) / r.height * ROOM.H;
+    if (flip) { x = ROOM.W - x; y = ROOM.H - y; }
+    return { x, y };
+}
+function drag(e, h) {   // h: { move(ev, dx, dy), up(ev, moved), tap(ev) }
+    const sx = e.clientX, sy = e.clientY; let moved = false;
+    const mv = (ev) => { if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 6) return; moved = true; ev.preventDefault(); h.move && h.move(ev, ev.clientX - sx, ev.clientY - sy); };
+    const up = (ev) => { document.removeEventListener("pointermove", mv); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", up); if (moved) h.up && h.up(ev); else h.tap && h.tap(ev); };
+    document.addEventListener("pointermove", mv, { passive: false }); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up);
+}
+let ghost = null;
+function ghostOn(text) { ghostOff(); ghost = el("div", "se-ghost", text); document.body.appendChild(ghost); }
+function ghostAt(ev) { if (ghost) ghost.style.translate = ev.clientX + "px " + ev.clientY + "px"; }
+function ghostOff() { if (ghost) ghost.remove(); ghost = null; }
+function targetAt(ev) {
+    const hit = document.elementFromPoint(ev.clientX, ev.clientY);
+    if (!hit) return null;
+    const c = hit.closest(".scell[data-seat]"); if (c) return { seat: c.dataset.seat, el: c };
+    const t = hit.closest("#tray, .se-side"); if (t) return { tray: true, el: $("tray") };
+    return null;
+}
+let overEl = null;
+function hover(t) { if (overEl) overEl.classList.remove("drop", "over"); overEl = t ? t.el : null; if (overEl) overEl.classList.add(t.tray ? "over" : "drop"); }
+
+/** A name dragged from the tray or from a seat. */
+function nameDrag(e, name, fromEl, tap) {
+    drag(e, {
+        move(ev) { if (!ghost) { ghostOn(name); if (fromEl) fromEl.classList.add("from"); } ghostAt(ev); hover(targetAt(ev)); },
+        up(ev) { const t = targetAt(ev); hover(null); ghostOff(); if (fromEl) fromEl.classList.remove("from"); pick = null;
+            if (t && t.seat) change(() => place(name, t.seat)); else if (t && t.tray) change(() => unseat(name)); else render(); },
+        tap: tap || (() => { pick = pick === name ? null : name; render(); }),
+    });
+}
+function bindChip(c, name) { c.addEventListener("pointerdown", (e) => { if (e.button) return; e.preventDefault(); nameDrag(e, name, null); }); }
+
+function bindRoom(room) {
+    room.addEventListener("pointerdown", (e) => {
+        if (e.button) return;
+        if (mode === "seat") {
+            const c = e.target.closest(".scell[data-seat]"); if (!c) return;
+            e.preventDefault(); const key = c.dataset.seat, name = P().seats[key];
+            const tap = () => {   // a tap on a desk: seat the picked name there, or pick up whoever sits there
+                if (pick && pick !== name) { const n = pick; pick = null; change(() => place(n, key)); }
+                else if (name) { pick = pick === name ? null : name; render(); }
+            };
+            if (name) nameDrag(e, name, c, tap); else drag(e, { tap });
+            return;
+        }
+        // Arrange room: move an item, or resize it by its corner
+        const s = e.target.closest(".sit"); if (!s) { if (sel) { sel = null; render(); } return; }
+        e.preventDefault();
+        const it = P().items.find((x) => x.id === s.dataset.id); if (!it) return;
+        const before = JSON.stringify(P()), ox = it.x, oy = it.y, sz = sizeOf(it), grab = !!e.target.closest("[data-grab]");
+        const r = room.getBoundingClientRect(), k = ROOM.W / r.width * (flip ? -1 : 1);
+        if (sel !== it.id) { sel = it.id; room.querySelectorAll(".sit.sel").forEach((x) => x.classList.remove("sel")); s.classList.add("sel"); }
+        drag(e, {
+            move(ev, dx, dy) {
+                s.classList.add("drag");
+                let ux = dx * k, uy = dy * k;
+                if (grab) {   // resize in the item's own frame
+                    const a = -it.r * Math.PI / 180, rx = ux * Math.cos(a) - uy * Math.sin(a), ry = ux * Math.sin(a) + uy * Math.cos(a);
+                    it.w = Math.max(20, ev.altKey ? sz.w + rx : snap(sz.w + rx)); it.h = Math.max(10, ev.altKey ? sz.h + ry : snap(sz.h + ry));
+                    s.style.width = (it.w / ROOM.W * 100) + "%"; s.style.height = (it.h / ROOM.H * 100) + "%";
+                    if (flip) { s.style.left = ((ROOM.W - it.x - it.w) / ROOM.W * 100) + "%"; s.style.top = ((ROOM.H - it.y - it.h) / ROOM.H * 100) + "%"; }
+                    return;
+                }
+                const w = sizeOf(it);
+                it.x = Math.max(-w.w / 2, Math.min(ROOM.W - w.w / 2, ev.altKey ? ox + ux : snap(ox + ux)));
+                it.y = Math.max(-w.h / 2, Math.min(ROOM.H - w.h / 2, ev.altKey ? oy + uy : snap(oy + uy)));
+                const vx = flip ? ROOM.W - it.x - w.w : it.x, vy = flip ? ROOM.H - it.y - w.h : it.y;
+                s.style.left = (vx / ROOM.W * 100) + "%"; s.style.top = (vy / ROOM.H * 100) + "%";
+            },
+            up() { const after = JSON.stringify(P()); chart.periods[per] = cleanPeriod(JSON.parse(before)); change(() => { chart.periods[per] = cleanPeriod(JSON.parse(after)); }); },
+            tap() { render(); },
+        });
+    });
+}
+
+/* ---------- Arrange room: layouts and the palette ---------- */
+function buildTemplates() {
+    const host = $("templates"); host.textContent = "";
+    TEMPLATES.forEach((t) => {
+        const items = t.make(), n = seatCount({ items }), b = el("button"); b.type = "button";
+        drawRoom(b, cleanPeriod({ items, seats: {} }), {});
+        b.appendChild(el("b", null, t.n)); b.appendChild(el("small", null, n ? n + " seats" : "Board, desk and door"));
+        b.onclick = () => {
+            const had = Object.keys(P().seats).length;
+            change(() => { const keep = seatList(P()).map((s) => P().seats[s.key]).filter(Boolean); P().items = t.make().map((x) => Object.assign({}, x)); P().seats = {}; fill(keep); });
+            sel = null;
+            toast(had ? "New layout. Everyone kept a seat, front row first. Undo puts the old room back." : "Layout added. Move desks to match your room, then Seat students.");
+        };
+        host.appendChild(b);
+    });
+}
+function buildPalette() {
+    const host = $("palette"); host.textContent = ""; let g = "";
+    Object.keys(KINDS).forEach((k) => {
+        const K = KINDS[k];
+        if (K.g !== g) { g = K.g; host.appendChild(el("p", "pg", g === "Desks" ? "Desks and tables" : "Around the room")); }
+        const b = el("button"); b.type = "button";
+        const ic = el("i"), sw = el("span"), sc = 26 / Math.max(K.w, K.h * 1.2);
+        sw.style.width = Math.max(6, K.w * sc) + "px"; sw.style.height = Math.max(4, K.h * sc) + "px"; if (K.round) sw.style.borderRadius = "50%";
+        if (k === "board") sw.style.background = "#173F86"; if (k === "teacher") sw.style.background = "#E9D8B4"; if (k === "door") sw.style.background = "#C08A3E"; if (k === "rug") sw.style.background = "#F8E3B6";
+        ic.appendChild(sw); b.appendChild(ic); b.appendChild(el("span", null, K.n));
+        b.addEventListener("pointerdown", (e) => {
+            if (e.button) return; e.preventDefault();
+            drag(e, {
+                move(ev) { if (!ghost) ghostOn(K.n); ghostAt(ev); },
+                up(ev) { ghostOff(); const room = document.querySelector("#stageHost .seatroom"); if (!room) return add(k); const r = room.getBoundingClientRect();
+                    if (ev.clientX < r.left || ev.clientX > r.right || ev.clientY < r.top || ev.clientY > r.bottom) return; const pt = roomPt(room, ev); add(k, pt.x, pt.y); },
+                tap() { add(k); },
+            });
+        });
+        host.appendChild(b);
+    });
+}
+function add(k, cx, cy) {
+    const K = KINDS[k], n = P().items.length;
+    if (cx == null) { cx = ROOM.W / 2 + ((n % 5) - 2) * 30; cy = ROOM.H / 2 + ((n % 3) - 1) * 30; }
+    const it = { id: uid(), k, x: snap(cx - K.w / 2), y: snap(cy - K.h / 2), r: 0 };
+    if (K.edit && K.label) it.label = K.label;
+    change(() => P().items.push(it)); sel = it.id; mode = "room"; render();
+}
+function rotate(d) { const it = P().items.find((x) => x.id === sel); if (it) change(() => { it.r = ((it.r + d) % 360 + 360) % 360; }); }
+function dup() { const it = P().items.find((x) => x.id === sel); if (!it) return; const c = Object.assign({}, it, { id: uid(), x: it.x + 30, y: it.y + 30 }); change(() => P().items.push(c)); sel = c.id; render(); }
+function del() { const it = P().items.find((x) => x.id === sel); if (!it) return; change(() => { P().items = P().items.filter((x) => x !== it); Object.keys(P().seats).forEach((k) => { if (k.startsWith(it.id + ":")) delete P().seats[k]; }); }); sel = null; render(); }
+function nudge(dx, dy) { const it = P().items.find((x) => x.id === sel); if (it) change(() => { it.x += dx; it.y += dy; }); }
+
+let toastT = 0;
+function toast(t) { $("foot").textContent = t; clearTimeout(toastT); toastT = setTimeout(render, 6000); }
+
+/* ---------- copy and print ---------- */
+function openCopy() {
+    const list = $("copyList"); list.textContent = "";
+    PERIODS.forEach((p) => { if (p[0] === per) return; const l = el("label"), c = el("input"); c.type = "checkbox"; c.value = p[0]; c.checked = !(chart.periods[p[0]] && chart.periods[p[0]].items.length); l.appendChild(c); l.appendChild(document.createTextNode(p[0] + " period" + (chart.periods[p[0]] && chart.periods[p[0]].items.length ? " (has a room: it is replaced)" : ""))); list.appendChild(l); });
+    $("copyDlg").showModal();
+}
+function doCopy() {
+    const to = [...$("copyList").querySelectorAll("input:checked")].map((c) => c.value); if (!to.length) return;
+    const items = JSON.stringify(P().items);
+    to.forEach((k) => { const old = chart.periods[k] || cleanPeriod(null); (undo[k] = undo[k] || []).push(JSON.stringify(old)); chart.periods[k] = cleanPeriod({ items: JSON.parse(items), seats: old.seats, at: Date.now() }); });
+    save(); toast("Room copied to " + to.join(", ") + ".");
+}
+function print() {
+    const h = $("printHost"); h.textContent = "";
+    h.appendChild(el("h1", null, "Seating chart · " + per + " period"));
+    h.appendChild(el("p", null, (flip ? "Teacher view (front of the room at the bottom)" : "Students' view (front of the room at the top)") + " · " + new Date().toLocaleDateString()));
+    drawRoom(h, P(), { flip });
+    window.print();
+}
+
+/* ---------- start ---------- */
+async function start() {
+    store = await import(DEMO ? "./localStore.js?v=57" : "./boardStore.js?v=58");
+    PERIODS = DEMO ? ["1st", "2nd", "4th", "5th", "6th"].map((p) => [p, ""]) : (await import("../data/weeks.js?v=61")).PERIODS;
+    const user = await store.ready();
+    if (!user) { location.replace("login.html"); return; }
+    $("who").textContent = DEMO ? "Sample names, nothing is saved" : "Signed in as " + user.name;
+    const want = Q.get("period"); per = PERIODS.some((p) => p[0] === want) ? want : PERIODS[0][0];
+    try { const last = localStorage.getItem("anchor:seatsPeriod"); if (!want && PERIODS.some((p) => p[0] === last)) per = last; } catch (e) { /* ok */ }
+    const ps = $("periodSel"); PERIODS.forEach((p) => { const o = el("option", null, p[0] + " period"); o.value = p[0]; ps.appendChild(o); }); ps.value = per;
+    ps.onchange = () => { per = ps.value; sel = null; pick = null; try { localStorage.setItem("anchor:seatsPeriod", per); } catch (e) { /* ok */ } if (!P().items.length) mode = "room"; render(); };
+    document.querySelectorAll(".se-mode button").forEach((b) => { b.onclick = () => { mode = b.dataset.mode; sel = null; pick = null; render(); }; });
+    $("fillAz").onclick = () => change(() => fill(roster().filter((n) => !seatedNames().has(n)).sort((a, b) => a.localeCompare(b))));
+    $("fillRand").onclick = () => change(() => fill(shuffled(roster().filter((n) => !seatedNames().has(n)))));
+    $("shuffle").onclick = () => { change(() => { P().seats = {}; fill(shuffled(roster())); }); toast("New chart. Undo brings the last one back."); };
+    $("clearSeats").onclick = () => { change(() => { P().seats = {}; }); toast("Seats cleared. Undo brings them back."); };
+    $("undo").onclick = () => stepHist(undo, redo); $("redo").onclick = () => stepHist(redo, undo);
+    $("flipBtn").onclick = () => { flip = !flip; try { localStorage.setItem("anchor:seatsFlip", flip ? "1" : "0"); } catch (e) { /* ok */ } render(); };
+    $("copyBtn").onclick = openCopy; $("copyDlg").addEventListener("close", () => { if ($("copyDlg").returnValue === "ok") doCopy(); });
+    $("printBtn").onclick = print;
+    $("rotL").onclick = () => rotate(-15); $("rotR").onclick = () => rotate(15); $("dup").onclick = dup; $("del").onclick = del;
+    $("labIn").addEventListener("change", () => { const it = P().items.find((x) => x.id === sel); if (it) change(() => { it.label = $("labIn").value.slice(0, 40); }); });
+    document.addEventListener("keydown", (e) => {
+        const typing = e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName);
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !typing) { e.preventDefault(); if (e.shiftKey) stepHist(redo, undo); else stepHist(undo, redo); return; }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y" && !typing) { e.preventDefault(); stepHist(redo, undo); return; }
+        if (typing || mode !== "room" || !sel) { if (e.key === "Escape" && pick) { pick = null; render(); } return; }
+        const step = e.shiftKey ? 50 : 10, f = flip ? -1 : 1;
+        if (e.key === "ArrowLeft") { e.preventDefault(); nudge(-step * f, 0); } else if (e.key === "ArrowRight") { e.preventDefault(); nudge(step * f, 0); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); nudge(0, -step * f); } else if (e.key === "ArrowDown") { e.preventDefault(); nudge(0, step * f); }
+        else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); del(); }
+        else if (e.key === "r" || e.key === "R") { e.preventDefault(); rotate(e.shiftKey ? -15 : 15); }
+        else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") { e.preventDefault(); dup(); }
+        else if (e.key === "Escape") { sel = null; render(); }
+    });
+    buildTemplates(); buildPalette();
+
+    if (DEMO) {
+        const periods = {}; PERIODS.forEach((p, i) => { periods[p[0]] = shuffled(DEMO_NAMES).slice(0, 16 + (i % 4) * 2); });
+        await store.save("rosters/all", { periods });
+    }
+    store.watch("rosters/all", (s) => { const p = (s.exists && s.data && s.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); if (loaded) render(); }, () => {});
+    store.watch("seats/chart", (s) => {
+        if (s.pending) return;
+        if (loaded && s.data && s.data.by === PAGE) return;   // our own save coming back
+        if (loaded && (saving || saveT && document.querySelector(".se-ghost, .sit.drag"))) return;
+        chart = cleanChart(s.exists ? s.data : null);
+        if (!loaded) { loaded = true; if (!P().items.length) mode = "room"; status(DEMO ? "Sample, nothing is saved" : "Live"); }
+        if (sel && !P().items.some((x) => x.id === sel)) sel = null;
+        render();
+    }, (e) => status("Could not load (" + ((e && e.code) || "error") + ")", "bad"));
+}
+start();

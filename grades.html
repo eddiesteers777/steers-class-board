@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grades | Anchor Board</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=57">
+    <link rel="stylesheet" href="css/console.css?v=57">
+    <link rel="stylesheet" href="css/theme-rings.css?v=2">
+    <link rel="stylesheet" href="css/progress.css?v=1">
+    <link rel="stylesheet" href="css/grades.css?v=1">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="console page">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Anchor Board</b><small id="who">For teachers</small></span></a>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
+        <a class="btn ghost" href="progress.html" style="text-decoration:none">Student Progress</a>
+    </header>
+    <main>
+        <h1>Grades</h1>
+        <p class="sub">What the classroom work adds up to, one period and one nine weeks at a time. Scores come in from Assignments and Class Data, or you type them. Only you can see this page.</p>
+
+        <div class="pgBarRow">
+            <div class="tabs" id="periodTabs" role="group" aria-label="Period"></div>
+            <label class="field"><span>Grading period</span><select id="term"></select></label>
+        </div>
+        <nav class="pgViews tabs" id="views" role="tablist" aria-label="View">
+            <button type="button" data-v="table" role="tab">Grade table</button>
+            <button type="button" data-v="add" role="tab">Add scores</button>
+            <button type="button" data-v="setup" role="tab">Setup</button>
+        </nav>
+
+        <div id="out" aria-live="polite">
+            <div class="pgSkel" aria-hidden="true"><i></i><i></i><i></i></div>
+        </div>
+    </main>
+
+    <dialog id="kid" class="pgKid" aria-labelledby="kidName"></dialog>
+
+    <script type="module">
+        import { mountGrades } from "./js/gradesPage.js?v=1";
+        mountGrades();
+    </script>
+</body>
+</html>

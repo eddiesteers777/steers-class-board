@@ -13,7 +13,7 @@ let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
 import { tickTools, defaultTools, mergeTools, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=58";
-import { buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal } from "./panels.js?v=4";
+import { buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal } from "./panels.js?v=6";
 import * as snd from "./sound.js?v=58";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
@@ -21,6 +21,7 @@ import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as dra
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=82";
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=8";
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
+import { cleanChart, cleanPeriod, seatCount, drawRoom } from "./seats.js?v=1";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -57,7 +58,7 @@ function rich(text) {
 }
 function richEl(tag, cls, text) { const e = el(tag, cls); e.appendChild(rich(text)); return e; }
 
-const SCREENS = [["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["speed", "Speed Dating"], ["fix", "Fix It"], ["game", "Review Game"], ["live", "Student Game"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
+const SCREENS = [["seats", "Seating Chart"], ["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["speed", "Speed Dating"], ["fix", "Fix It"], ["game", "Review Game"], ["live", "Student Game"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
 const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 // Each period and the class plan it follows.
 let PERIODS = PACK_PERIODS;
@@ -91,7 +92,7 @@ function cleanWb(o) {
 }
 const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0,
     timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", fix: null, tools: defaultTools(), wb: defaultWb(),
-    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true }, look: defaultLook() };
+    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true }, look: defaultLook(), seatHi: null };
 
 // This page's own mark on what it saves, so a change from another tab of the same browser can be shown
 // before the server confirms it (those tabs share one offline copy, where it first arrives as "pending").
@@ -127,6 +128,7 @@ function push() { S.stamp = localIso(); render(); if (writeState) writeState(JSO
 let quietTimer = 0;
 function quiet() { clearTimeout(quietTimer); quietTimer = setTimeout(() => { if (writeState) writeState(JSON.parse(JSON.stringify(S))); }, 500); } // save typing without redrawing
 let ROSTERS = {};
+let SEATS = cleanChart(null), seatsIn = false, seatLast = "";   // seating charts (seats.html), whether they have arrived, and the period last drawn
 let BELLS = null;   // today's bell times from Home (settings/bells), for the Period clock panel
 const toolApi = { S, el, push, quiet, now, card, rosters: () => ROSTERS, redraw: () => { layerSig = ""; renderLayer(); },
     // panels (js/panels.js)
@@ -178,7 +180,7 @@ function buildControls() {
             const b = el("button", null, "Go to today"); b.type = "button"; b.onclick = () => { S.week = defaultWeek(); S.day = rd; resetPos(); push(); }; nt.appendChild(b);
         }
     }
-    seg($("screens"), SCREENS.filter((x) => mode !== "sub" || (x[0] !== "game" && x[0] !== "live")), S.screen, (id) => { S.screen = id; S.show = false; push(); });
+    seg($("screens"), SCREENS.filter((x) => mode !== "sub" || (x[0] !== "game" && x[0] !== "live" && x[0] !== "seats")), S.screen, (id) => { S.screen = id; S.show = false; push(); });
     const sel = $("weekSel"); sel.textContent = "";
     WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + x.dates); o.value = x.id; sel.appendChild(o); });
     sel.value = w.id; $("weekField").hidden = WEEKS.length < 2;
@@ -385,12 +387,14 @@ function skeleton() {
 function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
     syncGames(); syncLive(); syncNotes(); buildControls(); soundSync(); applyLook(S.look); renderLookFold(); renderEditLink();
-    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : ""]);
+    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : "", S.screen === "seats" ? seatSig() : ""]);
     renderDock(); drawGamePanel(); drawLivePanel(); drawNotesPanel();
     if (sheetOpen()) refreshSheet();
     if (ns === sig) { renderLayer(); tick(); tickTools(toolApi); placeCard(); return; }
     sig = ns;
+    if (S.screen !== "seats") seatLast = "";
     const st = $("screenHost"); st.textContent = ""; canvas = null; ctx = null; pad = null;
+    if (S.screen === "seats") { drawSeats(st); renderLayer(); watchInk(); return; }
     if (!l) { st.appendChild(el("div", "empty", "No lesson found for this class and week.")); watchInk(); return; }
     const w = W();
     if (S.screen === "agenda") {
@@ -434,6 +438,40 @@ function render() {
         drawWb(st, S.screen === "blank" || !d ? "blank" : "bell");
     }
     renderLayer(); watchInk(); tick();
+}
+
+/* ---------- Seating Chart: the period's room from seats.html, so students can find their seat ----------
+   Names show here because the teacher put them here (Eddie asked for it, Nov 19). On the Remote, tap a
+   name to light that seat up on the board for 15 seconds. */
+const SEAT_HI_MS = 15000;
+const seatHiNow = () => (S.seatHi && now() - S.seatHi.at < SEAT_HI_MS ? S.seatHi.n : "");
+function seatSig() { const p = SEATS.periods[S.period]; return JSON.stringify([seatsIn, p ? p.at : 0, p ? p.items.length : 0, seatHiNow(), (ROSTERS[S.period] || []).length]); }
+function drawSeats(st) {
+    const p = SEATS.periods[S.period] || cleanPeriod(null), n = Object.keys(p.seats).length, hi = seatHiNow();
+    const hd = header("Find Your Seat", S.period + " period" + (n ? " \u00b7 " + n + " students" : "")); st.appendChild(hd);
+    const body = el("div", "seatbody"); st.appendChild(body);
+    const editHref = "seats.html?period=" + encodeURIComponent(S.period);
+    if (!seatsIn) return;   // never flash "no chart" before the charts have loaded
+    if (!p.items.length || !seatCount(p)) {
+        const e = el("div", "seatempty"); e.appendChild(el("h2", null, "No seating chart for " + S.period + " period yet"));
+        e.appendChild(el("p", null, "Set up the room and drag each student to a desk. It shows here as soon as you save."));
+        const a = el("a", null, "Make the seating chart"); a.href = editHref; e.appendChild(a); body.appendChild(e); return;
+    }
+    const room = drawRoom(body, p, { hi });
+    if (seatLast !== S.period) { room.classList.add("enter"); seatLast = S.period; }
+    if (hi) {
+        room.classList.add("lit");
+        const f = el("div", "seatfind"); f.appendChild(el("span", null, "Your seat is lit up")); f.appendChild(el("b", null, hi)); hd.classList.add("seatlit"); hd.appendChild(f);
+    }
+    if (mode !== "board") {   // the Remote: tap a name to light it up on the board
+        room.addEventListener("click", (e) => {
+            const c = e.target.closest(".scell.full"); if (!c) return;
+            const nm = p.seats[c.dataset.seat]; S.seatHi = nm && nm !== hi ? { n: nm, at: now() } : null; push();
+        });
+        const ed = el("p", "seatedit"); const a = el("a", null, "Edit seating chart"); a.href = editHref; ed.appendChild(a);
+        ed.appendChild(document.createTextNode(" \u00b7 Tap a name to light up that seat on the board"));
+        body.appendChild(ed);
+    }
 }
 
 /* ---------- canvas-first whiteboard: Bellringer, Whiteboard and Guided Notes ----------
@@ -675,7 +713,7 @@ let lookSig = "";
 function renderLookFold() {
     const tm = $("toolsMenu"); if (!tm) return;
     let f = $("lookMenu"); if (!f) { f = el("details", "menu fold"); f.id = "lookMenu"; f.open = window.innerWidth > 860; const sm = el("summary", null, "Board look "); const c = el("span", "count"); c.id = "lookCount"; sm.appendChild(c); f.appendChild(sm); f.appendChild(el("div", "lookhost")); tm.after(f); }
-    const k = S.look.theme + "|" + S.look.bg + "|" + S.look.mark; if (k === lookSig) return; lookSig = k;
+    const k = S.look.theme + "|" + S.look.bg + "|" + S.look.mark + "|" + S.look.fx; if (k === lookSig) return; lookSig = k;
     const host = f.querySelector(".lookhost"); host.textContent = ""; host.appendChild(lookPicker(toolApi, true));
 }
 /* One small icon button in a panel's title bar. */
@@ -979,6 +1017,7 @@ function applyState(d) {
     S.fix = cleanFix(d.fix);
     S.wb = cleanWb(d.wb);
     S.look = cleanLook(d.look);
+    S.seatHi = d.seatHi && typeof d.seatHi.n === "string" && typeof d.seatHi.at === "number" ? { n: d.seatHi.n.slice(0, 60), at: d.seatHi.at } : null;
     { const o = d.sound || {}, v = (x, def) => (typeof x === "number" && x >= 0 && x <= 1 ? x : def);
         S.sound = { fx: o.fx !== false, fxv: v(o.fxv, 0.7), music: !!o.music, mv: v(o.mv, 0.35), style: snd.STYLES.some((x) => x[0] === o.style) ? o.style : "focus", at: typeof o.at === "string" ? o.at.slice(0, 20) : "", game: o.game !== false }; }
     ["bell", "round", "check", "free"].forEach((k) => { const t = d.timers && d.timers[k]; if (t) { S.timers[k] = { running: !!t.running, t0: +t.t0 || 0, elapsed: +t.elapsed || 0 }; if (k === "free") S.timers.free.dur = +t.dur || 300; } });
@@ -1021,7 +1060,7 @@ function flow(n) {
 }
 /* Next/Back for the clicker, the arrow keys and the board's own arrows. The lesson flow goes first; when it has
    nowhere to go, move to the next (or previous) screen in the Screens list, so the board never needs the side panel. */
-const screenOrder = () => SCREENS.filter((x) => mode !== "sub" || (x[0] !== "game" && x[0] !== "live")).map((x) => x[0]);
+const screenOrder = () => SCREENS.filter((x) => mode !== "sub" || (x[0] !== "game" && x[0] !== "live" && x[0] !== "seats")).map((x) => x[0]);
 function nextScreen(n) {   // skips Guided Notes and Speed Dating on days that have none
     const d = D(), skip = { notes: !notesFrames(d).length, speed: !isSpeedDay() };
     const o = screenOrder().filter((id) => id === S.screen || !skip[id]), j = o.indexOf(S.screen) + n;
@@ -1099,7 +1138,8 @@ export async function startApp(opts) {
     }
     keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
     document.addEventListener("keydown", (e) => { if (e.target && (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.target.isContentEditable)) return; if (e.altKey || e.ctrlKey || e.metaKey) return; if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); step(1); } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); step(-1); } else if (e.key === "m" || e.key === "M") { S.sound.music = !S.sound.music; push(); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
-    setInterval(() => { if (!synced) return; tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); tickLive(); tickNotes(); soundTick(); }, 250);
+    let seatWas = "";
+    setInterval(() => { if (!synced) return; if (S.screen === "seats") { const h = seatHiNow(); if (h !== seatWas) { seatWas = h; render(); } } tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); tickLive(); tickNotes(); soundTick(); }, 250);
     { const p = el("div", "connpill"); p.id = "connPill"; p.setAttribute("role", "status"); p.hidden = true; document.body.appendChild(p); }
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && synced) { tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); soundTick(); } });   // a tab back in view shows the right time at once
     document.body.classList.add("syncing");
@@ -1135,6 +1175,8 @@ export async function startApp(opts) {
         if (synced) { sig = ""; render(); }
     }); }
     store.watch("rosters/all", (snap) => { const p = (snap.exists && snap.data && snap.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); renderLayer(); }, () => {});
+    if (!guest) store.watch("seats/chart", (snap) => { if (snap.pending) return; SEATS = cleanChart(snap.exists ? snap.data : null); seatsIn = true; if (synced && S.screen === "seats") render(); }, () => { seatsIn = true; });
+    else seatsIn = true;
     if (!guest) store.watch("settings/bells", (snap) => {   // today's bell times, for the Period clock panel (Home edits them)
         const d = snap.exists ? snap.data : null; if (!d) { BELLS = null; layerSig = ""; renderLayer(); return; }
         let per = d.periods || {}; const t = d.today; if (t && t.date === localIso() && t.id && t.id !== "regular" && d.schedules && d.schedules[t.id]) per = d.schedules[t.id].periods || {};
