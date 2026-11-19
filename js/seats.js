@@ -22,8 +22,10 @@ export const KINDS = {
     trio: { n: "Row of 3", g: "Desks", w: 244, h: 58, cells: grid(3, 1) },
     table4: { n: "Table of 4", g: "Desks", w: 164, h: 112, cells: grid(2, 2) },
     table6: { n: "Table of 6", g: "Desks", w: 244, h: 112, cells: grid(3, 2) },
+    chair: { n: "Chair", g: "Desks", w: 66, h: 58, chair: true, cells: [[0, 0, 1, 0.78, "b"]] },
     round: { n: "Round table", g: "Desks", w: 170, h: 170, round: true, cells: [[0.29, 0.02, 0.42, 0.3, "t"], [0.68, 0.35, 0.3, 0.3, "r"], [0.29, 0.68, 0.42, 0.3, "b"], [0.02, 0.35, 0.3, 0.3, "l"]] },
     teacher: { n: "Teacher desk", g: "Room", w: 170, h: 70, label: "Teacher", resize: true },
+    tchair: { n: "Teacher chair", g: "Room", w: 62, h: 62, label: "", resize: true },
     board: { n: "Board", g: "Room", w: 360, h: 26, label: "Board", resize: true },
     door: { n: "Door", g: "Room", w: 90, h: 18, label: "Door", resize: true },
     window: { n: "Windows", g: "Room", w: 220, h: 14, label: "Windows", resize: true },
@@ -50,7 +52,7 @@ export function cleanItem(o) {
     return it;
 }
 export function cleanPeriod(o) {
-    const p = { items: [], seats: {}, at: 0 };
+    const p = { items: [], seats: {}, at: 0 };   // + lock: true when the teacher locked the chart
     if (!o || typeof o !== "object") return p;
     const seen = new Set();
     (Array.isArray(o.items) ? o.items : []).slice(0, 120).forEach((x) => { const it = cleanItem(x); if (it && !seen.has(it.id)) { seen.add(it.id); p.items.push(it); } });
@@ -58,6 +60,7 @@ export function cleanPeriod(o) {
     const names = new Set();
     Object.keys(o.seats || {}).forEach((k) => { const n = str(o.seats[k], 60).trim(); if (ok.has(k) && n && !names.has(n)) { names.add(n); p.seats[k] = n; } });
     p.at = num(o.at, 0, 9e15, 0);
+    if (o.lock === true) p.lock = true;
     return p;
 }
 export function cleanChart(o) {
@@ -66,6 +69,18 @@ export function cleanChart(o) {
     Object.keys(o.periods || {}).slice(0, 20).forEach((k) => { c.periods[str(k, 20)] = cleanPeriod(o.periods[k]); });
     c.at = num(o.at, 0, 9e15, 0);
     return c;
+}
+
+/** Saved layouts (teacher/{uid}/seats/saved): { list: [{ id, n (name), per (period it came from), at, items, seats }] }. */
+export const SAVED_MAX = 40;
+export function cleanSaved(o) {
+    const list = [];
+    (o && Array.isArray(o.list) ? o.list : []).slice(0, SAVED_MAX).forEach((x) => {
+        if (!x || typeof x !== "object") return;
+        const p = cleanPeriod(x); if (!p.items.length) return;
+        list.push({ id: str(x.id, 16) || uid(), n: str(x.n, 40).trim() || "Saved layout", per: str(x.per, 20), at: num(x.at, 0, 9e15, 0), items: p.items, seats: p.seats });
+    });
+    return { list };
 }
 
 /* ---------- geometry ---------- */
