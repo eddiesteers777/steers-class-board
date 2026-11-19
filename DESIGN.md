@@ -39,7 +39,7 @@ simpler, one less thing.
 - **Restraint.** No new fonts, colours, shadows, gradients or corner styles without asking Eddie.
 - **Motion is quick and quiet.** About 240–260ms, never bouncy, and off for reduced-motion.
 - **Student privacy.** Nothing a student could be identified by goes on the board unless the
-  teacher puts it there (name picker, groups). No student data in this public repo, ever.
+  teacher puts it there (name picker, groups, the Seating Chart screen). No student data in this public repo, ever.
 
 ## Colours and fonts in use (the source of truth is the CSS)
 - Stage (what students see), `css/board.css`: navy `#081B45`, deep `#0B2559`, blue `#10358A`,
