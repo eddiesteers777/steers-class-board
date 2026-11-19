@@ -1,0 +1,53 @@
+/* Anchor Board — Board look: colour scheme and background (js/panels.js lookPicker / applyLook).
+   The colour scheme swaps --ring-grad (css/theme-rings.css) on <body>; the background is a pattern layer
+   (#stageBg) under everything on the stage. Sizes are in em so patterns scale with the board. */
+
+#stage{isolation:isolate}
+.stagebg{position:absolute;inset:0;pointer-events:none;z-index:-1;border-radius:inherit}
+body.board[data-theme]:not([data-theme="navy"]),body.console.board[data-theme]:not([data-theme="navy"]){background:var(--look-out)}
+
+/* ---- backgrounds ---- */
+body[data-bg="anchor"] #stageBg,.pv-anchor{background:var(--ring-wm) no-repeat right -4em bottom -6em/30em;opacity:.12}
+body[data-bg="anchor"] #stage .hdr::before{display:none}
+body[data-bg="rings"] #stageBg,.pv-rings{background:repeating-radial-gradient(circle at 92% 112%,rgba(185,211,238,.13) 0 .14em,transparent .17em 2.4em);
+  -webkit-mask-image:radial-gradient(circle at 92% 112%,#000 20%,transparent 75%);mask-image:radial-gradient(circle at 92% 112%,#000 20%,transparent 75%)}
+body[data-bg="grid"] #stageBg,.pv-grid{background-image:linear-gradient(rgba(185,211,238,.09) .06em,transparent .06em),linear-gradient(90deg,rgba(185,211,238,.09) .06em,transparent .06em),
+  linear-gradient(rgba(185,211,238,.04) .04em,transparent .04em),linear-gradient(90deg,rgba(185,211,238,.04) .04em,transparent .04em);background-size:4em 4em,4em 4em,1em 1em,1em 1em}
+body[data-bg="dots"] #stageBg,.pv-dots{background:radial-gradient(circle,rgba(185,211,238,.2) .09em,transparent .11em) 0 0/1.5em 1.5em;
+  -webkit-mask-image:linear-gradient(160deg,transparent 10%,#000 70%);mask-image:linear-gradient(160deg,transparent 10%,#000 70%)}
+body[data-bg="glow"] #stageBg,.pv-glow{background:radial-gradient(42em 30em at 88% -4%,rgba(127,174,221,.32),transparent 62%),radial-gradient(38em 26em at -4% 104%,rgba(242,179,61,.18),transparent 62%)}
+
+/* ---- the picker (Panels sheet: px; Remote rail: compact) ---- */
+.lookpick{display:flex;flex-direction:column;gap:10px}
+.lookh{font-size:13px;font-weight:600;color:#B9D3EE}
+.lookthemes{display:flex;flex-wrap:wrap;gap:10px}
+.lookth{display:flex;flex-direction:column;align-items:center;gap:6px;background:transparent;border:0;color:inherit;font:inherit;padding:4px;border-radius:12px;cursor:pointer;min-width:64px}
+.lookth .lsw{width:44px;height:44px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);transition:box-shadow .2s,transform .15s}
+.lookth:hover .lsw{transform:scale(1.06)}
+.lookth.on .lsw{box-shadow:0 0 0 3px #081B45,0 0 0 5px #F2B33D}
+.lookth .lnm,.lookbg .lnm{font-size:13px;font-weight:600}
+.lookbgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.lookbg{display:flex;flex-direction:column;gap:6px;background:transparent;border:0;color:inherit;font:inherit;padding:0;text-align:left;cursor:pointer}
+.lookbg .lpv{position:relative;display:block;aspect-ratio:16/9;border-radius:10px;overflow:hidden;font-size:4px;isolation:isolate;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);transition:box-shadow .2s}
+.lookbg .lpv .stagebg{z-index:0}
+.lookbg.on .lpv{box-shadow:0 0 0 2px #081B45,0 0 0 4px #F2B33D}
+.lookbg:hover .lpv{box-shadow:inset 0 0 0 1px rgba(255,255,255,.45)}
+.lookbg.on:hover .lpv{box-shadow:0 0 0 2px #081B45,0 0 0 4px #F2B33D}
+
+/* Remote rail: small swatches and tiles on the light console */
+.lookpick.compact{gap:8px;padding:6px 8px 4px}
+.lookpick.compact .lookthemes{gap:4px}
+.lookpick.compact .lookth{min-width:0;padding:2px;color:var(--c-ink,#0E1B3A)}
+.lookpick.compact .lookth .lsw{width:30px;height:30px}
+.lookpick.compact .lookth .lnm{display:none}
+.lookpick.compact .lookth.on .lsw{box-shadow:0 0 0 2px #fff,0 0 0 4px #F2B33D}
+.lookpick.compact .lookbgs{grid-template-columns:repeat(3,1fr);gap:6px}
+.lookpick.compact .lookbg{color:var(--c-ink,#0E1B3A)}
+.lookpick.compact .lookbg .lnm{font-size:11.5px}
+.lookpick.compact .lookbg .lpv{border-radius:7px;font-size:2.5px}
+.lookpick.compact .lookbg.on .lpv{box-shadow:0 0 0 2px #fff,0 0 0 4px #F2B33D}
+@media (prefers-reduced-motion:reduce){.lookth .lsw,.lookbg .lpv{transition:none}}
+/* the few solid navy spots on the stage follow the colour scheme */
+#stage .wl.now{background:var(--look-mid,#0B2559)}
+#stage .row .tab{background:var(--look-mid,#0B2559)}
+#stage .row.now .tab{background:var(--look-hi,#173F86)}

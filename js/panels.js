@@ -224,9 +224,11 @@ export function refreshSheet() {
     const scroll = sheet.querySelector(".pbox") ? sheet.querySelector(".pbox").scrollTop : 0;
     sheet.textContent = "";
     const box = el("div", "pbox");
-    const hd = el("div", "phead"), ht = el("div"); ht.appendChild(el("h2", null, "Panels")); ht.appendChild(el("p", null, "Tap a layout to set up the room, or add panels one at a time. Drag a panel by its title to move it."));
+    const hd = el("div", "phead"), ht = el("div"); ht.appendChild(el("h2", null, "Panels and look")); ht.appendChild(el("p", null, "Pick the board\u2019s colors and background, tap a layout to set up the room, or add panels one at a time. Drag a panel by its title to move it."));
     const x = el("button", "pclose"); x.type = "button"; x.innerHTML = icon("x"); x.setAttribute("aria-label", "Close"); x.onclick = closeSheet; hd.append(ht, x); box.appendChild(hd);
 
+    box.appendChild(el("p", "psec", "Board look"));
+    box.appendChild(lookPicker(api, false));
     box.appendChild(el("p", "psec", "Layouts"));
     const sc = el("div", "pscenes");
     const sceneBtn = (raw, own) => {
@@ -264,3 +266,44 @@ export function refreshSheet() {
     if (hadFocus) { const i = sheet.querySelector(".psave input"); i.focus(); }
 }
 const describe = (sc) => { const ks = Object.keys(sc.on || {}); return ks.length ? ks.map(labelOf).slice(0, 3).join(", ") + (ks.length > 3 ? " +" + (ks.length - 3) : "") : "No panels"; };
+
+/* ---------- Board look: colour scheme and background, shared like everything else ---------- */
+export const LOOK_THEMES = [
+    ["navy", "Navy", ["#173F86", "#0B2559", "#081B45"]], ["midnight", "Midnight", ["#1C2448", "#0D132E", "#05081A"]],
+    ["ocean", "Ocean", ["#11607C", "#0A3D5A", "#06243A"]], ["forest", "Forest", ["#1F5C47", "#123B2E", "#0A251C"]],
+    ["plum", "Plum", ["#4B2E75", "#2D1B4B", "#1A0F2E"]], ["slate", "Slate", ["#3B4659", "#242C3B", "#141A24"]],
+    ["crimson", "Crimson", ["#6E2533", "#42161F", "#260B12"]],
+];
+export const LOOK_BGS = [["plain", "Plain"], ["anchor", "Anchor"], ["rings", "Rings"], ["grid", "Graph paper"], ["dots", "Dots"], ["glow", "Glow"]];
+export const defaultLook = () => ({ theme: "navy", bg: "plain" });
+export function cleanLook(o) { const d = defaultLook(); if (!o || typeof o !== "object") return d; if (LOOK_THEMES.some((t) => t[0] === o.theme)) d.theme = o.theme; if (LOOK_BGS.some((b) => b[0] === o.bg)) d.bg = o.bg; return d; }
+const gradOf = (id) => { const t = LOOK_THEMES.find((x) => x[0] === id) || LOOK_THEMES[0]; return "linear-gradient(135deg," + t[2][0] + " 0%," + t[2][1] + " 55%," + t[2][2] + " 100%)"; };
+let lookApplied = "";
+export function applyLook(look) {
+    const key = look.theme + "|" + look.bg; if (key === lookApplied) return; lookApplied = key;
+    const b = document.body, t = LOOK_THEMES.find((x) => x[0] === look.theme) || LOOK_THEMES[0];
+    if (t[0] === "navy") { b.style.removeProperty("--ring-grad"); b.style.removeProperty("--look-out"); b.style.removeProperty("--look-mid"); b.style.removeProperty("--look-hi"); }
+    else { b.style.setProperty("--ring-grad", gradOf(t[0])); b.style.setProperty("--look-out", t[2][2]); b.style.setProperty("--look-mid", t[2][1]); b.style.setProperty("--look-hi", t[2][0]); }
+    b.dataset.theme = t[0]; b.dataset.bg = look.bg;
+}
+/** Swatches for the colour scheme and tiles for the background. compact: the Remote's rail. */
+export function lookPicker(api, compact) {
+    const { S, el } = api, box = el("div", "lookpick" + (compact ? " compact" : ""));
+    if (!compact) box.appendChild(el("p", "lookh", "Colors"));
+    const th = el("div", "lookthemes"); th.setAttribute("role", "group"); th.setAttribute("aria-label", "Board colors");
+    LOOK_THEMES.forEach(([id, name]) => {
+        const b = el("button", "lookth" + (S.look.theme === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(S.look.theme === id)); b.title = name;
+        const sw = el("span", "lsw"); sw.style.background = gradOf(id); b.appendChild(sw); b.appendChild(el("span", "lnm", name));
+        b.onclick = () => { S.look = { theme: id, bg: S.look.bg }; api.push(); refreshSheet(); }; th.appendChild(b);
+    });
+    box.appendChild(th);
+    if (!compact) box.appendChild(el("p", "lookh", "Background"));
+    const bg = el("div", "lookbgs"); bg.setAttribute("role", "group"); bg.setAttribute("aria-label", "Board background");
+    LOOK_BGS.forEach(([id, name]) => {
+        const b = el("button", "lookbg" + (S.look.bg === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(S.look.bg === id));
+        const pv = el("span", "lpv"); pv.style.background = gradOf(S.look.theme); pv.appendChild(el("span", "stagebg pv-" + id)); b.appendChild(pv); b.appendChild(el("span", "lnm", name));
+        b.onclick = () => { S.look = { theme: S.look.theme, bg: id }; api.push(); refreshSheet(); }; bg.appendChild(b);
+    });
+    box.appendChild(bg);
+    return box;
+}
