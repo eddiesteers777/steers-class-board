@@ -21,7 +21,7 @@ import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as dra
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=81";
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=7";
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
-import { cleanChart, cleanPeriod, seatCount, drawRoom } from "./seats.js?v=1";
+import { cleanChart, cleanPeriod, seatCount, drawRoom } from "./seats.js?v=2";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
