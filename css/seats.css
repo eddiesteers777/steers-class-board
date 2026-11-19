@@ -1,0 +1,77 @@
+/* Anchor Board — seating chart room (js/seats.js). Drawn the same on the board's Seating Chart screen and in the editor.
+   The room is a container, so every size inside it is in cqw (1cqw = 1% of the room's width) and scales with it. */
+.seatroom{--sr-floor:#F6F9FD;--sr-tile:rgba(16,53,138,.055);--sr-desk:#FFFFFF;--sr-edge:#9DB7DA;--sr-ink:#0E2A63;--sr-mute:#6A7DA3;--sr-chair:#C9D9EE;--sr-amber:#F2B33D;
+    position:relative;width:100%;container-type:inline-size;border-radius:1.6cqw;overflow:hidden;background:var(--sr-floor);
+    box-shadow:0 .8cqw 3cqw rgba(8,27,69,.28),inset 0 0 0 .25cqw rgba(16,53,138,.12);user-select:none;-webkit-user-select:none;touch-action:none}
+.srfloor{position:absolute;inset:0;background-image:linear-gradient(var(--sr-tile) 1px,transparent 1px),linear-gradient(90deg,var(--sr-tile) 1px,transparent 1px);background-size:5cqw 5cqw;background-position:-1px -1px;pointer-events:none}
+.srfront{position:absolute;left:50%;transform:translateX(-50%);font:700 1.05cqw/1 var(--display,'Bricolage Grotesque',sans-serif);letter-spacing:.14em;text-transform:uppercase;color:var(--sr-mute);opacity:.55;pointer-events:none;white-space:nowrap}
+.srfront{top:4.6cqw}
+.seatroom.flip .srfront{top:auto;bottom:4.6cqw}
+
+/* furniture */
+.sit{position:absolute;transform-origin:50% 50%}
+.sit .slab{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font:600 1.15cqw/1.1 var(--ui,'Instrument Sans',sans-serif);color:var(--sr-ink);padding:0 .4cqw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.k-board{background:linear-gradient(180deg,#173F86,#0B2559);border-radius:.5cqw;box-shadow:0 .3cqw .8cqw rgba(8,27,69,.25)}
+.k-board .slab{color:#F4F7FB;font-size:1.05cqw;letter-spacing:.12em;text-transform:uppercase}
+.k-teacher{background:#E9D8B4;border:.22cqw solid #C9A86A;border-radius:.7cqw;box-shadow:0 .3cqw .9cqw rgba(8,27,69,.15)}
+.k-teacher .slab{color:#5A4214}
+.k-door{background:repeating-linear-gradient(90deg,#C08A3E 0 .5cqw,#B07A30 .5cqw 1cqw);border-radius:.3cqw}
+.k-door .slab{color:#fff;font-size:.95cqw}
+.k-window{background:linear-gradient(90deg,#BFE0F6,#E6F4FD,#BFE0F6);border:.15cqw solid #8FBDE0;border-radius:.2cqw}
+.k-window .slab{font-size:.85cqw;color:#2F5F8F}
+.k-shelf{background:#DCE3EE;border:.18cqw solid #A9B7CE;border-radius:.4cqw}
+.k-station{background:rgba(127,174,221,.16);border:.2cqw dashed #7FAEDD;border-radius:1cqw}
+.k-rug{background:radial-gradient(circle at 50% 50%,rgba(242,179,61,.22),rgba(242,179,61,.1));border:.25cqw solid rgba(242,179,61,.45);border-radius:1.4cqw}
+.k-rug .slab{align-items:flex-end;padding-bottom:.6cqw;color:#8A6410}
+.k-label .slab{font-family:var(--display,'Bricolage Grotesque',sans-serif);font-weight:700;font-size:1.25cqw;color:var(--sr-mute)}
+
+/* desks and their seats */
+.scell{position:absolute;background:var(--sr-desk);border:.18cqw solid var(--sr-edge);border-radius:.6cqw;box-shadow:0 .25cqw .7cqw rgba(8,27,69,.12)}
+.k-pair .scell:not(:first-child),.k-trio .scell:not(:first-child),.k-table4 .scell,.k-table6 .scell{border-radius:.35cqw}
+.round>.scell{border-radius:50%}
+.k-round::before{content:"";position:absolute;inset:20%;border-radius:50%;background:#E8EEF7;border:.18cqw solid var(--sr-edge)}
+.scell::after{content:"";position:absolute;background:var(--sr-chair);border-radius:1cqw;pointer-events:none}
+.ch-b::after{left:50%;bottom:-1.25cqw;width:3.4cqw;height:.9cqw;transform:translateX(-50%)}
+.ch-t::after{left:50%;top:-1.25cqw;width:3.4cqw;height:.9cqw;transform:translateX(-50%)}
+.ch-l::after{top:50%;left:-1.25cqw;height:3.4cqw;width:.9cqw;transform:translateY(-50%)}
+.ch-r::after{top:50%;right:-1.25cqw;height:3.4cqw;width:.9cqw;transform:translateY(-50%)}
+.stag{position:absolute;left:50%;top:50%;width:9.2cqw;display:flex;flex-direction:column;align-items:center;text-align:center;pointer-events:none;line-height:1.02}
+.stag b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 1.6cqw/1.05 var(--display,'Bricolage Grotesque',sans-serif);color:var(--sr-ink);letter-spacing:-.01em}
+.stag small{font:600 1.05cqw/1.1 var(--ui,'Instrument Sans',sans-serif);color:var(--sr-mute)}
+.stag i{font:600 1cqw/1 var(--ui,'Instrument Sans',sans-serif);font-style:normal;color:#A4B5D2}
+.scell.full{background:#FFFFFF;border-color:#7FA2D4}
+.scell.open{background:#F1F5FB}
+
+/* one student lit up: "Where do I sit?" */
+.scell.hi{background:#FFF6E2;border-color:var(--sr-amber);z-index:3;box-shadow:0 0 0 .5cqw rgba(242,179,61,.45),0 .6cqw 2cqw rgba(242,179,61,.45);animation:srPulse 1.6s ease-in-out infinite}
+.scell.hi .stag b{color:#5A3E00}
+.seatroom.lit .scell.full:not(.hi){opacity:.38;transition:opacity .3s}
+@keyframes srPulse{0%,100%{box-shadow:0 0 0 .4cqw rgba(242,179,61,.5),0 .6cqw 2cqw rgba(242,179,61,.35)}50%{box-shadow:0 0 0 1.1cqw rgba(242,179,61,.12),0 .6cqw 2.6cqw rgba(242,179,61,.55)}}
+
+/* on the board: desks settle in one after another */
+.seatroom.enter .sit{animation:srIn .42s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i) * 22ms)}
+@keyframes srIn{from{opacity:0;translate:0 1.2cqw}to{opacity:1;translate:0 0}}
+
+
+/* the Seating Chart screen on the stage */
+.seatbody{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:1em 1.8em 1.2em;position:relative}
+.seatbody .seatroom{max-height:100%;width:auto;height:100%;max-width:100%}
+.seatempty{background:var(--paper,#F6F9FD);color:var(--ink,#10358A);border-radius:1em;padding:1.6em 2em;max-width:34em;text-align:center}
+.seatempty h2{font-family:var(--display,'Bricolage Grotesque',sans-serif);font-size:1.6em;margin-bottom:.3em}
+.seatempty p{font-size:1em;line-height:1.4;margin-bottom:1em}
+.seatempty a{display:inline-block;background:var(--amber,#F2B33D);color:#3A2A00;font-weight:700;text-decoration:none;padding:.55em 1.2em;border-radius:.7em}
+.hdr.seatlit .cls{display:none}
+.seatfind{flex:none;display:flex;flex-direction:column;align-items:flex-end;background:var(--amber,#F2B33D);color:#3A2A00;border-radius:1em;padding:.45em 1.1em .5em;box-shadow:0 .4em 1.4em rgba(242,179,61,.35);animation:srFind .3s cubic-bezier(.2,.7,.2,1) both}
+.seatfind span{font-size:.75em;font-weight:600;opacity:.8}
+.seatfind b{font-family:var(--display,'Bricolage Grotesque',sans-serif);font-size:1.7em;line-height:1.05}
+@keyframes srFind{from{opacity:0;transform:translateY(-.4em) scale(.96)}to{opacity:1;transform:none}}
+.seatbody .stag b{font-size:1.75cqw}
+.seatbody .stag small{font-size:1.15cqw}
+body:not(.board) .seatbody{padding-bottom:2.1em}
+/* the Remote: tap a name to light it up on the board */
+body:not(.board) .seatbody .scell.full{cursor:pointer}
+body:not(.board) .seatbody .scell.full:hover{border-color:var(--sr-amber)}
+.seatedit{position:absolute;left:1.8em;bottom:.35em;font-size:.8em;color:var(--soft,#B9D4EE)}
+.seatedit a{color:var(--soft,#B9D4EE);font-weight:600}
+body.board .seatedit{display:none}
+@media (prefers-reduced-motion:reduce){.seatroom.enter .sit,.scell.hi,.seatfind{animation:none}}

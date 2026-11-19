@@ -15,7 +15,8 @@
     <link rel="stylesheet" href="css/games.css?v=72">
     <link rel="stylesheet" href="css/wb.css?v=4">
     <link rel="stylesheet" href="css/panels.css?v=1">
-    <link rel="stylesheet" href="css/look.css?v=3">
+    <link rel="stylesheet" href="css/look.css?v=4">
+    <link rel="stylesheet" href="css/seats.css?v=1">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console board">
@@ -25,7 +26,7 @@
         <label class="field" id="weekField" hidden><span>Week</span><select id="weekSel" aria-label="Week"></select></label>
         <span class="live" id="status" role="status">Connecting…</span>
         <button class="btn" id="boardBtn" type="button">Board view</button>
-        <details class="menu acct"><summary>Menu</summary><div class="pop"><a href="index.html">Home</a><a href="rosters.html">Rosters</a><button id="signOut" type="button">Sign out</button></div></details>
+        <details class="menu acct"><summary>Menu</summary><div class="pop"><a href="index.html">Home</a><a href="rosters.html">Rosters</a><a href="seats.html">Seating charts</a><button id="signOut" type="button">Sign out</button></div></details>
     </header>
     <div class="cbody">
         <nav class="rail" aria-label="Board controls">
@@ -44,7 +45,7 @@
     </div>
     <button id="exit" type="button">Show controls</button>
     <script type="module">
-        import { startApp } from "./js/boardApp.js?v=92";
+        import { startApp } from "./js/boardApp.js?v=94";
         startApp({ mode: "board" });
     </script>
 </body>
