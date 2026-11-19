@@ -23,7 +23,7 @@
     </header>
     <main>
         <h1>Student Progress</h1>
-        <p class="sub">Who needs help, on what, and what to do next. Built from your Class Data sets, Vault Raid games and the class tally, matched to each roster name. Only you can see this page.</p>
+        <p class="sub">Who needs help, on what, and what to do next. Built from your Class Data sets, Vault Raid games, Assignments and the class tally, matched to each roster name. Only you can see this page.</p>
 
         <div class="pgBarRow">
             <div class="tabs" id="periodTabs" role="group" aria-label="Period"></div>
@@ -45,7 +45,7 @@
             <ul>
                 <li><b>Scores</b> come from Class Data sets (anything you import, plus Vault Raid when you save results). One point per set: the average of that student's columns.</li>
                 <li><b>Start and targets.</b> A student's start is the average of their first 2 sets. Typical target closes a third of the gap between the start and 100%; Stretch closes two thirds. Targets show after 3 sets. They are set from the student's own scores on this site. They are not grade-level norms, percentiles or a state-test prediction.</li>
-                <li><b>Growth never counts against a student.</b> A dip shows as 0 points earned, not a minus. Effort is kept apart: tries, misses they came back and fixed, steps used and time come only from Vault Raid.</li>
+                <li><b>Growth never counts against a student.</b> A dip shows as 0 points earned, not a minus. Effort is kept apart: tries, misses they came back and fixed, steps used and time come from Vault Raid and Assignments.</li>
                 <li><b>Behaviour is not learning.</b> The class tally shows only on a student's own page, under its own heading, and never changes a score, group or target.</li>
                 <li><b>Names.</b> Everything is matched to your Rosters page (first name and last initial). A pasted full name is matched and shown by its roster name; a name with no roster match shows as first name and last initial, marked "not on roster".</li>
                 <li><b>Vault Raid effort</b> is saved only for games where you save results to Class Data. Games before Nov 19, 2026 have scores but no effort detail.</li>
@@ -56,7 +56,7 @@
     <dialog id="kid" class="pgKid" aria-labelledby="kidName"></dialog>
 
     <script type="module">
-        import { mountProgress } from "./js/progressPage.js?v=1";
+        import { mountProgress } from "./js/progressPage.js?v=2";
         mountProgress();
     </script>
 </body>
