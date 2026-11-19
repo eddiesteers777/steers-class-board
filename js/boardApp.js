@@ -22,7 +22,7 @@ import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, l
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=9";
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=1";
-import { cleanChart, cleanPeriod, seatCount, drawRoom } from "./seats.js?v=4";
+import { cleanChart, cleanPeriod, seatCount, drawRoom } from "./seats.js?v=5";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }

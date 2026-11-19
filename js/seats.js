@@ -132,6 +132,43 @@ export function nameParts(n) {
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const pct = (v, of) => (v / of * 100) + "%";
 
+/* Fit a first name inside its desk: measure it once at 100px, then pick a size (in room units, 1000 = room width). */
+let _ctx = null;
+const _w = new Map();
+function textW(t) {
+    if (_w.has(t)) return _w.get(t);
+    if (!_ctx) { try { _ctx = document.createElement("canvas").getContext("2d"); } catch (e) { _ctx = false; } }
+    let w = t.length * 56;
+    const font = "700 100px 'Bricolage Grotesque', sans-serif";
+    if (_ctx) { _ctx.font = font; w = _ctx.measureText(t).width || w; }
+    // keep the number only once the real font is in, so a first draw on the fallback font is not remembered
+    try { if (document.fonts && document.fonts.check(font)) _w.set(t, w); } catch (e) { /* older browser */ }
+    return w;
+}
+const NAME_MAX = 20, NAME_MIN = 7; // the CSS caps the size (1.6cqw in the editor, more on the board)
+/** Size (room units) for a first name in a seat `room` units wide: as big as fits on one line, never under NAME_MIN. */
+export function fitName(t, room) {
+    return { f: Math.max(NAME_MIN, Math.min(NAME_MAX, room * 0.9 / (textW(t) / 100))) };
+}
+/* After layout, shrink any name the estimate still let spill (a fallback font, say). Skipped while the room is hidden. */
+function shrinkSpill(room) {
+    room.querySelectorAll(".stag b").forEach(b => {
+        if (!b.clientWidth) return;
+        const range = document.createRange();
+        for (let k = 0; k < 4; k++) {
+            // the text's own width, to the fraction of a pixel (scrollWidth rounds, and ellipsis kicks in on a fraction)
+            range.selectNodeContents(b);
+            let need = 0;
+            for (const r of range.getClientRects()) need = Math.max(need, r.width);
+            const have = b.parentElement.getBoundingClientRect().width;
+            if (!have || need <= have - 0.5) break;
+            const now = parseFloat(getComputedStyle(b).fontSize) / (b.closest(".seatroom").clientWidth / 100), next = Math.max(NAME_MIN / 10, now * (have - 1) / need);
+            if (!(next < now - 0.001)) break;
+            b.style.setProperty("--nf", next + "cqw");
+        }
+    });
+}
+
 /**
  * Draw one period's room into host. Returns the room element.
  * opts: { flip (teacher's view: front at the bottom), edit (editor marks), hi (a name to light up),
@@ -163,9 +200,15 @@ export function drawRoom(host, p, opts = {}) {
                 cell.dataset.seat = key;
                 cell.style.left = pct(c[0], 1); cell.style.top = pct(c[1], 1); cell.style.width = pct(c[2], 1); cell.style.height = pct(c[3], 1);
                 const tag = el("div", "stag"); tag.style.transform = "translate(-50%,-50%)" + (r ? " rotate(" + (-r) + "deg)" : "");
+                // the name stands upright, so on a desk turned sideways its room is the desk's height
+                const side = Math.round(((r % 180) + 180) % 180 / 90) === 1;
+                const room = (side ? c[3] * s.h : c[2] * s.w) - 8;
+                tag.style.width = (room / ROOM.W * 100) + "cqw";
                 if (name) {
                     const [first, last] = nameParts(name);
-                    tag.appendChild(el("b", null, first)); if (last) tag.appendChild(el("small", null, last));
+                    const fit = fitName(first, room), b = el("b", null, first);
+                    b.style.setProperty("--nf", (fit.f / 10) + "cqw");
+                    tag.appendChild(b); if (last) tag.appendChild(el("small", null, last));
                     tag.dataset.name = name; tag.title = name;
                 } else if (order) tag.appendChild(el("i", null, String(order.get(key) || "")));
                 cell.appendChild(tag); d.appendChild(cell);
@@ -177,5 +220,13 @@ export function drawRoom(host, p, opts = {}) {
         room.appendChild(d);
     });
     host.appendChild(room);
+    shrinkSpill(room);
+    // again once the room is on screen (a hidden board screen has no size yet) and once the web font is in
+    try {
+        let seen = room.clientWidth;
+        const ro = new ResizeObserver(() => { if (!room.isConnected) return ro.disconnect(); if (room.clientWidth && room.clientWidth !== seen) { seen = room.clientWidth; shrinkSpill(room); } });
+        ro.observe(room);
+        if (document.fonts && document.fonts.status !== "loaded") document.fonts.ready.then(() => { if (room.isConnected) shrinkSpill(room); });
+    } catch (e) { /* older browser: the estimate stands */ }
     return room;
 }
