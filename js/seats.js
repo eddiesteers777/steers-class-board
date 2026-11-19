@@ -71,16 +71,31 @@ export function cleanChart(o) {
     return c;
 }
 
-/** Saved layouts (teacher/{uid}/seats/saved): { list: [{ id, n (name), per (period it came from), at, items, seats }] }. */
-export const SAVED_MAX = 40;
+/**
+ * Saved layouts (teacher/{uid}/seats/saved):
+ * { folders: [{ id, n }], list: [{ id, n (name), per (period it came from), f (folder), at, items, seats }] }.
+ * Every period has its own folder without being stored ("p:2nd"). Teacher-made folders (Test days, Stations) have their own id.
+ */
+export const SAVED_MAX = 80, FOLDER_MAX = 24;
+export const perFolder = (per) => "p:" + per;
 export function cleanSaved(o) {
+    const folders = [], ids = new Set();
+    (o && Array.isArray(o.folders) ? o.folders : []).slice(0, FOLDER_MAX).forEach((x) => {
+        if (!x || typeof x !== "object") return;
+        const id = str(x.id, 16), n = str(x.n, 30).trim();
+        if (!id || !n || ids.has(id) || id.startsWith("p:")) return;
+        ids.add(id); folders.push({ id, n });
+    });
     const list = [];
     (o && Array.isArray(o.list) ? o.list : []).slice(0, SAVED_MAX).forEach((x) => {
         if (!x || typeof x !== "object") return;
         const p = cleanPeriod(x); if (!p.items.length) return;
-        list.push({ id: str(x.id, 16) || uid(), n: str(x.n, 40).trim() || "Saved layout", per: str(x.per, 20), at: num(x.at, 0, 9e15, 0), items: p.items, seats: p.seats });
+        const per = str(x.per, 20);
+        let f = str(x.f, 30);
+        if (!(f.startsWith("p:") && f.length > 2) && !ids.has(f)) f = perFolder(per || "1st");
+        list.push({ id: str(x.id, 16) || uid(), n: str(x.n, 40).trim() || "Saved layout", per, f, at: num(x.at, 0, 9e15, 0), items: p.items, seats: p.seats });
     });
-    return { list };
+    return { folders, list };
 }
 
 /* ---------- geometry ---------- */

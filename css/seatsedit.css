@@ -125,7 +125,7 @@
 .srlock{position:absolute;right:1.2cqw;bottom:1.1cqw;z-index:8;background:#F2B33D;color:#3A2A00;font:700 1.05cqw/1 var(--ui,'Instrument Sans',sans-serif);padding:.5cqw 1cqw;border-radius:99px;box-shadow:0 .3cqw .9cqw rgba(8,27,69,.2);pointer-events:none}
 body.se-locked .se-act,body.se-locked .se-tpl button,body.se-locked .se-pal button,body.se-locked .se-chip{opacity:.5}
 /* saved layouts */
-.se-saved{max-width:560px}
+.se-saved{max-width:640px}
 .se-saverow{display:flex;gap:8px;margin-top:14px}
 .se-saverow input{flex:1;min-width:0;height:44px;border:1.5px solid var(--c-line);border-radius:12px;padding:0 12px;font:inherit}
 .se-savemsg{min-height:1.4em;margin:8px 0 4px;font-size:.86rem;color:#0F6B40}
@@ -138,3 +138,30 @@ body.se-locked .se-act,body.se-locked .se-tpl button,body.se-locked .se-pal butt
 .se-saveit .btn{min-height:40px}
 .se-savedel[data-sure="1"]{background:#FBE9EA;border-color:#D46A70;color:#8E1B21}
 @media (max-width:520px){.se-saveit{grid-template-columns:72px 1fr}.se-saveit .btn{grid-column:span 1}}
+
+/* saved layouts in folders */
+.se-saverow select{height:44px;max-width:38%;border:1.5px solid var(--c-line);border-radius:12px;padding:0 8px;font:inherit;background:#fff}
+.se-crumb{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:2px 0 8px;min-height:40px}
+.se-crumbbtn{border:0;background:none;font:inherit;font-weight:700;color:var(--c-accent,#1B58B8);padding:6px 4px;cursor:pointer;border-radius:8px}
+.se-crumbbtn[aria-current="page"]{color:var(--c-ink);cursor:default}
+.se-crumbsep{color:var(--c-mute)}
+.se-crumb>b{font-size:1rem}
+.se-crumbtools{margin-left:auto;display:flex;gap:6px;align-items:center}
+.se-crumbtools .btn{min-height:36px;padding:0 12px;font-size:.85rem}
+.se-crumbtools input{height:36px;border:1.5px solid var(--c-line);border-radius:10px;padding:0 10px;font:inherit;width:12em}
+.se-folders{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.se-folder{display:flex;align-items:center;gap:10px;text-align:left;border:1.5px solid var(--c-line);background:#F7FAFE;border-radius:14px;padding:10px 12px;font:inherit;color:var(--c-ink);cursor:pointer;min-height:58px;transition:border-color .15s,transform .15s,box-shadow .15s}
+.se-folder:hover{border-color:#7FAEDD;transform:translateY(-1px);box-shadow:0 4px 12px rgba(8,27,69,.08)}
+.se-folder svg{width:26px;height:26px;flex:none;fill:#CFE0F5;stroke:#5B86C4;stroke-width:1.5;stroke-linejoin:round}
+.se-folder.mine svg{fill:#FCE7B8;stroke:#C98F1F}
+.se-folder.here{border-color:#7FA2D4;background:#fff}
+.se-folder b{display:block;font-size:.92rem;line-height:1.15}
+.se-folder small{display:block;font-size:.74rem;color:var(--c-mute);margin-top:2px}
+.se-newfolder{margin-top:12px;border-top:1px dashed var(--c-line);padding-top:4px}
+.se-ideas{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+.se-ideas small{font-size:.76rem;color:var(--c-mute);margin-right:2px}
+.se-idea{border:1.5px dashed #C9D6EA;background:#fff;border-radius:999px;padding:4px 12px;font:inherit;font-size:.82rem;cursor:pointer;color:var(--c-ink)}
+.se-idea:hover{border-style:solid;border-color:#D79A22;background:#FFF6E2}
+.se-move{margin-top:6px;height:30px;border:1px solid var(--c-line);border-radius:8px;font:inherit;font-size:.78rem;padding:0 6px;background:#fff;max-width:100%}
+.se-empty{padding:18px 4px}
+@media (max-width:520px){.se-saverow{flex-wrap:wrap}.se-saverow select{max-width:none;flex:1}.se-crumbtools{margin-left:0;width:100%}}
