@@ -9,6 +9,7 @@
 ========================================== */
 import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene } from "./boardTools.js?v=58";
 import { MARKS, markUrl } from "./marks.js?v=1";
+import { EFFECTS, applyEffect, effectSample } from "./effects.js?v=1";
 export { MARKS };
 
 const LESSON = new Set(LESSON_PANELS.map((x) => x[0]));
@@ -286,8 +287,8 @@ export const LOOK_BGS = [["anchor", "Big logo"], ["plain", "Plain"], ["rings", "
 export const LOOK_PRESETS = [["xmas-lights", "Christmas lights", "evergreen", "lights", "ornament"], ["xmas-snow", "Snowy night", "winter", "snow", "snowflake"],
     ["xmas-pines", "Winter forest", "evergreen", "trees", "tree"], ["xmas-candy", "Candy cane", "cranberry", "candy", "star"]];
 const XMAS = new Set(["evergreen", "cranberry", "winter"]);
-export const defaultLook = () => ({ theme: "navy", bg: "anchor", mark: "anchor" });
-export function cleanLook(o) { const d = defaultLook(); if (!o || typeof o !== "object") return d; if (LOOK_THEMES.some((t) => t[0] === o.theme)) d.theme = o.theme; if (LOOK_BGS.some((b) => b[0] === o.bg)) d.bg = o.bg; if (MARKS.some((m) => m[0] === o.mark)) d.mark = o.mark; return d; }
+export const defaultLook = () => ({ theme: "navy", bg: "anchor", mark: "anchor", fx: "none" });
+export function cleanLook(o) { const d = defaultLook(); if (!o || typeof o !== "object") return d; if (LOOK_THEMES.some((t) => t[0] === o.theme)) d.theme = o.theme; if (LOOK_BGS.some((b) => b[0] === o.bg)) d.bg = o.bg; if (MARKS.some((m) => m[0] === o.mark)) d.mark = o.mark; if (EFFECTS.some((e) => e[0] === o.fx)) d.fx = o.fx; return d; }
 const themeCols = (id) => (LOOK_THEMES.find((x) => x[0] === id) || LOOK_THEMES[0])[2];
 const gradOf = (id) => { const t = LOOK_THEMES.find((x) => x[0] === id) || LOOK_THEMES[0]; return "linear-gradient(135deg," + t[2][0] + " 0%," + t[2][1] + " 55%," + t[2][2] + " 100%)"; };
 let lookApplied = "", seal = "brand/logo.svg";
@@ -295,6 +296,7 @@ let lookApplied = "", seal = "brand/logo.svg";
 export const lookSeal = () => seal;
 const MARK_VARS = ["--ring-mark", "--ring-mark-light", "--ring-wm"];
 export function applyLook(look) {
+    applyEffect(look.fx || "none");   // has its own did-it-change check
     const key = look.theme + "|" + look.bg + "|" + (look.mark || "anchor"); if (key === lookApplied) return; lookApplied = key;
     const b = document.body, t = LOOK_THEMES.find((x) => x[0] === look.theme) || LOOK_THEMES[0];
     if (t[0] === "navy") { b.style.removeProperty("--ring-grad"); b.style.removeProperty("--look-out"); b.style.removeProperty("--look-mid"); b.style.removeProperty("--look-hi"); }
@@ -349,5 +351,14 @@ export function lookPicker(api, compact) {
         b.onclick = () => { S.look = Object.assign({}, S.look, { bg: id }); api.push(); refreshSheet(); }; bg.appendChild(b);
     });
     box.appendChild(bg);
+    box.appendChild(el("p", "lookh", "Effects"));   // falling shapes behind the lesson
+    const fx = el("div", "lookfxs"); fx.setAttribute("role", "group"); fx.setAttribute("aria-label", "Board effect");
+    const curFx = S.look.fx || "none";
+    EFFECTS.forEach(([id, name]) => {
+        const b = el("button", "lookfx" + (curFx === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(curFx === id));
+        const pv = el("span", "lfx fx-" + id, id === "none" ? "" : effectSample(id)); pv.style.background = gradOf(S.look.theme); b.appendChild(pv); b.appendChild(el("span", "lnm", name));
+        b.onclick = () => { S.look = Object.assign({}, S.look, { fx: id }); api.push(); refreshSheet(); }; fx.appendChild(b);
+    });
+    box.appendChild(fx);
     return box;
 }
