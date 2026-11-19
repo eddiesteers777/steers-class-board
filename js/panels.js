@@ -273,9 +273,17 @@ export const LOOK_THEMES = [
     ["ocean", "Ocean", ["#11607C", "#0A3D5A", "#06243A"]], ["forest", "Forest", ["#1F5C47", "#123B2E", "#0A251C"]],
     ["plum", "Plum", ["#4B2E75", "#2D1B4B", "#1A0F2E"]], ["slate", "Slate", ["#3B4659", "#242C3B", "#141A24"]],
     ["crimson", "Crimson", ["#6E2533", "#42161F", "#260B12"]],
+    // Christmas
+    ["evergreen", "Evergreen", ["#1E6B43", "#0F4229", "#072617"]], ["cranberry", "Cranberry", ["#9A1F33", "#5E0F1E", "#320710"]],
+    ["winter", "Winter night", ["#2C4A8C", "#182A57", "#0A1433"]],
 ];
-export const LOOK_BGS = [["plain", "Plain"], ["anchor", "Anchor"], ["rings", "Rings"], ["grid", "Graph paper"], ["dots", "Dots"], ["glow", "Glow"]];
-export const defaultLook = () => ({ theme: "navy", bg: "plain" });
+export const LOOK_BGS = [["anchor", "Anchor"], ["plain", "Plain"], ["rings", "Rings"], ["grid", "Graph paper"], ["dots", "Dots"], ["glow", "Glow"],
+    ["snow", "Snowfall"], ["lights", "Christmas lights"], ["trees", "Snowy pines"], ["candy", "Candy cane"]];
+/* One tap for a whole holiday look: [id, name, colours, background]. */
+export const LOOK_PRESETS = [["xmas-lights", "Christmas lights", "evergreen", "lights"], ["xmas-snow", "Snowy night", "winter", "snow"],
+    ["xmas-pines", "Winter forest", "evergreen", "trees"], ["xmas-candy", "Candy cane", "cranberry", "candy"]];
+const XMAS = new Set(["evergreen", "cranberry", "winter"]);
+export const defaultLook = () => ({ theme: "navy", bg: "anchor" });
 export function cleanLook(o) { const d = defaultLook(); if (!o || typeof o !== "object") return d; if (LOOK_THEMES.some((t) => t[0] === o.theme)) d.theme = o.theme; if (LOOK_BGS.some((b) => b[0] === o.bg)) d.bg = o.bg; return d; }
 const gradOf = (id) => { const t = LOOK_THEMES.find((x) => x[0] === id) || LOOK_THEMES[0]; return "linear-gradient(135deg," + t[2][0] + " 0%," + t[2][1] + " 55%," + t[2][2] + " 100%)"; };
 let lookApplied = "";
@@ -289,15 +297,24 @@ export function applyLook(look) {
 /** Swatches for the colour scheme and tiles for the background. compact: the Remote's rail. */
 export function lookPicker(api, compact) {
     const { S, el } = api, box = el("div", "lookpick" + (compact ? " compact" : ""));
-    if (!compact) box.appendChild(el("p", "lookh", "Colors"));
     const th = el("div", "lookthemes"); th.setAttribute("role", "group"); th.setAttribute("aria-label", "Board colors");
+    {   // Christmas: colours and background together, one tap
+        box.appendChild(el("p", "lookh xmas", compact ? "Christmas" : "Christmas looks"));
+        const pr = el("div", "lookbgs lookpresets"); pr.setAttribute("role", "group"); pr.setAttribute("aria-label", "Christmas looks");
+        LOOK_PRESETS.forEach(([, name, th0, bg0]) => {
+            const on = S.look.theme === th0 && S.look.bg === bg0, b = el("button", "lookbg" + (on ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(on));
+            const pv = el("span", "lpv"); pv.style.background = gradOf(th0); pv.appendChild(el("span", "stagebg pv-" + bg0)); b.appendChild(pv); b.appendChild(el("span", "lnm", name));
+            b.onclick = () => { S.look = { theme: th0, bg: bg0 }; api.push(); refreshSheet(); }; pr.appendChild(b);
+        });
+        box.appendChild(pr); box.appendChild(el("p", "lookh", "Colors"));
+    }
     LOOK_THEMES.forEach(([id, name]) => {
-        const b = el("button", "lookth" + (S.look.theme === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(S.look.theme === id)); b.title = name;
+        const b = el("button", "lookth" + (XMAS.has(id) ? " xmas" : "") + (S.look.theme === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(S.look.theme === id)); b.title = name;
         const sw = el("span", "lsw"); sw.style.background = gradOf(id); b.appendChild(sw); b.appendChild(el("span", "lnm", name));
         b.onclick = () => { S.look = { theme: id, bg: S.look.bg }; api.push(); refreshSheet(); }; th.appendChild(b);
     });
     box.appendChild(th);
-    if (!compact) box.appendChild(el("p", "lookh", "Background"));
+    box.appendChild(el("p", "lookh", "Background"));
     const bg = el("div", "lookbgs"); bg.setAttribute("role", "group"); bg.setAttribute("aria-label", "Board background");
     LOOK_BGS.forEach(([id, name]) => {
         const b = el("button", "lookbg" + (S.look.bg === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(S.look.bg === id));
