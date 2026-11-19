@@ -240,7 +240,7 @@
                 stop = store.watch("settings/bells", (snap) => {
                     if (snap.pending) return; clearTimeout(t); if (stop) stop();
                     const d = (snap.exists && snap.data) || {};
-                    resolve(bellDoc = { periods: d.periods || {}, schedules: d.schedules || {}, today: d.today || null });
+                    resolve(bellDoc = { periods: d.periods || {}, schedules: d.schedules || {}, today: d.today || null, days: d.days || {} });
                 }, () => {});
             });
         }
