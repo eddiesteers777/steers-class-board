@@ -56,6 +56,45 @@ service cloud.firestore {
       }
     }
 
+    // Assignments (assign.html for the teacher, do.html for students). Found by a 6-digit code, like a game room.
+    //   asg/{code}          title, the name list and the problems. No answer key for quizzes and tests.
+    //   asg/{code}/p/{who}  a student's own entry: which name they picked and every attempt. Only that student
+    //                       writes it, only while the assignment is open (and before the due time when it locks),
+    //                       only these fields, and never again once a quiz or test is turned in.
+    //   asg/{code}/r/{who}  a quiz or test result the teacher released. Only the teacher writes it.
+    // The teacher who made the assignment can read everything in it and delete it.
+    match /asg/{code} {
+      function asg() { return get(/databases/$(database)/documents/asg/$(code)).data; }
+      function asgOwner() { return teacher() && asg().owner == request.auth.uid; }
+      function asgOpen() { return asg().status == 'open' && (asg().lock != true || request.time.toMillis() < asg().due); }
+
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if teacher() && code.matches('^[1-9][0-9]{5}$')
+        && request.resource.data.owner == request.auth.uid && request.resource.data.kind == 'asg';
+      allow update: if teacher() && resource.data.owner == request.auth.uid
+        && request.resource.data.owner == request.auth.uid;
+      allow delete: if teacher() && resource.data.owner == request.auth.uid;
+
+      match /p/{who} {
+        allow get: if signedIn() && (request.auth.uid == who || asgOwner());
+        allow list, delete: if asgOwner();
+        allow create, update: if signedIn() && request.auth.uid == who && asgOpen()
+          && (resource == null || resource.data.get('done', false) != true)
+          && request.resource.data.keys().hasOnly(['per', 'ni', 'nm', 'at', 'lg', 'ans', 'done', 'sub'])
+          && request.resource.data.per is string && request.resource.data.per.size() <= 12
+          && request.resource.data.ni is int && request.resource.data.ni >= -1 && request.resource.data.ni < 80
+          && (!('nm' in request.resource.data) || (request.resource.data.nm is string && request.resource.data.nm.size() <= 24))
+          && (!('lg' in request.resource.data) || (request.resource.data.lg is list && request.resource.data.lg.size() <= 600))
+          && (!('ans' in request.resource.data) || (request.resource.data.ans is map && request.resource.data.ans.size() <= 60))
+          && (!('done' in request.resource.data) || request.resource.data.done is bool);
+      }
+      match /r/{who} {
+        allow get: if signedIn() && (request.auth.uid == who || asgOwner());
+        allow list, write: if asgOwner();
+      }
+    }
+
     // Class Pages (class.html): the student version of each approved week, for students and parents.
     // Anyone can read it without signing in; only that teacher writes it (Week Review's Approve).
     // It never holds answers, keys or any student information (js/publish.js strips them).

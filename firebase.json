@@ -18,6 +18,11 @@
           "source": "/join",
           "destination": "/play.html",
           "type": 301
+        },
+        {
+          "source": "/do",
+          "destination": "/do.html",
+          "type": 301
         }
       ]
     },
@@ -38,6 +43,11 @@
         {
           "source": "/join",
           "destination": "/play.html",
+          "type": 301
+        },
+        {
+          "source": "/do",
+          "destination": "/do.html",
           "type": 301
         }
       ]
