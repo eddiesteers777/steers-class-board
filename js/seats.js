@@ -25,6 +25,7 @@ export const KINDS = {
     chair: { n: "Chair", g: "Desks", w: 66, h: 58, chair: true, cells: [[0, 0, 1, 0.78, "b"]] },
     round: { n: "Round table", g: "Desks", w: 170, h: 170, round: true, cells: [[0.29, 0.02, 0.42, 0.3, "t"], [0.68, 0.35, 0.3, 0.3, "r"], [0.29, 0.68, 0.42, 0.3, "b"], [0.02, 0.35, 0.3, 0.3, "l"]] },
     teacher: { n: "Teacher desk", g: "Room", w: 170, h: 70, label: "Teacher", resize: true },
+    tchair: { n: "Teacher chair", g: "Room", w: 62, h: 62, label: "", resize: true },
     board: { n: "Board", g: "Room", w: 360, h: 26, label: "Board", resize: true },
     door: { n: "Door", g: "Room", w: 90, h: 18, label: "Door", resize: true },
     window: { n: "Windows", g: "Room", w: 220, h: 14, label: "Windows", resize: true },

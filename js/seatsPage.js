@@ -260,7 +260,7 @@ function buildPalette() {
         const b = el("button"); b.type = "button";
         const ic = el("i"), sw = el("span"), sc = 26 / Math.max(K.w, K.h * 1.2);
         sw.style.width = Math.max(6, K.w * sc) + "px"; sw.style.height = Math.max(4, K.h * sc) + "px"; if (K.round) sw.style.borderRadius = "50%";
-        if (k === "board") sw.style.background = "#173F86"; if (k === "teacher") sw.style.background = "#E9D8B4"; if (k === "door") sw.style.background = "#C08A3E"; if (k === "rug") sw.style.background = "#F8E3B6"; if (k === "lamp") { sw.style.background = "radial-gradient(circle,#FFF8E1 0 30%,#FFD36B 31% 60%,#F2B33D 61%)"; sw.style.borderColor = "#D79A22"; }
+        if (k === "board") sw.style.background = "#173F86"; if (k === "teacher") sw.style.background = "#E9D8B4"; if (k === "tchair") { sw.style.background = "#E9D8B4"; sw.style.borderColor = "#C9A86A"; sw.style.borderTopWidth = "4px"; } if (k === "door") sw.style.background = "#C08A3E"; if (k === "rug") sw.style.background = "#F8E3B6"; if (k === "lamp") { sw.style.background = "radial-gradient(circle,#FFF8E1 0 30%,#FFD36B 31% 60%,#F2B33D 61%)"; sw.style.borderColor = "#D79A22"; }
         ic.appendChild(sw); b.appendChild(ic); b.appendChild(el("span", null, K.n));
         b.addEventListener("pointerdown", (e) => {
             if (e.button) return; e.preventDefault();
