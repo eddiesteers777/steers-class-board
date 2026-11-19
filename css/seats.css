@@ -44,6 +44,13 @@
 .scell.full{background:#FFFFFF;border-color:#7FA2D4}
 .scell.open{background:#F1F5FB}
 
+/* the teacher's chair: a seat and a backrest in the teacher-desk wood, never a student seat */
+.k-tchair::before{content:"";position:absolute;left:12%;right:12%;top:30%;bottom:6%;border-radius:22% 22% 30% 30%;background:#E9D8B4;border:.2cqw solid #C9A86A;box-shadow:0 .3cqw .8cqw rgba(8,27,69,.15)}
+.k-tchair::after{content:"";position:absolute;left:6%;right:6%;top:4%;height:26%;border-radius:.8cqw .8cqw .3cqw .3cqw;background:#C9A86A;box-shadow:0 .2cqw .5cqw rgba(8,27,69,.18)}
+/* a chair on its own: the seat is the cell, the back is a bar behind it */
+.k-chair .scell{border-radius:1.2cqw 1.2cqw .6cqw .6cqw;background:#F4F8FD}
+.k-chair .scell.full{background:#FFFFFF}
+.k-chair .scell::after{left:4%;right:4%;width:auto;bottom:-1.5cqw;height:1.2cqw;transform:none;border-radius:.5cqw .5cqw 1cqw 1cqw;background:#9DB7DA}
 /* one student lit up: "Where do I sit?" */
 .scell.hi{background:#FFF6E2;border-color:var(--sr-amber);z-index:3;box-shadow:0 0 0 .5cqw rgba(242,179,61,.45),0 .6cqw 2cqw rgba(242,179,61,.45);animation:srPulse 1.6s ease-in-out infinite}
 .scell.hi .stag b{color:#5A3E00}

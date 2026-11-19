@@ -6,7 +6,7 @@
    Seating Chart screen follows it live. Rosters come from rosters/all.
    ?demo uses made-up names and a this-tab store: nothing is saved.
 ========================================== */
-import { ROOM, KINDS, TEMPLATES, MIN, isSeat, sizeOf, uid, snap, cleanChart, cleanPeriod, seatList, seatCount, drawRoom } from "./seats.js?v=2";
+import { ROOM, KINDS, TEMPLATES, MIN, SAVED_MAX, cleanSaved, isSeat, sizeOf, uid, snap, cleanChart, cleanPeriod, seatList, seatCount, drawRoom } from "./seats.js?v=4";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
@@ -39,8 +39,12 @@ function save() {
         saving = false; if (again) { again = false; go(); }
     }, 450);
 }
-/** Every change goes through here: one undo step, redraw, save. */
+let SAVED = { list: [] };
+const locked = () => !!P().lock;
+function lockedNote() { toast("This chart is locked. Tap Locked at the top to unlock it."); const b = $("lockBtn"); b.classList.remove("nudge"); void b.offsetWidth; b.classList.add("nudge"); }
+/** Every change goes through here: one undo step, redraw, save. A locked chart refuses every change. */
 function change(fn) {
+    if (locked()) { lockedNote(); render(); return; }
     const before = JSON.stringify(P());
     fn();
     const after = JSON.stringify(P()); if (after === before) { render(); return; }
@@ -48,6 +52,7 @@ function change(fn) {
     P().at = Date.now(); render(); save();
 }
 function stepHist(from, to) {
+    if (locked()) { lockedNote(); return; }
     const a = from[per]; if (!a || !a.length) return;
     (to[per] = to[per] || []).push(JSON.stringify(P())); chart.periods[per] = cleanPeriod(JSON.parse(a.pop()));
     prune();
@@ -73,6 +78,8 @@ function render() {
     $("seatPane").hidden = mode !== "seat"; $("roomPane").hidden = mode !== "room";
     $("flipBtn").setAttribute("aria-pressed", String(flip));
     $("undo").disabled = !(undo[per] || []).length; $("redo").disabled = !(redo[per] || []).length;
+    { const lk = locked(); $("lockBtn").setAttribute("aria-pressed", String(lk)); $("lockTxt").textContent = lk ? "Locked" : "Lock"; $("lockShackle").setAttribute("d", lk ? "M8 11V7a4 4 0 0 1 8 0v4" : "M8 11V7a4 4 0 0 1 7.5-2");
+        document.body.classList.toggle("se-locked", lk); }
     $("showBoard").href = "remote.html?screen=seats&period=" + encodeURIComponent(per);
     const p = P(), r = roster(), seated = seatedNames(), seats = seatCount(p);
     $("title").textContent = per + " period";
@@ -85,7 +92,7 @@ function render() {
         host.appendChild(e);
     } else {
         const room = drawRoom(host, p, { edit: true, flip, roster: r, sel: mode === "room" ? sels : null, count: mode === "seat" });
-        room.classList.add(mode);
+        room.classList.add(mode); if (locked()) { room.classList.add("locked"); const t = el("div", "srlock", "Locked"); room.appendChild(t); }
         if (mode === "seat" && pick) { const k = seatOf(pick); const c = k && room.querySelector('[data-seat="' + k + '"]'); if (c) c.classList.add("picked"); }
         if (mode === "room" && sels.size === 1) {   // one item: a handle on every corner and side, and one to turn it
             const s = room.querySelector('[data-id="' + [...sels][0] + '"]');
@@ -153,11 +160,12 @@ function nameDrag(e, name, fromEl, tap) {
         tap: tap || (() => { pick = pick === name ? null : name; render(); }),
     });
 }
-function bindChip(c, name) { c.addEventListener("pointerdown", (e) => { if (e.button) return; e.preventDefault(); nameDrag(e, name, null); }); }
+function bindChip(c, name) { c.addEventListener("pointerdown", (e) => { if (e.button) return; e.preventDefault(); if (locked()) { lockedNote(); return; } nameDrag(e, name, null); }); }
 
 function bindRoom(room) {
     room.addEventListener("pointerdown", (e) => {
         if (e.button) return;
+        if (locked()) { if (e.target.closest(".sit")) lockedNote(); return; }
         if (mode === "seat") {
             const c = e.target.closest(".scell[data-seat]"); if (!c) return;
             e.preventDefault(); const key = c.dataset.seat, name = P().seats[key];
@@ -244,6 +252,7 @@ function buildTemplates() {
         drawRoom(b, cleanPeriod({ items, seats: {} }), {});
         b.appendChild(el("b", null, t.n)); b.appendChild(el("small", null, n ? n + " seats" : "Board, desk and door"));
         b.onclick = () => {
+            if (locked()) { lockedNote(); return; }
             const had = Object.keys(P().seats).length;
             change(() => { const keep = seatList(P()).map((s) => P().seats[s.key]).filter(Boolean); P().items = t.make().map((x) => Object.assign({}, x)); P().seats = {}; fill(keep); });
             sels = new Set();
@@ -260,7 +269,7 @@ function buildPalette() {
         const b = el("button"); b.type = "button";
         const ic = el("i"), sw = el("span"), sc = 26 / Math.max(K.w, K.h * 1.2);
         sw.style.width = Math.max(6, K.w * sc) + "px"; sw.style.height = Math.max(4, K.h * sc) + "px"; if (K.round) sw.style.borderRadius = "50%";
-        if (k === "board") sw.style.background = "#173F86"; if (k === "teacher") sw.style.background = "#E9D8B4"; if (k === "door") sw.style.background = "#C08A3E"; if (k === "rug") sw.style.background = "#F8E3B6"; if (k === "lamp") { sw.style.background = "radial-gradient(circle,#FFF8E1 0 30%,#FFD36B 31% 60%,#F2B33D 61%)"; sw.style.borderColor = "#D79A22"; }
+        if (k === "board") sw.style.background = "#173F86"; if (k === "teacher") sw.style.background = "#E9D8B4"; if (k === "tchair") { sw.style.background = "#E9D8B4"; sw.style.borderColor = "#C9A86A"; sw.style.borderTopWidth = "4px"; } if (k === "door") sw.style.background = "#C08A3E"; if (k === "rug") sw.style.background = "#F8E3B6"; if (k === "lamp") { sw.style.background = "radial-gradient(circle,#FFF8E1 0 30%,#FFD36B 31% 60%,#F2B33D 61%)"; sw.style.borderColor = "#D79A22"; }
         ic.appendChild(sw); b.appendChild(ic); b.appendChild(el("span", null, K.n));
         b.addEventListener("pointerdown", (e) => {
             if (e.button) return; e.preventDefault();
@@ -275,6 +284,7 @@ function buildPalette() {
     });
 }
 function add(k, cx, cy) {
+    if (locked()) { lockedNote(); return; }
     const K = KINDS[k], n = P().items.length;
     if (cx == null) { cx = ROOM.W / 2 + ((n % 5) - 2) * 30; cy = ROOM.H / 2 + ((n % 3) - 1) * 30; }
     const it = { id: uid(), k, x: snap(cx - K.w / 2), y: snap(cy - K.h / 2), r: 0 };
@@ -312,6 +322,56 @@ function nudge(dx, dy) { const many = selItems(); if (many.length) change(() => 
 let toastT = 0;
 function toast(t) { $("foot").textContent = t; clearTimeout(toastT); toastT = setTimeout(render, 6000); }
 
+/* ---------- saved layouts (teacher/{uid}/seats/saved) ---------- */
+async function writeSaved() {
+    try { await store.save("seats/saved", JSON.parse(JSON.stringify(SAVED))); return true; }
+    catch (e) { $("saveMsg").textContent = "Could not save (" + ((e && e.code) || "connection") + "). Nothing changed."; return false; }
+}
+function openSaved() { $("saveMsg").textContent = ""; $("saveName").value = ""; drawSaved(); $("savedDlg").showModal(); setTimeout(() => $("saveName").focus(), 30); }
+async function saveLayout() {
+    const p = P(), n = $("saveName").value.trim().slice(0, 40);
+    if (!p.items.length) { $("saveMsg").textContent = "This period has no room yet. Set one up first."; return; }
+    if (!n) { $("saveMsg").textContent = "Give the layout a name first."; $("saveName").focus(); return; }
+    if (SAVED.list.length >= SAVED_MAX) { $("saveMsg").textContent = "You have " + SAVED_MAX + " saved layouts. Delete one to save another."; return; }
+    const same = SAVED.list.find((x) => x.n.toLowerCase() === n.toLowerCase() && x.per === per);
+    const entry = { id: same ? same.id : uid(), n, per, at: Date.now(), items: JSON.parse(JSON.stringify(p.items)), seats: Object.assign({}, p.seats) };
+    const old = SAVED.list.slice();
+    SAVED.list = [entry].concat(SAVED.list.filter((x) => x !== same));
+    if (await writeSaved()) { $("saveMsg").textContent = (same ? "Updated \u201c" : "Saved \u201c") + n + "\u201d."; $("saveName").value = ""; } else SAVED.list = old;
+    drawSaved();
+}
+function drawSaved() {
+    const host = $("savedList"); host.textContent = "";
+    if (!SAVED.list.length) { host.appendChild(el("p", "se-hint", "No saved layouts yet.")); return; }
+    const mine = SAVED.list.filter((x) => x.per === per), rest = SAVED.list.filter((x) => x.per !== per);
+    [[mine, per + " period"], [rest, "Other periods"]].forEach(([list, h]) => {
+        if (!list.length) return; host.appendChild(el("p", "pg", h));
+        list.forEach((x) => {
+            const row = el("div", "se-saveit"), th = el("div", "se-savethumb"); drawRoom(th, cleanPeriod(x), {}); row.appendChild(th);
+            const tx = el("div", "se-savetx"); tx.appendChild(el("b", null, x.n));
+            const n = Object.keys(x.seats).length; tx.appendChild(el("small", null, (x.per ? x.per + " period · " : "") + seatCount(x) + " seats" + (n ? ", " + n + " students" : "") + " · " + new Date(x.at).toLocaleDateString()));
+            row.appendChild(tx);
+            const go = el("button", "btn", "Restore"); go.type = "button";
+            go.onclick = () => {
+                if (locked()) { $("saveMsg").textContent = "This chart is locked. Unlock it to restore a layout."; return; }
+                const names = new Set(roster());
+                change(() => { P().items = JSON.parse(JSON.stringify(x.items)); P().seats = Object.assign({}, x.seats); });
+                const away = Object.values(P().seats).filter((nm) => names.size && !names.has(nm)).length;
+                sels = new Set(); $("savedDlg").close();
+                toast("Restored \u201c" + x.n + "\u201d." + (away ? " " + away + " name" + (away > 1 ? "s are" : " is") + " not on this period's class list (dashed red)." : "") + " Undo puts the last chart back.");
+            };
+            const dl = el("button", "btn ghost se-savedel", "Delete"); dl.type = "button";
+            dl.onclick = async () => {
+                if (dl.dataset.sure !== "1") { dl.dataset.sure = "1"; dl.textContent = "Delete it?"; setTimeout(() => { if (dl.isConnected) { dl.dataset.sure = ""; dl.textContent = "Delete"; } }, 4000); return; }
+                const old = SAVED.list.slice(); SAVED.list = SAVED.list.filter((y) => y.id !== x.id);
+                if (await writeSaved()) $("saveMsg").textContent = "Deleted \u201c" + x.n + "\u201d."; else SAVED.list = old;
+                drawSaved();
+            };
+            row.appendChild(go); row.appendChild(dl); host.appendChild(row);
+        });
+    });
+}
+
 /* ---------- copy and print ---------- */
 function openCopy() {
     const list = $("copyList"); list.textContent = "";
@@ -320,9 +380,10 @@ function openCopy() {
 }
 function doCopy() {
     const to = [...$("copyList").querySelectorAll("input:checked")].map((c) => c.value); if (!to.length) return;
-    const items = JSON.stringify(P().items);
-    to.forEach((k) => { const old = chart.periods[k] || cleanPeriod(null); (undo[k] = undo[k] || []).push(JSON.stringify(old)); chart.periods[k] = cleanPeriod({ items: JSON.parse(items), seats: old.seats, at: Date.now() }); });
-    save(); toast("Room copied to " + to.join(", ") + ".");
+    const items = JSON.stringify(P().items), skip = to.filter((k) => chart.periods[k] && chart.periods[k].lock);
+    to.filter((k) => !skip.includes(k)).forEach((k) => { const old = chart.periods[k] || cleanPeriod(null); (undo[k] = undo[k] || []).push(JSON.stringify(old)); chart.periods[k] = cleanPeriod({ items: JSON.parse(items), seats: old.seats, at: Date.now() }); });
+    const done = to.filter((k) => !skip.includes(k));
+    save(); toast((done.length ? "Room copied to " + done.join(", ") + "." : "") + (skip.length ? " Skipped " + skip.join(", ") + ": locked." : ""));
 }
 function print() {
     const h = $("printHost"); h.textContent = "";
@@ -346,12 +407,16 @@ async function start() {
     document.querySelectorAll(".se-mode button").forEach((b) => { b.onclick = () => { mode = b.dataset.mode; sels = new Set(); pick = null; render(); }; });
     $("fillAz").onclick = () => change(() => fill(roster().filter((n) => !seatedNames().has(n)).sort((a, b) => a.localeCompare(b))));
     $("fillRand").onclick = () => change(() => fill(shuffled(roster().filter((n) => !seatedNames().has(n)))));
-    $("shuffle").onclick = () => { change(() => { P().seats = {}; fill(shuffled(roster())); }); toast("New chart. Undo brings the last one back."); };
-    $("clearSeats").onclick = () => { change(() => { P().seats = {}; }); toast("Seats cleared. Undo brings them back."); };
+    $("shuffle").onclick = () => { if (locked()) return lockedNote(); change(() => { P().seats = {}; fill(shuffled(roster())); }); toast("New chart. Undo brings the last one back."); };
+    $("clearSeats").onclick = () => { if (locked()) return lockedNote(); change(() => { P().seats = {}; }); toast("Seats cleared. Undo brings them back."); };
     $("undo").onclick = () => stepHist(undo, redo); $("redo").onclick = () => stepHist(redo, undo);
     $("flipBtn").onclick = () => { flip = !flip; try { localStorage.setItem("anchor:seatsFlip", flip ? "1" : "0"); } catch (e) { /* ok */ } render(); };
     $("copyBtn").onclick = openCopy; $("copyDlg").addEventListener("close", () => { if ($("copyDlg").returnValue === "ok") doCopy(); });
     $("printBtn").onclick = print;
+    $("lockBtn").onclick = () => { const p = P(); if (p.lock) delete p.lock; else { p.lock = true; sels = new Set(); pick = null; } p.at = Date.now(); render(); save(); toast(p.lock ? "Locked. Nothing on this chart can move until you unlock it." : "Unlocked. You can change the chart again."); };
+    $("savedBtn").onclick = openSaved;
+    $("saveGo").onclick = saveLayout;
+    $("saveName").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); saveLayout(); } });
     $("eachBtn").onclick = () => { eachTurn = !eachTurn; render(); };
     $("rotL").onclick = () => rotate(-15); $("rotR").onclick = () => rotate(15); $("dup").onclick = dup; $("del").onclick = del;
     $("labIn").addEventListener("change", () => { const it = selItems().length === 1 ? selItems()[0] : null; if (it) change(() => { it.label = $("labIn").value.slice(0, 40); }); });
@@ -376,6 +441,7 @@ async function start() {
         await store.save("rosters/all", { periods });
     }
     store.watch("rosters/all", (s) => { const p = (s.exists && s.data && s.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); if (loaded) render(); }, () => {});
+    store.watch("seats/saved", (s) => { if (s.pending) return; SAVED = cleanSaved(s.exists ? s.data : null); if ($("savedDlg").open) drawSaved(); }, () => {});
     store.watch("seats/chart", (s) => {
         if (s.pending) return;
         if (loaded && s.data && s.data.by === PAGE) return;   // our own save coming back

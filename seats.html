@@ -11,8 +11,8 @@
     <link rel="stylesheet" href="css/board.css?v=58">
     <link rel="stylesheet" href="css/console.css?v=58">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/seats.css?v=2">
-    <link rel="stylesheet" href="css/seatsedit.css?v=2">
+    <link rel="stylesheet" href="css/seats.css?v=3">
+    <link rel="stylesheet" href="css/seatsedit.css?v=3">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page seatpage">
@@ -58,6 +58,8 @@
                     <button class="se-ib" type="button" id="undo" title="Undo (Ctrl+Z)" aria-label="Undo"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
                     <button class="se-ib" type="button" id="redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo"><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
                     <button class="se-tg" type="button" id="flipBtn" aria-pressed="false" title="See the room from your desk (front at the bottom)">Teacher view</button>
+                    <button class="se-tg" type="button" id="savedBtn">Saved layouts</button>
+                    <button class="se-tg se-lock" type="button" id="lockBtn" aria-pressed="false" title="Lock this chart so nothing moves by accident"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path id="lockShackle" d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span id="lockTxt">Lock</span></button>
                     <button class="se-tg" type="button" id="copyBtn">Copy room to…</button>
                     <button class="se-tg" type="button" id="printBtn">Print</button>
                 </div>
@@ -76,6 +78,16 @@
         </main>
     </div>
 
+    <dialog class="se-dlg se-saved" id="savedDlg">
+        <form method="dialog" id="savedForm">
+            <h2>Saved layouts</h2>
+            <p>Save this period's room and seats under a name, like "Test day" or "Groups". Restore puts it back on this period, and Undo takes a restore back. Saved layouts stay in your private account.</p>
+            <div class="se-saverow"><label class="vh" for="saveName">Layout name</label><input id="saveName" maxlength="40" placeholder="Name this layout" autocomplete="off"><button class="btn go" type="button" id="saveGo">Save</button></div>
+            <p class="se-savemsg" id="saveMsg" role="status"></p>
+            <div class="se-savelist" id="savedList"></div>
+            <div class="se-dlgacts"><button class="btn ghost" value="close">Close</button></div>
+        </form>
+    </dialog>
     <dialog class="se-dlg" id="copyDlg">
         <form method="dialog">
             <h2>Copy this room to other periods</h2>
@@ -85,6 +97,6 @@
         </form>
     </dialog>
     <div class="se-print" id="printHost" aria-hidden="true"></div>
-    <script type="module" src="js/seatsPage.js?v=2"></script>
+    <script type="module" src="js/seatsPage.js?v=4"></script>
 </body>
 </html>
