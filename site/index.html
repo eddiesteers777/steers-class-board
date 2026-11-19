@@ -10,132 +10,195 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="Anchor Board | Run the whole lesson from one board">
 <meta property="og:description" content="Agenda, bellringer, guided notes, timers and review games on the projector. You run it from a Chromebook or phone.">
-<meta property="og:image" content="img/board-today.jpg">
+<meta property="og:image" content="img/look-navy.jpg">
 <meta name="theme-color" content="#081B45">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
-<link rel="stylesheet" href="site.css?v=1">
+<link rel="stylesheet" href="site.css?v=2">
+<link rel="stylesheet" href="story.css?v=1">
 </head>
-<body>
+<body class="ab-home">
 <header id="siteHeader"></header>
 <main id="main">
 
-<section class="hero">
-  <div class="wrap hero-grid">
-    <div>
+<!-- Home page scroll story (Nov 19, 2026). Without motion (reduced motion, no script) every part below
+     is a plain stacked page. site/story.js turns on the pinned, scroll-driven version. -->
+
+<section class="ab-hero" aria-labelledby="abHead">
+  <div class="ab-hero-stage">
+    <div class="ab-hero-copy wrap">
       <span class="eyebrow">For classroom teachers</span>
-      <h1>Run the whole lesson from one board.</h1>
+      <h1 id="abHead">Run the whole lesson<br>from one board.</h1>
       <p class="lede">Your agenda, bellringer, guided notes, timers and review games go up on the projector. You run it all from a Chromebook or your phone, from anywhere in the room.</p>
       <div class="cta-row">
         <a class="btn btn-primary" href="join.html">Join early access</a>
         <a class="btn btn-ghost" href="../demo.html">Try the demo board</a>
       </div>
-      <p class="fine">The demo runs in your browser with a sample week. No sign-up. Nothing is saved.</p>
     </div>
-    <figure style="margin:0">
-      <div class="shot"><img src="img/board-today.jpg" width="1600" height="899" alt="The board's Today screen: bellringer, agenda, supplies, reminders, a bellringer timer, the week at a glance and the learning target."></div>
-      <figcaption class="shot-cap">The Today screen, from the sample week.</figcaption>
-    </figure>
+    <div class="ab-proj" aria-hidden="true">
+      <div class="ab-screen">
+        <img src="img/look-navy.jpg" width="1600" height="900" alt="" fetchpriority="high" decoding="async">
+        <i class="ab-dim"></i><i class="ab-flare"></i>
+      </div>
+      <i class="ab-beam"></i>
+    </div>
+    <span class="ab-cue" aria-hidden="true">Scroll</span>
   </div>
 </section>
 
-<section class="sec" id="how">
+<section class="ab-intro" aria-label="What it does">
   <div class="wrap">
-    <div class="sec-head">
-      <h2>How it works</h2>
-      <p>Plan the week once. After that, class runs from one screen.</p>
+    <p class="ab-big" data-rise>Plan the week once. Then the whole class period runs from one screen: the bellringer, the notes, the game and the exit check. <b>You teach from anywhere in the room.</b></p>
+  </div>
+</section>
+
+<section class="ab-story" id="how" aria-labelledby="abStoryTitle">
+  <div class="ab-stick" data-s="1">
+    <h2 class="ab-lab" id="abStoryTitle">One class period,<br>start to finish</h2>
+
+    <div class="ab-scene" role="img" aria-label="Example class period on the board: the bellringer with its timer, guided notes with a check-in ring, a Vault Raid game with a step hint, and Student Progress by standard. Sample class, made-up data.">
+      <div class="ab-board">
+        <div class="ab-bhead">
+          <img src="../brand/logo.svg" alt="" width="40" height="40">
+          <div><b class="ab-btitle"><span data-on="1">Bellringer</span><span data-on="2">Guided Notes</span><span data-on="3">Vault Raid</span><span data-on="4">Student Progress</span></b>
+            <small><span data-on="1">Thursday · Problem 1 of 3</span><span data-on="2">Two-step equations · Example 2</span><span data-on="3">Two-step equations · 4 players</span><span data-on="4">Sample class · this week</span></small></div>
+          <span class="ab-pill">Sample class</span>
+        </div>
+        <i class="ab-rule"></i>
+
+        <!-- 01 Bellringer -->
+        <div class="ab-pane" data-on="1">
+          <div class="ab-card ab-prob"><small>Problem 1</small><b>Solve: 7x − 3 = 18</b><span class="ab-ans" id="abAns1">x = 3</span></div>
+          <div class="ab-card ab-timer"><small>Bellringer timer</small><b id="abTimer">5:00</b><i class="ab-tbar"><i id="abTbar"></i></i></div>
+          <div class="ab-card ab-target"><span class="ab-tag">Learning target</span>I can write and solve a two-step equation.</div>
+        </div>
+
+        <!-- 02 Guided notes + check-in -->
+        <div class="ab-pane" data-on="2">
+          <div class="ab-card ab-notes">
+            <small>Example 2 of 3</small>
+            <b>Solve 2x + 10 = 50</b>
+            <div class="ab-nstep" data-at="0.15"><b>2x = 40</b><span>Subtract 10 from both sides.</span></div>
+            <div class="ab-nstep" data-at="0.4"><b>x = 20</b><span>Divide both sides by 2.</span></div>
+          </div>
+          <div class="ab-card ab-ring">
+            <small>Check-in 1</small>
+            <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="48" class="ab-ring-bg"/><circle cx="60" cy="60" r="48" class="ab-ring-fg" id="abRing" pathLength="1"/></svg>
+            <b id="abRingNum">0/24</b><span id="abRingSub">Solve it on your Chromebook</span>
+          </div>
+        </div>
+
+        <!-- 03 Vault Raid with a step hint -->
+        <div class="ab-pane" data-on="3">
+          <div class="ab-card ab-vaults">
+            <small>Richest vaults</small>
+            <ol id="abVaults"><li><span>Player 1</span><b>35</b></li><li><span>Player 2</span><b>28</b></li><li><span>Player 3</span><b>21</b></li><li><span>Player 4</span><b>12</b></li></ol>
+          </div>
+          <div class="ab-card ab-pad" data-v="1">
+            <small class="ab-padq">What is 15% of 80?</small>
+            <div class="ab-v" data-v="1"><b>Not quite. Here's a step to help.</b><span class="ab-hint">Step 1 of 2 · Change 15% to a decimal: 0.15.</span><em>6 coins if you get it now</em></div>
+            <div class="ab-v" data-v="2"><b>Still not it. Here's step 2.</b><span class="ab-hint">Step 2 of 2 · Multiply 0.15 × 80.</span><em>4 coins if you get it now</em></div>
+            <div class="ab-v" data-v="3"><b class="ab-ok">12. Vault cracked!</b><span class="ab-hint">+4 coins</span><em>Next problem</em></div>
+          </div>
+        </div>
+
+        <!-- 04 Student Progress -->
+        <div class="ab-pane" data-on="4">
+          <div class="ab-card ab-std">
+            <small>Where the class sits on each standard</small>
+            <div class="ab-srow"><span>8.9</span><i style="--r:.12;--a:.20;--g:.68"></i><b>86%</b></div>
+            <div class="ab-srow"><span>8.10</span><i style="--r:.25;--a:.25;--g:.50"></i><b>74%</b></div>
+            <div class="ab-srow"><span>8.11</span><i style="--r:.40;--a:.33;--g:.27"></i><b>58%</b></div>
+          </div>
+          <div class="ab-card ab-need">
+            <small>Who needs help today</small>
+            <b>Group 1 · 8.11 <span class="ab-chip-red">Reteach</span></b>
+            <p>3 students, averaging 45% on 8.11.</p>
+            <div class="ab-next"><small>Next step</small>Pull them for 10 minutes. Reteach with one worked example.</div>
+          </div>
+        </div>
+      </div>
+      <div class="ab-line" aria-hidden="true">
+        <i class="ab-line-fill" id="abLine"></i>
+        <span style="--x:0">8:00<b>Bell</b></span><span style="--x:.28">8:05<b>Notes</b></span><span style="--x:.58">8:25<b>Game</b></span><span style="--x:.88">8:45<b>Exit</b></span>
+      </div>
     </div>
-    <ol class="steps">
-      <li><h3>Plan the week</h3><p>Each day gets an agenda, a learning target, bellringer problems with answers, notes and reminders. Build it once and it's ready for every period.</p></li>
-      <li><h3>Put the board up</h3><p>Open the board on the projector or interactive panel. It shows the right day for the class in front of you.</p></li>
-      <li><h3>Teach from the Remote</h3><p>On a Chromebook or phone, tap Next, show an answer, start a timer or launch a game. The board follows right away.</p></li>
+
+    <ol class="ab-steps">
+      <li class="ab-step"><h3>The bell rings</h3><span class="ab-chip">Bell timeline</span><p>The board switches to the bellringer on its own when the bell rings, timer and all. You can still change screens by hand.</p></li>
+      <li class="ab-step"><h3>Notes, one step at a time</h3><span class="ab-chip">Live notes</span><p>Worked examples show one step and the reason for it. Students answer a check-in on their Chromebooks, and the ring fills as answers come in.</p></li>
+      <li class="ab-step"><h3>A game that teaches</h3><span class="ab-chip">Vault Raid</span><p>Students crack each other's vaults by solving problems. Miss one and they get the next step, not the answer. Each step costs a few coins.</p></li>
+      <li class="ab-step"><h3>Know who needs you tomorrow</h3><span class="ab-chip">Student Progress</span><p>Every answer lands under its standard. You see who needs help, on what, and what to do next.</p></li>
     </ol>
+    <div class="ab-bar" aria-hidden="true"><div><i></i><span>01</span></div><div><i></i><span>02</span></div><div><i></i><span>03</span></div><div><i></i><span>04</span></div></div>
   </div>
 </section>
 
-<section class="sec sec-alt" id="tour">
-  <div class="wrap">
-    <div class="sec-head">
-      <h2>What's on the board</h2>
-      <p>Everything a class period needs, in the order you teach it.</p>
+<section class="ab-feat" id="tour" aria-labelledby="abFeatTitle">
+  <div class="ab-fpin">
+    <div class="ab-ftxt">
+      <span class="eyebrow">Make the board yours</span>
+      <h2 id="abFeatTitle">Colors and backgrounds</h2>
+      <p id="abFeatP">Pick a color, a background and a logo for the board. Change it for a unit, a season or just a Monday.</p>
+      <div class="ab-fsegs" aria-hidden="true"><div><i></i></div><div><i></i></div><div><i></i></div></div>
     </div>
-
-    <div class="feature">
-      <div class="feature-text">
-        <h3>Bellringers with a built-in timer</h3>
-        <p>One problem at a time, big enough to read from the back row. Reveal the answer when you're ready.</p>
-      </div>
-      <div class="shot"><img src="img/board-bell.jpg" width="1600" height="899" alt="A bellringer problem on the board." loading="lazy"></div>
-    </div>
-
-    <div class="feature">
-      <div class="feature-text">
-        <h3>Guided notes, one step at a time</h3>
-        <p>Targets, vocabulary, the big idea, then worked examples that show one step at a time with the reason for each step. A whiteboard sits right next to it.</p>
-        <ul><li>Students see the step and the why.</li><li>Write on the board with a pen, or add a graph, number line, ruler or protractor.</li></ul>
-      </div>
-      <div class="shot"><img src="img/board-notes.jpg" width="1600" height="899" alt="A worked example in guided notes, showing one step and its reason, next to a whiteboard." loading="lazy"></div>
-    </div>
-
-    <div class="feature">
-      <div class="feature-text">
-        <h3>Speed dating, timed for you</h3>
-        <p>The steps stay on screen. Round and check timers run on the board, with sound cues, so you can walk the room.</p>
-      </div>
-      <div class="shot"><img src="img/board-speed.jpg" width="1600" height="899" alt="The speed dating screen with the steps and a round timer." loading="lazy"></div>
-    </div>
-
-    <div class="feature">
-      <div class="feature-text">
-        <h3>Review games the whole class can see</h3>
-        <p>Run a game from the Remote. Bring in question sets from a spreadsheet or the review tools you already use.</p>
-        <ul class="chips" aria-label="Games">
-          <li>Review Board</li><li>Rapid Fire</li><li>Tug of War</li><li>Code Breaker</li><li>Ring Race</li><li>Trashketball</li><li>Treasure Chests</li><li>Mystery Tiles</li><li>Prize Wheel</li><li>Bingo</li>
-        </ul>
-      </div>
-      <div class="shot"><img src="img/board-agenda.jpg" width="1600" height="899" alt="The weekly agenda screen." loading="lazy"></div>
-    </div>
-
-    <div class="feature">
-      <div class="feature-text">
-        <h3>Classroom tools on the side</h3>
-        <p>Timers, a traffic light, voice level, a clock, dice, a scoreboard and a class goal. They sit beside the lesson and never cover it.</p>
-      </div>
-      <div class="shot"><img src="img/board-timer.jpg" width="1600" height="899" alt="A large countdown timer on the board." loading="lazy"></div>
-    </div>
-
-    <div class="feature">
-      <div class="feature-text">
-        <h3>A sub day that still runs</h3>
-        <p>Leave one link in your sub plans. The guest view runs the board on one device with no sign-in, and it never touches your account.</p>
-      </div>
-      <div class="shot"><img src="img/remote-desktop.jpg" width="1600" height="900" alt="The Remote on a laptop: screens on the left, the board preview in the middle, the day picker at the bottom." loading="lazy"></div>
+    <div class="ab-fstage">
+      <figure class="ab-shot" data-g="0"><img src="img/look-navy.jpg" width="1600" height="900" loading="lazy" decoding="async" alt="The board's Today screen in the navy look."><figcaption>Navy</figcaption></figure>
+      <figure class="ab-shot" data-g="0"><img src="img/look-midnight.jpg" width="1600" height="900" loading="lazy" decoding="async" alt="The Today screen in the midnight look."><figcaption>Midnight</figcaption></figure>
+      <figure class="ab-shot" data-g="0"><img src="img/look-crimson.jpg" width="1600" height="900" loading="lazy" decoding="async" alt="The weekly agenda in the crimson look with a rings background."><figcaption>Crimson · Rings</figcaption></figure>
+      <figure class="ab-shot" data-g="1"><img src="img/look-snow.jpg" width="1600" height="900" loading="lazy" decoding="async" alt="The Today screen with a winter night look, snowflake logo and falling snow."><figcaption>Snowy night</figcaption></figure>
+      <figure class="ab-shot" data-g="1"><img src="img/look-lights.jpg" width="1600" height="900" loading="lazy" decoding="async" alt="The Today screen with Christmas lights across the top and an ornament logo."><figcaption>Christmas lights</figcaption></figure>
+      <figure class="ab-shot" data-g="2"><img src="img/panels-bell.jpg" width="1600" height="900" loading="lazy" decoding="async" alt="The bellringer with a timer and voice level panel on the shelf beside it."><figcaption>Bell work layout</figcaption></figure>
+      <figure class="ab-shot" data-g="2"><img src="img/panels-work.jpg" width="1600" height="900" loading="lazy" decoding="async" alt="The whiteboard with a timer, voice level and traffic light beside it."><figcaption>Work time layout</figcaption></figure>
     </div>
   </div>
 </section>
 
-<section class="sec">
-  <div class="wrap">
-    <div class="sec-head">
-      <h2>Behind the board</h2>
-      <p>The planning side lives in the same place, so the board always has what it needs.</p>
-    </div>
-    <div class="grid3">
-      <div class="card"><h3>Planner</h3><p>Your school calendar and your week-by-week plan in one view.</p></div>
-      <div class="card"><h3>Week Builder</h3><p>Print the bellringer sheet and its key from the same week you teach from.</p></div>
-      <div class="card"><h3>Library</h3><p>Every past week, sorted by class, unit and week, ready to reuse.</p></div>
-      <div class="card"><h3>Standards</h3><p>See which standards you've taught and what comes next.</p></div>
-      <div class="card"><h3>Class data</h3><p>Bring in scores from the tools you already use, kept private to your account.</p></div>
-      <div class="card"><h3>Student game mode</h3><p>Students join a game on their Chromebooks with a code. No student accounts.</p></div>
-    </div>
+<section class="ab-track" aria-labelledby="abTrackTitle">
+  <div class="ab-track-head wrap"><h2 id="abTrackTitle">Behind the board</h2><p>The planning and grading side lives in the same place, so the board always has what it needs.</p></div>
+  <div class="ab-cards">
+    <article class="ab-tcard">
+      <div class="ab-mini ab-mini-asg" aria-hidden="true"><small>8.11 · Practice</small><b>Gym A: $20 to join plus $15 a month. Gym B: $50 plus $10. When do they cost the same?</b><span class="ab-mini-in">Your answer</span><span class="ab-mini-btn">Check</span></div>
+      <h3>Assignments</h3><p>Practice, quizzes and tests from the standards bank. Students type a code and their name. No student accounts.</p>
+    </article>
+    <article class="ab-tcard">
+      <div class="ab-mini ab-mini-grade" aria-hidden="true">
+        <div class="ab-gh"><span></span><b>Quiz</b><b>HW</b><b>Test</b><b>Term</b></div>
+        <div><span></span><i class="g">90%</i><i class="g">100%</i><i class="a">76%</i><b>88% B</b></div>
+        <div><span></span><i class="a">70%</i><i class="g">90%</i><i class="g">84%</i><b>81% B</b></div>
+        <div><span></span><i class="r">55%</i><i class="g">80%</i><i class="a">69%</i><b>67% D</b></div>
+        <div><span></span><i class="g">95%</i><i class="m">M</i><i class="g">92%</i><b>79% C</b></div>
+      </div>
+      <h3>Gradebook</h3><p>Scores come in from Assignments and Class Data, or you type them. One period and one nine weeks at a time, with a CSV export.</p>
+    </article>
+    <article class="ab-tcard">
+      <div class="ab-mini ab-mini-seat" aria-hidden="true"><span class="ab-front">Front of the room</span><div class="ab-desks"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><em>Your seat is lit up</em></div>
+      <h3>Seating chart</h3><p>Lay out the desks to match your room. Put it on the board and each student finds their seat.</p>
+    </article>
+    <article class="ab-tcard">
+      <div class="ab-mini ab-mini-bank" aria-hidden="true"><span class="ab-mini-in">8.11 Solve multi-step linear equations</span><div><b>Solve: 5x − 3 = 2x + 12</b><small>Answer x = 5 · 8.11</small></div><div><b>x + (x + 10) = 70</b><small>Answer x = 30 · 8.11</small></div><div><b>Solve: 4x − 9 = 3x + 2</b><small>Answer x = 11 · 8.11</small></div></div>
+      <h3>Question Bank</h3><p>Problems for every 7th grade, 8th grade and Algebra I standard, each with checked steps. Search by standard and drop them into a bellringer or a game.</p>
+    </article>
+    <article class="ab-tcard">
+      <div class="ab-mini ab-mini-bells" aria-hidden="true"><div><b>1st</b><span>8:00</span><span>8:52</span></div><div><b>2nd</b><span>8:55</span><span>9:47</span></div><div><b>3rd</b><span>9:50</span><span>10:42</span></div><p class="ab-ahead">Friday runs on <b>Early release</b></p></div>
+      <h3>Bell schedule</h3><p>Set your bell times once. Plan ahead for activity days and early release, and the board's period clock follows.</p>
+    </article>
+    <article class="ab-tcard">
+      <div class="ab-mini ab-mini-games" aria-hidden="true"><span>Vault Raid</span><span>Review Board</span><span>Rapid Fire</span><span>Tug of War</span><span>Code Breaker</span><span>Ring Race</span><span>Trashketball</span><span>Mystery Tiles</span><span>Bingo</span></div>
+      <h3>Review games</h3><p>Run a game from the Remote. Students join on their Chromebooks with a code, or the whole class plays on the board.</p>
+    </article>
+    <article class="ab-tcard">
+      <div class="ab-mini ab-mini-sub" aria-hidden="true"><b>Sub plans</b><span class="ab-mini-in">Guest board link</span><small>No sign-in. Never touches your account.</small></div>
+      <h3>A sub day that still runs</h3><p>Leave one link in your sub plans. The guest view runs the board on one device with no sign-in.</p>
+    </article>
   </div>
 </section>
 
-<section class="sec sec-navy">
-  <div class="wrap">
+<section class="sec sec-navy ab-quote">
+  <div class="wrap" data-rise>
     <div class="quote">
       <p>I teach middle school math. I built this for my own classes, so the day could run from one screen instead of a slide deck.</p>
       <p class="by">The teacher who built Anchor Board. <a href="about.html" style="color:var(--amber)">More about how it started</a></p>
@@ -143,8 +206,8 @@
   </div>
 </section>
 
-<section class="sec">
-  <div class="wrap">
+<section class="sec ab-trust">
+  <div class="wrap" data-rise>
     <div class="sec-head">
       <h2>Built for school, not for ads</h2>
       <p>Students never make an account. Each teacher's data is private to their own account. Nothing that names a student goes on the board unless the teacher puts it there.</p>
@@ -153,8 +216,9 @@
   </div>
 </section>
 
-<section class="sec sec-alt close">
-  <div class="wrap">
+<section class="sec sec-alt close ab-close">
+  <div class="wrap" data-rise>
+    <img class="ab-close-mark" src="../brand/logo.svg" alt="" width="64" height="64">
     <div class="sec-head">
       <h2>Want it in your classroom?</h2>
       <p>Anchor Board is in early access. Tell us what you teach and what's on your wall, and we'll let you know when there's a spot.</p>
@@ -167,7 +231,9 @@
 </section>
 
 </main>
+<div class="ab-clock" id="abClock" aria-hidden="true" hidden><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="14"/><circle cx="18" cy="18" r="14" pathLength="1" id="abClockRing"/></svg><b id="abClockT">7:58</b><span id="abClockL">Before the bell</span></div>
 <footer id="siteFooter"></footer>
-<script type="module" src="site.js?v=1"></script>
+<script type="module" src="site.js?v=2"></script>
+<script type="module" src="story.js?v=1"></script>
 </body>
 </html>
