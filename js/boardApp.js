@@ -157,7 +157,15 @@ const D = () => { const l = L(); return (l && l.days && l.days[S.day]) || null; 
 
 /* ---------- controls ---------- */
 function seg(host, items, current, onPick) {
-    host.textContent = "";
+    // Same buttons as last time: update them in place. Rebuilding them on every redraw broke taps, because
+    // the first touch of any tap wakes the sound (a redraw) and the button under the finger was replaced
+    // before the tap finished, so the tap never landed (the music style buttons, Nov 19).
+    const key = items.map((x) => x[0] + "\u0001" + x[1]).join("\u0002");
+    if (host.dataset.seg === key && host.children.length === items.length) {
+        items.forEach(([id], i) => { const b = host.children[i]; b.setAttribute("aria-pressed", String(id === current)); b.onclick = () => onPick(id); });
+        return;
+    }
+    host.dataset.seg = key; host.textContent = "";
     items.forEach(([id, label]) => {
         const b = el("button", null, label); b.type = "button";
         b.setAttribute("aria-pressed", String(id === current));

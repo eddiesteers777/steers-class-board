@@ -294,7 +294,7 @@ body.board .recpill{display:none}
 .sndtry button{background:transparent;border:1px solid var(--c-line);border-radius:999px;padding:3px 9px;font-size:.78rem;font-weight:600;color:#1B4FBF;cursor:pointer}
 .sndtry button:hover{background:var(--c-bg)}
 .sndlab{font-size:.78rem;font-weight:600;color:var(--c-mute);margin:2px 0 -4px}
-.sndnote{font-size:.8rem;line-height:1.4;color:var(--c-mute)}
+.sndnote{font-size:.8rem;line-height:1.4;color:var(--c-mute);min-height:4.2em}   /* room for three lines, so a shorter note never shifts the buttons above mid-tap */
 @media (max-width:860px){.sndbox{min-width:240px}}
 /* A screen that should play sound but has not been tapped yet. */
 .sndtap{position:fixed;right:14px;bottom:14px;z-index:60;background:var(--amber);color:var(--amber-ink);border:0;border-radius:999px;padding:10px 18px;font:600 .95rem var(--ui);box-shadow:0 4px 14px rgba(8,27,69,.3);cursor:pointer}
