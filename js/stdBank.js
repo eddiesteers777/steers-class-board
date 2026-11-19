@@ -21,7 +21,7 @@ let cache = null;
 /** Every standards-bank problem. Files not built yet are skipped. */
 export function loadStdBank() {
     if (cache) return cache;
-    cache = Promise.all(FILES.map((f) => import("../data/stdbank/" + f + ".js?v=1").then((m) => m.default, () => null))).then((files) => {
+    cache = Promise.all(FILES.map((f) => import("../data/stdbank/" + f + ".js?v=2").then((m) => m.default, () => null))).then((files) => {
         const out = [];
         files.filter(Boolean).forEach((file) => file.items.forEach((x) => {
             const o = Object.assign({}, x, { cls: file.cls, for: classesFor(x.std), kind: KIND, week: WEEK_ID, label: WEEK_LABEL, sb: true });

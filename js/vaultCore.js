@@ -338,7 +338,7 @@ function linearSteps(src) {
     if ([l0, l1, l2, r0, r1, r2].some((v) => v == null)) return null;
     if (Math.abs((l2 - l1) - (l1 - l0)) > 1e-9 || Math.abs((r2 - r1) - (r1 - r0)) > 1e-9) return null;   // not linear
     let La = l1 - l0, Lb = l0, Ra = r1 - r0, Rb = r0; const ineq = op !== "=", out = [];
-    const messy = /[()]/.test(L + R) || termCount(L) > 2 || termCount(R) > 2 || /\//.test(L + R);
+    const messy = /[()]/.test(L + R) || termCount(L) > 2 || termCount(R) > 2 || /[a-z]\s*\/\s*\d/.test(L + R);   // 1/2x is fine as it is; x/2 or 3(x + 1) gets tidied first
     if (messy) out.push("Simplify each side first (distribute and combine like terms): " + lin(La, Lb, x) + " " + OPS[op] + " " + lin(Ra, Rb, x));
     // x on both sides with more x's on the right: work with the sides switched, so nobody divides by a negative they didn't need.
     let swapped = false;
@@ -374,6 +374,7 @@ function triangleSteps(src) {
         return steps.slice(0, STEP_MAX);
     }
     const nums = [...q.matchAll(/(\d+(?:\.\d+)?)\s*°/g)].map((m) => m[1]);
+    if (/exterior/.test(lq)) return nums.length >= 2 && /remote|interior/.test(lq) && /find the other|other (remote )?interior|missing/.test(lq) ? ["An exterior angle equals the two remote interior angles added together.", "So the missing angle is the exterior angle minus the one you know: " + nums[0] + " − " + nums[1] + "."] : null;
     if (/right triangle/.test(lq) && /acute/.test(lq) && nums.length >= 1) return ["A right triangle has a 90° angle, so the other two angles add up to 90°.", "Subtract the angle you know from 90."];
     if (/isosceles/.test(lq) && /vertex/.test(lq) && nums.length >= 1) return ["The three angles add up to 180°. Take away the vertex angle: 180 − " + nums[0] + ".", "What's left is shared by the two base angles, which are equal. Split it in half."];
     if (nums.length >= 3 && /can a triangle|could a triangle|possible/.test(lq)) return ["Add the three angles: " + nums.slice(0, 3).join(" + ") + ".", "A triangle's angles must add up to exactly 180°. Does yours?"];
@@ -383,7 +384,9 @@ function triangleSteps(src) {
 function pythagSteps(src) {
     const lq = String(src || "").toLowerCase(); if (!/hypotenuse|\blegs?\b/.test(lq) || /\bangles?\b|°/.test(lq)) return null;
     const nums = [...lq.matchAll(/(\d+(?:\.\d+)?)/g)].map((m) => m[1]); if (nums.length < 2) return null;
-    if (/hypotenuse is (\d+)/.test(lq)) { const c = lq.match(/hypotenuse is (\d+(?:\.\d+)?)/)[1], a = nums.find((n) => n !== c); return ["Use a² + b² = c². The hypotenuse is c = " + c + ".", "Put in what you know: " + a + "² + b² = " + c + "². Square the numbers.", "Subtract to get b² by itself, then take the square root."]; }
+    const hm = lq.match(/hypotenuse(?: is| of| =|:)?\s*(\d+(?:\.\d+)?)/);
+    if (hm && !/find the hypotenuse|how long is the hypotenuse/.test(lq)) { const c = hm[1], a = nums.find((n) => n !== c); if (!a) return null; return ["Use a² + b² = c². The hypotenuse is the longest side, so c = " + c + ".", "Put in what you know: " + a + "² + b² = " + c + "². Square the numbers.", "Subtract to get b² by itself, then take the square root."]; }
+    if (!/find the hypotenuse|hypotenuse\?|how long is the hypotenuse|length of the hypotenuse/.test(lq) && !/legs (are|of)/.test(lq)) return null;
     return ["Use a² + b² = c². The legs are a and b.", "Square both legs and add them: " + nums[0] + "² + " + nums[1] + "².", "Take the square root of that sum."];
 }
 /** "−2/5", "4 2/3", "-0.6", "(−6)" as a value, or null. */
@@ -395,6 +398,7 @@ function rationalSteps(src) {
     if (!m) return null;
     const A = m[1], op = m.length === 4 ? (m[2].trim() || "×") : "×", B = m.length === 4 ? m[3] : m[2];
     const a = ratOf(A), b = ratOf(B); if (a == null || b == null) return null;
+    if (b === 0 && /[÷/]/.test(op)) return null;   // dividing by zero: no steps to give
     const isFrac = (s) => /\//.test(s), mixed = (s) => /\d \d+\/\d+/.test(s), dec = (s) => /\./.test(s);
     const steps = [];
     const sgn = (v) => (v < 0 ? "negative" : "positive");
@@ -404,7 +408,7 @@ function rationalSteps(src) {
         if (isFrac(A) || isFrac(B)) {
             const da = +(String(A).match(/\/(\d+)/) || [0, 1])[1], db = +(String(B).match(/\/(\d+)/) || [0, 1])[1], lcd = da * db / gcd(da, db);
             if (mixed(A) || mixed(B)) steps.push("Change the mixed numbers to improper fractions first.");
-            steps.push("Find a common denominator: " + lcd + ". Rewrite both fractions with " + lcd + " on the bottom.");
+            steps.push(da === db ? "The bottoms already match (" + lcd + "), so keep " + lcd + " on the bottom." : "Find a common denominator: " + lcd + ". Rewrite both fractions with " + lcd + " on the bottom.");
             steps.push((a < 0) !== (bb < 0) ? "The signs are different: subtract the tops, and keep the sign of the one that's bigger without its sign." : "Add the tops and keep " + lcd + " on the bottom.");
             steps.push("Simplify your answer if you can.");
         } else {
@@ -427,7 +431,17 @@ export function autoSteps(question) {
     try { return triangleSteps(q) || pythagSteps(q) || linearSteps(q) || rationalSteps(q) || []; } catch (e) { return []; }
 }
 /** The steps a game question uses: the teacher's own (st), else automatic ones. */
-export function stepsFor(q) { const own = Array.isArray(q && q.st) ? q.st.filter(Boolean) : []; return (own.length ? own : autoSteps(q && q.q)).slice(0, STEP_MAX); }
+export function stepsFor(q) { const own = Array.isArray(q && q.st) ? q.st.filter(Boolean) : []; return (own.length ? own : autoSteps(q && q.q)).slice(0, STEP_MAX).map(mathify); }
+/** Write a step the way it looks in math class: 3/4 as a stacked fraction {3/4}, (2/3)x as {2/3}x, x/4 as {x/4}, 2 1/2 as 2{1/2},
+    and powers like x^2 as x². The whiteboard and the step cards draw {a/b} as a real fraction. */
+const SUPS = { 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹" };
+export function mathify(t) {
+    return String(t || "")
+        .replace(/(\d+) (\d+)\/(\d+)(?![\w}\/]|\.\d)/g, "$1{$2/$3}")
+        .replace(/\((−?-?)(\d+)\/(\d+)\)(?=[a-z])/g, (m, sg, n, d) => (sg ? "−" : "") + "{" + n + "/" + d + "}")
+        .replace(/(?<![\w{}\/.])([a-z]|\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?|[a-z])(?![\w}\/]|\.\d)/g, "{$1/$2}")
+        .replace(/\^(\d)(?!\d)/g, (m, d) => SUPS[d]);
+}
 
 /** One question from a saved set, made ready for the game: { c, q, a, al, h, ch }.
     al: other answers to accept · h: the teacher's own second-try hint · ch: answer choices (multiple choice, 2 to 5).

@@ -10,11 +10,11 @@
      teacher/{uid}/games/index    { sets: [{ id, title, cats, clues, final, per, maker, at }] }
    Vault Raid uses every question (js/vaultCore.js gameQuestion); the Review Board shows the first 6 skills x 6.
 ========================================== */
-import * as V from "./vaultCore.js?v=71";
+import * as V from "./vaultCore.js?v=72";
 import { WEEKS as PUBLISHED } from "../data/weeks.js?v=61";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { extract, norm as bnorm, KINDS } from "./bank.js?v=2";
-import { loadStdBank, inClass, KIND as SB_KIND, WEEK_ID as SB_WEEK, WEEK_LABEL as SB_LABEL } from "./stdBank.js?v=1";
+import { loadStdBank, inClass, KIND as SB_KIND, WEEK_ID as SB_WEEK, WEEK_LABEL as SB_LABEL } from "./stdBank.js?v=2";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -216,7 +216,7 @@ function drawEditor() {
     st.placeholder = "One step per line, up to 4. Never write the final answer.";
     const auto2 = el("div", "mk-autosteps"); auto2.id = "autoSteps";
     st.oninput = () => { x.st = st.value; touch(); drawAutoSteps(); };
-    box.appendChild(field("Steps (optional)", st, "Vault Raid shows one step after each real wrong try, and each step lowers the coins. Leave blank to use the steps below, when Vault Raid can build them."));
+    box.appendChild(field("Steps (optional)", st, "Vault Raid types one step onto the student's whiteboard after each real wrong try, and each step lowers the coins. Type {3/4} for a stacked fraction and x^2 for a power. Leave blank to use the steps below, when Vault Raid can build them."));
     box.appendChild(auto2); drawAutoSteps();
 
     const iss = el("div", "mk-issues"); iss.id = "issues"; box.appendChild(iss); drawIssues();
@@ -343,7 +343,7 @@ function fromBank(x) {
     if (!ch && / = /.test(a) && !/^[a-z]\s*=/i.test(a) && !a.includes(",") && !a.includes("(")) { const parts = a.split(/\s+=\s+/).map((t) => t.trim()).filter(Boolean); a = parts[0]; al = parts.slice(1, 4); }
     if (ch && !ch.includes(a)) { const k = LET.indexOf(a.toUpperCase()); a = k >= 0 && ch[k] ? ch[k] : a; }
     if (!ch && Array.isArray(x.also)) x.also.forEach((t) => { const v = typed(t); if (v && v !== a && !al.includes(v) && al.length < 4) al.push(v); });   // the standards bank's other right answers
-    const st = Array.isArray(x.steps) ? x.steps.map((t) => typed(t)).join("\n") : "";   // the bank's own steps, when it has them
+    const st = Array.isArray(x.steps) ? x.steps.map((t) => String(t).replace(/§/g, "$")).join("\n") : "";   // keep {3/4} so steps show real fractions   // the bank's own steps, when it has them
     return newQ({ s: (x.skill || (x.std ? "AL " + x.std + (x.part || "") : "")).slice(0, 60), q: shown(x.q).slice(0, 400), a: a.slice(0, 200), al, ch, st });
 }
 function addQs(list) {
