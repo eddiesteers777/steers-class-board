@@ -85,7 +85,8 @@ function card(x) {
     top.appendChild(cb);
     const q = el("div", "bk-q"); q.appendChild(rich(x.q)); top.appendChild(q); li.appendChild(top);
     if (Array.isArray(x.choices) && x.choices.length) { const ch = el("p", "bk-ch"); x.choices.forEach((t, i) => { const s = el("span"); s.appendChild(el("b", null, "ABCDE"[i] + ". ")); s.appendChild(rich(t)); ch.appendChild(s); }); li.appendChild(ch); }
-    if ($("ans").checked) { const a = el("p", "bk-a"); a.appendChild(el("b", null, "Answer: ")); a.appendChild(rich(x.a)); if (Array.isArray(x.also) && x.also.length) a.appendChild(el("span", "bk-also", "  Also right: " + x.also.join(", "))); li.appendChild(a); }
+    if ($("ans").checked) { const a = el("p", "bk-a"); a.appendChild(el("b", null, "Answer: ")); a.appendChild(rich(x.a)); const alt = Array.isArray(x.also) ? x.also.filter((t) => !/\^\(|\d\s*\/\s*\d|[a-z)]\/|\^\-?[a-z0-9]/i.test(String(t).replace(/\{[^{}]*\}/g, ""))) : [];   // typed forms like 3/4 or x^3 stay out of sight
+    if (alt.length) { const s = el("span", "bk-also", "  Also right: "); alt.forEach((t, i) => { if (i) s.appendChild(document.createTextNode(", ")); s.appendChild(rich(t)); }); a.appendChild(s); } li.appendChild(a); }
     const meta = el("p", "bk-meta");
     const where = x.sb ? (x.for || [x.cls]).map((k) => LABEL[k] || k).join(" + ") : LABEL[x.cls] || x.cls;
     [where, x.sb ? (LEVELS[x.lvl] || "") : x.kind, x.sb ? "" : (x.uses ? x.uses.join(", ") : x.label) + (x.day != null && DAYS[x.day] ? " · " + DAYS[x.day] : ""), x.check ? "Checked" : ""].filter(Boolean)

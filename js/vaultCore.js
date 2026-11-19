@@ -500,11 +500,11 @@ const tidy = (s) => String(s == null ? "" : s).replace(/<=/g, "≤").replace(/>=
 /** "3/4" and "{x+1/2}" become stacked fractions, "10^-3" a raised exponent. */
 export function mathText(text) {
     const s = tidy(text), frag = document.createDocumentFragment();
-    const re = /\{([^{}/]+)\/([^{}/]+)\}|(?<![\w/.^])(\d+)\/(\d+)(?![\w/.])|\^(-?[A-Za-z0-9.]+|\{[^{}]*\}|\([^()]*\))/g;
+    const re = /\{([^{}/]+)\/([^{}/]+)\}|(?<![\w/.^])(\d+)\/(\d+)(?![\w/.])|\^(-?[A-Za-z0-9.]+|\{(?:[^{}]|\{[^{}]*\})*\}|\([^()]*\))/g;   // ^{{1/2}}: a stacked fraction as the exponent
     let last = 0, m;
     while ((m = re.exec(s))) {
         if (m.index > last) frag.append(s.slice(last, m.index));
-        if (m[5] != null) { let e = m[5]; if (/^[{(]/.test(e)) e = e.slice(1, -1); frag.append(el("sup", "gsup", e.replace(/^-/, "−"))); }
+        if (m[5] != null) { let e = m[5]; if (/^[{(]/.test(e)) e = e.slice(1, -1); const sup = el("sup", "gsup"); sup.append(mathText(e.replace(/^-/, "−"))); frag.append(sup); }
         else { const f = el("span", "frac"), a = el("span"), b = el("span"); a.append(mathText(m[1] != null ? m[1] : m[3])); b.append(mathText(m[2] != null ? m[2] : m[4])); f.append(a, b); frag.append(f); }
         last = re.lastIndex;
     }
