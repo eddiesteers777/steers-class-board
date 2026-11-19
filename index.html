@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="css/board.css?v=57">
     <link rel="stylesheet" href="css/console.css?v=57">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/home.css?v=57">
+    <link rel="stylesheet" href="css/home.css?v=58">
     <link rel="stylesheet" href="css/footer.css?v=2">
     <meta name="theme-color" content="#081B45">
     </head>
@@ -107,6 +107,15 @@
             <div class="belltable" id="extraRows"></div>
             <div class="rowx"><button class="btn ghost" id="extraAdd" type="button">Add a time</button></div>
             <div class="rowx"><button class="btn" id="bellSave" type="button">Save bell times</button><span class="count2" id="bellNote"></span></div>
+            <h3 class="bellh">Plan ahead</h3>
+            <p class="sub">Activity day or early dismissal coming up? Pick the date and its schedule. That day starts on it by itself, and the board's period clock and bell timeline use it.</p>
+            <div class="bpick2">
+                <label class="field"><span>Date</span><input type="date" id="aheadDate" aria-label="Date to plan"></label>
+                <label class="field"><span>Schedule</span><select id="aheadSel" aria-label="Schedule for that date"></select></label>
+                <button class="btn ghost" id="aheadSet" type="button">Set this day</button>
+            </div>
+            <div class="belltable" id="aheadRows"></div>
+            <p class="count2" id="aheadNote" role="status"></p>
           </div>
           <h3 class="bellh">Your classes and your data</h3>
           <p class="sub">Change your classes and periods, see everything your account has saved, or delete it all.</p>
@@ -150,11 +159,12 @@
         const todayIso = iso(new Date());
         let week = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= todayIso) week = w;
         const wd = new Date().getDay(), isSchoolDay = wd >= 1 && wd <= 5, di = isSchoolDay ? wd - 1 : 0;
-        // settings/bells: { periods (the Regular schedule, as before), schedules: { id: { name, periods, extra: [{ label, start, end }] } }, today: { date, id } }
-        let bells = {}, doc = { periods: {}, schedules: {}, today: null };
+        // settings/bells: { periods (the Regular schedule, as before), schedules: { id: { name, periods, extra: [{ label, start, end }] } }, today: { date, id },
+        //   days: { "YYYY-MM-DD": id } (planned ahead: that date starts on that schedule) }
+        let bells = {}, doc = { periods: {}, schedules: {}, today: null, days: {} };
         const schedList = () => [["regular", "Regular"]].concat(Object.entries(doc.schedules || {}).filter(([id]) => id !== "regular").map(([id, x]) => [id, x.name || "Schedule"]));
         const schedOf = (id) => id === "regular" ? { name: "Regular", periods: doc.periods || {}, extra: (doc.schedules && doc.schedules.regular && doc.schedules.regular.extra) || [] } : (doc.schedules || {})[id];
-        const todayId = () => (doc.today && doc.today.date === todayIso && schedOf(doc.today.id)) ? doc.today.id : "regular";
+        const todayId = () => (doc.today && doc.today.date === todayIso && schedOf(doc.today.id)) ? doc.today.id : (doc.days && doc.days[todayIso] && schedOf(doc.days[todayIso])) ? doc.days[todayIso] : "regular";
         const useToday = () => { const sc = schedOf(todayId()); bells = sc.periods || {}; };
         const mins = (t) => { const m = /^(\d{1,2}):(\d{2})$/.exec(t || ""); return m ? +m[1] * 60 + +m[2] : null; };
         const nice = (t) => { const m = mins(t); if (m == null) return ""; const h = Math.floor(m / 60), mm = ("0" + (m % 60)).slice(-2); return ((h + 11) % 12 + 1) + ":" + mm + (h < 12 ? " AM" : " PM"); };
@@ -223,7 +233,24 @@
             const list = schedList(), opt = ([id, name]) => { const o = el("option", null, name); o.value = id; return o; };
             $("todaySel").replaceChildren(...list.map(opt)); $("todaySel").value = todayId();
             $("editSel").replaceChildren(...list.map(opt)); if (!schedOf(editId)) editId = "regular"; $("editSel").value = editId;
+            $("aheadSel").replaceChildren(...list.map(opt)); if (!$("aheadDate").value) $("aheadDate").value = todayIso; $("aheadDate").min = todayIso;
+            aheadList();
         }
+        // Planned days: a list of dates that start on a schedule other than Regular.
+        function aheadList() {
+            const host = $("aheadRows"); host.textContent = "";
+            const days = Object.entries(doc.days || {}).filter(([k, id]) => k >= todayIso && id !== "regular" && schedOf(id)).sort();
+            if (!days.length) { host.appendChild(el("p", "sub", "No days planned. Every day runs on Regular unless you pick one here or under Today's schedule.")); return; }
+            days.forEach(([k, id]) => {
+                const r = el("div", "bellrow aheadrow"), dt = new Date(k + "T12:00:00");
+                r.appendChild(el("span", "aheaddate", dt.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }) + (k === todayIso ? " (today)" : "")));
+                r.appendChild(el("strong", "aheadname", schedOf(id).name));
+                const del = el("button", "bx", "✕"); del.type = "button"; del.setAttribute("aria-label", "Back to Regular on " + k);
+                del.onclick = () => { delete doc.days[k]; if (k === todayIso && doc.today && doc.today.date === todayIso) doc.today = null; aheadWrite("Back to Regular on " + dt.toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" }) + "."); };
+                r.appendChild(del); host.appendChild(r);
+            });
+        }
+        let aheadWrite = () => {};
         function fillBells() {
             const sc = schedOf(editId) || { periods: {}, extra: [] };
             PERIODS.forEach(([p]) => ["start", "end"].forEach((k) => { $("bell-" + p + "-" + k).value = (sc.periods && sc.periods[p] && sc.periods[p][k]) || ""; }));
@@ -235,7 +262,8 @@
             return { periods: out, extra: extra.filter((x) => String(x.label || "").trim() && x.start).map((x) => ({ label: String(x.label).trim().slice(0, 30), start: x.start, end: x.end || "" })) };
         }
         function cleanDoc(d) {
-            const out = { periods: (d && d.periods) || {}, schedules: {}, today: null };
+            const out = { periods: (d && d.periods) || {}, schedules: {}, today: null, days: {} };
+            Object.entries((d && d.days) || {}).forEach(([k, id]) => { if (/^\d{4}-\d{2}-\d{2}$/.test(k) && k >= todayIso && typeof id === "string") out.days[k] = id.slice(0, 24); });   // past days drop off
             Object.entries((d && d.schedules) || {}).forEach(([id, x]) => { if (x && typeof x === "object") out.schedules[id] = { name: String(x.name || "Schedule").slice(0, 40), periods: x.periods || {}, extra: Array.isArray(x.extra) ? x.extra : [] }; });
             if (d && d.today && typeof d.today.date === "string") out.today = { date: d.today.date, id: String(d.today.id || "regular") };
             return out;
@@ -386,7 +414,17 @@
                 write("Saved " + (schedOf(editId).name || "schedule") + ": " + Object.keys(f.periods).length + " periods, " + f.extra.length + " other times");
             };
             $("editSel").onchange = () => { editId = $("editSel").value; fillBells(); $("bellNote").textContent = ""; };
-            $("todaySel").onchange = () => { const id = $("todaySel").value; doc.today = id === "regular" ? null : { date: todayIso, id }; write("Today runs on " + schedOf(id).name + "."); };
+            $("todaySel").onchange = () => { const id = $("todaySel").value; doc.today = id === "regular" ? null : { date: todayIso, id }; if (doc.days) delete doc.days[todayIso]; write("Today runs on " + schedOf(id).name + "."); };
+            aheadWrite = (msg) => { write(msg).then(() => { if ($("bellNote").textContent === msg) $("bellNote").textContent = ""; $("aheadNote").textContent = msg; }); };
+            $("aheadSet").onclick = () => {
+                const k = $("aheadDate").value, id = $("aheadSel").value;
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || k < todayIso) { $("aheadNote").textContent = "Pick today or a later date."; return; }
+                doc.days = doc.days || {};
+                if (id === "regular") delete doc.days[k]; else doc.days[k] = id;
+                if (k === todayIso) doc.today = id === "regular" ? null : { date: todayIso, id };
+                const nm = new Date(k + "T12:00:00").toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" });
+                aheadWrite(nm + " runs on " + schedOf(id).name + ".");
+            };
             $("schedNew").onclick = () => { const id = "s" + Date.now().toString(36); doc.schedules[id] = { name: "New schedule", periods: JSON.parse(JSON.stringify(doc.periods || {})), extra: [] }; editId = id; fillBells(); $("schedName").focus(); $("schedName").select(); $("bellNote").textContent = "Copied from Regular. Change the name and times, then Save bell times."; };
             $("schedDel").onclick = () => { if (editId === "regular") return; delete doc.schedules[editId]; if (doc.today && doc.today.id === editId) doc.today = null; editId = "regular"; fillBells(); write("Schedule deleted."); };
             $("extraAdd").onclick = () => { extra.push({ label: "", start: "", end: "" }); extraRows(); const ins = $("extraRows").querySelectorAll(".bellname"); if (ins.length) ins[ins.length - 1].focus(); };

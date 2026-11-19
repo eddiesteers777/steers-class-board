@@ -21,6 +21,7 @@ import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as dra
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=81";
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=7";
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
+import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=1";
 import { cleanChart, cleanPeriod, seatCount, drawRoom } from "./seats.js?v=2";
 
 const $ = (id) => document.getElementById(id);
@@ -92,7 +93,7 @@ function cleanWb(o) {
 }
 const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0,
     timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", fix: null, tools: defaultTools(), wb: defaultWb(),
-    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true }, look: defaultLook(), seatHi: null };
+    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true }, look: defaultLook(), seatHi: null, bplan: cleanBplan(null) };
 
 // This page's own mark on what it saves, so a change from another tab of the same browser can be shown
 // before the server confirms it (those tabs share one offline copy, where it first arrives as "pending").
@@ -130,6 +131,38 @@ function quiet() { clearTimeout(quietTimer); quietTimer = setTimeout(() => { if 
 let ROSTERS = {};
 let SEATS = cleanChart(null), seatsIn = false, seatLast = "";   // seating charts (seats.html), whether they have arrived, and the period last drawn
 let BELLS = null;   // today's bell times from Home (settings/bells), for the Period clock panel
+let BELL_DOC = null, BELL_ID = "regular";   // the whole bell-times doc, and which schedule today runs on
+let PLAN = null, planFold = null;   // the bell timeline (settings/timeline, js/bellPlan.js) and its fold on the rail
+const schedName = (id) => (id === "regular" ? "Regular" : (BELL_DOC && BELL_DOC.schedules && BELL_DOC.schedules[id] && BELL_DOC.schedules[id].name) || "Schedule");
+function bellsOf(id) {
+    if (!BELL_DOC) return null;
+    const per = id === "regular" ? (BELL_DOC.periods || {}) : ((BELL_DOC.schedules && BELL_DOC.schedules[id] && BELL_DOC.schedules[id].periods) || {});
+    return Object.keys(per).length ? per : null;
+}
+/** Which schedule a date runs on: today's pick on Home or the Remote, else a day planned ahead, else Regular. */
+function schedFor(d, date) {
+    const ok = (id) => id && (id === "regular" || (d.schedules && d.schedules[id]));
+    if (d.today && d.today.date === date && ok(d.today.id)) return d.today.id;
+    if (d.days && ok(d.days[date])) return d.days[date];
+    return "regular";
+}
+const planApi = { S, el, now, push: () => push(), mode: () => mode, today: () => localIso(), schoolDay: () => isSchoolDay(),
+    plan: () => PLAN, bells: () => BELLS, bellId: () => BELL_ID, bellName: () => schedName(BELL_ID), bellsFor: (id) => bellsOf(id),
+    schedules: () => [["regular", "Regular"]].concat(Object.keys((BELL_DOC && BELL_DOC.schedules) || {}).filter((id) => id !== "regular").map((id) => [id, schedName(id)])),
+    periods: () => PERIODS, screens: () => SCREENS.filter((x) => screenOrder().includes(x[0])),
+    layouts: () => SCENES.filter((sc) => !(mode === "sub" && sc.guestless)).concat(S.tools.scenes || []),
+    screenOk: (id) => screenOk(id), applyScene: (sc) => applyScene(S, sc, toolApi),
+    goPeriod: (p) => {   // the bell for another period: its class, today's lesson, from the top
+        if (!W().classes[classOf(p)]) return; S.period = p; S.cls = classOf(p);
+        if (isSchoolDay() && (S.week !== defaultWeek() || S.day !== realDay())) { const dw = defaultWeek(); if (WEEKS.find((w) => w.id === dw).classes[S.cls]) { S.week = dw; S.day = realDay(); } }
+        resetPos();
+    },
+    savePlan: async (p) => { PLAN = cleanPlan(p); try { await store.save("settings/timeline", PLAN); return true; } catch (e) { return false; } },
+    setToday: async (id) => {   // pick today's schedule from the Remote (the same field Home's "Today's schedule" sets)
+        if (!BELL_DOC) return false; const d = JSON.parse(JSON.stringify(BELL_DOC)), date = localIso();
+        d.today = id === "regular" ? null : { date, id }; if (d.days) delete d.days[date];
+        try { await store.save("settings/bells", d); return true; } catch (e) { return false; }
+    } };
 const toolApi = { S, el, push, quiet, now, card, rosters: () => ROSTERS, redraw: () => { layerSig = ""; renderLayer(); },
     // panels (js/panels.js)
     day: () => D(), lesson: () => L(), rich, bells: () => BELLS, guest: () => mode === "sub", panelOk: (k) => panelOk(k), screenOk: (id) => screenOk(id),
@@ -1017,6 +1050,7 @@ function applyState(d) {
     S.fix = cleanFix(d.fix);
     S.wb = cleanWb(d.wb);
     S.look = cleanLook(d.look);
+    S.bplan = cleanBplan(d.bplan);
     S.seatHi = d.seatHi && typeof d.seatHi.n === "string" && typeof d.seatHi.at === "number" ? { n: d.seatHi.n.slice(0, 60), at: d.seatHi.at } : null;
     { const o = d.sound || {}, v = (x, def) => (typeof x === "number" && x >= 0 && x <= 1 ? x : def);
         S.sound = { fx: o.fx !== false, fxv: v(o.fxv, 0.7), music: !!o.music, mv: v(o.mv, 0.35), style: snd.STYLES.some((x) => x[0] === o.style) ? o.style : "focus", at: typeof o.at === "string" ? o.at.slice(0, 20) : "", game: o.game !== false }; }
@@ -1126,6 +1160,7 @@ export async function startApp(opts) {
     if (window.ResizeObserver) new ResizeObserver(fit).observe($("wrap")); document.addEventListener("fullscreenchange", () => setTimeout(fit, 60));
     document.addEventListener("pointerdown", unlockSound); document.addEventListener("keydown", unlockSound);
     soundPanel();
+    if (!guest) planFold = mountPlanFold(planApi, $("soundMenu") || $("toolsMenu"));
     $("flowNext").onclick = () => step(1); $("flowBack").onclick = () => step(-1);
     { // small arrows for full-screen Board view (hidden otherwise): tap on the Promethean, click on the Chromebook
         const nav = el("div", "bnav"), b = el("button", null, "\u2039"), f = el("button", null, "\u203A");
@@ -1139,7 +1174,7 @@ export async function startApp(opts) {
     keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
     document.addEventListener("keydown", (e) => { if (e.target && (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.target.isContentEditable)) return; if (e.altKey || e.ctrlKey || e.metaKey) return; if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); step(1); } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); step(-1); } else if (e.key === "m" || e.key === "M") { S.sound.music = !S.sound.music; push(); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
     let seatWas = "";
-    setInterval(() => { if (!synced) return; if (S.screen === "seats") { const h = seatHiNow(); if (h !== seatWas) { seatWas = h; render(); } } tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); tickLive(); tickNotes(); soundTick(); }, 250);
+    setInterval(() => { if (!synced) return; if (S.screen === "seats") { const h = seatHiNow(); if (h !== seatWas) { seatWas = h; render(); } } tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); tickLive(); tickNotes(); soundTick(); if (!guest) { planTick(planApi); if (planFold) planFold.tick(); } }, 250);
     { const p = el("div", "connpill"); p.id = "connPill"; p.setAttribute("role", "status"); p.hidden = true; document.body.appendChild(p); }
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && synced) { tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); soundTick(); } });   // a tab back in view shows the right time at once
     document.body.classList.add("syncing");
@@ -1178,10 +1213,11 @@ export async function startApp(opts) {
     if (!guest) store.watch("seats/chart", (snap) => { if (snap.pending) return; SEATS = cleanChart(snap.exists ? snap.data : null); seatsIn = true; if (synced && S.screen === "seats") render(); }, () => { seatsIn = true; });
     else seatsIn = true;
     if (!guest) store.watch("settings/bells", (snap) => {   // today's bell times, for the Period clock panel (Home edits them)
-        const d = snap.exists ? snap.data : null; if (!d) { BELLS = null; layerSig = ""; renderLayer(); return; }
-        let per = d.periods || {}; const t = d.today; if (t && t.date === localIso() && t.id && t.id !== "regular" && d.schedules && d.schedules[t.id]) per = d.schedules[t.id].periods || {};
-        BELLS = Object.keys(per).length ? per : null; layerSig = ""; renderLayer();
+        const d = snap.exists ? snap.data : null; BELL_DOC = d; if (!d) { BELLS = null; BELL_ID = "regular"; layerSig = ""; renderLayer(); if (planFold) planFold.refresh(); return; }
+        BELL_ID = schedFor(d, localIso()); BELLS = bellsOf(BELL_ID); layerSig = ""; renderLayer();
+        if (planFold) { planFold.refresh(); planFold.editor(); }
     }, () => {});
+    if (!guest) store.watch("settings/timeline", (snap) => { if (snap.pending) return; PLAN = cleanPlan(snap.exists ? snap.data : null); if (planFold) { planFold.refresh(); planFold.editor(); } }, () => { PLAN = cleanPlan(null); });
     store.clockSkew().then((ms) => { skew = ms; tick(); });
     const slow = setTimeout(() => { mark("board-slow", ms()); setStatus("Still connecting\u2026"); arrived(); render(); }, 10000);   // never leave the teacher on a blank board
     // Connection, said plainly. The Remote must never look live when the board cannot follow it.
