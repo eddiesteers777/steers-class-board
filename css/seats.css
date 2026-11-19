@@ -44,6 +44,10 @@
 .scell.full{background:#FFFFFF;border-color:#7FA2D4}
 .scell.open{background:#F1F5FB}
 
+/* a chair on its own: the seat is the cell, the back is a bar behind it */
+.k-chair .scell{border-radius:1.2cqw 1.2cqw .6cqw .6cqw;background:#F4F8FD}
+.k-chair .scell.full{background:#FFFFFF}
+.k-chair .scell::after{left:4%;right:4%;width:auto;bottom:-1.5cqw;height:1.2cqw;transform:none;border-radius:.5cqw .5cqw 1cqw 1cqw;background:#9DB7DA}
 /* one student lit up: "Where do I sit?" */
 .scell.hi{background:#FFF6E2;border-color:var(--sr-amber);z-index:3;box-shadow:0 0 0 .5cqw rgba(242,179,61,.45),0 .6cqw 2cqw rgba(242,179,61,.45);animation:srPulse 1.6s ease-in-out infinite}
 .scell.hi .stag b{color:#5A3E00}

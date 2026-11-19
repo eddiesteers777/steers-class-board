@@ -22,6 +22,7 @@ export const KINDS = {
     trio: { n: "Row of 3", g: "Desks", w: 244, h: 58, cells: grid(3, 1) },
     table4: { n: "Table of 4", g: "Desks", w: 164, h: 112, cells: grid(2, 2) },
     table6: { n: "Table of 6", g: "Desks", w: 244, h: 112, cells: grid(3, 2) },
+    chair: { n: "Chair", g: "Desks", w: 66, h: 58, chair: true, cells: [[0, 0, 1, 0.78, "b"]] },
     round: { n: "Round table", g: "Desks", w: 170, h: 170, round: true, cells: [[0.29, 0.02, 0.42, 0.3, "t"], [0.68, 0.35, 0.3, 0.3, "r"], [0.29, 0.68, 0.42, 0.3, "b"], [0.02, 0.35, 0.3, 0.3, "l"]] },
     teacher: { n: "Teacher desk", g: "Room", w: 170, h: 70, label: "Teacher", resize: true },
     board: { n: "Board", g: "Room", w: 360, h: 26, label: "Board", resize: true },

@@ -6,7 +6,7 @@
    Seating Chart screen follows it live. Rosters come from rosters/all.
    ?demo uses made-up names and a this-tab store: nothing is saved.
 ========================================== */
-import { ROOM, KINDS, TEMPLATES, MIN, isSeat, sizeOf, uid, snap, cleanChart, cleanPeriod, seatList, seatCount, drawRoom } from "./seats.js?v=2";
+import { ROOM, KINDS, TEMPLATES, MIN, isSeat, sizeOf, uid, snap, cleanChart, cleanPeriod, seatList, seatCount, drawRoom } from "./seats.js?v=3";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
