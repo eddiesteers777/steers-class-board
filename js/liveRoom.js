@@ -188,6 +188,7 @@ function handle(id, d, sends) {
         else if (H.redo && !H.redo.done) redoAnswer(id, p, a);
         else if ((+p.cd || 0) > Date.now()) { /* slowing down after 2 misses in a row */ }
         else if (H.status === "play" && +a.q === p.qn && p.code && !(H.opts.work !== false && !d.img)) {   // work required: an answer with no pad picture is not taken
+            p.ta = (+p.ta || 0) + 1; p.f0 = +p.f0 || Date.now(); p.f1 = Date.now();   // effort for Student Progress: every try, first and last answer time
             const q = qOf(p, p.qn), typed = String(a.t || "").slice(0, 80), ok = V.sameAnswer(typed, q.a, q.al), qi = p.ord[p.qn % p.ord.length];
             const second = p.rt === p.qn;   // this is their second (or later) try at this question
             let plus = 0, x2 = [], box = null;
@@ -276,6 +277,7 @@ function redoAnswer(id, p, a) {
 function sendBack(qi, blank) {
     if (!H || H.status !== "done" || !H.qs[qi]) return;
     const key = reviewInkKey(qi);
+    if (H.redo && H.redo.res) H.rdl = (H.rdl || []).concat([{ qi: H.redo.qi, res: H.redo.res }]).slice(-12);   // keep earlier send-backs for Student Progress
     H.redo = { qi, k: ((H.redo && H.redo.k) || 0) + 1, res: {}, at: Date.now(), done: 0, mine: blank ? 0 : 1 };
     H.review = { qi, ans: false }; H.status = "play"; H.ends = 0; H.bonus = 0; H.show = null; redoWork = null;
     feed("Try it again!", "start"); flush(everyone()); saveSoon(true); panelSig = ""; drawLivePanel(true);
@@ -552,7 +554,8 @@ function tally(p, qi, typed, ok) {
         const w = st.w.find((x) => x.y.toLowerCase().replace(/\s+/g, "") === k);
         if (w) w.n++; else if (st.w.length < 12) st.w.push({ y, n: 1 });
     }
-    p.lg = (p.lg || []).concat([ok ? { i: qi, ok: 1 } : { i: qi, ok: 0, y: String(typed || "").trim().slice(0, 40) }]).slice(-80);
+    const t = Math.max(0, Math.min(900, Math.round((Date.now() - (+p.qt || Date.now())) / 1000)));   // seconds on this question before the first try
+    p.lg = (p.lg || []).concat([ok ? { i: qi, ok: 1, t } : { i: qi, ok: 0, y: String(typed || "").trim().slice(0, 40), t }]).slice(-80);
 }
 /** Undo the miss when the teacher counts a wrong answer as right. */
 function untally(p, qi, typed) {
@@ -682,13 +685,43 @@ async function saveResults() {
             await A.store().save("data/index", { imports, at: Date.now() });
         }
         H.saved = true; note = "";
+        await saveProgress();
     } catch (e) { note = "Could not save to Class Data (" + ((e && e.code) || "connection") + ")."; }
     busy = ""; changed(true); drawLivePanel(true);
+}
+/* ---------- Student Progress: the effort record that used to vanish when the room closed ----------
+   Saved only when the teacher saves results (the same "Save results to Class Data" choice), to
+   teacher/{uid}/progress/g_<rid>, with an entry in progress/index. Names are the game names (first name +
+   last initial), never more. Each answer is "question:result:seconds:steps" (Firestore keeps no lists in lists). */
+function progressDoc() {
+    const sends = (H.rdl || []).concat(H.redo && H.redo.res ? [{ qi: H.redo.qi, res: H.redo.res }] : []);
+    const st = Object.keys(H.players).map((id) => {
+        const p = H.players[id], ex = H.exit && H.exit.res && H.exit.res[id];
+        return { s: p.nm, ta: +p.ta || (p.lg || []).length, r: p.r, n: p.n, best: p.best || 0, cr: p.cr || 0,
+            mins: p.f0 && p.f1 ? Math.round((p.f1 - p.f0) / 6000) / 10 : 0,
+            lg: (p.lg || []).map((x) => x.i + ":" + (x.ok ? 1 : x.fx ? 2 : 0) + ":" + (+x.t || 0) + ":" + (+x.sp || 0)),
+            rd: sends.filter((x) => x.res && x.res[id]).map((x) => (x.res[id].ok ? 1 : 0)),
+            ex: ex ? { ok: ex.filter((x) => x.ok).length, of: ex.length } : null };
+    }).filter((x) => x.lg.length || x.rd.length || x.ex);
+    const qs = H.qs.map((q, i) => { const t = (H.qst || [])[i] || { n: 0, ok: 0, w: [] }; return { q: String(q.q).slice(0, 160), a: String(q.a).slice(0, 60), c: q.c || "", n: t.n, ok: t.ok, w: t.w.slice().sort((a, b) => b.n - a.n).slice(0, 3) }; });
+    const d = new Date(), day = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+    return { id: H.rid, date: day, at: Date.now(), period: H.per, game: "Vault Raid", title: H.title, setId: H.setId || "", qs, st };
+}
+async function saveProgress() {
+    if (!H || !H.rid) return;
+    try {
+        const doc = progressDoc(); if (!doc.st.length) return;
+        await A.store().save("progress/g_" + doc.id, doc);
+        const ix = await A.store().rooms.get("teacher/" + A.store().rooms.uid() + "/progress/index");
+        const games = ((ix && ix.games) || []).filter((x) => x && x.id !== doc.id).concat([{ id: doc.id, date: doc.date, period: doc.period, title: doc.title, n: doc.st.length }]).slice(-2000);
+        await A.store().save("progress/index", { games, at: Date.now() });
+    } catch (e) { /* the game and its Class Data result are already saved; this extra record can wait for the next save */ }
 }
 async function closeRoom() {
     if (!H || busy) return; busy = "close"; panelSig = ""; drawLivePanel(true);
     const code = H.code;
     try {
+        if (H.saved) await saveProgress();   // send-backs and exit tickets after the game: update the effort record before the room's data is deleted
         stopPlayers();
         // A room that is already gone can't be listed (the rules check its owner), so only clear one that is there.
         let there = true; try { there = !!(await A.store().rooms.get("rooms/" + code)); } catch (e) { there = true; }
