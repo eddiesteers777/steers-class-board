@@ -12,7 +12,8 @@ import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { buildWidget, tickTools, defaultTools, mergeTools, TOOL_LIST } from "./boardTools.js?v=57";
+import { tickTools, defaultTools, mergeTools, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=58";
+import { buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf } from "./panels.js?v=1";
 import * as snd from "./sound.js?v=58";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
@@ -126,8 +127,27 @@ function push() { S.stamp = localIso(); render(); if (writeState) writeState(JSO
 let quietTimer = 0;
 function quiet() { clearTimeout(quietTimer); quietTimer = setTimeout(() => { if (writeState) writeState(JSON.parse(JSON.stringify(S))); }, 500); } // save typing without redrawing
 let ROSTERS = {};
-const toolApi = { S, el, push, quiet, now, card, rosters: () => ROSTERS, redraw: () => { layerSig = ""; renderLayer(); } };
-function toolSig() { const t = Object.assign({}, S.tools); delete t.text; t.goal = Object.assign({}, t.goal); delete t.goal.text; return JSON.stringify([t, S.period, Object.keys(ROSTERS).map((k) => k + ROSTERS[k].length)]); }
+let BELLS = null;   // today's bell times from Home (settings/bells), for the Period clock panel
+const toolApi = { S, el, push, quiet, now, card, rosters: () => ROSTERS, redraw: () => { layerSig = ""; renderLayer(); },
+    // panels (js/panels.js)
+    day: () => D(), lesson: () => L(), rich, bells: () => BELLS, guest: () => mode === "sub", panelOk: (k) => panelOk(k), screenOk: (id) => screenOk(id),
+    defaultPos: (k) => { const d = DEFAULT_POS[k] || [10, 30]; return { x: d[0], y: d[1], s: 1 }; }, bellSeconds: () => { const l = L(); return (l && l.bellSeconds) || 300; },
+    agendaKey: () => [S.week, S.period, S.day].join("|"), noteKind: () => { if (S.screen !== "notes") return ""; const fr = notesFrames(D()); const f = fr[Math.min(S.note, fr.length - 1)]; return (f && f.kind) || ""; }, freeView, timerGo: () => timerGo("free"), timerReset: () => { S.timers.free = Object.assign(blankTimer(), { dur: S.timers.free.dur || 300 }); push(); },
+    timerSet: (sec) => { S.timers.free = Object.assign(blankTimer(), { dur: sec }); } };
+function toolSig() { const t = Object.assign({}, S.tools); delete t.text; t.goal = Object.assign({}, t.goal); delete t.goal.text; const f = S.timers.free; return JSON.stringify([t, S.period, Object.keys(ROSTERS).map((k) => k + ROSTERS[k].length), f.running, f.dur, f.t0, f.elapsed, S.week, S.cls, S.day, !!BELLS, S.tools.on.agenda ? [S.screen, S.screen === "notes" ? S.note : 0] : 0]); }
+const panelOk = (k) => !(mode === "sub" && (k === "pick" || k === "groups"));
+function screenOk(id) { if (!screenOrder().includes(id)) return false; if (id === "notes") return notesFrames(D()).length > 0; if (id === "speed") return isSpeedDay(); return true; }
+/* The free Timer, shared by the Timer screen and the Timer panel. */
+function freeView() {
+    const t = S.timers.free, T = t.dur || 300, ms = t.running ? now() - t.t0 : t.elapsed, e = Math.max(0, Math.floor(ms / 1000)), r = Math.max(0, T - e);
+    return { txt: fmt(r), frac: r / T, hot: r > 0 && r <= Math.min(60, T / 4), done: r === 0 && e > 0, running: t.running, elapsed: t.elapsed, dur: T };
+}
+function timerGo(kind) {
+    const t = S.timers[kind];
+    if (t.running) { t.elapsed = now() - t.t0; t.running = false; }
+    else { if (kind !== "round" && t.elapsed >= secsFor(kind) * 1000) t.elapsed = 0; t.t0 = now() - t.elapsed; t.running = true; unlockSound(); }
+    push();
+}
 function resetPos() { S.prob = 0; S.show = false; S.note = 0; S.step = 0; }
 const W = () => WEEKS.find((w) => w.id === S.week) || WEEKS[WEEKS.length - 1];
 const L = () => { const w = W(); return (w && w.classes[S.cls]) || null; };
@@ -179,10 +199,13 @@ function buildControls() {
 /* ---------- stage ---------- */
 /* Tools sit on a shelf beside the lesson, so they never cover it. The stage gets a little
    smaller to make room. A tool the teacher drags out floats over the lesson by choice. */
-const SHELF_EM = 14.5, SHELF_WIDE_EM = 22.5;
+const SHELF_EM = 14.5, SHELF_WIDE_EM = 22.5, CHIP_EM = 11;
 const narrowWrap = () => { const w = $("wrap"); return !w || w.clientWidth - 16 < 700; };
-function shelfKeys() { return narrowWrap() ? [] : TOOL_LIST.map((x) => x[0]).filter((k) => S.tools.on[k] && !S.tools.pos[k] && k !== "groups"); }
-function shelfEm() { const ks = shelfKeys(); return !ks.length ? 0 : (ks.includes("score") ? SHELF_WIDE_EM : SHELF_EM); }
+const PANEL_KEYS = PANEL_LIST.map((x) => x[0]);
+/** Minimized panels: live chips at the foot of the shelf. */
+function chipKeys() { return ordered(S.tools, PANEL_KEYS.filter((k) => S.tools.on[k] && S.tools.min[k] && panelOk(k))); }
+function shelfKeys() { return narrowWrap() ? [] : ordered(S.tools, PANEL_KEYS.filter((k) => S.tools.on[k] && !S.tools.pos[k] && !S.tools.min[k] && k !== "groups" && panelOk(k))); }
+function shelfEm() { const ks = shelfKeys(); if (ks.length) return ks.includes("score") ? SHELF_WIDE_EM : SHELF_EM; return !narrowWrap() && chipKeys().length ? CHIP_EM : 0; }
 function shelfEl() { let sh = $("toolShelf"); if (!sh) { sh = el("div", "toolshelf"); sh.id = "toolShelf"; sh.hidden = true; $("wrap").appendChild(sh); } return sh; }
 let shelfApplied = "";
 function fit() {
@@ -192,7 +215,7 @@ function fit() {
     let sw = Math.min(Wd / (1 + se / 52), H * 16 / 9), sh = sw * 9 / 16;
     if (Wd < 700) { sw = Wd; sh = Math.max(440, Math.round(window.innerHeight * 0.82)); }   // not the wrap's height: on a phone the wrap grows with the stage, and the stage kept growing
     st.style.width = sw + "px"; st.style.height = sh + "px"; st.style.fontSize = Math.max(9, sw / 52) + "px";
-    { const shelf = shelfEl(), f = Math.max(9, sw / 52); shelf.hidden = !se; shelf.style.fontSize = f + "px"; shelf.style.width = ((se - 0.6) * f) + "px"; shelf.style.maxHeight = sh + "px"; } fitShelf();
+    { const shelf = shelfEl(), f = Math.max(9, sw / 52); shelf.hidden = !se; shelf.style.fontSize = f + "px"; shelf.style.width = ((se - 0.6) * f) + "px"; shelf.style.maxHeight = sh + "px"; shelf.style.height = sh + "px"; } fitShelf();
     { const key = se + "|" + narrowWrap(); if (key !== shelfApplied) { shelfApplied = key; layerSig = ""; setTimeout(renderLayer, 0); } }
     sizeCanvas(); placeCard();
 }
@@ -211,12 +234,7 @@ function timerParts(kind, host) {
     const c = el("p", "clock"); c.id = "clock";
     const bar = el("div", "bar"); bar.id = "tbar"; bar.appendChild(el("i"));
     const tb = el("div", "tbtns"), go = el("button", null, "Start"), rs = el("button", "alt", "Reset"); go.id = "tgo"; go.type = rs.type = "button";
-    go.onclick = () => {
-        const t = S.timers[kind];
-        if (t.running) { t.elapsed = now() - t.t0; t.running = false; }
-        else { if (kind !== "round" && t.elapsed >= secsFor(kind) * 1000) t.elapsed = 0; t.t0 = now() - t.elapsed; t.running = true; unlockSound(); }
-        push();
-    };
+    go.onclick = () => timerGo(kind);
     rs.onclick = () => { S.timers[kind] = Object.assign(blankTimer(), kind === "free" ? { dur: S.timers.free.dur || 300 } : {}); push(); };
     tb.appendChild(go); tb.appendChild(rs);
     host.appendChild(c);
@@ -369,6 +387,7 @@ function render() {
     syncGames(); syncLive(); syncNotes(); buildControls(); soundSync();
     const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : ""]);
     renderDock(); drawGamePanel(); drawLivePanel(); drawNotesPanel();
+    if (sheetOpen()) refreshSheet();
     if (ns === sig) { renderLayer(); tick(); tickTools(toolApi); placeCard(); return; }
     sig = ns;
     const st = $("screenHost"); st.textContent = ""; canvas = null; ctx = null; pad = null;
@@ -410,7 +429,7 @@ function render() {
         tickLive();
     } else if (S.screen === "tools") {
         st.appendChild(header("Classroom Tools", (d ? d.name + " · " : "") + ((d && d.date) || "")));
-        const box = el("div", "toolsbody"); box.appendChild(el("p", "toolempty", Object.keys(S.tools.on).length ? "" : "Turn tools on from the Tools row on the Remote. Drag a tool by its title to move it, and drag its corner to resize it.")); st.appendChild(box);
+        const box = el("div", "toolsbody"); box.appendChild(el("p", "toolempty", Object.keys(S.tools.on).length ? "" : "Add panels from Panels on the Remote, or tap Panels on the board. Drag a panel by its title to move it.")); st.appendChild(box);
     } else { /* bellringer or blank whiteboard */
         drawWb(st, S.screen === "blank" || !d ? "blank" : "bell");
     }
@@ -619,53 +638,116 @@ function blanked(text, reveal) {
 }
 
 /* ---------- floating tools (shown over every screen) ---------- */
-const DEFAULT_POS = { pick: [34, 30], groups: [10, 24],  traffic: [2, 23], work: [20, 23], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40], goal: [60, 30] };
+const DEFAULT_POS = { pick: [34, 30], groups: [10, 24],  traffic: [2, 23], work: [20, 23], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40], goal: [60, 30], ptimer: [66, 18], target: [24, 8], agenda: [4, 18], period: [66, 6] };
 let topZ = 1;
 let layerSig = "", dragging = false;
 function posOf(k) { const p = S.tools.pos[k]; if (p) return p; const d = DEFAULT_POS[k] || [10, 30]; return { x: d[0], y: d[1], s: 1 }; }
+/* The Remote's rail: layouts first, then every panel as a switch. */
 function renderDock() {
-    const dock = $("dock"); if (!dock) return; dock.textContent = ""; { const n = Object.keys(S.tools.on).length, tc = $("toolCount"); if (tc) tc.textContent = n ? n + " on" : ""; }
-    TOOL_LIST.filter(([k]) => !(mode === "sub" && (k === "pick" || k === "groups"))).forEach(([k, label]) => { const b = el("button", null, label); b.type = "button"; b.setAttribute("aria-pressed", String(!!S.tools.on[k])); b.onclick = () => { if (S.tools.on[k]) delete S.tools.on[k]; else S.tools.on[k] = true; push(); }; dock.appendChild(b); });
-    if (Object.keys(S.tools.on).length) { const c = el("button", "clear", "Hide all"); c.type = "button"; c.onclick = () => { S.tools.on = {}; push(); }; dock.appendChild(c); }
+    const dock = $("dock"); if (!dock) return; dock.textContent = ""; const T = S.tools;
+    { const n = Object.keys(T.on).length, tc = $("toolCount"); if (tc) tc.textContent = n ? n + " on" : ""; }
+    dock.appendChild(el("p", "dockh", "Layouts"));
+    const sc = el("div", "rscenes"); sc.setAttribute("role", "group"); sc.setAttribute("aria-label", "Layouts");
+    SCENES.filter((x) => !(x.guestless && mode === "sub")).concat(T.scenes).forEach((x) => { const on = sceneActive(S, x), b = el("button", on ? "on" : "", x.n); b.type = "button"; b.setAttribute("aria-pressed", String(on)); b.title = x.d || "Your saved layout"; b.onclick = () => applyScene(S, x, toolApi); sc.appendChild(b); });
+    dock.appendChild(sc);
+    [["Lesson", LESSON_PANELS], ["Classroom", TOOL_LIST]].forEach(([h, list]) => {
+        dock.appendChild(el("p", "dockh", h));
+        list.filter(([k]) => panelOk(k)).forEach(([k, label]) => {
+            const b = el("button", null, label); b.type = "button"; b.setAttribute("aria-pressed", String(!!T.on[k]));
+            if (T.on[k] && T.min[k]) { b.appendChild(el("small", "dmin", "small")); b.title = "Show it again"; }
+            b.onclick = () => { panelToggle(T, k); push(); }; dock.appendChild(b);
+        });
+    });
+    const more = el("button", "more"); more.type = "button"; more.innerHTML = pIcon("layout") + "<span>All panels and layouts</span>"; more.onclick = () => openSheet(toolApi); dock.appendChild(more);
+    if (Object.keys(T.on).length) { const c = el("button", "clear", "Hide all"); c.type = "button"; c.onclick = () => { T.on = {}; T.min = {}; T.pos = {}; T.order = []; push(); }; dock.appendChild(c); }
 }
+/* One small icon button in a panel's title bar. */
+function hbtn(ic, label, fn, cls) { const b = el("button", "close pbtn" + (cls ? " " + cls : "")); b.type = "button"; b.innerHTML = pIcon(ic); b.title = label; b.setAttribute("aria-label", label); b.onclick = (e) => { e.stopPropagation(); fn(); }; return b; }
+const inside = (r, e) => e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+/** Where a panel dropped on the shelf goes: before the first docked panel whose middle is below the pointer. */
+function shelfSlot(shelf, y, skip) { for (const c of shelf.querySelectorAll(".docked")) { if (c === skip) continue; const r = c.getBoundingClientRect(); if (y < r.top + r.height / 2) return c; } return shelf.querySelector(".ptray"); }
+let placed = {};   // where each panel was last drawn, so only a panel that just arrived animates in
 function renderLayer() {
     const layer = $("toolLayer"); if (!layer || dragging) return;
     const ns = toolSig(); if (ns === layerSig) return; layerSig = ns;
     const typingId = document.activeElement && ["toolMsgIn", "toolGoalIn"].includes(document.activeElement.id) ? document.activeElement.id : "", typing = !!typingId, caret = typing ? document.activeElement.selectionStart : 0;
-    layer.textContent = ""; const shelf = shelfEl(), docked = shelfKeys(), canDock = !narrowWrap(); shelf.textContent = "";
-    TOOL_LIST.forEach(([k]) => {
-        if (!S.tools.on[k]) return;
-        if (docked.includes(k)) {   // on the shelf: beside the lesson, never over it
-            const w = buildWidget(k, toolApi), h = w.querySelector("h3"); w.classList.add("docked");
-            const out = el("button", "close pop", "↗"); out.type = "button"; out.title = "Float this tool over the lesson"; out.setAttribute("aria-label", "Float this tool over the lesson");
-            out.onclick = () => { const d = DEFAULT_POS[k] || [10, 30]; S.tools.pos[k] = { x: d[0], y: d[1], s: 1 }; push(); };
-            const x = el("button", "close", "×"); x.type = "button"; x.setAttribute("aria-label", "Hide this tool"); x.onclick = () => { delete S.tools.on[k]; push(); };
-            const tail = el("span", "hbtns"); tail.appendChild(out); tail.appendChild(x); h.appendChild(tail); shelf.appendChild(w); return;
-        }
-        const w = buildWidget(k, toolApi), p = posOf(k); w.classList.add("float");
-        w.style.left = p.x + "%"; w.style.top = p.y + "%"; w.style.fontSize = p.s + "em";
-        const h = w.querySelector("h3"), x = el("button", "close", "×"); x.type = "button"; x.setAttribute("aria-label", "Hide this tool"); x.onclick = () => { delete S.tools.on[k]; push(); };
+    layer.textContent = ""; const shelf = shelfEl(), docked = shelfKeys(), chips = chipKeys(), canDock = !narrowWrap(), stage = $("stage"); shelf.textContent = "";
+    const T = S.tools, minimize = (k) => { T.min[k] = true; push(); }, now2 = {};
+    docked.forEach((k) => {   // on the shelf: beside the lesson, never over it
+        const w = buildPanel(k, toolApi), h = w.querySelector("h3"); w.classList.add("docked"); w.dataset.panel = k; now2[k] = "dock";
         const tail = el("span", "hbtns");
-        if (canDock && k !== "groups") { const back = el("button", "close pop", "↘"); back.type = "button"; back.title = "Put this tool back on the shelf"; back.setAttribute("aria-label", "Put this tool back on the shelf"); back.onclick = () => { delete S.tools.pos[k]; push(); }; tail.appendChild(back); }
-        tail.appendChild(x); h.appendChild(tail);
-        const grip = el("span", "grip"); grip.setAttribute("aria-hidden", "true"); w.appendChild(grip);
-        const stage = $("stage");
-        const start = (e, kind) => {
-            if (e.target.closest && e.target.closest("button")) return; e.preventDefault(); dragging = true;
-            const r = stage.getBoundingClientRect(), p0 = Object.assign({}, posOf(k)), sx = e.clientX, sy = e.clientY, w0 = w.getBoundingClientRect().width; let cur = Object.assign({}, p0);
+        tail.append(hbtn("min", "Minimize " + labelOf(k), () => minimize(k)), hbtn("float", "Float over the lesson", () => { T.pos[k] = toolApi.defaultPos(k); push(); }, "pop"), hbtn("x", "Close " + labelOf(k), () => { panelOff(T, k); push(); }));
+        h.appendChild(tail); if (placed[k] !== "dock") w.classList.add("enter"); shelf.appendChild(w);
+        // Drag a shelf panel up or down to reorder it, or out onto the lesson to float it there.
+        h.addEventListener("pointerdown", (e) => {
+            if (e.button || e.target.closest("button")) return; e.preventDefault();
+            const sx = e.clientX, sy = e.clientY, r0 = w.getBoundingClientRect(); let lifted = false, ph = null;
             const move = (ev) => {
-                if (kind === "move") { cur.x = Math.min(95, Math.max(0, p0.x + (ev.clientX - sx) / r.width * 100)); cur.y = Math.min(92, Math.max(0, p0.y + (ev.clientY - sy) / r.height * 100)); w.style.left = cur.x + "%"; w.style.top = cur.y + "%"; }
-                else { cur.s = Math.min(3, Math.max(0.5, p0.s * (w0 + ev.clientX - sx) / w0)); w.style.fontSize = cur.s + "em"; }
+                if (!lifted) {
+                    if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 6) return;
+                    lifted = true; dragging = true; ph = el("div", "pholder"); ph.style.height = r0.height + "px"; w.after(ph);
+                    w.style.fontSize = getComputedStyle(shelf).fontSize; w.style.width = r0.width + "px"; w.classList.add("lifting"); document.body.appendChild(w);
+                }
+                w.style.left = (r0.left + ev.clientX - sx) + "px"; w.style.top = (r0.top + ev.clientY - sy) + "px";
+                const over = inside(shelf.getBoundingClientRect(), ev); shelf.classList.toggle("dropok", over); stage.classList.toggle("floatok", !over);
+                if (over) { const at = shelfSlot(shelf, ev.clientY, null); if (at) shelf.insertBefore(ph, at); else shelf.appendChild(ph); }
             };
-            const end = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", end); window.removeEventListener("pointercancel", end); dragging = false; S.tools.pos[k] = { x: Math.round(cur.x * 10) / 10, y: Math.round(cur.y * 10) / 10, s: Math.round(cur.s * 100) / 100 }; layerSig = toolSig(); if (writeState) writeState(JSON.parse(JSON.stringify(S))); };
+            const end = (ev) => {
+                window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", end); window.removeEventListener("pointercancel", end);
+                if (!lifted) return; dragging = false; shelf.classList.remove("dropok"); stage.classList.remove("floatok");
+                if (ev.type !== "pointercancel" && inside(shelf.getBoundingClientRect(), ev)) {
+                    const keys = []; Array.from(shelf.children).forEach((c) => { if (c === ph) keys.push(k); else if (c.dataset && c.dataset.panel) keys.push(c.dataset.panel); });
+                    T.order = keys.concat(T.order.filter((x) => !keys.includes(x)));
+                } else if (ev.type !== "pointercancel") {
+                    const sr = stage.getBoundingClientRect(), wr = w.getBoundingClientRect();
+                    T.pos[k] = { x: Math.round(Math.min(95, Math.max(0, (wr.left - sr.left) / sr.width * 100)) * 10) / 10, y: Math.round(Math.min(92, Math.max(0, (wr.top - sr.top) / sr.height * 100)) * 10) / 10, s: 1 };
+                }
+                w.remove(); if (ph) ph.remove(); layerSig = ""; push();
+            };
+            window.addEventListener("pointermove", move); window.addEventListener("pointerup", end); window.addEventListener("pointercancel", end);
+        });
+    });
+    if (chips.length) {   // minimized: a live chip each, still counting
+        const tray = el("div", "ptray"); tray.setAttribute("role", "group"); tray.setAttribute("aria-label", "Minimized panels");
+        chips.forEach((k) => { const c = chip(k, toolApi, () => { delete T.min[k]; push(); }); now2[k] = "chip"; if (placed[k] !== "chip") c.classList.add("enter"); tray.appendChild(c); });
+        (canDock ? shelf : layer).appendChild(tray);
+    }
+    PANEL_KEYS.forEach((k) => {
+        if (!T.on[k] || T.min[k] || docked.includes(k) || !panelOk(k)) return;
+        const w = buildPanel(k, toolApi), p = posOf(k); w.classList.add("float"); w.dataset.panel = k; now2[k] = "float"; if (placed[k] !== "float") w.classList.add("enter");
+        w.style.left = p.x + "%"; w.style.top = p.y + "%"; w.style.fontSize = p.s + "em";
+        const h = w.querySelector("h3"), tail = el("span", "hbtns");
+        tail.appendChild(hbtn("min", "Minimize " + labelOf(k), () => minimize(k)));
+        if (canDock && k !== "groups") tail.appendChild(hbtn("dock", "Put it back on the shelf", () => { delete T.pos[k]; panelOn(T, k); push(); }, "pop"));
+        tail.appendChild(hbtn("x", "Close " + labelOf(k), () => { panelOff(T, k); push(); }));
+        h.appendChild(tail);
+        const grip = el("span", "grip"); grip.setAttribute("aria-hidden", "true"); w.appendChild(grip);
+        const start = (e, kind) => {
+            if (e.target.closest && e.target.closest("button")) return; e.preventDefault(); dragging = true; w.classList.add("moving");
+            const r = stage.getBoundingClientRect(), p0 = Object.assign({}, posOf(k)), sx = e.clientX, sy = e.clientY, w0 = w.getBoundingClientRect().width; let cur = Object.assign({}, p0), dock = false;
+            const move = (ev) => {
+                if (kind === "move") {
+                    cur.x = Math.min(95, Math.max(0, p0.x + (ev.clientX - sx) / r.width * 100)); cur.y = Math.min(92, Math.max(0, p0.y + (ev.clientY - sy) / r.height * 100)); w.style.left = cur.x + "%"; w.style.top = cur.y + "%";
+                    dock = canDock && k !== "groups" && !shelf.hidden && inside(shelf.getBoundingClientRect(), ev); shelf.classList.toggle("dropok", dock);
+                } else { cur.s = Math.min(3, Math.max(0.5, p0.s * (w0 + ev.clientX - sx) / w0)); w.style.fontSize = cur.s + "em"; }
+            };
+            const end = (ev) => {
+                window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", end); window.removeEventListener("pointercancel", end); dragging = false; w.classList.remove("moving"); shelf.classList.remove("dropok");
+                if (dock && ev.type !== "pointercancel") {   // dropped on the shelf: dock it at that spot
+                    delete T.pos[k]; const at = shelfSlot(shelf, ev.clientY, null), keys = Array.from(shelf.querySelectorAll(".docked")).map((c) => c.dataset.panel), i = at && at.dataset.panel ? keys.indexOf(at.dataset.panel) : keys.length;
+                    keys.splice(i < 0 ? keys.length : i, 0, k); T.order = keys.concat(T.order.filter((x) => !keys.includes(x))); layerSig = ""; push(); return;
+                }
+                T.pos[k] = { x: Math.round(cur.x * 10) / 10, y: Math.round(cur.y * 10) / 10, s: Math.round(cur.s * 100) / 100 }; layerSig = toolSig(); if (writeState) writeState(JSON.parse(JSON.stringify(S)));
+            };
             window.addEventListener("pointermove", move); window.addEventListener("pointerup", end); window.addEventListener("pointercancel", end);
         };
         h.addEventListener("pointerdown", (e) => start(e, "move")); grip.addEventListener("pointerdown", (e) => start(e, "size"));
         w.addEventListener("pointerdown", () => { w.style.zIndex = String(++topZ); });
         layer.appendChild(w);
     });
+    placed = now2;
     if (typing) { const t = $(typingId); if (t) { t.focus(); try { t.setSelectionRange(caret, caret); } catch (e) { /* ok */ } } }
-    tickTools(toolApi);
+    tickTools(toolApi); tickPanels(toolApi);
     if ((shelfEm() + "|" + narrowWrap()) !== shelfApplied) fit();   // the shelf appeared, went away or changed width
     fitShelf();
 }
@@ -993,11 +1075,14 @@ export async function startApp(opts) {
         b.onclick = () => step(-1); f.onclick = () => step(1);
         nav.append(b, f); document.body.appendChild(nav);
     }
+    {   // Panels and layouts, from the board itself: bottom right, quiet until touched like the arrows
+        const pb = el("button", "bpanels"); pb.id = "panelBtn"; pb.type = "button"; pb.innerHTML = pIcon("layout") + "<span>Panels</span>"; pb.onclick = () => openSheet(toolApi); document.body.appendChild(pb);
+    }
     keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
     document.addEventListener("keydown", (e) => { if (e.target && (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.target.isContentEditable)) return; if (e.altKey || e.ctrlKey || e.metaKey) return; if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); step(1); } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); step(-1); } else if (e.key === "m" || e.key === "M") { S.sound.music = !S.sound.music; push(); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
-    setInterval(() => { if (!synced) return; tick(); tickTools(toolApi); tickGames(); tickLive(); tickNotes(); soundTick(); }, 250);
+    setInterval(() => { if (!synced) return; tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); tickLive(); tickNotes(); soundTick(); }, 250);
     { const p = el("div", "connpill"); p.id = "connPill"; p.setAttribute("role", "status"); p.hidden = true; document.body.appendChild(p); }
-    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && synced) { tick(); tickTools(toolApi); tickGames(); soundTick(); } });   // a tab back in view shows the right time at once
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && synced) { tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); soundTick(); } });   // a tab back in view shows the right time at once
     document.body.classList.add("syncing");
     const arrived = () => { if (synced) return; synced = true; document.body.classList.remove("syncing"); sig = ""; };
     fit(); render();
@@ -1031,6 +1116,11 @@ export async function startApp(opts) {
         if (synced) { sig = ""; render(); }
     }); }
     store.watch("rosters/all", (snap) => { const p = (snap.exists && snap.data && snap.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); renderLayer(); }, () => {});
+    if (!guest) store.watch("settings/bells", (snap) => {   // today's bell times, for the Period clock panel (Home edits them)
+        const d = snap.exists ? snap.data : null; if (!d) { BELLS = null; layerSig = ""; renderLayer(); return; }
+        let per = d.periods || {}; const t = d.today; if (t && t.date === localIso() && t.id && t.id !== "regular" && d.schedules && d.schedules[t.id]) per = d.schedules[t.id].periods || {};
+        BELLS = Object.keys(per).length ? per : null; layerSig = ""; renderLayer();
+    }, () => {});
     store.clockSkew().then((ms) => { skew = ms; tick(); });
     const slow = setTimeout(() => { mark("board-slow", ms()); setStatus("Still connecting\u2026"); arrived(); render(); }, 10000);   // never leave the teacher on a blank board
     // Connection, said plainly. The Remote must never look live when the board cannot follow it.

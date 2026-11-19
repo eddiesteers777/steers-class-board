@@ -7,17 +7,20 @@
 ========================================== */
 
 export const TOOL_LIST = [["traffic", "Traffic light"], ["work", "Voice level"], ["clock", "Clock"], ["stopwatch", "Stopwatch"], ["text", "Message"], ["dice", "Dice"], ["score", "Scoreboard"], ["goal", "Class goal"], ["pick", "Name picker"], ["groups", "Group maker"]];
+/* Lesson panels (js/panels.js builds them) sit in the same panel system as the tools. */
+export const LESSON_PANELS = [["ptimer", "Timer"], ["target", "Learning target"], ["agenda", "Agenda"], ["period", "Period clock"]];
+export const PANEL_LIST = LESSON_PANELS.concat(TOOL_LIST);
 export const PERIOD_KEYS = ["1st", "2nd", "4th", "5th", "6th"];
 const today = () => { const d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); };
 let showOut = false; // the "Who is out" list is open on this device only
-const WORK = [["silent", "Silent", "Voices off", 0], ["whisper", "Whisper", "Only your partner can hear", 1], ["partner", "Partner Talk", "Table voices", 2], ["group", "Group Work", "Everyone shares the work", 4]];
+export const WORK = [["silent", "Silent", "Voices off", 0], ["whisper", "Whisper", "Only your partner can hear", 1], ["partner", "Partner Talk", "Table voices", 2], ["group", "Group Work", "Everyone shares the work", 4]];
 const PERIODS = ["1st", "2nd", "4th", "5th", "6th"];
 const GOAL_TARGETS = [10, 20, 30, 50, 100];
 const GOAL_HINT = "Set a class goal on the Remote.";
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
 
 export function defaultTools() {
-    return { v: 2, on: {}, pos: {}, traffic: "green", work: "silent", text: "",
+    return { v: 2, on: {}, pos: {}, min: {}, order: [], scenes: [], agenda: { k: "", at: -1 }, traffic: "green", work: "silent", text: "",
         dice: { n: 2, vals: [3, 5], roll: 0 }, score: { teams: [{ n: "Team 1", s: 0 }, { n: "Team 2", s: 0 }] },
         goal: { text: "", target: 20, pts: {} },
         sw: { running: false, t0: 0, elapsed: 0 },
@@ -25,9 +28,15 @@ export function defaultTools() {
 }
 export function mergeTools(d) {
     const t = defaultTools(); if (!d || typeof d !== "object") return t;
-    if (d.on && typeof d.on === "object") { t.on = {}; TOOL_LIST.forEach(([k]) => { if (d.on[k]) t.on[k] = true; }); }
+    if (d.on && typeof d.on === "object") { t.on = {}; PANEL_LIST.forEach(([k]) => { if (d.on[k]) t.on[k] = true; }); }
+    // Panels: minimized ones show as live chips; order is their place on the shelf.
+    if (d.min && typeof d.min === "object") PANEL_LIST.forEach(([k]) => { if (d.min[k] && t.on[k]) t.min[k] = true; });
+    if (Array.isArray(d.order)) d.order.forEach((k) => { if (PANEL_LIST.some((x) => x[0] === k) && !t.order.includes(k)) t.order.push(k); });
+    if (Array.isArray(d.scenes)) t.scenes = d.scenes.slice(0, 6).filter((x) => x && typeof x === "object").map(cleanScene);
+    if (d.agenda && typeof d.agenda.k === "string") t.agenda = { k: d.agenda.k.slice(0, 80), at: Math.max(-1, Math.min(40, Math.floor(+d.agenda.at))) };
+    if (!Number.isFinite(t.agenda.at)) t.agenda.at = -1;
     // v 2: tools sit on a shelf unless the teacher floats them. Positions saved before that are dropped once.
-    if (d.v === 2 && d.pos && typeof d.pos === "object") TOOL_LIST.forEach(([k]) => { const q = d.pos[k]; if (q) t.pos[k] = { x: Math.min(95, Math.max(0, +q.x || 0)), y: Math.min(92, Math.max(0, +q.y || 0)), s: Math.min(3, Math.max(0.5, +q.s || 1)) }; });
+    if (d.v === 2 && d.pos && typeof d.pos === "object") PANEL_LIST.forEach(([k]) => { const q = d.pos[k]; if (q) t.pos[k] = { x: Math.min(95, Math.max(0, +q.x || 0)), y: Math.min(92, Math.max(0, +q.y || 0)), s: Math.min(3, Math.max(0.5, +q.s || 1)) }; });
     if (["green", "yellow", "red"].includes(d.traffic)) t.traffic = d.traffic;
     if (WORK.some((w) => w[0] === d.work)) t.work = d.work;
     if (typeof d.text === "string") t.text = d.text.slice(0, 600);
@@ -44,6 +53,14 @@ export function mergeTools(d) {
     if (d.absent && typeof d.absent.day === "string" && d.absent.periods) { t.absent.day = d.absent.day.slice(0, 10); PERIOD_KEYS.forEach((k) => { if (Array.isArray(d.absent.periods[k])) t.absent.periods[k] = idx(d.absent.periods[k]); }); }
     if (d.sw) t.sw = { running: !!d.sw.running, t0: +d.sw.t0 || 0, elapsed: +d.sw.elapsed || 0 };
     return t;
+}
+
+/** A saved layout ("scene"): which screen, which panels, where. */
+export function cleanScene(x) {
+    const keys = (o) => { const r = {}; if (o && typeof o === "object") PANEL_LIST.forEach(([k]) => { if (o[k]) r[k] = true; }); return r; };
+    const pos = {}; if (x.pos && typeof x.pos === "object") PANEL_LIST.forEach(([k]) => { const q = x.pos[k]; if (q) pos[k] = { x: Math.min(95, Math.max(0, +q.x || 0)), y: Math.min(92, Math.max(0, +q.y || 0)), s: Math.min(3, Math.max(0.5, +q.s || 1)) }; });
+    return { id: String(x.id || "").slice(0, 16) || ("u" + Date.now().toString(36)), n: String(x.n || "My layout").slice(0, 24), screen: typeof x.screen === "string" ? x.screen.slice(0, 12) : "",
+        on: keys(x.on), min: keys(x.min), pos, order: Array.isArray(x.order) ? x.order.filter((k) => PANEL_LIST.some((p) => p[0] === k)).slice(0, 20) : [], work: WORK.some((w) => w[0] === x.work) ? x.work : "" };
 }
 
 function people(n) {
