@@ -37,8 +37,8 @@
 .ch-t::after{left:50%;top:-1.25cqw;width:3.4cqw;height:.9cqw;transform:translateX(-50%)}
 .ch-l::after{top:50%;left:-1.25cqw;height:3.4cqw;width:.9cqw;transform:translateY(-50%)}
 .ch-r::after{top:50%;right:-1.25cqw;height:3.4cqw;width:.9cqw;transform:translateY(-50%)}
-.stag{position:absolute;left:50%;top:50%;width:9.2cqw;display:flex;flex-direction:column;align-items:center;text-align:center;pointer-events:none;line-height:1.02}
-.stag b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 1.6cqw/1.05 var(--display,'Bricolage Grotesque',sans-serif);color:var(--sr-ink);letter-spacing:-.01em}
+.stag{position:absolute;left:50%;top:50%;width:9.2cqw;max-width:none;display:flex;flex-direction:column;align-items:center;text-align:center;pointer-events:none;line-height:1.02}
+.stag b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 1.6cqw/1.05 var(--display,'Bricolage Grotesque',sans-serif);font-size:min(1.6cqw,var(--nf,1.6cqw));color:var(--sr-ink);letter-spacing:-.01em}
 .stag small{font:600 1.05cqw/1.1 var(--ui,'Instrument Sans',sans-serif);color:var(--sr-mute)}
 .stag i{font:600 1cqw/1 var(--ui,'Instrument Sans',sans-serif);font-style:normal;color:#A4B5D2}
 .scell.full{background:#FFFFFF;border-color:#7FA2D4}
@@ -74,7 +74,7 @@
 .seatfind span{font-size:.75em;font-weight:600;opacity:.8}
 .seatfind b{font-family:var(--display,'Bricolage Grotesque',sans-serif);font-size:1.7em;line-height:1.05}
 @keyframes srFind{from{opacity:0;transform:translateY(-.4em) scale(.96)}to{opacity:1;transform:none}}
-.seatbody .stag b{font-size:1.75cqw}
+.seatbody .stag b{font-size:min(1.75cqw,var(--nf,1.75cqw))}
 .seatbody .stag small{font-size:1.15cqw}
 body:not(.board) .seatbody{padding-bottom:2.1em}
 /* the Remote: tap a name to light it up on the board */
