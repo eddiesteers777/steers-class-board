@@ -84,6 +84,8 @@
         <section class="box"><h2><label for="lt">Learning target</label></h2><input id="lt" maxlength="200" placeholder="I can find the area of a triangle." autocomplete="off"></section>
         <section class="box"><h2 id="bellH">Bellringer</h2><div id="bellRows"></div><button class="add" type="button" id="addBell">+ Add a problem</button><p class="hint">Answers show only when you tap Show answer on the Remote.</p></section>
         <section class="box"><h2><label for="agenda">Agenda</label></h2><input id="agenda" maxlength="400" placeholder="Bellringer · Notes: triangle area · Practice · Exit ticket" autocomplete="off"><p class="hint">Separate the parts with · or ;</p></section>
+        <section class="box"><h2><label for="supplies">Supplies</label></h2><input id="supplies" maxlength="300" placeholder="Pencil · Calculator · Notes packet" autocomplete="off"><p class="hint">Shows on the Today screen. Separate with · or ;</p></section>
+        <section class="box"><h2><label for="reminders">Reminders</label></h2><input id="reminders" maxlength="600" placeholder="Quiz Friday · Bring your signed progress report" autocomplete="off"><p class="hint">Shows on the Today screen. Separate with · or ;</p></section>
         <section class="box"><h2 id="notesH">Notes</h2>
             <input type="file" id="pdfIn" accept="application/pdf,.pdf" class="vh">
             <label class="drop" id="drop" for="pdfIn"><b>Upload your notes as a PDF</b><span>Guided notes, a worksheet or slides saved as PDF. Up to 20 pages. Saved only to your account.</span></label>
@@ -102,7 +104,7 @@
         import * as store from "./js/boardStore.js?v=58";
         import { WEEKS, PERIODS, PACK } from "./data/weeks.js?v=61";
         import { watchPrivateWeeks } from "./js/weeksLive.js?v=58";
-        import { FULL, dayDate, classList, weekFor, formFrom, applyForm, splitPaste } from "./js/quickLesson.js?v=2";
+        import { FULL, dayDate, classList, weekFor, formFrom, applyForm, splitPaste } from "./js/quickLesson.js?v=3";
         import { today, mondayOf, addDays, short } from "./js/schoolCal.js?v=58";
         import { savePdf, cleanPdf, MAX_PAGES } from "./js/pdfNotes.js?v=1";
 
@@ -148,9 +150,9 @@
             $("main").addEventListener("input", (e) => { if (e.target.id !== "paste" && e.target.type !== "checkbox") { dirty = true; msg(""); } });
 
             let PDF = null;   // the day's PDF notes: { id, title, pages, w, h }
-            const formNow = () => ({ title: $("title").value, lt: $("lt").value, agenda: $("agenda").value, problems: read($("bellRows")), exit: read($("exitRows")), pdf: PDF });
+            const formNow = () => ({ title: $("title").value, lt: $("lt").value, agenda: $("agenda").value, supplies: $("supplies").value, reminders: $("reminders").value, problems: read($("bellRows")), exit: read($("exitRows")), pdf: PDF });
             function fill(f) {
-                $("title").value = f.title || ""; $("lt").value = f.lt || ""; $("agenda").value = f.agenda || "";
+                $("title").value = f.title || ""; $("lt").value = f.lt || ""; $("agenda").value = f.agenda || ""; $("supplies").value = f.supplies || ""; $("reminders").value = f.reminders || "";
                 rows($("bellRows"), f.problems || [], BELL_PH); rows($("exitRows"), f.exit || [], EXIT_PH);
                 showPdf(cleanPdf(f.pdf)); $("pdfMsg").textContent = "";
             }
@@ -217,7 +219,7 @@
                 const s = splitPaste($("paste").value);
                 if (!s.found.length) { $("splitMsg").textContent = "Nothing to split. Put each part under a heading."; return; }
                 const f = formNow();
-                fill({ title: s.title || f.title, lt: s.lt || f.lt, agenda: s.agenda || f.agenda, problems: s.problems.length ? s.problems : f.problems, exit: s.exit.length ? s.exit : f.exit, pdf: f.pdf });
+                fill({ title: s.title || f.title, lt: s.lt || f.lt, agenda: s.agenda || f.agenda, supplies: f.supplies, reminders: f.reminders, problems: s.problems.length ? s.problems : f.problems, exit: s.exit.length ? s.exit : f.exit, pdf: f.pdf });
                 dirty = true;
                 const NAMES = { title: "title", lt: "learning target", problems: "bellringer", agenda: "agenda", exit: "exit ticket" };
                 $("splitMsg").textContent = "Filled: " + s.found.map((k) => NAMES[k]).join(", ") + ". Check them, then Save.";

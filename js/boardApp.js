@@ -13,7 +13,7 @@ let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
 import { tickTools, defaultTools, mergeTools, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=58";
-import { buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf } from "./panels.js?v=1";
+import { buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal } from "./panels.js?v=4";
 import * as snd from "./sound.js?v=58";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
@@ -91,7 +91,7 @@ function cleanWb(o) {
 }
 const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0,
     timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", fix: null, tools: defaultTools(), wb: defaultWb(),
-    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true } };
+    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true }, look: defaultLook() };
 
 // This page's own mark on what it saves, so a change from another tab of the same browser can be shown
 // before the server confirms it (those tabs share one offline copy, where it first arrives as "pending").
@@ -101,7 +101,7 @@ let saveFailedAt = 0;
 // without waiting for the server. Firestore still saves every change for reloads and other devices.
 let wantWeek = "", lateWeek = "", autoWeekUntil = 0;   // a ?week= the Remote was opened with, or the saved board week, that has not loaded yet
 let tabs = null, heard = { by: "", at: 0 };   // a failed save stays on screen a few seconds, even when the connection itself is fine
-let mode = "remote", signedIn = false, sig = "", writeState = null, SEAL = "brand/logo.svg";
+let mode = "remote", signedIn = false, sig = "", writeState = null;
 
 function writer(path) {
     let busy = false, next = null;
@@ -221,7 +221,7 @@ function fit() {
 }
 
 function header(title, sub) {
-    const l = L(), h = el("div", "hdr"), im = el("img"); im.src = SEAL; im.alt = ""; h.appendChild(im);
+    const l = L(), h = el("div", "hdr"), im = el("img"); im.src = lookSeal(); im.alt = ""; h.appendChild(im);
     const t = el("div", "ttl"); t.appendChild(el("h1", null, title)); t.appendChild(el("p", null, sub || "")); h.appendChild(t);
     h.appendChild(el("p", "cls", (l && l.cls) || "")); return h;
 }
@@ -384,7 +384,7 @@ function skeleton() {
 }
 function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
-    syncGames(); syncLive(); syncNotes(); buildControls(); soundSync();
+    syncGames(); syncLive(); syncNotes(); buildControls(); soundSync(); applyLook(S.look); renderLookFold(); renderEditLink();
     const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : ""]);
     renderDock(); drawGamePanel(); drawLivePanel(); drawNotesPanel();
     if (sheetOpen()) refreshSheet();
@@ -445,7 +445,7 @@ const WB_SCREENS = { bell: 1, blank: 1, notes: 1, fix: 1 };
 const wbKind = () => (WB_SCREENS[S.screen] ? S.screen : S.screen === "live" && liveReview() ? "vr" : "");
 const CARD_W = [0.3, 0.38, 0.5];
 function wbStrip(title, sub, extra) {
-    const h = el("div", "wbstrip"), im = el("img"); im.src = SEAL; im.alt = ""; h.appendChild(im);
+    const h = el("div", "wbstrip"), im = el("img"); im.src = lookSeal(); im.alt = ""; h.appendChild(im);
     h.appendChild(el("h1", null, title)); if (sub) h.appendChild(el("p", "wbsub", sub));
     if (extra) h.appendChild(extra);
     h.appendChild(el("span", "wbfill"));
@@ -660,6 +660,23 @@ function renderDock() {
     });
     const more = el("button", "more"); more.type = "button"; more.innerHTML = pIcon("layout") + "<span>All panels and layouts</span>"; more.onclick = () => openSheet(toolApi); dock.appendChild(more);
     if (Object.keys(T.on).length) { const c = el("button", "clear", "Hide all"); c.type = "button"; c.onclick = () => { T.on = {}; T.min = {}; T.pos = {}; T.order = []; push(); }; dock.appendChild(c); }
+}
+/* "Edit this day": opens Quick lesson on the class and day showing, for the agenda, bellringer, target, supplies and reminders. */
+function renderEditLink() {
+    const sc = $("screens"); if (!sc || mode !== "remote") return;
+    let a = $("editDay"); if (!a) { a = el("a", "btn editday"); a.id = "editDay"; a.target = "_blank"; a.rel = "noopener"; a.title = "Agenda, bellringer, learning target, supplies, reminders and exit ticket"; sc.after(a); }
+    const w = W(), dk = DK[S.day] || "Mon", q = new URLSearchParams({ day: dk.toLowerCase() });
+    if (w.monday) q.set("monday", w.monday); if (S.cls) q.set("class", S.cls);
+    const href = "lesson.html?" + q;
+    if (a.getAttribute("href") !== href) { a.href = href; a.textContent = "Edit " + dk + " lesson"; }
+}
+/* The Remote's "Board look" fold: colours and background, right under Panels. */
+let lookSig = "";
+function renderLookFold() {
+    const tm = $("toolsMenu"); if (!tm) return;
+    let f = $("lookMenu"); if (!f) { f = el("details", "menu fold"); f.id = "lookMenu"; f.open = window.innerWidth > 860; const sm = el("summary", null, "Board look "); const c = el("span", "count"); c.id = "lookCount"; sm.appendChild(c); f.appendChild(sm); f.appendChild(el("div", "lookhost")); tm.after(f); }
+    const k = S.look.theme + "|" + S.look.bg + "|" + S.look.mark; if (k === lookSig) return; lookSig = k;
+    const host = f.querySelector(".lookhost"); host.textContent = ""; host.appendChild(lookPicker(toolApi, true));
 }
 /* One small icon button in a panel's title bar. */
 function hbtn(ic, label, fn, cls) { const b = el("button", "close pbtn" + (cls ? " " + cls : "")); b.type = "button"; b.innerHTML = pIcon(ic); b.title = label; b.setAttribute("aria-label", label); b.onclick = (e) => { e.stopPropagation(); fn(); }; return b; }
@@ -961,6 +978,7 @@ function applyState(d) {
     S.speedMode = d.speedMode === "check" ? "check" : "round";
     S.fix = cleanFix(d.fix);
     S.wb = cleanWb(d.wb);
+    S.look = cleanLook(d.look);
     { const o = d.sound || {}, v = (x, def) => (typeof x === "number" && x >= 0 && x <= 1 ? x : def);
         S.sound = { fx: o.fx !== false, fxv: v(o.fxv, 0.7), music: !!o.music, mv: v(o.mv, 0.35), style: snd.STYLES.some((x) => x[0] === o.style) ? o.style : "focus", at: typeof o.at === "string" ? o.at.slice(0, 20) : "", game: o.game !== false }; }
     ["bell", "round", "check", "free"].forEach((k) => { const t = d.timers && d.timers[k]; if (t) { S.timers[k] = { running: !!t.running, t0: +t.t0 || 0, elapsed: +t.elapsed || 0 }; if (k === "free") S.timers.free.dur = +t.dur || 300; } });
@@ -1054,6 +1072,7 @@ export async function startApp(opts) {
     mountLive({ S, header, store: () => store, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     mountNotes({ S, store: () => store, rosters: () => ROSTERS, redraw: () => render(), mode: () => mode, signedIn: () => signedIn, frames: () => notesFrames(D()), day: D, lesson: L, push });
     document.body.classList.toggle("board", mode === "board");
+    { const bg = el("div", "stagebg"); bg.id = "stageBg"; bg.setAttribute("aria-hidden", "true"); $("stage").prepend(bg); }   // the board's background pattern (Board look)
     {   // On the projected board the rail, pages and arrows fade after 4 s with nobody touching it, and come back on any touch.
         let idleT = 0; const wake = () => { document.body.classList.remove("idle"); clearTimeout(idleT); idleT = setTimeout(() => { if (document.body.classList.contains("board") && !document.querySelector(".mathmenu,.mathpanel")) document.body.classList.add("idle"); }, 4000); };
         ["pointermove", "pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, wake, true)); wake();
