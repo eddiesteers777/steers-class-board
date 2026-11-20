@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="css/board.css?v=57">
     <link rel="stylesheet" href="css/console.css?v=58">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/games.css?v=74">
+    <link rel="stylesheet" href="css/games.css?v=75">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page">
@@ -27,8 +27,9 @@
 
         <section class="gsbox">
             <h2>The games</h2>
-            <p class="sub">Any question set plays as any of these.</p>
+            <p class="sub">Any question set plays as any of these. Vault Raid runs on student Chromebooks; the rest run on the board with whiteboards.</p>
             <div class="glgames" id="games"></div>
+            <details class="glmore"><summary id="moreGamesSum">More board games</summary><div class="glgames" id="gamesMore"></div></details>
         </section>
 
         <section class="gsbox">
@@ -71,7 +72,7 @@
     </main>
     <script type="module">
         import { parseTable, readQuestions, toTable } from "./js/importSet.js?v=57";
-        import { parseSet, setToText, cleanSet, countClues, mathRich, LIMITS } from "./js/games.js?v=59";
+        import { parseSet, setToText, cleanSet, countClues, mathRich, LIMITS } from "./js/games.js?v=60";
         import { WEEKS } from "./data/weeks.js?v=61";
         const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
         const store = await import(demo ? "./js/localStore.js?v=57" : "./js/boardStore.js?v=58");
@@ -97,7 +98,10 @@
         const forPeriod = (m, p) => { const per = perOf(m); return !per.length || per.includes(p); };
         const fmtDay = (t) => t ? new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
 
-        GAMES.forEach(([k, name, how, best]) => { const c = el("div", "glgame " + k); c.append(el("b", null, name), el("p", null, how), el("small", null, best)); $("games").append(c); });
+        const FRONT = ["board", "versus", "rapid"];   // up front; the rest sit under "More board games" (same list as the Remote, js/games.js FRONT_KINDS)
+        { const vr = el("div", "glgame vault"); vr.append(el("b", null, "Vault Raid"), el("p", null, "Students join on Chromebooks with a code, answer to earn coins and hacks, and crack each other's vaults. You run it from the Remote."), el("small", null, "Best for every student answering every question")); $("games").append(vr); }
+        GAMES.forEach(([k, name, how, best]) => { const c = el("div", "glgame " + k); c.append(el("b", null, name), el("p", null, how), el("small", null, best)); $(FRONT.includes(k) ? "games" : "gamesMore").append(c); });
+        $("moreGamesSum").textContent = "More board games (" + GAMES.filter(([k]) => !FRONT.includes(k)).length + ")";
         [["all", "All classes"], ...PERIODS.map(([p]) => [p, p + " period"])].forEach(([k, t]) => {
             const b = el("button", null, t); b.type = "button"; b.dataset.k = k; b.onclick = () => { view = k; drawSets(); }; $("perTabs").append(b);
         });
@@ -113,9 +117,10 @@
             opts.forEach(([p, label]) => { const o = el("option", null, p + " period · " + label); o.value = p; sel.append(o); });
             if (view !== "all" && opts.some(([p]) => p === view)) sel.value = view;
             const lab = el("label", null, "Class "); lab.append(sel); box.append(lab);
-            GAMES.forEach(([k, name]) => { const a = el("a", "btn ghost", name); a.href = "#"; a.onclick = (e) => { e.preventDefault(); location.href = "remote.html?" + new URLSearchParams({ screen: "game", period: sel.value, set: m.id, game: k }).toString(); }; row.append(a); });
+            const more = el("details", "glmore"), moreRow = el("div", "glplayrow"); more.append(el("summary", null, "More board games"), moreRow);
+            GAMES.forEach(([k, name]) => { const a = el("a", "btn ghost", name); a.href = "#"; a.onclick = (e) => { e.preventDefault(); location.href = "remote.html?" + new URLSearchParams({ screen: "game", period: sel.value, set: m.id, game: k }).toString(); }; (FRONT.includes(k) ? row : moreRow).append(a); });
             const vr = el("a", "btn go", "Vault Raid on Chromebooks"); vr.href = "#"; vr.onclick = (e) => { e.preventDefault(); location.href = "remote.html?" + new URLSearchParams({ screen: "live", period: sel.value, vset: m.id }).toString(); }; row.prepend(vr);
-            box.append(row, el("p", "sub", "Opens the Remote with this game ready for that class. If a game is already running there, it asks you to end it first."));
+            box.append(row, more, el("p", "sub", "Opens the Remote with this game ready for that class. If a game is already running there, it asks you to end it first."));
             return box;
         }
         async function copySet(m) {
