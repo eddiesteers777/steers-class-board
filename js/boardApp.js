@@ -977,8 +977,10 @@ function renderDock() {
     [["Lesson", LESSON_PANELS], ["Classroom", TOOL_LIST]].forEach(([h, list]) => {
         dock.appendChild(el("p", "dockh", h));
         list.filter(([k]) => panelOk(k)).forEach(([k, label]) => {
-            const b = el("button", null, label); b.type = "button"; b.setAttribute("aria-pressed", String(!!T.on[k]));
+            // An on/off slider for each panel (Eddie, 2026-11-20: "toggle on and off sliders").
+            const b = el("button", "psw"); b.type = "button"; b.setAttribute("aria-pressed", String(!!T.on[k])); b.appendChild(el("span", "pswl", label));
             if (T.on[k] && T.min[k]) { b.appendChild(el("small", "dmin", "small")); b.title = "Show it again"; }
+            b.appendChild(el("i", "swk"));
             b.onclick = () => { panelToggle(T, k); push(); }; dock.appendChild(b);
         });
     });
