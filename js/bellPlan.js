@@ -25,7 +25,13 @@ export function cleanStep(x) {
     const go = typeof x.go === "string" && /^(screen|scene):[\w-]{1,20}$/.test(x.go) ? x.go : "";
     if (!go) return null;
     const per = typeof x.p === "string" && /^[\w-]{1,8}$/.test(x.p) ? x.p : "";   // "" = every period
-    return per ? { m, ref, go, p: per } : { m, ref, go };
+    const out = per ? { m, ref, go, p: per } : { m, ref, go };
+    // Panels that come with a screen step: { key: "b" (on the board) | "s" (on the side) }. None = leave the panels as they are.
+    if (go.startsWith("screen:") && x.pn && typeof x.pn === "object") {
+        const pn = {}; Object.keys(x.pn).filter((k) => /^[a-z]{2,12}$/.test(k) && (x.pn[k] === "b" || x.pn[k] === "s")).slice(0, 16).forEach((k) => { pn[k] = x.pn[k]; });
+        if (Object.keys(pn).length) out.pn = pn;
+    }
+    return out;
 }
 export function cleanPlan(d) {
     const out = { on: !!(d && d.on), plans: {} };
@@ -59,9 +65,9 @@ export function todayList(api) {
     api.periods().forEach(([p]) => steps.forEach((step, i) => { if (step.p && step.p !== p) return; const t = stepAt(step, bells[p]); if (t != null) out.push({ p, i, t, step, key: date + "|" + p + "|" + i + "|" + t }); }));
     return out.sort((a, b) => a.t - b.t || a.i - b.i);
 }
-export function goLabel(go, api) {
+export function goLabel(go, api, pn) {
     const [kind, id] = String(go).split(":");
-    if (kind === "screen") { const s = api.screens().find((x) => x[0] === id); return s ? s[1] : "a screen that is gone"; }
+    if (kind === "screen") { const s = api.screens().find((x) => x[0] === id), n = pn ? Object.keys(pn).length : 0; return (s ? s[1] : "a screen that is gone") + (n ? " + " + n + " panel" + (n > 1 ? "s" : "") : ""); }
     const sc = api.layouts().find((x) => x.id === id); return sc ? sc.n + " layout" : "a layout that was deleted";
 }
 function whenLabel(step) {
@@ -92,6 +98,11 @@ function fire(api, x, keys) {
     if (S.period !== x.p) api.goPeriod(x.p);
     const [kind, id] = x.step.go.split(":");
     if (kind === "scene") { const sc = api.layouts().find((s) => s.id === id); if (sc) { api.applyScene(sc); return; } }
+    else if (x.step.pn) {   // the screen and exactly these panels: board ones float over the lesson, side ones go on the shelf
+        const keys = Object.keys(x.step.pn), on = {}; keys.forEach((k) => { on[k] = true; });
+        api.applyScene({ id: "_step", n: "", screen: api.screenOk(id) ? id : "", on, min: {}, pos: {}, float: keys.filter((k) => x.step.pn[k] === "b"), order: keys });
+        return;
+    }
     else if (api.screenOk(id) && S.screen !== id) { S.screen = id; S.show = false; }
     api.push();
 }
@@ -108,7 +119,7 @@ export function nextUp(api) {
     const nx = todayList(api).find((x) => x.t > nowS - 1 && B.skip !== date + "|" + x.p && !B.fired.includes(x.key));
     if (!nx) return { line: "Done for today (" + api.bellName() + " schedule)." };
     const inS = nx.t - nowS, soon = inS <= 3600 ? " · in " + (inS < 60 ? inS + " s" : Math.ceil(inS / 60) + " min") : "";
-    return { line: "Next: " + goLabel(nx.step.go, api) + ", " + nx.p + " period at " + nice(nx.t) + soon, p: nx.p };
+    return { line: "Next: " + goLabel(nx.step.go, api, nx.step.pn) + ", " + nx.p + " period at " + nice(nx.t) + soon, p: nx.p };
 }
 
 /* ---------- the Remote's fold ---------- */
@@ -135,7 +146,7 @@ export function mountPlanFold(api, anchor) {
     dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
     anchor.after(box);
 
-    tog.onclick = async () => { const p = api.plan(); if (!p) return; const was = p.on; p.on = !was; if (!was && !Object.keys(p.plans).length) p.plans.regular = STARTER.map((s) => Object.assign({}, s)); await api.savePlan(p); refresh(); };
+    tog.onclick = async () => { const p = api.plan(); if (!p) return; const was = p.on; p.on = !was; if (!was && !Object.keys(p.plans).length) p.plans.regular = STARTER.map((s) => Object.assign({}, s, s.pn ? { pn: Object.assign({}, s.pn) } : {})); await api.savePlan(p); refresh(); };
     skip.onclick = () => {
         const S = api.S, key = api.today() + "|" + S.period;
         S.bplan.skip = S.bplan.skip === key ? "" : key; api.push(); refresh();
@@ -165,7 +176,7 @@ function drawEditor(api, host, after) {
     const { el } = api, plan = api.plan(); host.textContent = ""; if (!plan) return;
     const scheds = api.schedules();
     if (!edId || !scheds.some((s) => s[0] === edId)) edId = api.bellId();
-    if (draftFor !== edId || !draft) { const own = plan.plans[edId]; draft = (own && own.length ? own : stepsFor(plan, edId).steps).map((s) => Object.assign({}, s)); draftFor = edId; }
+    if (draftFor !== edId || !draft) { const own = plan.plans[edId]; draft = (own && own.length ? own : stepsFor(plan, edId).steps).map((s) => Object.assign({}, s, s.pn ? { pn: Object.assign({}, s.pn) } : {})); draftFor = edId; }
     const top = el("label", "field bpsched"); top.appendChild(el("span", null, "Bell schedule"));
     const sel = el("select"); scheds.forEach(([id, n]) => { const o = el("option", null, n + (id === api.bellId() ? " (today)" : "")); o.value = id; sel.appendChild(o); }); sel.value = edId;
     sel.onchange = () => { edId = sel.value; draft = null; drawEditor(api, host, after); };
@@ -185,7 +196,21 @@ function drawEditor(api, host, after) {
         const go = el("select"); go.setAttribute("aria-label", "Show"); go.className = "bpgo";
         opts.forEach(([g, items]) => { const og = el("optgroup"); og.label = g; items.forEach(([v, t]) => { const o = el("option", null, t); o.value = v; og.appendChild(o); }); go.appendChild(og); });
         if (![...go.options].some((o) => o.value === st.go)) { const o = el("option", null, goLabel(st.go, api)); o.value = st.go; go.prepend(o); }
-        go.value = st.go; go.onchange = () => { st.go = go.value; };
+        go.value = st.go;
+        // Panels for this step (screen steps only). Tap a panel: on the board, then on the side, then off.
+        const pr = el("div", "bppanels"), STATES = { b: "On board", s: "On side" };
+        pr.appendChild(el("span", "bpplab", "Panels"));
+        api.panels().forEach(([k, label]) => {
+            const c = el("button", "bpchip"); c.type = "button"; c.dataset.k = k;
+            const paint = () => { const v = st.pn && st.pn[k]; c.className = "bpchip" + (v ? " " + v : ""); c.textContent = label + (v ? " \u00b7 " + STATES[v] : ""); c.setAttribute("aria-pressed", String(!!v)); };
+            c.onclick = () => { st.pn = st.pn || {}; const v = st.pn[k]; if (!v) st.pn[k] = "b"; else if (v === "b") st.pn[k] = "s"; else delete st.pn[k]; if (!Object.keys(st.pn).length) delete st.pn; paint(); hint(); };
+            paint(); pr.appendChild(c);
+        });
+        const ph = el("span", "bpphint"); pr.appendChild(ph);
+        const hint = () => { ph.textContent = st.pn ? "Only these panels show. Tap a panel again to move it to the side or turn it off." : "None picked: the panels on the board stay as they are."; };
+        hint();
+        pr.hidden = !st.go.startsWith("screen:");
+        go.onchange = () => { st.go = go.value; pr.hidden = !st.go.startsWith("screen:"); if (pr.hidden) delete st.pn; };
         const pp = el("select"); pp.setAttribute("aria-label", "Which period"); pp.className = "bpper";
         [["", "Every period"]].concat(api.periods().map(([q]) => [q, q + " only"])).forEach(([v, t]) => { const o = el("option", null, t); o.value = v; pp.appendChild(o); });
         pp.value = st.p || ""; pp.onchange = () => { if (pp.value) st.p = pp.value; else delete st.p; at.textContent = when(); };
@@ -193,7 +218,7 @@ function drawEditor(api, host, after) {
         const at = el("span", "bpat");
         const when = () => { const q = st.p || per, t = stepAt(st, bells && bells[q]); return t == null ? "" : q + " period: " + nice(t); };
         at.textContent = when();
-        r.append(n, ref, el("span", "bparrow", "show"), go, pp, del, at); list.appendChild(r);
+        r.append(n, ref, el("span", "bparrow", "show"), go, pp, del, pr, at); list.appendChild(r);
     });
     const acts = el("div", "bprow"); host.appendChild(acts);
     if (draft.length < MAX_STEPS) { const add = el("button", "btn ghost", "Add a step"); add.type = "button"; add.onclick = () => { const last = draft[draft.length - 1]; draft.push({ m: last ? Math.min(60, last.m + 5) : 0, ref: "after", go: "screen:today" }); drawEditor(api, host, after); }; acts.appendChild(add); }
@@ -203,7 +228,7 @@ function drawEditor(api, host, after) {
     save.onclick = async () => {
         const clean = draft.map(cleanStep).filter(Boolean);
         clean.sort((a, b) => (stepAt(a, { start: "12:00", end: "13:00" }) - stepAt(b, { start: "12:00", end: "13:00" })));
-        plan.plans[edId] = clean; draft = clean.map((s) => Object.assign({}, s));
+        plan.plans[edId] = clean; draft = clean.map((s) => Object.assign({}, s, s.pn ? { pn: Object.assign({}, s.pn) } : {}));
         const ok = await api.savePlan(plan);
         drawEditor(api, host, after); after();
         host.lastElementChild.textContent = ok ? "Saved. " + (plan.on ? "The board will follow these steps." : "Turn on “Change screens on the bell” to use them.") : "Could not save. Check the connection and try again.";
