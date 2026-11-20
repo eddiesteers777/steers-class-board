@@ -12,7 +12,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import * as V from "./vaultCore.js?v=73";
+import * as V from "./vaultCore.js?v=74";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=2";
 
@@ -145,17 +145,18 @@ async function join(code) {
         if (d.hit && d.hit.at > ST.seenHit && d.need) { ST.view = "hit"; }
         if (ST.view === "q" && ST.sentQ >= 0 && d.fb && d.fb.q === ST.sentQ) {
             if (d.fb.exit) { ST.sentQ = -1; pad.clear(); }   // exit ticket: straight on to the next question, no right or wrong
-            else if (d.fb.step && !d.fb.ok) ST.sentQ = -1;   // step help: they stay on the question (the step is typed onto the pad below)
+            else if (d.fb.step && !d.fb.ok) ST.sentQ = -1;   // step help: they stay on the question (the step pops up on the right)
             else { ST.view = "fb"; ST.sentQ = -1; if (!d.fb.retry) pad.clear(); }   // a second try keeps the work
         }
-        // Step help: a new step (after a miss, or by itself when they've been stuck a while) is typed onto their pad.
+        // Step help: a new step (after a miss, or by itself when they've been stuck a while) pops up on the right, open.
         if (d.fb && d.fb.step && !d.fb.ok && d.fb.t !== ST.stepT && d.q && d.q.n === d.fb.q) {
             ST.stepT = d.fb.t; ST.stepInk = pad.len(); ST.stepNew = { kind: d.fb.kind, at: Date.now() };
-            if ((d.fb.sp || []).length && d.fb.kind !== "read") { pad.addSteps(d.fb.sp); if (d.fb.kind !== "fast") ST.stepAt = Date.now(); }
+            if ((d.fb.sp || []).length && d.fb.kind !== "read") { ST.stepMin = false; if (d.fb.kind !== "fast") ST.stepAt = Date.now(); }
             sfx(d.fb.kind === "auto" ? "tap" : "miss"); ST.err = "";
             if (ST.view === "q") { draw(true); return; }   // rebuild the question card (the pad keeps its work)
         }
         if (ST.view === "guess" && ST.sentK && d.hk && d.hk.n === ST.sentK) { ST.sentK = 0; ST.guess = ""; }
+        notices(d);
         draw();
     }, () => {});
 }
@@ -194,18 +195,6 @@ function cleanRead(raw) {
 /* ---------- the work pad ----------
    The same canvas-first whiteboard as the board: paper across most of the screen, a floating
    tool rail, and the math tools (js/mathPad.js) on a layer under the ink. */
-/* Typed steps on the pad: about the size students write (pad units are 1/1000 of its width). */
-const STEP_PX = 38, STEP_PX_PHONE = 26;   // font size in screen pixels: Chromebook, phone
-const isStep = (it) => it && it.k === "text" && /^step\d$/.test(String(it.id || ""));
-/** How wide a bit of step text looks: a stacked fraction {12/5} is as wide as its longer part. */
-const visLen = (t) => String(t).replace(/\{([^{}/]*)\/([^{}]*)\}/g, (m, a, b) => (a.length > b.length ? a : b)).length;
-function wrapStep(t, n) {
-    const out = []; let line = "";
-    // Keep a math sign with the number after it, so "9 ÷ 3" never breaks between ÷ and 3.
-    const words = []; String(t).split(/\s+/).forEach((w) => { const k = words.length - 1; if (k >= 0 && (/^[÷×+−=<>≤≥]$/.test(w) || /(^|\s)[÷×+−=<>≤≥]$/.test(words[k])) && visLen(words[k]) < 14) words[k] += " " + w; else words.push(w); });
-    words.forEach((w) => { if (line && visLen(line + " " + w) > n) { out.push(line); line = w; } else line = line ? line + " " + w : w; });
-    if (line) out.push(line); return out;
-}
 const pad = (() => {
     const W = 1000, PENS = { ink: ["#14213D", "Navy"], blue: ["#1552D6", "Blue"], red: ["#C62828", "Red"], green: ["#1B7F3B", "Green"] }, SIZES = [3, 6, 11];
     let H = 600, strokes = [], items = [], hist = [], host = null, canvas = null, ctx = null, mp = null, cur = null, ro = null;
@@ -339,29 +328,8 @@ const pad = (() => {
         len() {
             let len = 0;
             strokes.forEach((s) => { if (s.e || s.ring) return; for (let i = 1; i < s.p.length; i++) len += Math.hypot(s.p[i][0] - s.p[i - 1][0], s.p[i][1] - s.p[i - 1][1]); });
-            (mp ? mp.items() : items).forEach((it) => { if (it.k === "text" && !isStep(it)) len += 40 * String(it.txt || "").replace(/\s/g, "").length; });
+            (mp ? mp.items() : items).forEach((it) => { if (it.k === "text") len += 40 * String(it.txt || "").replace(/\s/g, "").length; });
             return len;
-        },
-        /** Type the steps onto the pad like typed work, stacked down the right side, about the size of handwriting.
-            Steps already there are left alone (ids step1…step4), so this is safe to call again after a reload. */
-        addSteps(list) {
-            const cur = (mp ? mp.items() : items).slice(), have = new Set(cur.map((it) => it.id)), add = [];
-            // Size it to the screen, so it looks like the student's own writing on a Chromebook or a phone.
-            const cw = host && host.isConnected ? host.getBoundingClientRect().width : 1000, narrow = cw < 600;
-            const fs = Math.round(Math.min(0.085, Math.max(0.022, (narrow ? STEP_PX_PHONE : STEP_PX) / cw)) * 1e4) / 1e4, px = fs * W;
-            // A line with a stacked fraction is taller than a plain one.
-            const tall = (txt, p) => String(txt).split("\n").reduce((n, l) => n + p * (/\{[^{}]*\/[^{}]*\}/.test(l) ? 2 : 1.3), 0);
-            const wrapN = Math.max(12, Math.floor((narrow ? 0.72 : 0.6) / (fs * 0.62)));
-            let y = 44;   /* under the "Show your work here" label */ cur.filter(isStep).forEach((it) => { y = Math.max(y, it.y * H + tall(it.txt, (it.fs || fs) * W) / 2 + 16); });
-            (list || []).forEach((t, i) => {
-                const id = "step" + (i + 1); if (have.has(id)) return;
-                const lines = wrapStep("Step " + (i + 1) + ": " + V.mathify(t), wrapN), h = tall(lines.join("\n"), px), w = Math.max(...lines.map(visLen)) * px * 0.62;
-                add.push({ id, k: "text", x: Math.max(narrow ? 0.5 : 0.3, (W - 20 - w / 2) / W), y: Math.min(1.15, (y + h / 2) / H), s: 0.2, r: 0, txt: lines.join("\n"), fs });
-                y += h + 16;
-            });
-            if (!add.length) return 0;
-            items = cur.concat(add); if (mp) mp.setItems(items); dirty = true; paint();
-            return add.length;
         }
     };
 })();
@@ -539,7 +507,7 @@ function toast(text, cls) {
     setTimeout(() => t.classList.add("out"), 3600); setTimeout(() => t.remove(), 4200);
 }
 // The bonus round and firewall end on their own: check every second so the badges go away.
-setInterval(() => { if (ST.view === "q" && ST.me && ST.me.status === "play") { const fx = $("pfx"); if (fx) fx.replaceWith(effects(ST.me) || Object.assign(el("div", "pfx"), { id: "pfx" })); } }, 1000);
+setInterval(() => { if (ST.me && !!ST.fogOn !== fogged(ST.me)) stats(); if (ST.view === "q" && ST.me && ST.me.status === "play") { const fx = $("pfx"); if (fx) fx.replaceWith(effects(ST.me) || Object.assign(el("div", "pfx"), { id: "pfx" })); } }, 1000);
 
 /* ---------- the waiting room: a character and a starting power-up ---------- */
 /** Character and power-up picks go in their own small write, so a site whose rules are older still lets the game run. */
@@ -581,7 +549,35 @@ function waitingRoom(card, m) {
     V.STARTERS.forEach(([k, n, d]) => { const b = btn("wrpower" + (k === pu ? " on" : ""), null, () => pick({ pu: k })); b.dataset.k = k; b.setAttribute("role", "radio"); b.setAttribute("aria-checked", String(k === pu)); b.append(powerIcon(k), el("b", null, n), el("small", null, d)); pus.append(b); });
     card.append(pus);
     card.append(el("p", "pnote", pickNote(pu)));
+    card.append(practiceVault());
     card.append(el("h2", "wrh", "Vault skins"), el("p", "pnote", "Earn coins in the game to unlock new looks for your vault."), skinsGrid(m, false));
+}
+/** A quick game while they wait: crack a practice vault with the same marks as the real game. Nothing is sent anywhere. */
+function practiceVault() {
+    const mg = ST.mg || (ST.mg = { code: V.randomCode(), hist: [], cur: "" }), won = mg.hist.some((x) => x.m === "2".repeat(V.CODE_LEN));
+    const best = +store.get("pvbest") || 0, w = el("div", "wrgame");
+    const head = el("div", "wrgamehead"); head.append(vaultPic(won ? "open" : "mini", 0));
+    const tt = el("div"); tt.append(el("h2", "wrh", "While you wait: crack the practice vault"), el("p", "pnote", "Same marks as the real game. Guess 3 different digits." + (best ? " Your best: " + best + (best === 1 ? " guess." : " guesses.") : "")));
+    head.append(tt); w.append(head);
+    const legend = el("p", "plegend"); legend.append(dot(2), document.createTextNode(" right spot  "), dot(1), document.createTextNode(" wrong spot  "), dot(0), document.createTextNode(" not in it")); w.append(legend);
+    const hist = el("div", "phist");
+    mg.hist.forEach((x) => { const r = el("div", "phrow"); [...x.g].forEach((d, i) => r.append(el("span", "phd m" + x.m[i], d))); hist.append(r); });
+    w.append(hist);
+    if (won) {
+        const n = mg.hist.length; w.append(el("p", "pbig wrgamewin", "Cracked in " + n + (n === 1 ? " guess!" : " guesses!")));
+        w.append(btn("pbtn go", "New practice vault", () => { ST.mg = null; draw(true); }));
+        return w;
+    }
+    const slots = el("div", "pslots"); for (let i = 0; i < V.CODE_LEN; i++) slots.append(el("span", "pslot" + (mg.cur[i] ? " full" : ""), mg.cur[i] || ""));
+    w.append(slots, keypad(mg.cur, (v) => { mg.cur = v; draw(true); }));
+    const go = btn("pbtn go", "Try it", () => {
+        if (!V.validCode(mg.cur)) return;
+        const m = V.codeMarks(mg.code, mg.cur); mg.hist.push({ g: mg.cur, m }); mg.cur = "";
+        if (m === "2".repeat(V.CODE_LEN)) { const n = mg.hist.length; if (!best || n < best) store.set("pvbest", String(n)); sfx("crack"); confetti(80, 0.5, 0.4, ["#F2B33D", "#F6C866", "#FFE3A3"]); } else sfx("tap");
+        draw(true);
+    });
+    go.disabled = mg.cur.length !== V.CODE_LEN; w.append(go);
+    return w;
 }
 const POWER_ICONS = {
     shield: '<path d="M60 10l40 14v30c0 28-18 46-40 56-22-10-40-28-40-56V24z" fill="#7FAEDD"/><path d="M60 22l28 10v22c0 20-12 33-28 41z" fill="#10358A"/>',
@@ -594,6 +590,11 @@ const POWER_ICONS = {
     firewall: '<path d="M60 8c8 22 30 30 30 58a30 30 0 01-60 0c0-16 10-24 14-32 2 12 8 16 12 16-4-18 0-30 4-42z" fill="#F28C28"/><path d="M60 52c4 10 14 14 14 26a14 14 0 01-28 0c0-10 8-16 14-26z" fill="#FFE3A3"/>',
 };
 POWER_ICONS.comeback = '<circle cx="60" cy="60" r="50" fill="#1F9D61"/><path d="M60 92V34M36 56l24-24 24 24" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>';
+POWER_ICONS.lock = '<rect x="22" y="52" width="76" height="56" rx="10" fill="#10358A"/><path d="M38 52V38a22 22 0 0144 0v14" fill="none" stroke="#10358A" stroke-width="12"/><circle cx="60" cy="78" r="9" fill="#F2B33D"/>';
+POWER_ICONS.jam = '<circle cx="60" cy="60" r="48" fill="#C62828"/><path d="M38 38l44 44M82 38L38 82" stroke="#fff" stroke-width="12" stroke-linecap="round"/>';
+POWER_ICONS.fog = '<path d="M30 74a20 20 0 010-40 28 28 0 0154-6 22 22 0 016 46z" fill="#8A97AD"/><path d="M20 92h80M34 106h52" stroke="#8A97AD" stroke-width="9" stroke-linecap="round"/>';
+POWER_ICONS.tax = '<circle cx="60" cy="60" r="46" fill="#F2B33D"/><text x="60" y="76" text-anchor="middle" font-size="46" font-weight="800" fill="#8A5F00" font-family="sans-serif">%</text>';
+POWER_ICONS.spy = '<circle cx="42" cy="66" r="18" fill="none" stroke="#10358A" stroke-width="9"/><circle cx="80" cy="66" r="18" fill="none" stroke="#10358A" stroke-width="9"/><path d="M60 62v0M16 50l18-24h52l18 24" fill="none" stroke="#10358A" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>';
 POWER_ICONS.bonus = '<path d="M68 6L24 66h30l-8 48 46-64H60z" fill="#3A2A00"/>';
 POWER_ICONS.box = '<rect x="18" y="44" width="84" height="60" rx="8" fill="#10358A"/><rect x="12" y="30" width="96" height="20" rx="6" fill="#1552D6"/><rect x="52" y="30" width="16" height="74" fill="#F2B33D"/><path d="M60 30c-10-18-30-18-28-6 2 8 18 6 28 6 10 0 26 2 28-6 2-12-18-12-28 6z" fill="#F2B33D"/>';
 const powerIcon = (k) => svg(POWER_ICONS[k] || POWER_ICONS.box, "pwicon");
@@ -606,6 +607,12 @@ function effects(m) {
     if (m.fw > now) list.push(["firewall", "Firewall on", ""]);
     if (m.ins) list.push(["insure", "Insured", ""]);
     if (m.cb && m.status === "play" && !m.redo && !m.exit) list.push(["comeback", "Catch-up boost: +50% coins", ""]);
+    const lock = Math.max(+m.lock || 0, +(ST.room && ST.room.lock) || 0);
+    if (lock > now) list.push(["lock", "Lockdown · no hacking · " + Math.ceil((lock - now) / 1000) + " s", "hot"]);
+    if (m.mb) list.push(["box", "Mystery drop: next right answer opens a box", ""]);
+    if (m.jam > now) list.push(["jam", "Hacks jammed · " + Math.ceil((m.jam - now) / 1000) + " s", "bad"]);
+    if (m.fog > now) list.push(["fog", "Fogged · " + Math.ceil((m.fog - now) / 1000) + " s", "bad"]);
+    if (m.tax) list.push(["tax", "Taxed: your next right answer pays a quarter", "bad"]);
     if (!list.length) return null;
     const box = el("div", "pfx"); box.id = "pfx"; list.forEach(([k, t, c]) => { const x = el("span", "pfxc" + (c ? " " + c : "")); x.append(powerIcon(k), document.createTextNode(t)); box.append(x); });
     return box;
@@ -630,13 +637,15 @@ function stats() {
     s.hidden = false; s.textContent = "";
     const chip = (label, val, cls) => { const c = el("span", "pstat" + (cls ? " " + cls : "")); c.append(el("small", null, label), el("b", null, val)); s.append(c); };
     const was = ST.coins; ST.coins = m.c;
-    chip("Name", V.avatar(m.status === "lobby" && ST.picks.av != null ? ST.picks.av : m.av)[0] + " " + m.nm); chip("Coins", String(m.c), "coin" + (was != null && m.c > was ? " up" : was != null && m.c < was ? " down" : "")); chip("Hacks", String(m.h)); if (m.status !== "lobby") chip("Place", m.rank + " of " + m.players);
+    chip("Name", V.avatar(m.status === "lobby" && ST.picks.av != null ? ST.picks.av : m.av)[0] + " " + m.nm); const fog = fogged(m); ST.fogOn = fog;
+    chip("Coins", fog ? "???" : String(m.c), "coin" + (fog ? " fog" : was != null && m.c > was ? " up" : was != null && m.c < was ? " down" : "")); chip("Hacks", String(m.h)); if (m.status !== "lobby") chip("Place", fog ? "???" : m.rank + " of " + m.players, fog ? "fog" : "");
     const t = el("span", "pstat"); t.append(el("small", null, "Time"), el("b", null, "")); t.id = "ptime"; s.append(t); tickTime();
     if (!(ST.room && ST.room.snd === false)) {
         const on = store.get("mute") !== "1", b = btn("pstat pmute" + (on ? "" : " off"), null, () => { store.set("mute", on ? "1" : ""); stats(); if (!on) sfx("tap"); });
         b.append(el("small", null, "Sound"), el("b", null, on ? "On" : "Off")); b.setAttribute("aria-pressed", String(on)); b.setAttribute("aria-label", on ? "Sound is on. Tap to mute." : "Sound is off. Tap to turn it on."); s.append(b);
     }
 }
+const fogged = (m) => !!(m && m.status === "play" && +m.fog > Date.now());
 function tickTime() {
     const t = $("ptime"); if (!t) return; const e = ST.me && ST.me.ends;
     t.hidden = !(ST.me && ST.me.status === "play" && e);
@@ -665,7 +674,7 @@ function draw(force) {
     pauseCover(); callBanner();
     const m = ST.me;
     if (m && m.nm && ST.step !== "play") ST.step = "play";
-    const k = JSON.stringify([ST.step, ST.view, ST.err, ST.busy, ST.target, ST.guess, ST.vault, ST.roomGone, ST.room && [ST.room.status, ST.step === "name" ? [ST.room.taken, ST.room.names && ST.room.names.length] : 0, ST.room.bonus, ST.room.rw ? ST.room.rw.k : 0], m && [m.status === "lobby" ? 0 : m.n, m.status, m.need]]);
+    const k = JSON.stringify([ST.step, ST.view, ST.err, ST.busy, ST.target, ST.guess, ST.vault, ST.sabK, ST.sentS, ST.mg && ST.mg.cur, ST.mg && ST.mg.hist.length, ST.roomGone, ST.room && [ST.room.status, ST.step === "name" ? [ST.room.taken, ST.room.names && ST.room.names.length] : 0, ST.room.bonus, ST.room.rw ? ST.room.rw.k : 0], m && [m.status === "lobby" ? 0 : m.n, m.status, m.need]]);
     if (k === sig && !force) return;
     // Keep the pad (and anything typed) while the same question stays on screen.
     const cq = curQ(m), sameQ = !force && ST.step === "play" && ST.view === "q" && cq && document.getElementById("padhost") && +$("padhost").dataset.q === cq.n && !ST.roomGone;
@@ -709,6 +718,7 @@ function draw(force) {
     if (m.need) return vaultStep(card, true);
     if (ST.view === "fb") return fbView(card);
     if (ST.view === "targets") return targetsView(card);
+    if (ST.view === "sab") return sabView(card);
     if (ST.view === "guess") return guessView(card);
     if (ST.view === "skins") return skinsView(card);
     questionView(card);
@@ -779,6 +789,11 @@ function keypad(value, set) {
     const back = btn("pkey wide", "Delete", () => set(value.slice(0, -1))); back.disabled = !value; k.append(back);
     return k;
 }
+/** Why hacking is off right now (a Lockdown or a Jam), or "". */
+function hackOff(m) {
+    const now = Date.now(), lock = Math.max(+m.lock || 0, +(ST.room && ST.room.lock) || 0);
+    return lock > now ? "Lockdown" : +m.jam > now ? "Hacks jammed" : "";
+}
 function questionView(card) {
     const m = ST.me, ex = m.exit, q = curQ(m);
     if (ex && ex.done) { card.classList.add("center"); card.append(el("h1", null, "All done!"), el("p", "plead", "Thanks. Your teacher will look at how you did. Wait for your teacher.")); return; }
@@ -790,7 +805,8 @@ function questionView(card) {
     const qc = el("div", "pqcard"), left = el("div", "pqleft"), top = el("div", "pqtop");
     top.append(effects(m) || Object.assign(el("div", "pfx"), { id: "pfx" }));
     if (q.c) top.append(el("span", "pchip", q.c + (ex ? " · " + (ex.i + 1) + " of " + ex.of : "")));
-    if (m.h > 0 && !ex && !m.redo) top.append(btn("pbtn hack", "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }));
+    if (m.h > 0 && !ex && !m.redo) { const off = hackOff(m), hb = btn("pbtn hack", off || "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }); hb.disabled = !!off; top.append(hb); }
+    if (m.sab && !ex && !m.redo && m.status === "play") top.append(btn("pbtn hack sab", "Sabotage", () => { ST.view = "sab"; ST.err = ""; draw(true); }));
     left.append(top, mathEl("p", "pq", q.t));
     // Step help after a miss: the steps so far sit under the question while they work.
     const sf = !ex && !m.redo && m.fb && m.fb.step && m.fb.q === q.n ? m.fb : null;
@@ -827,22 +843,39 @@ function questionView(card) {
     const host = el("div", "wbpaper ppaper"); host.id = "padhost"; host.dataset.q = String(q.n);
     host.append(el("p", "ptag", need ? "Show your work here (needed to submit)" : "Show your work here"));
     card.append(host); pad.mount(host);
+    if (sf && (sf.sp || []).length) host.append(stepPop(sf, q.n));   // over the top right of the pad (the tool rail is on the left)
     const rw = ST.room && ST.room.rw, withWork = !!(rw && q.n === 100000 + (+rw.k || 0)); pad.setBg(withWork ? rw : null);
     if (withWork) teacherTag(host, need);
 }
-/** Under the question in step help: what just happened, and what a right answer is worth now. The steps themselves are on the pad. */
+/** Under the question in step help: what just happened, and what a right answer is worth now. The steps themselves pop up on the right. */
 function stepStrip(f) {
     const sp = (f.sp || []).length, fresh = ST.stepNew && Date.now() - ST.stepNew.at < 1500, b = el("div", "pstepbar" + (fresh ? " fresh" : "") + (sp ? "" : " wait"));
     const msg = f.kind === "fast" && !sp ? "Too quick! Take a real try first. Steps unlock after you work on it."
-        : f.kind === "read" ? "Read step " + sp + " on your board first."
-        : f.kind === "auto" ? "Step " + sp + " is on your board to keep you moving. Use it and keep going."
-        : (sp === 1 ? "Not quite. Step 1 is on your board. Use it and keep going." : "Still not it. Step " + sp + " is on your board.");
+        : f.kind === "read" ? "Read step " + sp + " on the right first."
+        : f.kind === "auto" ? "Step " + sp + " is on the right to keep you moving. Use it and keep going."
+        : (sp === 1 ? "Not quite. Step 1 is on the right. Use it and keep going." : "Still not it. Step " + sp + " is on the right.");
     b.append(el("b", null, msg));
     const full = V.coinsFor(1), now = +f.worth || full, m = el("span", "pstepcoins"); m.append(coinPic(), document.createTextNode(now + " coins if you get it now" + (f.hack && sp ? " + a hack" : "")));
     const bar = el("i", "pstepmeter"), fill = el("i"); fill.style.width = Math.round(100 * now / full) + "%"; bar.append(fill); m.append(bar);
     b.append(m);
     if (sp && sp >= (f.sn || 0)) b.append(el("small", null, "That's the last step. One more miss shows the answer."));
     return b;
+}
+/** Step help as a small window on the right, over the edge of the pad. A new step opens it; the student can shrink it
+    to a small tab and open it again any time, so it never covers their work for long. */
+function stepPop(f, qn) {
+    const list = f.sp || [], n = list.length, fresh = ST.stepNew && Date.now() - ST.stepNew.at < 1500;
+    const w = el("aside", "pstepop" + (ST.stepMin ? " min" : "") + (fresh && !ST.stepMin ? " fresh" : "")); w.id = "pstepop"; w.setAttribute("aria-label", "Steps");
+    const set = (min) => { ST.stepMin = min; w.classList.toggle("min", min); w.classList.remove("fresh"); tab.setAttribute("aria-expanded", String(!min)); };
+    const tab = btn("psptab", null, () => set(false)); tab.append(el("span", "pspbulb", "💡"), el("b", null, "Step " + n + (f.sn ? " of " + f.sn : "")));
+    tab.setAttribute("aria-expanded", String(!ST.stepMin)); tab.title = "Show the steps";
+    const box = el("div", "pspbox"), head = el("div", "psphead");
+    head.append(el("span", "pspbulb", "💡"), el("b", null, "Step " + n + (f.sn ? " of " + f.sn : "")));
+    const mn = btn("pspmin", "–", () => set(true)); mn.title = "Shrink"; mn.setAttribute("aria-label", "Shrink the steps"); head.append(mn);
+    const ol = el("ol"); list.forEach((t, i) => { const li = mathEl("li", i === n - 1 ? "new" : "", t); li.value = i + 1; ol.append(li); });
+    box.append(head, ol, el("small", "pspfoot", "Use it on your pad, then try again."));
+    w.append(tab, box);
+    return w;
 }
 /** The steps unlocked so far, newest on the bottom and highlighted. */
 function stepsCard(f, slim) {
@@ -899,6 +932,7 @@ function fbView(card) {
         else if (f.steps != null) { chips.append(el("span", "pgain", f.steps ? "Solved with " + f.steps + (f.steps === 1 ? " step" : " steps") : "Solved on your own")); if (f.hack) chips.append(el("span", "pgain hot", "+1 hack")); }
         else chips.append(el("span", "pgain", f.second ? "Second try: half coins" : "Try-again bonus"));
         (f.x2 || []).forEach((k) => chips.append(el("span", "pgain hot", k === "bonus" ? "Bonus round ×2" : k === "comeback" ? "Catch-up boost" : "Double coins ×2")));
+        if (f.tax) chips.append(el("span", "pgain bad", f.tax.by + "'s Tax took " + f.tax.cut));
         if (st > 1) chips.append(el("span", "pgain hot", words || st + " in a row"));
         if (V.coinsFor(st) > V.RIGHT_COINS) chips.append(el("span", "pgain", "Streak bonus +" + (V.coinsFor(st) - V.RIGHT_COINS)));
         card.append(chips);
@@ -958,12 +992,13 @@ function skinsView(card) {
 function targetsView(card) {
     const m = ST.me; card.classList.add("wide");
     card.append(el("h1", null, "Pick a vault to hack"), el("p", "plead", "You have " + m.h + (m.h === 1 ? " hack" : " hacks") + ". Each guess uses one. Crack a code to take a share of the coins."));
+    const off = hackOff(m); if (off) card.append(el("p", "pnote err", off === "Lockdown" ? "Lockdown! No hacking until it ends. Answer questions." : "Your hacks are jammed for a few seconds. Answer questions."));
     const list = el("div", "ptargets");
     (m.targets || []).forEach((t) => {
         const b = btn("ptarget", null, () => { ST.target = t.id; ST.guess = ""; ST.view = "guess"; draw(true); });
         const nm = el("b"); nm.append(vaultPic("mini", t.vs), document.createTextNode(V.avatar(t.av)[0] + " " + t.nm));
         b.append(nm, el("span", null, t.c + " coins"), el("small", null, t.sh ? "Firewall up" : t.g.length ? t.g.length + (t.g.length === 1 ? " guess so far" : " guesses so far") : "Not tried yet"));
-        b.disabled = !!t.sh || m.h < 1; list.append(b);
+        b.disabled = !!t.sh || m.h < 1 || !!off; list.append(b);
     });
     if (!(m.targets || []).length) list.append(el("p", "plead", "No one else is playing yet."));
     card.append(list, btn("pbtn ghost", "Back to questions", () => { ST.view = "q"; draw(true); }));
@@ -976,6 +1011,7 @@ function guessView(card) {
     card.append(el("h1", null, cracked ? "You cracked " + t.nm + "'s vault!" : "Hack " + t.nm + "'s vault"));
     if (cracked) { card.classList.add("good", "center"); if (celebrated !== "crack" + m.hk.n) card.classList.add("pop"); card.append(vaultPic("open", t.vs), el("p", "pbig", "Cracked! +" + m.hk.steal + " coins")); once("crack" + m.hk.n, () => { confetti(150, 0.5, 0.35, ["#F2B33D", "#F6C866", "#FFE3A3", "#7FAEDD", "#FFFFFF"]); sfx("crack"); }); card.append( el("p", "plead", t.nm + " has to set a new code.")); card.append(btn("pbtn go", "Back to questions", () => { ST.view = "q"; ST.target = ""; draw(true); })); return; }
     if (hk && hk.why) card.append(el("p", "pnote err", hk.why));
+    if (t.spy && !cracked) { const sp = el("div", "pspyhint"); sp.append(powerIcon("spy"), el("span", null, "Your Spy saw: "), el("b", null, [...t.spy].join(" "))); card.append(sp); }
     const legend = el("p", "plegend"); legend.append(dot(2), document.createTextNode(" right digit, right spot  "), dot(1), document.createTextNode(" in the code, wrong spot  "), dot(0), document.createTextNode(" not in the code")); card.append(legend);
     const hist = el("div", "phist");
     t.g.forEach((x) => { const [g, mk] = String(x).split(":"); const r = el("div", "phrow"); [...g].forEach((d, i) => { const c = el("span", "phd m" + mk[i], d); c.setAttribute("aria-label", d + ": " + ["not in the code", "in the code, wrong spot", "right spot"][+mk[i]]); r.append(c); }); hist.append(r); });
@@ -992,6 +1028,66 @@ function guessView(card) {
     row.append(go, btn("pbtn ghost", "Back to questions", () => { ST.view = "q"; ST.guess = ""; draw(true); })); card.append(row);
     if (m.h < 1) card.append(el("p", "pnote", "Answer a question right to earn another hack."));
     note(card);
+}
+/* ---------- sabotage: spend coins to slow down a player who is ahead ---------- */
+const SAB_HIT = {
+    fog: (by) => by + " fogged you! Your coins and place are hidden for 20 seconds.",
+    jam: (by) => by + " jammed your hacks for 30 seconds. Keep answering!",
+    tax: (by) => by + " taxed you! A quarter of your next right answer goes to them.",
+    spy: (by) => by + " sent a spy and saw one digit of your vault code.",
+};
+const SAB_DONE = {
+    fog: (r) => "Fog hit " + r.tn + "!",
+    jam: (r) => r.tn + "'s hacks are jammed!",
+    tax: (r) => "Tax set on " + r.tn + ". You get a quarter of their next right answer.",
+    spy: (r) => "Your spy saw spot " + (r.i + 1) + " of " + r.tn + "'s code: " + r.d,
+};
+function sabView(card) {
+    const m = ST.me, now = Date.now(); card.classList.add("wide", "psab");
+    card.append(el("h1", null, "Sabotage"), el("p", "plead", "Spend coins to slow down a player with at least as many coins as you. It never touches anyone's questions."));
+    const lock = hackOff(m) === "Lockdown", wait = Math.ceil(((+m.sbc || 0) - now) / 1000);
+    if (lock) card.append(el("p", "pnote err", "Lockdown! No sabotages until it ends."));
+    else if (wait > 0) {
+        const w = el("p", "pnote psabwait", "Recharging · ready in " + wait + " s"); card.append(w);
+        const t = setInterval(() => { const l = Math.ceil(((+ST.me.sbc || 0) - Date.now()) / 1000); if (!w.isConnected) { clearInterval(t); return; } if (l > 0) w.textContent = "Recharging · ready in " + l + " s"; else { clearInterval(t); if (ST.view === "sab") draw(true); } }, 500);
+    }
+    if (!V.sabotage(ST.sabK)) ST.sabK = (V.SABOTAGES.find((x) => m.c >= x[2]) || V.SABOTAGES[0])[0];
+    const kinds = el("div", "psabkinds"); kinds.setAttribute("role", "radiogroup"); kinds.setAttribute("aria-label", "Sabotages");
+    V.SABOTAGES.forEach(([k, n, c, d]) => {
+        const b = btn("psabk" + (k === ST.sabK ? " on" : ""), null, () => { ST.sabK = k; ST.err = ""; draw(true); });
+        b.setAttribute("role", "radio"); b.setAttribute("aria-checked", String(k === ST.sabK));
+        b.append(powerIcon(k), el("b", null, n), el("span", "psabcost", c + " coins"), el("small", null, d)); b.disabled = m.c < c; kinds.append(b);
+    });
+    card.append(kinds);
+    const s = V.sabotage(ST.sabK), ready = !lock && wait <= 0 && !ST.sentS && m.c >= s[2];
+    card.append(el("h2", "wrh", ST.sentS ? "Sending…" : "Use " + s[1] + " on…"));
+    const list = el("div", "ptargets");
+    (m.targets || []).forEach((t) => {
+        const why = !V.canSabotage(m.c, t.c) ? "Behind you, so you can't" : t.sh ? "Firewall up" : t.sbs ? "Just hit · safe for now" : "";
+        const b = btn("ptarget", null, () => {
+            if (ST.sentS) return; const n = ST.sentS = Date.now(); ST.err = ""; send({ sb: { n, to: t.id, k: ST.sabK } }); draw(true);
+            setTimeout(() => { if (ST.sentS === n) { ST.sentS = 0; ST.err = "Your teacher's screen didn't answer. Try again."; draw(true); } }, 10000);
+        });
+        const nm = el("b"); nm.append(vaultPic("mini", t.vs), document.createTextNode(V.avatar(t.av)[0] + " " + t.nm));
+        b.append(nm, el("span", null, t.c + " coins"), el("small", null, why || s[1] + " · " + s[2] + " coins")); b.disabled = !!why || !ready; list.append(b);
+    });
+    if (!(m.targets || []).length) list.append(el("p", "plead", "No one else is playing yet."));
+    card.append(list, btn("pbtn ghost", "Back to questions", () => { ST.view = "q"; ST.err = ""; draw(true); }));
+    note(card);
+}
+/** Things that happen to this student from outside: a sabotage, a shout-out, the result of their own sabotage, a Lockdown. */
+function notices(d) {
+    const first = !ST.noticed; ST.noticed = true;
+    if (d.sbh && d.sbh.at > (ST.seenSbh || 0)) { ST.seenSbh = d.sbh.at; if (!first && SAB_HIT[d.sbh.k]) { toast(SAB_HIT[d.sbh.k](d.sbh.by), "bad"); sfx("hit"); } }
+    if (d.so && d.so.at > (ST.seenSo || 0)) { ST.seenSo = d.so.at; if (!first) { toast("★ Shout-out from your teacher! +" + d.so.v + " coins", "good"); sfx("box"); confetti(60, 0.5, 0.25); } }
+    if (ST.sentS && d.sbr && d.sbr.n === ST.sentS) {
+        ST.sentS = 0;
+        if (d.sbr.ok) { ST.view = "q"; ST.err = ""; toast((SAB_DONE[d.sbr.k] || (() => "Done!"))(d.sbr), "good"); sfx("crack"); }
+        else ST.err = d.sbr.why || "That didn't work.";
+    }
+    const lock = +(d.lock || 0);
+    if (lock > Date.now() && lock !== ST.seenLock) { ST.seenLock = lock; if (!first) { toast("Lockdown! No hacking or sabotage for 60 seconds. Answer questions!"); sfx("bonus"); } }
+    if (ST.view === "sab" && (!d.sab || d.status !== "play")) ST.view = "q";
 }
 const dot = (k) => { const s = el("span", "phd sm m" + k); s.setAttribute("aria-hidden", "true"); return s; };
 
