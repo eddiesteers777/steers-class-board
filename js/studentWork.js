@@ -8,7 +8,9 @@
      never in this public repo.
 ========================================== */
 
-const MAX_SIDE = 1700, QUALITY = 0.72;
+// Kept small so a year of papers fits the database's free space: about 70-120 KB a page,
+// still sharp enough to read pencil work at full screen.
+const MAX_SIDE = 1400, QUALITY = 0.6;
 
 function canvasFor(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
 const toUrl = (c) => c.toDataURL("image/jpeg", QUALITY);
@@ -40,6 +42,36 @@ export async function shrink(file, { grey = true } = {}) {
     let url = toUrl(c);
     for (const q of [0.6, 0.5, 0.4]) if (url.length > 900000) url = c.toDataURL("image/jpeg", q);   // one saved page must stay under 1 MB
     return { url, w, h, bytes: Math.round(url.length * 0.75) };
+}
+
+/**
+ * A scanned PDF (the copier's scan-to-email file) -> one small grey picture per page:
+ * [{ url, w, h, bytes }]. onStep(done, total) reports progress. Nothing leaves the browser.
+ */
+let pdfjs = null;
+export async function pdfPages(file, onStep = () => {}) {
+    if (!pdfjs) {
+        pdfjs = await import("./vendor/pdfjs/pdf.min.js");
+        pdfjs.GlobalWorkerOptions.workerSrc = new URL("./vendor/pdfjs/pdf.worker.min.js", import.meta.url).href;
+    }
+    const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise, out = [];
+    try {
+        for (let n = 1; n <= doc.numPages; n++) {
+            onStep(n - 1, doc.numPages);
+            const page = await doc.getPage(n), base = page.getViewport({ scale: 1 });
+            const k = Math.min(MAX_SIDE / Math.max(base.width, base.height), 4), vp = page.getViewport({ scale: k });
+            const c = canvasFor(Math.round(vp.width), Math.round(vp.height)), ctx = c.getContext("2d", { willReadFrequently: true });
+            ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+            await page.render({ canvasContext: ctx, viewport: vp }).promise;
+            scanLook(ctx, c.width, c.height);
+            let url = toUrl(c);
+            for (const q of [0.5, 0.4]) if (url.length > 900000) url = c.toDataURL("image/jpeg", q);
+            out.push({ url, w: c.width, h: c.height, bytes: Math.round(url.length * 0.75) });
+            page.cleanup();
+        }
+        onStep(doc.numPages, doc.numPages);
+    } finally { doc.destroy(); }
+    return out;
 }
 
 function loadImg(url) { return new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = url; }); }
