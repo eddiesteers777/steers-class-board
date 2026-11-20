@@ -22,7 +22,6 @@
         <span class="live" id="status" role="status">Connecting…</span>
         <button class="btn go" id="saveBtn" type="button" hidden>Save changes</button>
         <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
-        <a class="btn ghost" href="plan.html" style="text-decoration:none">Plan the Week</a>
     </header>
     <main>
         <h1>Week Review</h1>
@@ -39,5 +38,6 @@
         </div>
     </main>
     <script type="module" src="js/review.js?v=66"></script>
+    <script type="module">import { mountPlanNav } from "./js/studentsNav.js?v=2"; mountPlanNav("review.html");</script>
 </body>
 </html>

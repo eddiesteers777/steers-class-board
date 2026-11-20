@@ -18,9 +18,6 @@
     <header class="cbar">
         <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Anchor Board</b><small id="who">For teachers</small></span></a>
         <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
-        <a class="btn ghost" href="planner.html" style="text-decoration:none">Planner</a>
-        <a class="btn ghost" href="standards.html" style="text-decoration:none">Standards</a>
-        <a class="btn ghost" href="builder.html" style="text-decoration:none">Week Builder</a>
         <a class="btn" href="remote.html" style="text-decoration:none">Open Remote</a>
     </header>
     <main>
@@ -114,5 +111,6 @@
             if (store) watchPrivateWeeks(store, PUBLISHED, (list) => { WEEKS = list; draw(); });   // weeks approved on Week Review
         }
     </script>
+    <script type="module">import { mountPlanNav } from "./js/studentsNav.js?v=2"; mountPlanNav("library.html");</script>
 </body>
 </html>

@@ -30,6 +30,9 @@ The Notes box on Quick lesson takes a PDF (up to 20 pages). `js/pdfNotes.js` dra
 ## Student games left open
 The Remote closes a Vault Raid room or live notes session that nobody has touched for 24 hours the next time it opens (js/liveRoom.js, js/liveNotes.js, `LEFT_OPEN`). Closing deletes the room and the students' names and answers, the same as tapping Close.
 
+## Plan (one tab row)
+Plan the Week, Week Review, Week Builder, Planner, Standards, Question Bank and Library share one "Plan" tab row (`mountPlanNav` in `js/studentsNav.js`), and Home's side panel shows Plan and Library only. A starter account sees no Plan row (the other six pages are Calera-only).
+
 ## Students (one tab row)
 Student Progress, Grades, Assignments, Class Data and Student Work share one "Students" tab row at the top (`js/studentsNav.js`), and Home's side panel has one Students link. They stay separate pages, so old links work. Progress and Grades share the period picked (`anchorboard-students-period` in the browser).
 
