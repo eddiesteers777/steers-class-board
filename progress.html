@@ -19,7 +19,6 @@
         <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Anchor Board</b><small id="who">For teachers</small></span></a>
         <span class="live" id="status" role="status">Connecting…</span>
         <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
-        <a class="btn ghost" href="data.html" style="text-decoration:none">Class Data</a>
     </header>
     <main>
         <h1>Student Progress</h1>
@@ -56,7 +55,9 @@
     <dialog id="kid" class="pgKid" aria-labelledby="kidName"></dialog>
 
     <script type="module">
-        import { mountProgress } from "./js/progressPage.js?v=2";
+        import { mountStudentsNav } from "./js/studentsNav.js?v=1";
+        mountStudentsNav("progress.html");
+        import { mountProgress } from "./js/progressPage.js?v=3";
         mountProgress();
     </script>
 </body>
