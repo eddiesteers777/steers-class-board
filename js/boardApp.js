@@ -104,11 +104,13 @@ let saveFailedAt = 0;
 let wantWeek = "", lateWeek = "", autoWeekUntil = 0;   // a ?week= the Remote was opened with, or the saved board week, that has not loaded yet
 let tabs = null, heard = { by: "", at: 0 };   // a failed save stays on screen a few seconds, even when the connection itself is fine
 let mode = "remote", signedIn = false, sig = "", writeState = null;
+let presence = null, shown = { by: "", at: 0 };   // Live status check-ins (js/presence.js): which screens are on, and which change each one shows
 
 function writer(path) {
     let busy = false, next = null;
     const w = function (d) {
         d.by = PAGE; d.at = Date.now();
+        if (path === "board/state") seen(d);   // this tab shows its own change at once
         if (path === "board/state" && tabs) { try { tabs.postMessage(d); } catch (e) { /* the server copy still gets there */ } }
         next = d; if (busy) return; busy = true;
         (async function () {
@@ -119,6 +121,7 @@ function writer(path) {
     w.busy = () => busy || !!next;
     return w;
 }
+function seen(d) { if (!d || !d.by || !d.at) return; shown = { by: d.by, at: +d.at || 0 }; if (presence) presence.saw(shown.by, shown.at); }
 function setStatus(t) {
     const st = (t === "Live" || t === "This device only") ? "ok" : (t.startsWith("Connecting") || t.startsWith("Still") ? "wait" : "bad");
     const s = $("status"); if (s) { s.textContent = t; s.dataset.state = st; }
@@ -1307,11 +1310,21 @@ export async function startApp(opts) {
             tabs = new BroadcastChannel("anchorboard-" + user.uid);
             tabs.onmessage = (ev) => {
                 const d = ev.data; if (!synced || !d || d.by === PAGE) return;
-                heard = { by: d.by, at: +d.at || 0 }; applyState(d); render();
+                heard = { by: d.by, at: +d.at || 0 }; applyState(d); render(); seen(d);
             };
         } catch (e) { tabs = null; }
     }
     writeState = writer("board/state");
+    if (!guest && !(opts && opts.store)) {   // Live status: check in every 20 s, and answer the Remote's "Check now"
+        import("./presence.js?v=1").then((m) => {
+            presence = m.startPresence({ uid: user.uid, page: PAGE, mode, now,
+                snap: () => ({ screen: S.screen, screenName: screenName(S.screen), period: S.period, day: DK[S.day] || "", week: S.week,
+                    panels: PANEL_LIST.filter(([k]) => S.tools.on[k]).map((x) => x[1]), look: [S.look.theme, S.look.bg, S.look.fx].join(" "), conn: ($("status") || {}).textContent || "" }) });
+            if (shown.at) presence.saw(shown.by, shown.at);
+            if (mode === "remote" && $("boardBtn")) presence.mount($("boardBtn"));
+            setInterval(() => presence.changed(), 1500);
+        }).catch(() => { /* Live status is extra: the board works without it */ });
+    }
     // Weeks approved on the Week Review page live in private data; add them to the published weeks.
     if (!guest) { const base = WEEKS; watchPrivateWeeks(store, base, (list) => {
         WEEKS = list;
@@ -1357,7 +1370,7 @@ export async function startApp(opts) {
         if (!synced) mark("board-shown", ms() + (snap.fromCache ? " (saved copy)" : " (server)"));
         clearTimeout(slow);
         if (guest) setStatus("This device only"); else if (!snap.fromCache) live(); else if (!gotServer) setStatus("Connecting\u2026");
-        if (snap.exists) applyState(snap.data);
+        if (snap.exists) { applyState(snap.data); seen(snap.data); }
         arrived();
         if (first) {
             first = false;
