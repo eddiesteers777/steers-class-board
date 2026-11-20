@@ -17,7 +17,7 @@ body.phone.board .mirtog{display:none}
 
 /* the page scrolls like an app; the board picture and Next stay pinned at the top */
 body.phone:not(.board){overflow-y:auto;height:auto;min-height:100%;display:block;-webkit-text-size-adjust:100%}
-body.phone:not(.board) .cbar{padding:8px 12px;gap:8px;position:static}
+body.phone:not(.board) .cbar{padding:8px 12px;gap:8px}
 body.phone .cbrand{margin-right:auto;gap:8px}
 body.phone .cbrand img{width:32px;height:32px}
 body.phone .cbrand small{display:none}
@@ -44,7 +44,8 @@ body.phone:not(.board) .railh{display:block;margin:4px 2px 8px}
 body.phone.console .seg.scr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:12px}
 body.phone.console .seg.scr button{border:1.5px solid var(--c-line);border-left:1.5px solid var(--c-line);background:var(--c-surface);text-align:center;padding:12px 4px;font-size:.88rem;font-weight:600;border-radius:12px;min-height:48px;line-height:1.15}
 body.phone.console .seg.scr button[aria-pressed="true"]{border-color:var(--navy);background:var(--navy);color:#fff}
-body.phone:not(.board) .rail>.fold,body.phone .rail>details,body.phone .rail>button{display:block;width:100%;margin:0 0 10px;background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:14px;padding:10px 12px}
+body.phone:not(.board) .rail>details{display:block;width:100%;margin:0 0 10px;background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:14px;padding:10px 12px}
 body.phone:not(.board) .rail>details>summary{font-weight:700;padding:4px 0}
+body.phone:not(.board) .rail>.btn{display:block;width:100%;margin:0 0 10px;min-height:48px;border-radius:14px;font-size:.98rem;text-align:center}
 body.phone:not(.board) .nottoday{width:100%;padding:6px 6px 6px 12px;font-size:.9rem}
 body.phone:not(.board) .nottoday span{flex:1 1 100%}
