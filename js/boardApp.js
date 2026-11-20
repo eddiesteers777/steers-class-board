@@ -21,7 +21,7 @@ import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as dra
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=85";
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=11";
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
-import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=2";
+import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=5";
 import { cleanChart, cleanPeriod, cleanView, seatCount, drawRoom } from "./seats.js?v=7";
 
 const $ = (id) => document.getElementById(id);
@@ -153,6 +153,7 @@ const planApi = { S, el, now, push: () => push(), mode: () => mode, today: () =>
     plan: () => PLAN, bells: () => BELLS, bellId: () => BELL_ID, bellName: () => schedName(BELL_ID), bellsFor: (id) => bellsOf(id),
     schedules: () => [["regular", "Regular"]].concat(Object.keys((BELL_DOC && BELL_DOC.schedules) || {}).filter((id) => id !== "regular").map((id) => [id, schedName(id)])),
     periods: () => PERIODS, screens: () => SCREENS.filter((x) => screenOrder().includes(x[0])),
+    panels: () => PANEL_LIST.filter(([k]) => panelOk(k)),
     layouts: () => SCENES.filter((sc) => !(mode === "sub" && sc.guestless)).concat(S.tools.scenes || []),
     screenOk: (id) => screenOk(id), applyScene: (sc) => applyScene(S, sc, toolApi),
     goPeriod: (p) => {   // the bell for another period: its class, today's lesson, from the top

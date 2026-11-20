@@ -31,3 +31,23 @@
   .bpstep .bpgo,.bpstep .bpper{grid-column:1/-1}
   .bpstep .bpdel{grid-column:1/-1;justify-self:start}
 }
+/* Panels that come with a screen step: a dropdown that looks like the selects beside it */
+.bpstep .bppanels{grid-column:1/-1;position:relative}
+.bpstep .bppanels[hidden]{display:none}
+.bppsum{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fff;border:1px solid #8a94a6;border-radius:8px;padding:8px 12px;font-size:.95rem;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bppsum::-webkit-details-marker{display:none}
+.bppsum::after{content:"";flex:none;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translate(-2px,-2px);margin-left:auto}
+.bppanels[open] .bppsum::after{transform:rotate(-135deg) translate(-2px,-2px)}
+.bpplist{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px 14px;margin-top:6px;padding:10px 12px;background:#fff;border:1px solid var(--c-line);border-radius:10px}
+.bpprow{display:flex;align-items:center;gap:8px;font-size:.9rem;min-height:36px}
+.bppname{flex:1;min-width:0}
+.bpprow.on .bppname{font-weight:700}
+.bpsw{flex:none;position:relative;width:46px;height:26px;border-radius:999px;border:none;background:#C9D1DE;padding:0;transition:background .18s}
+.bpsw i{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(4,12,34,.3);transition:transform .18s}
+.bpsw[aria-checked="true"]{background:var(--c-navy,#13306B)}
+.bpsw[aria-checked="true"] i{transform:translateX(20px)}
+.bpwhere{display:flex;border:1px solid var(--c-line);border-radius:999px;overflow:hidden}
+.bpwhere[hidden]{display:none}
+.bpwhere button{font:inherit;font-size:.75rem;padding:3px 9px;border:none;background:#fff;color:var(--c-mute)}
+.bpwhere button[aria-pressed="true"]{background:#E6F0FB;color:var(--c-navy,#13306B);font-weight:700}
+.bpphint{grid-column:1/-1;margin:4px 0 0;font-size:.78rem;color:var(--c-mute)}
