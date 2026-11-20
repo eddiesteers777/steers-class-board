@@ -13,7 +13,7 @@ let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
 import { tickTools, defaultTools, mergeTools, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=59";
-import { buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal } from "./panels.js?v=7";
+import { buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal } from "./panels.js?v=8";
 import * as snd from "./sound.js?v=59";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
@@ -209,6 +209,31 @@ function seg(host, items, current, onPick) {
     });
 }
 let notTodayShut = (() => { try { return sessionStorage.getItem("anchorboard-nottoday") || ""; } catch (e) { return ""; } })();
+/* Phone: one-tap setups (layouts) and the panels used most, at the top of the controls.
+   Built once and updated in place (a control rebuilt during a tap never gets the tap). */
+const QUICK = ["ptimer", "pick", "traffic", "work", "clock", "target"];
+let quickSig = "";
+function quickBar() {
+    if (!isPhone() || mode === "sub") return;
+    const rail = document.querySelector(".rail"); if (!rail) return;
+    let q = $("quickBar");
+    const scenes = SCENES.filter((x) => !x.guestless || mode !== "sub").concat(S.tools.scenes || []), sg = scenes.map((x) => x.id + x.n).join("|");
+    if (!q || sg !== quickSig) {
+        quickSig = sg; if (q) q.remove();
+        q = el("div", "quickbar"); q.id = "quickBar";
+        q.appendChild(el("p", "railh", "Setups"));
+        const row = el("div", "qscenes"); row.setAttribute("role", "group"); row.setAttribute("aria-label", "One-tap setups");
+        scenes.forEach((raw) => { const b = el("button", "qscene"); b.type = "button"; b.dataset.id = raw.id; b.appendChild(el("b", null, raw.n)); if (raw.d) b.appendChild(el("span", null, raw.d)); b.onclick = () => { applyScene(S, raw, toolApi); }; b._raw = raw; row.appendChild(b); });
+        q.appendChild(row);
+        q.appendChild(el("p", "railh", "Quick panels"));
+        const tg = el("div", "qtools"); tg.setAttribute("role", "group"); tg.setAttribute("aria-label", "Panels on the board");
+        QUICK.forEach((k) => { const b = el("button", "qtool"); b.type = "button"; b.dataset.k = k; const ic = el("span", "qti"); ic.innerHTML = pIcon(k); b.appendChild(ic); b.appendChild(el("span", "qtl", labelOf(k))); b.onclick = () => { panelToggle(S.tools, k); push(); }; tg.appendChild(b); });
+        q.appendChild(tg);
+        rail.prepend(q);
+    }
+    q.querySelectorAll(".qscene").forEach((b) => { const on = sceneActive(S, b._raw); b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); });
+    q.querySelectorAll(".qtool").forEach((b) => { const k = b.dataset.k, ok = panelOk(k), on = !!S.tools.on[k]; b.hidden = !ok; b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); });
+}
 function buildControls() {
     const w = W();
     const ps = $("periodSel"); ps.textContent = "";
@@ -234,6 +259,7 @@ function buildControls() {
     WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + (isPhone() ? String(x.dates || "").replace(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*/g, "$1") : x.dates)); o.value = x.id; sel.appendChild(o); });
     sel.value = w.id; $("weekField").hidden = WEEKS.length < 2;
     const fn = $("flowNext"); if (fn) { fn.textContent = stepLabel(); fn.disabled = fn.textContent === "Next" && !nextScreen(1); $("flowBack").disabled = S.screen === screenOrder()[0]; }
+    quickBar();
     const bn = $("bnNext"), bb = $("bnBack");
     if (bn) { const nl = stepLabel(), bl = backLabel(); bn.title = nl; bn.setAttribute("aria-label", nl); bn.disabled = $("flowNext").disabled; bb.title = bl; bb.setAttribute("aria-label", bl); bb.disabled = $("flowBack").disabled; }
     const files = $("files"), l = L();

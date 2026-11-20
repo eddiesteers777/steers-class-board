@@ -45,6 +45,7 @@ export const PANEL_INFO = {
 
 /* ---------- layouts ---------- */
 export const SCENES = [
+    { id: "sub", n: "Sub day", d: "Today, agenda, period clock, silent", screen: "today", on: ["agenda", "period", "work"], min: ["period"], work: "silent" },
     { id: "seats", n: "Find seats", d: "Seating chart, period clock", screen: "seats", on: ["period"], min: ["period"], guestless: true },
     { id: "arrive", n: "Arrive", d: "Today, period clock, silent", screen: "today", on: ["period", "work"], min: ["work"], work: "silent" },
     { id: "bell", n: "Bell work", d: "Bellringer, timer, silent", screen: "bell", on: ["ptimer", "work"], work: "silent", timer: "bell" },
