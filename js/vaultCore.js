@@ -52,6 +52,35 @@ export function rollBox(rand = Math.random) {
     return k === "bag" ? { k, v: 15 + 5 * Math.floor(rand() * 4) } : k === "double" ? { k, v: 2 } : k === "firewall" ? { k, v: 60 } : { k, v: 1 };
 }
 
+/* ---------- sabotages: spend coins to slow down a player who is ahead ----------
+   Built to stay friendly: you can only aim at someone with at least as many coins as you (never someone behind you),
+   each one costs coins, you recharge between them, a player who was just hit is safe for a minute, a firewall or a
+   teacher's Lockdown stops them, and none of them touch anyone's questions or work. */
+/** [key, name, cost in coins, what it does]. */
+export const SABOTAGES = [
+    ["fog", "Fog", 15, "Hides their coins and place for 20 seconds."],
+    ["jam", "Jam", 20, "Jams their hacks for 30 seconds."],
+    ["tax", "Tax", 25, "You get a quarter of the coins from their next right answer."],
+    ["spy", "Spy", 30, "Shows you one digit of their vault code, in its spot."],
+];
+export const sabotage = (k) => SABOTAGES.find((x) => x[0] === k) || null;
+export const FOG_MS = 20000, JAM_MS = 30000, TAX_MS = 90000, TAX_SHARE = 0.25, SAB_COOL_MS = 40000, SAB_SAFE_MS = 60000;
+/** Aim up: a player may only sabotage someone with at least as many coins. */
+export const canSabotage = (mine, theirs) => (+theirs || 0) >= (+mine || 0);
+/** Coins a Tax takes from a right answer worth this much. */
+export const taxCut = (plus) => (plus > 0 ? Math.max(1, Math.round(plus * TAX_SHARE)) : 0);
+/** Which spot of a code a Spy shows next: one the spy doesn't know yet (known is a string of spots, like "02"). -1 when all are known. */
+export function spyPick(known, rand = Math.random) {
+    const left = [...Array(CODE_LEN).keys()].filter((i) => !String(known || "").includes(String(i)));
+    return left.length ? left[Math.floor(rand() * left.length)] : -1;
+}
+/** A code with only the spied spots showing, like "_7_". */
+export const spyShow = (code, known) => [...Array(CODE_LEN).keys()].map((i) => (String(known || "").includes(String(i)) && code ? code[i] : "_")).join("");
+
+/* ---------- teacher moves during a game ---------- */
+/** Lockdown: no hacking or sabotage for a minute. A shout-out gives one student a few coins. */
+export const LOCK_MS = 60000, SHOUT_COINS = 10;
+
 /* ---------- vault skins: a new look for a student's vault, unlocked by coins ---------- */
 /** [key, name, coins needed, colors]. A skin unlocks at the most coins a student has held this game, so a crack never locks one again. */
 export const SKINS = [
