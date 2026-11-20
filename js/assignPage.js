@@ -11,8 +11,8 @@
    tests go out without the key: this page checks them.
    ?demo: made-up students in this tab only, nothing is saved.
 ========================================== */
-import * as C from "./assignCore.js?v=4";
-import * as V from "./vaultCore.js?v=74";
+import * as C from "./assignCore.js?v=5";
+import * as V from "./vaultCore.js?v=75";
 import { loadStdBank, inClass, LEVELS } from "./stdBank.js?v=2";
 import { STANDARDS } from "../data/standards.js?v=57";
 import qrcode from "./vendor/qrcode.js?v=1";

@@ -12,7 +12,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import * as V from "./vaultCore.js?v=74";
+import * as V from "./vaultCore.js?v=75";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=2";
 
@@ -596,6 +596,7 @@ POWER_ICONS.fog = '<path d="M30 74a20 20 0 010-40 28 28 0 0154-6 22 22 0 016 46z
 POWER_ICONS.tax = '<circle cx="60" cy="60" r="46" fill="#F2B33D"/><text x="60" y="76" text-anchor="middle" font-size="46" font-weight="800" fill="#8A5F00" font-family="sans-serif">%</text>';
 POWER_ICONS.spy = '<circle cx="42" cy="66" r="18" fill="none" stroke="#10358A" stroke-width="9"/><circle cx="80" cy="66" r="18" fill="none" stroke="#10358A" stroke-width="9"/><path d="M60 62v0M16 50l18-24h52l18 24" fill="none" stroke="#10358A" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>';
 POWER_ICONS.bonus = '<path d="M68 6L24 66h30l-8 48 46-64H60z" fill="#3A2A00"/>';
+POWER_ICONS.dj = '<path d="M22 70V58a38 38 0 0176 0v12" fill="none" stroke="#10358A" stroke-width="10" stroke-linecap="round"/><rect x="12" y="62" width="24" height="40" rx="10" fill="#1552D6"/><rect x="84" y="62" width="24" height="40" rx="10" fill="#1552D6"/><circle cx="60" cy="40" r="7" fill="#F2B33D"/>';
 POWER_ICONS.box = '<rect x="18" y="44" width="84" height="60" rx="8" fill="#10358A"/><rect x="12" y="30" width="96" height="20" rx="6" fill="#1552D6"/><rect x="52" y="30" width="16" height="74" fill="#F2B33D"/><path d="M60 30c-10-18-30-18-28-6 2 8 18 6 28 6 10 0 26 2 28-6 2-12-18-12-28 6z" fill="#F2B33D"/>';
 const powerIcon = (k) => svg(POWER_ICONS[k] || POWER_ICONS.box, "pwicon");
 /** What's helping right now: power-ups and the bonus round. */
@@ -613,6 +614,7 @@ function effects(m) {
     if (m.jam > now) list.push(["jam", "Hacks jammed · " + Math.ceil((m.jam - now) / 1000) + " s", "bad"]);
     if (m.fog > now) list.push(["fog", "Fogged · " + Math.ceil((m.fog - now) / 1000) + " s", "bad"]);
     if (m.tax) list.push(["tax", "Taxed: your next right answer pays a quarter", "bad"]);
+    if (m.djon && m.dj > 0) list.push(["dj", "DJ Ticket" + (m.dj > 1 ? " ×" + m.dj : "") + ": pick the song", ""]);
     if (!list.length) return null;
     const box = el("div", "pfx"); box.id = "pfx"; list.forEach(([k, t, c]) => { const x = el("span", "pfxc" + (c ? " " + c : "")); x.append(powerIcon(k), document.createTextNode(t)); box.append(x); });
     return box;
@@ -620,7 +622,7 @@ function effects(m) {
 /** A mystery box from a right answer. What's inside already counts; opening it shows what it was. */
 function mysteryBox(b, key) {
     const wrap = el("div", "pbox" + (ST.opened[key] ? " open" : ""));
-    const name = { bag: "Coin bag: +" + b.v + " coins", hack: "Extra hack!", double: "Double coins on your next " + b.v + " right answers", firewall: "Firewall: your vault is safe for " + b.v + " seconds" }[b.k] || "A surprise";
+    const name = { bag: "Coin bag: +" + b.v + " coins", hack: "Extra hack!", double: "Double coins on your next " + b.v + " right answers", firewall: "Firewall: your vault is safe for " + b.v + " seconds", dj: "DJ Ticket! Tap 🎧 DJ to pick the song" }[b.k] || "A surprise";
     if (!ST.opened[key]) {
         const go = btn("pboxbtn", null, () => { ST.opened[key] = 1; sfx("box"); wrap.classList.add("open"); go.replaceWith(prize()); confetti(70, 0.5, 0.55, ["#F2B33D", "#7FAEDD", "#FFFFFF"]); });
         go.append(powerIcon("box"), el("b", null, "Mystery box! Tap to open"));
@@ -719,6 +721,7 @@ function draw(force) {
     if (ST.view === "fb") return fbView(card);
     if (ST.view === "targets") return targetsView(card);
     if (ST.view === "sab") return sabView(card);
+    if (ST.view === "dj") return djView(card);
     if (ST.view === "guess") return guessView(card);
     if (ST.view === "skins") return skinsView(card);
     questionView(card);
@@ -794,7 +797,8 @@ function qTools(m) {
     const ex = m.exit, w = el("span", "pqtools"); w.id = "pqtools";
     if (m.h > 0 && !ex && !m.redo) { const off = hackOff(m), hb = btn("pbtn hack", off || "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }); hb.disabled = !!off; w.append(hb); }
     if (m.sab && !ex && !m.redo && m.status === "play") w.append(btn("pbtn hack sab", "Sabotage", () => { ST.view = "sab"; ST.err = ""; draw(true); }));
-    w.dataset.k = [m.h, hackOff(m), m.sab, !!ex, !!m.redo, m.status].join("|");
+    if (m.djon && !ex && !m.redo && m.status === "play") { const b = btn("pbtn hack dj", "🎧 DJ" + (m.dj > 0 ? " ×" + m.dj : ""), () => { ST.view = "dj"; ST.err = ""; draw(true); }); b.title = "Pick the song"; w.append(b); }
+    w.dataset.k = [m.h, hackOff(m), m.sab, !!ex, !!m.redo, m.status, m.djon, m.dj].join("|");
     return w;
 }
 function refreshTools() {
@@ -1051,6 +1055,7 @@ const SAB_DONE = {
     fog: (r) => "Fog hit " + r.tn + "!",
     jam: (r) => r.tn + "'s hacks are jammed!",
     tax: (r) => "Tax set on " + r.tn + ". You get a quarter of their next right answer.",
+    dj: (r) => "🎧 Now playing: " + ((V.song(r.song) || [])[1] || "your song") + "!" + (r.paid === "coins" ? " (" + V.DJ_COST + " coins)" : ""),
     spy: (r) => "Your spy saw spot " + (r.i + 1) + " of " + r.tn + "'s code: " + r.d,
 };
 function sabView(card) {
@@ -1086,10 +1091,34 @@ function sabView(card) {
     card.append(list, btn("pbtn ghost", "Back to questions", () => { ST.view = "q"; ST.err = ""; draw(true); }));
     note(card);
 }
+/** The DJ Booth: pick the song that plays on the teacher's board, with a DJ Ticket or coins. */
+function djView(card) {
+    const m = ST.me, now = Date.now(); card.classList.add("wide", "pdj");
+    card.append(el("h1", null, "🎧 DJ Booth"), el("p", "plead", "Pick the song for the whole class. It plays on your teacher's board."));
+    const hold = m.song ? Math.ceil(((+m.song.at || 0) + V.DJ_HOLD_MS - now) / 1000) : 0, pay = m.dj > 0 ? "ticket" : m.c >= V.DJ_COST ? "coins" : "";
+    card.append(el("p", "pdjwallet", m.dj > 0 ? "You have " + m.dj + " DJ Ticket" + (m.dj > 1 ? "s" : "") + "." : "No DJ Ticket. A pick costs " + V.DJ_COST + " coins (you have " + m.c + ")."));
+    if (m.djlock) card.append(el("p", "pnote err", "Your teacher locked the music for now."));
+    else if (hold > 0) {
+        const w = el("p", "pnote psabwait", "This song plays a little longer · next pick in " + hold + " s"); card.append(w);
+        const t = setInterval(() => { const l = ST.me.song ? Math.ceil(((+ST.me.song.at || 0) + V.DJ_HOLD_MS - Date.now()) / 1000) : 0; if (!w.isConnected) { clearInterval(t); return; } if (l > 0) w.textContent = "This song plays a little longer · next pick in " + l + " s"; else { clearInterval(t); if (ST.view === "dj") draw(true); } }, 500);
+    }
+    const ready = !m.djlock && hold <= 0 && !!pay && !ST.sentS, cur = m.song ? m.song.k : "vault", list = el("div", "psongs");
+    V.SONGS.forEach(([k, n, e, d]) => {
+        const playing = k === cur, b = btn("psong" + (playing ? " on" : ""), null, () => {
+            if (ST.sentS) return; const sn = ST.sentS = Date.now(); ST.err = ""; send({ sb: { n: sn, to: "", k: "dj:" + k } }); draw(true);
+            setTimeout(() => { if (ST.sentS === sn) { ST.sentS = 0; ST.err = "Your teacher's screen didn't answer. Try again."; draw(true); } }, 10000);
+        });
+        b.append(el("span", "psongic", e), el("b", null, n), el("small", null, playing ? "Playing now" + (m.song && m.song.nm ? " · picked by " + m.song.nm : "") : d));
+        b.disabled = playing || !ready; list.append(b);
+    });
+    card.append(el("h2", "wrh", ST.sentS ? "Sending…" : pay === "coins" ? "Pick one (" + V.DJ_COST + " coins)" : "Pick one"), list, btn("pbtn ghost", "Back to questions", () => { ST.view = "q"; ST.err = ""; draw(true); }));
+    note(card);
+}
 /** Things that happen to this student from outside: a sabotage, a shout-out, the result of their own sabotage, a Lockdown. */
 function notices(d) {
     const first = !ST.noticed; ST.noticed = true;
     if (d.sbh && d.sbh.at > (ST.seenSbh || 0)) { ST.seenSbh = d.sbh.at; if (!first && SAB_HIT[d.sbh.k]) { toast(SAB_HIT[d.sbh.k](d.sbh.by), "bad"); sfx("hit"); } }
+    if (d.djg && d.djg.at > (ST.seenDjg || 0)) { ST.seenDjg = d.djg.at; if (!first) { toast("🎧 Your teacher gave you a DJ Ticket! Tap 🎧 DJ to pick the song.", "good"); sfx("box"); } }
     if (d.so && d.so.at > (ST.seenSo || 0)) { ST.seenSo = d.so.at; if (!first) { toast("★ Shout-out from your teacher! +" + d.so.v + " coins", "good"); sfx("box"); confetti(60, 0.5, 0.25); } }
     if (ST.sentS && d.sbr && d.sbr.n === ST.sentS) {
         ST.sentS = 0;
@@ -1099,6 +1128,7 @@ function notices(d) {
     const lock = +(d.lock || 0);
     if (lock > Date.now() && lock !== ST.seenLock) { ST.seenLock = lock; if (!first) { toast("Lockdown! No hacking or sabotage for 60 seconds. Answer questions!"); sfx("bonus"); } }
     if (ST.view === "sab" && (!d.sab || d.status !== "play")) ST.view = "q";
+    if (ST.view === "dj" && (!d.djon || d.status !== "play")) ST.view = "q";
 }
 const dot = (k) => { const s = el("span", "phd sm m" + k); s.setAttribute("aria-hidden", "true"); return s; };
 

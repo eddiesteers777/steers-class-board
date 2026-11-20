@@ -5,7 +5,7 @@
    is not touched while it runs in class every day. Styles come from css/play.css (.pabox …).
    Later, play.js can import this file instead of keeping its own copy.
 ========================================== */
-import * as V from "./vaultCore.js?v=74";
+import * as V from "./vaultCore.js?v=75";
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "button"; if (fn) b.onclick = fn; return b; };

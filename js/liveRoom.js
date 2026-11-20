@@ -14,7 +14,7 @@
    Closing the room deletes rooms/{code} and everything under it.
    Each student's result is saved to Class Data only when the teacher turns that on.
 ========================================== */
-import * as V from "./vaultCore.js?v=74";
+import * as V from "./vaultCore.js?v=75";
 import qrcode from "./vendor/qrcode.js?v=1";
 import { drawItems } from "./mathTools.js?v=1";
 
@@ -34,7 +34,7 @@ let H = null, loaded = false, rev = 0, hosting = false, unsubH = null, unsubP = 
 let PL = {};                 // the latest entry from each student (rooms/{code}/p), Remote only
 let SETS = null, setsWatched = false, note = "", busy = "", tab = "players", dtab = "report", peek = "", endArm = 0, resetArm = 0;
 let saveTimer = 0, lastSave = 0, panelSig = "", panelAt = 0, padWatch = null, padFor = "", PAD = null;
-const choice = { set: (() => { try { return new URLSearchParams(location.search).get("vset") || ""; } catch (e) { return ""; } })(), mins: 10, names: "roster", board: true, save: false, live: false, work: true, retry: true, steps: true, slow: true, snd: true, comeback: true, sab: true };
+const choice = { set: (() => { try { return new URLSearchParams(location.search).get("vset") || ""; } catch (e) { return ""; } })(), mins: 10, names: "roster", board: true, save: false, live: false, work: true, retry: true, steps: true, slow: true, snd: true, comeback: true, sab: true, dj: true, goal: "auto" };
 
 export function mountLive(api) { A = api; }
 export const liveSig = () => rev + "#" + loaded + "#" + hosting + "#" + (PAD ? PAD.it : "");
@@ -197,7 +197,7 @@ function handle(id, d, sends) {
             else if (second) {
                 // Only the first try counts for percent right and the report; a fix on the second try earns half coins.
                 if (ok) {
-                    plus = Math.round(V.coinsFor(1) / 2); p.st = 1;
+                    plus = Math.round(V.coinsFor(1) / 2); p.st = 1; classRight();
                     if (bonusOn()) { plus *= 2; x2.push("bonus"); }
                     p.c += plus;
                     const last = (p.lg || []).slice().reverse().find((x) => x.i === qi && !x.ok); if (last) last.fx = 1;
@@ -208,14 +208,14 @@ function handle(id, d, sends) {
             } else {
                 p.n++;
                 if (ok) {
-                    p.r++; p.st++; p.best = Math.max(p.best, p.st); plus = V.coinsFor(p.st); p.h = Math.min(V.MAX_HACKS, p.h + 1);
+                    p.r++; p.st++; p.best = Math.max(p.best, p.st); plus = V.coinsFor(p.st); classRight(); p.h = Math.min(V.MAX_HACKS, p.h + 1);
                     if (p.dbl > 0) { plus *= 2; p.dbl--; x2.push("double"); }
                     if (bonusOn()) { plus *= 2; x2.push("bonus"); }
                     if (comeback(id)) { const cb = V.comebackPlus(plus); plus += cb; x2.push("comeback"); }
                     const tx = taxOn(p);   // a Tax sabotage: a quarter of this answer's coins go to the player who set it
                     if (tx) { const cut = V.taxCut(plus); plus -= cut; tx.c += cut; taxed = { by: p.tax.nm, cut }; feed(tx.nm + "'s Tax took " + cut + " coins from " + p.nm, "sab"); sends.add(p.tax.by); p.tax = null; }
                     p.c += plus;
-                    if (p.r % V.BOX_EVERY === 0 || p.mb) { box = V.rollBox(); openBox(p, box); p.mb = 0; }
+                    if (p.r % V.BOX_EVERY === 0 || p.mb) { box = V.rollBox(Math.random, H.opts.dj === false); openBox(p, box); p.mb = 0; }
                 }
                 else p.st = 0;
                 const stepIn = !ok && steps.length > 0, retry = !ok && !stepIn && H.opts.retry !== false;
@@ -267,6 +267,7 @@ function handle(id, d, sends) {
     const sb = d.sb;
     if (sb && (+sb.n || 0) > (+p.ssb || 0)) {
         p.ssb = +sb.n;
+        if (V.djKey(sb.k)) { djPick(id, p, V.djKey(sb.k)); sends.add(id); return; }
         const t = P(sb.to), s = V.sabotage(sb.k), now = Date.now(), no = (why) => { p.sbr = { n: p.ssb, ok: 0, why }; };
         if (H.status !== "play" || H.redo || H.exit || H.paused || H.opts.sab === false || !s || !t || sb.to === id) no("You can't sabotage right now.");
         else if (lockOn()) no("Lockdown! No sabotages until it ends.");
@@ -417,7 +418,7 @@ function stepTry(p, q, qi, typed, ok, steps) {
     if (ok) {
         let plus = Math.max(2, Math.round(V.coinsFor(1) * V.STEP_PAY[Math.max(1, Math.min(p.sp, V.STEP_PAY.length - 1))])); const x2 = [];
         if (bonusOn()) { plus *= 2; x2.push("bonus"); }
-        p.c += plus; p.st = 1;
+        p.c += plus; p.st = 1; classRight();
         const hack = p.sp <= 1; if (hack) p.h = Math.min(V.MAX_HACKS, p.h + 1);
         if (last) { last.fx = 1; last.sp = p.sp; }
         p.fb = { q: p.qn, ok: true, y: typed, a: "", plus, x2, box: null, second: 1, steps: p.sp, hack: hack ? 1 : 0 };
@@ -560,6 +561,7 @@ function openBox(p, b) {
     else if (b.k === "hack") p.h = Math.min(V.MAX_HACKS + 1, p.h + 1);
     else if (b.k === "double") p.dbl = (p.dbl || 0) + b.v;
     else if (b.k === "firewall") p.sh = Math.max(+p.sh || 0, Date.now()) + b.v * 1000;
+    else if (b.k === "dj") p.dj = (+p.dj || 0) + 1;
     feed(p.nm + " opened a mystery box", "box");
 }
 /** Starting power-ups take effect when the game starts. */
@@ -597,6 +599,48 @@ function shoutOut(id) {
     p.c += V.SHOUT_COINS; p.so = { at: Date.now(), v: V.SHOUT_COINS };
     feed("Shout-out from your teacher: " + p.nm + " +" + V.SHOUT_COINS, "shout"); flush(new Set([id, "room"])); saveSoon(true);
 }
+/* ---------- Class Treasure and DJ Tickets ---------- */
+/** One more right answer for the whole class. Reaching the goal unlocks the treasure on the board. */
+function classRight() {
+    H.tr = (+H.tr || 0) + 1;
+    const g = V.classGoal(H.opts.goal, Object.keys(H.players).length);
+    if (g && !H.goalHit && H.tr >= g) { H.goalHit = Date.now(); feed("Class Treasure unlocked! " + g + " right answers together!", "goal"); }
+}
+function setGoal(v) {
+    H.opts.goal = v; const g = V.classGoal(v, Object.keys(H.players).length);
+    if (!g || (+H.tr || 0) < g) H.goalHit = 0; else if (!H.goalHit) { H.goalHit = Date.now(); feed("Class Treasure unlocked! " + g + " right answers together!", "goal"); }
+    saveSoon(true); panelSig = ""; drawLivePanel(true);
+}
+/** A student picks the song with a DJ Ticket (or buys one pick with coins). */
+function djPick(id, p, k) {
+    const now = Date.now(), s = V.song(k), hold = H.dj && !H.dj.t ? (+H.dj.at || 0) + V.DJ_HOLD_MS - now : 0, no = (why) => { p.sbr = { n: p.ssb, ok: 0, k: "dj", why }; };
+    if (H.status !== "play" || H.redo || H.exit || H.paused) no("You can't pick a song right now.");
+    else if (H.opts.dj === false) no("DJ Tickets are off in this game.");
+    else if (H.opts.djlock) no("Your teacher locked the music for now.");
+    else if (H.dj && H.dj.k === k) no(s[1] + " is already playing.");
+    else if (hold > 0) no("A new song can start in " + Math.ceil(hold / 1000) + " s.");
+    else if (!(+p.dj > 0) && p.c < V.DJ_COST) no("You need a DJ Ticket or " + V.DJ_COST + " coins.");
+    else {
+        const paid = +p.dj > 0 ? "ticket" : "coins";
+        if (paid === "ticket") p.dj--; else p.c -= V.DJ_COST;
+        H.dj = { k, nm: p.nm, by: id, at: now };
+        p.sbr = { n: p.ssb, ok: 1, k: "dj", song: k, paid };
+        feed("🎧 " + p.nm + " picked " + s[1], "dj"); flush(everyone()); saveSoon(true);
+    }
+}
+function giveDj(id) {
+    const p = P(id); if (!p || !H || H.status !== "play") return;
+    p.dj = (+p.dj || 0) + 1; p.djg = { at: Date.now() };
+    feed("🎧 Your teacher gave " + p.nm + " a DJ Ticket", "dj"); flush(new Set([id, "room"])); saveSoon(true);
+}
+/** The teacher picks the song. It plays right away (no wait) and starts a fresh hold for the students. */
+function teacherSong(k) {
+    if (!H || !V.song(k)) return;
+    H.dj = { k, nm: "", at: Date.now(), t: 0 };
+    feed("🎧 Now playing: " + V.song(k)[1], "dj"); flush(everyone()); saveSoon(true); panelSig = ""; drawLivePanel(true);
+}
+function setDjLock(on) { H.opts.djlock = on; flush(everyone()); saveSoon(true); panelSig = ""; drawLivePanel(true); }
+function setDj(on) { H.opts.dj = on; flush(everyone()); saveSoon(true); panelSig = ""; drawLivePanel(true); }
 function setSab(on) { H.opts.sab = on; feed(on ? "Sabotages are on." : "Sabotages are off.", "event"); flush(everyone()); saveSoon(true); panelSig = ""; drawLivePanel(true); }
 function startBonus() { if (!H || H.status !== "play" || bonusOn()) return; H.bonus = Date.now() + V.BONUS_MS; feed("Bonus round! Double coins for 60 seconds", "bonus"); flush(everyone()); saveSoon(true); }
 
@@ -652,6 +696,7 @@ function view(id, order) {
     return { n: p.sn, status: H.status, title: H.title, nm: p.nm, c: p.c, h: p.h, st: p.st, r: p.r, of: p.n, rank, players: order.length, ends: H.ends || 0,
         av: p.av, pu: p.pu || "", dbl: p.dbl || 0, blk: p.blk || 0, ins: p.ins || 0, fw: (+p.sh || 0) > Date.now() && p.code ? +p.sh : 0, bonus: +H.bonus || 0,
         lock: +H.lock || 0, sab: H.opts.sab !== false ? 1 : 0, sbc: +p.sbc || 0, fog: +p.fog || 0, jam: +p.jam || 0, tax: taxOn(p) ? 1 : 0, mb: p.mb ? 1 : 0, sbr: p.sbr || null, sbh: p.sbh || null, so: p.so || null,
+        dj: +p.dj || 0, djon: H.opts.dj !== false ? 1 : 0, djlock: H.opts.djlock ? 1 : 0, song: H.dj ? { k: H.dj.k, nm: H.dj.nm || "", at: +H.dj.at || 0 } : null, djg: p.djg || null,
         vs: p.vs || 0, top: p.top, cb: (p.cbv = comebackRank(rank, order) ? 1 : 0), code: p.code, need: rd || ex ? false : !p.code, exit: ex ? exitView(id) : null, cd: +p.cd || 0, q: ex ? null : rd ? (rd.res[id] ? null : { n: redoN(), c: rq.c, t: rq.q, f: V.formOf(rq), ch: rq.ch || null }) : q ? { n: p.qn, c: q.c, t: q.q, f: V.formOf(q), ch: q.ch || null } : null, redo: rd ? 1 : 0, best: p.best, cr: p.cr, fb: p.fb, hk: p.hk, hit: p.hit,
         targets: order.filter((x) => x.id !== id).map((x) => ({ id: x.id, nm: x.nm, av: x.av, vs: x.vs || 0, c: x.c, sh: shielded(x) ? 1 : 0, g: p.g[x.id] || [], sbs: (+x.sbs || 0) > Date.now() ? 1 : 0, spy: (p.spy || {})[x.id] ? V.spyShow(x.code, p.spy[x.id]) : "" })),
         res: H.status === "done" ? results(p) : null };
@@ -692,7 +737,7 @@ async function openRoom() {
         for (let i = 0; i < 6 && !code; i++) { const c = V.newRoomCode(); try { if (!(await A.store().rooms.get("rooms/" + c))) code = c; } catch (e) { code = c; } }
         if (!code) throw new Error("Could not find a free game code. Try again.");
         H = { v: 1, code, status: "lobby", title: set.title || meta.title || "Review", setId: meta.id, per: A.S.period, qs, mode: choice.names, names, taken: [],
-            opts: { mins: choice.mins, board: choice.board, save: choice.save, live: choice.live, work: choice.work, retry: choice.retry, steps: choice.steps, slow: choice.slow, snd: choice.snd, comeback: choice.comeback, sab: choice.sab }, paused: 0, exit: null, heat: { on: false, names: false }, redo: null, players: {}, qst: qs.map(() => ({ n: 0, ok: 0, w: [] })), review: null, feed: [], show: null, ends: 0, t0: 0, rid: "", saved: false,
+            opts: { mins: choice.mins, board: choice.board, save: choice.save, live: choice.live, work: choice.work, retry: choice.retry, steps: choice.steps, slow: choice.slow, snd: choice.snd, comeback: choice.comeback, sab: choice.sab, dj: choice.dj, goal: choice.goal }, paused: 0, exit: null, heat: { on: false, names: false }, redo: null, players: {}, qst: qs.map(() => ({ n: 0, ok: 0, w: [] })), review: null, feed: [], show: null, ends: 0, t0: 0, rid: "", saved: false,
             host: PAGE, hb: Date.now(), at: Date.now() };
         await A.store().rooms.save("rooms/" + code, roomDoc());
         hosting = true; loaded = true; await A.store().save("games/room", clean(H)); takeHost(); tab = "players";
@@ -810,7 +855,7 @@ function acceptAnswer(id) {
     const p = P(id); if (!p || !p.la || p.la.ok) return;
     const q = H.qs[p.la.qi]; if (q && p.la.y && !q.al.includes(p.la.y)) q.al = q.al.concat([p.la.y]).slice(-6);
     untally(p, p.la.qi, p.la.y);
-    p.la.ok = true; p.r++; p.st = 1; p.c += V.coinsFor(1); p.h = Math.min(V.MAX_HACKS, p.h + 1);
+    p.la.ok = true; p.r++; p.st = 1; classRight(); p.c += V.coinsFor(1); p.h = Math.min(V.MAX_HACKS, p.h + 1);
     if (p.fb && p.fb.q === p.la.q) p.fb = Object.assign({}, p.fb, { ok: true, a: "", plus: V.coinsFor(1), fixed: 1, retry: 0, step: 0, hint: "" });
     if (p.rt === p.qn && p.la.q === p.qn) { p.rt = -1; nextQ(p); }   // counted while they were on their second try: move them on
     flush(new Set([id]));
@@ -869,11 +914,11 @@ export function tickLive() {
    with the question on a card floating over the paper like the bellringer, so the teacher can work it out. */
 /** The question being gone over, or null: { key (for the saved ink), qi, at, count, list (question numbers), title, ans }. */
 /* ---------- the board's sound: the theme song's mood, and a sound for each big moment ---------- */
-const FEED_CUES = { join: "join", start: "start", crack: "crack", block: "block", box: "box", bonus: "bonus", event: "bonus", shout: "box", end: "win" };
+const FEED_CUES = { join: "join", start: "start", crack: "crack", block: "block", box: "box", bonus: "bonus", event: "bonus", shout: "box", goal: "win", dj: "pop", end: "win" };
 let heardT = -1, lastPhase = "";
 /** What the game sounds like right now: { phase: "" | lobby | play | rush | paused, cues: [names of moments that just happened] }. */
 export function liveSound() {
-    if (!H || !loaded) { heardT = -1; lastPhase = ""; return { phase: "", cues: [] }; }
+    if (!H || !loaded) { heardT = -1; lastPhase = ""; return { phase: "", cues: [], song: "vault" }; }
     const t = Date.now(), ends = +H.ends || 0, calm = (H.exit && !H.exit.done) || (H.redo && !H.redo.done);
     const phase = H.status === "lobby" ? "lobby" : H.status !== "play" ? "" : H.paused ? "paused" : calm ? "lobby" : ends && ends > t && ends - t <= 30000 ? "rush" : "play";
     const feedList = H.feed || [], newest = feedList.reduce((m, f) => Math.max(m, +f.t || 0), 0), cues = [];
@@ -884,7 +929,7 @@ export function liveSound() {
         if (phase === "rush" && lastPhase === "play") cues.push("rush");
     }
     lastPhase = phase;
-    return { phase, cues };
+    return { phase, cues, song: H.dj && V.song(H.dj.k) ? H.dj.k : "vault" };
 }
 export function liveReview() {
     if (!H || !(H.status === "done" || (H.redo && !H.redo.done)) || !H.review || !H.qs || !H.qs[H.review.qi]) return null;
@@ -973,6 +1018,92 @@ function vaultScene(last, since) {
 }
 /** A small round vault in the student's skin, for the board's leaderboard. */
 function skinDot(p) { const k = V.skin(p.vs), d = el("i", "vrskin" + (k[3].stars ? " stars" : "") + (k[3].shine ? " shine" : "")); d.style.setProperty("--skd", k[3].door); d.style.setProperty("--skr", k[3].ring); d.title = k[1] + " vault"; d.setAttribute("aria-hidden", "true"); return d; }
+/* ---------- the Deep Dive board: a timing tower beside an ocean where every diver sinks toward the treasure ----------
+   Redraws rebuild the stage, so motion is carried across them: rows slide from where they were, divers glide
+   from their last depth, and the looping water (bubbles, light, seaweed) keeps its place in time. */
+const tower = { y: {}, rank: {}, up: {}, lead: "", leadAt: 0 }, diveY = {};
+/** A looping animation that keeps its phase across redraws: start it part way through, by the clock. */
+const loopAt = (e, ms, off = 0) => { e.style.animationDelay = -((Date.now() + off) % ms) + "ms"; e.style.animationDuration = ms + "ms"; return e; };
+const boardName = (p, i) => (H.opts.board ? p.nm : "Player " + (i + 1));
+function towerEl(order) {
+    const lead = el("div", "vrlead vrtower"), now = Date.now(), shown = order.slice(0, 8);
+    lead.append(el("p", "vrlab", "Deepest divers"));
+    if (!order.length) lead.append(el("p", "vrempty", "Waiting for players."));
+    const rows = [];
+    shown.forEach((p, i) => {
+        const was = tower.rank[p.id]; if (was != null && i < was) tower.up[p.id] = { n: was - i, at: now };
+        tower.rank[p.id] = i;
+        const up = tower.up[p.id] && now - tower.up[p.id].at < 8000 ? tower.up[p.id].n : 0;
+        const r = el("div", "vrrow" + (i === 0 ? " vrfirst" : "") + (up ? " vrclimb" : "")); r.dataset.id = p.id;
+        const nm = el("span", "vrname"); nm.append(el("span", "vrnmtxt", (H.opts.board ? V.avatar(p.av)[0] + " " : "") + boardName(p, i)));
+        if ((+p.st || 0) >= 3) { const f = el("i", "vrhot", "🔥"); f.title = p.st + " right in a row"; nm.append(f); }
+        r.append(el("b", "vrrank", String(i + 1)), nm, el("b", "vrcoins", p.c + ""));
+        if (up) r.append(el("span", "vrup", "↑" + up));
+        lead.append(r); rows.push(r);
+    });
+    order.slice(8).forEach((p, i) => { tower.rank[p.id] = 8 + i; });
+    if (order.length > 8) lead.append(el("p", "vrmore", "+ " + (order.length - 8) + " more " + (order.length - 8 === 1 ? "diver" : "divers") + " on the way down"));
+    // Slide each row from where it sat last time (once it is on the page).
+    requestAnimationFrame(() => rows.forEach((r) => {
+        const id = r.dataset.id, y = r.offsetTop, old = tower.y[id]; tower.y[id] = y;
+        if (old != null && old !== y && r.animate) r.animate([{ transform: "translateY(" + (old - y) + "px)" }, { transform: "none" }], { duration: 700, easing: "cubic-bezier(.2,.8,.2,1)" });
+    }));
+    const first = order[0] ? order[0].id : "";
+    if (first !== tower.lead) { if (tower.lead && first) tower.leadAt = now; tower.lead = first; }
+    return lead;
+}
+function seaEl(order) {
+    const sea = el("div", "vrsea"), now = Date.now(), top = order.length ? order[0].c : 0, scale = V.depthScale(top);
+    sea.setAttribute("role", "img"); sea.setAttribute("aria-label", "Deep Dive: each diver sinks deeper as they earn coins");
+    for (let i = 0; i < 3; i++) { const r = loopAt(el("i", "vrray r" + i), 9000 + i * 2300, i * 1700); sea.append(r); }
+    for (let i = 0; i < 12; i++) { const b = el("i", "vrbub"); b.style.left = ((i * 37) % 100) + "%"; b.style.setProperty("--bs", (0.35 + ((i * 7) % 5) * 0.12) + "em"); loopAt(b, 7000 + ((i * 1300) % 5000), i * 900); sea.append(b); }
+    // Depth marks down the left side, in coins.
+    const marks = el("div", "vrmarks"); [0.25, 0.5, 0.75, 1].forEach((f) => { const m = el("span", null, Math.round(scale * f) + ""); m.style.top = (6 + 70 * f) + "%"; marks.append(m); }); sea.append(marks);
+    // The sea floor: sand, seaweed that sways, and the class's treasure chest.
+    const floor = el("div", "vrfloor");
+    floor.innerHTML = '<svg viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30 Q 50 14 100 26 T 200 24 T 300 28 T 400 22 V60 H0z" fill="#C9A86A"/><path d="M0 40 Q 60 30 120 38 T 260 36 T 400 34 V60 H0z" fill="#B48F52"/></svg>';
+    [6, 14, 82, 92].forEach((x, i) => { const w = loopAt(el("i", "vrweed"), 4200 + i * 600, i * 800); w.style.left = x + "%"; w.style.setProperty("--wh", (2.4 + (i % 2) * 1.2) + "em"); floor.append(w); });
+    floor.append(treasureEl()); sea.append(floor);
+    // Divers: the top 8, each in a lane that never changes (by when they joined), as deep as their coins.
+    const shown = order.slice(0, 8), lanes = shown.slice().sort((a, b) => (a.at || 0) - (b.at || 0) || (a.id < b.id ? -1 : 1));
+    lanes.forEach((p, li) => {
+        const i = shown.indexOf(p), y = 5 + 64 * Math.min(1, p.c / scale), x = shown.length === 1 ? 50 : 14 + li * (76 / (shown.length - 1));
+        const d = el("div", "vrdiver" + (i === 0 && p.c > 0 ? " lead" : "") + ((+p.st || 0) >= 3 ? " hot" : "") + ((+p.fog || 0) > now ? " inked" : "") + (li % 2 && !(i === 0 && p.c > 0) ? " tagup" : ""));
+        d.style.left = x + "%"; d.style.top = y + "%";
+        const k = V.skin(p.vs)[3], bob = loopAt(el("div", "vrbob"), 3200 + li * 260, li * 500);
+        bob.innerHTML = '<svg viewBox="0 0 64 52" aria-hidden="true"><path d="M8 26c0-12 10-20 24-20s24 8 24 20-10 20-24 20S8 38 8 26z" fill="' + k.door + '" stroke="' + k.ring + '" stroke-width="3"/><rect x="28" y="0" width="7" height="9" rx="2" fill="' + k.ring + '"/><path d="M56 22l7-5v18l-7-5z" fill="' + k.ring + '"/><circle cx="30" cy="26" r="12" fill="#E8F6FF" stroke="' + k.ring + '" stroke-width="3"/></svg>';
+        bob.append(el("span", "vrport", H.opts.board ? V.avatar(p.av)[0] : String(i + 1)));
+        if (i === 0 && p.c > 0) bob.append(el("span", "vrcrown", "👑"));
+        if ((+p.fog || 0) > now) bob.append(el("span", "vrink"));
+        d.append(bob, el("span", "vrtag", H.opts.board ? p.nm : "#" + (i + 1)));
+        const old = diveY[p.id]; diveY[p.id] = y;
+        if (old != null && Math.abs(old - y) > 0.2 && d.animate) d.animate([{ top: old + "%" }, { top: y + "%" }], { duration: 1400, easing: "cubic-bezier(.3,.7,.2,1)" });
+        sea.append(d);
+    });
+    if (tower.leadAt && now - tower.leadAt < 4500 && order[0]) sea.append(el("p", "vrnewlead", H.opts.board ? "🏆 " + order[0].nm + " takes the lead!" : "🏆 New leader!"));
+    return sea;
+}
+/** The class chest on the sea floor: the whole class's right answers toward the teacher's goal. */
+function treasureEl() {
+    const g = V.classGoal(H.opts.goal, Object.keys(H.players).length), w = el("div", "vrchest" + (H.goalHit ? " open" : ""));
+    w.innerHTML = '<svg viewBox="0 0 80 60" aria-hidden="true"><g class="lid"><path d="M6 26c0-12 14-20 34-20s34 8 34 20z" fill="#8A5A1F" stroke="#5E3B10" stroke-width="3"/><rect x="34" y="16" width="12" height="10" rx="2" fill="#F2B33D"/></g><rect x="6" y="26" width="68" height="30" rx="4" fill="#A86E2A" stroke="#5E3B10" stroke-width="3"/><rect x="6" y="34" width="68" height="5" fill="#F2B33D"/><rect x="35" y="30" width="10" height="12" rx="2" fill="#F2B33D" stroke="#8A5F00" stroke-width="2"/></svg>';
+    w.prepend(el("i", "vrglow"));
+    if (!g) return w;
+    const n = +H.tr || 0, meter = el("div", "vrgoal"), bar = el("div", "vrgoalbar"), fill = el("i");
+    fill.style.width = Math.min(100, 100 * n / g) + "%"; bar.append(fill);
+    meter.append(el("b", null, H.goalHit ? "Class Treasure unlocked!" : "Class Treasure"), bar, el("small", null, Math.min(n, g) + " of " + g + " right answers together"));
+    w.append(meter);
+    return w;
+}
+/** What's playing: the game's theme or a student's DJ pick. */
+function nowPlaying() {
+    const s = H.dj && V.song(H.dj.k) ? V.song(H.dj.k) : V.song("vault"), w = el("div", "vrnow");
+    w.append(el("span", "vrnowic", s[2]));
+    const t = el("div"); t.append(el("p", "vrlab", "Now playing"), el("b", null, s[1]));
+    if (H.dj && H.dj.nm) t.append(el("small", null, H.opts.board ? "picked by " + H.dj.nm : "picked by a student"));
+    else if (H.opts.dj !== false && !H.opts.djlock) t.append(el("small", null, "Earn a DJ Ticket to pick the song"));
+    w.append(t); return w;
+}
 export function drawLiveStage(st) {
     const per = A.S.period + " period";
     if (!loaded) { st.append(A.header("Student Game", per), el("div", "gbody")); return; }
@@ -1007,17 +1138,14 @@ export function drawLiveStage(st) {
         const img = el("div", "vrpadimg"); if (pad && pad.img) { const im = el("img"); im.src = pad.img; im.alt = "Student work"; img.append(im); } else img.append(el("p", "vrempty", "No work drawn yet."));
         wrap.append(img); body.append(wrap);
     } else if (H.status === "play") {
-        const grid = el("div", "vrplay"), lead = el("div", "vrlead"), side = el("div", "vrside");
-        const order = ranked();
-        lead.append(el("p", "vrlab", "Richest vaults"));
-        if (!order.length) lead.append(el("p", "vrempty", "Waiting for players."));
-        order.slice(0, 8).forEach((p, i) => { const r = el("div", "vrrow" + (i === 0 ? " vrfirst" : "")); r.append(el("b", "vrrank", String(i + 1)), skinDot(p), el("span", "vrname", (H.opts.board ? V.avatar(p.av)[0] + " " : "") + nameOn(p, i)), el("b", "vrcoins", p.c + " coins")); lead.append(r); });
-        const clock = el("div", "vrclockbox"); const c = el("p", "vrclock"); c.id = "liveClock"; clock.append(el("p", "vrlab", "Time left"), c); side.append(clock);
+        const grid = el("div", "vrplay vrdive"), side = el("div", "vrside");
+        const order = ranked(), lead = towerEl(order);
+        const clock = el("div", "vrclockbox"); const c = el("p", "vrclock"); c.id = "liveClock"; clock.append(el("p", "vrlab", "Time left"), c); side.append(clock, nowPlaying());
         const fd = el("div", "vrfeed"); fd.append(el("p", "vrlab", "Latest"));
-        (H.feed || []).filter((f) => ["crack", "start", "bonus", "block", "box", "event", "sab", "shout"].includes(f.k)).slice(-5).reverse().forEach((f) => fd.append(el("p", "vrf " + f.k, H.opts.board ? f.txt : f.k === "crack" ? "A vault was cracked!" : f.k === "box" ? "Someone opened a mystery box" : f.k === "block" ? "A Shield blocked a crack!" : f.k === "sab" ? "Sabotage!" : f.k === "shout" ? "A shout-out from your teacher!" : f.txt)));
+        (H.feed || []).filter((f) => ["crack", "start", "bonus", "block", "box", "event", "sab", "shout", "goal", "dj"].includes(f.k)).slice(-5).reverse().forEach((f) => fd.append(el("p", "vrf " + f.k, H.opts.board ? f.txt : f.k === "crack" ? "A vault was cracked!" : f.k === "box" ? "Someone opened a mystery box" : f.k === "block" ? "A Shield blocked a crack!" : f.k === "sab" ? "Sabotage!" : f.k === "shout" ? "A shout-out from your teacher!" : f.k === "dj" ? (/picked/.test(f.txt) ? "🎧 A student picked a new song" : /gave/.test(f.txt) ? "🎧 Someone got a DJ Ticket" : f.txt) : f.txt)));
         side.append(fd, el("p", "vrlate", "Joining late? " + joinUrl() + " · code " + H.code));
-        if (H.heat && H.heat.on) { const hm = el("div", "vrlead vrheatwrap"); hm.append(el("p", "vrlab", "How everyone is doing · last " + HEAT_COLS + " answers"), heatGrid(heatRows(), !!H.heat.names, false)); grid.append(hm, side); }
-        else grid.append(lead, side);
+        if (H.heat && H.heat.on) { const hm = el("div", "vrlead vrheatwrap"); hm.append(el("p", "vrlab", "How everyone is doing · last " + HEAT_COLS + " answers"), heatGrid(heatRows(), !!H.heat.names, false)); grid.classList.remove("vrdive"); grid.append(hm, side); }
+        else grid.append(lead, seaEl(order), side);
         body.append(grid);
         const bon = el("div", "vrbonus"); bon.id = "liveBonus"; bon.hidden = !bonusOn(); bon.append(el("span", null, "BONUS ROUND · double coins"), el("b", null, "")); body.append(bon);
         const lck = el("div", "vrbonus vrlock"); lck.id = "liveLock"; lck.hidden = !lockOn(); lck.append(el("span", null, "LOCKDOWN · no hacking or sabotage"), el("b", null, "")); body.append(lck);
@@ -1081,6 +1209,14 @@ function tileBtn(cls, icon, label, sub, fn) {
     const b = btn("vrtilebtn " + cls, null, fn); b.append(el("span", "vrti", icon), el("span", "vrtl", label)); if (sub) b.append(el("small", "vrts", sub)); return b;
 }
 const liveStats = () => { const order = ranked(), all = order.reduce((a, x) => [a[0] + x.r, a[1] + x.n], [0, 0]); return { n: order.length, ans: all[1], pct: all[1] ? pctOf(all[0], all[1]) + "%" : "–" }; };
+function songSelect(v) { const s = el("select"); V.SONGS.forEach(([k, n, e, d]) => { const o = el("option", null, e + " " + n + " · " + d); o.value = k; s.append(o); }); s.value = v; return s; }
+const GOALS = [["auto", "Auto (about 6 right answers each)"], ["25", "25 right answers"], ["50", "50 right answers"], ["100", "100 right answers"], ["150", "150 right answers"], ["200", "200 right answers"], ["300", "300 right answers"], ["0", "Off"]];
+function goalRow(v, fn) {
+    const l = el("label", "gprow2"), s = el("select"); GOALS.forEach(([k, t]) => { const o = el("option", null, t); o.value = k; s.append(o); });
+    s.value = String(v == null ? "auto" : v); s.onchange = () => fn(s.value === "0" ? 0 : s.value);
+    l.append(el("span", null, "Class Treasure goal"), s, el("small", "vrsub", "The whole class's right answers fill a treasure chest on the board. Reaching the goal opens it. The reward is up to you."));
+    return l;
+}
 function check(label, on, fn, sub) { const l = el("label", "gpchk"), i = el("input"); i.type = "checkbox"; i.checked = on; i.onchange = () => fn(i.checked); l.append(i, document.createTextNode(label)); if (sub) l.append(el("small", "vrsub", sub)); return l; }
 
 export function drawLivePanel(force) {
@@ -1144,6 +1280,13 @@ export function drawLivePanel(force) {
             tileBtn("vralarmbtn" + (resetArm ? " armed" : ""), "🚨", resetArm ? "Tap again to reset" : "Code reset", resetArm ? "Every vault code resets" : "Everyone picks a new code", () => { if (resetArm) { resetArm = 0; codeReset(); } else { resetArm = Date.now(); panelSig = ""; drawLivePanel(true); } }));
         p.append(ev);
         p.append(check("Sabotages", H.opts.sab !== false, setSab, "Students spend coins to Fog, Jam, Tax or Spy on a player with at least as many coins. Off stops them right away."));
+        p.append(sec("Music and Class Treasure"));
+        const dj = el("div", "vrdjrow"), pick = songSelect(H.dj ? H.dj.k : "vault");
+        pick.setAttribute("aria-label", "Song"); dj.append(pick, btn("btn ghost", "Play it", () => teacherSong(pick.value)));
+        p.append(dj, el("p", "gpnote", H.dj && H.dj.nm ? "Playing " + V.song(H.dj.k)[1] + ", picked by " + H.dj.nm + "." : "Playing " + V.song(H.dj ? H.dj.k : "vault")[1] + "."));
+        p.append(check("DJ Tickets", H.opts.dj !== false, setDj, "Students pick the song with a DJ Ticket (from a mystery box, or the 🎧 button on their row) or for " + V.DJ_COST + " coins. Each song plays at least 2 minutes."),
+            check("Lock the music", !!H.opts.djlock, setDjLock, "On: only you can change the song."));
+        p.append(goalRow(H.opts.goal, setGoal));
         p.append(sec("What you see"));
         const tabs = el("div", "vrtabs"); [["players", "Players"], ["heat", "Heat map"], ["work", "Work"]].forEach(([k, label]) => { const b = btn("btn " + (tab === k ? "go" : "ghost"), label, () => { tab = k; panelSig = ""; drawLivePanel(true); }); b.setAttribute("aria-pressed", String(tab === k)); tabs.append(b); });
         p.append(tabs);
@@ -1259,6 +1402,8 @@ function setupPanel(p) {
         check("Catch-up boost", choice.comeback, (v) => { choice.comeback = v; }, "On: after the first minute, students in the bottom quarter earn half again on right answers. Only they see it, never the board."),
         check("Second chance after a miss", choice.retry, (v) => { choice.retry = v; }, "On: a wrong answer gets a hint and one more try for half coins. Only the first try counts in the report."),
         check("Step-by-step help after a miss", choice.steps, (v) => { choice.steps = v; }, "On: when a question has steps, a miss shows step 1 in a small pop-up on the right of the student's screen (they can shrink it), and each wrong try shows the next one. Every step lowers the coins it's worth (60%, 40%, 25%). Quick guesses unlock nothing, students must read each step and add work before trying again, and steps never show the answer. Who used steps shows on your Remote only."),
+        check("DJ Tickets", choice.dj, (v) => { choice.dj = v; }, "On: a student with a DJ Ticket (from a mystery box or your 🎧 button) or " + V.DJ_COST + " coins picks the game's song from 7 original tracks. Each song plays at least 2 minutes, and you can lock the music."),
+        goalRow(choice.goal, (v) => { choice.goal = v; panelSig = ""; }),
         check("Sabotages", choice.sab, (v) => { choice.sab = v; }, "On: students spend coins to Fog, Jam, Tax or Spy on a classmate with at least as many coins (never someone behind them). Each one costs coins and recharges, a player who was just hit is safe for a minute, and none of them touch anyone's questions or work. You can turn it off during the game."),
         check("See their work live as they draw", choice.live, (v) => { choice.live = v; }, "Off: you see each student's work when they answer. On: it updates every few seconds, which uses more of the free daily allowance."),
         check("Save each student's result to Class Data", choice.save, (v) => { choice.save = v; }, "Off by default. Names, coins and right answers are kept in your private account. Leave off until the district says student data can be stored."));
@@ -1278,6 +1423,7 @@ function playerRows(p, live, final) {
         if (live && x.sm && x.rt === x.qn) { const n = V.stepsFor(qOf(x, x.qn)).length; left.append(el("small", "vrstepchip", x.sp ? "On step " + x.sp + " of " + n : "Working before step 1")); }
         r.append(left);
         if (live && x.la && !x.la.ok && x.la.y) r.append(btn("gpok", "Count it", () => acceptAnswer(x.id)));
+        if (live && H.opts.dj !== false) { const g = btn("gpok vrdjgive", "🎧" + (x.dj ? " " + x.dj : ""), () => giveDj(x.id)); g.title = "Give " + x.nm + " a DJ Ticket"; g.setAttribute("aria-label", "Give " + x.nm + " a DJ Ticket" + (x.dj ? " (has " + x.dj + ")" : "")); r.append(g); }
         if (live) { const so = btn("gpok vrshout", "★ +" + V.SHOUT_COINS, () => shoutOut(x.id)); so.title = "Shout-out: give " + x.nm + " " + V.SHOUT_COINS + " coins"; so.setAttribute("aria-label", "Shout-out: give " + x.nm + " " + V.SHOUT_COINS + " coins"); r.append(so); }
         if (!final) { const rm = btn("gpno vrrm", "Remove", () => removePlayer(x.id)); rm.title = "Remove " + x.nm + " and free the name"; rm.setAttribute("aria-label", "Remove " + x.nm + " and free the name"); r.append(rm); }
         box.append(r);

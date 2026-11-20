@@ -46,9 +46,10 @@ export const STARTERS = [
 export const starter = (k) => STARTERS.find((x) => x[0] === k) || null;
 export const BOX_EVERY = 3, BONUS_MS = 60000;
 /** What a mystery box can hold (every 3rd right answer earns one). */
-export const BOXES = [["bag", "Coin bag"], ["hack", "Extra hack"], ["double", "Double coins"], ["firewall", "Firewall"]];
-export function rollBox(rand = Math.random) {
-    const k = BOXES[Math.floor(rand() * BOXES.length)][0];
+export const BOXES = [["bag", "Coin bag"], ["hack", "Extra hack"], ["double", "Double coins"], ["firewall", "Firewall"], ["dj", "DJ Ticket"]];
+/** noDj: DJ Tickets are off in this game, so a box never holds one. */
+export function rollBox(rand = Math.random, noDj = false) {
+    const list = noDj ? BOXES.filter((b) => b[0] !== "dj") : BOXES, k = list[Math.floor(rand() * list.length)][0];
     return k === "bag" ? { k, v: 15 + 5 * Math.floor(rand() * 4) } : k === "double" ? { k, v: 2 } : k === "firewall" ? { k, v: 60 } : { k, v: 1 };
 }
 
@@ -80,6 +81,40 @@ export const spyShow = (code, known) => [...Array(CODE_LEN).keys()].map((i) => (
 /* ---------- teacher moves during a game ---------- */
 /** Lockdown: no hacking or sabotage for a minute. A shout-out gives one student a few coins. */
 export const LOCK_MS = 60000, SHOUT_COINS = 10;
+
+/* ---------- DJ Tickets: a student picks the game's music ----------
+   Every song is original and made live in the browser (js/sound.js), nothing recorded.
+   A ticket comes from a mystery box or the teacher, or a student buys one pick with coins.
+   A song plays at least DJ_HOLD_MS before anyone can change it, and the teacher can lock the music. */
+/** [key (5 letters max: it travels as "dj:<key>"), name, emoji, what it sounds like]. */
+export const SONGS = [
+    ["vault", "Vault Raid", "🔐", "The game's own theme"],
+    ["heist", "Night Heist", "🕶", "Sneaky spy bass"],
+    ["arc", "Pixel Arcade", "👾", "Fast 8-bit beeps"],
+    ["deep", "Deep Dive", "🌊", "Slow sonar and bells"],
+    ["jung", "Jungle Run", "🌴", "Marimba and drums"],
+    ["space", "Space Run", "🚀", "Synth rockets"],
+    ["lofi", "Lo-fi Vault", "🎧", "Chill beats"],
+];
+export const song = (k) => SONGS.find((x) => x[0] === k) || null;
+export const DJ_COST = 40, DJ_HOLD_MS = 120000;
+/** Read "dj:<key>" from a student's request, or "" when it isn't a DJ pick. */
+export const djKey = (k) => (typeof k === "string" && k.startsWith("dj:") && song(k.slice(3)) ? k.slice(3) : "");
+
+/* ---------- Class Treasure: the whole class's right answers toward one goal ---------- */
+/** The goal in right answers: a number the teacher picked, "auto" (about 6 per player, in tens), or 0 (off). */
+export function classGoal(opt, players) {
+    if (opt === 0 || opt === "0" || opt === "off" || opt === false) return 0;
+    if (opt === "auto" || opt == null || opt === "") return Math.max(20, Math.ceil((players || 0) * 6 / 10) * 10);
+    return Math.max(1, +opt || 0);
+}
+
+/* ---------- Deep Dive board: how deep a diver sits ---------- */
+/** A round number just above the leader's coins, so the leader sits near the treasure but never on it. */
+export function depthScale(top) {
+    const want = Math.max(50, (+top || 0) * 1.15), steps = [50, 75, 100, 150, 200, 250, 300, 400, 500, 750, 1000, 1500, 2000, 3000, 5000];
+    return steps.find((x) => x >= want) || Math.ceil(want / 1000) * 1000;
+}
 
 /* ---------- vault skins: a new look for a student's vault, unlocked by coins ---------- */
 /** [key, name, coins needed, colors]. A skin unlocks at the most coins a student has held this game, so a crack never locks one again. */
