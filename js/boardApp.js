@@ -212,7 +212,7 @@ let notTodayShut = (() => { try { return sessionStorage.getItem("anchorboard-not
 function buildControls() {
     const w = W();
     const ps = $("periodSel"); ps.textContent = "";
-    PERIODS.filter((p) => w.classes[p[1]]).forEach((p) => { const o = el("option", null, p[0] + " period, " + w.classes[p[1]].label); o.value = p[0]; ps.appendChild(o); });
+    PERIODS.filter((p) => w.classes[p[1]]).forEach((p) => { const o = el("option", null, p[0] + (isPhone() ? " \u00b7 " : " period, ") + w.classes[p[1]].label); o.value = p[0]; ps.appendChild(o); });
     ps.value = S.period;
     seg($("days"), DK.map((k, i) => [i, k]), S.day, (i) => { S.day = i; resetPos(); push(); });
     {   // Mark the real day, and say so plainly whenever the board is showing a different one.
@@ -231,7 +231,7 @@ function buildControls() {
     }
     seg($("screens"), SCREENS.filter((x) => mode !== "sub" || (x[0] !== "game" && x[0] !== "live" && x[0] !== "seats" && x[0] !== "steps")), S.screen, (id) => { S.screen = id; S.show = false; push(); });
     const sel = $("weekSel"); sel.textContent = "";
-    WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + x.dates); o.value = x.id; sel.appendChild(o); });
+    WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + (isPhone() ? String(x.dates || "").replace(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*/g, "$1") : x.dates)); o.value = x.id; sel.appendChild(o); });
     sel.value = w.id; $("weekField").hidden = WEEKS.length < 2;
     const fn = $("flowNext"); if (fn) { fn.textContent = stepLabel(); fn.disabled = fn.textContent === "Next" && !nextScreen(1); $("flowBack").disabled = S.screen === screenOrder()[0]; }
     const bn = $("bnNext"), bb = $("bnBack");
@@ -405,6 +405,18 @@ function soundPanel() {
     q.onclick = () => { S.sound.music = !S.sound.music; snd.unlock(); push(); };
     $("boardBtn").before(q);
     snd.onChange(soundControls);
+}
+/* On a phone the top bar is two tidy rows: logo, connection and boards, and a menu button; then the class and week
+   side by side. Music and Board view move into the menu. Done once at load (a phone stays a phone). */
+function phoneHeader() {
+    if (!isPhone()) return;
+    const acct = document.querySelector(".cbar details.acct"), pop = acct && acct.querySelector(".pop"); if (!pop) return;
+    const sum = acct.querySelector("summary"); if (sum) { sum.textContent = "Menu"; sum.classList.add("phmenu"); sum.setAttribute("aria-label", "Menu"); }
+    const top = [el("p", "pophead", "This phone"), $("boardBtn"), $("musicBtn"), el("p", "pophead", "Pages")].filter(Boolean);
+    pop.prepend(...top);
+    if ($("boardBtn")) $("boardBtn").textContent = "Full-screen board";
+    pop.querySelectorAll("button,a").forEach((b) => b.addEventListener("click", () => { acct.open = false; }));
+    const tm = $("toolsMenu"); if (tm) tm.open = false;   // the rail starts folded on a phone: open only what is needed
 }
 function soundControls() {
     const box = $("soundMenu");
@@ -1294,6 +1306,7 @@ export async function startApp(opts) {
     if (window.ResizeObserver) new ResizeObserver(fit).observe($("wrap")); document.addEventListener("fullscreenchange", () => setTimeout(fit, 60));
     document.addEventListener("pointerdown", unlockSound); document.addEventListener("keydown", unlockSound);
     soundPanel();
+    phoneHeader();
     if (!guest) planFold = mountPlanFold(planApi, $("soundMenu") || $("toolsMenu"));
     $("flowNext").onclick = () => step(1); $("flowBack").onclick = () => step(-1);
     {   // on a phone: switch between a true small copy of the board and the bigger phone-shaped view
@@ -1349,7 +1362,7 @@ export async function startApp(opts) {
                 snap: () => ({ screen: S.screen, screenName: screenName(S.screen), period: S.period, day: DK[S.day] || "", week: S.week,
                     panels: PANEL_LIST.filter(([k]) => S.tools.on[k]).map((x) => x[1]), look: [S.look.theme, S.look.bg, S.look.fx].join(" "), conn: ($("status") || {}).textContent || "" }) });
             if (shown.at) presence.saw(shown.by, shown.at);
-            if (mode === "remote" && $("boardBtn")) presence.mount($("boardBtn"));
+            if (mode === "remote" && $("status")) presence.mount($("status").nextSibling);   // right after the Live pill
             setInterval(() => presence.changed(), 1500);
         }).catch(() => { /* Live status is extra: the board works without it */ });
     }
