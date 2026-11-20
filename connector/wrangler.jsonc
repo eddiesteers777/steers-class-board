@@ -1,0 +1,20 @@
+// Anchor Board connector (Cloudflare Workers, free plan). Deployed by .github/workflows/deploy-connector.yml.
+{
+  "name": "anchor-connector",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-01",
+  // global_fetch_strictly_public: the OAuth library fetches Claude's client metadata document safely
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "workers_dev": true,
+  "kv_namespaces": [
+    // the deploy workflow finds or makes the "anchor-connector-oauth" namespace and writes its id here
+    { "binding": "OAUTH_KV", "id": "REPLACED_AT_DEPLOY" }
+  ],
+  "vars": {
+    // public Firebase web settings, the same ones the website ships in js/firebase.js
+    "FIREBASE_API_KEY": "AIzaSyA8kAei_AJMU66EePYQyI8nlVJeLes5HLY",
+    "FIREBASE_PROJECT": "steers-class-board",
+    "SITE_URL": "https://anchorboard.web.app"
+  },
+  "observability": { "enabled": true }
+}

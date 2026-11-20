@@ -1,0 +1,86 @@
+name: Deploy connector
+
+# The Anchor Board connector for Claude (connector/), on Cloudflare Workers' free plan.
+# Runs on every merge that changes it, or by hand (Actions > Deploy connector > Run workflow).
+# Needs these repository secrets (Settings > Secrets and variables > Actions):
+#   CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID       from the free Cloudflare account
+#   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET            the Firebase project's Google web client
+#   ALLOWED_EMAIL                                     the one Google account let in
+# Until the Cloudflare secrets are there, it skips with a note instead of failing.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "connector/**"
+      - "js/workCore.js"
+      - "data/calendar.js"
+      - ".github/workflows/deploy-connector.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-connector
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: connector
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - name: Cloudflare set up yet?
+        id: ready
+        working-directory: .
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::notice::Connector not deployed: add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID to the repository secrets, then run this workflow."
+            echo "go=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=yes" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.ready.outputs.go == 'yes'
+      - uses: actions/setup-node@v4
+        if: steps.ready.outputs.go == 'yes'
+        with:
+          node-version: "22"
+      - run: npm ci
+        if: steps.ready.outputs.go == 'yes'
+      - name: Tests
+        if: steps.ready.outputs.go == 'yes'
+        run: node test/tools.test.mjs
+      - name: Storage for sign-ins (find or make the KV namespace)
+        if: steps.ready.outputs.go == 'yes'
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces"
+          auth="Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+          id=$(curl -fsS -H "$auth" "$api?per_page=100" | jq -r '.result[] | select(.title=="anchor-connector-oauth") | .id' | head -1)
+          if [ -z "$id" ]; then
+            id=$(curl -fsS -X POST -H "$auth" -H "Content-Type: application/json" -d '{"title":"anchor-connector-oauth"}' "$api" | jq -r '.result.id')
+            echo "Made KV namespace anchor-connector-oauth"
+          fi
+          test -n "$id" && test "$id" != "null"
+          sed -i "s/REPLACED_AT_DEPLOY/$id/" wrangler.jsonc
+      - name: Deploy
+        if: steps.ready.outputs.go == 'yes'
+        run: npx wrangler deploy
+      - name: Secrets
+        if: steps.ready.outputs.go == 'yes'
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          ALLOWED_EMAIL: ${{ secrets.ALLOWED_EMAIL }}
+        run: |
+          set -euo pipefail
+          if [ -z "$GOOGLE_CLIENT_ID" ] || [ -z "$GOOGLE_CLIENT_SECRET" ] || [ -z "$ALLOWED_EMAIL" ]; then
+            echo "::warning::Deployed, but sign-in will not work until GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and ALLOWED_EMAIL are in the repository secrets. Add them, then run this workflow again."
+            exit 0
+          fi
+          jq -n --arg a "$GOOGLE_CLIENT_ID" --arg b "$GOOGLE_CLIENT_SECRET" --arg c "$ALLOWED_EMAIL" \
+            '{GOOGLE_CLIENT_ID:$a, GOOGLE_CLIENT_SECRET:$b, ALLOWED_EMAIL:$c}' | npx wrangler secret bulk
+          echo "::notice::Connector is live. In Claude, add a custom connector with the address shown in the Deploy step, ending in /mcp."

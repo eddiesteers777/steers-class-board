@@ -171,3 +171,33 @@ export function initials(name) {
     const w = String(name || "").replace(/[^\p{L}\s]/gu, " ").trim().split(/\s+/).filter(Boolean);
     return ((w[0] || "?")[0] + (w.length > 1 ? w[w.length - 1][0] : "")).toUpperCase();
 }
+
+/**
+ * Read a numbered name list (from a Claude chat) into picks: { paperIndex: name }.
+ * Takes lines or commas like "1 Ava M.", "2. Ben Carter", "3) skip", "4 key", "5 same", "6 ?".
+ * Names are matched to the roster: exact, then first name + last initial, then a first name that
+ * only one student has. A name that fits no one comes back in `unknown` and that paper stays "".
+ * Returns { picks, unknown: [{ n, text }], count }.
+ */
+export function parseNameList(text, roster) {
+    const picks = {}, unknown = [];
+    const norm = (s) => String(s || "").toLowerCase().replace(/[^\p{L}\s]/gu, " ").replace(/\s+/g, " ").trim();
+    const parts = String(text || "").split(/\n|,(?=\s*\d+\s*[.):\-]?\s)/);
+    let count = 0;
+    for (const raw of parts) {
+        const m = /^\s*(?:paper\s*)?(\d{1,3})\s*[.):\-]?\s*(.*?)\s*$/i.exec(raw);
+        if (!m) continue;
+        const i = +m[1] - 1, said = m[2].replace(/\s*\((?:high|medium|low|sure|not sure|guess)[^)]*\)\s*$/i, "").trim(), w = norm(said);
+        if (i < 0) continue; count++;
+        if (!w || /^(\?+|unknown|unreadable|no name|blank|none)$/.test(w)) { picks[i] = ""; continue; }
+        if (/^(skip|not a paper|cover|blank page)$/.test(w)) { picks[i] = SKIP; continue; }
+        if (/^(key|answer key)$/.test(w)) { picks[i] = KEY; continue; }
+        if (/^(same|same as before|previous|\+ ?previous|extra page|back page)$/.test(w)) { picks[i] = SAME; continue; }
+        const words = w.split(" "), first = words[0], lastInit = words.length > 1 ? words[words.length - 1][0] : "";
+        let hit = roster.find((r) => norm(r) === w);
+        if (!hit && lastInit) { const c = roster.filter((r) => { const rw = norm(r).split(" "); return rw[0] === first && rw.length > 1 && rw[rw.length - 1][0] === lastInit; }); if (c.length === 1) hit = c[0]; }
+        if (!hit) { const c = roster.filter((r) => norm(r).split(" ")[0] === first); if (c.length === 1) hit = c[0]; }
+        if (hit) picks[i] = hit; else { picks[i] = ""; unknown.push({ n: i + 1, text: said }); }
+    }
+    return { picks, unknown, count };
+}

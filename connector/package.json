@@ -1,0 +1,19 @@
+{
+  "name": "anchor-connector",
+  "private": true,
+  "type": "module",
+  "description": "Anchor Board connector for Claude: lets Claude sort scanned student work in the teacher's own Firestore data.",
+  "scripts": {
+    "test": "node test/tools.test.mjs",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@cloudflare/workers-oauth-provider": "1.2.4",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "wrangler": "4.158.0"
+  }
+}

@@ -13,7 +13,8 @@
         "**/*.log",
         "**/*.patch",
         "tools/**",
-        "functions/**"
+        "functions/**",
+        "connector/**"
       ],
       "redirects": [
         {
@@ -46,7 +47,8 @@
         "**/*.log",
         "**/*.patch",
         "tools/**",
-        "functions/**"
+        "functions/**",
+        "connector/**"
       ],
       "redirects": [
         {

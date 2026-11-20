@@ -181,3 +181,12 @@
 .wk-mtools .btn{min-height:44px}
 .wk-read{font-size:.76rem;font-weight:600;color:#14653F}
 .wk-read.medium,.wk-read.low,.wk-read.off{color:#5A4200}
+.wk-paste{background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:14px;padding:4px 14px;margin:0 0 12px}
+.wk-paste summary{min-height:44px;display:flex;align-items:center;font-weight:700;color:#10358A;cursor:pointer}
+.wk-paste .wk-steps li{margin:4px 0}
+.wk-paste .wk-steps .btn{min-height:40px;margin-right:6px}
+.wk-paste textarea{width:100%;height:120px;min-height:0;box-sizing:border-box;font:inherit;font-size:.95rem;border:1.5px solid var(--c-line);border-radius:10px;padding:9px 11px;resize:vertical}
+.wk-mgo #mLater{margin-left:8px}
+.wk-claude{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:#FFF6DB;border:1.5px solid #E8C55A;color:#5A4200;border-radius:14px;padding:10px 14px;margin:0 0 14px;font-weight:600}
+.wk-claude .btn{min-height:40px}
+.wk-by{position:absolute;left:4px;top:4px;background:#FFF6DB;color:#5A4200;border:1px solid #E8C55A;border-radius:999px;font-style:normal;font-size:.68rem;font-weight:700;padding:1px 7px}

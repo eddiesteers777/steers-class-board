@@ -63,3 +63,11 @@ assert.deepEqual(W.parts([1, 2, 3, 4, 5], 2), [[1, 2], [3, 4], [5]]);
 assert.equal(W.weeksLeft(0, 100, 0), null); assert.equal(W.weeksLeft(200, 1000, 2), 8);
 assert.equal(W.initials("Chloe D."), "CD"); assert.equal(W.initials("Ava"), "A");
 console.log("work core: all checks passed");
+
+// pasting Claude's name list
+const r2 = ["Ava M.", "Ben C.", "Ben D.", "Chloe D.", "Diego F."];
+const got = W.parseNameList("1. Ava Martinez\n2) Ben Carter (high)\n3 skip\n4 ?\n5 key\n6 same\n7 Chloe\n8 Ben\n9 Zed Q.", r2);
+assert.deepEqual(got.picks, { 0: "Ava M.", 1: "Ben C.", 2: W.SKIP, 3: "", 4: W.KEY, 5: W.SAME, 6: "Chloe D.", 7: "", 8: "" });
+assert.deepEqual(got.unknown.map((u) => u.n), [8, 9]); assert.equal(got.count, 9);
+assert.deepEqual(W.parseNameList("1 Ava M., 2 Diego F., 3 Chloe D.", r2).picks, { 0: "Ava M.", 1: "Diego F.", 2: "Chloe D." });
+console.log("paste list: all checks passed");
