@@ -197,18 +197,24 @@ function drawEditor(api, host, after) {
         opts.forEach(([g, items]) => { const og = el("optgroup"); og.label = g; items.forEach(([v, t]) => { const o = el("option", null, t); o.value = v; og.appendChild(o); }); go.appendChild(og); });
         if (![...go.options].some((o) => o.value === st.go)) { const o = el("option", null, goLabel(st.go, api)); o.value = st.go; go.prepend(o); }
         go.value = st.go;
-        // Panels for this step (screen steps only). Tap a panel: on the board, then on the side, then off.
-        const pr = el("div", "bppanels"), STATES = { b: "On board", s: "On side" };
-        pr.appendChild(el("span", "bpplab", "Panels"));
-        api.panels().forEach(([k, label]) => {
-            const c = el("button", "bpchip"); c.type = "button"; c.dataset.k = k;
-            const paint = () => { const v = st.pn && st.pn[k]; c.className = "bpchip" + (v ? " " + v : ""); c.textContent = label + (v ? " \u00b7 " + STATES[v] : ""); c.setAttribute("aria-pressed", String(!!v)); };
-            c.onclick = () => { st.pn = st.pn || {}; const v = st.pn[k]; if (!v) st.pn[k] = "b"; else if (v === "b") st.pn[k] = "s"; else delete st.pn[k]; if (!Object.keys(st.pn).length) delete st.pn; paint(); hint(); };
-            paint(); pr.appendChild(c);
+        // Panels for this step (screen steps only): a dropdown like the others, each panel Off / On board / On side.
+        const pr = el("details", "bppanels"), STATES = [["", "Off"], ["b", "On board"], ["s", "On side"]], all = api.panels();
+        const ps = el("summary", "bppsum"); pr.appendChild(ps);
+        const paintSum = () => {
+            const picked = all.filter(([k]) => st.pn && st.pn[k]);
+            ps.textContent = picked.length ? "Panels: " + picked.map(([k, l]) => l + (st.pn[k] === "s" ? " (side)" : "")).join(", ") : "Panels: leave as they are";
+        };
+        const plist = el("div", "bpplist"); pr.appendChild(plist);
+        all.forEach(([k, label]) => {
+            const lab = el("label", "bpprow"); lab.appendChild(el("span", null, label));
+            const sel = el("select"); sel.setAttribute("aria-label", label);
+            STATES.forEach(([v, t]) => { const o = el("option", null, t); o.value = v; sel.appendChild(o); });
+            sel.value = (st.pn && st.pn[k]) || "";
+            sel.onchange = () => { st.pn = st.pn || {}; if (sel.value) st.pn[k] = sel.value; else delete st.pn[k]; if (!Object.keys(st.pn).length) delete st.pn; paintSum(); };
+            lab.appendChild(sel); plist.appendChild(lab);
         });
-        const ph = el("span", "bpphint"); pr.appendChild(ph);
-        const hint = () => { ph.textContent = st.pn ? "Only these panels show. Tap a panel again to move it to the side or turn it off." : "None picked: the panels on the board stay as they are."; };
-        hint();
+        plist.appendChild(el("p", "bpphint", "Only the panels set to On board or On side show at this step. Leave them all Off to keep the board's panels as they are."));
+        paintSum();
         pr.hidden = !st.go.startsWith("screen:");
         go.onchange = () => { st.go = go.value; pr.hidden = !st.go.startsWith("screen:"); if (pr.hidden) delete st.pn; };
         const pp = el("select"); pp.setAttribute("aria-label", "Which period"); pp.className = "bpper";
