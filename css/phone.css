@@ -49,3 +49,25 @@ body.phone:not(.board) .rail>details>summary{font-weight:700;padding:4px 0}
 body.phone:not(.board) .rail>.btn{display:block;width:100%;margin:0 0 10px;min-height:48px;border-radius:14px;font-size:.98rem;text-align:center}
 body.phone:not(.board) .nottoday{width:100%;padding:6px 6px 6px 12px;font-size:.9rem}
 body.phone:not(.board) .nottoday span{flex:1 1 100%}
+
+/* ---------- the top bar on a phone: two even rows ---------- */
+body.phone:not(.board) .cbar{z-index:9;display:grid;grid-template-columns:auto 1fr auto auto;grid-auto-flow:row dense;align-items:center;gap:10px 8px;padding:10px 12px 12px}
+body.phone .cbrand{grid-column:1;margin:0}
+body.phone .cbrand span b{font-size:1.05rem}
+body.phone .live{grid-column:3;grid-row:1}
+body.phone .live[data-state="ok"]{font-size:0;gap:0;padding:9px}
+body.phone .lsbtn{grid-column:2;grid-row:1;justify-self:end;padding:7px 12px;font-size:.86rem;white-space:nowrap}
+body.phone .cbar details.acct{grid-column:4;grid-row:1}
+body.phone .cbar .field{grid-row:2;min-width:0}
+body.phone .cbar .field:first-of-type{grid-column:1 / span 2}
+body.phone .cbar #weekField{grid-column:3 / span 2}
+body.phone .cbar .field:only-of-type,body.phone .cbar:has(#weekField[hidden]) .field:first-of-type{grid-column:1 / -1}
+body.phone .cbar .field select{height:44px;border-radius:12px;font-weight:600}
+body.phone .recpill{grid-column:1 / -1}
+.phmenu{font-size:.9rem}
+body.phone .acct>summary.phmenu{padding:9px 30px 9px 12px;border-radius:12px}
+body.phone .acct .pop{min-width:230px;padding:8px;border-radius:16px;z-index:50}
+body.phone .acct .pop .pophead{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute);padding:8px 12px 4px}
+body.phone .acct .pop .btn{background:transparent;color:var(--c-ink);border:0;box-shadow:none;font-weight:600;font-size:.98rem;padding:12px;text-align:left;width:100%}
+body.phone .acct .pop a,body.phone .acct .pop button{font-size:.98rem;padding:12px}
+body.phone .acct .pop #musicBtn[aria-pressed="true"]{color:#0F6B40}
