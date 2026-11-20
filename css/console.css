@@ -303,3 +303,15 @@ body.board .recpill{display:none}
 .musicbtn{white-space:nowrap}
 .musicbtn::before{content:"\266A";margin-right:6px}
 .musicbtn[aria-pressed="true"]{background:#E3F5EC;border-color:var(--green);color:#0F6B40}
+
+/* ---------- On/off sliders (Eddie, 2026-11-20) ----------
+   The rail's panel list and every On/Off setting (sound, music, bell timeline, period alerts) use one slider look. */
+.console .rail .toolchips button.psw::before{display:none}
+.console .rail .toolchips button.psw{min-height:38px}
+.console .rail .toolchips .pswl{flex:1;min-width:0}
+.console .rail .toolchips button.psw .dmin{margin-left:0}
+.swk,.sndtog i{flex:none;position:relative;display:inline-block;width:42px;height:24px;border-radius:999px;background:#C9D1DE;padding:0 !important;font-size:0 !important;color:transparent !important;transition:background .18s}
+.swk::after,.sndtog i::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(4,12,34,.3);transition:transform .18s}
+[aria-pressed="true"] > .swk,.sndtog[aria-pressed="true"] i{background:var(--green,#1F9D55) !important}
+[aria-pressed="true"] > .swk::after,.sndtog[aria-pressed="true"] i::after{transform:translateX(18px)}
+.sndtog span{text-align:left}
