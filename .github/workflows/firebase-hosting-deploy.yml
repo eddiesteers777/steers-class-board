@@ -1,9 +1,13 @@
 name: Deploy to Firebase Hosting
 
-# Every push to main deploys the site to both Firebase Hosting addresses
-# (focalboard.web.app and steers-class-board.web.app) — firebase.json lists
-# both sites, so one deploy updates them together. GitHub Pages is not
-# touched by this workflow.
+# Every push to main:
+#   1. deploys the site to anchorboard.web.app and steers-class-board.web.app
+#      (firebase.json keeps README, QUEUE, DESIGN, firestore.rules, tools/ and
+#      logs off the public site),
+#   2. publishes firestore.rules, so the rules on the live database always
+#      match main (no more publishing by hand in the console),
+#   3. points the old focalboard.web.app address at anchorboard.web.app.
+# GitHub Pages is not touched by this workflow.
 on:
   push:
     branches: [main]
@@ -17,6 +21,16 @@ jobs:
         with:
           node-version: "20"
       - run: npm install -g firebase-tools
-      - run: firebase deploy --only hosting --project steers-class-board
+      - name: Site
+        run: firebase deploy --only hosting:anchorboard,hosting:steers-class-board --project steers-class-board
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      - name: Firestore rules
+        run: firebase deploy --only firestore:rules --project steers-class-board
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      - name: Old focalboard address forwards to anchorboard
+        continue-on-error: true
+        run: firebase deploy --only hosting:focalboard --project steers-class-board
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
