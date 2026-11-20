@@ -801,6 +801,7 @@ div.gpset{cursor:default}
 
 /* Lockdown banner on the board (sits above the bonus banner when both are on) and the Remote's game events. */
 .vrbonus.vrlock{background:#10358A;color:#fff;box-shadow:0 0 1.2em rgba(16,53,138,.55);animation:none}
+.vrbonus.vrlock{white-space:nowrap}.vrbonus b{white-space:nowrap}
 .vrbonus:not([hidden])+.vrbonus.vrlock{bottom:2.4em}
 .vrctl.vrevents{grid-template-columns:repeat(2,1fr)}
 .vrf.event{color:var(--amber,#F2B33D)}

@@ -433,3 +433,4 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .wrgamehead .pnote{margin:2px 0 0}
 .wrgame .pkeys{max-width:320px}
 .wrgamewin{color:#0F6B40;margin:4px 0}
+.pqtools{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}.pqtop .pqtools .pbtn{margin-left:0}.pqtools:empty{display:none}

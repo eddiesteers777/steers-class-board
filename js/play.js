@@ -507,7 +507,7 @@ function toast(text, cls) {
     setTimeout(() => t.classList.add("out"), 3600); setTimeout(() => t.remove(), 4200);
 }
 // The bonus round and firewall end on their own: check every second so the badges go away.
-setInterval(() => { if (ST.me && !!ST.fogOn !== fogged(ST.me)) stats(); if (ST.view === "q" && ST.me && ST.me.status === "play") { const fx = $("pfx"); if (fx) fx.replaceWith(effects(ST.me) || Object.assign(el("div", "pfx"), { id: "pfx" })); } }, 1000);
+setInterval(() => { if (ST.me && !!ST.fogOn !== fogged(ST.me)) stats(); if (ST.view === "q" && ST.me && ST.me.status === "play") { const fx = $("pfx"); if (fx) fx.replaceWith(effects(ST.me) || Object.assign(el("div", "pfx"), { id: "pfx" })); refreshTools(); } }, 1000);
 
 /* ---------- the waiting room: a character and a starting power-up ---------- */
 /** Character and power-up picks go in their own small write, so a site whose rules are older still lets the game run. */
@@ -681,7 +681,7 @@ function draw(force) {
     sig = k; stats();
     if (m && m.hit && m.hit.blocked && m.hit.at > ST.seenBlock) { ST.seenBlock = m.hit.at; toast("Your Shield blocked " + m.hit.by + "'s crack! Your coins are safe.", "good"); sfx("box"); }
     if (sameQ) { const rw = ST.room && ST.room.rw; if (rw && cq.n === 100000 + (+rw.k || 0)) { pad.setBg(rw); teacherTag($("padhost"), !!(ST.room && ST.room.work !== false)); }
-        const n = $("pnote"); if (n) n.textContent = ST.err; const fx = $("pfx"); if (fx) fx.replaceWith(effects(m) || Object.assign(el("div", "pfx"), { id: "pfx" })); return; }
+        const n = $("pnote"); if (n) n.textContent = ST.err; const fx = $("pfx"); if (fx) fx.replaceWith(effects(m) || Object.assign(el("div", "pfx"), { id: "pfx" })); refreshTools(); return; }
     document.body.classList.remove("qmode");
     const main = $("main"), y = window.scrollY; main.textContent = "";
     const card = el("section", "pcard"); main.append(card);
@@ -789,6 +789,18 @@ function keypad(value, set) {
     const back = btn("pkey wide", "Delete", () => set(value.slice(0, -1))); back.disabled = !value; k.append(back);
     return k;
 }
+/** The Hack and Sabotage buttons over the question. Rebuilt in place (no pad reset) when hacks, a Lockdown, a Jam or the Sabotage switch change. */
+function qTools(m) {
+    const ex = m.exit, w = el("span", "pqtools"); w.id = "pqtools";
+    if (m.h > 0 && !ex && !m.redo) { const off = hackOff(m), hb = btn("pbtn hack", off || "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }); hb.disabled = !!off; w.append(hb); }
+    if (m.sab && !ex && !m.redo && m.status === "play") w.append(btn("pbtn hack sab", "Sabotage", () => { ST.view = "sab"; ST.err = ""; draw(true); }));
+    w.dataset.k = [m.h, hackOff(m), m.sab, !!ex, !!m.redo, m.status].join("|");
+    return w;
+}
+function refreshTools() {
+    const t = $("pqtools"), m = ST.me; if (!t || !m) return;
+    const n = qTools(m); if (n.dataset.k !== t.dataset.k) t.replaceWith(n);
+}
 /** Why hacking is off right now (a Lockdown or a Jam), or "". */
 function hackOff(m) {
     const now = Date.now(), lock = Math.max(+m.lock || 0, +(ST.room && ST.room.lock) || 0);
@@ -805,8 +817,7 @@ function questionView(card) {
     const qc = el("div", "pqcard"), left = el("div", "pqleft"), top = el("div", "pqtop");
     top.append(effects(m) || Object.assign(el("div", "pfx"), { id: "pfx" }));
     if (q.c) top.append(el("span", "pchip", q.c + (ex ? " · " + (ex.i + 1) + " of " + ex.of : "")));
-    if (m.h > 0 && !ex && !m.redo) { const off = hackOff(m), hb = btn("pbtn hack", off || "Hack a vault (" + m.h + ")", () => { ST.view = "targets"; draw(true); }); hb.disabled = !!off; top.append(hb); }
-    if (m.sab && !ex && !m.redo && m.status === "play") top.append(btn("pbtn hack sab", "Sabotage", () => { ST.view = "sab"; ST.err = ""; draw(true); }));
+    top.append(qTools(m));
     left.append(top, mathEl("p", "pq", q.t));
     // Step help after a miss: the steps so far sit under the question while they work.
     const sf = !ex && !m.redo && m.fb && m.fb.step && m.fb.q === q.n ? m.fb : null;
