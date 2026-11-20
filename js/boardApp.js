@@ -13,7 +13,7 @@ let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
 import { tickTools, defaultTools, mergeTools, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=59";
-import { buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal } from "./panels.js?v=7";
+import { buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal } from "./panels.js?v=8";
 import * as snd from "./sound.js?v=59";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
@@ -209,6 +209,31 @@ function seg(host, items, current, onPick) {
     });
 }
 let notTodayShut = (() => { try { return sessionStorage.getItem("anchorboard-nottoday") || ""; } catch (e) { return ""; } })();
+/* Phone: one-tap setups (layouts) and the panels used most, at the top of the controls.
+   Built once and updated in place (a control rebuilt during a tap never gets the tap). */
+const QUICK = ["ptimer", "pick", "traffic", "work", "clock", "target"];
+let quickSig = "";
+function quickBar() {
+    if (!isPhone() || mode === "sub") return;
+    const rail = document.querySelector(".rail"); if (!rail) return;
+    let q = $("quickBar");
+    const scenes = SCENES.filter((x) => !x.guestless || mode !== "sub").concat(S.tools.scenes || []), sg = scenes.map((x) => x.id + x.n).join("|");
+    if (!q || sg !== quickSig) {
+        quickSig = sg; if (q) q.remove();
+        q = el("div", "quickbar"); q.id = "quickBar";
+        q.appendChild(el("p", "railh", "Setups"));
+        const row = el("div", "qscenes"); row.setAttribute("role", "group"); row.setAttribute("aria-label", "One-tap setups");
+        scenes.forEach((raw) => { const b = el("button", "qscene"); b.type = "button"; b.dataset.id = raw.id; b.appendChild(el("b", null, raw.n)); if (raw.d) b.appendChild(el("span", null, raw.d)); b.onclick = () => { applyScene(S, raw, toolApi); }; b._raw = raw; row.appendChild(b); });
+        q.appendChild(row);
+        q.appendChild(el("p", "railh", "Quick panels"));
+        const tg = el("div", "qtools"); tg.setAttribute("role", "group"); tg.setAttribute("aria-label", "Panels on the board");
+        QUICK.forEach((k) => { const b = el("button", "qtool"); b.type = "button"; b.dataset.k = k; const ic = el("span", "qti"); ic.innerHTML = pIcon(k); b.appendChild(ic); b.appendChild(el("span", "qtl", labelOf(k))); b.onclick = () => { panelToggle(S.tools, k); push(); }; tg.appendChild(b); });
+        q.appendChild(tg);
+        rail.prepend(q);
+    }
+    q.querySelectorAll(".qscene").forEach((b) => { const on = sceneActive(S, b._raw); b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); });
+    q.querySelectorAll(".qtool").forEach((b) => { const k = b.dataset.k, ok = panelOk(k), on = !!S.tools.on[k]; b.hidden = !ok; b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); });
+}
 function buildControls() {
     const w = W();
     const ps = $("periodSel"); ps.textContent = "";
@@ -234,6 +259,7 @@ function buildControls() {
     WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + (isPhone() ? String(x.dates || "").replace(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*/g, "$1") : x.dates)); o.value = x.id; sel.appendChild(o); });
     sel.value = w.id; $("weekField").hidden = WEEKS.length < 2;
     const fn = $("flowNext"); if (fn) { fn.textContent = stepLabel(); fn.disabled = fn.textContent === "Next" && !nextScreen(1); $("flowBack").disabled = S.screen === screenOrder()[0]; }
+    quickBar();
     const bn = $("bnNext"), bb = $("bnBack");
     if (bn) { const nl = stepLabel(), bl = backLabel(); bn.title = nl; bn.setAttribute("aria-label", nl); bn.disabled = $("flowNext").disabled; bb.title = bl; bb.setAttribute("aria-label", bl); bb.disabled = $("flowBack").disabled; }
     const files = $("files"), l = L();
@@ -415,6 +441,28 @@ function phoneHeader() {
     const top = [el("p", "pophead", "This phone"), $("boardBtn"), $("musicBtn"), el("p", "pophead", "Pages")].filter(Boolean);
     pop.prepend(...top);
     if ($("boardBtn")) $("boardBtn").textContent = "Full-screen board";
+    {   // Reload: an app opened from the Home Screen has no browser reload button
+        const r = el("button", null, "Reload"); r.id = "phReload"; r.type = "button"; r.onclick = () => location.reload(); ($("musicBtn") || $("boardBtn")).after(r);
+    }
+    const app = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+    document.body.classList.toggle("app", app);
+    if (!app) {   // a short how-to for putting the Remote on the Home Screen, so it opens full screen like an app
+        const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+        const h = el("button", "phhome", "Add to Home Screen"); h.type = "button";
+        h.onclick = () => {
+            let d = $("homeHow"); if (d) { d.hidden = false; return; }
+            d = el("div", "homehow"); d.id = "homeHow"; d.setAttribute("role", "dialog"); d.setAttribute("aria-label", "Add the Remote to your Home Screen");
+            const box = el("div", "hhbox");
+            box.appendChild(el("b", null, "Put the Remote on your Home Screen"));
+            const ol = el("ol");
+            (ios ? ["Tap the Share button in Safari (the square with the arrow). On newer iPhones it is behind the \u22ef button next to the address.", "Scroll down and tap \u201cAdd to Home Screen\u201d.", "Keep the name \u201cRemote\u201d and tap Add.", "Open it from the new icon. It runs full screen, with no Safari bars. Sign in once inside it."]
+                : ["Open the browser menu (\u22ee).", "Tap \u201cAdd to Home screen\u201d or \u201cInstall app\u201d.", "Open it from the new icon. Sign in once inside it."]).forEach((t) => ol.appendChild(el("li", null, t)));
+            box.appendChild(ol);
+            const ok = el("button", "btn", "Got it"); ok.type = "button"; ok.onclick = () => { d.hidden = true; }; box.appendChild(ok);
+            d.appendChild(box); d.onclick = (e) => { if (e.target === d) d.hidden = true; }; document.body.appendChild(d);
+        };
+        ($("phReload") || pop.lastChild).after(h);
+    }
     pop.querySelectorAll("button,a").forEach((b) => b.addEventListener("click", () => { acct.open = false; }));
     const tm = $("toolsMenu"); if (tm) tm.open = false;   // the rail starts folded on a phone: open only what is needed
 }
@@ -1309,6 +1357,25 @@ export async function startApp(opts) {
     phoneHeader();
     if (!guest) planFold = mountPlanFold(planApi, $("soundMenu") || $("toolsMenu"));
     $("flowNext").onclick = () => step(1); $("flowBack").onclick = () => step(-1);
+    {   // Phone: swipe the board picture left for Next, right for Back (the picture shows the result at once)
+        const w = $("wrap"); let sx = 0, sy = 0, st = 0, on = false;
+        w.addEventListener("pointerdown", (e) => { on = phoneMirror() && e.pointerType !== "mouse" && !e.target.closest("button,input,select,a,textarea"); sx = e.clientX; sy = e.clientY; st = Date.now(); }, true);
+        w.addEventListener("pointercancel", () => { on = false; }, true);
+        w.addEventListener("pointerup", (e) => {
+            if (!on) return; on = false;
+            const dx = e.clientX - sx, dy = e.clientY - sy;
+            if (Math.abs(dx) < 45 || Math.abs(dy) > Math.abs(dx) * 0.7 || Date.now() - st > 800) return;
+            const n = dx < 0 ? 1 : -1; step(n);
+            try { if (navigator.vibrate) navigator.vibrate(12); } catch (x) { /* no buzz on this phone */ }
+            let f = $("swipeFlash"); if (!f) { f = el("div", "swipeflash"); f.id = "swipeFlash"; f.setAttribute("aria-hidden", "true"); w.appendChild(f); }
+            f.textContent = n > 0 ? "\u203a" : "\u2039"; f.className = "swipeflash " + (n > 0 ? "nx" : "bk"); void f.offsetWidth; f.classList.add("go");
+            try { localStorage.setItem("anchorboard-swiped", "1"); } catch (x) { /* fine */ }
+            const tip = $("swipeTip"); if (tip) tip.remove();
+        }, true);
+        let seen = false; try { seen = !!localStorage.getItem("anchorboard-swiped"); } catch (x) { /* show it */ }
+        const fb = document.querySelector(".flowbar");
+        if (!seen && fb) { const t = el("p", "swipetip", "Tip: swipe the board picture left for Next, right for Back."); t.id = "swipeTip"; fb.appendChild(t); }
+    }
     {   // on a phone: switch between a true small copy of the board and the bigger phone-shaped view
         const fb = document.querySelector(".flowbar"), days = $("days");
         if (fb && days) {
