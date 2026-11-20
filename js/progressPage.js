@@ -301,6 +301,8 @@ export async function mountProgress() {
         dlg.appendChild(el("p", "sub", "Games played: " + r.games.played + (r.games.wins ? " · wins: " + r.games.wins : "") + " · last solved " + fmtDay(r.lastSolve) + " · last seen " + fmtDay(r.lastSeen) + "."));
 
         const b = r.behavior;
+        const papers = el("p", "sub"), a = el("a", null, "Open " + r.s.split(" ")[0] + "'s folder of scanned papers"); a.href = "work.html?kid=" + encodeURIComponent(r.s) + "&per=" + encodeURIComponent(S.period);
+        papers.append("Papers: ", a, " (filed by nine weeks and week)."); dlg.appendChild(papers);
         dlg.appendChild(el("h3", null, "Class tally (behaviour, kept apart)"));
         dlg.appendChild(el("p", "sub", b.days ? "Last 45 days, " + b.days + (b.days === 1 ? " day" : " days") + " marked: " + b.p + " participation · " + b.t + " on task · " + b.r + " redirects. This never changes a score, group or target." : "Nothing on the class tally in the last 45 days."));
     }

@@ -11,7 +11,7 @@ const STUDENTS = [
     ["grades.html", "Grades", "The gradebook"],
     ["assign.html", "Assignments", "Practice, quizzes and tests"],
     ["data.html", "Class Data", "Scores and imports"],
-    ["work.html", "Student Work", "Scanned papers"],
+    ["work.html", "Student Work", "Scanned papers, filed by week and student"],
 ];
 /* Plan: the weekly planning pages, in the order a week moves through them. All but the Library
    are Calera-only (js/caleraOnly.js), so a starter account sees no Plan row at all. */

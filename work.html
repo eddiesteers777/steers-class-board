@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="css/board.css?v=57">
     <link rel="stylesheet" href="css/console.css?v=58">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/work.css?v=57">
+    <link rel="stylesheet" href="css/work.css?v=58">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page">
@@ -22,33 +22,92 @@
     </header>
     <main>
         <section class="wk-hero">
-            <p class="wk-kicker">Grading</p>
+            <p class="wk-kicker">Records and grading</p>
             <h1>Student Work</h1>
-            <p>Snap or upload students' papers, sort them by student, then download one PDF to hand to Claude for grading. Scans save only to your private account. Students and guests cannot open them.</p>
+            <p>Drop the copier's scan of a class stack. It is cut into one paper per student, matched to your roster, and filed by nine weeks and week. Every student gets a folder. Scans save only to your private account. Students and guests cannot open them.</p>
             <span class="wk-space" id="space"></span>
         </section>
 
         <div class="wk-bar">
             <div class="tabs" id="periodTabs" role="group" aria-label="Period"></div>
+            <div class="tabs" id="viewTabs" role="group" aria-label="View">
+                <button type="button" data-v="week">By week</button>
+                <button type="button" data-v="kid">By student</button>
+                <button type="button" data-v="in" class="wk-in">Bring in a stack</button>
+            </div>
         </div>
 
-        <!-- list of assignments -->
-        <section id="listView">
-            <div class="wk-list" id="sets"></div>
-            <details class="wk-new" id="newBox">
-                <summary class="btn go">New assignment</summary>
-                <div class="meta">
-                    <div><label for="nTitle">Assignment</label><input type="text" id="nTitle" placeholder="Example: Triangle Angle Sum exit ticket"></div>
-                    <div><label for="nDate">Date</label><input type="date" id="nDate"></div>
-                    <div><label for="nPeriod">Period</label><select id="nPeriod"></select></div>
+        <!-- by week -->
+        <section id="weekView" hidden>
+            <div class="wk-split">
+                <nav class="wk-tree" id="tree" aria-label="Nine weeks and weeks"></nav>
+                <div>
+                    <div class="wk-whead"><h2 id="wTitle"></h2><button class="btn ghost" id="wPdf" type="button">Week as one PDF</button></div>
+                    <p class="wk-meta" id="wMeta"></p>
+                    <div class="wk-list" id="sets"></div>
+                    <details class="wk-new" id="newBox">
+                        <summary class="btn ghost">New assignment from photos</summary>
+                        <div class="meta">
+                            <div><label for="nTitle">Assignment</label><input type="text" id="nTitle" placeholder="Example: Triangle Angle Sum exit ticket"></div>
+                            <div><label for="nDate">Date</label><input type="date" id="nDate"></div>
+                            <div><label for="nPeriod">Period</label><select id="nPeriod"></select></div>
+                        </div>
+                        <div class="rowx"><button class="btn" id="nMake" type="button">Make it</button><span class="count2" id="nNote"></span></div>
+                    </details>
+                    <details class="wk-clear" id="clearBox">
+                        <summary>Running out of space? Save a nine weeks as PDFs, then clear it</summary>
+                        <div id="clearBody"></div>
+                    </details>
                 </div>
-                <div class="rowx"><button class="btn" id="nMake" type="button">Make it</button><span class="count2" id="nNote"></span></div>
-            </details>
+            </div>
+        </section>
+
+        <!-- by student -->
+        <section id="kidView" hidden>
+            <div class="wk-kids" id="kids" role="group" aria-label="Students"></div>
+            <div id="kidBody"></div>
+        </section>
+
+        <!-- bring in a stack -->
+        <section id="inView" hidden>
+            <label class="wk-drop" id="drop">
+                <b id="dropTitle">Drop the copier PDF here</b>
+                <span id="dropSub">or tap to choose it. Phone photos of papers work too (pick them all at once, in stack order).</span>
+                <input type="file" id="stackFile" accept="application/pdf,image/*" multiple hidden>
+            </label>
+            <div class="meta">
+                <div><label for="iPeriod">Period</label><select id="iPeriod"></select></div>
+                <div><label for="iDate">Date on the papers</label><input type="date" id="iDate"></div>
+                <div><label for="iPer">Pages per student</label><select id="iPer"><option value="1">1</option><option value="2">2 (front and back)</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></div>
+            </div>
+            <div class="meta">
+                <div class="wide"><label for="iTitle">Assignment</label><input type="text" id="iTitle" list="titles" autocomplete="off" placeholder="Example: Triangle Angle Sum exit ticket"></div>
+                <div><label for="iStd">Standard (optional)</label><input type="text" id="iStd" list="stds" autocomplete="off" placeholder="8.G.5"></div>
+            </div>
+            <div class="meta">
+                <div><label for="iOrder">Stack order</label><select id="iOrder"><option value="roster">Roster order (fastest)</option><option value="mixed">Mixed, I'll pick each name</option></select></div>
+                <div><label for="iKind">What it is</label><select id="iKind"><option value="graded">To grade</option><option value="kept">Keep on file, not graded</option></select></div>
+                <div class="wk-check"><label><input type="checkbox" id="iKey"> The first paper is the answer key</label></div>
+            </div>
+            <p class="wk-file-to" id="fileTo"></p>
+            <div class="rowx"><button class="btn go" id="iGo" type="button" disabled>Split and match names</button><span class="count2" id="iNote" role="status"></span></div>
+            <p class="wk-help">Copier tip: use scan to email, both sides on, one class period per scan. Keep the name box in the same spot on every worksheet, and the stack in roster order if you can.</p>
+        </section>
+
+        <!-- check names -->
+        <section id="matchView" hidden>
+            <button class="wk-back" id="mBack" type="button">← Back</button>
+            <h2 class="wk-title" id="mTitle"></h2>
+            <p class="wk-meta" id="mMeta"></p>
+            <div class="wk-mflags" id="mFlags"></div>
+            <label class="wk-cropat">Name box is at the top <select id="mCrop"><option value="left">left</option><option value="right">right</option><option value="whole">(show the whole top)</option></select></label>
+            <div class="wk-match" id="papers"></div>
+            <div class="rowx wk-mgo"><button class="btn go" id="mFile" type="button">File the papers</button><span class="count2" id="mNote" role="status"></span></div>
         </section>
 
         <!-- one assignment -->
         <section id="setView" hidden>
-            <button class="wk-back" id="back" type="button">← All assignments</button>
+            <button class="wk-back" id="back" type="button">← Back</button>
             <h2 class="wk-title" id="sTitle"></h2>
             <p class="wk-meta" id="sMeta"></p>
 
@@ -60,6 +119,11 @@
             </div>
             <p class="wk-help">Photos you add here go to "Not sorted yet". To add pages straight to one student, use the camera button on that student's row.</p>
 
+            <div class="meta">
+                <div><label for="sKind">What it is</label><select id="sKind"><option value="graded">To grade</option><option value="kept">Keep on file, not graded</option></select></div>
+                <div><label for="sStd">Standard</label><input type="text" id="sStd" autocomplete="off"></div>
+                <div><label for="sDate">Date</label><input type="date" id="sDate"></div>
+            </div>
             <label class="wk-notes"><span>Notes for grading (answer key, points per question, what to look for). They go on the first page of the PDF.</span>
                 <textarea id="sNotes" rows="3" placeholder="Example: 10 questions, 1 point each. Show work required on 6 to 10. Key is the first scanned page."></textarea></label>
 
@@ -97,278 +161,8 @@
         </div>
     </dialog>
     <datalist id="names"></datalist>
-
-    <script type="module">
-        import { mountStudentsNav } from "./js/studentsNav.js?v=2";
-        mountStudentsNav("work.html");
-        import { shrink, rotate, buildPdf, mb } from "./js/studentWork.js?v=57";
-        const demo = new URLSearchParams(location.search).has("demo");   // ?demo: this device only, nothing saved
-        const store = await import(demo ? "./js/localStore.js?v=57" : "./js/boardStore.js?v=58");
-        const PERIODS = [["1st", "8th Grade"], ["2nd", "8th Grade"], ["4th", "8th Grade"], ["5th", "7th Grade"], ["6th", "8th Accelerated"]];
-        const KEY = "Answer key", FREE = 1024 * 1048576;
-        const $ = (id) => document.getElementById(id);
-        function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
-        const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
-        const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-        const fmtDate = (d) => d ? new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : "";
-        const fail = (e) => status("Could not save (" + ((e && e.code) || (e && e.message) || "connection") + ")", "bad");
-
-        let index = [], rosters = {}, period = "1st", cur = null, imgs = new Map(), unsub = new Map(), busy = false;
-
-        // ---------- list ----------
-        /** A small progress ring (the site's logo idea): share of the class with work scanned. */
-        function ring(frac, label) {
-            const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg"), r = 20, len = 2 * Math.PI * r;
-            svg.setAttribute("viewBox", "0 0 52 52"); svg.setAttribute("class", "wk-ring"); svg.setAttribute("aria-hidden", "true");
-            const c = (cls, dash) => { const e = document.createElementNS(NS, "circle"); e.setAttribute("cx", 26); e.setAttribute("cy", 26); e.setAttribute("r", r); e.setAttribute("class", cls); if (dash != null) e.setAttribute("stroke-dasharray", dash + " " + len); svg.appendChild(e); };
-            c("bg"); if (frac > 0) c(frac >= 1 ? "fg done" : "fg", Math.max(0.02, Math.min(1, frac)) * len);
-            const t = document.createElementNS(NS, "text"); t.setAttribute("x", 26); t.setAttribute("y", 30); t.setAttribute("text-anchor", "middle"); t.textContent = label; svg.appendChild(t);
-            return svg;
-        }
-        function drawList() {
-            [...$("periodTabs").children].forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.k === period)));
-            const used = index.reduce((s, m) => s + (m.bytes || 0), 0);
-            $("space").textContent = "Scans use " + mb(used) + " of about 1,000 MB free space";
-            $("space").dataset.state = used > FREE * 0.8 ? "bad" : "";
-            const box = $("sets"); box.replaceChildren();
-            const list = index.filter((m) => m.period === period).sort((a, b) => String(b.date).localeCompare(String(a.date)));
-            if (!list.length) box.appendChild(el("p", "wk-empty", "No assignments for " + period + " period yet. Make one below, then snap the papers."));
-            list.forEach((m) => {
-                const a = el("button", "wk-card"); a.type = "button";
-                const total = (rosters[m.period] || []).filter(Boolean).length, got = m.students || 0;
-                a.appendChild(ring(total ? got / total : (got ? 1 : 0), total ? got + "/" + total : String(got)));
-                a.appendChild(el("b", null, m.title));
-                const bits = [fmtDate(m.date), (m.students || 0) + (m.students === 1 ? " student" : " students"), (m.pages || 0) + (m.pages === 1 ? " page" : " pages")];
-                a.appendChild(el("span", null, bits.join(" · ")));
-                if (m.unsorted) a.appendChild(el("i", "wk-flag", m.unsorted + " not sorted"));
-                a.onclick = () => openSet(m.id);
-                box.appendChild(a);
-            });
-            $("nPeriod").value = period;
-        }
-
-        $("nMake").onclick = async () => {
-            const title = $("nTitle").value.trim(), per = $("nPeriod").value, date = $("nDate").value;
-            if (!title) { $("nNote").textContent = "Name the assignment first."; return; }
-            const id = newId(), set = { id, title, period: per, date, notes: "", pages: [], at: Date.now() };
-            status("Saving…");
-            try {
-                await store.save("work/s_" + id, set);
-                index = [...index, { id, title, period: per, date, pages: 0, bytes: 0, students: 0, unsorted: 0 }];
-                await store.save("work/index", { sets: index, at: Date.now() });
-                status(demo ? "This device only" : "Saved", "ok"); $("nTitle").value = ""; $("nNote").textContent = ""; $("newBox").open = false;
-                period = per; openSet(id, set);
-            } catch (e) { fail(e); }
-        };
-
-        // ---------- one assignment ----------
-        function roster() { return (rosters[cur.period] || []).filter(Boolean); }
-        function owners() {
-            const r = roster(), extra = [...new Set(cur.pages.map((p) => p.s).filter((s) => s && s !== KEY && !r.includes(s)))].sort();
-            return [KEY, ...r, ...extra];
-        }
-        async function openSet(id, given) {
-            closeSet();
-            history.replaceState(null, "", "#" + id);
-            let first = true;
-            const show = (data) => { cur = data; $("listView").hidden = true; $("setView").hidden = false; drawSet(); if (first) { first = false; scrollTo({ top: 0 }); } };
-            if (given) show(given);
-            unsub.set("set", store.watch("work/s_" + id, (snap) => {
-                if (snap.pending || !snap.exists || !snap.data || snap.data.removed) return;
-                if (busy && cur && cur.id === id) return;   // our own saves are already drawn
-                show(snap.data);
-            }, () => status("Could not load this assignment", "bad")));
-        }
-        function closeSet() {
-            unsub.forEach((u) => u && u()); unsub.clear(); imgs.clear(); cur = null;
-            $("setView").hidden = true; $("listView").hidden = false; history.replaceState(null, "", location.pathname + location.search);
-        }
-        $("back").onclick = () => { closeSet(); drawList(); };
-
-        function want(pid) {
-            if (unsub.has(pid)) return;
-            unsub.set(pid, store.watch("work/p_" + pid, (snap) => {
-                if (snap.pending || !snap.exists || !snap.data || !snap.data.img) return;
-                imgs.set(pid, snap.data); document.querySelectorAll('img[data-p="' + pid + '"]').forEach((i) => { i.src = snap.data.img; });
-            }, () => {}));
-        }
-        function thumb(pg, n, of) {
-            const b = el("button", "wk-thumb"); b.type = "button"; b.title = "Open page";
-            const i = el("img"); i.alt = (pg.s || "Not sorted") + ", page " + n; i.dataset.p = pg.p; i.loading = "lazy";
-            if (imgs.has(pg.p)) i.src = imgs.get(pg.p).img; else want(pg.p);
-            b.appendChild(i); if (of > 1) b.appendChild(el("small", null, n + "/" + of));
-            b.onclick = () => view(pg);
-            return b;
-        }
-        function addInput(label, who, camera) {
-            const lab = el("label", "wk-add" + (camera ? " cam" : "")); lab.title = label;
-            lab.appendChild(el("span", null, label));
-            const inp = el("input"); inp.type = "file"; inp.accept = "image/*"; inp.multiple = true; inp.hidden = true; if (camera) inp.setAttribute("capture", "environment");
-            inp.onchange = () => { const f = [...inp.files]; inp.value = ""; addPages(f, who); };
-            lab.appendChild(inp); return lab;
-        }
-        function drawSet() {
-            $("sTitle").textContent = cur.title;
-            const people = new Set(cur.pages.filter((p) => p.s && p.s !== KEY).map((p) => p.s));
-            const bytes = cur.pages.reduce((s, p) => s + (p.b || 0), 0);
-            $("sMeta").textContent = [cur.period + " period", fmtDate(cur.date), cur.pages.length + (cur.pages.length === 1 ? " page" : " pages"), people.size + " of " + (roster().length || "?") + " students", mb(bytes)].join(" · ");
-            if (document.activeElement !== $("sNotes")) $("sNotes").value = cur.notes || "";
-            $("names").replaceChildren(...owners().map((n) => { const o = el("option"); o.value = n; return o; }));
-            $("rosterHelp").hidden = roster().length > 0;
-
-            const loose = cur.pages.filter((p) => !p.s);
-            $("unsortedBox").hidden = !loose.length; const ub = $("unsorted"); ub.replaceChildren();
-            loose.forEach((pg) => {
-                const card = el("div", "wk-sort"); card.appendChild(thumb(pg, 1, 1));
-                const inp = el("input"); inp.type = "text"; inp.setAttribute("list", "names"); inp.placeholder = "Whose is this?"; inp.setAttribute("aria-label", "Whose page is this?"); inp.autocomplete = "off";
-                inp.onchange = () => { const v = inp.value.trim(); if (v) move(pg.p, v); };
-                card.appendChild(inp); ub.appendChild(card);
-            });
-
-            const box = $("students"); box.replaceChildren();
-            owners().forEach((name) => {
-                const mine = cur.pages.filter((p) => p.s === name);
-                const row = el("div", "wk-stu" + (mine.length ? "" : " none") + (name === KEY ? " key" : ""));
-                const head = el("div", "wk-sname"); head.appendChild(el("b", null, name)); head.appendChild(el("small", null, mine.length ? mine.length + (mine.length === 1 ? " page" : " pages") : (name === KEY ? "Optional" : "No work yet")));
-                row.appendChild(head);
-                const strip = el("div", "wk-strip"); mine.forEach((pg, k) => strip.appendChild(thumb(pg, k + 1, mine.length)));
-                strip.appendChild(addInput("Snap", name, true)); strip.appendChild(addInput("File", name, false));
-                row.appendChild(strip); box.appendChild(row);
-            });
-        }
-
-        async function saveSet() {
-            const people = new Set(cur.pages.filter((p) => p.s && p.s !== KEY).map((p) => p.s));
-            const sum = { pages: cur.pages.length, bytes: cur.pages.reduce((s, p) => s + (p.b || 0), 0), students: people.size, unsorted: cur.pages.filter((p) => !p.s).length };
-            cur.at = Date.now(); await store.save("work/s_" + cur.id, cur);
-            index = index.map((m) => m.id === cur.id ? { ...m, ...sum, title: cur.title, date: cur.date } : m);
-            await store.save("work/index", { sets: index, at: Date.now() });
-        }
-
-        async function addPages(files, who) {
-            files = files.filter((f) => /^image\//.test(f.type) || /\.(jpe?g|png|webp|heic|heif)$/i.test(f.name));
-            if (!files.length) return;
-            busy = true; let done = 0, bad = 0; const note = (t) => { $("sNote").textContent = t; };
-            for (const f of files) {
-                note("Saving page " + (done + bad + 1) + " of " + files.length + "…"); status("Saving…");
-                try {
-                    const s = await shrink(f), pid = newId();
-                    await store.save("work/p_" + pid, { img: s.url, w: s.w, h: s.h, set: cur.id, at: Date.now() });
-                    imgs.set(pid, { img: s.url, w: s.w, h: s.h });
-                    cur.pages.push({ p: pid, s: who || "", b: s.bytes, w: s.w, h: s.h, at: Date.now() });
-                    await saveSet(); done++; drawSet();
-                } catch (e) { bad++; console.warn(e); }
-            }
-            busy = false;
-            note(done + (done === 1 ? " page saved" : " pages saved") + (bad ? ". " + bad + " could not be read (iPhone HEIC photos: take them with the Snap button instead)." : "."));
-            status(bad ? "Some pages failed" : (demo ? "This device only" : "Saved"), bad ? "bad" : "ok");
-        }
-        $("snap").onchange = (e) => { const f = [...e.target.files]; e.target.value = ""; addPages(f, ""); };
-        $("pick").onchange = (e) => { const f = [...e.target.files]; e.target.value = ""; addPages(f, ""); };
-
-        async function move(pid, who) {
-            const pg = cur.pages.find((p) => p.p === pid); if (!pg) return;
-            const match = owners().find((n) => n.toLowerCase() === who.toLowerCase()); pg.s = match || who;
-            busy = true; status("Saving…");
-            try { await saveSet(); status(demo ? "This device only" : "Saved", "ok"); } catch (e) { fail(e); }
-            busy = false; drawSet();
-        }
-
-        let notesT = 0;
-        $("sNotes").oninput = () => { clearTimeout(notesT); notesT = setTimeout(async () => { if (!cur) return; cur.notes = $("sNotes").value; busy = true; try { await saveSet(); status(demo ? "This device only" : "Saved", "ok"); } catch (e) { fail(e); } busy = false; }, 700); };
-
-        // ---------- viewer ----------
-        let open = null;
-        function view(pg) {
-            open = pg; const d = imgs.get(pg.p); $("vImg").src = d ? d.img : ""; $("vTitle").textContent = pg.s || "Not sorted yet";
-            $("vWho").value = pg.s || ""; $("vDel").dataset.sure = ""; $("vDel").textContent = "Delete page"; $("viewer").showModal();
-        }
-        $("vClose").onclick = () => $("viewer").close();
-        $("viewer").addEventListener("click", (e) => { if (e.target === $("viewer")) $("viewer").close(); });
-        async function turn(dir) {
-            const d = imgs.get(open.p); if (!d) return;
-            status("Saving…");
-            try {
-                const r = await rotate(d.img, dir); await store.save("work/p_" + open.p, { img: r.url, w: r.w, h: r.h, set: cur.id, at: Date.now() });
-                imgs.set(open.p, { img: r.url, w: r.w, h: r.h }); Object.assign(open, { w: r.w, h: r.h, b: r.bytes }); $("vImg").src = r.url;
-                document.querySelectorAll('img[data-p="' + open.p + '"]').forEach((i) => { i.src = r.url; });
-                busy = true; await saveSet(); busy = false; status(demo ? "This device only" : "Saved", "ok");
-            } catch (e) { busy = false; fail(e); }
-        }
-        $("vLeft").onclick = () => turn(-1);
-        $("vRight").onclick = () => turn(1);
-        $("vWho").onchange = () => { const v = $("vWho").value.trim(); $("vTitle").textContent = v || "Not sorted yet"; move(open.p, v); };
-        $("vDel").onclick = async () => {
-            if ($("vDel").dataset.sure !== "1") { $("vDel").dataset.sure = "1"; $("vDel").textContent = "Tap again to delete"; return; }
-            const pid = open.p; $("viewer").close(); status("Deleting…");
-            try {
-                await store.save("work/p_" + pid, { removed: true, at: Date.now() });
-                cur.pages = cur.pages.filter((p) => p.p !== pid); imgs.delete(pid);
-                busy = true; await saveSet(); busy = false; drawSet(); status("Deleted", "ok");
-            } catch (e) { busy = false; fail(e); }
-        };
-
-        // ---------- PDF ----------
-        async function loadAll() {
-            const need = cur.pages.filter((p) => !imgs.has(p.p)); need.forEach((p) => want(p.p));
-            for (let t = 0; t < 120 && cur.pages.some((p) => !imgs.has(p.p)); t++) await new Promise((r) => setTimeout(r, 250));
-            return cur.pages.every((p) => imgs.has(p.p));
-        }
-        $("pdf").onclick = async () => {
-            if (!cur.pages.length) { $("sNote").textContent = "Add some pages first."; return; }
-            $("sNote").textContent = "Making the PDF…";
-            if (!(await loadAll())) { $("sNote").textContent = "Some pages have not loaded yet. Try again in a moment."; return; }
-            const order = owners(), sorted = [];
-            order.forEach((name) => { const mine = cur.pages.filter((p) => p.s === name); mine.forEach((p, k) => sorted.push({ ...p, label: (name === KEY ? "ANSWER KEY" : name) + "  -  page " + (k + 1) + " of " + mine.length })); });
-            cur.pages.filter((p) => !p.s).forEach((p, k) => sorted.push({ ...p, label: "NOT SORTED  -  loose page " + (k + 1) }));
-            const pages = sorted.map((p) => { const d = imgs.get(p.p); return { url: d.img, w: d.w, h: d.h, label: p.label + "   |   " + cur.title }; });
-            const r = roster(), withWork = order.filter((n) => n !== KEY && cur.pages.some((p) => p.s === n)), missing = r.filter((n) => !withWork.includes(n));
-            const lines = [
-                cur.period + " period (" + (PERIODS.find(([k]) => k === cur.period) || [, ""])[1] + ")  -  " + fmtDate(cur.date),
-                "Grading notes: " + (cur.notes && cur.notes.trim() ? cur.notes.trim() : "none given"),
-                "Answer key: " + (cur.pages.some((p) => p.s === KEY) ? "scanned, comes first" : "not scanned"),
-                "Students with work (" + withWork.length + "): " + withWork.map((n) => n + " (" + cur.pages.filter((p) => p.s === n).length + "p)").join(", "),
-                missing.length ? "No work scanned (" + missing.length + "): " + missing.join(", ") : "",
-                cur.pages.some((p) => !p.s) ? "Some pages are not sorted to a student yet; they come last." : "",
-                "Please return scores as a table: one row per student, columns Student, Score, Out of, and a short note.",
-            ].filter(Boolean);
-            const blob = buildPdf(pages, { title: cur.title, lines });
-            const a = el("a"); a.href = URL.createObjectURL(blob);
-            a.download = (cur.period + " " + cur.title + " " + (cur.date || "")).replace(/[^\w\- ]+/g, "").replace(/\s+/g, " ").trim() + ".pdf";
-            document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 30000);
-            $("sNote").textContent = "PDF downloaded: " + pages.length + " pages, " + mb(blob.size) + ".";
-        };
-
-        $("delSet").onclick = async () => {
-            const b = $("delSet"); if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "Tap again to delete " + cur.pages.length + " pages for good"; return; }
-            status("Deleting…"); const id = cur.id, pages = cur.pages.map((p) => p.p);
-            try {
-                for (const pid of pages) await store.save("work/p_" + pid, { removed: true, at: Date.now() });
-                await store.save("work/s_" + id, { removed: true, at: Date.now() });
-                index = index.filter((m) => m.id !== id); await store.save("work/index", { sets: index, at: Date.now() });
-                b.dataset.sure = ""; b.textContent = "Delete this assignment and its scans"; closeSet(); drawList(); status("Deleted", "ok");
-            } catch (e) { fail(e); }
-        };
-
-        PERIODS.forEach(([k, label]) => {
-            const b = el("button", null, k + " period"); b.type = "button"; b.dataset.k = k; b.title = label; b.onclick = () => { period = k; if (cur) closeSet(); drawList(); }; $("periodTabs").appendChild(b);
-            const o = el("option", null, k + " period, " + label); o.value = k; $("nPeriod").appendChild(o);
-        });
-        $("nDate").value = new Date().toLocaleDateString("en-CA");
-
-        const user = await store.ready();
-        if (!user) location.replace("login.html");
-        else {
-            $("who").textContent = demo ? "This device only, nothing is saved" : "Signed in as " + user.name;
-            store.watch("rosters/all", (snap) => { if (snap.pending) return; rosters = (snap.exists && snap.data && snap.data.periods) || {}; if (cur) drawSet(); else drawList(); }, () => {});
-            let first = true;
-            store.watch("work/index", (snap) => {
-                if (snap.pending || busy) return;
-                index = (snap.exists && snap.data && snap.data.sets) || [];
-                if (first) { first = false; status(demo ? "This device only" : "Live", "ok"); const h = location.hash.slice(1), m = index.find((x) => x.id === h); if (m) { period = m.period; openSet(m.id); } }
-                if (!cur) drawList();
-            }, (e) => status("Could not load student work (" + ((e && e.code) || "error") + ")", "bad"));
-        }
-    </script>
+    <datalist id="titles"></datalist>
+    <datalist id="stds"></datalist>
+    <script type="module" src="js/workPage.js?v=1"></script>
 </body>
 </html>
