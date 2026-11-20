@@ -1,0 +1,21 @@
+// Local end-to-end test only (test/e2e.mjs): Google, Firebase sign-in and Firestore are a stand-in on localhost.
+{
+  "name": "anchor-connector-local",
+  "main": "../src/index.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "local" }],
+  "vars": {
+    "FIREBASE_API_KEY": "test-key",
+    "FIREBASE_PROJECT": "demo-anchor",
+    "SITE_URL": "https://anchorboard.web.app",
+    "GOOGLE_CLIENT_ID": "test-client.apps.googleusercontent.com",
+    "GOOGLE_CLIENT_SECRET": "test-secret",
+    "ALLOWED_EMAIL": "teacher@example.com",
+    "GOOGLE_AUTH_URL": "http://127.0.0.1:8790/google/auth",
+    "GOOGLE_TOKEN_URL": "http://127.0.0.1:8790/google/token",
+    "IDENTITY_URL": "http://127.0.0.1:8790/identity",
+    "SECURETOKEN_URL": "http://127.0.0.1:8790/securetoken",
+    "FIRESTORE_URL": "http://127.0.0.1:8790/firestore"
+  }
+}

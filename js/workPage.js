@@ -524,30 +524,36 @@ function peek(a, b, i) {
     open = null; $("vImg").src = stack.pages[a].url; $("vTitle").textContent = "Paper " + (i + 1) + (b - a > 1 ? " (first page)" : "");
     $("viewer").dataset.mode = "peek"; $("viewer").showModal();
 }
-$("mFile").onclick = async () => {
+/** Save the stack. later: every page saved with no name (and its name strip), for Claude to sort through the connector. */
+async function fileStack(later) {
     const r = roster(match.per), names = W.matchNames(match.papers.length, r, match.picks, match.order, match.keyFirst);
-    const pages = W.pagesFor(match.papers, names);
-    const btn = $("mFile"); btn.disabled = true; busy = true; status("Saving…");
+    const pages = later ? W.pagesFor(match.papers, match.papers.map((_, i) => ({ name: i === 0 && match.keyFirst ? KEY : "" }))) : W.pagesFor(match.papers, names);
+    const btn = $(later ? "mLater" : "mFile"); btn.disabled = true; busy = true; status("Saving…");
     // same assignment, same day, same period: add to it instead of making a second one
     const same = index.find((m) => m.period === match.per && m.date === match.date && m.title.toLowerCase() === match.title.toLowerCase() && !m.cleared);
     try {
         const set = same ? (await fullSets([same.id]))[0] : { id: newId(), title: match.title, period: match.per, date: match.date, kind: match.kind, std: match.std, notes: "", pages: [] };
         set.period = match.per; if (!set.pages) set.pages = []; if (match.std && !set.std) set.std = match.std;
+        if (match.papers.length) set.per = match.papers[0][1] - match.papers[0][0];
         for (let k = 0; k < pages.length; k++) {
             $("mNote").textContent = "Saving page " + (k + 1) + " of " + pages.length + "…";
-            const pg = stack.pages[pages[k].page], pid = newId();
-            await store.save("work/p_" + pid, { img: pg.url, w: pg.w, h: pg.h, set: set.id, at: Date.now() });
+            const pg = stack.pages[pages[k].page], pid = newId(), doc = { img: pg.url, w: pg.w, h: pg.h, set: set.id, at: Date.now() };
+            if (later) try { doc.strip = await strip(pg.url, $("mCrop").value); } catch (e) { /* the whole page still works */ }
+            await store.save("work/p_" + pid, doc);
             imgs.set(pid, { img: pg.url, w: pg.w, h: pg.h });
-            set.pages.push({ p: pid, s: pages[k].s, b: pg.bytes, w: pg.w, h: pg.h, at: Date.now() });
+            set.pages.push({ p: pid, s: pages[k].s, b: pg.bytes + (doc.strip ? doc.strip.length : 0), w: pg.w, h: pg.h, at: Date.now() });
             if (k % 10 === 9) await saveSetDoc(set);   // a dropped connection keeps what was saved
         }
         await saveSetDoc(set);
         saved(); stack = null; $("dropTitle").textContent = "Drop the copier PDF here"; $("dropSub").textContent = "or tap to choose it. Phone photos of papers work too (pick them all at once, in stack order)."; $("iTitle").value = ""; $("iStd").value = "";
         busy = false; period = match.per; weekKey = fileOf(match.date).key; match = null; lastView = "week";
         openSet(set.id, set);
+        if (later) $("sNote").textContent = "Saved with no names. In Claude, say: sort my " + set.period + " period stack \u201c" + set.title + "\u201d.";
     } catch (e) { fail(e); $("mNote").textContent = "Stopped. What was saved is kept; try again to add the rest."; }
     busy = false; btn.disabled = false;
-};
+}
+$("mFile").onclick = () => fileStack(false);
+$("mLater").onclick = () => fileStack(true);
 
 /* ---------- one assignment ---------- */
 function owners() {
@@ -583,6 +589,7 @@ function thumb(pg, n, of) {
     const i = el("img"); i.alt = (pg.s || "Not sorted") + ", page " + n; i.dataset.p = pg.p; i.loading = "lazy";
     if (imgs.has(pg.p)) i.src = imgs.get(pg.p).img; else want(pg.p);
     b.appendChild(i); if (of > 1) b.appendChild(el("small", null, n + "/" + of));
+    if (pg.by === "claude" && pg.s) { b.appendChild(el("i", "wk-by", "Claude")); b.title = "Named by Claude: open to check"; }
     b.onclick = () => viewPage(pg);
     return b;
 }
@@ -601,6 +608,10 @@ function drawSet() {
     $("sKind").value = cur.kind || "graded"; if (document.activeElement !== $("sStd")) $("sStd").value = cur.std || ""; if (document.activeElement !== $("sDate")) $("sDate").value = cur.date || "";
     $("names").replaceChildren(...owners().map((n) => { const o = el("option"); o.value = n; return o; }));
     $("rosterHelp").hidden = roster(cur.period).length > 0;
+
+    const byClaude = live.filter((p) => p.by === "claude" && p.s);
+    $("claudeBox").hidden = !byClaude.length;
+    $("claudeNote").textContent = "Claude named " + byClaude.length + (byClaude.length === 1 ? " page" : " pages") + " (marked \u201cClaude\u201d below). Open any that look wrong to fix the name.";
 
     const loose = live.filter((p) => !p.s);
     $("unsortedBox").hidden = !loose.length; const ub = $("unsorted"); ub.replaceChildren();
@@ -623,6 +634,10 @@ function drawSet() {
     });
 }
 async function saveSet() { await saveSetDoc(cur); }
+$("claudeOk").onclick = async () => {
+    if (!cur) return; cur.pages.forEach((p) => { delete p.by; });
+    busy = true; status("Saving…"); try { await saveSet(); saved(); } catch (e) { fail(e); } busy = false; drawSet();
+};
 
 async function addPages(files, who) {
     files = files.filter((f) => /^image\//.test(f.type) || /\.(jpe?g|png|webp|heic|heif)$/i.test(f.name));
@@ -647,7 +662,7 @@ $("pick").onchange = (e) => { const f = [...e.target.files]; e.target.value = ""
 
 async function move(pid, who) {
     const pg = cur.pages.find((p) => p.p === pid); if (!pg) return;
-    const m = owners().find((n) => n.toLowerCase() === who.toLowerCase()); pg.s = m || who;
+    const m = owners().find((n) => n.toLowerCase() === who.toLowerCase()); pg.s = m || who; delete pg.by;   // the teacher's pick: no longer Claude's
     busy = true; status("Saving…");
     try { await saveSet(); saved(); } catch (e) { fail(e); }
     busy = false; drawSet();

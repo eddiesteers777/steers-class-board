@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="css/board.css?v=57">
     <link rel="stylesheet" href="css/console.css?v=58">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/work.css?v=60">
+    <link rel="stylesheet" href="css/work.css?v=61">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page">
@@ -116,7 +116,7 @@
                 <div class="rowx"><button class="btn" id="pFill" type="button">Fill in</button><span class="count2" id="pNote" role="status"></span></div>
             </details>
             <div class="wk-match" id="papers"></div>
-            <div class="rowx wk-mgo"><button class="btn go" id="mFile" type="button">File the papers</button><span class="count2" id="mNote" role="status"></span></div>
+            <div class="rowx wk-mgo"><button class="btn go" id="mFile" type="button">File the papers</button><button class="btn ghost" id="mLater" type="button" title="Save every page with no name. Then ask Claude (Anchor Board connector) to sort the stack.">Save unsorted for Claude</button><span class="count2" id="mNote" role="status"></span></div>
         </section>
 
         <!-- one assignment -->
@@ -124,6 +124,7 @@
             <button class="wk-back" id="back" type="button">← Back</button>
             <h2 class="wk-title" id="sTitle"></h2>
             <p class="wk-meta" id="sMeta"></p>
+            <div class="wk-claude" id="claudeBox" hidden><span id="claudeNote"></span><button class="btn" id="claudeOk" type="button">Names look right</button></div>
 
             <div class="wk-actions">
                 <label class="btn go wk-file">Take photos<input type="file" id="snap" accept="image/*" capture="environment" multiple hidden></label>
@@ -177,6 +178,6 @@
     <datalist id="names"></datalist>
     <datalist id="titles"></datalist>
     <datalist id="stds"></datalist>
-    <script type="module" src="js/workPage.js?v=4"></script>
+    <script type="module" src="js/workPage.js?v=5"></script>
 </body>
 </html>
