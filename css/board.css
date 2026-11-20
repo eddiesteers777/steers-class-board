@@ -271,6 +271,8 @@ body.syncing .rail,body.syncing .flowbar,body.syncing .cbar .field{opacity:.45;p
 .nottoday{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#FFF1CC;color:#3A2A00;border:1.5px solid #F2B33D;border-radius:12px;padding:6px 8px 6px 14px;font-weight:600;font-size:.92rem}
 .nottoday[hidden]{display:none}
 .nottoday button{background:#F2B33D;color:#3A2A00;border:0;border-radius:9px;padding:8px 14px;font-weight:700;min-height:40px;cursor:pointer}
+.nottoday button.ntx{margin-left:auto;background:transparent;color:#3A2A00;font-size:1.4rem;line-height:1;min-width:40px;padding:6px 10px}
+.nottoday button.ntx:hover{background:rgba(242,179,61,.35)}
 
 /* ---- tool shelf: tools sit beside the lesson, not on top of it ---- */
 .toolshelf{flex:none;align-self:center;margin-left:.6em;display:flex;flex-direction:column;gap:.6em;overflow-y:auto;overflow-x:hidden;padding:.1em;color:var(--on)}

@@ -208,6 +208,7 @@ function seg(host, items, current, onPick) {
         b.onclick = () => onPick(id); host.appendChild(b);
     });
 }
+let notTodayShut = (() => { try { return sessionStorage.getItem("anchorboard-nottoday") || ""; } catch (e) { return ""; } })();
 function buildControls() {
     const w = W();
     const ps = $("periodSel"); ps.textContent = "";
@@ -217,11 +218,15 @@ function buildControls() {
     {   // Mark the real day, and say so plainly whenever the board is showing a different one.
         const rd = realDay(), thisWeek = S.week === defaultWeek(), btn = $("days").children[rd];
         if (isSchoolDay() && thisWeek && btn) btn.classList.add("istoday");
-        let nt = $("notToday"); if (!nt) { nt = el("div", "nottoday"); nt.id = "notToday"; nt.setAttribute("role", "status"); $("days").after(nt); }
-        nt.hidden = !isSchoolDay() || (thisWeek && S.day === rd); nt.textContent = "";
+        let nt = $("notToday"); if (!nt) { nt = el("div", "nottoday"); nt.id = "notToday"; nt.setAttribute("role", "status"); }
+        { const at = $("days").closest(".flowtop") || $("days"); if (nt.previousElementSibling !== at) at.after(nt); }   // its own line, under the days (and the phone's day row)
+        const nk = [S.week, S.day, rd, localIso()].join("|");   // closed with the X: stays closed until the week or day shown changes
+        nt.hidden = !isSchoolDay() || (thisWeek && S.day === rd) || notTodayShut === nk; nt.textContent = "";
         if (!nt.hidden) {
             nt.appendChild(el("span", null, "Showing " + (thisWeek ? "" : W().label + ", ") + FULL[S.day] + ". Today is " + FULL[rd] + "."));
             const b = el("button", null, "Go to today"); b.type = "button"; b.onclick = () => { S.week = defaultWeek(); S.day = rd; resetPos(); push(); }; nt.appendChild(b);
+            const x = el("button", "ntx", "\u00d7"); x.type = "button"; x.setAttribute("aria-label", "Keep showing " + FULL[S.day] + " and close this note");
+            x.onclick = () => { notTodayShut = nk; try { sessionStorage.setItem("anchorboard-nottoday", nk); } catch (e) { /* this visit only */ } nt.hidden = true; fit(); }; nt.appendChild(x);
         }
     }
     seg($("screens"), SCREENS.filter((x) => mode !== "sub" || (x[0] !== "game" && x[0] !== "live" && x[0] !== "seats" && x[0] !== "steps")), S.screen, (id) => { S.screen = id; S.show = false; push(); });
