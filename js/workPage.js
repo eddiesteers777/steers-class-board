@@ -397,8 +397,8 @@ let match = null;   // { per, papers: [[a,b]], picks: {}, order, keyFirst, title
 $("iGo").onclick = () => {
     if (!stack) return;
     match = { per: $("iPeriod").value, papers: W.cut(stack.pages.length, +$("iPer").value), picks: {}, order: $("iOrder").value, keyFirst: $("iKey").checked,
-        title: $("iTitle").value.trim(), std: $("iStd").value.trim(), date: $("iDate").value, kind: $("iKind").value };
-    show("match"); drawMatch();
+        title: $("iTitle").value.trim(), std: $("iStd").value.trim(), date: $("iDate").value, kind: $("iKind").value, read: null, byClaude: null };
+    $("mReadNote").textContent = ""; show("match"); drawMatch();
 };
 $("mBack").onclick = () => show("in");
 $("mCrop").value = remember("crop") || "left";
@@ -417,7 +417,8 @@ function drawMatch() {
     const box = $("papers"); box.replaceChildren();
     const opts = [["", "Who is this?"], ...r.map((n) => [n, n]), [KEY, "Answer key"], [W.SAME, "Same student as before (extra page)"], [W.SKIP, "Not a paper (skip it)"]];
     match.papers.forEach(([a, b], i) => {
-        const n = names[i], card = el("div", "wk-mp" + (n.name ? (n.guess ? " guess" : " ok") : " ask") + (dbl.includes(n.name) ? " ask" : ""));
+        const n = names[i], rdi = match.read && match.read[i], unsure = rdi && match.byClaude && match.byClaude[i] && n.name && rdi.sure !== "high";
+        const card = el("div", "wk-mp" + (n.name ? (n.guess ? " guess" : unsure ? " ask" : " ok") : " ask") + (dbl.includes(n.name) ? " ask" : ""));
         const crop = el("button", "wk-crop " + $("mCrop").value); crop.type = "button"; crop.title = "See the whole page";
         const img = el("img"); img.alt = "Top of paper " + (i + 1); img.src = stack.pages[a].url; crop.appendChild(img);
         crop.onclick = () => peek(a, b, i);
@@ -426,14 +427,70 @@ function drawMatch() {
         const list = opts.some(([v]) => v === n.name) ? opts : [...opts, [n.name, n.name]];
         list.forEach(([v, t]) => { const o = el("option", null, t); o.value = v; sel.appendChild(o); });
         sel.value = n.name;
-        sel.onchange = () => { match.picks[i] = sel.value; drawMatch(); };
+        sel.onchange = () => { match.picks[i] = sel.value; if (match.byClaude) delete match.byClaude[i]; if (match.read) delete match.read[i]; drawMatch(); };
         card.appendChild(sel);
+        const rd = match.read && match.read[i];
+        if (rd) card.appendChild(el("span", "wk-read " + rd.sure + (rd.match && rd.match === n.name ? "" : " off"), rd.written ? "Claude read \u201c" + rd.written + "\u201d" + (rd.match ? (rd.sure === "high" ? "" : ", not sure") : ", no roster match") : "Claude could not read a name"));
         card.appendChild(el("small", null, "Paper " + (i + 1) + " · " + (b - a === 1 ? "page " + (a + 1) : "pages " + (a + 1) + "-" + b) + (n.guess ? " · guess" : "")));
         box.appendChild(card);
     });
     const left = names.filter((n) => !n.name).length;
     $("mFile").textContent = left ? "File the papers (" + left + " go to Not sorted)" : "File " + names.filter((n) => n.name && n.name !== W.SKIP && n.name !== W.SAME && n.name !== KEY).length + " papers";
 }
+/* ---------- Claude reads the name boxes (functions/index.js readNames) ---------- */
+/** Cut the name strip from the top of a page: left or right 60% (or the whole width), top 14%. Small JPEG. */
+async function strip(url, where) {
+    const img = await new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = url; });
+    const sw = where === "whole" ? img.width : Math.round(img.width * 0.6), sx = where === "right" ? img.width - sw : 0, sh = Math.round(img.height * (where === "whole" ? 0.12 : 0.14));
+    const k = Math.min(1, 760 / sw), c = document.createElement("canvas"); c.width = Math.round(sw * k); c.height = Math.round(sh * k);
+    const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, sx, 0, sw, sh, 0, 0, c.width, c.height);
+    return c.toDataURL("image/jpeg", 0.7);
+}
+let callRead = null;
+async function readCall(data) {
+    if (demo) {   // ?demo: no server; pretend Claude read the roster-order names so the page can be tried
+        await new Promise((r) => setTimeout(r, 600));
+        return { papers: data.strips.map((_, i) => i < data.roster.length ? { written: data.roster[i], match: data.roster[i], sure: i % 4 === 3 ? "medium" : "high" } : { written: "", match: "", sure: "low" }) };
+    }
+    if (!callRead) {
+        const { app } = await import("./firebase.js");
+        const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js");
+        callRead = httpsCallable(getFunctions(app, "us-central1"), "readNames", { timeout: 130000 });
+    }
+    return (await callRead(data)).data;
+}
+$("mRead").onclick = async () => {
+    const r = roster(match.per); if (!r.length) { $("mReadNote").textContent = "Add this period's roster first."; return; }
+    const btn = $("mRead"), note = (t) => { $("mReadNote").textContent = t; };
+    btn.disabled = true; note("Cutting the name strips…");
+    try {
+        const strips = []; for (const [a] of match.papers) strips.push(await strip(stack.pages[a].url, $("mCrop").value));
+        const read = {};
+        for (let k = 0; k < strips.length; k += 40) {
+            note("Claude is reading names" + (strips.length > 40 ? " (" + (k + 1) + "-" + Math.min(strips.length, k + 40) + " of " + strips.length + ")" : "") + "…");
+            const res = await readCall({ roster: r, strips: strips.slice(k, k + 40) });
+            (res.papers || []).forEach((p, j) => { read[k + j] = p; });
+        }
+        match.read = read; let sure = 0, ask = 0;
+        Object.entries(read).forEach(([i, p]) => {
+            if (match.keyFirst && +i === 0) return;               // the answer key stays the key
+            if (Object.prototype.hasOwnProperty.call(match.picks, i) && match.picks[i] && !match.byClaude?.[i]) return;   // the teacher's own pick wins
+            match.byClaude = match.byClaude || {}; match.byClaude[i] = 1;
+            if (p.match && p.sure !== "low") { match.picks[i] = p.match; if (p.sure === "high") sure++; else ask++; }
+            else { match.picks[i] = ""; ask++; }
+        });
+        note("Claude read " + sure + " for sure" + (ask ? ". Check the " + ask + " marked in yellow." : ". Glance over them, then file."));
+        drawMatch();
+    } catch (e) {
+        console.warn(e);
+        const code = String((e && e.code) || "").replace("functions/", "");
+        const notSetUp = code === "not-found" || (code === "internal" && /^internal$/i.test((e && e.message) || ""));   // no function deployed answers like this
+        note(notSetUp ? "Claude name reading is not set up yet. Pick names by hand for now."
+            : code === "failed-precondition" ? "Claude name reading needs its API key. Pick names by hand for now."
+            : "Claude could not read the names (" + ((e && e.message) || code || "error") + "). Pick them by hand.");
+    }
+    btn.disabled = false;
+};
 function peek(a, b, i) {
     open = null; $("vImg").src = stack.pages[a].url; $("vTitle").textContent = "Paper " + (i + 1) + (b - a > 1 ? " (first page)" : "");
     $("viewer").dataset.mode = "peek"; $("viewer").showModal();

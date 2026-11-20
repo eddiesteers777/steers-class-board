@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="css/board.css?v=57">
     <link rel="stylesheet" href="css/console.css?v=58">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/work.css?v=58">
+    <link rel="stylesheet" href="css/work.css?v=59">
     <meta name="theme-color" content="#081B45">
 </head>
 <body class="console page">
@@ -100,7 +100,11 @@
             <h2 class="wk-title" id="mTitle"></h2>
             <p class="wk-meta" id="mMeta"></p>
             <div class="wk-mflags" id="mFlags"></div>
-            <label class="wk-cropat">Name box is at the top <select id="mCrop"><option value="left">left</option><option value="right">right</option><option value="whole">(show the whole top)</option></select></label>
+            <div class="wk-mtools">
+                <label class="wk-cropat">Name box is at the top <select id="mCrop"><option value="left">left</option><option value="right">right</option><option value="whole">(show the whole top)</option></select></label>
+                <button class="btn" id="mRead" type="button">Read names with Claude</button>
+                <span class="count2" id="mReadNote" role="status"></span>
+            </div>
             <div class="wk-match" id="papers"></div>
             <div class="rowx wk-mgo"><button class="btn go" id="mFile" type="button">File the papers</button><span class="count2" id="mNote" role="status"></span></div>
         </section>
@@ -163,6 +167,6 @@
     <datalist id="names"></datalist>
     <datalist id="titles"></datalist>
     <datalist id="stds"></datalist>
-    <script type="module" src="js/workPage.js?v=1"></script>
+    <script type="module" src="js/workPage.js?v=2"></script>
 </body>
 </html>

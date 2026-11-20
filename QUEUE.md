@@ -9,7 +9,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 | 2 | Homework printing in the Week Builder | One real week file that has a homework section. |
 | 18 | Enter the other bell schedules | The editor holds named schedules now (see Done). Eddie enters the real times: 3rd-period lunch A/B/C, gym dismissal, dismissal, 1-hour and 2-hour activity. Never guess times. |
 | 3 | Fit the Class Data import to each app | One real export each from Wayground, Blooket, DeltaMath and Magma Math (names can be blanked out). |
-| 19 | Student Work: Claude reads the name box | Copier PDFs are read now (Nov 20). Next: a Cloud Function sends only the name strip + roster to Claude and returns a match. Needs Eddie to turn on the Blaze plan, add a Claude API key as a secret, and district OK for names. |
+| 19 | Student Work: turn on Claude reading names | Built (functions/index.js readNames + "Read names with Claude" on the check-names step). Eddie: Blaze plan, ANTHROPIC_API_KEY in Secret Manager, then run Actions > Deploy functions. District OK for sending names to Anthropic still not confirmed. |
 | 5 | Colours and fonts | See the open question in DESIGN.md. |
 
 ## Next up

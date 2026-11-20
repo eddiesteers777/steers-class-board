@@ -176,3 +176,8 @@
   .wk-bar .tabs{width:100%}
 }
 @media (prefers-reduced-motion:reduce){.wk-q summary::before,.wk-drop{transition:none}}
+.wk-mtools{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 12px}
+.wk-mtools .wk-cropat{margin:0}
+.wk-mtools .btn{min-height:44px}
+.wk-read{font-size:.76rem;font-weight:600;color:#14653F}
+.wk-read.medium,.wk-read.low,.wk-read.off{color:#5A4200}
