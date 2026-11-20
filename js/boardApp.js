@@ -229,10 +229,75 @@ function quickBar() {
         const tg = el("div", "qtools"); tg.setAttribute("role", "group"); tg.setAttribute("aria-label", "Panels on the board");
         QUICK.forEach((k) => { const b = el("button", "qtool"); b.type = "button"; b.dataset.k = k; const ic = el("span", "qti"); ic.innerHTML = pIcon(k); b.appendChild(ic); b.appendChild(el("span", "qtl", labelOf(k))); b.onclick = () => { panelToggle(S.tools, k); push(); }; tg.appendChild(b); });
         q.appendChild(tg);
+        q.appendChild(liveControls());
         rail.prepend(q);
     }
     q.querySelectorAll(".qscene").forEach((b) => { const on = sceneActive(S, b._raw); b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); });
     q.querySelectorAll(".qtool").forEach((b) => { const k = b.dataset.k, ok = panelOk(k), on = !!S.tools.on[k]; b.hidden = !ok; b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); });
+    liveSync();
+}
+/* Big phone controls for the panels that are on the board: timer, traffic light, voice level, name picker,
+   and a message box. The small board copy is too small to tap these. Each card shows only while its panel is on
+   (the message box always shows: typing puts the Message panel on the board). */
+const pressed = (b, on) => { b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); };
+function liveControls() {
+    const box = el("div", "qlive"); box.id = "qLive";
+    const card = (k, title) => { const c = el("section", "qcard"); c.dataset.k = k; const h = el("div", "qch"); const ic = el("span", "qti"); ic.innerHTML = pIcon(k); h.append(ic, el("b", null, title)); if (k !== "text") { const off = el("button", "qoff", "Take off board"); off.type = "button"; off.onclick = () => { panelToggle(S.tools, k); push(); }; h.appendChild(off); } c.appendChild(h); box.appendChild(c); return c; };
+    {   // timer
+        const c = card("ptimer", "Timer"), big = el("p", "qtime"); big.id = "qTime"; c.appendChild(big);
+        const row = el("div", "qrow"), go = el("button", "qgo"), rs = el("button", null, "Reset"); go.id = "qTimerGo"; go.type = rs.type = "button";
+        go.onclick = () => timerGo("free"); rs.onclick = () => toolApi.timerReset(); row.append(go, rs); c.appendChild(row);
+        const pr = el("div", "qrow qmins"); [1, 2, 3, 5, 10, 15].forEach((m) => { const b = el("button", null, m + " min"); b.type = "button"; b.dataset.sec = m * 60; b.onclick = () => { toolApi.timerSet(m * 60); push(); }; pr.appendChild(b); }); c.appendChild(pr);
+    }
+    {   // traffic light
+        const c = card("traffic", "Traffic light"), row = el("div", "qrow qlights");
+        [["red", "Stop"], ["yellow", "Slow down"], ["green", "Go"]].forEach(([col, n]) => { const b = el("button", "ql " + col, n); b.type = "button"; b.dataset.v = col; b.onclick = () => { S.tools.traffic = col; push(); }; row.appendChild(b); });
+        c.appendChild(row);
+    }
+    {   // voice level
+        const c = card("work", "Voice level"), row = el("div", "qrow qwork");
+        [["silent", "Silent"], ["whisper", "Whisper"], ["partner", "Partner talk"], ["group", "Group work"]].forEach(([v, n]) => { const b = el("button", null, n); b.type = "button"; b.dataset.v = v; b.onclick = () => { S.tools.work = v; push(); }; row.appendChild(b); });
+        c.appendChild(row);
+    }
+    {   // name picker (names show here on the Remote, as on the board's own panel)
+        const c = card("pick", "Name picker"), who = el("p", "qwho"); who.id = "qWho"; c.appendChild(who);
+        const row = el("div", "qrow"), go = el("button", "qgo", "Pick a name"), rs = el("button", null, "Start over"); go.type = rs.type = "button";
+        go.onclick = () => {
+            const T = S.tools, st = T.pick, period = st.period || S.period, names = ROSTERS[period] || [];
+            const today = localIso(), out = T.absent && T.absent.day === today ? (T.absent.periods[period] || []) : [];
+            const here = names.map((_, i) => i).filter((i) => !out.includes(i)); if (!here.length) return;
+            let pool = here.filter((i) => !st.used.includes(i)); if (!pool.length) { st.used = []; pool = here.slice(); }
+            st.cur = pool[Math.floor(Math.random() * pool.length)]; st.used.push(st.cur); st.period = period; push();
+        };
+        rs.onclick = () => { S.tools.pick.cur = -1; S.tools.pick.used = []; push(); };
+        row.append(go, rs); c.appendChild(row);
+    }
+    {   // message
+        const c = card("text", "Message to the room"), ta = el("textarea", "qmsg"); ta.id = "qMsg"; ta.maxLength = 600; ta.rows = 2; ta.placeholder = "Type here. It shows on the board."; ta.setAttribute("aria-label", "Message for the board");
+        ta.oninput = () => { S.tools.text = ta.value; if (ta.value.trim() && !S.tools.on.text) { panelOn(S.tools, "text"); push(); } else quiet(); };
+        const row = el("div", "qrow"), sh = el("button", null), cl = el("button", null, "Clear"); sh.id = "qMsgShow"; sh.type = cl.type = "button";
+        sh.onclick = () => { panelToggle(S.tools, "text"); push(); };
+        cl.onclick = () => { S.tools.text = ""; ta.value = ""; push(); };
+        row.append(sh, cl); c.append(ta, row);
+    }
+    return box;
+}
+function liveSync() {
+    const box = $("qLive"); if (!box) return; const T = S.tools;
+    box.querySelectorAll(".qcard").forEach((c) => { const k = c.dataset.k; c.hidden = k === "text" ? !panelOk("text") : !(T.on[k] && panelOk(k)); });
+    box.querySelectorAll(".qlights button").forEach((b) => pressed(b, T.traffic === b.dataset.v));
+    box.querySelectorAll(".qwork button").forEach((b) => pressed(b, T.work === b.dataset.v));
+    box.querySelectorAll(".qmins button").forEach((b) => pressed(b, (S.timers.free.dur || 300) === +b.dataset.sec));
+    const st = T.pick, names = ROSTERS[st.period || S.period] || [], w = $("qWho");
+    if (w) w.textContent = !names.length ? "No names saved for this period yet." : st.cur >= 0 && names[st.cur] ? names[st.cur] : "Ready";
+    const ta = $("qMsg"); if (ta && document.activeElement !== ta && ta.value !== (T.text || "")) ta.value = T.text || "";
+    const sh = $("qMsgShow"); if (sh) { sh.textContent = T.on.text ? "Take off board" : "Show on board"; pressed(sh, !!T.on.text); }
+    quickTick();
+}
+function quickTick() {
+    const t = $("qTime"); if (!t || t.closest("[hidden]")) return;
+    const v = freeView(); t.textContent = v.txt; t.classList.toggle("hot", v.hot); t.classList.toggle("done", v.done);
+    const g = $("qTimerGo"); if (g) { const l = v.running ? "Pause" : (v.elapsed && !v.done ? "Resume" : "Start"); if (g.textContent !== l) g.textContent = l; }
 }
 function buildControls() {
     const w = W();
@@ -1397,7 +1462,7 @@ export async function startApp(opts) {
     keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
     document.addEventListener("keydown", (e) => { if (e.target && (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.target.isContentEditable)) return; if (e.altKey || e.ctrlKey || e.metaKey) return; if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); step(1); } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); step(-1); } else if (e.key === "m" || e.key === "M") { S.sound.music = !S.sound.music; push(); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
     let seatWas = "";
-    setInterval(() => { if (!synced) return; if (S.screen === "seats") { const h = seatHiNow(); if (h !== seatWas) { seatWas = h; render(); } } tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); tickLive(); tickNotes(); soundTick(); if (!guest) { planTick(planApi); if (planFold) planFold.tick(); } }, 250);
+    setInterval(() => { if (!synced) return; if (S.screen === "seats") { const h = seatHiNow(); if (h !== seatWas) { seatWas = h; render(); } } tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); tickLive(); tickNotes(); soundTick(); quickTick(); if (!guest) { planTick(planApi); if (planFold) planFold.tick(); } }, 250);
     { const p = el("div", "connpill"); p.id = "connPill"; p.setAttribute("role", "status"); p.hidden = true; document.body.appendChild(p); }
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && synced) { tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); soundTick(); } });   // a tab back in view shows the right time at once
     document.body.classList.add("syncing");
