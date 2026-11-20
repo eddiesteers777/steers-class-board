@@ -810,3 +810,75 @@ div.gpset{cursor:default}
 .vrevents .vrtilebtn.on{background:#10358A;color:#fff}
 .vrevents .vrtilebtn.armed{background:#C62828;color:#fff}
 .gpok.vrshout{background:#FFF4D9;color:#8A5F00;border-color:#F2B33D}
+
+/* ---------- Deep Dive board: timing tower + ocean + side (js/liveRoom.js seaEl/towerEl) ---------- */
+.vrplay.vrdive{grid-template-columns:minmax(0,1.08fr) minmax(0,1.5fr) minmax(0,.72fr)}
+.vrtower{padding:.7em .8em;gap:.3em}
+.vrtower .vrrow{position:relative;grid-template-columns:1.5em minmax(0,1fr) auto;gap:.45em;padding:.22em .55em;will-change:transform}
+.vrtower .vrname{font-size:.98em;display:flex;align-items:center;gap:.25em;min-width:0}
+.vrtower .vrcoins{font-size:.98em;min-width:2em;text-align:right}
+.vrtower .vrrank{font-size:1.05em}
+.vrhot{font-style:normal;font-size:.85em;animation:vrhot 1.1s ease-in-out infinite alternate}
+@keyframes vrhot{from{transform:scale(.9) rotate(-6deg)}to{transform:scale(1.12) rotate(6deg)}}
+.vrup{position:absolute;right:-.3em;top:-.45em;font-size:.62em;font-weight:800;color:#0E2B12;background:#7FE0A0;border-radius:2em;padding:.05em .45em;font-variant-numeric:tabular-nums;box-shadow:0 .1em .3em rgba(0,0,0,.35);animation:vrup 8s ease-out forwards}
+@keyframes vrup{0%{transform:scale(1.4)}10%{transform:scale(1)}85%{opacity:1}100%{opacity:0}}
+.vrrow.vrclimb{box-shadow:inset 0 0 0 .08em #7FE0A0}
+.vrmore{font-size:.8em;color:var(--soft);text-align:center;margin-top:.2em}
+
+.vrsea{position:relative;min-height:0;border-radius:.8em;overflow:hidden;border:.13em solid var(--sky);
+  background:linear-gradient(180deg,#2C8FC4 0%,#17689E 22%,#0D467A 52%,#082C57 78%,#051B3A 100%)}
+.vrray{position:absolute;top:-10%;width:22%;height:85%;background:linear-gradient(180deg,rgba(220,245,255,.28),rgba(220,245,255,0));transform-origin:top center;filter:blur(.15em);animation:vrray 9s ease-in-out infinite alternate;pointer-events:none}
+.vrray.r0{left:12%}.vrray.r1{left:44%;width:16%}.vrray.r2{left:70%;width:26%}
+@keyframes vrray{from{transform:skewX(-16deg);opacity:.55}to{transform:skewX(12deg);opacity:1}}
+.vrbub{position:absolute;bottom:-1em;width:var(--bs,.5em);height:var(--bs,.5em);border-radius:50%;border:.08em solid rgba(220,245,255,.65);background:rgba(220,245,255,.12);animation:vrbub 8s linear infinite;pointer-events:none}
+@keyframes vrbub{0%{transform:translate(0,0);opacity:0}10%{opacity:.9}50%{transform:translate(.6em,-14em)}100%{transform:translate(-.4em,-30em);opacity:0}}
+.vrmarks{position:absolute;left:.4em;top:0;bottom:0;width:3em;pointer-events:none}
+.vrmarks span{position:absolute;left:0;transform:translateY(-50%);font-size:.6em;font-weight:700;color:rgba(220,240,255,.6);border-top:.12em dashed rgba(220,240,255,.35);padding-top:.1em;width:4em}
+.vrfloor{position:absolute;left:0;right:0;bottom:0;height:24%}
+.vrfloor svg{position:absolute;left:0;right:0;bottom:0;width:100%;height:55%}
+.vrweed{position:absolute;bottom:30%;width:.5em;height:var(--wh,2.6em);border-radius:.5em .5em 0 0;background:linear-gradient(180deg,#5FD48A,#1F7A47);transform-origin:bottom center;animation:vrweed 4.2s ease-in-out infinite alternate}
+@keyframes vrweed{from{transform:rotate(-12deg)}to{transform:rotate(12deg)}}
+.vrchest{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);display:flex;align-items:flex-end;gap:.6em}
+.vrchest svg{width:4.2em;height:auto;position:relative;z-index:1;flex:none}
+.vrchest .lid{transform-origin:6px 26px;transition:transform .8s cubic-bezier(.3,1.5,.5,1)}
+.vrchest.open .lid{transform:rotate(-28deg)}
+.vrglow{position:absolute;left:0;bottom:0;width:4.2em;height:4em;border-radius:50%;background:radial-gradient(circle,rgba(242,179,61,.55),rgba(242,179,61,0) 70%);filter:blur(.3em);z-index:0}
+.vrchest.open .vrglow{background:radial-gradient(circle,rgba(255,227,163,.95),rgba(242,179,61,0) 70%);transform:scale(1.7);animation:vrpulse 1.6s ease-in-out infinite alternate}
+@keyframes vrpulse{from{opacity:.7}to{opacity:1}}
+.vrgoal{background:rgba(5,20,48,.82);border:.08em solid rgba(242,179,61,.6);border-radius:.6em;padding:.3em .7em;min-width:11em;display:flex;flex-direction:column;gap:.2em;z-index:1}
+.vrgoal b{font-size:.75em;letter-spacing:.06em;text-transform:uppercase;color:var(--amber,#F2B33D)}
+.vrgoal small{font-size:.7em;color:var(--soft);font-variant-numeric:tabular-nums}
+.vrgoalbar{height:.55em;border-radius:1em;background:rgba(255,255,255,.14);overflow:hidden}
+.vrgoalbar i{display:block;height:100%;border-radius:1em;background:linear-gradient(90deg,#F2B33D,#FFE3A3);transition:width .8s ease}
+.vrchest.open .vrgoal{border-color:#FFE3A3;box-shadow:0 0 1em rgba(242,179,61,.6)}
+.vrdiver{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:.1em;z-index:2;will-change:top}
+.vrbob{position:relative;width:2.7em;animation:vrbob 3.2s ease-in-out infinite alternate}
+@keyframes vrbob{from{transform:translateY(-.18em) rotate(-3deg)}to{transform:translateY(.18em) rotate(3deg)}}
+.vrbob svg{width:100%;height:auto;display:block;filter:drop-shadow(0 .15em .2em rgba(0,0,0,.35))}
+.vrport{position:absolute;left:46.9%;top:50%;transform:translate(-50%,-50%);font-size:.85em;line-height:1;font-weight:800;color:#10358A}
+.vrcrown{position:absolute;left:46%;top:-.75em;transform:translateX(-50%);font-size:1em;animation:vrcrown 1.4s ease-in-out infinite alternate}
+@keyframes vrcrown{from{transform:translateX(-50%) translateY(0)}to{transform:translateX(-50%) translateY(-.15em)}}
+.vrdiver.lead .vrbob svg{filter:drop-shadow(0 0 .45em rgba(242,179,61,.9))}
+.vrdiver.hot .vrbob::after{content:"";position:absolute;right:-.7em;top:35%;width:.9em;height:.9em;border-radius:50%;border:.1em solid rgba(220,245,255,.8);animation:vrtrail .9s linear infinite}
+@keyframes vrtrail{from{transform:translate(0,0) scale(.4);opacity:1}to{transform:translate(.8em,-.8em) scale(1);opacity:0}}
+.vrink{position:absolute;inset:-.4em;border-radius:50%;background:radial-gradient(circle,rgba(20,10,40,.85),rgba(20,10,40,0) 70%);pointer-events:none}
+.vrdiver.tagup{flex-direction:column-reverse}
+.vrtag{font-size:.62em;font-weight:700;color:#F4F7FB;background:rgba(5,20,48,.7);border-radius:1em;padding:.05em .55em;white-space:nowrap;max-width:7em;overflow:hidden;text-overflow:ellipsis}
+.vrdiver.lead .vrtag{background:rgba(242,179,61,.92);color:#3A2A00}
+.vrnewlead{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);z-index:3;background:linear-gradient(90deg,#F2B33D,#FFE3A3);color:#3A2A00;font-weight:800;font-size:1.25em;border-radius:2em;padding:.3em 1.2em;white-space:nowrap;box-shadow:0 0 1.5em rgba(242,179,61,.7);animation:vrnewlead 4.5s ease forwards}
+@keyframes vrnewlead{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}12%{transform:translate(-50%,-50%) scale(1.08);opacity:1}20%{transform:translate(-50%,-50%) scale(1)}85%{opacity:1}100%{opacity:0}}
+.vrnow{display:flex;align-items:center;gap:.6em;background:var(--deep);border-radius:.8em;padding:.5em .8em}
+.vrnowic{font-size:1.6em;line-height:1}
+.vrnow b{display:block;font-size:1.05em;line-height:1.15}
+.vrnow small{display:block;font-size:.7em;color:var(--soft)}
+.vrplay.vrdive .vrclock{font-size:2.6em}
+.vrf.goal{color:#FFE3A3;font-weight:700}
+.vrf.dj{color:#BFE6FF}
+@media (prefers-reduced-motion:reduce){.vrray,.vrbub,.vrweed,.vrbob,.vrcrown,.vrhot,.vrdiver.hot .vrbob::after,.vrchest.open .vrglow{animation:none}.vrbub{display:none}}
+
+/* Remote: DJ and Class Treasure controls */
+.vrdjrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}
+.vrdjrow select{flex:1;min-width:0}
+.gpok.vrdjgive{background:#E7F4FF;color:#0B3A66;border-color:#9CC9EE}
+.gprow2{display:flex;flex-direction:column;gap:4px;margin:8px 0;font-size:.9rem}.gprow2 > span{font-weight:700}.gprow2 select{min-height:40px}
+.vrnmtxt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.vrhot{flex:none}

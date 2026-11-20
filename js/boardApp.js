@@ -14,12 +14,12 @@ let store = null; // the signed-in Firestore store, or a this-device-only store 
 import { trail } from "./signInTrail.js";
 import { tickTools, defaultTools, mergeTools, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=59";
 import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal } from "./panels.js?v=9";
-import * as snd from "./sound.js?v=59";
+import * as snd from "./sound.js?v=60";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=59";
-import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=84";
-import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=10";
+import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=85";
+import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=11";
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=1";
 import { cleanChart, cleanPeriod, cleanView, seatCount, drawRoom } from "./seats.js?v=7";
@@ -464,7 +464,7 @@ function soundTick() {
     ["bell", "free", "check"].forEach((k) => { const t = S.timers[k]; snd.watchTimer({ kind: k, running: t.running, secs: sec(t), total: secsFor(k) }); });
     const r = S.timers.round; snd.watchTimer({ kind: "round", running: r.running, secs: sec(r), round: { len: ROUND, gap: GAP } });
     // Vault Raid: the theme song follows the game, and each big moment has its own sound.
-    const g = liveSound(); snd.gamePhase(g.phase); g.cues.forEach((c) => snd.cue(c));
+    const g = liveSound(); snd.gameSong(g.song); snd.gamePhase(g.phase); g.cues.forEach((c) => snd.cue(c));
 }
 function soundPanel() {
     const rail = document.querySelector(".rail"); if (!rail || $("soundMenu")) return;

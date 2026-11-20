@@ -434,3 +434,17 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .wrgame .pkeys{max-width:320px}
 .wrgamewin{color:#0F6B40;margin:4px 0}
 .pqtools{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}.pqtop .pqtools .pbtn{margin-left:0}.pqtools:empty{display:none}
+
+/* ---------- DJ Booth ---------- */
+.pbtn.hack.dj{background:#0B6E8A;color:#fff}
+.pdjwallet{font-weight:700;color:#0B3A66;background:#E7F4FF;border-radius:12px;padding:6px 12px;align-self:flex-start}
+.psongs{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:6px 0 4px}
+.psong{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;text-align:left;border:2px solid #D5DEEC;background:#fff;border-radius:14px;padding:10px 12px;font:inherit;cursor:pointer;color:var(--navy)}
+.psong .psongic{grid-row:1/3;font-size:1.8rem;line-height:1}
+.psong b{font-size:1.02rem}
+.psong small{color:#55627F;line-height:1.3}
+.psong.on{border-color:#0B6E8A;background:#E9F8FB;box-shadow:0 0 0 3px rgba(11,110,138,.18)}
+.psong.on small{color:#0B6E8A;font-weight:700}
+.psong:disabled{cursor:not-allowed}
+.psong:disabled:not(.on){opacity:.5}
+.psong:not(:disabled):hover{border-color:#0B6E8A}

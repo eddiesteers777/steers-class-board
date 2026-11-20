@@ -328,13 +328,24 @@ const THEME = {
     ],
     bpm: { lobby: 104, play: 116, rush: 132 },
 };
-let phase = "", gm = null;   // gm: { out, timer, next, step, bar }
+let phase = "", gm = null, song = "vault";   // gm: { out, timer, next, step, bar, song }
 /** The board says what the game is doing: "" (no game), "lobby", "play", "rush" or "paused". */
 export function gamePhase(p) {
     const n = ["lobby", "play", "rush", "paused"].includes(p) ? p : "";
     if (n === phase) return;
     phase = n; syncGame(); syncMusic(); onState();
 }
+/** Which game song plays (a student's DJ pick). An unknown key plays the Vault Raid theme. */
+export function gameSong(k) {
+    const n = SONGS[k] ? k : "vault";
+    if (n === song) return;
+    song = n;
+    if (gm) { stopTheme(); syncGame(); }   // a short fade out, then the new song
+    onState();
+}
+export const songNow = () => song;
+/** The DJ songs (for the Remote's picker and checks). */
+export const songKeys = () => ["vault"].concat(Object.keys(SONGS));
 export const themeOn = () => !!gm;
 function syncGame() {
     const want = here && cfg.game && running() && (phase === "lobby" || phase === "play" || phase === "rush");
@@ -344,7 +355,7 @@ function syncGame() {
 function startTheme() {
     const out = ctx.createGain(); out.gain.setValueAtTime(0.0001, ctx.currentTime); out.gain.exponentialRampToValueAtTime(1, ctx.currentTime + 1.2); out.connect(gameBus);
     if (mus) stopMusic();
-    gm = { out, step: 0, bar: 0, next: ctx.currentTime + 0.1 };
+    gm = { out, step: 0, bar: 0, next: ctx.currentTime + 0.1, song };
     gm.timer = setInterval(themeSchedule, 100); themeSchedule();
 }
 function stopTheme() {
@@ -355,6 +366,7 @@ function stopTheme() {
 }
 function themeSchedule() {
     if (!gm || !ctx) return;
+    if (gm.song !== "vault" && SONGS[gm.song]) return songSchedule(SONGS[gm.song]);
     const ahead = ctx.currentTime + 0.6, d = gm.out;
     while (gm.next < ahead) {
         const ph = phase === "lobby" || phase === "rush" ? phase : "play", six = 60 / THEME.bpm[ph] / 4, s = gm.step % 16, t = gm.next;
@@ -371,6 +383,89 @@ function themeSchedule() {
             if (s === 0 || s === 8 || (ph === "rush" && (s === 10 || s === 14))) kick(t, 0.42, d);
             if (s === 4 || s === 12) noiseHit(t, 0.1, d, "bandpass", 1800, 0.14, 0.7);
             if (ph === "rush" || s % 2 === 0) noiseHit(t, s % 4 === 2 ? 0.05 : 0.03, d, "highpass", 7500, 0.03);
+        } else if (s === 0) noiseHit(t, 0.03, d, "highpass", 6000, 0.05);
+        gm.next += six; gm.step++;
+        if (gm.step % 16 === 0) gm.bar++;
+    }
+}
+
+/* ---------- the DJ songs ----------
+   Six more original game songs a student can pick with a DJ Ticket. Each is 8 bars of chords, a bass style,
+   a drum style and a lead instrument. The tune is written once from a fixed seed (the same every time, so it
+   is catchy), stepping around the key's pentatonic scale and landing on the chord at the end of each phrase. */
+function seeded(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const RHY = {
+    busy: [[[0, 2], [2, 2], [4, 2], [6, 2], [8, 4], [12, 4]], [[0, 3], [3, 1], [4, 2], [6, 2], [8, 2], [10, 2], [12, 4]], [[0, 2], [3, 1], [4, 4], [8, 2], [11, 1], [12, 4]], [[0, 4], [4, 2], [6, 2], [8, 6], [14, 2]]],
+    sparse: [[[0, 6], [8, 8]], [[0, 4], [6, 2], [8, 8]], [[0, 8], [12, 4]], [[2, 4], [8, 6]]],
+    fast: [[[0, 1], [1, 1], [2, 2], [4, 1], [5, 1], [6, 2], [8, 2], [10, 2], [12, 2], [14, 2]], [[0, 2], [2, 1], [3, 1], [4, 2], [6, 2], [8, 4], [12, 2], [14, 2]], [[0, 2], [2, 2], [4, 1], [5, 1], [6, 1], [7, 1], [8, 4], [12, 4]]],
+    swing: [[[0, 3], [3, 3], [6, 2], [8, 4], [14, 2]], [[2, 2], [4, 4], [10, 2], [12, 4]], [[0, 2], [4, 2], [6, 2], [8, 8]]],
+};
+function makeSong(o) {
+    const r = seeded(o.seed), scale = o.minor ? [0, 3, 5, 7, 10] : [0, 2, 4, 7, 9];
+    const chords = o.prog.map(([deg, q]) => { const root = o.key + deg; let b = root; while (b > 47) b -= 12; while (b < 36) b += 12; return [b, voice(root, q), root]; });
+    const notes = []; for (let oc = 0; oc < 3; oc++) scale.forEach((x) => { const m = o.key + 12 + x + 12 * oc; if (m >= 64 && m <= 88) notes.push(m); });
+    const near = (m, set) => set.reduce((b, x) => (Math.abs(x - m) < Math.abs(b - m) ? x : b), set[0]);
+    let at = Math.floor(notes.length / 2);
+    const bar = (bi) => {
+        const rh = RHY[o.rhythm][Math.floor(r() * RHY[o.rhythm].length)], tones = chords[bi][1].map((m) => { while (m < 64) m += 12; while (m > 84) m -= 12; return m; });
+        return rh.map(([st, len], i) => {
+            at = Math.max(0, Math.min(notes.length - 1, at + [-2, -1, -1, 1, 1, 2, 0][Math.floor(r() * 7)]));
+            let m = notes[at];
+            if (st === 0) { m = near(m, tones); at = notes.indexOf(near(m, notes)); }
+            if ((bi === 3 || bi === 7) && i === rh.length - 1) { m = near(m, tones.filter((x) => (x - chords[bi][2]) % 12 === 0).concat(tones).slice(0, 1)); }
+            return [st, m, len];
+        });
+    };
+    const a = [bar(0), bar(1), bar(2), bar(3)];
+    const tune = [a[0], a[1], a[2], bar(3), a[0], a[1], bar(6), bar(7)];
+    return Object.assign({}, o, { chords, tune });
+}
+/* Two extra instruments for the DJ songs. */
+function chip(t, f, dur, vol, d) { const g = ctx.createGain(); g.connect(d); g.gain.setValueAtTime(vol, t); g.gain.setValueAtTime(vol * 0.7, t + dur * 0.5); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); osc("square", f, t, t + dur + 0.02, g); }
+function tom(t, f, vol, d) { const g = ctx.createGain(); g.connect(d); env(g, t, 0.002, vol, 0.28); const o = ctx.createOscillator(); o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.55, t + 0.25); o.connect(g); o.start(t); o.stop(t + 0.32); }
+function lead(kind, t, m, dur, vol, d) {
+    if (kind === "chip") chip(t, hz(m), dur * 0.85, vol * 0.5, d);
+    else if (kind === "mallet") mallet(t, hz(m), vol * 3.2, d);
+    else if (kind === "bell") bell(t, hz(m + 12), vol * 0.75, d, 1.8);
+    else if (kind === "epiano") epiano(t, m, dur, vol * 0.5, d);
+    else if (kind === "saw") { pluck(t, hz(m), dur * 0.9, vol, d); pluck(t, hz(m + 12), dur * 0.5, vol * 0.3, d); }
+    else pluck(t, hz(m), dur * (kind === "mute" ? 0.45 : 0.9), vol, d);
+}
+const SONGS = {
+    heist: makeSong({ seed: 7, key: 50, minor: true, bpm: 100, swing: 0.12, prog: [[0, "m"], [0, "m"], [8, "M"], [7, "M"], [5, "m"], [0, "m"], [8, "M"], [7, "M"]], rhythm: "swing", lead: "mute", bass: "walk", stab: "off", drums: "brush" }),
+    arc: makeSong({ seed: 21, key: 60, bpm: 148, prog: [[0, "M"], [9, "m"], [5, "M"], [7, "M"], [0, "M"], [9, "m"], [5, "M"], [7, "M"]], rhythm: "fast", lead: "chip", bass: "octave", stab: "arp", drums: "chip" }),
+    deep: makeSong({ seed: 5, key: 52, minor: true, bpm: 80, prog: [[0, "m7"], [0, "m"], [8, "M7"], [3, "M"], [0, "m"], [5, "m7"], [8, "M7"], [7, "sus"]], rhythm: "sparse", lead: "bell", bass: "slow", stab: "pad", drums: "sonar" }),
+    jung: makeSong({ seed: 13, key: 55, bpm: 118, prog: [[0, "M"], [0, "M"], [10, "M"], [5, "M"], [0, "M"], [10, "M"], [5, "M"], [7, "M"]], rhythm: "busy", lead: "mallet", bass: "eighth", stab: "off", drums: "toms" }),
+    space: makeSong({ seed: 42, key: 57, minor: true, bpm: 124, prog: [[0, "m"], [8, "M"], [3, "M"], [10, "M"], [0, "m"], [8, "M"], [5, "m"], [7, "M"]], rhythm: "busy", lead: "saw", bass: "octave", stab: "arp", drums: "four" }),
+    lofi: makeSong({ seed: 9, key: 53, bpm: 76, swing: 0.22, prog: [[0, "M7"], [9, "m7"], [2, "m7"], [7, "sus"], [0, "M9"], [4, "m7"], [5, "M7"], [7, "sus"]], rhythm: "swing", lead: "epiano", bass: "slow", stab: "keys", drums: "soft" }),
+};
+function songSchedule(S) {
+    const ahead = ctx.currentTime + 0.6, d = gm.out;
+    while (gm.next < ahead) {
+        const ph = phase === "lobby" || phase === "rush" ? phase : "play", bpm = S.bpm * (ph === "rush" ? 1.12 : ph === "lobby" ? 0.92 : 1);
+        const six = 60 / bpm / 4, s = gm.step % 16, t = gm.next + (s % 2 === 1 ? six * (S.swing || 0) : 0), bi = gm.bar % 8, [b, triad] = S.chords[bi], full = ph !== "lobby";
+        // Bass
+        if (S.bass === "walk") { if (s % 4 === 0) bass(t, b + [0, 7, 12, 10][s / 4], six * 3.2, 0.24, d); }
+        else if (S.bass === "slow") { if (s === 0 || s === 10) bass(t, s === 10 ? b + 7 : b, six * (s === 0 ? 9 : 5), 0.24, d); }
+        else if (S.bass === "octave") { if (s % 2 === 0) bass(t, b + (s % 4 === 2 ? 12 : 0), six * 1.5, full ? 0.22 : 0.16, d); }
+        else if (s % 2 === 0) bass(t, b + (s % 8 === 6 ? 12 : 0), six * 1.6, full ? 0.24 : 0.17, d);
+        // Chords
+        if (S.stab === "off" && s % 4 === 2) triad.forEach((m) => (S.lead === "mallet" ? mallet(t, hz(m), 0.09, d) : pluck(t, hz(m), six * 0.8, full ? 0.03 : 0.022, d)));
+        else if (S.stab === "pad" && s === 0) triad.forEach((m) => pad(t, m, six * 16, 0.03, d));
+        else if (S.stab === "keys" && (s === 0 || s === 7)) triad.forEach((m, i) => epiano(t + i * 0.02, m, six * (s === 0 ? 6 : 4), s === 0 ? 0.045 : 0.03, d));
+        else if (S.stab === "arp" && full) { const seq = triad.concat([triad[0] + 12]), m = seq[s % seq.length]; if (S.lead === "chip") chip(t, hz(m + 12), six * 0.7, 0.03, d); else pluck(t, hz(m + 12), six * 0.6, 0.022, d); }
+        else if (S.stab === "arp" && s % 4 === 0) triad.forEach((m) => pluck(t, hz(m), six * 2, 0.02, d));
+        // Tune: every bar once the game is on; alternate passes (softer) in the waiting room.
+        if (full || Math.floor(gm.bar / 8) % 2 === 0) S.tune[bi].forEach(([at, m, len]) => { if (at === s) lead(S.lead, t, m, six * len, full ? 0.1 : 0.065, d); });
+        // Drums
+        if (full) {
+            const rush = ph === "rush";
+            if (S.drums === "four") { if (s % 4 === 0) kick(t, 0.4, d); if (s % 4 === 2) noiseHit(t, 0.06, d, "highpass", 8000, 0.05); if (s === 4 || s === 12) noiseHit(t, 0.07, d, "bandpass", 2200, 0.12, 0.8); }
+            else if (S.drums === "chip") { if (s === 0 || s === 8 || (rush && s === 10)) chip(t, 70, 0.08, 0.18, d); if (s === 4 || s === 12) noiseHit(t, 0.09, d, "highpass", 3000, 0.07); if (s % 2 === 0) noiseHit(t, 0.025, d, "highpass", 9000, 0.02); }
+            else if (S.drums === "toms") { if (s === 0 || s === 6 || s === 8) kick(t, 0.36, d); if (s === 3 || s === 11) tom(t, 220, 0.18, d); if (s === 14) tom(t, 160, 0.2, d); if (s === 4 || s === 12) noiseHit(t, 0.06, d, "bandpass", 3200, 0.06, 2); if (s % 2 === 1) noiseHit(t, 0.02, d, "highpass", 7000, 0.04); }
+            else if (S.drums === "brush") { if (s === 0 || s === 10) kick(t, 0.3, d); if (s === 4 || s === 12) noiseHit(t, 0.05, d, "bandpass", 1500, 0.2, 0.6); if (s % 2 === 0 || rush) noiseHit(t, 0.025, d, "highpass", 6500, 0.06); }
+            else if (S.drums === "soft") { if (s === 0 || s === 7 || s === 10) kick(t, 0.26, d); if (s === 4 || s === 12) noiseHit(t, 0.05, d, "bandpass", 1300, 0.14, 0.7); if (s % 2 === 0) noiseHit(t, 0.02, d, "highpass", 6000, 0.03); }
+            else if (S.drums === "sonar") { if (s === 0 && bi % 2 === 0) { bell(t, hz(88), 0.06, d, 2.6); bell(t + 0.45, hz(88), 0.025, d, 2); } if (s % 4 === 2) noiseHit(t, 0.015, d, "highpass", 5000, 0.08); if (rush && (s === 0 || s === 8)) kick(t, 0.3, d); }
         } else if (s === 0) noiseHit(t, 0.03, d, "highpass", 6000, 0.05);
         gm.next += six; gm.step++;
         if (gm.step % 16 === 0) gm.bar++;
