@@ -882,3 +882,9 @@ div.gpset{cursor:default}
 .gpok.vrdjgive{background:#E7F4FF;color:#0B3A66;border-color:#9CC9EE}
 .gprow2{display:flex;flex-direction:column;gap:4px;margin:8px 0;font-size:.9rem}.gprow2 > span{font-weight:700}.gprow2 select{min-height:40px}
 .vrnmtxt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.vrhot{flex:none}
+
+/* Game Library: Vault Raid first, extra board games in a drawer (Nov 20) */
+.glgame.vault{border-top-color:#F2B33D;background:#FFFBF1}
+.glmore{margin-top:10px}
+.glmore summary{cursor:pointer;font-weight:600;color:var(--c-mute);min-height:44px;display:flex;align-items:center}
+.gpset .gpkinds{margin-top:8px}

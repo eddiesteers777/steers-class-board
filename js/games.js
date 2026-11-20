@@ -504,6 +504,10 @@ export function syncGames() {
    game, set, each team's score and (when teams came from the Group maker) who was on it, the
    winner, and how many questions were answered right by category. Private, never on the board. */
 let RESULTS = null, resultsWatched = false, pendingResult = null, resultsWrite = null;
+/* The games up front on the Remote and the Game Library; the rest sit in a "More games" drawer.
+   Nothing is removed: every game still plays from the drawer, and old links (?game=) still work. */
+export const FRONT_KINDS = [["board", "Review Board"], ["versus", "Class vs. Teacher"], ["rapid", "Rapid Fire"]];
+export const MORE_KINDS = [["chests", "Treasure Chests"], ["shots", "Trashketball"], ["tiles", "Mystery Tiles"], ["race", "Ring Race"], ["bingo", "Bingo"], ["tug", "Tug of War"], ["wheel", "Prize Wheel"], ["code", "Code Breaker"]];
 const KIND_NAMES = { board: "Review Board", chests: "Treasure Chests", versus: "Class vs. Teacher", shots: "Trashketball", tiles: "Mystery Tiles", race: "Ring Race", bingo: "Bingo", tug: "Tug of War", rapid: "Rapid Fire", wheel: "Prize Wheel", code: "Code Breaker" };
 const localDay = () => { const d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); };
 function watchResults() {
@@ -1198,8 +1202,11 @@ export function drawPanel() {
             const one = (s, into) => {
             const b = el("div", "gpset"), row = el("div", "gpsetbtns");
             b.append(el("b", null, s.title || "Review game"), el("small", null, starting === s.id ? "Opening…" : (s.cats || 0) + " categories · " + (s.clues || 0) + " questions"));
-            [["board", "Review Board"], ["chests", "Treasure Chests"], ["versus", "Class vs. Teacher"], ["shots", "Trashketball"], ["tiles", "Mystery Tiles"], ["race", "Ring Race"], ["bingo", "Bingo"], ["tug", "Tug of War"], ["rapid", "Rapid Fire"], ["wheel", "Prize Wheel"], ["code", "Code Breaker"]].forEach(([k, label]) => { const g = btn("btn ghost", label, () => start(s, k)); g.disabled = !!starting; g.setAttribute("aria-label", "Play " + (s.title || "this set") + " as " + label); row.append(g); });
-            b.append(row); into.append(b);
+            const kindBtn = (k, label, into) => { const g = btn("btn ghost", label, () => start(s, k)); g.disabled = !!starting; g.setAttribute("aria-label", "Play " + (s.title || "this set") + " as " + label); into.append(g); };
+            FRONT_KINDS.forEach(([k, label]) => kindBtn(k, label, row));
+            const moreK = el("details", "gpmore gpkinds"), moreRow = el("div", "gpsetbtns");
+            moreK.append(el("summary", null, "More games (" + MORE_KINDS.length + ")"), moreRow); MORE_KINDS.forEach(([k, label]) => kindBtn(k, label, moreRow));
+            b.append(row, moreK); into.append(b);
             };
             mine.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach((s) => one(s, list));
             if (rest.length) { const more = el("details", "gpmore"); more.append(el("summary", null, "Sets for other classes (" + rest.length + ")")); rest.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach((s) => one(s, more)); list.append(more); }
