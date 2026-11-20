@@ -398,7 +398,7 @@ $("iGo").onclick = () => {
     if (!stack) return;
     match = { per: $("iPeriod").value, papers: W.cut(stack.pages.length, +$("iPer").value), picks: {}, order: $("iOrder").value, keyFirst: $("iKey").checked,
         title: $("iTitle").value.trim(), std: $("iStd").value.trim(), date: $("iDate").value, kind: $("iKind").value, read: null, byClaude: null };
-    $("mReadNote").textContent = ""; show("match"); drawMatch();
+    $("mReadNote").textContent = ""; $("pList").value = ""; $("pNote").textContent = ""; show("match"); drawMatch();
 };
 $("mBack").onclick = () => show("in");
 $("mCrop").value = remember("crop") || "left";
@@ -493,6 +493,32 @@ $("mRead").onclick = async () => {
             : "Claude could not read the names (" + ((e && e.message) || code || "error") + "). Pick them by hand.");
     }
     btn.disabled = false;
+};
+/* ---------- free: Claude sorts in Eddie's own chat, the list is pasted back ---------- */
+function askText() {
+    const r = roster(match.per), per = match.papers.length ? match.papers[0][1] - match.papers[0][0] : 1;
+    return [
+        "Attached is a scanned class stack (" + stack.pages.length + " pages, " + per + (per === 1 ? " page" : " pages") + " per student, so " + match.papers.length + " papers in order).",
+        "Read the handwritten name at the top of each paper and match it to this roster:",
+        ...r.map((n) => "- " + n),
+        "",
+        "Answer only with a numbered list, one line per paper, in stack order: the number, then the roster name exactly as written above.",
+        "Write \"?\" if you cannot tell, \"key\" for an answer key, \"skip\" for a blank or cover page, and \"same\" if a paper is really extra pages of the student before.",
+        match.keyFirst ? "Paper 1 is the answer key." : "",
+    ].filter((l) => l !== "").join("\n");
+}
+$("pAsk").onclick = async () => {
+    try { await navigator.clipboard.writeText(askText()); $("pNote").textContent = "Copied. Paste it in Claude with the PDF."; }
+    catch (e) { $("pList").value = askText(); $("pList").select(); $("pNote").textContent = "Could not copy. The request is in the box: copy it from there."; }
+};
+$("pFill").onclick = () => {
+    const { picks, unknown, count } = W.parseNameList($("pList").value, roster(match.per));
+    if (!count) { $("pNote").textContent = "No numbered lines found. Paste Claude's list as it came."; return; }
+    let n = 0; Object.entries(picks).forEach(([i, v]) => { if (+i < match.papers.length) { match.picks[i] = v; n++; } });
+    match.read = null; match.byClaude = null;
+    const extra = count - n;
+    $("pNote").textContent = "Filled " + n + (n === 1 ? " paper" : " papers") + "." + (unknown.length ? " No roster match for " + unknown.map((u) => "#" + u.n + " (" + u.text + ")").join(", ") + ": pick those." : "") + (extra > 0 ? " " + extra + " lines were past the last paper; check pages per student." : "");
+    drawMatch();
 };
 function peek(a, b, i) {
     open = null; $("vImg").src = stack.pages[a].url; $("vTitle").textContent = "Paper " + (i + 1) + (b - a > 1 ? " (first page)" : "");
