@@ -1,0 +1,48 @@
+/* ==========================================
+   Anchor Board — the Remote on a phone (Safari or Chrome, held upright).
+   body.phone is set by js/boardApp.js fit() when the screen is phone sized.
+   body.mirror: the stage is drawn at board size and shrunk, so the phone shows
+   a true small copy of the projected board (CSS vars --mk scale, --mx left, --shx shelf).
+========================================== */
+body.mirror .wrap{display:block;position:relative;overflow:hidden;flex:none;padding:0}
+body.mirror #stage{position:absolute;left:var(--mx,4px);top:4px;transform:scale(var(--mk,.3));transform-origin:0 0}
+body.mirror .toolshelf{position:absolute;top:4px;left:calc(var(--mx,4px) + var(--shx,0px));margin-left:0;transform:scale(var(--mk,.3));transform-origin:0 0}
+body.mirror.board .wrap{height:100%!important;flex:1}
+body.mirror.board #stage{top:50%;transform:translateY(-50%) scale(var(--mk,.3));transform-origin:0 50%}
+body.mirror.board .toolshelf{top:50%;transform:translateY(-50%) scale(var(--mk,.3));transform-origin:0 50%}
+
+.mirtog{display:none}
+body.phone .mirtog{display:inline-flex;align-items:center;gap:6px;background:var(--c-surface);color:var(--c-ink);border:1.5px solid var(--c-line);border-radius:999px;padding:6px 12px;font:600 .82rem var(--ui);cursor:pointer}
+body.phone.board .mirtog{display:none}
+
+/* the page scrolls like an app; the board picture and Next stay pinned at the top */
+body.phone:not(.board){overflow-y:auto;height:auto;min-height:100%;display:block;-webkit-text-size-adjust:100%}
+body.phone:not(.board) .cbar{padding:8px 12px;gap:8px;position:static}
+body.phone .cbrand{margin-right:auto;gap:8px}
+body.phone .cbrand img{width:32px;height:32px}
+body.phone .cbrand small{display:none}
+body.phone .cbar .field{flex:1 1 40%;min-width:0}
+body.phone .cbar .field select{min-width:0;width:100%;font-size:16px;padding:8px 30px 8px 10px}
+body.phone .cbar .field>span{display:none}
+body.phone #boardBtn{padding:8px 12px;font-size:.85rem}
+body.phone .live{padding:5px 10px}
+body.phone:not(.board) .cbody{display:flex;flex-direction:column;overflow:visible}
+body.phone:not(.board) .deck{order:-1;position:sticky;top:0;z-index:7;background:var(--c-bg);box-shadow:0 8px 18px rgba(14,27,58,.10);flex:none}
+body.phone:not(.mirror) .deck{position:static;box-shadow:none}
+body.phone .console .wrap,body.phone .wrap{padding:4px 8px 0}
+body.phone.mirror .wrap{margin:6px 8px 0}
+body.phone:not(.board) .flowbar{flex-direction:column;align-items:stretch;gap:8px;padding:8px 10px 10px}
+body.phone:not(.board) .flow{width:100%;gap:8px}
+body.phone.console .flow button{padding:14px 10px;font-size:1.05rem}
+body.phone.console .flow #flowBack{flex:1}
+body.phone.console .flow #flowNext{flex:2.2;min-width:0}
+body.phone:not(.board) .flowtop{display:flex;align-items:center;gap:8px}
+body.phone.console .seg.days{display:flex;flex:1;min-width:0}
+body.phone.console .seg.days button{flex:1;padding:8px 0;font-size:.9rem}
+body.phone:not(.board) .rail{order:2;width:auto;max-height:none;border:0;padding:12px 10px 90px;display:block;overflow:visible}
+body.phone:not(.board) .railh{display:block;margin:4px 2px 8px}
+body.phone.console .seg.scr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:12px}
+body.phone.console .seg.scr button{border:1.5px solid var(--c-line);border-left:1.5px solid var(--c-line);background:var(--c-surface);text-align:center;padding:12px 4px;font-size:.88rem;font-weight:600;border-radius:12px;min-height:48px;line-height:1.15}
+body.phone.console .seg.scr button[aria-pressed="true"]{border-color:var(--navy);background:var(--navy);color:#fff}
+body.phone:not(.board) .rail>.fold,body.phone .rail>details,body.phone .rail>button{display:block;width:100%;margin:0 0 10px;background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:14px;padding:10px 12px}
+body.phone:not(.board) .rail>details>summary{font-weight:700;padding:4px 0}

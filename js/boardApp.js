@@ -246,7 +246,13 @@ function buildControls() {
 /* Tools sit on a shelf beside the lesson, so they never cover it. The stage gets a little
    smaller to make room. A tool the teacher drags out floats over the lesson by choice. */
 const SHELF_EM = 14.5, SHELF_WIDE_EM = 22.5, CHIP_EM = 11;
-const narrowWrap = () => { const w = $("wrap"); return !w || w.clientWidth - 16 < 700; };
+const narrowWrap = () => { if (phoneMirror()) return false; const w = $("wrap"); return !w || w.clientWidth - 16 < 700; };
+/* On a phone the Remote shows a true small copy of the board: the stage is drawn at board size (1280 x 720)
+   and shrunk to fit, so the teacher sees exactly what the class sees. "Phone size" turns it off on that phone. */
+const MIRROR_KEY = "anchorboard-phone-mirror";
+let mirrorOn = (() => { try { return localStorage.getItem(MIRROR_KEY) !== "off"; } catch (e) { return true; } })();
+const isPhone = () => mode !== "board" && Math.min(window.innerWidth, window.innerHeight) < 600 && window.innerWidth < 1000;
+const phoneMirror = () => mirrorOn && isPhone();
 const PANEL_KEYS = PANEL_LIST.map((x) => x[0]);
 /** Minimized panels: live chips at the foot of the shelf. */
 function chipKeys() { return ordered(S.tools, PANEL_KEYS.filter((k) => S.tools.on[k] && S.tools.min[k] && panelOk(k))); }
@@ -255,11 +261,19 @@ function shelfEm() { const ks = shelfKeys(); if (ks.length) return ks.includes("
 function shelfEl() { let sh = $("toolShelf"); if (!sh) { sh = el("div", "toolshelf"); sh.id = "toolShelf"; sh.hidden = true; $("wrap").appendChild(sh); } return sh; }
 let shelfApplied = "";
 function fit() {
-    const w = $("wrap"), st = $("stage"), Wd = w.clientWidth - 16, H = w.clientHeight - 16;
+    const w = $("wrap"), st = $("stage");
+    document.body.classList.toggle("phone", isPhone()); document.body.classList.toggle("mirror", phoneMirror());
+    const mir = phoneMirror(), Wd = mir ? 1280 : w.clientWidth - 16, H = mir ? 720 : w.clientHeight - 16;
     if (Wd < 50 || H < 50) return;
     const se = synced ? shelfEm() : 0;
     let sw = Math.min(Wd / (1 + se / 52), H * 16 / 9), sh = sw * 9 / 16;
-    if (Wd < 700) { sw = Wd; sh = Math.max(440, Math.round(window.innerHeight * 0.82)); }   // not the wrap's height: on a phone the wrap grows with the stage, and the stage kept growing
+    if (!mir && Wd < 700) { sw = Wd; sh = Math.max(440, Math.round(window.innerHeight * 0.82)); }
+    if (mir) {   // shrink the board-size stage (and its shelf) to the phone's width, or its height in Board view
+        const full = sw + (se ? (se - 0.6) * Math.max(9, sw / 52) + 6 : 0), aw = w.clientWidth - 8, ah = document.body.classList.contains("board") ? w.clientHeight - 8 : Infinity;
+        const k = Math.min(aw / full, ah / sh);
+        w.style.setProperty("--mk", k); w.style.setProperty("--shx", ((sw + 0.6 * Math.max(9, sw / 52)) * k) + "px");
+        w.style.setProperty("--mx", Math.max(4, (w.clientWidth - full * k) / 2) + "px"); w.style.height = Math.round(sh * k + 8) + "px";
+    } else { ["--mk", "--shx", "--mx"].forEach((v) => w.style.removeProperty(v)); w.style.height = ""; }   // not the wrap's height: on a phone the wrap grows with the stage, and the stage kept growing
     st.style.width = sw + "px"; st.style.height = sh + "px"; st.style.fontSize = Math.max(9, sw / 52) + "px";
     { const shelf = shelfEl(), f = Math.max(9, sw / 52); shelf.hidden = !se; shelf.style.fontSize = f + "px"; shelf.style.width = ((se - 0.6) * f) + "px"; shelf.style.maxHeight = sh + "px"; shelf.style.height = sh + "px"; } fitShelf();
     { const key = se + "|" + narrowWrap(); if (key !== shelfApplied) { shelfApplied = key; layerSig = ""; setTimeout(renderLayer, 0); } }
@@ -1277,6 +1291,15 @@ export async function startApp(opts) {
     soundPanel();
     if (!guest) planFold = mountPlanFold(planApi, $("soundMenu") || $("toolsMenu"));
     $("flowNext").onclick = () => step(1); $("flowBack").onclick = () => step(-1);
+    {   // on a phone: switch between a true small copy of the board and the bigger phone-shaped view
+        const fb = document.querySelector(".flowbar"), days = $("days");
+        if (fb && days) {
+            const row = el("div", "flowtop"), tg = el("button", "mirtog"); tg.type = "button"; tg.id = "mirrorTog";
+            const lbl = () => { tg.textContent = mirrorOn ? "Bigger view" : "Board picture"; tg.setAttribute("aria-pressed", mirrorOn ? "true" : "false"); };
+            tg.onclick = () => { mirrorOn = !mirrorOn; try { localStorage.setItem(MIRROR_KEY, mirrorOn ? "on" : "off"); } catch (e) { /* this visit only */ } lbl(); shelfApplied = ""; fit(); sig = ""; render(); };
+            lbl(); days.before(row); row.append(days, tg);
+        }
+    }
     { // small arrows for full-screen Board view (hidden otherwise): tap on the Promethean, click on the Chromebook
         const nav = el("div", "bnav"), b = el("button", null, "\u2039"), f = el("button", null, "\u203A");
         b.id = "bnBack"; f.id = "bnNext"; b.type = f.type = "button";
@@ -1316,7 +1339,7 @@ export async function startApp(opts) {
     }
     writeState = writer("board/state");
     if (!guest && !(opts && opts.store)) {   // Live status: check in every 20 s, and answer the Remote's "Check now"
-        import("./presence.js?v=1").then((m) => {
+        import("./presence.js?v=2").then((m) => {
             presence = m.startPresence({ uid: user.uid, page: PAGE, mode, now,
                 snap: () => ({ screen: S.screen, screenName: screenName(S.screen), period: S.period, day: DK[S.day] || "", week: S.week,
                     panels: PANEL_LIST.filter(([k]) => S.tools.on[k]).map((x) => x[1]), look: [S.look.theme, S.look.bg, S.look.fx].join(" "), conn: ($("status") || {}).textContent || "" }) });

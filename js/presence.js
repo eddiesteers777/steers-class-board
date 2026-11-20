@@ -159,6 +159,7 @@ function mountSheet(api, host, myId) {
         // the newest change, and who has it
         let ack = "";
         if (!state || !state.at) ack = "<p>No board changes saved yet.</p>";
+        else if (!boardsOn.length && !list.some((r) => isBoard(r) && r.id !== myId)) ack = '<p class="lsbig" data-s="bad">No board has checked in.</p><p>A board page opened before this update was added keeps working, but it can only check in here after it is reloaded once.</p>';
         else {
             const from = state.by === api.page ? "this device" : esc(nameOf(rows.find((r) => r.page === state.by) || {}));
             const boards = boardsOn.filter((r) => r.id !== myId);
