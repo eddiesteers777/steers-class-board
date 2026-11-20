@@ -46,3 +46,5 @@ body.phone.console .seg.scr button{border:1.5px solid var(--c-line);border-left:
 body.phone.console .seg.scr button[aria-pressed="true"]{border-color:var(--navy);background:var(--navy);color:#fff}
 body.phone:not(.board) .rail>.fold,body.phone .rail>details,body.phone .rail>button{display:block;width:100%;margin:0 0 10px;background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:14px;padding:10px 12px}
 body.phone:not(.board) .rail>details>summary{font-weight:700;padding:4px 0}
+body.phone:not(.board) .nottoday{width:100%;padding:6px 6px 6px 12px;font-size:.9rem}
+body.phone:not(.board) .nottoday span{flex:1 1 100%}
