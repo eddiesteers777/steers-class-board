@@ -23,7 +23,9 @@ export function cleanStep(x) {
     if (!x || typeof x !== "object") return null;
     const m = Math.max(0, Math.min(60, Math.round(+x.m || 0))), ref = REFS.some((r) => r[0] === x.ref) ? x.ref : "after";
     const go = typeof x.go === "string" && /^(screen|scene):[\w-]{1,20}$/.test(x.go) ? x.go : "";
-    return go ? { m, ref, go } : null;
+    if (!go) return null;
+    const per = typeof x.p === "string" && /^[\w-]{1,8}$/.test(x.p) ? x.p : "";   // "" = every period
+    return per ? { m, ref, go, p: per } : { m, ref, go };
 }
 export function cleanPlan(d) {
     const out = { on: !!(d && d.on), plans: {} };
@@ -54,7 +56,7 @@ export function stepAt(step, bell) {
 export function todayList(api) {
     const plan = api.plan(), bells = api.bells(); if (!plan || !bells) return [];
     const { steps } = stepsFor(plan, api.bellId()), date = api.today(), out = [];
-    api.periods().forEach(([p]) => steps.forEach((step, i) => { const t = stepAt(step, bells[p]); if (t != null) out.push({ p, i, t, step, key: date + "|" + p + "|" + i + "|" + t }); }));
+    api.periods().forEach(([p]) => steps.forEach((step, i) => { if (step.p && step.p !== p) return; const t = stepAt(step, bells[p]); if (t != null) out.push({ p, i, t, step, key: date + "|" + p + "|" + i + "|" + t }); }));
     return out.sort((a, b) => a.t - b.t || a.i - b.i);
 }
 export function goLabel(go, api) {
@@ -170,7 +172,7 @@ function drawEditor(api, host, after) {
     top.appendChild(sel); host.appendChild(top);
     const own = plan.plans[edId] && plan.plans[edId].length;
     const regHas = plan.plans.regular && plan.plans.regular.length;
-    host.appendChild(el("p", "bphint", !draft.length ? "No steps yet. Tap Add a step. For example: at the bell, Find seats; 5 min after the bell, Weekly Agenda." : edId !== "regular" && !own && regHas ? "This schedule has no steps of its own, so it uses Regular's. Change them here to give it its own." : "These steps run every period on this schedule."));
+    host.appendChild(el("p", "bphint", !draft.length ? "No steps yet. Tap Add a step. For example: at the bell, Find seats; 5 min after the bell, Weekly Agenda." : edId !== "regular" && !own && regHas ? "This schedule has no steps of its own, so it uses Regular's. Change them here to give it its own." : "Steps set to Every period run each class. Pick one period to give that class its own screen or layout."));
     const list = el("div", "bplist"); host.appendChild(list);
     const bells = api.bellsFor(edId), per = api.S.period;
     const opts = [["Screens", api.screens().map(([id, n]) => ["screen:" + id, n])], ["Layouts (screen + panels)", api.layouts().map((s) => ["scene:" + s.id, s.n])]];
@@ -178,17 +180,20 @@ function drawEditor(api, host, after) {
         const r = el("div", "bpstep");
         const n = el("input"); n.type = "number"; n.min = "0"; n.max = "60"; n.step = "1"; n.value = String(st.m); n.setAttribute("aria-label", "Minutes"); n.className = "bpmin";
         n.oninput = () => { st.m = Math.max(0, Math.min(60, Math.round(+n.value || 0))); at.textContent = when(); };
-        const ref = el("select"); ref.setAttribute("aria-label", "From"); REFS.forEach(([k, t]) => { const o = el("option", null, "min " + t); o.value = k; ref.appendChild(o); }); ref.value = st.ref;
+        const ref = el("select"); ref.setAttribute("aria-label", "From"); REFS.forEach(([k, t]) => { const o = el("option", null, "min " + t.replace("the bell", "bell").replace("before class ends", "before end")); o.value = k; ref.appendChild(o); }); ref.value = st.ref;
         ref.onchange = () => { st.ref = ref.value; at.textContent = when(); };
         const go = el("select"); go.setAttribute("aria-label", "Show"); go.className = "bpgo";
         opts.forEach(([g, items]) => { const og = el("optgroup"); og.label = g; items.forEach(([v, t]) => { const o = el("option", null, t); o.value = v; og.appendChild(o); }); go.appendChild(og); });
         if (![...go.options].some((o) => o.value === st.go)) { const o = el("option", null, goLabel(st.go, api)); o.value = st.go; go.prepend(o); }
         go.value = st.go; go.onchange = () => { st.go = go.value; };
+        const pp = el("select"); pp.setAttribute("aria-label", "Which period"); pp.className = "bpper";
+        [["", "Every period"]].concat(api.periods().map(([q]) => [q, q + " only"])).forEach(([v, t]) => { const o = el("option", null, t); o.value = v; pp.appendChild(o); });
+        pp.value = st.p || ""; pp.onchange = () => { if (pp.value) st.p = pp.value; else delete st.p; at.textContent = when(); };
         const del = el("button", "btn ghost bpdel", "Remove"); del.type = "button"; del.setAttribute("aria-label", "Remove this step"); del.onclick = () => { draft.splice(i, 1); drawEditor(api, host, after); };
         const at = el("span", "bpat");
-        const when = () => { const t = stepAt(st, bells && bells[per]); return t == null ? "" : per + " period: " + nice(t); };
+        const when = () => { const q = st.p || per, t = stepAt(st, bells && bells[q]); return t == null ? "" : q + " period: " + nice(t); };
         at.textContent = when();
-        r.append(n, ref, el("span", "bparrow", "show"), go, del, at); list.appendChild(r);
+        r.append(n, ref, el("span", "bparrow", "show"), go, pp, del, at); list.appendChild(r);
     });
     const acts = el("div", "bprow"); host.appendChild(acts);
     if (draft.length < MAX_STEPS) { const add = el("button", "btn ghost", "Add a step"); add.type = "button"; add.onclick = () => { const last = draft[draft.length - 1]; draft.push({ m: last ? Math.min(60, last.m + 5) : 0, ref: "after", go: "screen:today" }); drawEditor(api, host, after); }; acts.appendChild(add); }

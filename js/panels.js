@@ -55,7 +55,9 @@ export const SCENES = [
     { id: "game", n: "Review game", d: "Game, period clock", screen: "game", on: ["period"], min: ["period"], guestless: true },
 ];
 const asScene = (sc) => (sc.on && !Array.isArray(sc.on) ? sc : { id: sc.id, n: sc.n, screen: sc.screen, work: sc.work || "", timer: sc.timer,
-    on: Object.fromEntries(sc.on.map((k) => [k, true])), min: Object.fromEntries((sc.min || []).map((k) => [k, true])), pos: {}, float: sc.float || [], order: sc.on.slice() });
+    on: Object.fromEntries(sc.on.map((k) => [k, true])), min: Object.fromEntries((sc.min || []).map((k) => [k, true])), pos: {}, float: sc.on.filter((k) => !(sc.min || []).includes(k)), order: sc.on.slice() });
+/* Built-in layouts put their panels on the board, floating (Eddie, 2026-11-20: panels show on the board first, and go to
+   the side only when he picks that). A saved layout keeps exactly where each panel was, side or board. */
 const keysOf = (o) => Object.keys(o || {}).filter((k) => o[k]).sort().join(",");
 export function sceneActive(S, raw) {
     const sc = asScene(raw), T = S.tools;
@@ -66,7 +68,7 @@ export function applyScene(S, raw, api) {
     T.on = {}; T.min = {}; T.pos = {};
     Object.keys(sc.on).filter(avail).forEach((k) => { T.on[k] = true; if (sc.min[k]) T.min[k] = true; });
     Object.keys(sc.pos || {}).forEach((k) => { if (T.on[k]) T.pos[k] = Object.assign({}, sc.pos[k]); });
-    (sc.float || []).forEach((k) => { if (T.on[k] && !T.pos[k]) T.pos[k] = api.defaultPos(k); });
+    (sc.float || []).forEach((k) => { if (T.on[k] && !T.min[k] && !T.pos[k]) T.pos[k] = (floatAt && floatAt(k, T)) || api.defaultPos(k); });
     T.order = (sc.order || []).filter((k) => T.on[k]);
     if (sc.work) T.work = sc.work;
     if (sc.timer === "bell" && !S.timers.free.running) api.timerSet(api.bellSeconds());
