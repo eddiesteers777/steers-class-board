@@ -206,14 +206,19 @@ function drawEditor(api, host, after) {
         };
         const plist = el("div", "bpplist"); pr.appendChild(plist);
         all.forEach(([k, label]) => {
-            const lab = el("label", "bpprow"); lab.appendChild(el("span", null, label));
-            const sel = el("select"); sel.setAttribute("aria-label", label);
-            STATES.forEach(([v, t]) => { const o = el("option", null, t); o.value = v; sel.appendChild(o); });
-            sel.value = (st.pn && st.pn[k]) || "";
-            sel.onchange = () => { st.pn = st.pn || {}; if (sel.value) st.pn[k] = sel.value; else delete st.pn[k]; if (!Object.keys(st.pn).length) delete st.pn; paintSum(); };
-            lab.appendChild(sel); plist.appendChild(lab);
+            // One tap: a slider turns the panel on (on the board). A small Board / Side switch picks where it sits.
+            const row = el("div", "bpprow"); row.appendChild(el("span", "bppname", label));
+            const where = el("div", "bpwhere"), wb = el("button", null, "Board"), wsd = el("button", null, "Side");
+            [wb, wsd].forEach((b) => { b.type = "button"; where.appendChild(b); });
+            const sw = el("button", "bpsw"); sw.type = "button"; sw.setAttribute("role", "switch"); sw.setAttribute("aria-label", label); sw.appendChild(el("i"));
+            const paint = () => { const v = st.pn && st.pn[k]; sw.setAttribute("aria-checked", String(!!v)); row.classList.toggle("on", !!v); where.hidden = !v;
+                wb.setAttribute("aria-pressed", String(v === "b")); wsd.setAttribute("aria-pressed", String(v === "s")); };
+            const set = (v) => { st.pn = st.pn || {}; if (v) st.pn[k] = v; else delete st.pn[k]; if (!Object.keys(st.pn).length) delete st.pn; paint(); paintSum(); };
+            sw.onclick = () => set(st.pn && st.pn[k] ? "" : "b");
+            wb.onclick = () => set("b"); wsd.onclick = () => set("s");
+            row.append(where, sw); plist.appendChild(row); paint();
         });
-        plist.appendChild(el("p", "bpphint", "Only the panels set to On board or On side show at this step. Leave them all Off to keep the board's panels as they are."));
+        plist.appendChild(el("p", "bpphint", "Only the panels switched on show at this step. Leave them all off to keep the board's panels as they are."));
         paintSum();
         pr.hidden = !st.go.startsWith("screen:");
         go.onchange = () => { st.go = go.value; pr.hidden = !st.go.startsWith("screen:"); if (pr.hidden) delete st.pn; };

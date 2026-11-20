@@ -21,7 +21,7 @@ import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as dra
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=85";
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=11";
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
-import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=4";
+import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=5";
 import { cleanChart, cleanPeriod, cleanView, seatCount, drawRoom } from "./seats.js?v=7";
 
 const $ = (id) => document.getElementById(id);
