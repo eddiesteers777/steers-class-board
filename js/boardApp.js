@@ -13,7 +13,7 @@ let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
 import { tickTools, defaultTools, mergeTools, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=59";
-import { buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal } from "./panels.js?v=8";
+import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal } from "./panels.js?v=9";
 import * as snd from "./sound.js?v=59";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
@@ -1058,18 +1058,24 @@ function renderLayer() {
         w.style.left = p.x + "%"; w.style.top = p.y + "%"; w.style.fontSize = p.s + "em";
         const h = w.querySelector("h3"), tail = el("span", "hbtns");
         tail.appendChild(hbtn("min", "Minimize " + labelOf(k), () => minimize(k)));
-        if (canDock && k !== "groups") tail.appendChild(hbtn("dock", "Put it back on the shelf", () => { delete T.pos[k]; panelOn(T, k); push(); }, "pop"));
+        if (canDock && k !== "groups") tail.appendChild(hbtn("dock", "Put it back on the shelf", () => { delete T.pos[k]; panelOn(T, k, { dock: true }); push(); }, "pop"));
         tail.appendChild(hbtn("x", "Close " + labelOf(k), () => { panelOff(T, k); push(); }));
         h.appendChild(tail);
-        const grip = el("span", "grip"); grip.setAttribute("aria-hidden", "true"); w.appendChild(grip);
+        const grips = ["nw", "ne", "sw", "se"].map((c) => { const g = el("span", "grip g-" + c); g.dataset.c = c; g.setAttribute("aria-hidden", "true"); w.appendChild(g); return g; });
         const start = (e, kind) => {
             if (e.target.closest && e.target.closest("button")) return; e.preventDefault(); dragging = true; w.classList.add("moving");
-            const r = stage.getBoundingClientRect(), p0 = Object.assign({}, posOf(k)), sx = e.clientX, sy = e.clientY, w0 = w.getBoundingClientRect().width; let cur = Object.assign({}, p0), dock = false;
+            const r = stage.getBoundingClientRect(), p0 = Object.assign({}, posOf(k)), sx = e.clientX, sy = e.clientY, b0 = w.getBoundingClientRect(), w0 = b0.width, h0 = b0.height; let cur = Object.assign({}, p0), dock = false;
+            const corner = kind === "size" ? (e.currentTarget.dataset.c || "se") : "", gx = corner.includes("w") ? -1 : 1, gy = corner.includes("n") ? -1 : 1;
             const move = (ev) => {
                 if (kind === "move") {
                     cur.x = Math.min(95, Math.max(0, p0.x + (ev.clientX - sx) / r.width * 100)); cur.y = Math.min(92, Math.max(0, p0.y + (ev.clientY - sy) / r.height * 100)); w.style.left = cur.x + "%"; w.style.top = cur.y + "%";
                     dock = canDock && k !== "groups" && !shelf.hidden && inside(shelf.getBoundingClientRect(), ev); shelf.classList.toggle("dropok", dock);
-                } else { cur.s = Math.min(3, Math.max(0.5, p0.s * (w0 + ev.clientX - sx) / w0)); w.style.fontSize = cur.s + "em"; }
+                } else {   // any corner: grow away from the opposite corner, which stays put
+                    const dx = (ev.clientX - sx) * gx, dy = (ev.clientY - sy) * gy * (w0 / Math.max(1, h0)), d = Math.abs(dx) >= Math.abs(dy) ? dx : dy;
+                    cur.s = Math.min(3, Math.max(0.5, p0.s * (w0 + d) / w0)); const k2 = cur.s / p0.s;
+                    cur.x = gx < 0 ? Math.max(0, p0.x + (w0 - w0 * k2) / r.width * 100) : p0.x; cur.y = gy < 0 ? Math.max(0, p0.y + (h0 - h0 * k2) / r.height * 100) : p0.y;
+                    w.style.fontSize = cur.s + "em"; w.style.left = cur.x + "%"; w.style.top = cur.y + "%";
+                }
             };
             const end = (ev) => {
                 window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", end); window.removeEventListener("pointercancel", end); dragging = false; w.classList.remove("moving"); shelf.classList.remove("dropok");
@@ -1081,7 +1087,7 @@ function renderLayer() {
             };
             window.addEventListener("pointermove", move); window.addEventListener("pointerup", end); window.addEventListener("pointercancel", end);
         };
-        h.addEventListener("pointerdown", (e) => start(e, "move")); grip.addEventListener("pointerdown", (e) => start(e, "size"));
+        h.addEventListener("pointerdown", (e) => start(e, "move")); grips.forEach((g) => g.addEventListener("pointerdown", (e) => start(e, "size")));
         w.addEventListener("pointerdown", () => { w.style.zIndex = String(++topZ); });
         layer.appendChild(w);
     });
@@ -1396,6 +1402,8 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
+    // New panels float on the board at their usual spot, moved down and right a little if another panel is already there.
+    setFloatDefault((k, T) => { const p = toolApi.defaultPos(k); let n = 0; while (n < 8 && Object.keys(T.pos).some((o) => o !== k && Math.abs(T.pos[o].x - p.x) < 4 && Math.abs(T.pos[o].y - p.y) < 4)) { p.x = Math.min(80, p.x + 5); p.y = Math.min(70, p.y + 6); n++; } return p; });
     if (opts && Array.isArray(opts.weeks) && opts.weeks.length) WEEKS = opts.weeks;
     if (opts && Array.isArray(opts.periods) && opts.periods.length) PERIODS = opts.periods;
     store = (opts && opts.store) || await import("./boardStore.js?v=58");
