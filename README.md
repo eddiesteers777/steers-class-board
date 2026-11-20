@@ -30,6 +30,9 @@ The Notes box on Quick lesson takes a PDF (up to 20 pages). `js/pdfNotes.js` dra
 ## Student games left open
 The Remote closes a Vault Raid room or live notes session that nobody has touched for 24 hours the next time it opens (js/liveRoom.js, js/liveNotes.js, `LEFT_OPEN`). Closing deletes the room and the students' names and answers, the same as tapping Close.
 
+## Students (one tab row)
+Student Progress, Grades, Assignments, Class Data and Student Work share one "Students" tab row at the top (`js/studentsNav.js`), and Home's side panel has one Students link. They stay separate pages, so old links work. Progress and Grades share the period picked (`anchorboard-students-period` in the browser).
+
 ## Your data (account.html)
 Settings on Home links to `account.html`: a count of everything the account saved, and "Delete all my data" (type DELETE). `js/accountData.js` deletes every document under `teacher/{uid}/` (its `COLLECTIONS` list), any student game room the teacher left open, and the posted Class Pages under `pub/{uid}/`, then signs out. **When a new folder is added under `teacher/{uid}/`, add it to `COLLECTIONS`.**
 

@@ -6,6 +6,7 @@
    Nothing here is student-visible, and nothing goes on the board.
    ?demo: made-up students in this tab only (js/gradesDemo.js), nothing is saved.
 ========================================== */
+import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=1";
 import * as G from "./gradeCore.js?v=1";
 import { shortNames } from "./vaultCore.js?v=75";
 import { buildProgress, BAND_WORD } from "./progress.js?v=2";
@@ -30,12 +31,12 @@ export async function mountGrades() {
     const CLS = Object.fromEntries(PER);
     const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
 
-    const S = { period: remember("period") || PER[0][0], term: +remember("term") || G.termOf(G.isoDay(), TERMS) || 1, view: "table", item: "", focus: "" };
+    const S = { period: [sharedPeriod(""), remember("period")].find((p) => p && PER.some((x) => x[0] === p)) || PER[0][0], term: +remember("term") || G.termOf(G.isoDay(), TERMS) || 1, view: "table", item: "", focus: "" };
     if (!CLS[S.period]) S.period = PER[0][0];
     const D = { rosters: null, setupRaw: null, items: null, skip: [], hand: new Map(), asgIndex: [], asg: new Map(), dataIndex: null, imports: new Map() };
 
     // ---------- controls ----------
-    PER.forEach(([p]) => { const b = btn(null, p + " period", () => { S.period = p; remember("period", p); if (S.view === "item") S.view = "table"; draw(); }); b.dataset.k = p; $("periodTabs").append(b); });
+    PER.forEach(([p]) => { const b = btn(null, p + " period", () => { S.period = p; remember("period", p); saveSharedPeriod(p); if (S.view === "item") S.view = "table"; draw(); }); b.dataset.k = p; $("periodTabs").append(b); });
     TERMS.forEach((t) => { const o = el("option", null, ord(t.n) + " nine weeks"); o.value = t.n; $("term").append(o); });
     $("term").value = S.term; $("term").onchange = () => { S.term = +$("term").value; remember("term", S.term); if (S.view === "item") S.view = "table"; draw(); };
     [...$("views").children].forEach((b) => { b.onclick = () => { S.view = b.dataset.v; draw(); }; });

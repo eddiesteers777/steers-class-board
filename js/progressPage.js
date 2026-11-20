@@ -4,6 +4,7 @@
    js/progress.js and draws one view at a time: Today, Class, Students, Questions.
    ?demo fills a this-tab store with made-up students (js/progressDemo.js) and saves nothing.
 ========================================== */
+import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=1";
 import { buildProgress, distribution, standardOverTime, needGroups, missedOn, heatmap, engagement, fidelity, studentSummary, stdIn, BAND_WORD } from "./progress.js?v=2";
 import { lineChart, sparkline, bandBar, meter } from "./charts.js?v=1";
 import { STANDARDS } from "../data/standards.js?v=57";
@@ -25,12 +26,12 @@ export async function mountProgress() {
     const CLS = Object.fromEntries(PER), PERIODS = PER.map(([p, c]) => [p, (STANDARDS[c] && STANDARDS[c].label) || c]);
     const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
 
-    const S = { period: remember("period") || "1st", view: remember("view") || "today", game: "", sort: "need", std: "" };
+    const S = { period: [sharedPeriod(""), remember("period")].find((p) => p && PERIODS.some((x) => x[0] === p)) || "1st", view: remember("view") || "today", game: "", sort: "need", std: "" };
     if (!CLS[S.period]) S.period = PER[0][0];
     const D = { rosters: {}, marks: {}, index: null, imports: new Map(), results: [], pindex: null, details: new Map(), tally: new Map() };
 
     // ---------- controls ----------
-    PERIODS.forEach(([k, label]) => { const b = el("button", null, k + " period"); b.type = "button"; b.dataset.k = k; b.title = label; b.onclick = () => { S.period = k; S.game = ""; S.std = ""; remember("period", k); draw(); }; $("periodTabs").appendChild(b); });
+    PERIODS.forEach(([k, label]) => { const b = el("button", null, k + " period"); b.type = "button"; b.dataset.k = k; b.title = label; b.onclick = () => { S.period = k; S.game = ""; S.std = ""; remember("period", k); saveSharedPeriod(k); draw(); }; $("periodTabs").appendChild(b); });
     $("cut").value = remember("cut") || "0.7";
     $("cut").onchange = () => { remember("cut", $("cut").value); draw(); };
     [...$("views").children].forEach((b) => { b.onclick = () => { S.view = b.dataset.v; remember("view", S.view); draw(); }; });
