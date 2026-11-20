@@ -220,7 +220,14 @@ body.board .toolchips,body.board .msgin,body.board .minis.setup{display:none}
 .float h3{display:flex;align-items:center;justify-content:space-between;cursor:grab;touch-action:none;user-select:none}
 .float h3:active{cursor:grabbing}
 .float .close{background:transparent;border:0;color:var(--on);font-size:1.2em;line-height:1;padding:0 .2em;opacity:.8}
-.float .grip{position:absolute;right:0;bottom:0;width:1.4em;height:1.4em;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 55%,var(--sky) 55%,var(--sky) 65%,transparent 65%,transparent 75%,var(--sky) 75%,var(--sky) 85%,transparent 85%);border-bottom-right-radius:.7em}
+/* Resize from any of the four corners: round handles that sit on the corners, big enough for a finger on the board. */
+.float .grip{position:absolute;width:1.5em;height:1.5em;border-radius:50%;background:#fff;border:.22em solid var(--sky,#7FAEDD);box-shadow:0 .1em .4em rgba(4,12,34,.35);touch-action:none;z-index:3;opacity:.6;transition:opacity .2s}
+.float .grip::before{content:"";position:absolute;inset:-.6em;border-radius:50%}
+.float .grip.g-nw{left:-.75em;top:-.75em;cursor:nwse-resize}
+.float .grip.g-ne{right:-.75em;top:-.75em;cursor:nesw-resize}
+.float .grip.g-sw{left:-.75em;bottom:-.75em;cursor:nesw-resize}
+.float .grip.g-se{right:-.75em;bottom:-.75em;cursor:nwse-resize}
+.float.moving .grip,.float:hover .grip{opacity:1}
 .float .in{padding:.6em .7em .9em}
 .float .lights{height:11em;max-height:none}
 .strip .toolchips{font-size:.85rem}
@@ -296,3 +303,4 @@ body.board .goalin{display:none}
 /* Lost connection on the projected board (the header is hidden there). Small, bottom centre, clear of the Back/Next arrows and Show controls. */
 .connpill{display:none}
 body.board .connpill:not([hidden]){display:block;position:fixed;left:50%;transform:translateX(-50%);bottom:10px;z-index:5;background:#FBE9EA;color:#8E1B21;border-radius:999px;padding:6px 14px;font-weight:600;font-size:.9rem;box-shadow:0 8px 32px rgba(8,27,69,.12)}
+.card.float{overflow:visible}

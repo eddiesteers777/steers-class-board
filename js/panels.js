@@ -82,7 +82,15 @@ export function saveScene(S, name) {
 }
 
 /* ---------- turning panels on, off, smaller ---------- */
-export function panelOn(T, k) { T.on[k] = true; delete T.min[k]; T.order = T.order.filter((x) => x !== k).concat([k]); }
+/* A panel turned on by itself (Quick panels, the Panels sheet, the rail) lands on the board, floating over the lesson,
+   where the class can see it right away (Eddie, 2026-11-19). Layouts still place panels their own way, and
+   "Put it back on the shelf" passes { dock: true }. boardApp.js gives the spot for each panel. */
+let floatAt = null;
+export function setFloatDefault(fn) { floatAt = fn; }
+export function panelOn(T, k, opts) {
+    const fresh = !T.on[k]; T.on[k] = true; delete T.min[k]; T.order = T.order.filter((x) => x !== k).concat([k]);
+    if (fresh && !(opts && opts.dock) && floatAt && !T.pos[k]) { const p = floatAt(k, T); if (p) T.pos[k] = p; }
+}
 export function panelOff(T, k) { delete T.on[k]; delete T.min[k]; delete T.pos[k]; T.order = T.order.filter((x) => x !== k); }
 export function panelToggle(T, k) { if (T.on[k] && !T.min[k]) panelOff(T, k); else panelOn(T, k); }
 /** Shelf order: the saved order first, then any other panels in list order. */
