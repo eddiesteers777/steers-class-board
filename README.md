@@ -108,6 +108,8 @@ Two Claude threads (school account and personal account) push to `main`. Fetch a
 
 ## Hosting + Google
 
-- Live: https://anchorboard.web.app/ via Firebase Hosting (free Spark plan), and via GitHub Pages (https://eddiesteers777.github.io/steers-class-board/) as a fallback. The Firebase Hosting site `anchorboard` already exists; no custom domain is used and nothing needs to be bought. The old focalboard.web.app address is frozen at the Nov 18 release and no longer receives deploys.
+- Live: https://anchorboard.web.app/ via Firebase Hosting (free Spark plan), and via GitHub Pages (https://eddiesteers777.github.io/steers-class-board/) as a fallback. The Firebase Hosting site `anchorboard` already exists; no custom domain is used and nothing needs to be bought. The old focalboard.web.app address forwards every page to anchorboard.web.app (`hosting-redirect/`, its own deploy step).
+- Each push to `main` also publishes `firestore.rules` to the live database (`.github/workflows/firebase-hosting-deploy.yml`). Change rules here, never in the console, or the next deploy overwrites the console.
+- Hosting skips `*.md`, `*.log`, `*.patch`, `firestore.rules`, `tools/` and `functions/` (see `firebase.json`), so work notes are not public on the site. The repo itself is still public on GitHub.
 - Google Search Console: property for the Pages URL, verified by HTML file, sitemap submitted. Google indexes only the public pages (`/` and `home.html`); every app page carries `noindex` and the classroom content sits behind teacher sign-in, so it is not searchable.
 - SEO files in repo: `robots.txt`, `sitemap.xml`, `favicon.svg` + `icons/icon-192.png` / `icon-512.png` / `icon-maskable-512.png` (navy "S"), canonical + Open Graph tags on `index.html` and `home.html`, WebSite JSON-LD on `home.html`.
