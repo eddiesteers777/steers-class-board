@@ -21,7 +21,6 @@
         <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Anchor Board</b><small id="who">For teachers</small></span></a>
         <span class="live" id="status" role="status">Connecting…</span>
         <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
-        <a class="btn ghost" href="review.html" style="text-decoration:none">Week Review</a>
     </header>
     <main>
         <h1>Plan the Week</h1>
@@ -49,5 +48,6 @@
     </main>
     <datalist id="pwTemplates"><option value="Guided notes"><option value="Practice"><option value="Speed dating"><option value="Review game"><option value="Stations"><option value="Practice + study guide"><option value="Reteach + practice"><option value="Quiz"><option value="Test"><option value="Review"></datalist>
     <script type="module" src="js/plan.js?v=61"></script>
+    <script type="module">import { mountPlanNav } from "./js/studentsNav.js?v=2"; mountPlanNav("plan.html");</script>
 </body>
 </html>
