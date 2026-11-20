@@ -459,6 +459,9 @@ async function readCall(data) {
     }
     return (await callRead(data)).data;
 }
+// Off until it is set up (it needs the paid Blaze plan and a Claude API key). Open work.html?claudenames=on once to show it.
+if (params.get("claudenames")) remember("claudenames", params.get("claudenames") === "on" ? "on" : "");
+$("mRead").hidden = !demo && remember("claudenames") !== "on";
 $("mRead").onclick = async () => {
     const r = roster(match.per); if (!r.length) { $("mReadNote").textContent = "Add this period's roster first."; return; }
     const btn = $("mRead"), note = (t) => { $("mReadNote").textContent = t; };
