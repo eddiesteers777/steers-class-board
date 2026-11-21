@@ -27,6 +27,7 @@ export const COLLECTIONS = [
     ["work", "Student Work (scanned papers)"],
     ["rosters", "Rosters"],
     ["tally", "Behavior tally"],
+    ["track", "Class Tracker"],
     ["settings", "Settings, bell times and your classes"],
     // Added 2026-11-21: these folders were missing, so "Delete all my data" left them behind.
     ["asg", "Assignments"],

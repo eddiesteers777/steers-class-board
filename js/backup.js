@@ -26,7 +26,7 @@ import { shortNames } from "./vaultCore.js?v=75";
 
 // Every top-level folder under teacher/{uid}/ (keep in step with js/accountData.js COLLECTIONS).
 export const BACKUP_COLLECTIONS = ["board", "ink", "games", "weekfiles", "pdfs", "pdfpages", "plans", "planner", "standards", "closeout",
-    "data", "work", "rosters", "tally", "settings", "asg", "gb", "progress", "seats", "walk"];
+    "data", "work", "rosters", "tally", "track", "settings", "asg", "gb", "progress", "seats", "walk"];
 const ORD = ["", "1st", "2nd", "3rd", "4th"];
 const NW = SCHOOL_YEAR.nineWeeks;
 const DUE_DAYS = 7;

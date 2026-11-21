@@ -31,3 +31,14 @@
 .pfKHead p{margin:2px 0 0;color:var(--c-mute)}
 .pfLine{color:var(--c-ink);font-weight:600}
 @media (max-width:640px){.pfRow{grid-template-columns:44px 1fr;row-gap:8px}.pfMid,.pfStats{grid-column:1 / -1}}
+/* One place per student (Nov 21): games, then In class (Class Tracker), then Class work (Student Work) */
+.pfSec{font-family:var(--display);font-size:1.05rem;margin:18px 0 6px}
+.pfIn{border-top:1px solid var(--c-line);margin-top:14px;padding-top:2px}
+.pfIn .btn{display:inline-flex;align-items:center;min-height:44px;text-decoration:none;margin-top:6px}
+.pfLine.small{font-weight:400;font-size:13px;color:var(--c-mute)}
+.pfTagRow{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.pfTag{font-size:13px;font-weight:600;padding:4px 10px;border-radius:999px}
+.pfTag.pos{background:#E3F5EC;color:#0F6B40}
+.pfTag.neg{background:#FBE9EA;color:#8E1B21}
+.pfNote{margin:4px 0;font-size:14px;line-height:1.5}
+.pfNote.miss{color:#8E1B21}

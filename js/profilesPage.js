@@ -7,6 +7,7 @@
 import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=3";
 import { shortNames } from "./vaultCore.js?v=75";
 import * as PC from "./profileCore.js?v=2";
+import * as TC from "./trackCore.js?v=1";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -72,7 +73,7 @@ export async function mountProfiles() {
                 const bar = el("div", "pfBar"), f = el("i"); f.style.width = (s.next ? s.next.pct : 0) + "%"; bar.append(f); mid.append(bar); b.append(mid);
                 const st = el("div", "pfStats"); st.append(el("span", null, s.xp + " XP"), el("span", null, s.coins + " coins"), el("span", null, s.b.length + (s.b.length === 1 ? " badge" : " badges"))); b.append(st);
                 b.onclick = () => openKid(r.nm, r.kid);
-            } else b.disabled = true;
+            } else b.onclick = () => openKid(r.nm, null);   // no games yet, but class notes and papers can still be there
             list.append(b);
         });
         out.append(list);
@@ -91,7 +92,17 @@ export async function mountProfiles() {
     }
     function pctCell(v) { const td = el("td", "pfPct " + (v >= 80 ? "ok" : v >= 60 ? "mid" : "low")); td.textContent = v + "% " + (v >= 80 ? "✓" : v >= 60 ? "~" : "!"); return td; }
     function openKid(nm, kid) {
-        const d = $("kid"), s = PC.summary(kid); d.textContent = "";
+        const d = $("kid"); d.textContent = "";
+        history.replaceState(null, "", "?kid=" + encodeURIComponent(nm) + "&per=" + encodeURIComponent(S.period) + (demo ? "&demo" : ""));
+        if (!kid) {   // no game profile yet: still one place for class notes and papers
+            const head = el("div", "pfKHead"); head.append(el("span", "pfLv big", "–"));
+            const t = el("div"); t.append(el("h2", null, nm), el("p", null, "No games saved to this profile yet.")); head.append(t);
+            const x = el("button", "btn ghost", "Close"); x.type = "button"; x.onclick = () => d.close(); head.append(x); d.append(head);
+            d.querySelector("h2").id = "kidName";
+            d.append(inClass(nm), classWork(nm));
+            d.showModal(); return;
+        }
+        const s = PC.summary(kid);
         const head = el("div", "pfKHead"); head.append(el("span", "pfLv big", String(s.lv)));
         const t = el("div"); t.append(el("h2", null, nm), el("p", null, "Level " + s.lv + " · " + s.xp + " XP · " + s.coins + " coins banked (" + s.bank + " earned) · " + s.g + " games")); head.append(t);
         const x = el("button", "btn ghost", "Close"); x.type = "button"; x.onclick = () => d.close(); head.append(x); d.append(head);
@@ -106,9 +117,60 @@ export async function mountProfiles() {
             tr.append(el("td", null, r.l), el("td", null, String(r.a)), el("td", null, r.r + (r.tr ? " (" + r.tr + " with team)" : "") + " · " + r.pct + "%"), dots, el("td", null, String(r.d)), wk, el("td", null, r.m ? "Cracked " + fmtDay(r.m) : r.prog + "%"));
             tb.append(tr);
         });
-        const wrap = el("div", "pfTableWrap"); wrap.append(tb); d.append(wrap);
+        const wrap = el("div", "pfTableWrap"); wrap.append(tb); d.append(el("h3", "pfSec", "Games"), wrap);
+        d.append(inClass(nm), classWork(nm));
         d.showModal();
     }
+    // Every document read once (the page only reads).
+    const once = (path) => new Promise((res) => { let done = false, un = null; un = store.watch(path, (s) => { if (done || s.pending) return; done = true; res(s.exists ? s.data : null); if (un) setTimeout(un, 0); }, () => { if (!done) { done = true; res(null); } }); });
+    const TRACK = new Map(); let TAGS = null;
+    /** In class: the Class Tracker's last six weeks for this student (behaviour, kept apart from the game level). */
+    function inClass(nm) {
+        const sec = el("section", "pfIn"); sec.append(el("h3", "pfSec", "In class (Class Tracker)"), el("p", "pfLine", "Loading the last six weeks\u2026"));
+        (async () => {
+            if (!TAGS) TAGS = TC.cleanTags(await once("settings/track"));
+            const want = [];
+            for (let i = 0; i < 42; i++) { const x = new Date(); x.setDate(x.getDate() - i); const k = TC.localIso(x); if (!TRACK.has(k)) want.push(k); }
+            await Promise.all(want.map((k) => once("track/" + k).then((t) => TRACK.set(k, t && t.ev ? Object.assign({ day: k }, t) : null))));
+            const h = TC.kidHistory([...TRACK.values()].filter(Boolean), S.period, nm, TAGS);
+            sec.textContent = ""; sec.append(el("h3", "pfSec", "In class (Class Tracker)"));
+            if (!h.days.length) sec.append(el("p", "pfLine", "Nothing from the Class Tracker in the last six weeks."));
+            else {
+                sec.append(el("p", "pfLine", h.good + " positive · " + h.work + " needs work · " + h.rr + (h.rr === 1 ? " restroom trip" : " restroom trips") + (h.rr ? " (" + h.rrMins + " min)" : "") + " · " + h.absent + " absent · " + h.picks + " times called on"));
+                const tags = TAGS.filter((t) => h.tags[t.k]).sort((a, b) => b.s - a.s || h.tags[b.k] - h.tags[a.k]);
+                if (tags.length) { const row = el("div", "pfTagRow"); tags.forEach((t) => row.append(el("span", "pfTag " + (t.s > 0 ? "pos" : "neg"), t.l + " \u00d7" + h.tags[t.k]))); sec.append(row); }
+                h.notes.slice(0, 6).forEach((x) => sec.append(el("p", "pfNote", fmtDay(x.day) + ": " + x.t)));
+                if (h.notes.length > 6) sec.append(el("p", "pfLine", (h.notes.length - 6) + " older notes in the Class Tracker."));
+            }
+            sec.append(el("p", "pfLine small", "Behaviour notes are yours only. They never change a level, XP or score, and students never see them."));
+            const a = el("a", "btn ghost", "Open in Class Tracker"); a.href = "tracker.html?per=" + encodeURIComponent(S.period) + "&kid=" + encodeURIComponent(nm) + (demo ? "&demo" : ""); sec.append(a);
+        })();
+        return sec;
+    }
+    /** Class work: papers filed for this student on the Student Work page. */
+    let WORK = null;
+    function classWork(nm) {
+        const sec = el("section", "pfIn"); sec.append(el("h3", "pfSec", "Class work (Student Work)"), el("p", "pfLine", "Loading papers\u2026"));
+        (async () => {
+            if (!WORK) { const idx = await once("work/index"); WORK = await Promise.all(((idx && idx.sets) || []).filter((x) => x && x.id).map((x) => once("work/s_" + x.id).then((s) => s || x))); }
+            const sets = WORK.filter((x) => x.period === S.period);
+            const mine = sets.map((x) => ({ x, n: (x.pages || []).filter((p) => p.s === nm && !p.gone).length })), turned = mine.filter((m) => m.n), missing = mine.filter((m) => !m.n && m.x.kind !== "kept" && !m.x.cleared);
+            sec.textContent = ""; sec.append(el("h3", "pfSec", "Class work (Student Work)"));
+            if (!sets.length) sec.append(el("p", "pfLine", "No papers scanned for " + S.period + " period yet."));
+            else {
+                sec.append(el("p", "pfLine", turned.length + (turned.length === 1 ? " paper" : " papers") + " filed · " + missing.length + " not turned in"));
+                turned.sort((a, b) => String(b.x.date).localeCompare(String(a.x.date))).slice(0, 4).forEach((m) => sec.append(el("p", "pfNote", fmtDay(m.x.date) + ": " + (m.x.title || "Paper") + " (" + m.n + (m.n === 1 ? " page)" : " pages)"))));
+                if (missing.length) sec.append(el("p", "pfNote miss", "Not turned in: " + missing.slice(0, 4).map((m) => m.x.title || "Paper").join(", ") + (missing.length > 4 ? " and " + (missing.length - 4) + " more" : "")));
+            }
+            const a = el("a", "btn ghost", "Open their folder"); a.href = "work.html?kid=" + encodeURIComponent(nm) + "&per=" + encodeURIComponent(S.period) + (demo ? "&demo" : ""); sec.append(a);
+        })();
+        return sec;
+    }
+    // tracker.html and other pages link here with ?kid=&per=
+    const Q = new URLSearchParams(location.search), wantKid = Q.get("kid"), wantPer = Q.get("per");
+    if (wantKid) { if (wantPer && PER.some((x) => x[0] === wantPer)) { S.period = wantPer; watchPeriod(); }
+        let tries = 0; const t = setInterval(() => { const k = PC.perKey(S.period); if (D.got[k] || ++tries > 40) { clearInterval(t); draw(); openKid(wantKid, (D.kids[k] || {})[PC.kidKey(wantKid)] || null); } }, 150); }
+    $("kid").addEventListener("close", () => history.replaceState(null, "", demo ? "?demo" : location.pathname));
     function empty(h, p, label, href) { const box = el("div", "pgEmpty"); box.append(el("h2", null, h), el("p", null, p)); const a = el("a", "btn go", label); a.href = href; box.append(a); return box; }
     draw();
 }
