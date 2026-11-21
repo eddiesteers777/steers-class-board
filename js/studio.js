@@ -9,6 +9,7 @@
    It is the Remote with a builder rail: the stage is the real board (js/boardApp.js), every change
    is the same shared state, so the projected board follows as you build. "Save this board" keeps the
    look, panels, stickers and screen as one layout that the Remote, the board and the bell timeline can use.
+   Slides (the switch in the header): the teacher's own slides for each lesson, Google Slides-style (js/slideEditor.js).
 ========================================== */
 import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MAX_SCENES, MAX_DAYB } from "./boardTools.js?v=60";
 import { SCENES, sceneActive, applyScene, saveScene, panelOn, panelOff, panelToggle, PANEL_INFO, labelOf, icon, LOOK_THEMES, LOOK_BGS, LOOK_PRESETS,
@@ -41,10 +42,42 @@ const head = (t, hint) => { const f = document.createDocumentFragment(); f.appen
 const nameOf = (list, id) => (list.find((x) => x[0] === id) || [id, id])[1];
 const pushNow = () => { A.push(); refresh(); };
 
+/* ---------- Board | Slides ----------
+   Slides opens the slide editor in place of the board (js/slideEditor.js, loaded the first time). It has its own
+   week, class and day, so building next week's slides never moves the live board; "Show on board" is the one way across.
+   The address keeps the lesson (#slides/<week>/<class>/<day>), so a reload or a link from the board opens the same slides. */
+let mode = "board", editor = null, wantSlides = null;
+function lessonFromHash() {
+    const m = /^#slides(?:\/([^/]*)\/([^/]*)\/([0-4]))?$/.exec(location.hash || ""); if (!m) return null;
+    try { return m[1] ? { week: decodeURIComponent(m[1]), cls: decodeURIComponent(m[2]), day: +m[3] } : {}; } catch (e) { return {}; }
+}
+function setMode(m, at) {
+    mode = m === "slides" ? "slides" : "board";
+    try { sessionStorage.setItem("anchorboard-studio-mode", mode); } catch (e) { /* this visit only */ }
+    document.body.classList.toggle("slidemode", mode === "slides");
+    document.querySelectorAll("#modeSwitch button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
+    const app = $("slideApp"); if (!app) return;
+    if (mode === "slides") {
+        app.hidden = false;
+        if (!A.synced()) { wantSlides = at || {}; return; }   // open on the lesson the board is on, once that has arrived
+        import("./slideEditor.js?v=1").then((mod) => { editor = mod; if (mode === "slides") mod.openEditor(A, app, at && at.week ? at : null); })
+            .catch(() => { app.textContent = "The slide editor did not load. Check the connection and reload the page."; });
+    } else {
+        app.hidden = true; wantSlides = null;
+        if (editor) editor.closeEditor();
+        if (/^#slides/.test(location.hash)) { try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* the address is a convenience */ } }
+        setTimeout(() => { A.fit(); A.redraw(); }, 0);
+    }
+}
+
 /* ---------- the hooks boardApp.js calls ---------- */
 export const studio = {
     ready(api) {
         A = api;
+        document.querySelectorAll("#modeSwitch button").forEach((b) => { b.onclick = () => setMode(b.dataset.mode); });
+        { const at = lessonFromHash(); let m = "board"; try { m = sessionStorage.getItem("anchorboard-studio-mode") || "board"; } catch (e) { /* board */ }
+            if (at) setMode("slides", at); else if (m === "slides") setMode("slides"); }
+        window.addEventListener("hashchange", () => { const at = lessonFromHash(); if (at && at.week) setMode("slides", at); });
         try { const s = sessionStorage.getItem("anchorboard-studio-step"); if (STEPS.some((x) => x[0] === s)) step = s; } catch (e) { /* first step */ }
         drawSteps(); showStep(step);
         $("saveForm").onsubmit = (e) => { e.preventDefault(); saveBoard(); };
@@ -60,7 +93,12 @@ export const studio = {
         });
         refresh();
     },
-    render() { if (A) refresh(); },
+    render() {
+        if (!A) return;
+        if (wantSlides && A.synced()) { const at = wantSlides; wantSlides = null; setMode("slides", at); }
+        if (mode === "slides") { if (editor) editor.weeksChanged(); return; }   // the board is hidden: nothing on the rail to redraw
+        refresh();
+    },
     selected() { return pick && pick.kind === "sticker" ? pick.id : ""; },
     /** Something on the board was picked (or nothing, with null). Never rebuilds the board: a drag may be starting. */
     pick(kind, id) {

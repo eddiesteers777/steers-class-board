@@ -6,6 +6,10 @@ Live at https://anchorboard.web.app/ — the free Firebase address. No custom do
 - `index.html` home: this week, with Open Remote and Open Board.
 - `remote.html` the Chromebook: pick class, day and screen, run timers, show answers.
 - `board.html` the Promethean: full screen, follows the Remote.
+- `studio.html` the Board Builder. **Board** builds the board's look, panels and stickers; **Slides** builds a lesson's
+  slides like Google Slides (`js/slideEditor.js`; `js/slides.js` the slide model, `js/slideView.js` the drawing).
+  Saved under `teacher/{uid}/slides/` (one record per week|class|day, `daily` for every-day slides, `index`) and
+  `teacher/{uid}/slideimg/` (pictures).
 - `js/boardApp.js` the app (screens, timers, whiteboard). `js/boardStore.js` saves live state under `teacher/{uid}/` in Firestore.
 - `data/weekN.js` one file of lesson content per week; `data/weeks.js` lists them.
 
