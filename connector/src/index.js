@@ -17,6 +17,7 @@ import { z } from "zod";
 import { googleAuthUrl, googleExchange, firebaseSignIn, firebaseIdToken, s256 } from "./auth.js";
 import { teacherStore } from "./firestore.js";
 import * as T from "./tools.js";
+import * as S from "./siteTools.js";
 
 const SCOPE = "work";
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => "&#" + c.charCodeAt(0) + ";");
@@ -48,7 +49,7 @@ async function authorize(req, env) {
 <p>${d.clientDomain ? "From <b>" + esc(d.clientDomain) + "</b>. " : ""}Access goes to <b>${esc(d.redirectHost)}</b>.</p>
 ${d.redirectIsLoopback ? "<p><b>This sends access to an app on this computer.</b> Continue only if you just started connecting from it.</p>" : ""}
 <p>It will be able to:</p>
-<ul><li>see your Student Work stacks, rosters and scanned pages</li><li>put student names on pages (you check them on the site)</li></ul>
+<ul><li>read your Anchor Board data: week plans, Student Work, rosters, grades and Class Data</li><li>put student names on scanned pages, and save finished weeks for Week Review (you check both on the site)</li></ul>
 <p>It cannot delete anything. Next you sign in with Google; only the Anchor Board teacher account is let in.</p>
 <form method="post"><input type="hidden" name="handle" value="${esc(consent.handle)}">
 <div class="row"><button class="go" name="decision" value="approve">Continue to Google</button><button name="decision" value="deny">Cancel</button></div></form>`, consent.headers);
@@ -115,6 +116,8 @@ function buildServer(env, props) {
         instructions: "Anchor Board is a middle school math teacher's class site. Student Work holds scanned class stacks: one stack per assignment per class period, pages in scan order. " +
             "To sort a stack: list_stacks (unsorted_only) to find it, get_roster for its period, look_at_pages to read the handwritten names (name strips by default; ask for whole pages only when a name is unclear or to see the work), then assign_names. " +
             "Only use names from the roster. When a name is unreadable, leave that page \"?\" and tell the teacher. Multi-page papers: name every page of the paper. " +
+            "Planning a week: read_week_plan, build the week from its brief, then save_week_file; the teacher approves it on Week Review before it reaches the board. " +
+            "Grades and data: get_grades for a period (or one student), list_class_data and get_class_data for imported scores. Anything else: list_site_data and read_site_data. " +
             "Student names and work are private: never repeat them outside this conversation.",
     });
     let storeP = null;
@@ -168,6 +171,57 @@ function buildServer(env, props) {
         },
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     }, run(T.assignNames));
+    const week = z.string().describe("A week id like \"week6\" or \"q3w2\", or any date in the week like \"2026-12-01\".");
+    server.registerTool("read_week_plan", {
+        title: "Read week plan",
+        description: "The teacher's plan for one week from Plan a Week: days, schedule, and for each class (8th, 7th, 8th Accelerated) the topic, standards, quiz or test day, day plans, homework and notes. Once the teacher presses Send to Claude it carries a brief with the rules and standards text to build the week from. Also says whether a week file is already saved or approved.",
+        inputSchema: { week },
+        annotations: read,
+    }, run(S.readWeekPlan));
+    server.registerTool("save_week_file", {
+        title: "Save week file",
+        description: "Save a finished week (the same JSON shape as the site's week files: id, label, dates, monday, and classes, each with exactly 5 days) for the teacher to check on Week Review. It does not go on the board until the teacher approves it. Recompute every answer first and add a \"checked\" stamp ({ n: answers checked, at: time in ms }). An earlier draft of the same week is kept as a backup. An approved week is not replaced unless replace_approved is true.",
+        inputSchema: {
+            week_id: z.string().describe("The week's id, like \"week6\". Must match the week's own id."),
+            week: z.union([z.string(), z.record(z.any())]).describe("The whole week, as JSON text or an object."),
+            replace_approved: z.boolean().optional().describe("Replace a week that is already approved and on the board. Only when the teacher asks."),
+        },
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    }, run(S.saveWeekFile));
+    server.registerTool("get_grades", {
+        title: "Get grades",
+        description: "Gradebook grades for one class period: each student's grade, letter and missing count, plus every grade item's average. Pass student for one student's scores item by item. Uses the teacher's own categories, weights and scale, the same way the Gradebook page does.",
+        inputSchema: {
+            period,
+            nine_weeks: z.number().int().min(0).max(4).optional().describe("1 to 4. Leave out for the current nine weeks; 0 for the whole year."),
+            student: z.string().optional().describe("A roster name, or a first name only one student has."),
+        },
+        annotations: read,
+    }, run(S.getGrades));
+    server.registerTool("list_class_data", {
+        title: "List Class Data",
+        description: "Imported score sets (Magma Math, DeltaMath, Wayground, Blooket, scanned papers, Vault Raid, Assignments), one per assignment and period, newest first, with ids.",
+        inputSchema: { period: period.optional(), limit: z.number().int().min(1).max(100).optional() },
+        annotations: read,
+    }, run(S.listClassData));
+    server.registerTool("get_class_data", {
+        title: "Get Class Data",
+        description: "One Class Data set: every student's score, item by item, with class averages.",
+        inputSchema: { data_id: z.string().describe("From list_class_data.") },
+        annotations: read,
+    }, run(S.getClassData));
+    server.registerTool("list_site_data", {
+        title: "List site data",
+        description: "What the teacher has saved on Anchor Board. With no collection, the collections and what each holds; with a collection (like \"plans\" or \"gb\"), its document ids.",
+        inputSchema: { collection: z.string().optional() },
+        annotations: read,
+    }, run(S.listSiteData));
+    server.registerTool("read_site_data", {
+        title: "Read site data",
+        description: "Read one of the teacher's saved documents as JSON, by path like \"planner/plans\", \"gb/setup\" or \"weekfiles/index\". Pictures are left out. Read only.",
+        inputSchema: { path: z.string() },
+        annotations: read,
+    }, run(S.readSiteData));
     return server;
 }
 
