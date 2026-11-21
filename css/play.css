@@ -522,7 +522,11 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .wrstage{position:sticky;top:8px;border-radius:22px;padding:18px 12px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;overflow:hidden;
   background:radial-gradient(ellipse 60% 14% at 50% 86%,rgba(8,27,69,.16),transparent 70%),radial-gradient(circle at 50% 38%,#FFF8E6 0 30%,transparent 62%),linear-gradient(170deg,#10358A,#081B45);box-shadow:inset 0 0 0 3px rgba(127,174,221,.35)}
 .wrstage::before{content:"";position:absolute;left:50%;top:44%;width:230px;height:230px;transform:translate(-50%,-50%);border-radius:50%;border:2px dashed rgba(127,174,221,.35);pointer-events:none}
-.wrfig{position:relative;min-height:236px;display:grid;place-items:end center}
+.wrfig{position:relative;min-height:236px;display:grid;place-items:end center;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none;border-radius:18px;outline:none}
+.wrfig.drag{cursor:grabbing}
+.wrfig:focus-visible{box-shadow:0 0 0 3px var(--amber)}
+.wrspin{position:relative;margin:-6px 0 0;font-size:12px;font-weight:600;letter-spacing:.02em;color:rgba(220,231,245,.75)}
+.wrspin::before,.wrspin::after{content:"\2194";margin:0 6px;opacity:.7}
 .wrmoves{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;position:relative}
 .wrmove{border:0;border-radius:99px;padding:6px 14px;font-weight:700;background:rgba(255,255,255,.14);color:#fff;box-shadow:inset 0 0 0 1.5px rgba(185,211,238,.5)}
 .wrmove:hover{background:var(--amber);color:var(--amber-ink)}

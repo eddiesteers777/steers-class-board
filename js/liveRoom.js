@@ -16,7 +16,7 @@
 ========================================== */
 import * as V from "./vaultCore.js?v=75";
 import * as PC from "./profileCore.js?v=2";
-import * as Buddy from "./buddy.js?v=1";
+import * as Buddy from "./buddy.js?v=2";
 import { loadKids, credit as creditProfiles } from "./profiles.js?v=2";
 import qrcode from "./vendor/qrcode.js?v=1";
 import { drawItems } from "./mathTools.js?v=1";
@@ -1277,7 +1277,7 @@ export function drawLiveStage(st) {
     } else {
         const order = ranked(), box = el("div", "gdone");
         box.append(el("p", "gwinlab", "Game over"));
-        if (order.length) { const pod = el("div", "vrpod"); order.slice(0, 3).forEach((p, i) => { const s = el("div", "vrstep s" + (i + 1)); const av = el("i", "vravatar" + (p.lk ? " bdpod" : ""), p.lk ? null : V.avatar(p.av)[0]), sk = V.skin(p.vs)[3]; if (p.lk) av.innerHTML = Buddy.svg(p.lk, { size: 150, move: i === 0 ? "dance" : "cheer" }); av.style.setProperty("--skd", sk.door); av.style.setProperty("--skr", sk.ring); av.title = V.skin(p.vs)[1] + " vault";
+        if (order.length) { const pod = el("div", "vrpod"); order.slice(0, 3).forEach((p, i) => { const s = el("div", "vrstep s" + (i + 1)); const av = el("i", "vravatar" + (p.lk ? " bdpod" : ""), p.lk ? null : V.avatar(p.av)[0]), sk = V.skin(p.vs)[3]; if (p.lk) { av.innerHTML = Buddy.svg(p.lk, { size: 150 }); Buddy.animate(av, PODIUM_MOVES[i]); } av.style.setProperty("--skd", sk.door); av.style.setProperty("--skr", sk.ring); av.title = V.skin(p.vs)[1] + " vault";
             s.append(el("b", null, ["1st", "2nd", "3rd"][i]), av, el("span", null, nameOn(p, i)), el("small", null, p.c + " coins"), el("small", "vrsteppct", pctOf(p.r, p.n) + "% right")); pod.append(s); }); box.append(pod); }
         if (order.length) { const all = order.reduce((a, p) => [a[0] + p.r, a[1] + p.n], [0, 0]); box.append(el("p", "vrclass", "Class: " + pctOf(all[0], all[1]) + "% right on " + all[1] + " answers")); }
         else box.append(el("p", "gwin", "No players"));
@@ -1286,6 +1286,10 @@ export function drawLiveStage(st) {
     if (H.status === "play" && H.paused) { const pz = el("div", "vrpaused"); pz.append(el("b", null, "Paused"), el("span", null, "Eyes up here")); body.append(pz); }
     st.append(body);
 }
+
+// Podium characters celebrate in turn, round and round: 1st dances, then 2nd cheers, then 3rd, then a short breath.
+// (One moving at a time is easier to watch, and lighter for the board's computer.) Every turn is 7.5 s.
+const PODIUM_MOVES = [{ move: "dance", loop: true, gap: 5.1 }, { move: "cheer", loop: true, gap: 5.55, delay: 2.5 }, { move: "cheer", loop: true, gap: 5.55, delay: 4.6 }];
 
 /* ---------- the Remote's private panel ---------- */
 function panelEl() {
