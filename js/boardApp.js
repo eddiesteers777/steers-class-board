@@ -12,8 +12,9 @@ import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { tickTools, defaultTools, mergeTools, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=59";
-import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal } from "./panels.js?v=10";
+import { tickTools, defaultTools, mergeTools, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=60";
+import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal } from "./panels.js?v=11";
+import { cleanStickers, renderStickers } from "./stickers.js?v=1";
 import * as snd from "./sound.js?v=60";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
@@ -21,7 +22,7 @@ import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as dra
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=88";
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=11";
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
-import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=5";
+import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=6";
 import { cleanChart, cleanPeriod, cleanView, seatCount, drawRoom } from "./seats.js?v=7";
 
 const $ = (id) => document.getElementById(id);
@@ -93,7 +94,7 @@ function cleanWb(o) {
 }
 const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0,
     timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", fix: null, tools: defaultTools(), wb: defaultWb(),
-    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true }, look: defaultLook(), seatHi: null, seatView: cleanView(null), bplan: cleanBplan(null), walk: { id: "", step: 0 } };
+    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true }, look: defaultLook(), stickers: [], seatHi: null, seatView: cleanView(null), bplan: cleanBplan(null), walk: { id: "", step: 0 } };
 
 // This page's own mark on what it saves, so a change from another tab of the same browser can be shown
 // before the server confirms it (those tabs share one offline copy, where it first arrives as "pending").
@@ -104,6 +105,9 @@ let saveFailedAt = 0;
 let wantWeek = "", lateWeek = "", autoWeekUntil = 0;   // a ?week= the Remote was opened with, or the saved board week, that has not loaded yet
 let tabs = null, heard = { by: "", at: 0 };   // a failed save stays on screen a few seconds, even when the connection itself is fine
 let mode = "remote", signedIn = false, sig = "", writeState = null;
+/* The Board Builder (studio.html) runs the Remote with a builder rail: stickers can be moved there, panels snap to a
+   grid while they are dragged, and the panel last touched is outlined. studio = its hooks (js/studio.js), or null. */
+let studio = null, pickedPanel = "", stickerBusy = false;
 let presence = null, shown = { by: "", at: 0 };   // Live status check-ins (js/presence.js): which screens are on, and which change each one shows
 
 function writer(path) {
@@ -128,7 +132,17 @@ function setStatus(t) {
     // The board view hides the header, so a lost connection shows as a small pill in the corner instead.
     const pill = $("connPill"); if (pill) { pill.hidden = st === "ok" || !synced; pill.textContent = st === "bad" ? "Offline \u00b7 showing the saved lesson \u00b7 reconnecting\u2026" : "Connecting\u2026"; }
 }
-function push() { S.stamp = localIso(); render(); if (writeState) writeState(JSON.parse(JSON.stringify(S))); }
+function push() { S.stamp = localIso(); dayBoard(); render(); if (writeState) writeState(JSON.parse(JSON.stringify(S))); }
+/* Day boards (Board Builder): a saved board can belong to one lesson (week, class, day). When this device moves to that
+   lesson (a day or period tap, the morning's fresh start, the bell timeline's next period), the board opens with it.
+   Only the device that made the move applies it; the others get the result in the shared state. */
+let lessonKey = "";
+const lessonKeyNow = () => S.week + "|" + S.cls + "|" + S.day;
+function dayBoard() {
+    const k = lessonKeyNow(); if (k === lessonKey) return; lessonKey = k;
+    const id = S.tools.dayb && S.tools.dayb[k], sc = id && S.tools.scenes.find((x) => x.id === id);
+    if (sc && !sceneActive(S, sc)) applyScene(S, sc, Object.assign({}, toolApi, { push: () => {} }));   // the caller saves it
+}
 let quietTimer = 0;
 function quiet() { clearTimeout(quietTimer); quietTimer = setTimeout(() => { if (writeState) writeState(JSON.parse(JSON.stringify(S))); }, 500); } // save typing without redrawing
 let ROSTERS = {};
@@ -160,6 +174,7 @@ const planApi = { S, el, now, push: () => push(), mode: () => mode, today: () =>
         if (!W().classes[classOf(p)]) return; S.period = p; S.cls = classOf(p);
         if (isSchoolDay() && (S.week !== defaultWeek() || S.day !== realDay())) { const dw = defaultWeek(); if (WEEKS.find((w) => w.id === dw).classes[S.cls]) { S.week = dw; S.day = realDay(); } }
         resetPos();
+        dayBoard();   // the new class's lesson board first, so the timeline step that called this still sets the screen and panels
     },
     savePlan: async (p) => { PLAN = cleanPlan(p); try { await store.save("settings/timeline", PLAN); return true; } catch (e) { return false; } },
     setToday: async (id) => {   // pick today's schedule from the Remote (the same field Home's "Today's schedule" sets)
@@ -192,6 +207,18 @@ const W = () => WEEKS.find((w) => w.id === S.week) || WEEKS[WEEKS.length - 1];
 const L = () => { const w = W(); return (w && w.classes[S.cls]) || null; };
 const D = () => { const l = L(); return (l && l.days && l.days[S.day]) || null; };
 
+/* What the Board Builder (js/studio.js) works with: the same state, the same push, the same panels and timeline. */
+function studioApi() {
+    return { S, el, push, toolApi, planApi, rich, screens: () => SCREENS.filter((x) => screenOrder().includes(x[0])), screenOk, panelOk,
+        day: () => D(), lesson: () => L(), week: () => W(), classLabel: () => { const l = L(); return (l && l.label) || S.cls; }, dayName: () => FULL[S.day] || "",
+        synced: () => synced, guest: () => mode === "sub", rosters: () => ROSTERS, bells: () => BELLS,
+        lessonKey: () => lessonKeyNow(), dayNames: () => FULL.slice(), goDay: (i) => { S.day = i; resetPos(); push(); },
+        weeks: () => WEEKS.map((w) => [w.id, w.monday || ""]),
+        editHref: () => { const w = W(), q = new URLSearchParams({ day: (DK[S.day] || "Mon").toLowerCase() }); if (w.monday) q.set("monday", w.monday); if (S.cls) q.set("class", S.cls); return "lesson.html?" + q; },
+        // Outline the panel in place: never rebuild the layer here, since this runs on the pointerdown that may start a drag.
+        pickPanel: (k) => { pickedPanel = k || ""; document.querySelectorAll("#toolLayer .float").forEach((w) => w.classList.toggle("picked", w.dataset.panel === pickedPanel)); },
+        redraw: () => { sig = ""; layerSig = ""; render(); }, fit: () => fit(), defaultPos: (k) => toolApi.defaultPos(k), step: (n) => step(n) };
+}
 /* ---------- controls ---------- */
 function seg(host, items, current, onPick) {
     // Same buttons as last time: update them in place. Rebuilding them on every redraw broke taps, because
@@ -468,7 +495,7 @@ function soundTick() {
     const g = liveSound(); snd.gameSong(g.song); snd.gamePhase(g.phase); g.cues.forEach((c) => snd.cue(c));
 }
 function soundPanel() {
-    const rail = document.querySelector(".rail"); if (!rail || $("soundMenu")) return;
+    const rail = document.querySelector(".rail"), host = $("soundHost"); if ((!rail && !host) || $("soundMenu")) return;
     const box = el("details", "menu fold"); box.id = "soundMenu"; box.open = window.innerWidth > 860;
     const sum = el("summary", null, "Sound "); const cnt = el("span", "count"); cnt.id = "soundCount"; sum.appendChild(cnt); box.appendChild(sum);
     const b = el("div", "sndbox"); box.appendChild(b);
@@ -491,7 +518,7 @@ function soundPanel() {
         const at = el("div", "seg sndat"); at.id = "sndAt"; at.setAttribute("role", "group"); at.setAttribute("aria-label", "Sound plays on"); b.appendChild(at);
     }
     const n = el("p", "sndnote"); n.id = "sndNote"; n.setAttribute("role", "status"); b.appendChild(n);
-    const anchor = $("filesMenu") || $("toolsMenu"); anchor.after(box);
+    if (host) { box.open = true; host.appendChild(box); } else { const anchor = $("filesMenu") || $("toolsMenu"); anchor.after(box); }
     // The quick switch in the top bar, so music goes on and off without scrolling the rail.
     const q = el("button", "btn ghost musicbtn"); q.id = "musicBtn"; q.type = "button"; q.title = "Background music (M key)";
     q.onclick = () => { S.sound.music = !S.sound.music; snd.unlock(); push(); };
@@ -575,7 +602,8 @@ function skeleton() {
 }
 function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
-    syncGames(); syncLive(); syncNotes(); buildControls(); soundSync(); applyLook(S.look); renderLookFold(); renderEditLink();
+    syncGames(); syncLive(); syncNotes(); buildControls(); soundSync(); applyLook(S.look); renderLookFold(); renderEditLink(); drawStickers();
+    if (studio && studio.render) studio.render();
     const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : "", S.screen === "seats" ? seatSig() : "", S.screen === "steps" ? stepsSig() : ""]);
     renderDock(); drawGamePanel(); drawLivePanel(); drawNotesPanel();
     if (sheetOpen()) refreshSheet();
@@ -985,6 +1013,7 @@ function renderDock() {
         });
     });
     const more = el("button", "more"); more.type = "button"; more.innerHTML = pIcon("layout") + "<span>All panels and layouts</span>"; more.onclick = () => openSheet(toolApi); dock.appendChild(more);
+    if (mode === "remote" && !studio) { const bb = el("a", "more bbuild"); bb.href = "studio.html"; bb.innerHTML = pIcon("float") + "<span>Board Builder</span>"; bb.title = "Look, panels, stickers and the lesson, in one place"; dock.appendChild(bb); }
     if (Object.keys(T.on).length) { const c = el("button", "clear", "Hide all"); c.type = "button"; c.onclick = () => { T.on = {}; T.min = {}; T.pos = {}; T.order = []; push(); }; dock.appendChild(c); }
 }
 /* "Edit this day": opens Quick lesson on the class and day showing, for the agenda, bellringer, target, supplies and reminders. */
@@ -1003,6 +1032,12 @@ function renderLookFold() {
     let f = $("lookMenu"); if (!f) { f = el("details", "menu fold"); f.id = "lookMenu"; f.open = window.innerWidth > 860; const sm = el("summary", null, "Board look "); const c = el("span", "count"); c.id = "lookCount"; sm.appendChild(c); f.appendChild(sm); f.appendChild(el("div", "lookhost")); tm.after(f); }
     const k = S.look.theme + "|" + S.look.bg + "|" + S.look.mark + "|" + S.look.fx; if (k === lookSig) return; lookSig = k;
     const host = f.querySelector(".lookhost"); host.textContent = ""; host.appendChild(lookPicker(toolApi, true));
+}
+/* Stickers (js/stickers.js): drawn on every page; only the Board Builder lets them be picked up. */
+function drawStickers() {
+    if (stickerBusy) return;
+    renderStickers($("stickerLayer"), S.stickers, studio ? { edit: true, sel: studio.selected ? studio.selected() : "", onSelect: (id) => studio.pick && studio.pick("sticker", id),
+        onChange: (list) => { S.stickers = cleanStickers(list); push(); }, busy: (b) => { stickerBusy = b; } } : null);
 }
 /* One small icon button in a panel's title bar. */
 function hbtn(ic, label, fn, cls) { const b = el("button", "close pbtn" + (cls ? " " + cls : "")); b.type = "button"; b.innerHTML = pIcon(ic); b.title = label; b.setAttribute("aria-label", label); b.onclick = (e) => { e.stopPropagation(); fn(); }; return b; }
@@ -1058,6 +1093,7 @@ function renderLayer() {
     PANEL_KEYS.forEach((k) => {
         if (!T.on[k] || T.min[k] || docked.includes(k) || !panelOk(k)) return;
         const w = buildPanel(k, toolApi), p = posOf(k); w.classList.add("float"); w.dataset.panel = k; now2[k] = "float"; if (placed[k] !== "float") w.classList.add("enter");
+        if (studio && pickedPanel === k) w.classList.add("picked");
         w.style.left = p.x + "%"; w.style.top = p.y + "%"; w.style.fontSize = p.s + "em";
         const h = w.querySelector("h3"), tail = el("span", "hbtns");
         tail.appendChild(hbtn("min", "Minimize " + labelOf(k), () => minimize(k)));
@@ -1068,10 +1104,17 @@ function renderLayer() {
         const start = (e, kind) => {
             if (e.target.closest && e.target.closest("button")) return; e.preventDefault(); dragging = true; w.classList.add("moving");
             const r = stage.getBoundingClientRect(), p0 = Object.assign({}, posOf(k)), sx = e.clientX, sy = e.clientY, b0 = w.getBoundingClientRect(), w0 = b0.width, h0 = b0.height; let cur = Object.assign({}, p0), dock = false;
+            // Board Builder: the panel snaps to a 2.5% grid (shown while dragging) and lines up with the other panels' edges
+            const snap = studio && kind === "move" && !e.altKey, others = snap ? Array.from(layer.querySelectorAll(".float")).filter((o) => o !== w).map((o) => { const q = o.getBoundingClientRect(); return { l: (q.left - r.left) / r.width * 100, t: (q.top - r.top) / r.height * 100, r: (q.right - r.left) / r.width * 100, b: (q.bottom - r.top) / r.height * 100 }; }) : [];
+            const fw = w0 / r.width * 100, fh = h0 / r.height * 100;
+            const snapTo = (v, size, lo, hi) => { let best = null; lo.concat(hi.map((x) => x - size)).forEach((t) => { if (Math.abs(t - v) < 1.2 && (best == null || Math.abs(t - v) < Math.abs(best - v))) best = t; }); return best != null ? best : Math.round(v / 2.5) * 2.5; };
+            if (snap) stage.classList.add("snapgrid");
             const corner = kind === "size" ? (e.currentTarget.dataset.c || "se") : "", gx = corner.includes("w") ? -1 : 1, gy = corner.includes("n") ? -1 : 1;
             const move = (ev) => {
                 if (kind === "move") {
-                    cur.x = Math.min(95, Math.max(0, p0.x + (ev.clientX - sx) / r.width * 100)); cur.y = Math.min(92, Math.max(0, p0.y + (ev.clientY - sy) / r.height * 100)); w.style.left = cur.x + "%"; w.style.top = cur.y + "%";
+                    cur.x = Math.min(95, Math.max(0, p0.x + (ev.clientX - sx) / r.width * 100)); cur.y = Math.min(92, Math.max(0, p0.y + (ev.clientY - sy) / r.height * 100));
+                    if (snap) { cur.x = Math.min(100 - fw, Math.max(0, snapTo(cur.x, fw, others.map((o) => o.l).concat(others.map((o) => o.r)), others.map((o) => o.r).concat(others.map((o) => o.l), [100])))); cur.y = Math.min(100 - fh, Math.max(0, snapTo(cur.y, fh, others.map((o) => o.t).concat(others.map((o) => o.b)), others.map((o) => o.b).concat(others.map((o) => o.t), [100])))); cur.x = Math.max(0, Math.min(95, cur.x)); cur.y = Math.max(0, Math.min(92, cur.y)); }
+                    w.style.left = cur.x + "%"; w.style.top = cur.y + "%";
                     dock = canDock && k !== "groups" && !shelf.hidden && inside(shelf.getBoundingClientRect(), ev); shelf.classList.toggle("dropok", dock);
                 } else {   // any corner: grow away from the opposite corner, which stays put
                     const dx = (ev.clientX - sx) * gx, dy = (ev.clientY - sy) * gy * (w0 / Math.max(1, h0)), d = Math.abs(dx) >= Math.abs(dy) ? dx : dy;
@@ -1081,7 +1124,7 @@ function renderLayer() {
                 }
             };
             const end = (ev) => {
-                window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", end); window.removeEventListener("pointercancel", end); dragging = false; w.classList.remove("moving"); shelf.classList.remove("dropok");
+                window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", end); window.removeEventListener("pointercancel", end); dragging = false; w.classList.remove("moving"); shelf.classList.remove("dropok"); stage.classList.remove("snapgrid");
                 if (dock && ev.type !== "pointercancel") {   // dropped on the shelf: dock it at that spot
                     delete T.pos[k]; const at = shelfSlot(shelf, ev.clientY, null), keys = Array.from(shelf.querySelectorAll(".docked")).map((c) => c.dataset.panel), i = at && at.dataset.panel ? keys.indexOf(at.dataset.panel) : keys.length;
                     keys.splice(i < 0 ? keys.length : i, 0, k); T.order = keys.concat(T.order.filter((x) => !keys.includes(x))); layerSig = ""; push(); return;
@@ -1091,7 +1134,7 @@ function renderLayer() {
             window.addEventListener("pointermove", move); window.addEventListener("pointerup", end); window.addEventListener("pointercancel", end);
         };
         h.addEventListener("pointerdown", (e) => start(e, "move")); grips.forEach((g) => g.addEventListener("pointerdown", (e) => start(e, "size")));
-        w.addEventListener("pointerdown", () => { w.style.zIndex = String(++topZ); });
+        w.addEventListener("pointerdown", () => { w.style.zIndex = String(++topZ); if (studio && studio.pick) studio.pick("panel", k); });
         layer.appendChild(w);
     });
     placed = now2;
@@ -1311,6 +1354,8 @@ function applyState(d) {
     S.fix = cleanFix(d.fix);
     S.wb = cleanWb(d.wb);
     S.look = cleanLook(d.look);
+    S.stickers = cleanStickers(d.stickers);
+    lessonKey = lessonKeyNow();   // a lesson another device moved to already came with its board
     S.bplan = cleanBplan(d.bplan);
     S.seatView = cleanView(d.seatView);
     S.seatHi = d.seatHi && typeof d.seatHi.n === "string" && typeof d.seatHi.at === "number" ? { n: d.seatHi.n.slice(0, 60), at: d.seatHi.at } : null;
@@ -1405,6 +1450,7 @@ window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.r
 
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
+    studio = (opts && opts.studio) || null; document.body.classList.toggle("studio", !!studio);
     // New panels float on the board at their usual spot, moved down and right a little if another panel is already there.
     setFloatDefault((k, T) => { const p = toolApi.defaultPos(k); let n = 0; while (n < 8 && Object.keys(T.pos).some((o) => o !== k && Math.abs(T.pos[o].x - p.x) < 4 && Math.abs(T.pos[o].y - p.y) < 4)) { p.x = Math.min(80, p.x + 5); p.y = Math.min(70, p.y + 6); n++; } return p; });
     if (opts && Array.isArray(opts.weeks) && opts.weeks.length) WEEKS = opts.weeks;
@@ -1416,6 +1462,7 @@ export async function startApp(opts) {
     mountNotes({ S, store: () => store, rosters: () => ROSTERS, redraw: () => render(), mode: () => mode, signedIn: () => signedIn, frames: () => notesFrames(D()), day: D, lesson: L, push });
     document.body.classList.toggle("board", mode === "board");
     { const bg = el("div", "stagebg"); bg.id = "stageBg"; bg.setAttribute("aria-hidden", "true"); $("stage").prepend(bg); }   // the board's background pattern (Board look)
+    { const sl = el("div", "stickerlayer"); sl.id = "stickerLayer"; const tl = $("toolLayer"); if (tl) tl.before(sl); else $("stage").appendChild(sl); }   // stickers: over the lesson, under the panels
     {   // On the projected board the rail, pages and arrows fade after 4 s with nobody touching it, and come back on any touch.
         let idleT = 0; const wake = () => { document.body.classList.remove("idle"); clearTimeout(idleT); idleT = setTimeout(() => { if (document.body.classList.contains("board") && !document.querySelector(".mathmenu,.mathpanel")) document.body.classList.add("idle"); }, 4000); };
         ["pointermove", "pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, wake, true)); wake();
@@ -1431,11 +1478,11 @@ export async function startApp(opts) {
     document.addEventListener("pointerdown", unlockSound); document.addEventListener("keydown", unlockSound);
     soundPanel();
     phoneHeader();
-    if (!guest) planFold = mountPlanFold(planApi, $("soundMenu") || $("toolsMenu"));
+    if (!guest) planFold = mountPlanFold(planApi, $("planAnchor") || $("soundMenu") || $("toolsMenu"));
     $("flowNext").onclick = () => step(1); $("flowBack").onclick = () => step(-1);
     {   // Phone: swipe the board picture left for Next, right for Back (the picture shows the result at once)
         const w = $("wrap"); let sx = 0, sy = 0, st = 0, on = false;
-        w.addEventListener("pointerdown", (e) => { on = phoneMirror() && e.pointerType !== "mouse" && !e.target.closest("button,input,select,a,textarea"); sx = e.clientX; sy = e.clientY; st = Date.now(); }, true);
+        w.addEventListener("pointerdown", (e) => { on = phoneMirror() && e.pointerType !== "mouse" && !e.target.closest("button,input,select,a,textarea,.stk,.float h3,.grip"); sx = e.clientX; sy = e.clientY; st = Date.now(); }, true);
         w.addEventListener("pointercancel", () => { on = false; }, true);
         w.addEventListener("pointerup", (e) => {
             if (!on) return; on = false;
@@ -1479,6 +1526,7 @@ export async function startApp(opts) {
     document.body.classList.add("syncing");
     const arrived = () => { if (synced) return; synced = true; document.body.classList.remove("syncing"); sig = ""; };
     fit(); render();
+    if (studio && studio.ready) studio.ready(studioApi());
 
     // Load timing, kept on this device only (step names and times, no data). ?signincheck shows it.
     const t0 = performance.now(), ms = () => Math.round(performance.now() - t0) + " ms";

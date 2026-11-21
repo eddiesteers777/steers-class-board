@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Board Builder | Anchor Board</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=62">
+    <link rel="stylesheet" href="css/console.css?v=60">
+    <link rel="stylesheet" href="css/theme-rings.css?v=2">
+    <link rel="stylesheet" href="css/steps.css?v=1">
+    <link rel="stylesheet" href="css/boardnav.css?v=1">
+    <link rel="stylesheet" href="css/games.css?v=77">
+    <link rel="stylesheet" href="css/buddy.css?v=2">
+    <link rel="stylesheet" href="css/wb.css?v=4">
+    <link rel="stylesheet" href="css/panels.css?v=2">
+    <link rel="stylesheet" href="css/look.css?v=5">
+    <link rel="stylesheet" href="css/seats.css?v=5">
+    <link rel="stylesheet" href="css/bellplan.css?v=6">
+    <link rel="stylesheet" href="css/livestatus.css?v=1">
+    <link rel="stylesheet" href="css/phone.css?v=7">
+    <link rel="stylesheet" href="css/studio.css?v=1">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="console">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Board Builder</b><small id="who">Anchor Board</small></span></a>
+        <label class="field"><span>Period</span><select id="periodSel" aria-label="Period"></select></label>
+        <label class="field" id="weekField" hidden><span>Week</span><select id="weekSel" aria-label="Week"></select></label>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <a class="btn ghost" id="openBoard" href="board.html" target="_blank" rel="noopener">Open the board</a>
+        <button class="btn" id="boardBtn" type="button">Full screen</button>
+        <details class="menu acct"><summary>Menu</summary><div class="pop"><a href="index.html">Home</a><a href="remote.html">Remote</a><a href="lesson.html">Quick lesson</a><a href="seats.html">Seating charts</a><a href="games.html">Game Library</a><button id="signOut" type="button">Sign out</button></div></details>
+    </header>
+    <div class="cbody sbody">
+        <aside class="srail" aria-label="Board Builder">
+            <nav class="ssteps" id="steps" role="tablist" aria-label="Build steps"></nav>
+            <div class="sscroll" id="sscroll">
+                <section class="spane" id="pane-look" role="tabpanel" aria-labelledby="tab-look"></section>
+                <div class="ssound" id="soundHost" hidden></div>
+                <section class="spane" id="pane-panels" role="tabpanel" aria-labelledby="tab-panels" hidden></section>
+                <section class="spane" id="pane-stickers" role="tabpanel" aria-labelledby="tab-stickers" hidden></section>
+                <section class="spane" id="pane-lesson" role="tabpanel" aria-labelledby="tab-lesson" hidden>
+                    <div id="lessonTop"></div>
+                    <h3 class="sh">Screen on the board</h3>
+                    <p class="shint">What the class sees under the panels. Next and Back under the board walk through the lesson.</p>
+                    <div class="seg scr sscreens" id="screens" role="group" aria-label="Screen"></div>
+                    <div id="lessonBoards"></div>
+                    <h3 class="sh">Run of class</h3>
+                    <p class="shint">The bell timeline switches the board on its own after each bell. Any board you saved can be a step.</p>
+                    <div id="planAnchor" class="splanhost"></div>
+                    <details class="menu fold sfiles" id="filesMenu"><summary>Files for this day</summary><div class="files" id="files"></div></details>
+                    <div id="lessonLinks"></div>
+                </section>
+            </div>
+            <div class="spick" id="pickHost" hidden></div>
+            <form class="sfoot" id="saveForm">
+                <div class="sfhead"><label class="sfl" for="saveName">Save this board</label><button class="btn ghost sundo" id="undoBtn" type="button" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>Undo</button></div>
+                <div class="sfday" title="When this lesson comes up, the board switches to the board you save"><label><input type="checkbox" id="saveDay"> <span id="saveDayLabel">This day's board for</span></label>
+                    <select id="saveDayFor" aria-label="Which classes"><option value="one">this class</option><option value="all">all my classes</option></select></div>
+                <div class="sfrow"><input id="saveName" type="text" maxlength="24" placeholder="Name it, like: Monday notes" autocomplete="off"><button class="btn sgo" type="submit">Save</button></div>
+                <p class="sfnote" id="saveNote" role="status"></p>
+            </form>
+        </aside>
+        <main class="deck">
+            <div class="wrap" id="wrap"><div id="stage"><div id="screenHost"></div><div id="toolLayer" class="toollayer"></div></div></div>
+            <div class="flowbar">
+                <div class="seg days" id="days" role="group" aria-label="Day"></div>
+                <div class="flow"><button id="flowBack" type="button">Back</button><button id="flowNext" type="button">Next</button></div>
+            </div>
+        </main>
+    </div>
+    <button id="exit" type="button">Show controls</button>
+    <script type="module">
+        import { startApp } from "./js/boardApp.js?v=125";
+        import { studio } from "./js/studio.js?v=1";
+        const q = new URLSearchParams(location.search);
+        if (q.has("demo")) {
+            // ?demo: the made-up sample week on this device only, nothing saved (for trying it and for tests).
+            const store = await import("./js/localStore.js?v=57"), demoWeek = (await import("./data/demo-week.js?v=1")).default;
+            startApp({ mode: "sub", store, weeks: [demoWeek], periods: [["1st", "demo"]], who: "Demo · sample week, nothing saved", studio });
+        } else startApp({ mode: "remote", studio });
+    </script>
+</body>
+</html>

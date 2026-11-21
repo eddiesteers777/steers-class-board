@@ -7,10 +7,11 @@
    set the screen and the panels in one tap. All of it lives in S.tools
    inside the shared board state, so the board and the Remote always match.
 ========================================== */
-import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene, PALERT_MINS } from "./boardTools.js?v=59";
+import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=60";
 import { MARKS, markUrl } from "./marks.js?v=1";
-import { EFFECTS, applyEffect, effectSample } from "./effects.js?v=1";
-export { MARKS };
+import { EFFECTS, FX_AMOUNTS, applyEffect, effectSample } from "./effects.js?v=2";
+import { cleanStickers } from "./stickers.js?v=1";
+export { MARKS, EFFECTS, FX_AMOUNTS };
 
 const LESSON = new Set(LESSON_PANELS.map((x) => x[0]));
 export const labelOf = (k) => (PANEL_LIST.find((x) => x[0] === k) || [k, k])[1];
@@ -61,7 +62,11 @@ const asScene = (sc) => (sc.on && !Array.isArray(sc.on) ? sc : { id: sc.id, n: s
 const keysOf = (o) => Object.keys(o || {}).filter((k) => o[k]).sort().join(",");
 export function sceneActive(S, raw) {
     const sc = asScene(raw), T = S.tools;
-    return keysOf(T.on) === keysOf(sc.on) && keysOf(T.min) === keysOf(sc.min) && (!sc.screen || S.screen === sc.screen);
+    if (!(keysOf(T.on) === keysOf(sc.on) && keysOf(T.min) === keysOf(sc.min) && (!sc.screen || S.screen === sc.screen))) return false;
+    // A board saved in the Board Builder is showing only when its look and stickers are too.
+    if (sc.look) { const L = cleanLook(sc.look); if (["theme", "bg", "mark", "fx"].some((k) => (S.look[k] || "") !== (L[k] || ""))) return false; }
+    if (Array.isArray(sc.stk) && sc.stk.map((x) => x.id).join() !== (S.stickers || []).map((x) => x.id).join()) return false;
+    return true;
 }
 export function applyScene(S, raw, api) {
     const sc = asScene(raw), T = S.tools, avail = (k) => api.panelOk(k);
@@ -71,15 +76,21 @@ export function applyScene(S, raw, api) {
     (sc.float || []).forEach((k) => { if (T.on[k] && !T.min[k] && !T.pos[k]) T.pos[k] = (floatAt && floatAt(k, T)) || api.defaultPos(k); });
     T.order = (sc.order || []).filter((k) => T.on[k]);
     if (sc.work) T.work = sc.work;
+    if (sc.look) S.look = cleanLook(sc.look);          // a board saved in the Board Builder brings its look
+    if (Array.isArray(sc.stk)) S.stickers = cleanStickers(sc.stk);   // ...and its stickers
     if (sc.timer === "bell" && !S.timers.free.running) api.timerSet(api.bellSeconds());
     if (sc.screen && api.screenOk(sc.screen) && sc.screen !== S.screen) { S.screen = sc.screen; S.show = false; }
     api.push();
 }
-export function saveScene(S, name) {
+/** Save what the board shows now as a layout. withLook: the Board Builder also keeps the look and the stickers.
+    A layout with the same name is replaced and keeps its id, so bell timeline steps that use it still find it. */
+export function saveScene(S, name, withLook) {
     const T = S.tools, on = {}, min = {}, pos = {};
     Object.keys(T.on).forEach((k) => { on[k] = true; if (T.min[k]) min[k] = true; if (T.pos[k]) pos[k] = T.pos[k]; });
-    const sc = cleanScene({ id: "u" + Date.now().toString(36), n: name, screen: S.screen, on, min, pos, order: T.order.slice(), work: T.on.work ? T.work : "" });
-    T.scenes = T.scenes.filter((x) => x.n.toLowerCase() !== sc.n.toLowerCase()).concat([sc]).slice(-6);
+    const old = T.scenes.find((x) => x.n.toLowerCase() === String(name).trim().toLowerCase());
+    const sc = cleanScene(Object.assign({ id: old ? old.id : "u" + Date.now().toString(36), n: name, screen: S.screen, on, min, pos, order: T.order.slice(), work: T.on.work ? T.work : "" },
+        withLook ? { look: S.look, stk: S.stickers || [] } : {}));
+    T.scenes = T.scenes.filter((x) => x.id !== sc.id).concat([sc]).slice(-MAX_SCENES);
     return sc;
 }
 
@@ -321,23 +332,40 @@ export const LOOK_THEMES = [
     // Christmas
     ["evergreen", "Evergreen", ["#1E6B43", "#0F4229", "#072617"]], ["cranberry", "Cranberry", ["#9A1F33", "#5E0F1E", "#320710"]],
     ["winter", "Winter night", ["#2C4A8C", "#182A57", "#0A1433"]],
+    // Board Builder, Nov 21
+    ["royal", "Royal", ["#2E3AA8", "#1C2470", "#0F1440"]], ["teal", "Teal", ["#0F6B6B", "#0A4747", "#052A2A"]],
+    ["chalk", "Chalkboard", ["#33503F", "#243A2D", "#16261D"]], ["sunset", "Sunset", ["#8A3B2E", "#5A2233", "#2B1028"]],
+    ["harvest", "Harvest", ["#7A4A1E", "#4E2E14", "#2A180A"]], ["berry", "Berry", ["#7A2257", "#4B1438", "#2A0A1F"]],
 ];
 export const LOOK_BGS = [["anchor", "Big logo"], ["plain", "Plain"], ["rings", "Rings"], ["grid", "Graph paper"], ["dots", "Dots"], ["glow", "Glow"],
-    ["snow", "Snowfall"], ["lights", "Christmas lights"], ["trees", "Snowy pines"], ["candy", "Candy cane"]];
-/* One tap for a whole holiday look: [id, name, colours, background, logo]. */
-export const LOOK_PRESETS = [["xmas-lights", "Christmas lights", "evergreen", "lights", "ornament"], ["xmas-snow", "Snowy night", "winter", "snow", "snowflake"],
-    ["xmas-pines", "Winter forest", "evergreen", "trees", "tree"], ["xmas-candy", "Candy cane", "cranberry", "candy", "star"]];
+    ["snow", "Snowfall"], ["lights", "Christmas lights"], ["trees", "Snowy pines"], ["candy", "Candy cane"],
+    // Board Builder, Nov 21
+    ["axes", "Coordinate plane"], ["paper", "Notebook"], ["chalk", "Chalk dust"], ["shapes", "Shapes"], ["hex", "Honeycomb"],
+    ["waves", "Waves"], ["hills", "Hills"], ["space", "Space"], ["sunset", "Sunset glow"], ["bokeh", "Soft lights"], ["leaves", "Fall leaves"], ["confetti", "Confetti"]];
+/* One tap for a whole look: [id, name, colours, background, logo, effect, group]. */
+export const LOOK_PRESETS = [
+    ["math", "Math class", "navy", "axes", "pi", "math", "Every day"], ["chalkboard", "Chalkboard", "chalk", "chalk", "anchor", "none", "Every day"],
+    ["calm", "Test day calm", "slate", "plain", "anchor", "none", "Every day"], ["game", "Game day", "royal", "confetti", "star", "confetti", "Every day"],
+    ["space", "Outer space", "midnight", "space", "star", "sparkles", "Every day"], ["ocean", "Under the sea", "ocean", "waves", "rings", "bubbles", "Every day"],
+    ["fall", "Fall leaves", "sunset", "leaves", "anchor", "leaves", "Fall"], ["thanks", "Thanksgiving", "harvest", "leaves", "anchor", "turkeys", "Fall"],
+    ["xmas-lights", "Christmas lights", "evergreen", "lights", "ornament", "none", "Winter"], ["xmas-snow", "Snowy night", "winter", "snow", "snowflake", "snow", "Winter"],
+    ["xmas-pines", "Winter forest", "evergreen", "trees", "tree", "none", "Winter"], ["xmas-candy", "Candy cane", "cranberry", "candy", "star", "none", "Winter"],
+    ["snowmen", "Snow day", "winter", "hills", "snowflake", "snowmen", "Winter"], ["valentine", "Valentine's", "berry", "bokeh", "anchor", "hearts", "Spring"],
+    ["clover", "Lucky day", "forest", "hills", "anchor", "clovers", "Spring"], ["spring", "Spring", "teal", "hills", "anchor", "flowers", "Spring"],
+];
+const presetOn = (L, p) => L.theme === p[2] && L.bg === p[3] && (L.mark || "anchor") === p[4] && (L.fx || "none") === p[5];
+export const presetLook = (p, fxn) => ({ theme: p[2], bg: p[3], mark: p[4], fx: p[5], fxn: fxn || 2 });
 const XMAS = new Set(["evergreen", "cranberry", "winter"]);
-export const defaultLook = () => ({ theme: "navy", bg: "anchor", mark: "anchor", fx: "none" });
-export function cleanLook(o) { const d = defaultLook(); if (!o || typeof o !== "object") return d; if (LOOK_THEMES.some((t) => t[0] === o.theme)) d.theme = o.theme; if (LOOK_BGS.some((b) => b[0] === o.bg)) d.bg = o.bg; if (MARKS.some((m) => m[0] === o.mark)) d.mark = o.mark; if (EFFECTS.some((e) => e[0] === o.fx)) d.fx = o.fx; return d; }
-const themeCols = (id) => (LOOK_THEMES.find((x) => x[0] === id) || LOOK_THEMES[0])[2];
-const gradOf = (id) => { const t = LOOK_THEMES.find((x) => x[0] === id) || LOOK_THEMES[0]; return "linear-gradient(135deg," + t[2][0] + " 0%," + t[2][1] + " 55%," + t[2][2] + " 100%)"; };
+export const defaultLook = () => ({ theme: "navy", bg: "anchor", mark: "anchor", fx: "none", fxn: 2 });
+export function cleanLook(o) { const d = defaultLook(); if (!o || typeof o !== "object") return d; if (LOOK_THEMES.some((t) => t[0] === o.theme)) d.theme = o.theme; if (LOOK_BGS.some((b) => b[0] === o.bg)) d.bg = o.bg; if (MARKS.some((m) => m[0] === o.mark)) d.mark = o.mark; if (EFFECTS.some((e) => e[0] === o.fx)) d.fx = o.fx; if ([1, 2, 3].includes(+o.fxn)) d.fxn = +o.fxn; return d; }
+export const themeCols = (id) => (LOOK_THEMES.find((x) => x[0] === id) || LOOK_THEMES[0])[2];
+export const gradOf = (id) => { const t = LOOK_THEMES.find((x) => x[0] === id) || LOOK_THEMES[0]; return "linear-gradient(135deg," + t[2][0] + " 0%," + t[2][1] + " 55%," + t[2][2] + " 100%)"; };
 let lookApplied = "", seal = "brand/logo.svg";
 /** The header logo for the current look (brand/logo.svg for Navy + Anchor). */
 export const lookSeal = () => seal;
 const MARK_VARS = ["--ring-mark", "--ring-mark-light", "--ring-wm"];
 export function applyLook(look) {
-    applyEffect(look.fx || "none");   // has its own did-it-change check
+    applyEffect(look.fx || "none", look.fxn);   // has its own did-it-change check
     const key = look.theme + "|" + look.bg + "|" + (look.mark || "anchor"); if (key === lookApplied) return; lookApplied = key;
     const b = document.body, t = LOOK_THEMES.find((x) => x[0] === look.theme) || LOOK_THEMES[0];
     if (t[0] === "navy") { b.style.removeProperty("--ring-grad"); b.style.removeProperty("--look-out"); b.style.removeProperty("--look-mid"); b.style.removeProperty("--look-hi"); }
@@ -354,19 +382,30 @@ export function applyLook(look) {
     b.dataset.mark = mk;
     document.querySelectorAll("#stage .hdr > img, #stage .wbstrip > img").forEach((im) => { if (im.getAttribute("src") !== seal) im.src = seal; });
 }
+/** One Quick look tile: its colours, background and logo in a small picture. */
+export function presetTile(api, p, after) {
+    const { S, el } = api, on = presetOn(S.look, p), b = el("button", "lookbg" + (on ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(on));
+    const pv = el("span", "lpv"); pv.style.background = gradOf(p[2]); pv.appendChild(el("span", "stagebg pv-" + p[3]));
+    const pm = el("img", "lpm"); pm.alt = ""; pm.src = p[2] === "navy" && p[4] === "anchor" ? "brand/logo.svg" : markUrl(p[4], themeCols(p[2]), "tile", p[2]); pv.appendChild(pm);
+    if (p[5] !== "none") pv.appendChild(el("span", "lpfx", effectSample(p[5]).split(" ")[0]));
+    b.appendChild(pv); b.appendChild(el("span", "lnm", p[1]));
+    b.onclick = () => { S.look = presetLook(p, S.look.fxn); api.push(); if (after) after(); };
+    return b;
+}
 /** Swatches for the colour scheme and tiles for the background. compact: the Remote's rail. */
 export function lookPicker(api, compact) {
     const { S, el } = api, box = el("div", "lookpick" + (compact ? " compact" : ""));
     const th = el("div", "lookthemes"); th.setAttribute("role", "group"); th.setAttribute("aria-label", "Board colors");
-    {   // Christmas: colours and background together, one tap
-        box.appendChild(el("p", "lookh xmas", compact ? "Christmas" : "Christmas looks"));
-        const pr = el("div", "lookbgs lookpresets"); pr.setAttribute("role", "group"); pr.setAttribute("aria-label", "Christmas looks");
-        LOOK_PRESETS.forEach(([, name, th0, bg0, mk0]) => {
-            const on = S.look.theme === th0 && S.look.bg === bg0, b = el("button", "lookbg" + (on ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(on));
-            const pv = el("span", "lpv"); pv.style.background = gradOf(th0); pv.appendChild(el("span", "stagebg pv-" + bg0)); const pm = el("img", "lpm"); pm.alt = ""; pm.src = markUrl(mk0, themeCols(th0), "tile", th0); pv.appendChild(pm); b.appendChild(pv); b.appendChild(el("span", "lnm", name));
-            b.onclick = () => { S.look = { theme: th0, bg: bg0, mark: mk0 }; api.push(); refreshSheet(); }; pr.appendChild(b);
-        });
-        box.appendChild(pr); box.appendChild(el("p", "lookh", "Colors"));
+    {   // Quick looks: colours, background, logo and effect together, one tap
+        box.appendChild(el("p", "lookh", "Quick looks"));
+        const pr = el("div", "lookbgs lookpresets"); pr.setAttribute("role", "group"); pr.setAttribute("aria-label", "Quick looks");
+        LOOK_PRESETS.forEach((p) => pr.appendChild(presetTile(api, p, () => refreshSheet())));
+        box.appendChild(pr);
+        // The Remote's rail keeps just the Quick looks; every color, background, effect, logo and sticker is in the Board Builder.
+        const more = el("a", "lookmore", compact ? "More looks and stickers in the Board Builder" : "Open the Board Builder: every look, panels and stickers in one place");
+        more.href = "studio.html"; if (api.guest && api.guest()) more.hidden = true;
+        if (compact) { box.appendChild(more); return box; }
+        box.appendChild(more); box.appendChild(el("p", "lookh", "Colors"));
     }
     LOOK_THEMES.forEach(([id, name]) => {
         const b = el("button", "lookth" + (XMAS.has(id) ? " xmas" : "") + (S.look.theme === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(S.look.theme === id)); b.title = name;

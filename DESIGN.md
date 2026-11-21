@@ -28,6 +28,15 @@ simpler, one less thing.
 - **Panels (Nov 18).** Every tool and lesson panel works the same way: on the shelf, floating, minimized to a
   live chip at the foot of the shelf, or off. One card style for panels wherever they sit (the ring-theme card).
   A layout sets the screen and the panels together. Panel controls on the projected board fade with the rest after 4 s.
+- **Board Builder and stickers (Nov 21).** `studio.html` is the one place to build a board: Look, Panels, Stickers, Lesson.
+  It is the Remote with a builder rail, so it edits the live board. Stickers are decoration the teacher chose, like a
+  floated panel: they sit over the lesson and under the panels, and only the Board Builder can pick one up. Pictures and
+  symbols come from a fixed list; word stickers are the teacher's own short text. No photos or uploads.
+  Since panels cover stickers on the board, a new sticker goes to an open spot the class can see, and a covered one
+  shows faded in the builder. Controls for the picked panel or sticker sit outside the scrolling list, so picking
+  something never moves what is under the finger.
+  A saved board can be a lesson's own board (week + class + day, `tools.dayb`): the device that moves to that lesson
+  (a day or period tap, the morning's fresh start, the bell timeline) switches to it; other screens just follow the state.
 - **Never show the wrong thing while loading.** Show the shape of the screen (a skeleton) until
   the real state arrives. No spinners, and never a flash of another day or period.
 - **Never claim what the site cannot know.** No "current period" without bell times. If the
