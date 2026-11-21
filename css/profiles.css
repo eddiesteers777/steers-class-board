@@ -42,3 +42,22 @@
 .pfTag.neg{background:#FBE9EA;color:#8E1B21}
 .pfNote{margin:4px 0;font-size:14px;line-height:1.5}
 .pfNote.miss{color:#8E1B21}
+/* Time out of class (Nov 21) */
+.pfOutTiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:6px 0 8px}
+@media (max-width:560px){.pfOutTiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pfOutTile{background:#fff;border:1.5px solid var(--c-line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column}
+.pfOutTile b{font-family:var(--display);font-size:1.25rem;line-height:1.1}
+.pfOutTile span{font-size:13px;font-weight:600;color:var(--c-ink)}
+.pfOutTile small{font-size:12px;color:var(--c-mute)}
+.pfTrips{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+.pfTrip{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:#fff;border:1.5px solid var(--c-line);border-radius:12px;padding:8px 10px;font-size:14px}
+.pfTrip .pfTday{font-weight:700;min-width:96px}
+.pfTrip select,.pfTrip input,.pfAddForm select,.pfAddForm input{font:16px var(--ui);min-height:40px;border:1.5px solid var(--c-line);border-radius:10px;padding:0 8px;background:#fff;color:var(--c-ink)}
+.pfTrip label,.pfAddForm label{display:inline-flex;align-items:center;gap:4px;font-size:13px;color:var(--c-mute)}
+.pfTrip .pfTmins{font-weight:600;color:var(--c-ink);min-width:70px}
+.pfTrip .btn{min-height:40px;padding:0 12px}
+.pfTrip .btn[hidden]{display:none}
+.pfOutActs{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.pfOutActs .btn{min-height:44px}
+.pfAdd summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:600;color:#10358A}
+.pfAddForm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}

@@ -21,7 +21,10 @@ export const WORK = [
     ["distract", "Distraction"], ["offtask", "Off task"], ["phone", "Phone out"],
 ];
 export const DEFAULT_TAGS = GOOD.map(([k, l]) => ({ k, l, s: 1 })).concat(WORK.map(([k, l]) => ({ k, l, s: -1 })));
-export const SPECIAL = { rr: "Restroom", note: "Note", abs: "Absent", pick: "Called on" };
+export const SPECIAL = { rr: "Out of class", note: "Note", abs: "Absent", pick: "Called on" };
+/* Passes out of class. All are kind "rr" (out at `at`, back at `b`) with the place in `w`; no `w` = Restroom (Nov 21). */
+export const PLACES = ["Restroom", "Water", "Nurse", "Office", "Counselor", "Locker", "Library", "Other"];
+export const placeOf = (e) => (e && typeof e.w === "string" && e.w) || "Restroom";
 export const MAX_TAGS = 10;   // per side
 export const RATIO_GOAL = 4;  // good notes for every one that needs work (a common PBIS target)
 
@@ -41,7 +44,7 @@ export function cleanTags(d) {
     return out.length ? out : DEFAULT_TAGS.map((t) => Object.assign({}, t));
 }
 export const tagOf = (tags, k) => tags.find((t) => t.k === k) || null;
-export const labelOf = (tags, k) => (tagOf(tags, k) || {}).l || SPECIAL[k] || k;
+export const labelOf = (tags, k, e) => (k === "rr" && e ? placeOf(e) : (tagOf(tags, k) || {}).l || SPECIAL[k] || k);
 export const signOf = (tags, k) => { const t = tagOf(tags, k); return t ? t.s : 0; };
 
 /** Live events of one day's document, oldest first, optionally for one period. */
@@ -137,6 +140,40 @@ export function toTally(doc, tags) {
     });
     return { day: doc && doc.day, periods };
 }
+
+/** Minutes for one trip out (0 while out or with no back time). */
+export const tripMins = (e) => (e && e.b && e.b > e.at ? Math.max(1, Math.round((e.b - e.at) / 60000)) : 0);
+
+/** Every trip out of class for one student in one period, newest first: [{ day, id, at, b, w, mins }] */
+export function tripsOf(docs, period, name) {
+    const out = [];
+    docs.forEach((d) => events(d, period).forEach((e) => { if (e.k === "rr" && sameName(e.n, name)) out.push({ day: d.day, id: e.id, at: e.at, b: e.b || 0, w: placeOf(e), mins: tripMins(e) }); }));
+    return out.sort((a, b) => b.at - a.at);
+}
+
+/**
+ * Time out of class added up: this week (Mon to Sun), this month, this nine weeks and this school year.
+ * today "YYYY-MM-DD"; nineWeeks [{ n, start, end }]; yearFirst "YYYY-MM-DD".
+ * Returns { week, month, nine, year: { mins, n }, nineN, places: [{ w, mins, n }] (year, most minutes first), noBack: trips with no back time }
+ */
+export function outTotals(trips, today, nineWeeks, yearFirst) {
+    const t = new Date(today + "T12:00"), dow = (t.getDay() + 6) % 7, mon = new Date(t); mon.setDate(t.getDate() - dow);
+    const monIso = localIso(mon), month = today.slice(0, 7), nw = (nineWeeks || []).find((q) => today >= q.start && today <= q.end) || null;
+    const box = () => ({ mins: 0, n: 0 }), R = { week: box(), month: box(), nine: box(), year: box(), nineN: nw ? nw.n : 0, places: [], noBack: 0 }, pl = {};
+    trips.forEach((x) => {
+        if (x.day > today) return;
+        const add = (b) => { b.mins += x.mins; b.n++; };
+        if (!yearFirst || x.day >= yearFirst) { add(R.year); const p = (pl[x.w] = pl[x.w] || { w: x.w, mins: 0, n: 0 }); p.mins += x.mins; p.n++; }
+        if (nw && x.day >= nw.start && x.day <= nw.end) add(R.nine);
+        if (x.day.slice(0, 7) === month) add(R.month);
+        if (x.day >= monIso) add(R.week);
+        if (!x.b && x.day < today) R.noBack++;
+    });
+    R.places = Object.values(pl).sort((a, b) => b.mins - a.mins || b.n - a.n);
+    return R;
+}
+/** "1 h 05 min" / "12 min" */
+export const hm = (mins) => (mins >= 60 ? Math.floor(mins / 60) + " h " + ("0" + (mins % 60)).slice(-2) + " min" : mins + " min");
 
 /** "3:07" from ms. */
 export function clock(ms) {

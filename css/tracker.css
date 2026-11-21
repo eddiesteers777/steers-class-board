@@ -207,3 +207,8 @@
 .tk-switch input:checked+.tk-swk{background:var(--good)}
 .tk-switch input:checked+.tk-swk::after{transform:translateX(18px)}
 .tk-switch input:focus-visible+.tk-swk{outline:3px solid #2F6FDB;outline-offset:2px}
+/* Other passes and "Got it right" (Nov 21) */
+.tk-places{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tk-places[hidden]{display:none}
+.tk-right{width:100%;min-height:60px;margin:4px 0 10px;border:0;border-radius:16px;background:linear-gradient(135deg,#1F9D61,#178A54);color:#fff;font:800 19px var(--display);cursor:pointer;box-shadow:0 6px 18px rgba(31,157,97,.3);transition:transform .2s ease}
+.tk-right:active{transform:scale(.97)}
