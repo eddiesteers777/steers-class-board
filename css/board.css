@@ -215,7 +215,7 @@ body.board .toolchips,body.board .msgin,body.board .minis.setup{display:none}
 @keyframes screenIn{from{opacity:.4;transform:translateY(.4em)}}
 .toollayer{position:absolute;inset:0;pointer-events:none;z-index:3}
 .float{position:absolute;pointer-events:auto;width:14em;box-shadow:0 .5em 1.6em rgba(4,12,34,.45);animation:pop .18s ease-out}
-.float.tool-score{width:22em}.float.tool-text{width:18em}.float.tool-traffic{width:9em}
+.float.tool-score{width:22em}.float.tool-text{width:18em}.float.tool-traffic{width:11.5em}
 @keyframes pop{from{opacity:0;transform:scale(.92)}}
 .float h3{display:flex;align-items:center;justify-content:space-between;cursor:grab;touch-action:none;user-select:none}
 .float h3:active{cursor:grabbing}

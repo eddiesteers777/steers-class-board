@@ -172,6 +172,16 @@ export function mountPlanFold(api, anchor) {
 }
 
 let edId = "", draft = null, draftFor = "";
+/** Board Builder: open the step editor with a new step that shows this layout or board ("scene:<id>"), ready to set its minute and save. */
+export function addStepAndEdit(api, go) {
+    const dlg = document.getElementById("planDialog"), ed = document.getElementById("planEditor"), plan = api.plan(); if (!dlg || !ed || !plan) return false;
+    edId = api.bellId(); draft = null; drawEditor(api, ed, () => {});   // loads today's schedule's steps into the draft
+    if (draft.length >= MAX_STEPS) { if (dlg.showModal) dlg.showModal(); return true; }
+    const last = draft[draft.length - 1]; draft.push({ m: last ? Math.min(60, last.m + 5) : 0, ref: "after", go });
+    drawEditor(api, ed, () => {}); if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+    const mins = ed.querySelectorAll(".bpmin"); if (mins.length) mins[mins.length - 1].focus();
+    return true;
+}
 function drawEditor(api, host, after) {
     const { el } = api, plan = api.plan(); host.textContent = ""; if (!plan) return;
     const scheds = api.schedules();
