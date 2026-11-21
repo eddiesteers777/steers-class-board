@@ -15,6 +15,9 @@
    Class vs. Teacher (the whole class plays together against the teacher).
 ========================================== */
 
+import { shortNames } from "./vaultCore.js?v=75";
+import * as PC from "./profileCore.js?v=1";
+import { credit as creditProfiles } from "./profiles.js?v=1";
 export const LIMITS = { cats: 6, clues: 6, q: 400, a: 200, title: 80, cat: 60, teams: 6 };
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "button"; if (fn) b.onclick = fn; return b; };
@@ -114,8 +117,11 @@ function cleanGame(d) {
     const g = d && d.kind === "chests" ? cleanChests(d) : d && d.kind === "versus" ? cleanVersus(d) : d && d.kind === "shots" ? cleanShots(d) : d && d.kind === "tiles" ? cleanTiles(d) : d && d.kind === "race" ? cleanRace(d) : d && d.kind === "bingo" ? cleanBingo(d) : d && d.kind === "tug" ? cleanTug(d) : d && d.kind === "rapid" ? cleanRapid(d) : d && d.kind === "wheel" ? cleanWheel(d) : d && d.kind === "code" ? cleanCodeGame(d) : cleanBoard(d);
     if (!g) return null;
     g.teams.forEach((t, i) => { const m = d.teams && d.teams[i] && d.teams[i].m; if (Array.isArray(m) && m.length) t.m = m.slice(0, 12).map((x) => str(x, 60)).filter(Boolean); });
-    g.log = (Array.isArray(d.log) ? d.log : []).slice(-200).map((x) => ({ c: str(x && x.c, LIMITS.cat), ok: Math.max(0, Math.floor(+x.ok || 0)), of: Math.max(1, Math.floor(+x.of || 1)), k: str(x && x.k, 8) }));
+    const teamList = (v) => (Array.isArray(v) ? v.map((t) => Math.floor(+t)).filter((t) => t >= 0 && t < LIMITS.teams).slice(0, LIMITS.teams) : null);
+    g.log = (Array.isArray(d.log) ? d.log : []).slice(-200).map((x) => Object.assign({ c: str(x && x.c, LIMITS.cat), ok: Math.max(0, Math.floor(+x.ok || 0)), of: Math.max(1, Math.floor(+x.of || 1)), k: str(x && x.k, 8) },
+        teamList(x && x.w) && teamList(x && x.x) ? { w: teamList(x.w), x: teamList(x.x) } : {}));
     g.rid = str(d.rid, 40);
+    g.pfAt = Math.max(0, Math.floor(+d.pfAt || 0)); g.pfN = Math.max(0, Math.floor(+d.pfN || 0)); g.pfC = d.pfC ? 1 : 0;   // student profiles: log entries already credited, students credited, class credit done
     return g;
 }
 function cleanBoard(d) {
@@ -482,7 +488,7 @@ export function syncGames() {
     const want = onGame() && A.signedIn() ? "games/live_" + A.S.period : "";
     if (want !== key) {
         if (unsub) { unsub(); unsub = null; }
-        key = want; G = null; loaded = false; write = null; rev++; lastDone = false; panelNote = "";
+        key = want; G = null; loaded = false; write = null; rev++; lastDone = false; panelNote = ""; pfMsg = "";
         if (key) {
             const mine = key; write = A.writer(mine);
             unsub = A.store().watch(mine, (snap) => {
@@ -532,6 +538,40 @@ function recordResult() {
         teams: G.teams.map((t) => Object.assign({ n: t.n, s: t.s }, t.m ? { m: t.m } : {})), win: G.teams.map((t, i) => (t.s === best ? i : -1)).filter((i) => i >= 0),
         cats: Object.values(by), bonus: {} });
     panelNote = "";
+    creditGame();
+}
+/* ---------- student profiles (js/profileCore.js) ----------
+   When a game reaches its final scores, the questions logged since the last credit go to student profiles, once.
+   Teams from the Group maker carry roster names, so each member gets the team's result for each question (team
+   evidence: it counts toward topic locks and shows as "with team" on the Profiles page). Whole-class games (Class vs.
+   Teacher, Rapid Fire, Bingo, Tug of War) have no names per answer, so each student present gets a little participation
+   XP and no topic record. Teams with no names add nothing. Only the Remote writes, in one transaction. */
+const CLASS_KINDS = ["versus", "rapid", "bingo", "tug"];
+let pfMsg = "";
+function creditGame() {
+    if (!A.store().rooms || !A.store().rooms.tx) return;
+    const per = A.S.period, roster = ((A.rosters && A.rosters()[per]) || []).filter(Boolean), shorts = shortNames(roster);
+    if (!roster.length) { pfMsg = "Not added to student profiles: there is no class list for " + per + " period."; return; }
+    const nameOf = (line) => { const i = roster.indexOf(line); return i >= 0 ? shorts[i] : ""; };
+    const from = Math.min(G.pfAt || 0, (G.log || []).length), fresh = (G.log || []).slice(from);
+    let gains = PC.teamGains(fresh, G.teams, nameOf);
+    const kind = G.kind || "board";
+    if (!Object.keys(gains).length && CLASS_KINDS.includes(kind) && !G.pfC) {
+        const out = new Set(A.S.tools.absent && A.S.tools.absent.day === localDay() ? (A.S.tools.absent.periods[per] || []) : []);
+        const rights = kind === "rapid" ? G.teams[0].s : kind === "bingo" ? G.qi + 1 : kind === "tug" ? (G.log || []).reduce((n, x) => n + x.ok, 0) : (G.log || []).reduce((n, x) => n + x.ok, 0);
+        gains = {}; shorts.forEach((nm, i) => { if (!out.has(i)) gains[nm] = PC.classGain(nm, rights); });
+        G.pfC = 1;
+    }
+    if (from > 0) Object.values(gains).forEach((g) => { g.play = 0; });   // the same game carried on: don't count it as another game played
+    G.pfAt = (G.log || []).length;
+    const n = Object.keys(gains).length;
+    if (!n) { if (pfMsg !== "Adding to student profiles…") pfMsg = G.pfN || CLASS_KINDS.includes(kind) ? "" : "Not added to student profiles. Use the Group maker's groups as teams so each student gets credit."; return; }
+    const rid = G.rid; pfMsg = "Adding to student profiles…";
+    creditProfiles(A.store().rooms, per, gains).then(() => {
+        if (G && G.rid === rid) { G.pfN = (G.pfN || 0) + n; pfMsg = ""; panelSig = ""; changed({ quiet: true }); drawPanel(); }
+    }, (e) => {
+        if (G && G.rid === rid) { G.pfAt = from; if (CLASS_KINDS.includes(kind) && !fresh.some((x) => x.w)) G.pfC = 0; pfMsg = "Could not add to student profiles (" + ((e && e.code) || "connection") + "). It will try again the next time you change anything."; panelSig = ""; drawPanel(); }
+    });
 }
 /** The Group maker's groups for this period, as lists of names (absent students left out, as the tool does). */
 function groupMembers() {
@@ -553,12 +593,19 @@ function openClue(c, r) {
 }
 function score(t, right) {
     const o = G.open; if (!o) return; const v = valueOf(o), k = keyOf(o.c, o.r);
-    if (right) { G.teams[t].s += v; G.hist.push({ t, d: v, k, c: 1, f: 0 }); logQ(G.cats[o.c].n, 1, 1, k); closeClue(true); }
+    if (right) { G.teams[t].s += v; G.hist.push({ t, d: v, k, c: 1, f: 0 }); logQ(G.cats[o.c].n, 1, 1, k, [t], G.tried.concat([t])); closeClue(true); }
     else { const d = G.opts.lose ? -v : 0; G.teams[t].s += d; if (!G.tried.includes(t)) G.tried.push(t); G.hist.push({ t, d, k, c: 0, f: 0 }); }
     G.hist = G.hist.slice(-60); changed();
 }
-function noOne() { const o = G.open; if (!o) return; G.hist.push({ t: -1, d: 0, k: keyOf(o.c, o.r), c: 1, f: 0 }); logQ(G.cats[o.c].n, 0, 1, keyOf(o.c, o.r)); closeClue(true); changed(); }
-function logQ(c, ok, of, k) { if (!G.log) G.log = []; G.log.push({ c, ok, of, k: k || "" }); G.log = G.log.slice(-200); }
+function noOne() { const o = G.open; if (!o) return; G.hist.push({ t: -1, d: 0, k: keyOf(o.c, o.r), c: 1, f: 0 }); logQ(G.cats[o.c].n, 0, 1, keyOf(o.c, o.r), [], G.tried.slice()); closeClue(true); changed(); }
+/** One question's result. w: the teams that got it right, x: the teams that answered (for student profiles; left out in whole-class games). */
+function logQ(c, ok, of, k, w, x) {
+    if (!G.log) G.log = [];
+    const e = { c, ok, of, k: k || "" }; if (Array.isArray(w) && Array.isArray(x)) { e.w = w.slice(); e.x = x.slice(); }
+    G.log.push(e);
+    if (G.log.length > 200) { const cut = G.log.length - 200; G.log = G.log.slice(cut); G.pfAt = Math.max(0, (G.pfAt || 0) - cut); }
+}
+const allTeams = () => G.teams.map((_, i) => i);
 function undo() {
     const h = G.hist.pop(); if (!h) return;
     if (h.t >= 0 && G.teams[h.t]) G.teams[h.t].s -= h.d;
@@ -615,7 +662,7 @@ function nextQuestion() {
     G.qi++; G.cp = "q"; G.show = false; G.right = []; G.queue = []; G.picker = -1; if (G.kind === "wheel") G.spin = null; else if (G.kind === "code") { G.lastG = null; G.solved = null; } else G.chests = closedChests(); G.last = -1; G.timer = blankTimer(); changed();
 }
 function startPicking() {
-    save(); logQ(curQ().c, G.right.length, G.teams.length); G.queue = G.teams.map((_, i) => i).filter((i) => G.right.includes(i));
+    save(); logQ(curQ().c, G.right.length, G.teams.length, "", G.right, allTeams()); G.queue = G.teams.map((_, i) => i).filter((i) => G.right.includes(i));
     if (G.kind === "code") { G.queue.forEach((i) => { G.teams[i].s += CODE_RIGHT; }); G.lastG = null; codeEntry = ""; }
     if (!G.queue.length) { nextQuestion(); return; }
     G.picker = G.queue.shift(); G.cp = "pick"; G.show = true; G.timer = blankTimer(); changed();
@@ -677,7 +724,7 @@ function shotNextQuestion() {
     G.qi++; G.cp = "q"; G.show = false; G.right = []; G.queue = []; G.shooter = -1; G.shot = -1; G.timer = blankTimer(); changed();
 }
 function startShooting() {
-    save(); logQ(curQ().c, G.right.length, G.teams.length);
+    save(); logQ(curQ().c, G.right.length, G.teams.length, "", G.right, allTeams());
     G.queue = G.teams.map((_, i) => i).filter((i) => G.right.includes(i));
     G.queue.forEach((i) => { G.teams[i].s += G.opts.ans; });
     if (!G.queue.length) { shotNextQuestion(); return; }
@@ -700,7 +747,7 @@ function tilesNextQuestion() {
     G.qi++; G.cp = covered() ? "q" : "solved"; if (G.cp === "solved" && G.solver < 0) G.cp = "q"; changed();
 }
 function tilesPicking() {
-    save(); logQ(curQ().c, G.right.length, G.teams.length); G.queue = G.teams.map((_, i) => i).filter((i) => G.right.includes(i));
+    save(); logQ(curQ().c, G.right.length, G.teams.length, "", G.right, allTeams()); G.queue = G.teams.map((_, i) => i).filter((i) => G.right.includes(i));
     if (!G.queue.length || !covered()) { tilesNextQuestion(); return; }
     G.picker = G.queue.shift(); G.flip = -1; G.cp = "pick"; G.show = true; G.timer = blankTimer(); changed();
 }
@@ -731,7 +778,7 @@ function raceTap(i) {   // off → right → right and fastest → off
 }
 function raceScore() {
     if (G.cp !== "q" || G.phase !== "play") return;
-    save(); logQ(curQ().c, G.right.length, G.teams.length);
+    save(); logQ(curQ().c, G.right.length, G.teams.length, "", G.right, allTeams());
     G.gained = G.right.slice(); G.right.forEach((i) => { G.teams[i].s += 1 + (G.opts.fast && G.fast === i ? 1 : 0); });
     G.teams.forEach((t) => { t.s = Math.min(t.s, G.opts.goal); });
     G.cp = "result"; G.show = true; G.timer = blankTimer();
@@ -1219,6 +1266,8 @@ export function drawPanel() {
     if (G.phase === "done") {
         p.append(h("Final scores"));
         { const n = el("p", "gpnote"), a = el("a", null, "Class Data"); a.href = "data.html#games"; n.append(document.createTextNode("Saved to "), a, document.createTextNode(" with today's date" + (G.kind === "rapid" ? ". Each round's score sets the record to beat next time." : G.teams.some((t) => t.m) ? " and who was on each team." : ". Use the Group maker's groups as teams to see who won by name."))); p.append(n); }
+        if (pfMsg) p.append(el("p", "gpnote", pfMsg));
+        else if (G.pfN) { const n = el("p", "gpnote"), a = el("a", null, "student profiles"); a.href = "profiles.html"; n.append(document.createTextNode("Added to "), a, document.createTextNode(" for " + G.pfN + (G.pfN === 1 ? " student." : " students."))); p.append(n); }
         teamRows(p, (r, t) => r.append(el("span", "gpname", t.n), el("b", "gpscore", pts(t.s))));
         if (G.kind === "board" || !G.kind || isCh() || G.kind === "shots" || G.kind === "tiles") p.append(btn("btn ghost", isCh() || G.kind === "shots" || G.kind === "tiles" ? "Back to the game" : "Back to the board", () => { G.phase = "play"; changed(); }));
         p.append(btn("btn ghost", "Play this set again", () => { const set = cleanSet(G), names = G.teams.map((t) => t.n), o = G.opts; if (G.kind === "chests") { G = newChests(set, names); G.opts = o; } else if (G.kind === "wheel") { G = newWheel(set, names); G.opts = o; } else if (G.kind === "code") { G = newCode(set, names); G.opts = o; G.code = newCodeStr(o.len); } else if (G.kind === "versus") { G = newVersus(set, names[1]); G.opts = o; } else if (G.kind === "shots") { G = newShots(set, names); G.opts = o; } else if (G.kind === "tiles") { G = newTiles(set, names); G.opts = o; } else if (G.kind === "race") { G = newRace(set, names); G.opts = o; } else if (G.kind === "bingo") { G = newBingo(set); G.opts = o; } else if (G.kind === "tug") { G = newTug(set, names); G.opts = o; } else if (G.kind === "rapid") { G = newRapid(set, Math.max(G.rec, G.teams[0].s)); G.opts = o; } else { G = newGame(set, names); G.opts = o; pickDouble(); } changed(); }));

@@ -9,7 +9,7 @@
 ========================================== */
 import { db } from "./firebase.js";
 import { waitForUser, logout } from "./auth.js";
-import { doc, collection, setDoc, getDoc, getDocs, deleteDoc, writeBatch, getDocFromServer, onSnapshot, serverTimestamp, disableNetwork, enableNetwork } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { doc, collection, setDoc, getDoc, getDocs, deleteDoc, writeBatch, getDocFromServer, onSnapshot, runTransaction, serverTimestamp, disableNetwork, enableNetwork } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 let uid = null;
 
@@ -135,6 +135,15 @@ export const rooms = {
         return ids.length;
     },
     del: (path) => deleteDoc(abs(path)),
+    /** Read one document, change it and write it back in one go (Firestore retries if another screen wrote it meanwhile).
+        fn(data or null) returns the new data (written whole) or null to leave it as it is. Resolves what fn returned. */
+    async tx(path, fn) {
+        return runTransaction(db, async (t) => {
+            const r = abs(path), s = await t.get(r), next = fn(s.exists() ? s.data() : null);
+            if (next) t.set(r, next);
+            return next;
+        });
+    },
 };
 
 export { logout as signOut };
