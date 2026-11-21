@@ -16,8 +16,8 @@
 ========================================== */
 
 import { shortNames } from "./vaultCore.js?v=75";
-import * as PC from "./profileCore.js?v=1";
-import { credit as creditProfiles } from "./profiles.js?v=1";
+import * as PC from "./profileCore.js?v=2";
+import { credit as creditProfiles } from "./profiles.js?v=2";
 export const LIMITS = { cats: 6, clues: 6, q: 400, a: 200, title: 80, cat: 60, teams: 6 };
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "button"; if (fn) b.onclick = fn; return b; };

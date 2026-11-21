@@ -13,7 +13,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebas
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import * as V from "./vaultCore.js?v=75";
-import * as PC from "./profileCore.js?v=1";
+import * as PC from "./profileCore.js?v=2";
+import * as Buddy from "./buddy.js?v=2";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=2";
 
@@ -50,14 +51,31 @@ const meGet = () => { try { const o = JSON.parse(store.get("me") || "null"); ret
 const meSet = (o) => store.set("me", JSON.stringify(o));
 function remember(m) {
     const r = ST.room; if (!r || !m || !m.nm || !m.pf) return;   // only names that have a profile (roster names)
-    const old = meGet(), o = { o: r.owner || "", p: r.per || "", n: m.nm, a: m.av };
-    if (!old || old.o !== o.o || old.p !== o.p || old.n !== o.n || old.a !== o.a) meSet(o);
+    const old = meGet(), o = { o: r.owner || "", p: r.per || "", n: m.nm, a: m.av, l: myLook(m) };
+    if (!old || old.o !== o.o || old.p !== o.p || old.n !== o.n || old.a !== o.a || old.l !== o.l) meSet(o);
 }
 /** The remembered student for this room, when their name is on its list and free: { n, a, i }. */
 function rememberedFor(r) {
     const me = meGet(); if (!me || !r || me.o !== (r.owner || "") || !r.per || me.p !== r.per) return null;
-    if (r.mode !== "roster") return { n: me.n, a: me.a, i: -1 };
-    const i = (r.names || []).indexOf(me.n); return i >= 0 && !(r.taken || []).includes(i) ? { n: me.n, a: me.a, i } : null;
+    const l = Buddy.validLook(me.l) && me.l ? me.l : Buddy.seedLook(me.n);
+    if (r.mode !== "roster") return { n: me.n, a: me.a, l, i: -1 };
+    const i = (r.names || []).indexOf(me.n); return i >= 0 && !(r.taken || []).includes(i) ? { n: me.n, a: me.a, l, i } : null;
+}
+/** Their character's look: what they just picked here, else what the teacher's screen has, else one made from their name. */
+const myLook = (m) => ST.picks.lk || (m && m.lk) || Buddy.seedLook(m && m.nm);
+/** A character as an element. opts as Buddy.svg ({ size, face, still }), plus move (play it), loop (keep replaying it)
+ *  and live (it blinks, breathes and looks around). Small ones in lists stay still. */
+function buddyEl(look, opts, cls) {
+    const o = opts || {}, w = el("span", "bdbox" + (cls ? " " + cls : ""));
+    w.innerHTML = Buddy.svg(look, o); w.setAttribute("aria-hidden", "true");
+    if (!o.still && (o.move || o.live)) Buddy.animate(w, { move: o.move, loop: o.loop });
+    return w;
+}
+/** Put a new look on a character already on the page: a live one keeps moving, a still one is redrawn. */
+function showLook(box, lk, opts) {
+    if (!box) return;
+    const s = box.querySelector("svg.bd"); if (s && s.getAttribute("data-lk") === lk) return;
+    if (s && opts.live) Buddy.restyle(s, lk); else { box.innerHTML = Buddy.svg(lk, opts); if (opts.live) Buddy.animate(box); }
 }
 
 const ST = {
@@ -538,15 +556,15 @@ function showPicks() {
     const m = ST.me || {}, av = ST.picks.av != null ? ST.picks.av : m.av, pu = ST.picks.pu != null ? ST.picks.pu : m.pu;
     document.querySelectorAll(".wravatar").forEach((b, i) => { const on = i === av; b.classList.toggle("on", on); b.setAttribute("aria-checked", String(on)); });
     document.querySelectorAll(".wrpower").forEach((b) => { const on = b.dataset.k === pu; b.classList.toggle("on", on); b.setAttribute("aria-checked", String(on)); });
-    const me = document.querySelector(".wrme"); if (me) me.textContent = V.avatar(av)[0];
+    const lk = myLook(m); showLook(document.querySelector(".wrme"), lk, { face: true, size: 88, live: true });
     const n = document.querySelector(".wroom > .pnote"); if (n) n.textContent = pickNote(pu);
-    const nm = document.querySelector("#stats .pstat b"); if (nm && m.nm) nm.textContent = V.avatar(av)[0] + " " + m.nm;
+    showLook(document.querySelector("#stats .pstat .bdbox"), lk, { face: true, size: 22 });
 }
-const pickNote = (pu) => (ST.pickErr ? "Characters and power-ups aren't switched on for this game yet. You can still play." : pu ? "Ready! You can change your picks until the game starts." : "Pick one. It works once the game starts.");
+const pickNote = (pu) => (ST.pickErr ? "Outfits and power-ups aren't switched on for this game yet. You can still play." : pu ? "Ready! You can change your picks until the game starts." : "Pick one. It works once the game starts.");
 function waitingRoom(card, m) {
     card.classList.add("lobby", "wide", "wroom");
     const av = ST.picks.av != null ? ST.picks.av : m.av, pu = ST.picks.pu != null ? ST.picks.pu : m.pu, pf = m.pf;
-    const head = el("div", "wrhead"), me = faceRing(av, m, pf);
+    const head = el("div", "wrhead"), me = faceRing(m, pf);
     if (!ST.revealed) { me.classList.add("reveal"); ST.revealed = true; setTimeout(() => sfx("start"), 120); }
     const hi = el("div"); hi.append(el("h1", null, (pf && pf.g0 ? "Welcome back, " : "You're in, ") + m.nm + "!"));
     if (pf) { const lv = el("p", "wrlv"); lv.append(el("b", null, "Level " + pf.lv), document.createTextNode(" · " + pf.xp + " XP · "), el("span", "wrcoin", pf.coins + " coins banked")); hi.append(lv); }
@@ -562,16 +580,7 @@ function waitingRoom(card, m) {
     code.append(el("small", null, "Your secret code"), digits, peek);
     head.append(me, hi, code); card.append(head);
     if (pf) card.append(lockerCard(pf, m, "quest"));
-    card.append(el("h2", "wrh", "Your character"));
-    const grid = el("div", "wravatars"), aopen = m.avo || PC.avatarsOpen(0); grid.setAttribute("role", "radiogroup"); grid.setAttribute("aria-label", "Characters");
-    V.AVATARS.forEach(([e, n], i) => {
-        const locked = i >= aopen, b = btn("wravatar" + (i === av ? " on" : "") + (locked ? " locked" : ""), e, locked ? null : () => { pick({ av: i }); sfx("tap"); });
-        b.setAttribute("role", "radio"); b.setAttribute("aria-checked", String(i === av)); b.setAttribute("aria-label", locked ? n + ", unlocks at " + PC.AVATAR_XP[i] + " XP" : n); b.title = locked ? "Unlocks at " + PC.AVATAR_XP[i] + " XP" : n;
-        if (locked) { b.disabled = true; b.append(el("small", "wrxp", PC.AVATAR_XP[i] + " XP")); }
-        grid.append(b);
-    });
-    card.append(grid);
-    if (aopen < V.AVATARS.length) card.append(el("p", "pnote", pf ? "Earn XP by answering, fixing misses and cracking locks to unlock more characters." : "More characters unlock with XP once you play with your name from the class list."));
+    card.append(el("h2", "wrh", "Your character"), studio(m));
     card.append(el("h2", "wrh", "Your vault"), skinsGrid(m, true));
     if (pf) card.append(lockerCard(pf, m, "badges"));
     card.append(el("h2", "wrh", "Pick a power-up for the game"));
@@ -582,12 +591,93 @@ function waitingRoom(card, m) {
     card.append(comebackTools(m));
     card.append(practiceVault());
 }
+/* ---------- the dress-up studio: their own cartoon character (js/buddy.js) ----------
+   Tabs of pieces; each tile shows the character wearing that piece. Earned pieces say what unlocks them, never a price.
+   Picks show at once and go to the teacher's screen a moment later (one small write), which checks them before using them. */
+const STUDIO_TABS = [["Hair", ["h", "c"]], ["Face", ["e", "m", "s"]], ["Top", ["t", "u"]], ["Bottoms", ["b", "v"]], ["Shoes", ["f", "w"]], ["Hat", ["a", "k"]], ["Glasses", ["g"]], ["Back", ["x"]]];
+const BACK_TAB = STUDIO_TABS.findIndex((t) => t[0] === "Back"), BACK_YAW = 160;   // the Back tab turns the character round
+const COLOR_PARTS = { s: Buddy.SKINS.map((c) => [c]), c: Buddy.HAIR_COLORS, u: Buddy.COLORS, v: Buddy.COLORS, w: Buddy.COLORS, k: Buddy.COLORS };
+const FACE_PARTS = new Set(["h", "e", "m", "a", "g"]);
+const earnedBy = (m) => (m && m.pf ? { xp: m.pf.xp, lv: m.pf.lv, b: m.pf.b || [] } : null);
+let lkTimer = 0;
+function setLook(lk) {
+    ST.picks.lk = lk; sfx("tap"); paintStudio(); Buddy.emote($("wrfig"), "hop");
+    showLook(document.querySelector(".wrme"), lk, { face: true, size: 88, live: true });
+    showLook(document.querySelector("#stats .pstat .bdbox"), lk, { face: true, size: 22 });
+    clearTimeout(lkTimer); lkTimer = setTimeout(() => pick({ lk: ST.picks.lk }), 500);
+}
+function studio(m) {
+    const w = el("div", "wrstudio"); w.id = "wrstudio";
+    const stage = el("div", "wrstage"), fig = el("div", "wrfig"); fig.id = "wrfig";
+    const moves = el("div", "wrmoves");
+    [["wave", "Wave"], ["dance", "Dance"], ["cheer", "Cheer"]].forEach(([k, n]) => moves.append(btn("wrmove", n, () => { Buddy.emote($("wrfig"), k); sfx("tap"); })));
+    spinDrag(fig);
+    stage.append(fig, el("p", "wrspin", "Drag to spin"), moves);
+    const side = el("div", "wrside"), tabs = el("div", "wrtabs"); tabs.setAttribute("role", "tablist"); tabs.setAttribute("aria-label", "Outfit");
+    STUDIO_TABS.forEach(([n], i) => { const b = btn("wrtab", n, () => { ST.tab = i; paintStudio(); sfx("tap"); }); b.setAttribute("role", "tab"); b.dataset.i = i; tabs.append(b); });
+    const items = el("div", "wrpieces"); items.id = "wrpieces";
+    side.append(tabs, items);
+    const hint = el("p", "pnote"); hint.id = "wrhint";
+    side.append(hint);
+    w.append(stage, side);
+    requestAnimationFrame(() => {
+        paintStudio();
+        if (!ST.waved) { ST.waved = true; Buddy.animate($("wrfig"), { spin: true }); setTimeout(() => Buddy.emote($("wrfig"), "wave"), 650); }
+    });
+    return w;
+}
+/** Drag the studio character round to see it from every side (arrow keys too). It turns back to the front a moment after. */
+function spinDrag(fig) {
+    let x0 = null, back = 0;
+    const later = () => { clearTimeout(back); back = setTimeout(() => { if (x0 == null) Buddy.turnTo(fig, (ST.tab || 0) === BACK_TAB ? BACK_YAW : undefined); }, 2600); };
+    fig.tabIndex = 0; fig.setAttribute("role", "img"); fig.setAttribute("aria-label", "Your character. Drag it or use the arrow keys to turn it around.");
+    fig.addEventListener("pointerdown", (e) => { x0 = e.clientX; clearTimeout(back); try { fig.setPointerCapture(e.pointerId); } catch (er) { /* ok */ } fig.classList.add("drag"); });
+    fig.addEventListener("pointermove", (e) => { if (x0 == null) return; const dx = e.clientX - x0; x0 = e.clientX; if (dx) Buddy.turn(fig, dx * 0.9); });
+    const up = () => { if (x0 == null) return; x0 = null; fig.classList.remove("drag"); later(); };
+    fig.addEventListener("pointerup", up); fig.addEventListener("pointercancel", up);
+    fig.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); Buddy.turn(fig, e.key === "ArrowRight" ? 24 : -24); later(); }
+        else if (e.key === "Home" || e.key === "Escape") Buddy.turnTo(fig);
+    });
+}
+/** Redraw the studio in place (a pick shouldn't redraw the whole page or lose the scroll spot). */
+function paintStudio() {
+    const items = $("wrpieces"), fig = $("wrfig"); if (!items || !fig) return;
+    const m = ST.me || {}, me = earnedBy(m), lk = myLook(m), o = Buddy.parse(lk), tab = ST.tab || 0, back = tab === BACK_TAB;
+    const live = fig.querySelector("svg.bd");
+    if (!live) { fig.innerHTML = Buddy.svg(lk, { size: 230, yaw: back ? BACK_YAW : undefined }); Buddy.animate(fig); ST.backView = back; }
+    else {
+        if (live.getAttribute("data-lk") !== lk) Buddy.restyle(live, lk);
+        if (back !== !!ST.backView) { ST.backView = back; Buddy.turnTo(fig, back ? BACK_YAW : undefined); }
+    }
+    document.querySelectorAll(".wrtab").forEach((b) => { const on = +b.dataset.i === tab; b.classList.toggle("on", on); b.setAttribute("aria-selected", String(on)); });
+    items.textContent = "";
+    let locked = 0;
+    STUDIO_TABS[tab][1].forEach((key) => {
+        const part = Buddy.PARTS.find((p) => p[0] === key), row = el("div", COLOR_PARTS[key] ? "wrswatches" : "wrtiles");
+        row.setAttribute("role", "radiogroup"); row.setAttribute("aria-label", part[1]);
+        if (STUDIO_TABS[tab][1].length > 1) items.append(el("h3", "wrpartname", part[1]));
+        part[2].forEach(([name, need], i) => {
+            const ok = Buddy.earned(need, me), on = o[key] === i, next = Object.assign({}, o, { [key]: i });
+            const b = btn((COLOR_PARTS[key] ? "wrswatch" : "wrtile") + (on ? " on" : "") + (ok ? "" : " locked"), null, ok ? () => setLook(Buddy.stringify(next)) : null);
+            b.setAttribute("role", "radio"); b.setAttribute("aria-checked", String(on));
+            b.setAttribute("aria-label", ok ? name : name + ", unlocks with " + Buddy.needText(need)); b.title = ok ? name : "Unlocks with " + Buddy.needText(need);
+            if (COLOR_PARTS[key]) { const dot = el("i"); dot.style.background = COLOR_PARTS[key][i][0]; b.append(dot); }
+            else { b.innerHTML = Buddy.svg(next, { size: FACE_PARTS.has(key) ? 64 : 76, face: FACE_PARTS.has(key), still: true, yaw: back ? BACK_YAW : undefined }); b.append(el("small", null, ok ? name : "🔒 " + Buddy.needText(need))); }
+            if (!ok) { b.disabled = true; locked++; }
+            row.append(b);
+        });
+        items.append(row);
+    });
+    const h = $("wrhint");
+    if (h) h.textContent = locked ? (me ? "Locked pieces unlock with XP, levels and badges. Keep answering and they're yours for good." : "Play with your name from the class list to earn the locked pieces.") : "Tap a piece to try it on. Your teacher's screen saves it with your profile.";
+}
 /** The character in a ring that fills toward the next lock, in their vault's colors. */
-function faceRing(av, m, pf) {
+function faceRing(m, pf) {
     const k = V.skin(mySkin(m))[3], pct = pf ? (pf.next ? pf.next.pct : pf.lv ? 100 : 0) : 0, R = 54, C = 2 * Math.PI * R;
     const w = el("div", "wrface"); w.style.setProperty("--skd", k.door); w.style.setProperty("--skr", k.ring);
     w.innerHTML = '<svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="' + R + '" class="trk"/><circle cx="60" cy="60" r="' + R + '" class="bar" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - pct / 100)).toFixed(1) + '"/></svg>';
-    const e = el("span", "wrme", V.avatar(av)[0]); e.setAttribute("aria-hidden", "true"); w.append(e);
+    const e = buddyEl(myLook(m), { face: true, size: 88, live: true }, "wrme"); w.append(e);
     if (pf) w.append(el("b", "wrlvl", String(pf.lv)));
     return w;
 }
@@ -720,7 +810,7 @@ function stats() {
     s.hidden = false; s.textContent = "";
     const chip = (label, val, cls) => { const c = el("span", "pstat" + (cls ? " " + cls : "")); c.append(el("small", null, label), el("b", null, val)); s.append(c); };
     const was = ST.coins; ST.coins = m.c;
-    chip("Name", V.avatar(m.status === "lobby" && ST.picks.av != null ? ST.picks.av : m.av)[0] + " " + m.nm); const fog = fogged(m); ST.fogOn = fog;
+    chip("Name", m.nm); s.lastChild.lastChild.prepend(buddyEl(myLook(m), { face: true, size: 22 })); const fog = fogged(m); ST.fogOn = fog;
     if (m.pf) chip("Level", String(m.pf.lv), "lvl");
     chip("Coins", fog ? "???" : String(m.c), "coin" + (fog ? " fog" : was != null && m.c > was ? " up" : was != null && m.c < was ? " down" : "")); chip("Hacks", String(m.h)); if (m.status !== "lobby") chip("Place", fog ? "???" : m.rank + " of " + m.players, fog ? "fog" : "");
     const t = el("span", "pstat"); t.append(el("small", null, "Time"), el("b", null, "")); t.id = "ptime"; s.append(t); tickTime();
@@ -784,7 +874,8 @@ function draw(force) {
     }
     if (m.status === "done") {
         card.classList.add("done");
-        card.append(el("h1", null, "Game over!"), medal(m.rank), el("p", "pbig", ordinal(m.rank) + " place"));
+        const gd = el("div", "pdonefig"); gd.append(buddyEl(myLook(m), { size: 150, move: m.rank <= 3 ? "dance" : "cheer", loop: true }), medal(m.rank));
+        card.append(el("h1", null, "Game over!"), gd, el("p", "pbig", ordinal(m.rank) + " place"));
         const tiles = el("div", "ptiles"), tile = (v, l) => { const t = el("div", "ptile"); t.append(el("b", null, String(v)), el("small", null, l)); tiles.append(t); };
         tile(m.c, "coins"); tile(m.r + " of " + m.of, "right"); if (m.best != null) tile(m.best, "best streak"); if (m.cr != null) tile(m.cr, m.cr === 1 ? "vault cracked" : "vaults cracked");
         if (m.of) tile(Math.round(100 * m.r / m.of) + "%", "correct");
@@ -857,16 +948,15 @@ function nameStep(card) {
     if (me && !ST.notMe) {
         // One tap for a student this Chromebook knows. Their character greets them before anything else.
         card.classList.add("pme");
-        const face = el("span", "pmeface", V.avatar(me.a)[0]); face.setAttribute("aria-hidden", "true");
-        card.append(face, el("p", "plead", "Playing as"), el("p", "pbig", me.n));
-        card.append(btn("pbtn go", "That's me, let's go", () => { ST.pick = me.i >= 0 ? { ni: me.i, nm: me.n } : { nm: me.n }; ST.face = me.a; ST.step = "vault"; ST.err = ""; draw(true); }),
+        card.append(buddyEl(me.l, { size: 170, move: "wave" }, "pmeface"), el("p", "plead", "Playing as"), el("p", "pbig", me.n));
+        card.append(btn("pbtn go", "That's me, let's go", () => { ST.pick = me.i >= 0 ? { ni: me.i, nm: me.n } : { nm: me.n }; ST.face = me.l; ST.step = "vault"; ST.err = ""; draw(true); }),
             btn("pbtn ghost", "Not you? Pick your name", () => { ST.notMe = true; draw(true); }));
         note(card); return;
     }
     if (r.mode === "roster") {
         card.append(el("p", "plead", "Tap your name."));
         const list = el("div", "pnames"), taken = new Set(r.taken || []);
-        (r.names || []).forEach((n, i) => { const b = btn("pname", n, () => { const k = meGet(); ST.pick = { ni: i, nm: n }; ST.face = k && k.n === n ? k.a : null; ST.step = "vault"; ST.err = ""; draw(true); }); if (taken.has(i)) { b.disabled = true; b.title = "Already playing"; } list.append(b); });
+        (r.names || []).forEach((n, i) => { const b = btn("pname", n, () => { const k = meGet(); ST.pick = { ni: i, nm: n }; ST.face = k && k.n === n && Buddy.validLook(k.l) && k.l ? k.l : null; ST.step = "vault"; ST.err = ""; draw(true); }); if (taken.has(i)) { b.disabled = true; b.title = "Already playing"; } list.append(b); });
         card.append(list, el("p", "pnote", "Is your name greyed out or missing? Tell your teacher."));
     } else {
         card.append(el("p", "plead", "Type your first name and last initial."));
@@ -880,8 +970,8 @@ function nameStep(card) {
 function vaultStep(card, again) {
     if (!again && ST.pick) {
         // Their character, right after they pick their name: the one they used last time, or a mystery one they'll meet in the waiting room.
-        const hi = el("div", "pvhi"), face = el("span", "pvface" + (ST.face == null ? " q" : ""), ST.face == null ? "?" : V.avatar(ST.face)[0]); face.setAttribute("aria-hidden", "true");
-        const t = el("div"); t.append(el("b", null, "Hi, " + ST.pick.nm + "!"), el("small", null, ST.face == null ? "Your character is waiting for you inside." : "Your character is ready. Change it in the waiting room."));
+        const hi = el("div", "pvhi"), face = buddyEl(ST.face || Buddy.seedLook(ST.pick.nm), { size: 96, move: "wave" }, "pvface");
+        const t = el("div"); t.append(el("b", null, "Hi, " + ST.pick.nm + "!"), el("small", null, ST.face == null ? "Meet your character! Dress it up in the waiting room." : "Your character is ready. Change the outfit in the waiting room."));
         hi.append(face, t); card.append(hi);
     }
     card.append(vaultPic("small", mySkin(ST.me)), el("h1", null, again ? "Set a new vault code" : "Set your vault code"), el("p", "plead", "Pick 3 different digits, 1 to 9. Classmates will try to guess it, so don't share it."));
@@ -1052,7 +1142,7 @@ function fbView(card) {
         if (fresh) card.classList.add("pop");
         const pick = (list) => list[(f.q || 0) % list.length];
         card.append(el("h1", null, f.fixed ? "Your teacher counted it!" : f.second ? "You fixed it!" : f.redo ? "You got it this time!" : pick(RIGHT_WORDS)));
-        const win = el("div", "pwin"), amt = el("b", "pplus", fresh ? "+0" : "+" + f.plus); win.append(coinPic(), amt); card.append(win);
+        const win = el("div", "pwin"), amt = el("b", "pplus", fresh ? "+0" : "+" + f.plus); win.append(buddyEl(myLook(m), { size: 92, move: fresh ? "cheer" : "", live: true }, "pfbbuddy"), coinPic(), amt); card.append(win);
         const st = m.st || 1, words = STREAK_WORDS[st] || (st > 10 ? "Legendary!" : "");
         card.append(streakRow(st));
         const chips = el("div", "pchips"); if (!f.second && !f.redo) chips.append(el("span", "pgain", "+1 hack"));
@@ -1077,7 +1167,7 @@ function fbView(card) {
     } else if (f.retry) {
         // First miss: a hint and one more try for half coins. The answer stays hidden.
         if (fresh) card.classList.add("shake");
-        card.append(el("h1", null, "Not quite. Try once more!"));
+        card.append(buddyEl(myLook(m), { size: 84, move: fresh ? "oops" : "", live: true }, "pfbbuddy miss"), el("h1", null, "Not quite. Try once more!"));
         const y = el("p", "plead"); y.append(document.createTextNode("You wrote ")); if (f.y) y.append(V.mathText(f.y)); else y.append(document.createTextNode("nothing")); y.append(document.createTextNode(".")); card.append(y);
         if (f.hint) { const h = el("div", "phint"); h.append(el("small", null, "Hint"), mathEl("p", null, f.hint)); card.append(h); }
         once(key, () => { sfx("miss"); });
@@ -1088,7 +1178,7 @@ function fbView(card) {
         return;
     } else {
         if (fresh) card.classList.add("shake");
-        card.append(el("h1", null, f.skip ? "Skipped" : f.second ? "Still not it" : "Not quite"));
+        card.append(buddyEl(myLook(m), { size: 84, move: fresh && !f.skip ? "oops" : "", live: true }, "pfbbuddy miss"), el("h1", null, f.skip ? "Skipped" : f.second ? "Still not it" : "Not quite"));
         if (f.a) { const a = el("div", "pansbox"); a.append(el("small", null, "The answer was"), mathEl("p", null, f.a)); card.append(a); }
         if (f.allsteps && (f.sp || []).length) { card.append(stepsCard(f, false)); card.append(el("p", "pnote", "Look at how each step leads to the answer. You'll see this kind again.")); }
         if (!f.skip) { const y = el("p", "plead"); y.append(document.createTextNode("You wrote ")); if (f.y) y.append(V.mathText(f.y)); else y.append(document.createTextNode("nothing")); y.append(document.createTextNode(".")); card.append(y); }
@@ -1123,7 +1213,7 @@ function targetsView(card) {
     const list = el("div", "ptargets");
     (m.targets || []).forEach((t) => {
         const b = btn("ptarget", null, () => { ST.target = t.id; ST.guess = ""; ST.view = "guess"; draw(true); });
-        const nm = el("b"); nm.append(vaultPic("mini", t.vs), document.createTextNode(V.avatar(t.av)[0] + " " + t.nm));
+        const nm = el("b"); nm.append(vaultPic("mini", t.vs), buddyEl(t.lk || Buddy.seedLook(t.nm), { face: true, size: 26 }), document.createTextNode(" " + t.nm));
         b.append(nm, el("span", null, t.c + " coins"), el("small", null, t.sh ? "Firewall up" : t.g.length ? t.g.length + (t.g.length === 1 ? " guess so far" : " guesses so far") : "Not tried yet"));
         b.disabled = !!t.sh || m.h < 1 || !!off; list.append(b);
     });
@@ -1196,7 +1286,7 @@ function sabView(card) {
             if (ST.sentS) return; const n = ST.sentS = Date.now(); ST.err = ""; send({ sb: { n, to: t.id, k: ST.sabK } }); draw(true);
             setTimeout(() => { if (ST.sentS === n) { ST.sentS = 0; ST.err = "Your teacher's screen didn't answer. Try again."; draw(true); } }, 10000);
         });
-        const nm = el("b"); nm.append(vaultPic("mini", t.vs), document.createTextNode(V.avatar(t.av)[0] + " " + t.nm));
+        const nm = el("b"); nm.append(vaultPic("mini", t.vs), buddyEl(t.lk || Buddy.seedLook(t.nm), { face: true, size: 26 }), document.createTextNode(" " + t.nm));
         b.append(nm, el("span", null, t.c + " coins"), el("small", null, why || s[1] + " · " + s[2] + " coins")); b.disabled = !!why || !ready; list.append(b);
     });
     if (!(m.targets || []).length) list.append(el("p", "plead", "No one else is playing yet."));

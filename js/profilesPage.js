@@ -6,7 +6,7 @@
 ========================================== */
 import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=3";
 import { shortNames } from "./vaultCore.js?v=75";
-import * as PC from "./profileCore.js?v=1";
+import * as PC from "./profileCore.js?v=2";
 import * as TC from "./trackCore.js?v=2";
 import { SCHOOL_YEAR, SCHOOL_DAYS } from "./schoolCal.js?v=58";
 

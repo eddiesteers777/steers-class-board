@@ -15,8 +15,9 @@
    Each student's result is saved to Class Data only when the teacher turns that on.
 ========================================== */
 import * as V from "./vaultCore.js?v=75";
-import * as PC from "./profileCore.js?v=1";
-import { loadKids, credit as creditProfiles } from "./profiles.js?v=1";
+import * as PC from "./profileCore.js?v=2";
+import * as Buddy from "./buddy.js?v=2";
+import { loadKids, credit as creditProfiles } from "./profiles.js?v=2";
 import qrcode from "./vendor/qrcode.js?v=1";
 import { drawItems } from "./mathTools.js?v=1";
 
@@ -50,6 +51,8 @@ function pfEnsure() {
 const avOpen = (p) => Math.min(V.AVATARS.length, PC.avatarsOpen(kidOf(p) ? kidOf(p).xp : 0));
 /** Vault skins open: by the most coins held this game (as before), or for good by locks cracked. */
 const skOpen = (p) => Math.min(V.SKINS.length, Math.max(V.skinsOpen(Math.max(+p.top || 0, p.c)), kidOf(p) ? PC.skinsByLevel(PC.levelOf(kidOf(p))) : 1));
+/** What this student has earned toward character pieces (js/buddy.js): saved profile plus this game so far. Guests get the open pieces. */
+const lkMe = (p) => { const s = livePf(p); return s ? { xp: s.xp, lv: s.lv, b: s.b } : null; };
 /** The roster's short names for the game's period (to match typed names to a profile). */
 const rosterShort = () => V.shortNames((A.rosters()[H.per] || []).filter(Boolean));
 let SETS = null, setsWatched = false, note = "", busy = "", tab = "players", dtab = "report", peek = "", endArm = 0, resetArm = 0;
@@ -200,10 +203,12 @@ function handle(id, d, sends) {
             av: kAv >= 0 ? kAv : Math.floor(Math.random() * Math.min(V.AVATARS.length, PC.avatarsOpen(kid ? kid.xp : 0))), pu: "", dbl: 0, blk: 0, ins: 0, box: 0, vs: 0, top: 0, qt: Date.now(), sm: 0, sp: 0, su: 0 };
         if (ni >= 0) H.taken = (H.taken || []).concat([ni]);
         if (kid && Number.isInteger(kid.vs) && kid.vs < skOpen(p)) p.vs = kid.vs;   // the vault skin they picked last game
+        p.lk = kid && Buddy.validLook(kid.lk) && kid.lk ? Buddy.cleanLook(kid.lk, lkMe(p)) : Buddy.seedLook(nm);   // their character's outfit
         feed(nm + " joined", "join"); sends.add("room");
     }
     // Waiting room: a character any time, a starting power-up until the game starts.
     if (d.av != null && Number.isInteger(+d.av) && +d.av >= 0 && +d.av < avOpen(p) && +d.av !== p.av) { p.av = +d.av; sends.add("room"); }
+    if (typeof d.lk === "string" && Buddy.validLook(d.lk) && d.lk) { const lk = Buddy.cleanLook(d.lk, lkMe(p)); if (lk !== p.lk) { p.lk = lk; sends.add("room"); } }
     if (d.pu != null && H.status === "lobby" && (d.pu === "" || V.starter(d.pu))) p.pu = d.pu;
     // A vault skin, any time, once the student has held enough coins to unlock it.
     if (d.vs != null && Number.isInteger(+d.vs) && +d.vs >= 0 && +d.vs < skOpen(p) && +d.vs !== (p.vs || 0)) p.vs = +d.vs;
@@ -362,7 +367,7 @@ async function saveProfiles() {
     Object.keys(H.players).forEach((id) => {
         const p = H.players[id]; if (!p.pk) return;
         const g = PC.vaultGain(p, H.qs); if (!g.n && !p.bsp) return;   // joined but never answered: nothing to add
-        g.av = p.av; g.vs = p.vs || 0; gains[p.nm] = g; who[p.nm] = id;
+        g.av = p.av; g.vs = p.vs || 0; g.lk = p.lk || ""; gains[p.nm] = g; who[p.nm] = id;
     });
     if (!Object.keys(gains).length) { H.pfSaved = true; return; }
     H.pfBusy = true; panelSig = "";
@@ -783,11 +788,11 @@ function view(id, order) {
     const q = rd ? null : H.status === "play" && p.code ? qOf(p, p.qn) : null;
     p.sn = (p.sn || 0) + 1; p.top = Math.max(+p.top || 0, p.c);
     return { n: p.sn, status: H.status, title: H.title, nm: p.nm, c: p.c, h: p.h, st: p.st, r: p.r, of: p.n, rank, players: order.length, ends: H.ends || 0,
-        av: p.av, pu: p.pu || "", dbl: p.dbl || 0, blk: p.blk || 0, ins: p.ins || 0, fw: (+p.sh || 0) > Date.now() && p.code ? +p.sh : 0, bonus: +H.bonus || 0,
+        av: p.av, lk: p.lk || "", pu: p.pu || "", dbl: p.dbl || 0, blk: p.blk || 0, ins: p.ins || 0, fw: (+p.sh || 0) > Date.now() && p.code ? +p.sh : 0, bonus: +H.bonus || 0,
         lock: +H.lock || 0, sab: H.opts.sab !== false ? 1 : 0, sbc: +p.sbc || 0, fog: +p.fog || 0, jam: +p.jam || 0, tax: taxOn(p) ? 1 : 0, mb: p.mb ? 1 : 0, sbr: p.sbr || null, sbh: p.sbh || null, so: p.so || null,
         dj: +p.dj || 0, djon: H.opts.dj !== false ? 1 : 0, djlock: H.opts.djlock ? 1 : 0, song: H.dj ? { k: H.dj.k, nm: H.dj.nm || "", at: +H.dj.at || 0 } : null, djg: p.djg || null,
         vs: p.vs || 0, top: p.top, cb: (p.cbv = comebackRank(rank, order) ? 1 : 0), code: p.code, need: rd || ex ? false : !p.code, exit: ex ? exitView(id) : null, cd: +p.cd || 0, q: ex ? null : rd ? (rd.res[id] ? null : { n: redoN(), c: rq.c, t: rq.q, f: V.formOf(rq), ch: rq.ch || null }) : q ? { n: p.qn, c: q.c, t: q.q, f: V.formOf(q), ch: q.ch || null } : null, redo: rd ? 1 : 0, best: p.best, cr: p.cr, fb: p.fb, hk: p.hk, hit: p.hit,
-        targets: order.filter((x) => x.id !== id).map((x) => ({ id: x.id, nm: x.nm, av: x.av, vs: x.vs || 0, c: x.c, sh: shielded(x) ? 1 : 0, g: p.g[x.id] || [], sbs: (+x.sbs || 0) > Date.now() ? 1 : 0, spy: (p.spy || {})[x.id] ? V.spyShow(x.code, p.spy[x.id]) : "" })),
+        targets: order.filter((x) => x.id !== id).map((x) => ({ id: x.id, nm: x.nm, av: x.av, lk: x.lk || "", vs: x.vs || 0, c: x.c, sh: shielded(x) ? 1 : 0, g: p.g[x.id] || [], sbs: (+x.sbs || 0) > Date.now() ? 1 : 0, spy: (p.spy || {})[x.id] ? V.spyShow(x.code, p.spy[x.id]) : "" })),
         res: H.status === "done" ? results(p) : null,
         // profile: their own level, XP, banked coins and next lock (never anyone else's), what they can wear, and the comeback tools
         pf: livePf(p), plk: p.plk || null, avo: avOpen(p), sko: skOpen(p), gr: profOn() && !p.gr ? 1 : 0, bsp: +p.bsp || 0, bkr: p.bkr || null };
@@ -1165,7 +1170,9 @@ function seaEl(order) {
         d.style.left = x + "%"; d.style.top = y + "%";
         const k = V.skin(p.vs)[3], bob = loopAt(el("div", "vrbob"), 3200 + li * 260, li * 500);
         bob.innerHTML = '<svg viewBox="0 0 64 52" aria-hidden="true"><path d="M8 26c0-12 10-20 24-20s24 8 24 20-10 20-24 20S8 38 8 26z" fill="' + k.door + '" stroke="' + k.ring + '" stroke-width="3"/><rect x="28" y="0" width="7" height="9" rx="2" fill="' + k.ring + '"/><path d="M56 22l7-5v18l-7-5z" fill="' + k.ring + '"/><circle cx="30" cy="26" r="12" fill="#E8F6FF" stroke="' + k.ring + '" stroke-width="3"/></svg>';
-        bob.append(el("span", "vrport", H.opts.board ? V.avatar(p.av)[0] : String(i + 1)));
+        const port = el("span", "vrport" + (H.opts.board && p.lk ? " bdport" : ""));
+        if (H.opts.board && p.lk) port.innerHTML = Buddy.svg(p.lk, { face: true, size: 40 }); else port.textContent = H.opts.board ? V.avatar(p.av)[0] : String(i + 1);
+        bob.append(port);
         if (i === 0 && p.c > 0) bob.append(el("span", "vrcrown", "👑"));
         if ((+p.fog || 0) > now) bob.append(el("span", "vrink"));
         d.append(bob, el("span", "vrtag", H.opts.board ? p.nm : "#" + (i + 1)));
@@ -1270,7 +1277,7 @@ export function drawLiveStage(st) {
     } else {
         const order = ranked(), box = el("div", "gdone");
         box.append(el("p", "gwinlab", "Game over"));
-        if (order.length) { const pod = el("div", "vrpod"); order.slice(0, 3).forEach((p, i) => { const s = el("div", "vrstep s" + (i + 1)); const av = el("i", "vravatar", V.avatar(p.av)[0]), sk = V.skin(p.vs)[3]; av.style.setProperty("--skd", sk.door); av.style.setProperty("--skr", sk.ring); av.title = V.skin(p.vs)[1] + " vault";
+        if (order.length) { const pod = el("div", "vrpod"); order.slice(0, 3).forEach((p, i) => { const s = el("div", "vrstep s" + (i + 1)); const av = el("i", "vravatar" + (p.lk ? " bdpod" : ""), p.lk ? null : V.avatar(p.av)[0]), sk = V.skin(p.vs)[3]; if (p.lk) { av.innerHTML = Buddy.svg(p.lk, { size: 150 }); Buddy.animate(av, PODIUM_MOVES[i]); } av.style.setProperty("--skd", sk.door); av.style.setProperty("--skr", sk.ring); av.title = V.skin(p.vs)[1] + " vault";
             s.append(el("b", null, ["1st", "2nd", "3rd"][i]), av, el("span", null, nameOn(p, i)), el("small", null, p.c + " coins"), el("small", "vrsteppct", pctOf(p.r, p.n) + "% right")); pod.append(s); }); box.append(pod); }
         if (order.length) { const all = order.reduce((a, p) => [a[0] + p.r, a[1] + p.n], [0, 0]); box.append(el("p", "vrclass", "Class: " + pctOf(all[0], all[1]) + "% right on " + all[1] + " answers")); }
         else box.append(el("p", "gwin", "No players"));
@@ -1279,6 +1286,10 @@ export function drawLiveStage(st) {
     if (H.status === "play" && H.paused) { const pz = el("div", "vrpaused"); pz.append(el("b", null, "Paused"), el("span", null, "Eyes up here")); body.append(pz); }
     st.append(body);
 }
+
+// Podium characters celebrate in turn, round and round: 1st dances, then 2nd cheers, then 3rd, then a short breath.
+// (One moving at a time is easier to watch, and lighter for the board's computer.) Every turn is 7.5 s.
+const PODIUM_MOVES = [{ move: "dance", loop: true, gap: 5.1 }, { move: "cheer", loop: true, gap: 5.55, delay: 2.5 }, { move: "cheer", loop: true, gap: 5.55, delay: 4.6 }];
 
 /* ---------- the Remote's private panel ---------- */
 function panelEl() {

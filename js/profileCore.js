@@ -208,6 +208,7 @@ export function applyGain(kidIn, gain, day = dayOf()) {
     if (gain.play) { kid.g += 1; kid.ld = day; }
     if (Number.isInteger(gain.av) && gain.av >= 0) kid.av = gain.av;   // the look they picked comes back next game
     if (Number.isInteger(gain.vs) && gain.vs >= 0) kid.vs = gain.vs;
+    if (typeof gain.lk === "string" && gain.lk.length <= 40 && /^([a-z][0-9a-z])*$/.test(gain.lk)) kid.lk = gain.lk;   // their character's outfit (js/buddy.js)
     kid.best.c = Math.max(+kid.best.c || 0, +gain.best.c || 0); kid.best.acc = Math.max(+kid.best.acc || 0, +gain.best.acc || 0); kid.best.st = Math.max(+kid.best.st || 0, +gain.best.st || 0);
     const lv = levelOf(kid), has = new Set(kid.b), earned = [];
     const give = (k, ok) => { if (ok && !has.has(k)) { has.add(k); earned.push(k); } };
@@ -228,7 +229,7 @@ export function summary(kidIn) {
         next: nx ? { l: nx.l, pct: nx.pct, left: nx.left, r: nx.r, rNeed: nx.rNeed, d: nx.d, dNeed: nx.dNeed } : null,
         b: kid.b.slice(), best: Object.assign({}, kid.best), av: avatarsOpen(kid.xp), sk: skinsByLevel(lv),
         locks: Object.values(kid.t).filter(cracked).map((t) => t.l).slice(-12),
-        lav: Number.isInteger(kid.av) ? kid.av : -1, lvs: Number.isInteger(kid.vs) ? kid.vs : 0 };
+        lav: Number.isInteger(kid.av) ? kid.av : -1, lvs: Number.isInteger(kid.vs) ? kid.vs : 0, lk: typeof kid.lk === "string" ? kid.lk : "" };
 }
 
 /** Teacher view: every topic for one student, worst recent accuracy first, with the week-by-week trend. */
