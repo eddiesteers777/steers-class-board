@@ -41,7 +41,7 @@ export function decFields(f) {
 }
 
 /**
- * A tiny store for one teacher: get(path) -> { data, updateTime } | null, put(path, data, updateTime?).
+ * A tiny store for one teacher: get(path) -> { data, updateTime } | null, list(collection) -> [id], put(path, data, updateTime?).
  * path is relative to teacher/{uid}/ (for example "work/index").
  * put with updateTime only writes if nobody changed the document since it was read.
  */
@@ -60,6 +60,19 @@ export function teacherStore({ base, project, uid, idToken, fetchImpl = fetch })
             if (!res.ok) await fail(res, "Reading " + path);
             const doc = await res.json();
             return { data: decFields(doc.fields), updateTime: doc.updateTime };
+        },
+        /** The document ids in one collection (up to 1000), without reading their contents. */
+        async list(collection) {
+            const ids = []; let token = "";
+            for (let i = 0; i < 4; i++) {
+                const res = await fetchImpl(root + collection + "?pageSize=300&mask.fieldPaths=at" + (token ? "&pageToken=" + encodeURIComponent(token) : ""), { headers });
+                if (res.status === 404) break;
+                if (!res.ok) await fail(res, "Listing " + collection);
+                const body = await res.json();
+                (body.documents || []).forEach((d) => ids.push(d.name.split("/").pop()));
+                token = body.nextPageToken || ""; if (!token) break;
+            }
+            return ids;
         },
         async put(path, data, updateTime) {
             const url = root + path + (updateTime ? "?currentDocument.updateTime=" + encodeURIComponent(updateTime) : "");

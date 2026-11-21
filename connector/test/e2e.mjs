@@ -42,6 +42,7 @@ const mock = http.createServer(async (req, res) => {
     if (m) {
         if (req.headers.authorization !== "Bearer fb-fresh" || m[1] !== "uid1") return json(res, 403, { error: { message: "Missing or insufficient permissions.", status: "PERMISSION_DENIED" } });
         const path = m[2];
+        if (req.method === "GET" && !path.includes("/")) return json(res, 200, { documents: [...docs.keys()].filter((k) => k.startsWith(path + "/") && k.split("/").length === 2).map((k) => ({ name: "projects/demo-anchor/databases/(default)/documents/teacher/uid1/" + k })) });
         if (req.method === "GET") return docs.has(path) ? json(res, 200, { name: path, ...docs.get(path) }) : json(res, 404, { error: { status: "NOT_FOUND" } });
         if (req.method === "PATCH") {
             const pre = u.searchParams.get("currentDocument.updateTime");
@@ -117,7 +118,7 @@ try {
     const init = await rpc("initialize", { protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "test", version: "1" } });
     assert.equal(init.result.serverInfo.name, "anchor-board"); assert.match(init.result.instructions, /get_roster/);
     const tools = (await rpc("tools/list", {})).result.tools.map((t) => t.name).sort();
-    assert.deepEqual(tools, ["assign_names", "get_roster", "list_stacks", "look_at_pages"]);
+    assert.deepEqual(tools, ["assign_names", "get_class_data", "get_grades", "get_roster", "list_class_data", "list_site_data", "list_stacks", "look_at_pages", "read_site_data", "read_week_plan", "save_week_file"]);
     const call = async (name, args) => (await rpc("tools/call", { name, arguments: args })).result;
     let out = await call("list_stacks", { unsorted_only: true });
     assert.match(out.content[0].text, /stack_id s1 · 1st period · Wed, Nov 18 · “Quiz 4.2” · 2nd nine weeks, Week 5/);
@@ -130,6 +131,15 @@ try {
     assert.equal(decFields(docs.get("work/index").fields).sets[0].unsorted, 1);
     out = await call("look_at_pages", { stack_id: "zzz" }); assert.equal(out.isError, true);
     console.log("ok - tools list, look, assign and save to the database");
+    out = await call("list_site_data", { collection: "work" });
+    assert.match(out.content[0].text, /documents in work/); assert.match(out.content[0].text, /s_s1/);
+    const wk = { id: "week6", label: "Week 6", classes: { "8th": { days: [1, 2, 3, 4, 5].map((n) => ({ target: "t" + n })) } }, checked: { n: 3, at: 1 } };
+    out = await call("save_week_file", { week_id: "week6", week: JSON.stringify(wk) });
+    assert.match(out.content[0].text, /Saved Week 6 with 1 class/);
+    assert.equal(JSON.parse(decFields(docs.get("weekfiles/week6").fields).json).id, "week6");
+    out = await call("read_site_data", { path: "weekfiles/week6" }); assert.match(out.content[0].text, /"target": "t5"/);
+    out = await call("read_week_plan", { week: "week6" }); assert.equal(out.isError, true); assert.match(out.content[0].text, /No week plan with id week6/);
+    console.log("ok - list, read and save a week file");
 
     // 6. a bad token is refused; refresh works
     r = await fetch(W + "/mcp", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream", Authorization: "Bearer nope" }, body: "{}" });
