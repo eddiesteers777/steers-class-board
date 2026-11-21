@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profiles | Anchor Board</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=57">
+    <link rel="stylesheet" href="css/console.css?v=58">
+    <link rel="stylesheet" href="css/theme-rings.css?v=2">
+    <link rel="stylesheet" href="css/progress.css?v=1">
+    <link rel="stylesheet" href="css/profiles.css?v=1">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="console page">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Anchor Board</b><small id="who">For teachers</small></span></a>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
+    </header>
+    <main>
+        <h1>Student Profiles</h1>
+        <p class="sub">One profile per roster name, filled by every game: Vault Raid, and the team games when teams come from the Group maker. Level is topic locks cracked, not time played. Only you can see this page.</p>
+        <div class="pgBarRow"><div class="tabs" id="periodTabs" role="group" aria-label="Period"></div></div>
+        <nav class="pgViews tabs" id="views" role="tablist" aria-label="View">
+            <button type="button" data-v="students" role="tab">Students</button>
+            <button type="button" data-v="topics" role="tab">Topics</button>
+        </nav>
+        <div id="out" aria-live="polite"><div class="pgSkel" aria-hidden="true"><i></i><i></i><i></i></div></div>
+        <details class="pgHow">
+            <summary>How profiles work</summary>
+            <ul>
+                <li><b>Who.</b> One profile per roster name for each period, first name and last initial only. A typed name that matches the roster plays as that profile. A name that matches nobody gets no profile.</li>
+                <li><b>Topic locks.</b> A topic is the question's Alabama standard (from its skill, like "AL 7.10a"), or the skill name. A lock cracks at 5 right, 6 of the last 8 right, on 2 different days. Cracked locks never lock again. Level = locks cracked.</li>
+                <li><b>Accuracy.</b> In Vault Raid only the first try counts. A fix after a miss earns XP and coins but doesn't raise accuracy. In team games each member gets the team's result ("with team" below), which is team evidence, not proof one student knows it.</li>
+                <li><b>XP and coins.</b> 10 XP for a right answer, 6 for a fix, 1 for every try, 6 for a team right, 50 for a cracked lock. Each right answer banks 10 coins (5 for a fix or a team right). Getting cracked in a game never touches the bank. Whole-class games (Class vs. Teacher, Rapid Fire, Bingo, Tug of War) give each student present up to 20 XP and no topic record.</li>
+                <li><b>Nothing is ever taken away.</b> No streak loss for being absent, no lost XP, no lost locks. Students see only their own profile, never a list.</li>
+                <li><b>Writes.</b> Only your Remote writes profiles, once a game, after it ends (teacher/{you}/profiles/{period}). Students never write to it.</li>
+            </ul>
+        </details>
+    </main>
+    <dialog id="kid" class="pgKid pfKid" aria-labelledby="kidName"></dialog>
+    <script type="module">
+        import { mountStudentsNav } from "./js/studentsNav.js?v=3";
+        mountStudentsNav("profiles.html");
+        import { mountProfiles } from "./js/profilesPage.js?v=1";
+        mountProfiles();
+    </script>
+</body>
+</html>

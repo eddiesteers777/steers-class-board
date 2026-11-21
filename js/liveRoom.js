@@ -15,6 +15,8 @@
    Each student's result is saved to Class Data only when the teacher turns that on.
 ========================================== */
 import * as V from "./vaultCore.js?v=75";
+import * as PC from "./profileCore.js?v=1";
+import { loadKids, credit as creditProfiles } from "./profiles.js?v=1";
 import qrcode from "./vendor/qrcode.js?v=1";
 import { drawItems } from "./mathTools.js?v=1";
 
@@ -32,9 +34,27 @@ const JOIN_PATH = "play";
 let A = null;                // lent by the board app: { S, header, store, writer, now, redraw, mode, signedIn, rosters }
 let H = null, loaded = false, rev = 0, hosting = false, unsubH = null, unsubP = null, watchingCode = "";
 let PL = {};                 // the latest entry from each student (rooms/{code}/p), Remote only
+/* ---------- student profiles (js/profileCore.js) ----------
+   The period's profiles are read once when the room opens (or when this Remote takes the game over) and kept here,
+   off H, so the heartbeat stays small. During play each student's live level and next lock are worked out in memory
+   from their answers. The profile document is written once, at Game over (saveProfiles). Students never write it. */
+let PF = null, pfFor = "", pfLoading = false;
+const profOn = () => H && H.opts.prof !== false;
+const kidOf = (p) => (p && p.pk && PF ? PF[p.pk] || null : null);
+function pfEnsure() {
+    if (!H || !hosting || pfLoading || pfFor === H.code) return;
+    const code = H.code; pfLoading = true;
+    loadKids(A.store().rooms, H.per).then((k) => { PF = k; }, () => { PF = PF || {}; }).then(() => { pfLoading = false; pfFor = code; if (H && H.code === code && running()) flush(everyone()); });
+}
+/** Characters open to this student: the first 8 for everyone, more with XP. */
+const avOpen = (p) => Math.min(V.AVATARS.length, PC.avatarsOpen(kidOf(p) ? kidOf(p).xp : 0));
+/** Vault skins open: by the most coins held this game (as before), or for good by locks cracked. */
+const skOpen = (p) => Math.min(V.SKINS.length, Math.max(V.skinsOpen(Math.max(+p.top || 0, p.c)), kidOf(p) ? PC.skinsByLevel(PC.levelOf(kidOf(p))) : 1));
+/** The roster's short names for the game's period (to match typed names to a profile). */
+const rosterShort = () => V.shortNames((A.rosters()[H.per] || []).filter(Boolean));
 let SETS = null, setsWatched = false, note = "", busy = "", tab = "players", dtab = "report", peek = "", endArm = 0, resetArm = 0;
 let saveTimer = 0, lastSave = 0, panelSig = "", panelAt = 0, padWatch = null, padFor = "", PAD = null;
-const choice = { set: (() => { try { return new URLSearchParams(location.search).get("vset") || ""; } catch (e) { return ""; } })(), mins: 10, names: "roster", board: true, save: false, live: false, work: true, retry: true, steps: true, slow: true, snd: true, comeback: true, sab: true, dj: true, goal: "auto" };
+const choice = { set: (() => { try { return new URLSearchParams(location.search).get("vset") || ""; } catch (e) { return ""; } })(), mins: 10, names: "roster", board: true, save: false, live: false, work: true, retry: true, steps: true, slow: true, snd: true, comeback: true, sab: true, dj: true, goal: "auto", prof: true };
 
 export function mountLive(api) { A = api; }
 export const liveSig = () => rev + "#" + loaded + "#" + hosting + "#" + (PAD ? PAD.it : "");
@@ -108,7 +128,7 @@ function watchCmd() {
     }, () => {});
 }
 function takeHost() {
-    hosting = true; H.host = PAGE; H.hb = Date.now(); saveSoon(true);
+    hosting = true; H.host = PAGE; H.hb = Date.now(); saveSoon(true); pfEnsure();
     if (watchingCode !== H.code) {
         stopPlayers(); watchingCode = H.code; PL = {};
         ensureRoom(H.code);
@@ -157,26 +177,36 @@ function handle(id, d, sends) {
     let p = P(id);
     if (!p) {
         if (d.ni == null && !d.nm) return;
-        let nm = "", ni = -1;
+        let nm = "", ni = -1, pk = "";
         if (H.mode === "roster") {
             ni = Math.floor(+d.ni); nm = H.names[ni] || "";
             const holder = Object.keys(H.players).find((k) => H.players[k].ni === ni);
             if (!nm || holder) { sendErr(id, nm ? "That name is taken. Pick yours, or ask your teacher to free it." : "Pick your name from the list."); return; }
+            pk = PC.kidKey(nm);
         } else {
             nm = V.cleanTyped(d.nm); if (!nm) { sendErr(id, "Type your first name and last initial."); return; }
-            const used = new Set(Object.values(H.players).map((x) => x.nm.toLowerCase())); let k = 2, base = nm;
-            while (used.has(nm.toLowerCase())) nm = base + " " + k++;
+            // A typed name that matches the roster ("ava r", "Ava R") plays as that roster name and profile: no duplicates.
+            const names = rosterShort(), at = PC.matchRoster(nm, names);
+            if (at >= 0) {
+                nm = names[at]; pk = PC.kidKey(nm);
+                if (Object.values(H.players).some((x) => x.pk === pk)) { sendErr(id, nm + " is already playing. Ask your teacher to free that name."); return; }
+            } else {
+                const used = new Set(Object.values(H.players).map((x) => x.nm.toLowerCase())); let k = 2, base = nm;
+                while (used.has(nm.toLowerCase())) nm = base + " " + k++;
+            }
         }
-        p = H.players[id] = { nm, ni, c: 0, r: 0, n: 0, st: 0, best: 0, h: 0, code: "", qn: 0, ord: shuffledOrder(), g: {}, sh: 0, la: null, fb: null, hk: null, hit: null, cr: 0, sa: 0, sk: 0, sc: 0, sn: 0, at: Date.now(),
-            av: Math.floor(Math.random() * V.AVATARS.length), pu: "", dbl: 0, blk: 0, ins: 0, box: 0, vs: 0, top: 0, qt: Date.now(), sm: 0, sp: 0, su: 0 };
+        const kid = pk && PF ? PF[pk] : null, kAv = kid && Number.isInteger(kid.av) && kid.av < PC.avatarsOpen(kid.xp) ? kid.av : -1;
+        p = H.players[id] = { nm, ni, pk, c: 0, r: 0, n: 0, st: 0, best: 0, h: 0, code: "", qn: 0, ord: shuffledOrder(), g: {}, sh: 0, la: null, fb: null, hk: null, hit: null, cr: 0, sa: 0, sk: 0, sc: 0, sn: 0, at: Date.now(),
+            av: kAv >= 0 ? kAv : Math.floor(Math.random() * Math.min(V.AVATARS.length, PC.avatarsOpen(kid ? kid.xp : 0))), pu: "", dbl: 0, blk: 0, ins: 0, box: 0, vs: 0, top: 0, qt: Date.now(), sm: 0, sp: 0, su: 0 };
         if (ni >= 0) H.taken = (H.taken || []).concat([ni]);
+        if (kid && Number.isInteger(kid.vs) && kid.vs < skOpen(p)) p.vs = kid.vs;   // the vault skin they picked last game
         feed(nm + " joined", "join"); sends.add("room");
     }
     // Waiting room: a character any time, a starting power-up until the game starts.
-    if (d.av != null && Number.isInteger(+d.av) && +d.av >= 0 && +d.av < V.AVATARS.length && +d.av !== p.av) { p.av = +d.av; sends.add("room"); }
+    if (d.av != null && Number.isInteger(+d.av) && +d.av >= 0 && +d.av < avOpen(p) && +d.av !== p.av) { p.av = +d.av; sends.add("room"); }
     if (d.pu != null && H.status === "lobby" && (d.pu === "" || V.starter(d.pu))) p.pu = d.pu;
     // A vault skin, any time, once the student has held enough coins to unlock it.
-    if (d.vs != null && Number.isInteger(+d.vs) && +d.vs >= 0 && +d.vs < V.skinsOpen(Math.max(+p.top || 0, p.c)) && +d.vs !== (p.vs || 0)) p.vs = +d.vs;
+    if (d.vs != null && Number.isInteger(+d.vs) && +d.vs >= 0 && +d.vs < skOpen(p) && +d.vs !== (p.vs || 0)) p.vs = +d.vs;
     // A new vault code.
     if ((+d.cn || 0) > p.sc) { p.sc = +d.cn; if (V.validCode(d.code)) { p.code = d.code; p.hit = null; } }
     // An answer to the question on their screen.
@@ -254,13 +284,21 @@ function handle(id, d, sends) {
             const m = V.codeMarks(t.code, g);
             p.g[k.to] = (p.g[k.to] || []).concat([g + ":" + m]).slice(-8);   // "465:211" (Firestore keeps no lists inside lists)
             let steal = 0;
-            if (m === "2".repeat(V.CODE_LEN)) {
+            let grace = 0;
+            if (m === "2".repeat(V.CODE_LEN) && graceFor(k.to)) {
+                // Grace lock: once a game, a student in the bottom half who gets cracked keeps every coin. The hacker still
+                // finds GRACE_GIFT new coins (made, not taken), so the crack still pays and nobody behind is crushed.
+                grace = 1; t.gr = 1; steal = PC.GRACE_GIFT; p.c += steal; p.cr++;
+                t.code = ""; t.sh = Date.now() + V.SHIELD_MS; t.hit = { by: p.nm, lost: 0, at: Date.now(), grace: 1 };
+                Object.values(H.players).forEach((x) => { delete x.g[k.to]; if (x.spy) delete x.spy[k.to]; });
+                feed(p.nm + " cracked " + t.nm + "'s vault, but a grace lock kept their coins", "crack", t.vs || 0); sends.add(k.to);
+            } else if (m === "2".repeat(V.CODE_LEN)) {
                 steal = V.stealFrom(t.c); if (t.ins) steal = Math.round(steal / 2); t.c -= steal; p.c += steal; p.cr++;
                 t.code = ""; t.sh = Date.now() + V.SHIELD_MS; t.hit = { by: p.nm, lost: steal, at: Date.now() };
                 Object.values(H.players).forEach((x) => { delete x.g[k.to]; if (x.spy) delete x.spy[k.to]; });   // the old code is gone for everyone
                 feed(p.nm + " cracked " + t.nm + "'s vault (+" + steal + ")", "crack", t.vs || 0); sends.add(k.to);
             }
-            p.hk = { n: p.sk, to: k.to, g, m, steal, tn: t.nm };
+            p.hk = Object.assign({ n: p.sk, to: k.to, g, m, steal, tn: t.nm }, grace ? { grace: 1 } : {});
         }
     }
     // A sabotage: spend coins to slow down a player who is ahead (see V.SABOTAGES for the rules).
@@ -268,6 +306,7 @@ function handle(id, d, sends) {
     if (sb && (+sb.n || 0) > (+p.ssb || 0)) {
         p.ssb = +sb.n;
         if (V.djKey(sb.k)) { djPick(id, p, V.djKey(sb.k)); sends.add(id); return; }
+        if (sb.k === "bk:shld") { bankShield(p); sends.add(id); return; }
         const t = P(sb.to), s = V.sabotage(sb.k), now = Date.now(), no = (why) => { p.sbr = { n: p.ssb, ok: 0, why }; };
         if (H.status !== "play" || H.redo || H.exit || H.paused || H.opts.sab === false || !s || !t || sb.to === id) no("You can't sabotage right now.");
         else if (lockOn()) no("Lockdown! No sabotages until it ends.");
@@ -289,6 +328,56 @@ function handle(id, d, sends) {
         }
     }
     sends.add(id);
+}
+/** A grace lock is ready for this student: not used yet this game, and in the bottom half of 2 or more players. */
+function graceFor(id) {
+    const t = P(id); if (!t || t.gr) return false;
+    const order = ranked(), rank = order.findIndex((x) => x.id === id) + 1;
+    return order.length >= 2 && rank > Math.ceil(order.length / 2);
+}
+/** A Shield bought with banked coins (once a game). The coins come off the bank when the game saves to profiles. */
+function bankShield(p) {
+    const no = (why) => { p.bkr = { n: p.ssb, ok: 0, why }; }, kid = kidOf(p), have = kid ? PC.summary(kid).coins : 0;
+    if (!running() || H.redo || H.exit) no("You can't do that right now.");
+    else if (!profOn() || !p.pk) no("Banked coins aren't on for this game.");
+    else if (p.bsp) no("You already brought a Shield this game.");
+    else if (p.blk || (H.status === "lobby" && p.pu === "shield")) no("You already have a Shield.");
+    else if (have < PC.BANK_SHIELD) no("A Shield costs " + PC.BANK_SHIELD + " banked coins. You have " + have + ".");
+    else { p.blk = 1; p.bsp = PC.BANK_SHIELD; p.bkr = { n: p.ssb, ok: 1 }; }
+}
+/** This student's profile right now: what's saved plus this game so far (nothing is written until Game over). */
+function livePf(p) {
+    if (!profOn() || !p.pk || PF == null) return null;
+    if (p.pres) return p.pres;
+    const kid = kidOf(p), g = PC.vaultGain(p, H.qs), r = PC.applyGain(kid, g, PC.dayOf()), s = PC.summary(r.kid);
+    s.gx = g.xp + PC.XP.lock * r.locks.length; s.gb = g.bank; s.g0 = kid ? +kid.g || 0 : 0; s.coins = Math.max(0, s.coins - (+p.bsp || 0));
+    if (p.plv == null) p.plv = PC.levelOf(kid || {});
+    if (s.lv > p.plv) { p.plk = { l: r.locks[r.locks.length - 1] || "", at: Date.now() }; p.plv = s.lv; }
+    return s;
+}
+/** Game over: add each roster student's game to their profile, in one transaction. Runs once a game. */
+async function saveProfiles() {
+    if (!H || !profOn() || H.pfSaved || H.pfBusy) return;
+    const per = H.per, code = H.code, gains = {}, who = {};
+    Object.keys(H.players).forEach((id) => {
+        const p = H.players[id]; if (!p.pk) return;
+        const g = PC.vaultGain(p, H.qs); if (!g.n && !p.bsp) return;   // joined but never answered: nothing to add
+        g.av = p.av; g.vs = p.vs || 0; gains[p.nm] = g; who[p.nm] = id;
+    });
+    if (!Object.keys(gains).length) { H.pfSaved = true; return; }
+    H.pfBusy = true; panelSig = "";
+    try {
+        const out = await creditProfiles(A.store().rooms, per, gains);
+        if (!H || H.code !== code) return;
+        if (out.kids) PF = out.kids;
+        Object.entries(out.res).forEach(([nm, r]) => {
+            const p = P(who[nm]); if (!p) return;
+            p.pres = Object.assign({}, r.sum, { gx: gains[nm].xp + PC.XP.lock * r.locks.length, gb: gains[nm].bank, nl: r.locks, nb: r.badges, saved: 1 });
+        });
+        H.pfSaved = true; note = "";
+        flush(everyone());
+    } catch (e) { note = "Could not save to student profiles (" + ((e && e.code) || "connection") + "). Tap Save to profiles to try again."; }
+    if (H) H.pfBusy = false; panelSig = ""; saveSoon(true); drawLivePanel(true);
 }
 /* ---------- send it back: everyone tries a gone-over question again ---------- */
 const REDO_COINS = 15;
@@ -699,7 +788,9 @@ function view(id, order) {
         dj: +p.dj || 0, djon: H.opts.dj !== false ? 1 : 0, djlock: H.opts.djlock ? 1 : 0, song: H.dj ? { k: H.dj.k, nm: H.dj.nm || "", at: +H.dj.at || 0 } : null, djg: p.djg || null,
         vs: p.vs || 0, top: p.top, cb: (p.cbv = comebackRank(rank, order) ? 1 : 0), code: p.code, need: rd || ex ? false : !p.code, exit: ex ? exitView(id) : null, cd: +p.cd || 0, q: ex ? null : rd ? (rd.res[id] ? null : { n: redoN(), c: rq.c, t: rq.q, f: V.formOf(rq), ch: rq.ch || null }) : q ? { n: p.qn, c: q.c, t: q.q, f: V.formOf(q), ch: q.ch || null } : null, redo: rd ? 1 : 0, best: p.best, cr: p.cr, fb: p.fb, hk: p.hk, hit: p.hit,
         targets: order.filter((x) => x.id !== id).map((x) => ({ id: x.id, nm: x.nm, av: x.av, vs: x.vs || 0, c: x.c, sh: shielded(x) ? 1 : 0, g: p.g[x.id] || [], sbs: (+x.sbs || 0) > Date.now() ? 1 : 0, spy: (p.spy || {})[x.id] ? V.spyShow(x.code, p.spy[x.id]) : "" })),
-        res: H.status === "done" ? results(p) : null };
+        res: H.status === "done" ? results(p) : null,
+        // profile: their own level, XP, banked coins and next lock (never anyone else's), what they can wear, and the comeback tools
+        pf: livePf(p), plk: p.plk || null, avo: avOpen(p), sko: skOpen(p), gr: profOn() && !p.gr ? 1 : 0, bsp: +p.bsp || 0, bkr: p.bkr || null };
 }
 /** A student's own results for their screen after the game: each question they answered, what they wrote when it was wrong, and the answer. */
 function results(p) {
@@ -717,7 +808,7 @@ function flush(sends) {
 }
 const everyone = () => { const s = new Set(Object.keys(H.players)); s.add("room"); return s; };
 function roomDoc() {
-    return { owner: A.store().rooms.uid(), status: H.status, title: H.title, mode: H.mode, names: H.mode === "roster" ? H.names : [], taken: H.taken || [],
+    return { owner: A.store().rooms.uid(), status: H.status, title: H.title, per: H.per || "", mode: H.mode, names: H.mode === "roster" ? H.names : [], taken: H.taken || [],
         live: !!H.opts.live, work: H.opts.work !== false, ends: H.ends || 0, bonus: +H.bonus || 0, lock: +H.lock || 0, sab: H.opts.sab !== false, paused: +H.paused || 0, snd: H.opts.snd !== false, call: H.status === "play" && H.show ? H.show.id : "",
         rw: H.status === "play" && H.redo && !H.redo.done && redoWork && redoWork.k === H.redo.k ? { k: redoWork.k, img: redoWork.img, w: redoWork.w, h: redoWork.h, fw: redoWork.fw } : null, at: Date.now() };
 }
@@ -737,9 +828,10 @@ async function openRoom() {
         for (let i = 0; i < 6 && !code; i++) { const c = V.newRoomCode(); try { if (!(await A.store().rooms.get("rooms/" + c))) code = c; } catch (e) { code = c; } }
         if (!code) throw new Error("Could not find a free game code. Try again.");
         H = { v: 1, code, status: "lobby", title: set.title || meta.title || "Review", setId: meta.id, per: A.S.period, qs, mode: choice.names, names, taken: [],
-            opts: { mins: choice.mins, board: choice.board, save: choice.save, live: choice.live, work: choice.work, retry: choice.retry, steps: choice.steps, slow: choice.slow, snd: choice.snd, comeback: choice.comeback, sab: choice.sab, dj: choice.dj, goal: choice.goal }, paused: 0, exit: null, heat: { on: false, names: false }, redo: null, players: {}, qst: qs.map(() => ({ n: 0, ok: 0, w: [] })), review: null, feed: [], show: null, ends: 0, t0: 0, rid: "", saved: false,
+            opts: { mins: choice.mins, board: choice.board, save: choice.save, live: choice.live, work: choice.work, retry: choice.retry, steps: choice.steps, slow: choice.slow, snd: choice.snd, comeback: choice.comeback, sab: choice.sab, dj: choice.dj, goal: choice.goal, prof: choice.prof }, paused: 0, exit: null, heat: { on: false, names: false }, redo: null, players: {}, qst: qs.map(() => ({ n: 0, ok: 0, w: [] })), review: null, feed: [], show: null, ends: 0, t0: 0, rid: "", saved: false,
             host: PAGE, hb: Date.now(), at: Date.now() };
         await A.store().rooms.save("rooms/" + code, roomDoc());
+        if (H.opts.prof !== false) { try { PF = await loadKids(A.store().rooms, H.per); } catch (e) { PF = {}; } pfFor = code; }
         hosting = true; loaded = true; await A.store().save("games/room", clean(H)); takeHost(); tab = "players";
     } catch (e) { note = (e && e.message && !e.code ? e.message : "Could not open the room (" + ((e && e.code) || "connection") + ")."); H = null; hosting = false; }
     busy = ""; panelSig = ""; rev++; A.redraw();
@@ -755,6 +847,7 @@ function endGame() {
     H.status = "done"; H.show = null; endArm = 0; feed("Game over", "end");
     flush(everyone()); saveSoon(true);
     if (H.opts.save) saveResults();
+    saveProfiles();
 }
 async function saveResults() {
     if (!H || H.saved) return;
@@ -1321,6 +1414,10 @@ function saveRow(p) {
         if (H.saved) { const t = el("p", "gpnote"), a = el("a", null, "Class Data"); a.href = "data.html#games"; t.append(document.createTextNode("Saved to "), a, document.createTextNode(".")); p.append(t); }
         else if (n) p.append(el("p", "gpnote", "Not saved. This report stays only until you close the room."), btn("btn ghost", busy ? "Saving…" : "Save results to Class Data", saveResults));
     }
+    if (profOn()) {
+        if (H.pfSaved) { const t = el("p", "gpnote"), a = el("a", null, "student profiles"); a.href = "profiles.html"; t.append(document.createTextNode("Added to "), a, document.createTextNode(" (levels, XP, banked coins, topic locks).")); p.append(t); }
+        else if (n) p.append(btn("btn ghost", H.pfBusy ? "Saving…" : "Save to profiles", saveProfiles));
+    }
 }
 /** After the game: top 3, everyone's percent right, the most-missed questions with the wrong answers we saw, and buttons to go over them on the board. */
 function reportPanel(p) {
@@ -1406,6 +1503,7 @@ function setupPanel(p) {
         goalRow(choice.goal, (v) => { choice.goal = v; panelSig = ""; }),
         check("Sabotages", choice.sab, (v) => { choice.sab = v; }, "On: students spend coins to Fog, Jam, Tax or Spy on a classmate with at least as many coins (never someone behind them). Each one costs coins and recharges, a player who was just hit is safe for a minute, and none of them touch anyone's questions or work. You can turn it off during the game."),
         check("See their work live as they draw", choice.live, (v) => { choice.live = v; }, "Off: you see each student's work when they answer. On: it updates every few seconds, which uses more of the free daily allowance."),
+        check("Add to student profiles", choice.prof, (v) => { choice.prof = v; }, "On: at Game over each roster student's XP, banked coins and topic locks are added to their profile (Students > Profiles). First name and last initial only, in your private account. Students never write to it."),
         check("Save each student's result to Class Data", choice.save, (v) => { choice.save = v; }, "Off by default. Names, coins and right answers are kept in your private account. Leave off until the district says student data can be stored."));
     p.append(more);
     const go = btn("btn go vrbig", busy === "open" ? "Opening…" : "Open the room", openRoom); go.disabled = !!busy; p.append(go);

@@ -13,6 +13,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebas
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import * as V from "./vaultCore.js?v=75";
+import * as PC from "./profileCore.js?v=1";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=2";
 
@@ -42,6 +43,22 @@ const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls)
 const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "button"; if (fn) b.onclick = fn; return b; };
 const mathEl = (tag, cls, text) => { const e = el(tag, cls); e.append(V.mathText(text)); return e; };
 const store = { get: (k) => { try { return localStorage.getItem("anchorboard-play-" + k) || ""; } catch (e) { return ""; } }, set: (k, v) => { try { localStorage.setItem("anchorboard-play-" + k, v); } catch (e) { /* ok */ } } };
+/* ---------- who plays on this Chromebook ----------
+   After a student joins as a roster name, this browser remembers it (and their character), so next game it says
+   "Playing as Ava R." and one tap joins. Only this browser keeps it; nothing is sent anywhere. "Not you?" picks again. */
+const meGet = () => { try { const o = JSON.parse(store.get("me") || "null"); return o && o.n ? o : null; } catch (e) { return null; } };
+const meSet = (o) => store.set("me", JSON.stringify(o));
+function remember(m) {
+    const r = ST.room; if (!r || !m || !m.nm || !m.pf) return;   // only names that have a profile (roster names)
+    const old = meGet(), o = { o: r.owner || "", p: r.per || "", n: m.nm, a: m.av };
+    if (!old || old.o !== o.o || old.p !== o.p || old.n !== o.n || old.a !== o.a) meSet(o);
+}
+/** The remembered student for this room, when their name is on its list and free: { n, a, i }. */
+function rememberedFor(r) {
+    const me = meGet(); if (!me || !r || me.o !== (r.owner || "") || !r.per || me.p !== r.per) return null;
+    if (r.mode !== "roster") return { n: me.n, a: me.a, i: -1 };
+    const i = (r.names || []).indexOf(me.n); return i >= 0 && !(r.taken || []).includes(i) ? { n: me.n, a: me.a, i } : null;
+}
 
 const ST = {
     uid: "", code: "", room: null, roomGone: false, me: null, hadMe: false,
@@ -87,7 +104,8 @@ document.addEventListener("pointerdown", () => { try { AC = AC || new (window.Au
 
 /* ---------- vault skins ---------- */
 /** The skin this student's vault wears: their pick on this device, else what the teacher's screen has, kept to the ones they've unlocked. */
-const mySkin = (m) => { const open = V.skinsOpen(m && m.top), i = ST.skin != null ? ST.skin : (m && m.vs) || 0; return i < open ? i : 0; };
+const skinsOpenFor = (m) => Math.max(V.skinsOpen(m && m.top), +(m && m.sko) || 0);
+const mySkin = (m) => { const open = skinsOpenFor(m), i = ST.skin != null ? ST.skin : (m && m.vs) || 0; return i < open ? i : 0; };
 function pickSkin(i) {
     ST.skin = i; sfx("tap"); draw(true);
     // Its own small write; a site whose rules are older still keeps the look on this device.
@@ -140,7 +158,7 @@ async function join(code) {
         }
         const d = s.data();
         if (d.err) { ST.err = d.err; ST.step = "name"; ST.pick = null; ST.busy = false; draw(); return; }
-        ST.me = d; ST.hadMe = true; ST.busy = false; ST.err = "";
+        ST.me = d; ST.hadMe = true; ST.busy = false; ST.err = ""; remember(d);
         if (ST.skinsSeen == null) ST.skinsSeen = V.skinsOpen(d.top);
         if (d.hit && d.hit.at > ST.seenHit && d.need) { ST.view = "hit"; }
         if (ST.view === "q" && ST.sentQ >= 0 && d.fb && d.fb.q === ST.sentQ) {
@@ -527,9 +545,12 @@ function showPicks() {
 const pickNote = (pu) => (ST.pickErr ? "Characters and power-ups aren't switched on for this game yet. You can still play." : pu ? "Ready! You can change your picks until the game starts." : "Pick one. It works once the game starts.");
 function waitingRoom(card, m) {
     card.classList.add("lobby", "wide", "wroom");
-    const av = ST.picks.av != null ? ST.picks.av : m.av, pu = ST.picks.pu != null ? ST.picks.pu : m.pu;
-    const head = el("div", "wrhead"), me = el("span", "wrme", V.avatar(av)[0]); me.setAttribute("aria-hidden", "true");
-    const hi = el("div"); hi.append(el("h1", null, "You're in, " + m.nm + "!"));
+    const av = ST.picks.av != null ? ST.picks.av : m.av, pu = ST.picks.pu != null ? ST.picks.pu : m.pu, pf = m.pf;
+    const head = el("div", "wrhead"), me = faceRing(av, m, pf);
+    if (!ST.revealed) { me.classList.add("reveal"); ST.revealed = true; setTimeout(() => sfx("start"), 120); }
+    const hi = el("div"); hi.append(el("h1", null, (pf && pf.g0 ? "Welcome back, " : "You're in, ") + m.nm + "!"));
+    if (pf) { const lv = el("p", "wrlv"); lv.append(el("b", null, "Level " + pf.lv), document.createTextNode(" · " + pf.xp + " XP · "), el("span", "wrcoin", pf.coins + " coins banked")); hi.append(lv); }
+    else hi.append(el("p", "pnote", "Playing as a guest, so this game won't be saved to a profile. Pick your name from the class list next time."));
     const w = el("p", "pwait"); w.append(document.createTextNode("Waiting for your teacher to start"), el("i"), el("i"), el("i")); hi.append(w);
     // The code stays blurred so classmates can't read it off the screen. Tap to see it for 3 seconds.
     const code = el("div", "wrcode"), digits = codeShow(m.code), peek = btn("wrpeek", null, () => {
@@ -540,17 +561,77 @@ function waitingRoom(card, m) {
     peek.setAttribute("aria-label", "Show my secret code for 3 seconds"); hide(!((ST.peekUntil || 0) > Date.now()));
     code.append(el("small", null, "Your secret code"), digits, peek);
     head.append(me, hi, code); card.append(head);
-    card.append(el("h2", "wrh", "Pick your character"));
-    const grid = el("div", "wravatars"); grid.setAttribute("role", "radiogroup"); grid.setAttribute("aria-label", "Characters");
-    V.AVATARS.forEach(([e, n], i) => { const b = btn("wravatar" + (i === av ? " on" : ""), e, () => pick({ av: i })); b.setAttribute("role", "radio"); b.setAttribute("aria-checked", String(i === av)); b.setAttribute("aria-label", n); b.title = n; grid.append(b); });
+    if (pf) card.append(lockerCard(pf, m, "quest"));
+    card.append(el("h2", "wrh", "Your character"));
+    const grid = el("div", "wravatars"), aopen = m.avo || PC.avatarsOpen(0); grid.setAttribute("role", "radiogroup"); grid.setAttribute("aria-label", "Characters");
+    V.AVATARS.forEach(([e, n], i) => {
+        const locked = i >= aopen, b = btn("wravatar" + (i === av ? " on" : "") + (locked ? " locked" : ""), e, locked ? null : () => { pick({ av: i }); sfx("tap"); });
+        b.setAttribute("role", "radio"); b.setAttribute("aria-checked", String(i === av)); b.setAttribute("aria-label", locked ? n + ", unlocks at " + PC.AVATAR_XP[i] + " XP" : n); b.title = locked ? "Unlocks at " + PC.AVATAR_XP[i] + " XP" : n;
+        if (locked) { b.disabled = true; b.append(el("small", "wrxp", PC.AVATAR_XP[i] + " XP")); }
+        grid.append(b);
+    });
     card.append(grid);
+    if (aopen < V.AVATARS.length) card.append(el("p", "pnote", pf ? "Earn XP by answering, fixing misses and cracking locks to unlock more characters." : "More characters unlock with XP once you play with your name from the class list."));
+    card.append(el("h2", "wrh", "Your vault"), skinsGrid(m, true));
+    if (pf) card.append(lockerCard(pf, m, "badges"));
     card.append(el("h2", "wrh", "Pick a power-up for the game"));
     const pus = el("div", "wrpowers"); pus.setAttribute("role", "radiogroup"); pus.setAttribute("aria-label", "Power-ups");
     V.STARTERS.forEach(([k, n, d]) => { const b = btn("wrpower" + (k === pu ? " on" : ""), null, () => pick({ pu: k })); b.dataset.k = k; b.setAttribute("role", "radio"); b.setAttribute("aria-checked", String(k === pu)); b.append(powerIcon(k), el("b", null, n), el("small", null, d)); pus.append(b); });
     card.append(pus);
     card.append(el("p", "pnote", pickNote(pu)));
+    card.append(comebackTools(m));
     card.append(practiceVault());
-    card.append(el("h2", "wrh", "Vault skins"), el("p", "pnote", "Earn coins in the game to unlock new looks for your vault."), skinsGrid(m, false));
+}
+/** The character in a ring that fills toward the next lock, in their vault's colors. */
+function faceRing(av, m, pf) {
+    const k = V.skin(mySkin(m))[3], pct = pf ? (pf.next ? pf.next.pct : pf.lv ? 100 : 0) : 0, R = 54, C = 2 * Math.PI * R;
+    const w = el("div", "wrface"); w.style.setProperty("--skd", k.door); w.style.setProperty("--skr", k.ring);
+    w.innerHTML = '<svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="' + R + '" class="trk"/><circle cx="60" cy="60" r="' + R + '" class="bar" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - pct / 100)).toFixed(1) + '"/></svg>';
+    const e = el("span", "wrme", V.avatar(av)[0]); e.setAttribute("aria-hidden", "true"); w.append(e);
+    if (pf) w.append(el("b", "wrlvl", String(pf.lv)));
+    return w;
+}
+/** Their profile in the waiting room: the next lock to crack, badges (earned and still to earn), personal bests. */
+function lockerCard(pf, m, part) {
+    const box = el("div", "wrlocker");
+    if (part === "badges") return badgesPart(box, pf);
+    const q = el("div", "wrquest");
+    q.append(svg(POWER_ICONS.lock, "pwicon"));
+    const qt = el("div");
+    if (pf.next) {
+        qt.append(el("b", null, "Next lock: " + pf.next.l), el("small", null, pf.next.left ? "To crack it: " + pf.next.left + "." : "Almost there!"));
+        const bar = el("div", "wrbar"), fill = el("i"); fill.style.width = pf.next.pct + "%"; bar.append(fill); bar.setAttribute("role", "img"); bar.setAttribute("aria-label", pf.next.pct + "% of the way"); qt.append(bar);
+    } else qt.append(el("b", null, pf.lv ? pf.lv + (pf.lv === 1 ? " lock" : " locks") + " cracked" : "Your first lock"), el("small", null, "Each topic is a lock. Get " + PC.LOCK_RIGHT + " right, " + PC.LOCK_RECENT + " of your last " + PC.LOCK_WINDOW + ", on " + PC.LOCK_DAYS + " different days to crack it. Cracked locks stay cracked."));
+    q.append(qt); box.append(q);
+    if (pf.locks && pf.locks.length) { const l = el("p", "wrlocks"); l.append(el("small", null, "Cracked: ")); pf.locks.forEach((x) => l.append(el("span", "wrlockchip", "🔓 " + x))); box.append(l); }
+    return box;
+}
+function badgesPart(box, pf) {
+    box.append(el("h2", "wrh", "Badges · " + (pf.b || []).length + " of " + PC.BADGES.length));
+    const bs = el("div", "wrbadges");
+    PC.BADGES.forEach(([k, n, how]) => { const got = (pf.b || []).includes(k), b = el("div", "wrbadge" + (got ? " got" : "")); b.append(el("span", "wrbic", got ? "🏅" : "🔒"), el("b", null, n), el("small", null, got ? "Earned" : how)); bs.append(b); });
+    box.append(bs);
+    const best = [], B = pf.best || {};
+    if (B.c) best.push(B.c + " coins in a game"); if (B.acc) best.push(B.acc + "% right"); if (B.st) best.push(B.st + " right in a row");
+    if (best.length) box.append(el("p", "wrbest", "Personal bests: " + best.join(" · ") + ". Beat your own."));
+    return box;
+}
+/** The comeback tools: a grace lock (automatic) and a Shield from banked coins. */
+function comebackTools(m) {
+    const w = el("div", "wrcomeback");
+    if (m.gr) { const g = el("p", "wrgrace"); g.append(svg(POWER_ICONS.insure, "pwicon"), document.createTextNode("Grace lock ready: if you're in the bottom half and your vault gets cracked, you keep your coins. Once a game.")); w.append(g); }
+    if (m.pf) {
+        if (m.bsp || m.blk) w.append(el("p", "pnote", m.bsp ? "You brought a Shield from your bank." : ""));
+        else {
+            const can = m.pf.coins >= PC.BANK_SHIELD, b = btn("pbtn ghost", "Bring a Shield from your bank (" + PC.BANK_SHIELD + " of your " + m.pf.coins + " coins)", () => {
+                if (ST.sentB) return; const n = ST.sentB = Date.now(); send({ sb: { n, to: "", k: "bk:shld" } }); draw(true);
+                setTimeout(() => { if (ST.sentB === n) { ST.sentB = 0; ST.err = "Your teacher's screen didn't answer. Try again."; draw(true); } }, 10000);
+            });
+            b.disabled = !can || !!ST.sentB || (ST.picks.pu || m.pu) === "shield"; w.append(b);
+            w.append(el("p", "pnote", can ? "Banked coins come from right answers on other days. Getting cracked never touches them." : "You need " + PC.BANK_SHIELD + " banked coins. Every right answer banks 10."));
+        }
+    }
+    return w;
 }
 /** A quick game while they wait: crack a practice vault with the same marks as the real game. Nothing is sent anywhere. */
 function practiceVault() {
@@ -640,6 +721,7 @@ function stats() {
     const chip = (label, val, cls) => { const c = el("span", "pstat" + (cls ? " " + cls : "")); c.append(el("small", null, label), el("b", null, val)); s.append(c); };
     const was = ST.coins; ST.coins = m.c;
     chip("Name", V.avatar(m.status === "lobby" && ST.picks.av != null ? ST.picks.av : m.av)[0] + " " + m.nm); const fog = fogged(m); ST.fogOn = fog;
+    if (m.pf) chip("Level", String(m.pf.lv), "lvl");
     chip("Coins", fog ? "???" : String(m.c), "coin" + (fog ? " fog" : was != null && m.c > was ? " up" : was != null && m.c < was ? " down" : "")); chip("Hacks", String(m.h)); if (m.status !== "lobby") chip("Place", fog ? "???" : m.rank + " of " + m.players, fog ? "fog" : "");
     const t = el("span", "pstat"); t.append(el("small", null, "Time"), el("b", null, "")); t.id = "ptime"; s.append(t); tickTime();
     if (!(ST.room && ST.room.snd === false)) {
@@ -676,7 +758,7 @@ function draw(force) {
     pauseCover(); callBanner();
     const m = ST.me;
     if (m && m.nm && ST.step !== "play") ST.step = "play";
-    const k = JSON.stringify([ST.step, ST.view, ST.err, ST.busy, ST.target, ST.guess, ST.vault, ST.sabK, ST.sentS, ST.mg && ST.mg.cur, ST.mg && ST.mg.hist.length, ST.roomGone, ST.room && [ST.room.status, ST.step === "name" ? [ST.room.taken, ST.room.names && ST.room.names.length] : 0, ST.room.bonus, ST.room.rw ? ST.room.rw.k : 0], m && [m.status === "lobby" ? 0 : m.n, m.status, m.need]]);
+    const k = JSON.stringify([ST.step, ST.view, ST.err, ST.busy, ST.target, ST.guess, ST.vault, ST.sabK, ST.sentS, ST.mg && ST.mg.cur, ST.mg && ST.mg.hist.length, ST.roomGone, ST.room && [ST.room.status, ST.step === "name" ? [ST.room.taken, ST.room.names && ST.room.names.length] : 0, ST.room.bonus, ST.room.rw ? ST.room.rw.k : 0], m && [m.status === "lobby" ? 0 : m.n, m.status, m.need, m.status !== "play" && m.pf ? [m.pf.lv, m.pf.xp, m.pf.coins, m.avo, m.sko, m.bsp, m.blk, !!m.pf.saved] : 0]]);
     if (k === sig && !force) return;
     // Keep the pad (and anything typed) while the same question stays on screen.
     const cq = curQ(m), sameQ = !force && ST.step === "play" && ST.view === "q" && cq && document.getElementById("padhost") && +$("padhost").dataset.q === cq.n && !ST.roomGone;
@@ -707,6 +789,7 @@ function draw(force) {
         tile(m.c, "coins"); tile(m.r + " of " + m.of, "right"); if (m.best != null) tile(m.best, "best streak"); if (m.cr != null) tile(m.cr, m.cr === 1 ? "vault cracked" : "vaults cracked");
         if (m.of) tile(Math.round(100 * m.r / m.of) + "%", "correct");
         card.append(tiles, el("p", "pnote", m.rank <= 3 ? "Top 3! Look at the board for the winners." : "Great work. Look at the board for the winners."));
+        if (m.pf) card.append(gameGain(m.pf));
         if (Array.isArray(m.res) && m.res.length) card.append(myResults(m.res));
         if (!ST.endSnd) { ST.endSnd = true; setTimeout(() => sfx(m.rank <= 3 ? "win" : "start"), 80); }
         if (m.rank <= 3) once("done", () => { confetti(160, 0.5, 0.35); setTimeout(() => confetti(90, 0.2, 0.5), 400); setTimeout(() => confetti(90, 0.8, 0.5), 700); });
@@ -714,7 +797,7 @@ function draw(force) {
     }
     if (ST.view === "hit" && m.hit) {
         card.classList.add("alert"); if (celebrated !== "hit" + m.hit.at) card.classList.add("shake"); once("hit" + m.hit.at, () => { sfx("hit"); });
-        card.append(lockPic(), el("h1", null, "Your vault was cracked!"), el("p", "plead", m.hit.by + " guessed your code and took " + m.hit.lost + " coins. Set a new code to lock it again."));
+        card.append(lockPic(), el("h1", null, m.hit.grace ? "Grace lock saved you!" : "Your vault was cracked!"), el("p", "plead", m.hit.grace ? m.hit.by + " guessed your code, but your grace lock kept every coin. Set a new code to lock it again." : m.hit.by + " guessed your code and took " + m.hit.lost + " coins. Set a new code to lock it again."));
         const b = btn("pbtn go", "Set a new code", () => { ST.seenHit = m.hit.at; ST.view = "q"; draw(true); }); card.append(b); return;
     }
     if (m.need) return vaultStep(card, true);
@@ -725,6 +808,19 @@ function draw(force) {
     if (ST.view === "guess") return guessView(card);
     if (ST.view === "skins") return skinsView(card);
     questionView(card);
+}
+/** What this game added to their profile: XP, banked coins, locks and badges. Shown only to them. */
+function gameGain(pf) {
+    const box = el("div", "pgain");
+    box.append(el("h2", "wrh", pf.saved ? "Saved to your profile" : "Adding to your profile…"));
+    const row = el("div", "ptiles"), tile = (v, l) => { const t = el("div", "ptile"); t.append(el("b", null, v), el("small", null, l)); row.append(t); };
+    tile("+" + (pf.gx || 0), "XP"); tile("+" + (pf.gb || 0), "coins banked"); tile("Level " + pf.lv, pf.coins + " coins in the bank");
+    box.append(row);
+    (pf.nl || []).forEach((l) => box.append(el("p", "pgainline", "🔓 Lock cracked: " + l + "!")));
+    (pf.nb || []).forEach((k) => { const b = PC.badge(k); if (b) box.append(el("p", "pgainline", "🏅 New badge: " + b[1] + ". " + b[2])); });
+    if (pf.next) box.append(el("p", "pnote", "Next lock: " + pf.next.l + (pf.next.left ? " · " + pf.next.left : "")));
+    if ((pf.nl || []).length || (pf.nb || []).length) once("gain" + (pf.nl || []).join() + (pf.nb || []).join(), () => { confetti(120, 0.5, 0.3, ["#F2B33D", "#FFE3A3", "#7FAEDD"]); sfx("box"); });
+    return box;
 }
 /** The student's own questions after the game: the ones to look at again first (what they wrote and the answer), then the ones they got. */
 function myResults(res) {
@@ -757,14 +853,24 @@ function codeStep(card) {
 function nameStep(card) {
     const r = ST.room || {};
     card.append(el("h1", null, r.title ? r.title : "Who are you?"));
+    const me = rememberedFor(r);
+    if (me && !ST.notMe) {
+        // One tap for a student this Chromebook knows. Their character greets them before anything else.
+        card.classList.add("pme");
+        const face = el("span", "pmeface", V.avatar(me.a)[0]); face.setAttribute("aria-hidden", "true");
+        card.append(face, el("p", "plead", "Playing as"), el("p", "pbig", me.n));
+        card.append(btn("pbtn go", "That's me, let's go", () => { ST.pick = me.i >= 0 ? { ni: me.i, nm: me.n } : { nm: me.n }; ST.face = me.a; ST.step = "vault"; ST.err = ""; draw(true); }),
+            btn("pbtn ghost", "Not you? Pick your name", () => { ST.notMe = true; draw(true); }));
+        note(card); return;
+    }
     if (r.mode === "roster") {
         card.append(el("p", "plead", "Tap your name."));
         const list = el("div", "pnames"), taken = new Set(r.taken || []);
-        (r.names || []).forEach((n, i) => { const b = btn("pname", n, () => { ST.pick = { ni: i, nm: n }; ST.step = "vault"; ST.err = ""; draw(true); }); if (taken.has(i)) { b.disabled = true; b.title = "Already playing"; } list.append(b); });
+        (r.names || []).forEach((n, i) => { const b = btn("pname", n, () => { const k = meGet(); ST.pick = { ni: i, nm: n }; ST.face = k && k.n === n ? k.a : null; ST.step = "vault"; ST.err = ""; draw(true); }); if (taken.has(i)) { b.disabled = true; b.title = "Already playing"; } list.append(b); });
         card.append(list, el("p", "pnote", "Is your name greyed out or missing? Tell your teacher."));
     } else {
         card.append(el("p", "plead", "Type your first name and last initial."));
-        const f = el("form", "pform"), inp = el("input", "ptext"); inp.maxLength = 20; inp.autocomplete = "off"; inp.placeholder = "Ava R."; inp.setAttribute("aria-label", "Your first name and last initial"); inp.value = ST.typed;
+        const f = el("form", "pform"), inp = el("input", "ptext"); inp.maxLength = 20; inp.autocomplete = "off"; inp.placeholder = "Ava R."; inp.setAttribute("aria-label", "Your first name and last initial"); inp.value = ST.typed || (me && !ST.notMe ? me.n : "");
         const go = el("button", "pbtn go", "Next"); go.type = "submit";
         f.onsubmit = (e) => { e.preventDefault(); const n = V.cleanTyped(inp.value); ST.typed = inp.value; if (!n) { ST.err = "Type your first name and last initial."; draw(true); return; } ST.pick = { nm: n }; ST.step = "vault"; ST.err = ""; draw(true); };
         f.append(inp, go); card.append(f); setTimeout(() => inp.focus(), 0);
@@ -772,6 +878,12 @@ function nameStep(card) {
     note(card);
 }
 function vaultStep(card, again) {
+    if (!again && ST.pick) {
+        // Their character, right after they pick their name: the one they used last time, or a mystery one they'll meet in the waiting room.
+        const hi = el("div", "pvhi"), face = el("span", "pvface" + (ST.face == null ? " q" : ""), ST.face == null ? "?" : V.avatar(ST.face)[0]); face.setAttribute("aria-hidden", "true");
+        const t = el("div"); t.append(el("b", null, "Hi, " + ST.pick.nm + "!"), el("small", null, ST.face == null ? "Your character is waiting for you inside." : "Your character is ready. Change it in the waiting room."));
+        hi.append(face, t); card.append(hi);
+    }
     card.append(vaultPic("small", mySkin(ST.me)), el("h1", null, again ? "Set a new vault code" : "Set your vault code"), el("p", "plead", "Pick 3 different digits, 1 to 9. Classmates will try to guess it, so don't share it."));
     const slots = el("div", "pslots"); for (let i = 0; i < V.CODE_LEN; i++) slots.append(el("span", "pslot" + (ST.vault[i] ? " full" : ""), ST.vault[i] || ""));
     card.append(slots, keypad(ST.vault, (v) => { ST.vault = v; draw(true); }));
@@ -991,10 +1103,10 @@ function fbView(card) {
 }
 /** Every vault skin: the unlocked ones to pick, the rest with the coins they need. */
 function skinsGrid(m, canPick) {
-    const g = el("div", "pskins"), open = V.skinsOpen(m && m.top), on = mySkin(m);
+    const g = el("div", "pskins"), open = skinsOpenFor(m), on = mySkin(m);
     V.SKINS.forEach(([, name, need], i) => {
         const locked = i >= open, b = btn("pskin" + (i === on ? " on" : "") + (locked ? " locked" : ""), null, canPick && !locked ? () => pickSkin(i) : null);
-        b.append(vaultPic("tiny", i), el("b", null, name), el("small", null, locked ? "Unlocks at " + need + " coins" : i === on ? "Using it" : canPick ? "Tap to use" : "Unlocked"));
+        b.append(vaultPic("tiny", i), el("b", null, name), el("small", null, locked ? "Unlocks at " + need + " coins" + (m && m.pf ? " or " + i + (i === 1 ? " lock" : " locks") : "") : i === on ? "Using it" : canPick ? "Tap to use" : "Unlocked"));
         b.disabled = locked || !canPick; if (i === on) b.setAttribute("aria-current", "true"); g.append(b);
     });
     return g;
@@ -1024,7 +1136,7 @@ function guessView(card) {
     card.classList.add("wide");
     const hk = m.hk && m.hk.to === t.id ? m.hk : null, cracked = m.hk && m.hk.steal != null && m.hk.m === "222" && m.hk.tn === t.nm && !t.g.length;
     card.append(el("h1", null, cracked ? "You cracked " + t.nm + "'s vault!" : "Hack " + t.nm + "'s vault"));
-    if (cracked) { card.classList.add("good", "center"); if (celebrated !== "crack" + m.hk.n) card.classList.add("pop"); card.append(vaultPic("open", t.vs), el("p", "pbig", "Cracked! +" + m.hk.steal + " coins")); once("crack" + m.hk.n, () => { confetti(150, 0.5, 0.35, ["#F2B33D", "#F6C866", "#FFE3A3", "#7FAEDD", "#FFFFFF"]); sfx("crack"); }); card.append( el("p", "plead", t.nm + " has to set a new code.")); card.append(btn("pbtn go", "Back to questions", () => { ST.view = "q"; ST.target = ""; draw(true); })); return; }
+    if (cracked) { card.classList.add("good", "center"); if (celebrated !== "crack" + m.hk.n) card.classList.add("pop"); card.append(vaultPic("open", t.vs), el("p", "pbig", "Cracked! +" + m.hk.steal + " coins"), m.hk.grace ? el("p", "plead", t.nm + "'s grace lock kept their coins, so you found " + m.hk.steal + " new ones.") : el("span")); once("crack" + m.hk.n, () => { confetti(150, 0.5, 0.35, ["#F2B33D", "#F6C866", "#FFE3A3", "#7FAEDD", "#FFFFFF"]); sfx("crack"); }); card.append( el("p", "plead", t.nm + " has to set a new code.")); card.append(btn("pbtn go", "Back to questions", () => { ST.view = "q"; ST.target = ""; draw(true); })); return; }
     if (hk && hk.why) card.append(el("p", "pnote err", hk.why));
     if (t.spy && !cracked) { const sp = el("div", "pspyhint"); sp.append(powerIcon("spy"), el("span", null, "Your Spy saw: "), el("b", null, [...t.spy].join(" "))); card.append(sp); }
     const legend = el("p", "plegend"); legend.append(dot(2), document.createTextNode(" right digit, right spot  "), dot(1), document.createTextNode(" in the code, wrong spot  "), dot(0), document.createTextNode(" not in the code")); card.append(legend);
@@ -1125,6 +1237,8 @@ function notices(d) {
         if (d.sbr.ok) { ST.view = "q"; ST.err = ""; toast((SAB_DONE[d.sbr.k] || (() => "Done!"))(d.sbr), "good"); sfx("crack"); }
         else ST.err = d.sbr.why || "That didn't work.";
     }
+    if (ST.sentB && d.bkr && d.bkr.n === ST.sentB) { ST.sentB = 0; if (d.bkr.ok) { toast("Shield ready! It blocks the first crack on your vault.", "good"); sfx("box"); } else ST.err = d.bkr.why || "That didn't work."; }
+    if (d.plk && d.plk.at > (ST.seenPlk || 0)) { ST.seenPlk = d.plk.at; if (!first) { toast("🔓 Lock cracked: " + d.plk.l + "! You're Level " + (d.pf ? d.pf.lv : "up") + ".", "good"); sfx("crack"); confetti(110, 0.5, 0.3, ["#F2B33D", "#FFE3A3", "#7FAEDD"]); } }
     const lock = +(d.lock || 0);
     if (lock > Date.now() && lock !== ST.seenLock) { ST.seenLock = lock; if (!first) { toast("Lockdown! No hacking or sabotage for 60 seconds. Answer questions!"); sfx("bonus"); } }
     if (ST.view === "sab" && (!d.sab || d.status !== "play")) ST.view = "q";

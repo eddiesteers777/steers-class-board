@@ -8,6 +8,7 @@
    others that use it (Progress and Grades). */
 const STUDENTS = [
     ["progress.html", "Progress", "Who needs help, on what"],
+    ["profiles.html", "Profiles", "Levels, XP and topic locks from every game"],
     ["grades.html", "Grades", "The gradebook"],
     ["assign.html", "Assignments", "Practice, quizzes and tests"],
     ["data.html", "Class Data", "Scores and imports"],

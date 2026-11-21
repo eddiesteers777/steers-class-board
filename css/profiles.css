@@ -1,0 +1,33 @@
+/* Student Profiles (profiles.html, js/profilesPage.js). Amber marks progress toward the next lock; green = has it, red = not yet, always with a word or symbol. */
+.pfList{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.pfRow{display:grid;grid-template-columns:52px minmax(140px,1.2fr) minmax(140px,1fr) auto;align-items:center;gap:14px;text-align:left;font:inherit;color:var(--c-ink);background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:16px;padding:10px 16px;min-height:64px;cursor:pointer}
+.pfRow:hover:not(:disabled){border-color:#7FAEDD}
+.pfRow.none{opacity:.65;cursor:default}
+.pfLv{width:44px;height:44px;border-radius:50%;background:#081B45;color:#F2B33D;font-family:var(--display);font-weight:800;font-size:1.25rem;display:grid;place-items:center;box-shadow:inset 0 0 0 3px #F2B33D}
+.pfLv.big{width:60px;height:60px;font-size:1.7rem;flex:none}
+.pfWho{display:flex;flex-direction:column;min-width:0}
+.pfWho small,.pfMid small{color:var(--c-mute);font-size:.84rem}
+.pfMid{display:flex;flex-direction:column;gap:4px;min-width:0}
+.pfBar{height:8px;border-radius:999px;background:#E4E9F2;overflow:hidden}
+.pfBar i{display:block;height:100%;background:#F2B33D;border-radius:inherit}
+.pfStats{display:flex;gap:10px;flex-wrap:wrap;font-weight:600;font-size:.9rem;color:var(--c-ink)}
+.pfStats span{background:#EEF1F6;border-radius:999px;padding:4px 10px}
+.pfTableWrap{overflow-x:auto;margin:12px 0}
+.pfTable{width:100%;border-collapse:collapse;background:var(--c-surface);border-radius:14px;overflow:hidden;font-size:.92rem}
+.pfTable th{text-align:left;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:var(--c-mute);padding:10px 12px;border-bottom:1.5px solid var(--c-line);white-space:nowrap}
+.pfTable td{padding:9px 12px;border-bottom:1px solid #EEF1F6;vertical-align:middle}
+.pfPct{font-weight:700}
+.pfPct.ok{color:#14633D}.pfPct.mid{color:#8A5F00}.pfPct.low{color:#B4232A}
+.pfDots{white-space:nowrap}
+.pfDots i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px;background:#E4C3C5}
+.pfDots i.y{background:#2E9A69}
+.pfWeeks{display:flex;align-items:flex-end;gap:3px;height:34px;min-width:60px}
+.pfWeeks i{display:block;width:9px;border-radius:3px 3px 0 0;background:#9DB0CF}
+.pfWeeks i.ok{background:#2E9A69}.pfWeeks i.mid{background:#F2B33D}.pfWeeks i.low{background:#C9434B}
+.pfKid{max-width:920px;width:calc(100% - 32px)}
+.pfKHead{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pfKHead>div{flex:1;min-width:200px}
+.pfKHead h2{margin:0}
+.pfKHead p{margin:2px 0 0;color:var(--c-mute)}
+.pfLine{color:var(--c-ink);font-weight:600}
+@media (max-width:640px){.pfRow{grid-template-columns:44px 1fr;row-gap:8px}.pfMid,.pfStats{grid-column:1 / -1}}
