@@ -4,7 +4,7 @@
    Profiles live at teacher/{uid}/profiles/{period}, teacher-only (the existing teacher/{uid} rule).
    A game credits them once, after it ends, in one transaction, so two screens can't overwrite each other.
 ========================================== */
-import * as PC from "./profileCore.js?v=1";
+import * as PC from "./profileCore.js?v=2";
 
 /** rooms: the board store's `rooms` (full paths). Resolves { <kid key>: KID } for one period, {} when there is none yet. */
 export async function loadKids(rooms, per) {

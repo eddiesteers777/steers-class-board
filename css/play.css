@@ -503,3 +503,52 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .pgainline{font-weight:700;color:var(--navy)}
 @media (max-width:560px){.wrface{width:92px;height:92px}.wrface .wrme{font-size:44px;inset:10px}.wrbadges{grid-template-columns:1fr 1fr}}
 @media (prefers-reduced-motion:reduce){.wrface.reveal,.wrface.reveal .wrme,.pmeface,.pvface{animation:none}}
+
+/* ---------- the student's own cartoon character (js/buddy.js, motion in css/buddy.css) ---------- */
+.bdbox{display:inline-grid;place-items:center;line-height:0}
+.bdbox svg{max-width:100%;height:auto}
+.pstat b .bdbox{vertical-align:-5px;margin-right:5px;width:22px;height:22px;border-radius:50%;background:#EEF3FA;overflow:hidden}
+.pmeface.bdbox{width:auto;height:auto;font-size:0;background:radial-gradient(circle at 50% 70%,#E3ECF8 0 44%,transparent 45%);box-shadow:none;border-radius:0;padding:4px 18px 0}
+.pvface.bdbox{width:auto;height:auto;background:radial-gradient(circle at 50% 75%,#DCE7F5 0 42%,transparent 43%);box-shadow:none;border-radius:0}
+.wrface .wrme.bdbox{overflow:hidden;align-items:end}
+.wrface .wrme.bdbox svg{position:static;width:100%;height:100%;transform:none}
+.pfbbuddy{margin:0 auto}
+.pfbbuddy.miss{margin-bottom:-6px}
+.pwin .pfbbuddy{margin:0}
+.pdonefig{display:flex;align-items:flex-end;justify-content:center;gap:6px}
+
+/* The dress-up studio: a stage with the character on the left, pieces on the right (stacked on a phone). */
+.wrstudio{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:16px;align-items:start}
+.wrstage{position:sticky;top:8px;border-radius:22px;padding:18px 12px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;overflow:hidden;
+  background:radial-gradient(ellipse 60% 14% at 50% 86%,rgba(8,27,69,.16),transparent 70%),radial-gradient(circle at 50% 38%,#FFF8E6 0 30%,transparent 62%),linear-gradient(170deg,#10358A,#081B45);box-shadow:inset 0 0 0 3px rgba(127,174,221,.35)}
+.wrstage::before{content:"";position:absolute;left:50%;top:44%;width:230px;height:230px;transform:translate(-50%,-50%);border-radius:50%;border:2px dashed rgba(127,174,221,.35);pointer-events:none}
+.wrfig{position:relative;min-height:236px;display:grid;place-items:end center;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none;border-radius:18px;outline:none}
+.wrfig.drag{cursor:grabbing}
+.wrfig:focus-visible{box-shadow:0 0 0 3px var(--amber)}
+.wrspin{position:relative;margin:-6px 0 0;font-size:12px;font-weight:600;letter-spacing:.02em;color:rgba(220,231,245,.75)}
+.wrspin::before,.wrspin::after{content:"\2194";margin:0 6px;opacity:.7}
+.wrmoves{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;position:relative}
+.wrmove{border:0;border-radius:99px;padding:6px 14px;font-weight:700;background:rgba(255,255,255,.14);color:#fff;box-shadow:inset 0 0 0 1.5px rgba(185,211,238,.5)}
+.wrmove:hover{background:var(--amber);color:var(--amber-ink)}
+.wrside{min-width:0}
+.wrtabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+.wrtab{flex:none;border:2px solid var(--line);background:#fff;border-radius:99px;padding:6px 14px;font-weight:700;color:var(--navy)}
+.wrtab.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.wrpieces{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.wrpartname{font-family:var(--display);font-size:1rem;color:var(--navy);margin-top:4px}
+.wrtiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.wrtile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px 6px;border-radius:16px;border:3px solid var(--line);background:linear-gradient(180deg,#fff,#F1F5FB);transition:transform .12s}
+.wrtile svg{height:72px;width:auto}
+.wrtile small{font-size:.76rem;font-weight:700;color:var(--ink);line-height:1.15}
+.wrtile:hover:not(:disabled){transform:translateY(-2px)}
+.wrtile.on{border-color:var(--amber);background:#FFF8E6;box-shadow:0 6px 16px rgba(242,179,61,.35)}
+.wrtile.locked{cursor:default}
+.wrtile.locked svg{filter:grayscale(1) brightness(.75);opacity:.55}
+.wrtile.locked small{color:var(--mute)}
+.wrswatches{display:flex;flex-wrap:wrap;gap:8px}
+.wrswatch{width:40px;height:40px;border-radius:50%;padding:4px;border:3px solid var(--line);background:#fff;display:grid;place-items:center}
+.wrswatch i{display:block;width:100%;height:100%;border-radius:50%;box-shadow:inset 0 0 0 1.5px rgba(8,27,69,.18)}
+.wrswatch.on{border-color:var(--amber);transform:scale(1.1)}
+.wrswatch.locked{opacity:.4;cursor:default;position:relative}
+.wrswatch.locked::after{content:"🔒";position:absolute;font-size:14px}
+@media (max-width:640px){.wrstudio{grid-template-columns:1fr}.wrstage{position:relative;top:0}.wrtiles{grid-template-columns:repeat(3,1fr)}}

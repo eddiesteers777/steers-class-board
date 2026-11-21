@@ -7,7 +7,7 @@
    ?demo: made-up names, a this-tab store, nothing is saved.
 ========================================== */
 import * as T from "./trackCore.js?v=1";
-import { perKey, kidKey, summary as profileSummary } from "./profileCore.js?v=1";
+import { perKey, kidKey, summary as profileSummary } from "./profileCore.js?v=2";
 
 const Q = new URLSearchParams(location.search), DEMO = Q.has("demo");
 const $ = (id) => document.getElementById(id);

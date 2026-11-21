@@ -39,9 +39,10 @@ service cloud.firestore {
         allow list, delete: if owner();
         allow create, update: if signedIn() && request.auth.uid == who
           && room().status in ['lobby', 'play']
-          && request.resource.data.keys().hasOnly(['at', 'ni', 'nm', 'code', 'cn', 'a', 'k', 'sb', 'img', 'iq', 'it', 'av', 'pu', 'vs'])
+          && request.resource.data.keys().hasOnly(['at', 'ni', 'nm', 'code', 'cn', 'a', 'k', 'sb', 'img', 'iq', 'it', 'av', 'pu', 'vs', 'lk'])
           && (!('av' in request.resource.data) || (request.resource.data.av is int && request.resource.data.av >= 0 && request.resource.data.av < 32))
           && (!('vs' in request.resource.data) || (request.resource.data.vs is int && request.resource.data.vs >= 0 && request.resource.data.vs < 16))
+          && (!('lk' in request.resource.data) || (request.resource.data.lk is string && request.resource.data.lk.size() <= 40 && request.resource.data.lk.matches('^([a-z][0-9a-z])*$')))
           && (!('pu' in request.resource.data) || (request.resource.data.pu is string && request.resource.data.pu.size() <= 12))
           && (!('nm' in request.resource.data) || (request.resource.data.nm is string && request.resource.data.nm.size() <= 24))
           && (!('code' in request.resource.data) || (request.resource.data.code is string && request.resource.data.code.size() <= 3))

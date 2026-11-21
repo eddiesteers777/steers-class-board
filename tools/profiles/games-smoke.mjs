@@ -1,7 +1,7 @@
 // Ring Race with named teams credits student profiles (and the other team games load), against the Firebase emulators.
 // Needs: firebase emulators (firestore 8080, auth 9099) for project steers-class-board, the repo served at 127.0.0.1:5000,
 // and the firebase@12.1.0 npm package (FIREBASE_SDK=path/to/node_modules/firebase/). Run: node tools/profiles/prof-e2e.mjs <shots dir>
-import { chromium } from "playwright";
+const { chromium } = await import(process.env.PLAYWRIGHT || "playwright");
 import fs from "node:fs";
 const BASE = "http://127.0.0.1:5000", FB = process.env.FIREBASE_SDK || "./node_modules/firebase/", OUT = process.argv[2] || "./shots";
 fs.mkdirSync(OUT, { recursive: true });

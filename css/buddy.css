@@ -1,0 +1,7 @@
+/* ==========================================
+   Anchor Board — the student character (drawn and animated by js/buddy.js).
+   The motion is drawn frame by frame in the script (a small 3D skeleton seen from three-quarters),
+   so this file only sizes the drawing. Reduced motion is handled in the script (a still at each move's key moment).
+========================================== */
+svg.bd { display: block; overflow: visible; }
+svg.bd.bd-face { overflow: hidden; }
