@@ -126,7 +126,7 @@ function setStatus(t) {
     const st = (t === "Live" || t === "This device only") ? "ok" : (t.startsWith("Connecting") || t.startsWith("Still") ? "wait" : "bad");
     const s = $("status"); if (s) { s.textContent = t; s.dataset.state = st; }
     // The board view hides the header, so a lost connection shows as a small pill in the corner instead.
-    const pill = $("connPill"); if (pill) { pill.hidden = st === "ok" || !synced; pill.textContent = st === "bad" ? "Not connected. Reconnecting\u2026" : "Connecting\u2026"; }
+    const pill = $("connPill"); if (pill) { pill.hidden = st === "ok" || !synced; pill.textContent = st === "bad" ? "Offline \u00b7 showing the saved lesson \u00b7 reconnecting\u2026" : "Connecting\u2026"; }
 }
 function push() { S.stamp = localIso(); render(); if (writeState) writeState(JSON.parse(JSON.stringify(S))); }
 let quietTimer = 0;

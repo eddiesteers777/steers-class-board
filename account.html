@@ -24,6 +24,19 @@
         .danger .btn.del { background: #B3261E; color: #fff; border-color: #B3261E; }
         .danger .btn.del:disabled { opacity: .45; cursor: not-allowed; }
         #log { font-size: 14px; color: #55627F; margin-top: 10px; white-space: pre-line; }
+        .drive { background: #fff; border: 1px solid #D5DCE9; border-radius: 16px; padding: 16px; margin: 0 0 24px; }
+        .drive h2 { margin-top: 0; }
+        .drive .state { font-size: 15px; margin: 6px 0 10px; }
+        .drive .state[data-due="1"] { color: #8A5A00; font-weight: 600; }
+        .drive .rowx { flex-wrap: wrap; gap: 8px; }
+        .drive .dlog { font-size: 14px; color: #55627F; margin-top: 10px; white-space: pre-line; min-height: 1em; }
+        .drive .dlog[data-state="bad"] { color: #8A1C14; }
+        .drive h3 { font-size: 16px; margin: 18px 0 4px; }
+        .drive .mv { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; border-top: 1px solid #D5DCE9; padding: 10px 0; font-size: 15px; }
+        .drive details { margin-top: 14px; font-size: 14px; color: #55627F; }
+        .drive details summary { cursor: pointer; font-weight: 600; color: #22304F; }
+        .drive ol { padding-left: 20px; margin: 8px 0; }
+        .drive a { color: #1A56C4; }
     </style>
 </head>
 <body class="console page">
@@ -35,6 +48,32 @@
     <main class="acct">
         <h1>Your data</h1>
         <p class="sub">Everything below is saved only to your own account. Nobody else can see it, and it is never part of the site's public code.</p>
+        <section class="drive" id="backup" aria-labelledby="driveH">
+            <h2 id="driveH">Back up to Google Drive</h2>
+            <p class="sub">Saves a copy of everything (plans, gradebook, settings) plus your Student Work scans as PDFs into an "Anchor Board" folder in your Google Drive. Only what changed is sent again. Anchor Board can only see the files it puts there, nothing else in your Drive.</p>
+            <p class="state" id="dState">Checking…</p>
+            <div class="rowx">
+                <button class="btn go" id="dNow" type="button">Back up to Google Drive now</button>
+                <button class="btn ghost" id="dPick" type="button">Use a different Google account</button>
+                <a class="btn ghost" id="dOpen" href="https://drive.google.com/" target="_blank" rel="noopener" style="text-decoration:none" hidden>Open the folder</a>
+            </div>
+            <div class="dlog" id="dLog" role="status" aria-live="polite"></div>
+            <h3>Free up space: move finished nine weeks of scans to Drive</h3>
+            <p class="sub">Scans take most of the free database space (about 1,000 MB). This saves each assignment's PDF to Drive, checks Drive has it, then removes the page pictures here. The list of assignments and who turned what in stays.</p>
+            <div id="dMove"><p class="sub">Checking…</p></div>
+            <details>
+                <summary>Weekly backup and first-time setup</summary>
+                <p>Home shows a reminder when your last backup is a week old. One tap backs up. (A fully automatic backup with nothing to tap would need a paid server, so it is not built.)</p>
+                <p>Which Google account? If you pick your school Google account, the files sit in the district's Google Drive, where student work is already allowed. Your personal account works too. A school account can be blocked by the district's Google settings; if so, Anchor Board says so.</p>
+                <p>If Anchor Board says Google Drive is not turned on, it is a free one-time switch:</p>
+                <ol>
+                    <li>Open <a href="https://console.cloud.google.com/apis/library/drive.googleapis.com?project=steers-class-board" target="_blank" rel="noopener">Google Drive API for the steers-class-board project</a>, signed in with the Google account that owns Anchor Board.</li>
+                    <li>Click Enable. No billing is needed.</li>
+                    <li>Wait a minute, then tap Back up again.</li>
+                </ol>
+            </details>
+        </section>
+        <h2>What your account has saved</h2>
         <table id="counts" aria-label="What your account has saved"><tr><td>Counting…</td><td class="n"></td></tr></table>
         <div class="danger">
             <h2>Delete all my data</h2>
@@ -47,10 +86,59 @@
     </main>
     <script type="module">
         import * as store from "./js/boardStore.js?v=58";
-        import { summary, deleteEverything } from "./js/accountData.js?v=3";
+        import { summary, deleteEverything } from "./js/accountData.js?v=4";
         import { logout } from "./js/auth.js";
+        import * as Drive from "./js/drive.js?v=1";
+        import { PERIODS } from "./data/weeks.js?v=61";
         const $ = (id) => document.getElementById(id);
         const status = (t, ok) => { const s = $("status"); s.textContent = t; s.dataset.state = ok ? "ok" : (/Could not/.test(t) ? "bad" : "wait"); };
+
+        function mountBackup() {
+            const log = $("dLog"), say = (t, bad) => { log.textContent = t; log.dataset.state = bad ? "bad" : ""; };
+            const when = (ms) => new Date(ms).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) + " at " + new Date(ms).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+            let B = null, S = null, busy = false;
+            const load = () => B ? Promise.resolve(B) : import("./js/backup.js?v=1").then((m) => (B = m));
+            Drive.prepare();
+            async function draw() {
+                await load();
+                try { S = await B.settings(); } catch (e) { $("dState").textContent = "Could not read your backup settings (" + ((e && e.code) || "connection") + ")."; return; }
+                const st = $("dState");
+                if (!S.root) { st.textContent = "Not set up yet. The first backup makes the folder."; st.dataset.due = ""; }
+                else {
+                    st.textContent = (S.account ? "Backing up to " + S.account + "'s Google Drive. " : "") + (S.last ? "Last backup " + when(S.last) + (S.lastNote ? " (" + S.lastNote + ")." : ".") : "No backup yet.") + (B.due(S) ? " A weekly backup is due." : "");
+                    st.dataset.due = B.due(S) ? "1" : "";
+                    $("dOpen").hidden = false; $("dOpen").href = "https://drive.google.com/drive/folders/" + encodeURIComponent(S.root);
+                }
+                const box = $("dMove"); box.textContent = "";
+                let list = []; try { list = await B.movable(); } catch { /* shown as nothing to move */ }
+                if (!list.length) { const p = document.createElement("p"); p.className = "sub"; p.textContent = "Nothing to move. Only nine weeks that are over show here."; box.append(p); return; }
+                list.forEach((t) => {
+                    const row = document.createElement("div"), b = document.createElement("button"); row.className = "mv";
+                    const label = document.createElement("span"); label.textContent = t.label + ": " + t.sets + (t.sets === 1 ? " assignment, " : " assignments, ") + t.pages + " pages, " + (t.bytes / 1048576).toFixed(1) + " MB";
+                    b.className = "btn ghost"; b.type = "button"; b.textContent = "Move to Drive";
+                    b.onclick = () => run(async () => {
+                        if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "Tap again: save to Drive, then remove " + t.pages + " page pictures here"; return false; }
+                        const n = await B.moveTerm(t.q, (x) => say(x));
+                        say("Moved " + n + (n === 1 ? " assignment" : " assignments") + " to Drive and freed " + (t.bytes / 1048576).toFixed(1) + " MB. The PDFs are in Anchor Board > Student Work.");
+                        return true;
+                    });
+                    row.append(label, b); box.append(row);
+                });
+            }
+            async function run(job, pick = false) {
+                if (busy) return; busy = true; [$("dNow"), $("dPick")].forEach((x) => { x.disabled = true; });
+                try {
+                    if (!Drive.connected() || pick) { say("Waiting for Google…"); await Drive.connect({ pick: pick || !S || !S.account, hint: S && S.account }); }
+                    if ((await job()) !== false) await draw();
+                } catch (e) {
+                    say(e && e.code && String(e.code).startsWith("drive/") ? Drive.sayError(e) : "Stopped: " + ((e && e.message) || "something went wrong") + ". Nothing was removed from Anchor Board. Try again.", true);
+                } finally { busy = false; [$("dNow"), $("dPick")].forEach((x) => { x.disabled = false; }); }
+            }
+            const backup = async () => { const r = await B.backupNow((x) => say(x), PERIODS.map((p) => p[0])); say("Backed up: " + r.docs + " items, " + r.sheets + (r.sheets === 1 ? " grade sheet, " : " grade sheets, ") + r.pdfs + (r.pdfs === 1 ? " new Student Work PDF." : " new Student Work PDFs.")); };
+            $("dNow").onclick = () => run(backup);
+            $("dPick").onclick = () => run(backup, true);
+            draw().then(() => { if (/[?&]backup=go/.test(location.search) && Drive.connected()) run(backup); });
+        }
         const user = await store.ready();
         if (!user) location.replace("login.html");
         else {
@@ -61,6 +149,7 @@
                 status("Live", true);
             } catch (e) { status("Could not count your data (" + ((e && e.code) || "connection") + ")"); }
             $("confirm").addEventListener("input", () => { $("del").disabled = $("confirm").value.trim() !== "DELETE"; });
+            mountBackup();
             $("del").onclick = async () => {
                 if ($("confirm").value.trim() !== "DELETE") return;
                 $("del").disabled = true; $("confirm").disabled = true; const log = $("log"); log.textContent = "";
