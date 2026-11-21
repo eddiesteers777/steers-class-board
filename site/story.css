@@ -314,3 +314,11 @@ html.ab-live .ab-clock.is-off{opacity:0;transform:translateY(-8px)}
 
 @media (prefers-reduced-motion:reduce){.ab-ch,.ab-desks i.on{animation:none}}
 .ab-tcard .ab-mini p.ab-ahead{margin:10px 0 0;color:var(--ink);font-size:13px}
+
+/* "Works with" strip: product names in plain text, no logos (2026-11-20) */
+.ab-works{background:var(--white)}
+.ab-works-list{list-style:none;margin:24px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.ab-works-list li{border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px;background:var(--paper);display:flex;flex-direction:column;gap:4px}
+.ab-works-list b{color:var(--ink);font-size:1.02rem}
+.ab-works-list span{color:var(--mute);font-size:.94rem;line-height:1.45}
+.ab-works-fine{margin:14px 0 0;color:var(--mute);font-size:.82rem}

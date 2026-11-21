@@ -309,6 +309,8 @@ export async function mountAssign() {
             const jb = el("div", "asJoinBtns");
             jb.append(btn("btn ghost sm", "Copy link", (e) => { navigator.clipboard && navigator.clipboard.writeText(joinUrl(d.code)).then(() => { e.target.textContent = "Copied"; setTimeout(() => { e.target.textContent = "Copy link"; }, 1500); }, () => {}); }));
             jb.append(btn("btn ghost sm", "Show code big", () => bigCode(d)));
+            // Google's free "Share to Classroom" link: Classroom opens with the link ready to post (the teacher picks the class).
+            jb.append(btn("btn ghost sm", "Share to Google Classroom", () => { window.open("https://classroom.google.com/share?url=" + encodeURIComponent(joinUrl(d.code)) + "&title=" + encodeURIComponent(d.title || "Assignment") + "&body=" + encodeURIComponent("Open the link, or go to " + location.host + "/do and type code " + d.code + "."), "_blank", "noopener,width=640,height=720"); }));
             join.append(jb); top.append(join);
         }
         out.append(top);
