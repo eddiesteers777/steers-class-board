@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Class Tracker | Anchor Board</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="manifest" href="manifest-tracker.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Tracker">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/board.css?v=60">
+    <link rel="stylesheet" href="css/console.css?v=59">
+    <link rel="stylesheet" href="css/tracker.css?v=1">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="console page tkpage">
+    <header class="tk-top">
+        <div class="tk-toprow">
+            <a class="tk-brand" href="index.html" aria-label="Anchor Board home"><img src="brand/logo.svg" alt=""><span><b>Class Tracker</b><small id="who">Only you see this</small></span></a>
+            <span class="live" id="status" role="status">Connecting…</span>
+            <button class="tk-icon" id="tagsBtn" type="button" aria-label="Edit tags" title="Edit tags"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></button>
+        </div>
+        <div class="tk-periods" id="periods" role="group" aria-label="Period"></div>
+        <div class="tk-summary" id="summary" aria-live="polite"></div>
+        <div class="tk-outs" id="outNow" hidden aria-label="Out of the room"></div>
+    </header>
+    <nav class="tk-views" id="views" aria-label="View">
+        <button type="button" data-v="class">Class</button>
+        <button type="button" data-v="pick">Pick</button>
+        <button type="button" data-v="today">Today</button>
+    </nav>
+    <main class="tk-main" id="view" aria-live="polite">
+        <div class="tk-skel" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </main>
+    <div class="tk-selbar" id="selBar" hidden>
+        <span id="selCount"></span>
+        <button class="tk-primary" id="selGo" type="button">Tag them</button>
+    </div>
+    <div class="tk-toast" id="toast" role="status" hidden></div>
+
+    <dialog class="tk-sheet" id="sheet" aria-labelledby="sheetTitle">
+        <div class="tk-sheetcard">
+            <div class="tk-grab" aria-hidden="true"></div>
+            <div class="tk-sheethead">
+                <div><h2 id="sheetTitle"></h2><p id="sheetSub"></p></div>
+                <button class="tk-icon" id="sheetClose" type="button" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+            </div>
+            <p class="tk-prof" id="sheetProf"></p>
+            <div class="tk-seg" id="sheetTabs" role="group" aria-label="Show">
+                <button type="button" data-t="today">Today</button>
+                <button type="button" data-t="history">History</button>
+            </div>
+            <div id="sheetBody"></div>
+        </div>
+    </dialog>
+
+    <dialog class="tk-sheet" id="tagsDlg" aria-labelledby="tagsTitle">
+        <div class="tk-sheetcard">
+            <div class="tk-sheethead">
+                <div><h2 id="tagsTitle">Your tags</h2><p>Rename, hide or add. Old taps keep their names.</p></div>
+                <button class="tk-icon" id="tagsClose" type="button" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+            </div>
+            <div id="tagsBody"></div>
+            <button class="tk-primary big" id="tagsSave" type="button">Save tags</button>
+        </div>
+    </dialog>
+    <script type="module" src="js/trackPage.js?v=1"></script>
+    <script src="js/offline.js?v=1" defer></script>
+</body>
+</html>
