@@ -173,7 +173,7 @@ export function plainHtml(text) { return String(text == null ? "" : text).slice(
 
 /* ---------- live fields: {{agenda}} fills in from the lesson's plan ---------- */
 export const LIVE = [
-    ["day", "Day", "Monday"], ["date", "Date", "Monday, November 23"], ["title", "Lesson title", "Two-step equations"], ["class", "Class", "8th Grade Math"],
+    ["day", "Day", "Monday"], ["date", "Date", "November 23"], ["topic", "Today's topic", "Two-step equations: guided notes"], ["class", "Class", "8th Grade"],
     ["lt", "Learning target", "I can solve two-step equations."], ["weeklt", "This week's target", "I can solve equations."],
     ["bell", "Bellringer", "Bellringer: problems 1-4"], ["agenda", "Agenda", ["Bellringer", "Guided notes", "Exit ticket"]],
     ["supplies", "Supplies", ["Pencil", "Notes"]], ["reminders", "Reminders", ["Quiz Friday"]], ["week", "This week", ["Mon: Notes", "Tue: Practice"]],
@@ -190,12 +190,18 @@ export function fillLive(html, ctx, mark) {
         return mark ? '<span class="slv" data-live="' + k + '">' + shown + "</span>" : shown;
     });
 }
+/** A lesson's date in words: the plan's own, or worked out from the week's Monday (W.monday "2026-11-16"). */
+export function lessonDate(W, i, d) {
+    if (d && d.date) return String(d.date).slice(0, 60);
+    if (W && /^\d{4}-\d\d-\d\d$/.test(W.monday || "")) { const t = new Date(W.monday + "T12:00:00"); t.setDate(t.getDate() + (+i || 0)); return t.toLocaleDateString("en-US", { month: "long", day: "numeric" }); }
+    return "";
+}
 /** The plan's words for one lesson, for live fields. W: the week, L: its class, d: the day, i: the day's number. */
 export function liveContext(W, L, d, i, dateText) {
     const FULL = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
     const list = (a) => (Array.isArray(a) ? a.filter((x) => typeof x === "string" && x.trim()).map((x) => x.slice(0, 300)) : []);
     return {
-        day: FULL[i] || "", date: dateText || (d && d.date) || "", title: (d && (d.title || d.name)) || "", class: (L && (L.label || L.cls)) || "",
+        day: FULL[i] || "", date: dateText || (d && d.date) || "", topic: (d && (d.agendaLine || d.short || d.title)) || "", class: (L && (L.label || L.cls)) || "",
         lt: (d && d.lt) || "", weeklt: (L && L.weekLT) || "", bell: (d && d.bell) || "", agenda: list(d && d.agenda),
         supplies: list(d && d.supplies), reminders: list(d && d.reminders),
         week: ((L && L.days) || []).map((x, j) => DK[j] + ": " + ((x && (x.short || x.agendaLine)) || "")).slice(0, 5),
@@ -319,10 +325,17 @@ export function cleanDeck(o, max) {
     if (o && o.nod === true) d.nod = true;
     return d;
 }
+/** The list of which lessons have slides (n: key -> how many show), and which skip the every-day slides (off). */
 export function cleanIndex(o) {
-    const n = {}; const src = o && o.n && typeof o.n === "object" ? o.n : {};
+    const n = {}, off = {}; const src = o && o.n && typeof o.n === "object" ? o.n : {}, so = o && o.off && typeof o.off === "object" ? o.off : {};
     Object.keys(src).slice(0, 2000).forEach((k) => { const c = int(src[k], 0, MAX_SLIDES, 0); if (c && (isLessonKey(k) || k === DAILY)) n[k] = c; });
-    return { v: 1, n };
+    Object.keys(so).slice(0, 2000).forEach((k) => { if (so[k] === 1 && isLessonKey(k)) off[k] = 1; });
+    return { v: 1, n, off };
+}
+/** Whether a lesson shows any slides, from the index alone (before its own slides have loaded). */
+export function indexHas(idx, key, daily) {
+    if (!idx || !idx.n) return false;
+    return (idx.n[key] || 0) > 0 || (!(idx.off && idx.off[key]) && countShown(daily) > 0);
 }
 /** Slides the board shows for a lesson: the every-day slides first (unless this lesson turns them off), then its own. */
 export function showList(daily, lesson) {
@@ -395,7 +408,7 @@ export const LAYOUTS = [
 ];
 /** The built-in Today screen as pieces: the header, Bell Ringer, Agenda, Supplies, Reminders, This Week and the target, filled in live. */
 export function todaySlide() {
-    return S1(banner("{{day}} · {{title}}", "{{date}}").concat([
+    return S1(banner("{{day}} · {{topic}}", "{{date}}").concat([
         card(40, 180, 500, 330, "Bell Ringer", "{{bell}}", { fs: 44 }),
         card(560, 180, 500, 330, "Agenda", "{{agenda}}", { fs: 40 }),
         card(1080, 180, 480, 330, "This Week", "{{week}}", { fs: 30 }),

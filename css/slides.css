@@ -1,47 +1,49 @@
 /* Anchor Board — lesson slides, drawn the same on the board, the Remote and the Board Builder (js/slideView.js).
-   A slide is 1600 x 900 slide pixels, scaled to fit. Sizes inside a slide are slide pixels. */
-.sl{position:absolute;left:0;top:0;transform-origin:0 0;overflow:hidden;font-family:"Instrument Sans",system-ui,sans-serif;font-size:32px;line-height:1.2;color:#f6f9fd;contain:layout paint}
+   A slide is 1600 x 900 slide pixels, scaled to fit. Sizes inside a slide are slide pixels.
+   Every class here starts with "sl" so nothing else on a page can restyle a slide by accident. */
+.sl{position:absolute;left:0;top:0;transform-origin:0 0;overflow:hidden;font-family:"Instrument Sans",system-ui,sans-serif;font-size:32px;line-height:1.2;color:#f6f9fd;contain:layout paint;text-align:left;letter-spacing:normal}
 .slbg,.slels,.slpat{position:absolute;inset:0}
 .slbg{background-size:cover;background-position:center}
-.slbg .stagebg{position:absolute;inset:0}
+.slbg .stagebg{position:absolute;inset:0;z-index:0}
 .slpat-grid{background-image:linear-gradient(var(--pc) 2px,transparent 2px),linear-gradient(90deg,var(--pc) 2px,transparent 2px);background-size:50px 50px;background-position:0 0}
 .slpat-dots{background-image:radial-gradient(circle,var(--pc) 3px,transparent 3.6px);background-size:40px 40px;background-position:20px 20px}
 .slpat-lines{background-image:linear-gradient(90deg,transparent 150px,rgba(198,40,40,.38) 150px,rgba(198,40,40,.38) 153px,transparent 153px),repeating-linear-gradient(180deg,transparent 0,transparent 58px,var(--pc) 58px,var(--pc) 60px)}
 .slpat-axes{background-image:linear-gradient(90deg,transparent 798px,rgba(20,33,61,.55) 798px,rgba(20,33,61,.55) 802px,transparent 802px),linear-gradient(180deg,transparent 448px,rgba(20,33,61,.55) 448px,rgba(20,33,61,.55) 452px,transparent 452px),linear-gradient(var(--pc) 2px,transparent 2px),linear-gradient(90deg,var(--pc) 2px,transparent 2px);background-size:auto,auto,50px 50px,50px 50px;background-position:0 0,0 0,0 0,0 0}
-.se{position:absolute;box-sizing:border-box}
-.sbx .sshape{position:absolute;left:0;top:0;overflow:visible}
-.se.shadow .sshape,.spc.shadow img{filter:drop-shadow(0 10px 22px rgba(4,12,34,.3))}
-.sbh{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;padding:0 .75em;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:inset 0 -.16em 0 #7faedd}
-.sbt{position:absolute;display:flex;flex-direction:column;min-width:0}
-.sbt.va-t{justify-content:flex-start}.sbt.va-m{justify-content:center}.sbt.va-b{justify-content:flex-end}
-.sbti{overflow-wrap:break-word;word-break:normal;min-width:0;outline:none}
-.sbti div{min-height:1.2em}
-.sbti ul,.sbti ol{margin:0;padding-left:1.15em}
-.sbti li{margin:.08em 0}
-.sbti li::marker{color:currentColor}
-.sbti.sph{opacity:.45;font-style:italic}
-.sbti .slv{border-bottom:.08em dotted currentColor}
-.sbti b,.stb b{font-weight:700}
-.sln svg{position:absolute;left:0;top:0;overflow:visible}
-.stb{width:100%;height:100%;border-collapse:collapse;table-layout:fixed;line-height:1.15}
-.stb td,.stb th{border:3px solid;padding:.18em .35em;vertical-align:middle;overflow:hidden;overflow-wrap:break-word;font-weight:500}
-.stb th{font-weight:700}
-.spc img{display:block;width:100%;height:100%}
-.spcwait{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(127,174,221,.16);border:4px dashed rgba(127,174,221,.6);border-radius:12px;font-size:30px;color:#5f6b7a}
-.smt canvas{display:block;width:100%;height:100%}
-.sst{display:flex;align-items:center;justify-content:center}
-.sl .sst .stkf{font-size:calc(var(--h) * .74);line-height:1}
-.sl .sst .stkf.stk-m{font-size:calc(var(--h) * .7)}
-.sl .sst .stkf.stk-m.long{font-size:calc(var(--h) * .3)}
-.sl .sst .stkf.stk-w{font-size:calc(var(--h) * .33);white-space:nowrap}
+.sle{position:absolute;box-sizing:border-box}
+.slbx .slshape{position:absolute;left:0;top:0;overflow:visible}
+.sle.slsd .slshape,.slpc.slsd img{filter:drop-shadow(0 10px 22px rgba(4,12,34,.3))}
+.slhd{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;padding:0 .75em;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:inset 0 -.16em 0 #7faedd;box-sizing:border-box}
+.sltx{position:absolute;display:flex;flex-direction:column;min-width:0}
+.sltx.va-t{justify-content:flex-start}.sltx.va-m{justify-content:center}.sltx.va-b{justify-content:flex-end}
+.sltxi{overflow-wrap:break-word;word-break:normal;min-width:0;outline:none;white-space:pre-wrap}
+.sltxi div{min-height:1.2em}
+.sltxi ul,.sltxi ol{margin:0;padding-left:1.15em}
+.sltxi li{margin:.08em 0}
+.sltxi li::marker{color:currentColor}
+.sltxi p{margin:0}
+.sltxi.slph{opacity:.45;font-style:italic}
+.sltxi .slv{border-bottom:.08em dotted currentColor}
+.sltxi b,.sltb b{font-weight:700}
+.slln svg{position:absolute;left:0;top:0;overflow:visible}
+.sltb{width:100%;height:100%;border-collapse:collapse;table-layout:fixed;line-height:1.15}
+.sltb td,.sltb th{border:3px solid;padding:.18em .35em;vertical-align:middle;overflow:hidden;overflow-wrap:break-word;font-weight:500;white-space:pre-wrap}
+.sltb th{font-weight:700}
+.slpc img{display:block;width:100%;height:100%;box-sizing:border-box}
+.slpcwait{width:100%;height:100%;display:flex;align-items:center;justify-content:center;box-sizing:border-box;background:rgba(127,174,221,.16);border:4px dashed rgba(127,174,221,.6);border-radius:12px;font-size:30px;color:#5f6b7a}
+.slmt canvas{display:block;width:100%;height:100%}
+.slst{display:flex;align-items:center;justify-content:center}
+.sl .slst .stkf{font-size:calc(var(--h) * .74);line-height:1}
+.sl .slst .stkf.stk-m{font-size:calc(var(--h) * .7)}
+.sl .slst .stkf.stk-m.long{font-size:calc(var(--h) * .3)}
+.sl .slst .stkf.stk-w{font-size:calc(var(--h) * .33);white-space:nowrap}
 .slg img{display:block;width:100%;height:100%;object-fit:contain;border-radius:22%}
-.sl .frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:.82em;line-height:1.05;margin:0 .12em}
-.sl .frac>span:first-child{border-bottom:.09em solid currentColor;padding:0 .2em .04em}
-.sl .frac>span:last-child{padding:.04em .2em 0}
+.sl .slfrac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:.82em;line-height:1.05;margin:0 .12em}
+.sl .slfrac>span:first-child{border-bottom:.09em solid currentColor;padding:0 .2em .04em}
+.sl .slfrac>span:last-child{padding:.04em .2em 0}
 .sl sup{font-size:.62em;line-height:0}
-.sroot{display:inline-flex;align-items:flex-start;white-space:nowrap}
-.srad{border-top:.07em solid currentColor;padding:0 .08em;margin-left:.02em}
-.sapb{position:absolute;top:-18px;right:-18px;width:40px;height:40px;border-radius:50%;background:#f2b33d;color:#2a1c00;font:800 22px/40px "Instrument Sans",sans-serif;text-align:center;box-shadow:0 2px 8px rgba(4,12,34,.35);pointer-events:none;z-index:3}
+.slroot{display:inline-flex;align-items:flex-start;white-space:nowrap}
+.slrad{border-top:.07em solid currentColor;padding:0 .08em;margin-left:.02em}
+.slapb{position:absolute;top:-18px;right:-18px;width:40px;height:40px;border-radius:50%;background:#f2b33d;color:#2a1c00;font:800 22px/40px "Instrument Sans",sans-serif;text-align:center;box-shadow:0 2px 8px rgba(4,12,34,.35);pointer-events:none;z-index:3}
 .slin{animation:slIn .42s cubic-bezier(.2,.8,.2,1) both}
 @keyframes slIn{from{opacity:0;translate:0 22px}to{opacity:1;translate:0 0}}
 .slthumb{position:relative;overflow:hidden;border-radius:6px;flex:none;background:#0b2559}
@@ -49,7 +51,7 @@
 @media (prefers-reduced-motion:reduce){.slin{animation:none}}
 
 /* The Slides screen on the board: the slide fills the stage; drawing sits on top. */
-.deckx{position:relative;flex:1;min-height:0;overflow:hidden}
+.deckx{position:relative;flex:1;min-height:0;overflow:hidden;width:100%;height:100%}
 .deckx .deckhost{position:absolute;inset:0}
 .deckx .cv{position:absolute;inset:0;background:transparent!important}
 .deckx .cv canvas{background:transparent}

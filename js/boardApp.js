@@ -24,6 +24,8 @@ import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } fr
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=6";
 import { cleanChart, cleanPeriod, cleanView, seatCount, drawRoom } from "./seats.js?v=7";
+import { DAILY as SL_DAILY, INDEX as SL_INDEX, MAX_DAILY as SL_MAX_DAILY, cleanDeck, cleanIndex, showList, revealSteps, indexHas, liveContext, lessonDate } from "./slides.js?v=1";
+import { renderSlide, fitSlide, imageLoader } from "./slideView.js?v=1";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -60,7 +62,7 @@ function rich(text) {
 }
 function richEl(tag, cls, text) { const e = el(tag, cls); e.appendChild(rich(text)); return e; }
 
-const SCREENS = [["seats", "Seating Chart"], ["agenda", "Weekly Agenda"], ["today", "Today"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["steps", "Show Steps"], ["speed", "Speed Dating"], ["fix", "Fix It"], ["game", "Review Game"], ["live", "Student Game"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
+const SCREENS = [["seats", "Seating Chart"], ["agenda", "Weekly Agenda"], ["today", "Today"], ["deck", "Slides"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["steps", "Show Steps"], ["speed", "Speed Dating"], ["fix", "Fix It"], ["game", "Review Game"], ["live", "Student Game"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
 const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 // Each period and the class plan it follows.
 let PERIODS = PACK_PERIODS;
@@ -92,7 +94,7 @@ function cleanWb(o) {
     if (o.pages && typeof o.pages === "object") Object.keys(o.pages).slice(-40).forEach((k) => { const n = Math.floor(+o.pages[k]); if (n > 1) d.pages[k.slice(0, 120)] = Math.min(12, n); });
     return d;
 }
-const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0,
+const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0, slide: 0, sstep: 0,
     timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", fix: null, tools: defaultTools(), wb: defaultWb(),
     sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true }, look: defaultLook(), stickers: [], seatHi: null, seatView: cleanView(null), bplan: cleanBplan(null), walk: { id: "", step: 0 } };
 
@@ -141,7 +143,9 @@ const lessonKeyNow = () => S.week + "|" + S.cls + "|" + S.day;
 function dayBoard() {
     const k = lessonKeyNow(); if (k === lessonKey) return; lessonKey = k;
     const id = S.tools.dayb && S.tools.dayb[k], sc = id && S.tools.scenes.find((x) => x.id === id);
-    if (sc && !sceneActive(S, sc)) applyScene(S, sc, Object.assign({}, toolApi, { push: () => {} }));   // the caller saves it
+    if (sc) { if (!sceneActive(S, sc)) applyScene(S, sc, Object.assign({}, toolApi, { push: () => {} })); return; }   // the caller saves it
+    // A lesson with its own slides (or every-day slides) opens on them, unless a game or the seating chart is up.
+    if (slHas(k) && screenOk("deck") && !["live", "game", "seats"].includes(S.screen)) { S.screen = "deck"; S.slide = 0; S.sstep = 0; S.show = false; }
 }
 let quietTimer = 0;
 function quiet() { clearTimeout(quietTimer); quietTimer = setTimeout(() => { if (writeState) writeState(JSON.parse(JSON.stringify(S))); }, 500); } // save typing without redrawing
@@ -202,10 +206,78 @@ function timerGo(kind) {
     else { if (kind !== "round" && t.elapsed >= secsFor(kind) * 1000) t.elapsed = 0; t.t0 = now() - t.elapsed; t.running = true; unlockSound(); }
     push();
 }
-function resetPos() { S.prob = 0; S.show = false; S.note = 0; S.step = 0; }
+function resetPos() { S.prob = 0; S.show = false; S.note = 0; S.step = 0; S.slide = 0; S.sstep = 0; }
 const W = () => WEEKS.find((w) => w.id === S.week) || WEEKS[WEEKS.length - 1];
 const L = () => { const w = W(); return (w && w.classes[S.cls]) || null; };
 const D = () => { const l = L(); return (l && l.days && l.days[S.day]) || null; };
+
+/* ---------- Slides: the teacher's own slides (Board Builder > Slides, js/slideEditor.js) ----------
+   slides/<week>|<class>|<day> holds one lesson's slides, slides/daily the every-day slides that open every lesson,
+   slides/index which lessons have any. The Slides screen shows them one at a time: Next shows the next piece set to
+   appear on Next, then the next slide. S.slide and S.sstep are where the board is. */
+const SL = { idx: cleanIndex(null), daily: null, lesson: null, key: "", ver: 0 };
+let slUnsub = null, slOn = false, slPen = false, slLast = "", slImages = null;
+function slStart() {   // after sign-in
+    if (slOn) return; slOn = true;
+    store.watch("slides/" + SL_INDEX, (snap) => { if (snap.pending) return; SL.idx = cleanIndex(snap.exists ? snap.data : null); SL.ver++; slChanged(); }, () => {});
+    store.watch("slides/" + SL_DAILY, (snap) => { if (snap.pending) return; SL.daily = cleanDeck(snap.exists ? snap.data : null, SL_MAX_DAILY); SL.ver++; slChanged(); }, () => { SL.daily = cleanDeck(null); });
+    slWatch();
+}
+/** Follow the slides of the lesson on the board now (called on every draw; only a new lesson starts a new watch). */
+function slWatch() {
+    if (!slOn) return;
+    const k = lessonKeyNow(); if (k === SL.key) return;
+    SL.key = k; SL.lesson = null; SL.ver++; if (slUnsub) { slUnsub(); slUnsub = null; }
+    slUnsub = store.watch("slides/" + k, (snap) => { if (snap.pending || SL.key !== k) return; SL.lesson = cleanDeck(snap.exists ? snap.data : null); SL.ver++; slChanged(); }, () => { if (SL.key === k) { SL.lesson = cleanDeck(null); SL.ver++; slChanged(); } });
+}
+function slChanged() { if (!synced) return; if (S.screen === "deck") sig = ""; render(); }
+const slLoaded = () => slOn && SL.key === lessonKeyNow() && !!SL.lesson && !!SL.daily;
+const slList = () => (slLoaded() ? showList(SL.daily, SL.lesson) : []);
+/** Whether a lesson has slides to show: its own list once loaded, else the index. */
+function slHas(k) {
+    if (!slOn) return false;
+    if ((k || lessonKeyNow()) === lessonKeyNow() && slLoaded()) return slList().length > 0;
+    return indexHas(SL.idx, k || lessonKeyNow(), SL.daily);
+}
+/** The slide on the board now: { list, i, s }, or null when this lesson has none (or they have not loaded). */
+function deckNow() { const list = slList(); if (!list.length) return null; const i = Math.max(0, Math.min(S.slide, list.length - 1)); return { list, i, s: list[i] }; }
+function slImg() { if (!slImages) slImages = imageLoader(() => store, () => { if (S.screen === "deck") { sig = ""; render(); } }); return slImages; }
+const slLive = () => { const w = W(), d = D(); return liveContext(w, L(), d, S.day, lessonDate(w, S.day, d)); };
+/** Into the Slides screen from the screen before it (n = 1: the first slide) or after it (n = -1: the last slide, all shown). */
+function slEnter(n) { const list = slList(); S.screen = "deck"; S.show = false; if (n > 0 || !list.length) { S.slide = 0; S.sstep = 0; } else { S.slide = list.length - 1; S.sstep = revealSteps(list[S.slide]); } }
+/** Back from the lesson's first screens: to the end of the slides when the lesson has them, else Today. */
+function backToToday() { if (slHas()) slEnter(-1); else S.screen = "today"; }
+function drawDeck(st) {
+    const box = el("div", "deckx"), host = el("div", "deckhost"); box.appendChild(host); st.appendChild(box);
+    const dn = deckNow();
+    if (!dn) {
+        if (slOn && !slLoaded()) { slLast = ""; return; }   // still arriving: the board's own look, never a flash of "no slides"
+        const e = el("div", "deckempty");
+        e.appendChild(el("h2", null, "No slides for " + (FULL[S.day] || "this day") + " yet"));
+        e.appendChild(el("p", null, mode === "board" ? "Build them on the Remote: Board Builder, then Slides." : "Make your own slides for this lesson: from your plan, a layout or a blank slide."));
+        if (mode !== "board") { const a = el("a", null, "Build slides"); a.href = "studio.html#slides/" + encodeURIComponent(S.week) + "/" + encodeURIComponent(S.cls) + "/" + S.day; e.appendChild(a); }
+        box.appendChild(e); slLast = ""; return;
+    }
+    const steps = revealSteps(dn.s), at = Math.min(S.sstep, steps), k2 = dn.s.id + ":" + at, was = slLast.split(":");
+    const fresh = at && was[0] === dn.s.id && +was[1] === at - 1 ? at : 0; slLast = k2;
+    const r = renderSlide(dn.s, { step: at, fresh, live: slLive(), img: slImg().src, logo: lookSeal(), scale: (st.clientWidth || 1280) / 1600 });
+    r.setAttribute("role", "img"); r.setAttribute("aria-label", "Slide " + (dn.i + 1) + " of " + dn.list.length);
+    host.appendChild(r); fitSlide(host, r);
+    const cv = makeCv(); cv.classList.add("deckink"); cv.classList.toggle("drawoff", !slPen); box.appendChild(cv);
+    const pen = el("button", "deckpen"); pen.type = "button"; pen.setAttribute("aria-pressed", String(slPen)); pen.title = slPen ? "Stop drawing" : "Draw on this slide"; pen.setAttribute("aria-label", pen.title); pen.innerHTML = wbIcon("pen");
+    pen.onclick = () => { slPen = !slPen; sig = ""; render(); }; box.appendChild(pen);
+    box.appendChild(el("span", "deckcount", (dn.i + 1) + " / " + dn.list.length + (steps ? " \u00b7 " + (at < steps ? "more on Next" : "all shown") : "")));
+    bindCanvas(); sizeCanvas();
+}
+/** The Remote: the open slide's notes for the teacher, under Next and Back (never on the board). */
+function deckNotes() {
+    if (mode !== "remote" && !studio) return;
+    const fb = document.querySelector(".flowbar"); if (!fb) return;
+    let n = $("slNotesOut"); if (!n) { n = el("div", "slnotes"); n.id = "slNotesOut"; n.setAttribute("aria-live", "polite"); fb.after(n); }
+    const dn = S.screen === "deck" ? deckNow() : null, t = dn && dn.s.nt ? dn.s.nt : "";
+    if (n.dataset.t === t) return; n.dataset.t = t; n.hidden = !t; n.textContent = "";
+    if (t) { n.appendChild(el("b", null, "Your notes")); n.appendChild(document.createTextNode(t)); }
+}
 
 /* What the Board Builder (js/studio.js) works with: the same state, the same push, the same panels and timeline. */
 function studioApi() {
@@ -213,6 +285,16 @@ function studioApi() {
         day: () => D(), lesson: () => L(), week: () => W(), classLabel: () => { const l = L(); return (l && l.label) || S.cls; }, dayName: () => FULL[S.day] || "",
         synced: () => synced, guest: () => mode === "sub", rosters: () => ROSTERS, bells: () => BELLS,
         lessonKey: () => lessonKeyNow(), dayNames: () => FULL.slice(), goDay: (i) => { S.day = i; resetPos(); push(); },
+        // Slides (js/slideEditor.js): the store, every week (published and private), a day's notes frames, and "Show on board"
+        store: () => store, allWeeks: () => WEEKS, framesFor: (w, c, i) => { const wk = WEEKS.find((x) => x.id === w), l = wk && wk.classes[c], d = l && l.days && l.days[i]; return d ? notesFrames(d) : []; },
+        showSlide: (w, c, i, n) => {
+            if (!WEEKS.some((x) => x.id === w)) return false;
+            const wk = WEEKS.find((x) => x.id === w); if (!wk.classes[c]) return false;
+            S.week = w; if (S.cls !== c) { S.cls = c; const p = PERIODS.find((x) => x[1] === c); if (p) S.period = p[0]; }
+            if (S.day !== i) S.day = i;
+            dayBoard();   // that lesson's own board first, so its panels and look come along; the slide still wins the screen
+            S.screen = "deck"; S.slide = Math.max(0, n || 0); S.sstep = 0; S.show = false; slWatch(); push(); return true;
+        },
         weeks: () => WEEKS.map((w) => [w.id, w.monday || ""]),
         editHref: () => { const w = W(), q = new URLSearchParams({ day: (DK[S.day] || "Mon").toLowerCase() }); if (w.monday) q.set("monday", w.monday); if (S.cls) q.set("class", S.cls); return "lesson.html?" + q; },
         // Outline the panel in place: never rebuild the layer here, since this runs on the pointerdown that may start a drag.
@@ -347,7 +429,7 @@ function buildControls() {
             x.onclick = () => { notTodayShut = nk; try { sessionStorage.setItem("anchorboard-nottoday", nk); } catch (e) { /* this visit only */ } nt.hidden = true; fit(); }; nt.appendChild(x);
         }
     }
-    seg($("screens"), SCREENS.filter((x) => mode !== "sub" || (x[0] !== "game" && x[0] !== "live" && x[0] !== "seats" && x[0] !== "steps")), S.screen, (id) => { S.screen = id; S.show = false; push(); });
+    seg($("screens"), SCREENS.filter((x) => !subHides(x[0])), S.screen, (id) => { if (id === "deck" && S.screen !== "deck") S.sstep = 0; S.screen = id; S.show = false; push(); });
     const sel = $("weekSel"); sel.textContent = "";
     WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + (isPhone() ? String(x.dates || "").replace(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*/g, "$1") : x.dates)); o.value = x.id; sel.appendChild(o); });
     sel.value = w.id; $("weekField").hidden = WEEKS.length < 2;
@@ -602,9 +684,9 @@ function skeleton() {
 }
 function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
-    syncGames(); syncLive(); syncNotes(); buildControls(); soundSync(); applyLook(S.look); renderLookFold(); renderEditLink(); drawStickers();
+    slWatch(); syncGames(); syncLive(); syncNotes(); buildControls(); soundSync(); applyLook(S.look); renderLookFold(); renderEditLink(); drawStickers(); deckNotes();
     if (studio && studio.render) studio.render();
-    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : "", S.screen === "seats" ? seatSig() : "", S.screen === "steps" ? stepsSig() : ""]);
+    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : "", S.screen === "seats" ? seatSig() : "", S.screen === "steps" ? stepsSig() : "", S.screen === "deck" ? JSON.stringify([SL.ver, S.slide, S.sstep, slPen, S.look.mark, inkBase()]) : ""]);
     renderDock(); drawGamePanel(); drawLivePanel(); drawNotesPanel();
     if (sheetOpen()) refreshSheet();
     if (ns === sig) { if (S.screen === "steps") stepsSync(); renderLayer(); tick(); tickTools(toolApi); placeCard(); return; }
@@ -614,6 +696,7 @@ function render() {
     const st = $("screenHost"); st.textContent = ""; canvas = null; ctx = null; pad = null;
     if (S.screen === "seats") { drawSeats(st); renderLayer(); watchInk(); return; }
     if (S.screen === "steps") { drawSteps(st); renderLayer(); watchInk(); return; }
+    if (S.screen === "deck") { drawDeck(st); renderLayer(); watchInk(); tick(); return; }
     if (!l) { st.appendChild(el("div", "empty", "No lesson found for this class and week.")); watchInk(); return; }
     const w = W();
     if (S.screen === "agenda") {
@@ -1224,7 +1307,7 @@ function saveInk() {
     if (JSON.stringify(body).length > 700000) { note("This board is full. Clear it to keep saving."); return; }
     note(""); inkWrite(JSON.parse(JSON.stringify(body)));
 }
-function inkBase() { return [S.week, S.period, "d" + S.day, S.screen === "notes" ? "n" + S.note + (S.show && pdfFrame() ? "w" : "") : S.screen === "fix" ? "fix" + ((fixCur() || {}).n || 0) : S.screen === "live" ? (liveReview() || { key: "live" }).key : ((S.screen === "bell" && D()) ? "p" + S.prob : "blank")].join("_"); }
+function inkBase() { return [S.week, S.period, "d" + S.day, S.screen === "deck" ? "s" + (((deckNow() || {}).s || {}).id || "none") : S.screen === "notes" ? "n" + S.note + (S.show && pdfFrame() ? "w" : "") : S.screen === "fix" ? "fix" + ((fixCur() || {}).n || 0) : S.screen === "live" ? (liveReview() || { key: "live" }).key : ((S.screen === "bell" && D()) ? "p" + S.prob : "blank")].join("_"); }
 function pageCount() { return S.wb.pages[inkBase()] || 1; }
 function pageNow() { const b = inkBase(); return S.wb.pg.k === b ? Math.min(S.wb.pg.n, pageCount() - 1) : 0; }
 function watchInk() {
@@ -1349,6 +1432,7 @@ function applyState(d) {
     if (typeof d.day === "number" && d.day >= 0 && d.day < 5) S.day = d.day;
     if (typeof d.prob === "number") S.prob = d.prob; S.show = !!d.show;
     S.note = Math.max(0, Math.floor(+d.note || 0)); S.step = Math.max(0, Math.floor(+d.step || 0));
+    S.slide = Math.max(0, Math.min(60, Math.floor(+d.slide || 0))); S.sstep = Math.max(0, Math.min(30, Math.floor(+d.sstep || 0)));
     { const m = mergeTools(d.tools); Object.keys(S.tools).forEach((k) => delete S.tools[k]); Object.assign(S.tools, m); } // keep the same object: widgets hold a reference to it
     S.speedMode = d.speedMode === "check" ? "check" : "round";
     S.fix = cleanFix(d.fix);
@@ -1368,6 +1452,13 @@ function applyState(d) {
 function isSpeedDay() { const d = D(); return !!d && /speed dating/i.test((d.agendaLine || "") + " " + (d.agenda || []).join(" ")); }
 function flow(n) {
     if (S.screen === "game") { gameFlow(n); return; }
+    if (S.screen === "deck") {   // Next shows the next piece set to appear, then the next slide; past either end, the screen changes
+        const dn = deckNow(); if (!dn) return;
+        const steps = revealSteps(dn.s), at = Math.min(S.sstep, steps);
+        if (n > 0) { if (at < steps) S.sstep = at + 1; else if (dn.i < dn.list.length - 1) { S.slide = dn.i + 1; S.sstep = 0; } else return; }
+        else { if (at > 0) S.sstep = at - 1; else if (dn.i > 0) { S.slide = dn.i - 1; S.sstep = revealSteps(dn.list[dn.i - 1]); } else return; }
+        push(); return;
+    }
     if (S.screen === "steps") {   // Next and Back step through the walkthrough; past either end, the screen changes
         if (stepPlayer && stepFor === S.walk.id) { const j = S.walk.step + n; if (j >= 0 && j < stepPlayer.count) { S.walk.step = j; push(); } }
         return;
@@ -1376,7 +1467,7 @@ function flow(n) {
     const afterBell = () => { if (hasNotes) { S.screen = "notes"; S.note = 0; S.step = 0; S.show = false; } else if (isSpeedDay()) { S.screen = "speed"; S.show = false; } else return false; return true; };
     if (n > 0) {
         if (S.screen === "agenda") S.screen = "today";
-        else if (S.screen === "today") { if (len) { S.screen = "bell"; S.prob = 0; S.show = false; } else if (hasNotes || isSpeedDay()) afterBell(); else return; }
+        else if (S.screen === "today") { if (slHas()) slEnter(1); else if (len) { S.screen = "bell"; S.prob = 0; S.show = false; } else if (hasNotes || isSpeedDay()) afterBell(); else return; }
         else if (S.screen === "bell") { if (!S.show && len) S.show = true; else if (S.prob < len - 1) { S.prob++; S.show = false; } else if (!afterBell()) return; }
         else if (S.screen === "notes" && hasNotes) {
             const f = frames[Math.min(S.note, frames.length - 1)];
@@ -1390,46 +1481,49 @@ function flow(n) {
         else return;
     } else {
         if (S.screen === "today") S.screen = "agenda";
-        else if (S.screen === "bell") { if (S.show) S.show = false; else if (S.prob > 0) { S.prob--; S.show = true; } else S.screen = "today"; }
+        else if (S.screen === "bell") { if (S.show) S.show = false; else if (S.prob > 0) { S.prob--; S.show = true; } else backToToday(); }
         else if (S.screen === "notes" && hasNotes) {
             const f = frames[Math.min(S.note, frames.length - 1)];
             if (S.show) S.show = false;
             else if (!f.open && S.step > 0) S.step--;
             else if (S.note > 0) { S.note--; const g = frames[S.note]; S.step = g.lines.length; S.show = !!g.ans; }
-            else if (len) { S.screen = "bell"; S.prob = len - 1; S.show = true; } else S.screen = "today";
+            else if (len) { S.screen = "bell"; S.prob = len - 1; S.show = true; } else backToToday();
         }
         else if (S.screen === "fix") { const f = fixState(); if (f.list.length && f.cur > 0) { fixGo(f.cur - 1); return; } S.screen = "speed"; }
-        else if (S.screen === "speed") { if (hasNotes) { S.screen = "notes"; S.note = frames.length - 1; S.step = frames[S.note].lines.length; S.show = false; } else if (len) { S.screen = "bell"; S.prob = len - 1; S.show = true; } else S.screen = "today"; }
+        else if (S.screen === "speed") { if (hasNotes) { S.screen = "notes"; S.note = frames.length - 1; S.step = frames[S.note].lines.length; S.show = false; } else if (len) { S.screen = "bell"; S.prob = len - 1; S.show = true; } else backToToday(); }
         else return;
     }
     push();
 }
 /* Next/Back for the clicker, the arrow keys and the board's own arrows. The lesson flow goes first; when it has
    nowhere to go, move to the next (or previous) screen in the Screens list, so the board never needs the side panel. */
-const screenOrder = () => SCREENS.filter((x) => mode !== "sub" || (x[0] !== "game" && x[0] !== "live" && x[0] !== "seats" && x[0] !== "steps")).map((x) => x[0]);
-function nextScreen(n) {   // skips Guided Notes and Speed Dating on days that have none
-    const d = D(), skip = { notes: !notesFrames(d).length, speed: !isSpeedDay() };
+const subHides = (id) => mode === "sub" && (id === "game" || id === "live" || id === "seats" || id === "steps" || (id === "deck" && !studio));
+const screenOrder = () => SCREENS.filter((x) => !subHides(x[0])).map((x) => x[0]);
+function nextScreen(n) {   // skips Slides, Guided Notes and Speed Dating on days that have none
+    const d = D(), skip = { notes: !notesFrames(d).length, speed: !isSpeedDay(), deck: !slHas() };
     const o = screenOrder().filter((id) => id === S.screen || !skip[id]), j = o.indexOf(S.screen) + n;
     return j >= 0 && j < o.length ? o[j] : null;
 }
 const screenName = (id) => (SCREENS.find((x) => x[0] === id) || ["", ""])[1];
-const stateSig = () => JSON.stringify([S.screen, S.prob, S.show, S.note, S.step, S.fix, S.screen === "game" ? gameSig() : "", S.screen === "steps" ? S.walk : ""]);
+const stateSig = () => JSON.stringify([S.screen, S.prob, S.show, S.note, S.step, S.slide, S.sstep, S.fix, S.screen === "game" ? gameSig() : "", S.screen === "steps" ? S.walk : ""]);
 function step(n) {
     const before = stateSig();
     flow(n);
     if (stateSig() !== before) return;
     const t = nextScreen(n); if (!t) return;
-    S.screen = t; S.show = false; push();
+    if (t === "deck") slEnter(n); else { S.screen = t; S.show = false; }
+    push();
 }
 function stepLabel() { const l = flowLabel(); if (l !== "Next") return l; const t = nextScreen(1); return t ? "Next: " + screenName(t) : "Next"; }
-function backLabel() { if (["today", "bell", "notes", "speed", "fix"].includes(S.screen) || (S.screen === "steps" && S.walk.step > 0)) return "Back"; const t = nextScreen(-1); return t ? "Back: " + screenName(t) : "Back"; }
+function backLabel() { if (["today", "bell", "notes", "speed", "fix"].includes(S.screen) || (S.screen === "steps" && S.walk.step > 0) || (S.screen === "deck" && (S.slide > 0 || S.sstep > 0))) return "Back"; const t = nextScreen(-1); return t ? "Back: " + screenName(t) : "Back"; }
 function flowLabel() {
     if (S.screen === "game") return gameFlowLabel();
+    if (S.screen === "deck") { const dn = deckNow(); if (!dn) return "Next"; if (Math.min(S.sstep, revealSteps(dn.s)) < revealSteps(dn.s)) return "Next: Show more"; return dn.i < dn.list.length - 1 ? "Next: Slide " + (dn.i + 2) : "Next"; }
     if (S.screen === "steps") return stepPlayer && stepFor === S.walk.id && S.walk.step < stepPlayer.count - 1 ? "Next: Step " + (S.walk.step + 2) : "Next";
     const d = D(), len = (d && d.problems && d.problems.length) || 0, frames = notesFrames(d), hasNotes = frames.length > 0;
     const after = hasNotes ? "Next: Guided Notes" : (isSpeedDay() ? "Next: Speed Dating" : "Next");
     if (S.screen === "agenda") return "Next: Today";
-    if (S.screen === "today") return len ? "Next: Bellringer" : (hasNotes ? "Next: Guided Notes" : (isSpeedDay() ? "Next: Speed Dating" : "Next"));
+    if (S.screen === "today") return slHas() ? "Next: Slides" : len ? "Next: Bellringer" : (hasNotes ? "Next: Guided Notes" : (isSpeedDay() ? "Next: Speed Dating" : "Next"));
     if (S.screen === "bell") { if (!S.show && len) return "Next: Show answer"; if (S.prob < len - 1) return "Next: Problem " + (S.prob + 2); return after; }
     if (S.screen === "notes" && hasNotes) {
         const f = frames[Math.min(S.note, frames.length - 1)];
@@ -1537,7 +1631,7 @@ export async function startApp(opts) {
     if (!user) { location.replace("login.html"); return; }
     if (!guest && user.uid) { try { localStorage.setItem("anchor:subTeacher", user.uid); } catch (e) { /* storage off: the sub link needs ?t= */ } }   // so the guest sub page on this computer can show this teacher's approved weeks
     if (!guest) import("./callout.js?v=2").then((m) => m.mountCallout({ store, cue: (n) => snd.cue(n) })).catch(() => {});   // "Called on" banner from the phone's Class Tracker
-    signedIn = true; $("who").textContent = guest ? ((opts && opts.who) || "Guest teacher view, no sign-in") : (user.name ? "Signed in as " + user.name : "Signed in");
+    signedIn = true; slStart(); $("who").textContent = guest ? ((opts && opts.who) || "Guest teacher view, no sign-in") : (user.name ? "Signed in as " + user.name : "Signed in");
     if (!guest && "BroadcastChannel" in window) {
         try {
             tabs = new BroadcastChannel("anchorboard-" + user.uid);

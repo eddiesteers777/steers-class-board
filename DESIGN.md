@@ -31,12 +31,28 @@ simpler, one less thing.
 - **Board Builder and stickers (Nov 21).** `studio.html` is the one place to build a board: Look, Panels, Stickers, Lesson.
   It is the Remote with a builder rail, so it edits the live board. Stickers are decoration the teacher chose, like a
   floated panel: they sit over the lesson and under the panels, and only the Board Builder can pick one up. Pictures and
-  symbols come from a fixed list; word stickers are the teacher's own short text. No photos or uploads.
+  symbols come from a fixed list; word stickers are the teacher's own short text. No photos or uploads on stickers
+  (a slide can hold the teacher's own pictures: see Slides).
   Since panels cover stickers on the board, a new sticker goes to an open spot the class can see, and a covered one
   shows faded in the builder. Controls for the picked panel or sticker sit outside the scrolling list, so picking
   something never moves what is under the finger.
   A saved board can be a lesson's own board (week + class + day, `tools.dayb`): the device that moves to that lesson
   (a day or period tap, the morning's fresh start, the bell timeline) switches to it; other screens just follow the state.
+- **Slides (Nov 21).** The Board Builder's Slides side builds a lesson's slides the way Google Slides does: tools across
+  the top, the day's slides down the left, the slide in the middle, notes under it. Nothing is a fixed format: the
+  built-in screens (Today, Agenda, Bellringer, Notes) come in as ordinary pieces to move, restyle or delete, and live
+  fields (`{{agenda}}`, `{{target}}`…) fill in each day's plan, so a teacher designs their own board once.
+  - A lesson's slides (week + class + day) and the every-day slides (at most 6) are the board's **Slides** screen.
+    Every-day slides open every lesson unless that day skips them. Next shows a slide's pieces one at a time, then the
+    next slide; past the last slide it goes on to the next screen, and Back comes the other way.
+  - The editor has its own week, class and day, so building ahead never moves the live board. Only **Show on board**
+    does, and the board follows a lesson change to its slides unless a game, live notes or the seating chart is up.
+  - One drawing (`js/slideView.js`, 1600 × 900 units) for every place a slide shows: editor, thumbnails, Present,
+    board, Remote. Words shrink to fit their box instead of spilling out. Speaker notes show on the Remote and the
+    builder, never on the board.
+  - Pictures are the teacher's own, shrunk on the device (1600 px, under 720 KB) and kept in the teacher's own saved
+    data (`slideimg/<id>`): not in Firebase Storage, which needs a paid plan, and never in the repo. With no wifi a
+    picture still goes on the slide and goes up when the wifi is back.
 - **Never show the wrong thing while loading.** Show the shape of the screen (a skeleton) until
   the real state arrives. No spinners, and never a flash of another day or period.
 - **Never claim what the site cannot know.** No "current period" without bell times. If the
