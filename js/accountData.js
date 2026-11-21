@@ -27,7 +27,15 @@ export const COLLECTIONS = [
     ["work", "Student Work (scanned papers)"],
     ["rosters", "Rosters"],
     ["tally", "Behavior tally"],
-    ["settings", "Settings, bell times and your classes"]
+    ["settings", "Settings, bell times and your classes"],
+    // Added 2026-11-21: these folders were missing, so "Delete all my data" left them behind.
+    ["asg", "Assignments"],
+    ["gb", "Gradebook"],
+    ["progress", "Student Progress"],
+    ["seats", "Seating charts"],
+    ["walk", "Walkthrough edits"],
+    ["screens", "Live status of your screens"],
+    ["clock", "Clock checks (timers)"]
 ];
 
 async function deleteAll(paths, onStep) {

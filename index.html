@@ -110,7 +110,7 @@
           </div>
           <h3 class="bellh">Your classes and your data</h3>
           <p class="sub">Change your classes and periods, see everything your account has saved, or delete it all.</p>
-          <div class="rowx"><a class="btn ghost" href="setup.html" id="setupLink" style="text-decoration:none">Your classes</a><a class="btn ghost" href="account.html" style="text-decoration:none">Your data</a></div>
+          <div class="rowx"><a class="btn ghost" href="setup.html" id="setupLink" style="text-decoration:none">Your classes</a><a class="btn ghost" href="account.html" style="text-decoration:none">Your data and backup</a></div>
         </dialog>
     </main>
     <footer class="pub-footer">
@@ -354,13 +354,14 @@
             if (bellsLoaded && !Object.keys(doc.periods || {}).length) needs.push(["Bell times are not set, so the Today panel cannot follow the clock.", "Set bell times", openSettings]);
             if (PACK === "calera" && nm && !have) needs.push(["Next week (" + short(nm, { month: "short", day: "numeric" }) + ") is not built yet.", "Plan the Week", "plan.html"]);
             coNeeds.forEach((n) => needs.push(n));
+            if (driveDue) needs.push(["Your weekly Google Drive backup is due.", "Back up now", "account.html?backup=go#backup"]);
             const N = $("needs"); N.textContent = ""; N.hidden = !needs.length;
             if (needs.length) {
                 N.appendChild(el("h2", null, "Needs you"));
                 needs.forEach(([txt, btn, go]) => { const r = el("div", "hm-need"); r.appendChild(el("p", null, txt)); const a = el(typeof go === "string" ? "a" : "button", "btn ghost", btn); if (typeof go === "string") a.href = go; else { a.type = "button"; a.onclick = go; } r.appendChild(a); N.appendChild(r); });
             }
         }
-        let bellsLoaded = false;
+        let bellsLoaded = false; let driveDue = false;
         /* Close out the week: last week's and (from Thursday) this week's open items, from js/closeout.js. */
         let coNeeds = [], coIndex = { weeks: [] }, coSet = {}; const coData = {}, coWatched = new Set();
         function coWeeks() {
@@ -390,6 +391,8 @@
             watchPrivateWeeks(store, PUBLISHED, (list) => { WEEKS = list; week = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= todayIso) week = w; coRefresh(); statuses(todayIso); render(); });
             store.watch("weekfiles/index", (s) => { if (s.pending) return; coIndex = (s.exists && s.data) || { weeks: [] }; coRefresh(); statuses(todayIso); }, () => {});
             store.watch("settings/closeout", (s) => { if (s.pending) return; coSet = (s.exists && s.data) || {}; coRefresh(); statuses(todayIso); }, () => {});
+            // Weekly Google Drive backup (account.html, js/backup.js): a reminder once the last one is a week old.
+            store.watch("settings/drive", (s) => { if (s.pending) return; const d = (s.exists && s.data) || {}; driveDue = !!d.root && Date.now() - (+d.last || 0) > 7 * 86400000; statuses(todayIso); }, () => {});
             let loaded = false;
             store.watch("settings/bells", (snap) => { if (snap.pending) return; doc = cleanDoc(snap.exists && snap.data); useToday(); bellsLoaded = true; statuses(todayIso); if (!loaded) { loaded = true; fillBells(); } else pickers(); render(); }, () => {});
             store.watch("planner/plans", (snap) => { if (snap.pending) return; plans = (snap.exists && snap.data) || {}; glance(); }, () => {});
