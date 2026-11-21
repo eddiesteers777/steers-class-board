@@ -42,6 +42,7 @@ export const COLLECTIONS = {
     games: "Vault Raid sets and results (games/index, games/results, games/s_<id>)",
     seats: "seating charts",
     tally: "behavior tallies",
+    track: "Class Tracker days (positives, needs work, restroom, notes)",
     settings: "site settings",
     closeout: "week closeout checklists",
     board: "board/state: what the classroom board is showing",

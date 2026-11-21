@@ -45,6 +45,7 @@
             <details class="menu fold" id="toolsMenu" open><summary>Panels <span class="count" id="toolCount"></span></summary><div class="toolchips" id="dock" role="group" aria-label="Tools"></div></details>
             <details class="menu fold" id="filesMenu"><summary>Files</summary><div class="files" id="files"></div></details>
             <button class="btn tallyopen" id="tallyOpen" type="button" aria-expanded="false" aria-controls="tally">Class tally (private)</button>
+            <a class="btn ghost tallyopen tallyfull" href="tracker.html" style="text-decoration:none;display:flex;align-items:center;justify-content:center">Class Tracker</a>
             <details class="menu fold" id="recMenu"><summary>Record a lesson</summary>
                 <div class="recbox">
                     <label class="reccheck"><input type="checkbox" id="recMic"> Microphone on</label>
@@ -64,7 +65,7 @@
     </div>
     <aside class="tally" id="tally" hidden aria-label="Class tally, private to this Remote">
         <div class="thead"><div><b>Class tally</b><span id="tallyHead"></span></div><button class="btn ghost" id="tallyClose" type="button">Close</button></div>
-        <p class="tnote">Only you see this. It never shows on the board. Tap a mark to add one; − takes one back.</p>
+        <p class="tnote">Only you see this. It never shows on the board. Tap a mark to add one; − takes one back. <a id="tallyFull" href="tracker.html">Open the full Class Tracker</a> for every tag, restroom, notes and the picker.</p>
         <div id="tallyList"></div>
         <p class="ttot" id="tallyTot"></p>
         <p class="tnote" id="tallyNote" role="status"></p>
@@ -73,7 +74,7 @@
     <script type="module">
         import { startApp } from "./js/boardApp.js?v=121";
         startApp({ mode: "remote" });
-        import("./js/boardStore.js?v=58").then(async (store) => { if (await store.ready()) (await import("./js/tally.js?v=57")).mount({ store, period: () => document.getElementById("periodSel").value || "1st" }); }).catch(() => {});
+        import("./js/boardStore.js?v=58").then(async (store) => { if (await store.ready()) (await import("./js/tally.js?v=58")).mount({ store, period: () => document.getElementById("periodSel").value || "1st" }); }).catch(() => {});
         import("./js/recorder.js?v=57").then((m) => m.mount());
     </script>
     <script src="js/offline.js?v=1" defer></script>
