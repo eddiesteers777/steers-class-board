@@ -13,6 +13,8 @@ on:
     paths:
       - "connector/**"
       - "js/workCore.js"
+      - "js/gradeCore.js"
+      - "js/progress.js"
       - "data/calendar.js"
       - ".github/workflows/deploy-connector.yml"
   workflow_dispatch:

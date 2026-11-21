@@ -4,7 +4,13 @@ A remote MCP server so Claude can sort scanned Student Work for the teacher. It 
 Workers (free plan) and reads and writes only the signed-in teacher's own Firestore data, through
 the same security rules as the website. No service account key, no paid Firebase plan, no API key.
 
-Tools: `list_stacks`, `get_roster`, `look_at_pages`, `assign_names`. Nothing can be deleted.
+Tools:
+- Student Work: `list_stacks`, `get_roster`, `look_at_pages`, `assign_names`
+- Weeks: `read_week_plan` (the Plan a Week plan and its brief), `save_week_file` (a draft for Week Review; never on the board until approved, an approved week is not replaced unless asked, and the file it replaces is kept in `prev`)
+- Grades and data: `get_grades` (the Gradebook's own math, from js/gradeCore.js), `list_class_data`, `get_class_data`
+- Anything else, read only: `list_site_data`, `read_site_data` (pictures left out)
+
+This replaces the old "Focal Firestore" connector, which used a service account key that skipped the database rules. Nothing here can be deleted.
 
 ## How sign-in works
 Claude registers itself, the teacher approves on `/authorize`, signs in with Google (only
