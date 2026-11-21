@@ -162,7 +162,7 @@ function drawClass() {
         else {
             if (r.good) row.appendChild(el("span", "tk-g", "+" + r.good));
             if (r.work) row.appendChild(el("span", "tk-w", "−" + r.work));
-            if (r.rr.out) row.appendChild(el("span", "tk-rr", "Out"));
+            if (r.rr.out && T.placeOf(r.rr.out) !== "Restroom") row.appendChild(el("span", "tk-rr", T.placeOf(r.rr.out)));
             if (r.notes.length) row.appendChild(el("span", "tk-n", "Note"));
             if (!r.good && !r.work && !r.rr.out && !r.notes.length) row.appendChild(el("span", "tk-none", " "));
         }
@@ -173,7 +173,22 @@ function drawClass() {
             if (S.sel) { if (S.sel.has(n)) S.sel.delete(n); else S.sel.add(n); draw(); return; }
             openSheet([n]);
         };
-        grid.appendChild(c);
+        // one tap: Restroom starts a timer; tap again when they are back (no typing; edit later in the profile)
+        const w = el("div", "tk-kidw"); w.appendChild(c);
+        if (!r.abs && !S.sel) {
+            const out = r.rr.out, rb = el("button", "tk-rrb" + (out ? " live" : "")); rb.type = "button";
+            rb.dataset.at = out ? out.at : "";
+            rb.appendChild(el("span", "tk-rri", out ? "Back" : "Restroom"));
+            if (out) rb.appendChild(el("span", "tk-outclock", T.clock(Date.now() - out.at)));
+            rb.setAttribute("aria-label", out ? n + " is out. Tap when back." : "Restroom pass for " + n + ". Starts a timer.");
+            rb.onclick = (ev) => {
+                ev.stopPropagation();
+                if (out) { write(out.id, { b: Date.now() }); toast(n + " is back (" + T.clock(Date.now() - out.at) + ").", () => write(out.id, { b: null })); }
+                else { const id = add(n, "rr"); toast(n + " is out (" + T.placeOf({}) + ").", () => removeEv(id)); }
+            };
+            w.appendChild(rb);
+        }
+        grid.appendChild(w);
     });
     host.appendChild(grid);
     // the bar for several students
@@ -574,7 +589,7 @@ async function start() {
     // a new day (the page left open overnight), and the live restroom clocks
     setInterval(() => {
         if (T.localIso() !== S.day) { S.day = T.localIso(); DOC = null; S.pickName = ""; watchDay(); }
-        document.querySelectorAll(".tk-out").forEach((b) => { const c = b.querySelector(".tk-outclock"); if (c) c.textContent = T.clock(Date.now() - +b.dataset.at); });
+        document.querySelectorAll(".tk-out, .tk-rrb.live").forEach((b) => { const c = b.querySelector(".tk-outclock"); if (c) c.textContent = T.clock(Date.now() - +b.dataset.at); });
     }, 1000);
     draw();
     // a link from a student's profile opens that student
