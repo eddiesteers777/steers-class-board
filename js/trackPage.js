@@ -203,6 +203,9 @@ function drawPick() {
     stage.appendChild(nm);
     stage.appendChild(el("p", "tk-stages", round.of ? round.called + " of " + round.of + " called on this round. No repeats until everyone here has had a turn." : "Everyone is marked absent or out."));
     host.appendChild(stage);
+    const sw = el("label", "tk-switch"); const cb = el("input"); cb.type = "checkbox"; cb.checked = onBoard(); cb.onchange = () => { remember("onboard", cb.checked ? "1" : "0"); };
+    sw.append(cb, el("span", "tk-swk"), el("span", null, "Show the pick on the board"));
+    host.appendChild(sw);
     const go = el("button", "tk-primary big", S.pickName ? "Pick again" : "Pick at random"); go.type = "button";
     go.onclick = () => roll();
     host.appendChild(go);
@@ -229,10 +232,17 @@ function drawPick() {
         b.appendChild(el("span", null, n));
         if (r && r.picks) b.appendChild(el("small", null, r.picks === 1 ? "1 turn" : r.picks + " turns"));
         else if (away) b.appendChild(el("small", null, r.abs ? "absent" : "out"));
-        b.onclick = () => { S.pickName = n; add(n, "pick"); draw(); };
+        b.onclick = () => { S.pickName = n; add(n, "pick"); toBoard(n, [n]); draw(); };
         hand.appendChild(b);
     });
     host.appendChild(hand);
+}
+/* The board's "Called on" banner (js/callout.js). On by default; DEMO never writes. */
+const onBoard = () => remember("onboard") !== "0";
+function toBoard(name, pool) {
+    if (DEMO || !onBoard()) return;
+    const shuffled = pool.slice().sort(() => Math.random() - 0.5).slice(0, 30);
+    store.set("board/callout", { id: T.newId(), n: name, pool: shuffled, at: Date.now() }).catch(() => toast("The board did not get the pick. Check the connection."));
 }
 function undoLastPick(n) {
     const last = evs().filter((e) => e.k === "pick" && e.n === n).pop();
@@ -242,6 +252,8 @@ function roll(skipSame) {
     if (rolling) return;
     const list = names(), r = T.pickNext(list, evs(), Math.random, skipSame ? "" : S.pickName);
     if (!r) { toast("Nobody to pick: everyone is absent or out."); return; }
+    const here = list.filter((n) => { const k = T.dayByKid(evs(), TAGS)[n]; return !(k && (k.abs || k.rr.out)); });
+    toBoard(r.name, here);   // the board flips through names while this phone does
     const finish = () => { rolling = false; S.pickName = r.name; add(r.name, "pick"); draw(); };
     if (reduced()) return finish();
     rolling = true; const nm = $("pickName"), pool = list.slice(); let i = 0;

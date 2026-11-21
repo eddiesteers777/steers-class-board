@@ -1488,6 +1488,7 @@ export async function startApp(opts) {
     mark("board-auth", ms());
     if (!user) { location.replace("login.html"); return; }
     if (!guest && user.uid) { try { localStorage.setItem("anchor:subTeacher", user.uid); } catch (e) { /* storage off: the sub link needs ?t= */ } }   // so the guest sub page on this computer can show this teacher's approved weeks
+    if (!guest) import("./callout.js?v=1").then((m) => m.mountCallout({ store, cue: (n) => snd.cue(n) })).catch(() => {});   // "Called on" banner from the phone's Class Tracker
     signedIn = true; $("who").textContent = guest ? ((opts && opts.who) || "Guest teacher view, no sign-in") : (user.name ? "Signed in as " + user.name : "Signed in");
     if (!guest && "BroadcastChannel" in window) {
         try {
