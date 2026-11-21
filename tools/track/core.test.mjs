@@ -51,3 +51,26 @@ assert.deepEqual(T.toTally(doc, tags).periods["1st"]["Ava R."], { p: 1, t: 0, r:
 assert.deepEqual(T.toTally(doc, tags).periods["1st"]["Ben T."], { p: 0, t: 1, r: 0 });
 assert.equal(T.clock(185000), "3:05");
 console.log("class tracker core: all checks passed");
+
+// Passes out of class: places, trips, totals by week / month / nine weeks / year.
+assert.equal(T.placeOf({ k: "rr" }), "Restroom"); assert.equal(T.placeOf({ k: "rr", w: "Nurse" }), "Nurse");
+const M = 60000, at = (day, h, m) => new Date(day + "T" + ("0" + h).slice(-2) + ":" + ("0" + m).slice(-2)).getTime();
+const tdocs = [
+    { day: "2026-11-20", ev: { a: { p: "1st", n: "Ava R.", k: "rr", at: at("2026-11-20", 9, 0), b: at("2026-11-20", 9, 6) }, b: { p: "1st", n: "Ava R.", k: "rr", w: "Nurse", at: at("2026-11-20", 9, 30), b: at("2026-11-20", 9, 50) } } },
+    { day: "2026-11-16", ev: { c: { p: "1st", n: "Ava R.", k: "rr", at: at("2026-11-16", 9, 0), b: at("2026-11-16", 9, 4) } } },
+    { day: "2026-11-02", ev: { d: { p: "1st", n: "Ava R.", k: "rr", w: "Office", at: at("2026-11-02", 9, 0) } } },              // no back time
+    { day: "2026-10-01", ev: { e: { p: "1st", n: "Ava R.", k: "rr", at: at("2026-10-01", 9, 0), b: at("2026-10-01", 9, 10) } } },
+    { day: "2026-10-01", ev: { f: { p: "2nd", n: "Ava R.", k: "rr", at: 1, b: 2 } } },                                           // other period
+];
+const trips = T.tripsOf(tdocs, "1st", "Ava R.");
+assert.equal(trips.length, 5); assert.equal(trips[0].w, "Nurse"); assert.equal(trips[0].mins, 20);
+const NWK = [{ n: 1, start: "2026-08-13", end: "2026-10-09" }, { n: 2, start: "2026-10-14", end: "2026-12-18" }];
+const tot = T.outTotals(trips, "2026-11-20", NWK, "2026-08-13");
+assert.deepEqual(tot.week, { mins: 30, n: 3 });     // Mon Nov 16 to Fri Nov 20
+assert.deepEqual(tot.month, { mins: 30, n: 4 });    // November (one with no back time)
+assert.deepEqual(tot.nine, { mins: 30, n: 4 }); assert.equal(tot.nineN, 2);
+assert.deepEqual(tot.year, { mins: 40, n: 5 });
+assert.equal(tot.noBack, 1);
+assert.deepEqual(tot.places[0], { w: "Restroom", mins: 20, n: 3 });
+assert.equal(T.hm(65), "1 h 05 min"); assert.equal(T.hm(7), "7 min");
+console.log("passes and totals: all checks passed");

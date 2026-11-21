@@ -6,7 +6,7 @@
    The full tracker (all tags, restroom, notes, picker, history) opens from the panel.
    Older days saved at teacher/{uid}/tally/{day} stay where they are; Student Progress still reads them.
 ========================================== */
-import * as T from "./trackCore.js?v=1";
+import * as T from "./trackCore.js?v=2";
 
 export const MARKS = [["part", "Participation", 1], ["ontask", "On task", 1], ["redirect", "Redirect", -1]];
 const $ = (id) => document.getElementById(id);

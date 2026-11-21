@@ -6,7 +6,7 @@
    lock teacher/{uid}/** to the teacher). Nothing here reaches the board or any student screen.
    ?demo: made-up names, a this-tab store, nothing is saved.
 ========================================== */
-import * as T from "./trackCore.js?v=1";
+import * as T from "./trackCore.js?v=2";
 import { perKey, kidKey, summary as profileSummary } from "./profileCore.js?v=2";
 
 const Q = new URLSearchParams(location.search), DEMO = Q.has("demo");
@@ -117,7 +117,7 @@ function drawSummary() {
     const out = T.outNow(e), outBox = $("outNow"); outBox.textContent = "";
     out.forEach((o) => {
         const b = el("button", "tk-out"); b.type = "button"; b.dataset.at = o.at;
-        b.appendChild(el("span", "tk-outdot")); b.appendChild(el("b", null, o.n)); b.appendChild(el("span", "tk-outclock", T.clock(Date.now() - o.at)));
+        b.appendChild(el("span", "tk-outdot")); b.appendChild(el("b", null, o.n + (T.placeOf(o) !== "Restroom" ? " · " + T.placeOf(o) : ""))); b.appendChild(el("span", "tk-outclock", T.clock(Date.now() - o.at)));
         b.appendChild(el("em", null, "Back"));
         b.setAttribute("aria-label", o.n + " is out of the room. Tap when back.");
         b.onclick = () => { write(o.id, { b: Date.now() }); toast(o.n + " is back (" + T.clock(Date.now() - o.at) + ").", () => write(o.id, { b: null })); buzz(); };
@@ -162,7 +162,7 @@ function drawClass() {
         else {
             if (r.good) row.appendChild(el("span", "tk-g", "+" + r.good));
             if (r.work) row.appendChild(el("span", "tk-w", "−" + r.work));
-            if (r.rr.out) row.appendChild(el("span", "tk-rr", "Out"));
+            if (r.rr.out && T.placeOf(r.rr.out) !== "Restroom") row.appendChild(el("span", "tk-rr", T.placeOf(r.rr.out)));
             if (r.notes.length) row.appendChild(el("span", "tk-n", "Note"));
             if (!r.good && !r.work && !r.rr.out && !r.notes.length) row.appendChild(el("span", "tk-none", " "));
         }
@@ -173,7 +173,22 @@ function drawClass() {
             if (S.sel) { if (S.sel.has(n)) S.sel.delete(n); else S.sel.add(n); draw(); return; }
             openSheet([n]);
         };
-        grid.appendChild(c);
+        // one tap: Restroom starts a timer; tap again when they are back (no typing; edit later in the profile)
+        const w = el("div", "tk-kidw"); w.appendChild(c);
+        if (!r.abs && !S.sel) {
+            const out = r.rr.out, rb = el("button", "tk-rrb" + (out ? " live" : "")); rb.type = "button";
+            rb.dataset.at = out ? out.at : "";
+            rb.appendChild(el("span", "tk-rri", out ? "Back" : "Restroom"));
+            if (out) rb.appendChild(el("span", "tk-outclock", T.clock(Date.now() - out.at)));
+            rb.setAttribute("aria-label", out ? n + " is out. Tap when back." : "Restroom pass for " + n + ". Starts a timer.");
+            rb.onclick = (ev) => {
+                ev.stopPropagation();
+                if (out) { write(out.id, { b: Date.now() }); toast(n + " is back (" + T.clock(Date.now() - out.at) + ").", () => write(out.id, { b: null })); }
+                else { const id = add(n, "rr"); toast(n + " is out (" + T.placeOf({}) + ").", () => removeEv(id)); }
+            };
+            w.appendChild(rb);
+        }
+        grid.appendChild(w);
     });
     host.appendChild(grid);
     // the bar for several students
@@ -210,6 +225,10 @@ function drawPick() {
     go.onclick = () => roll();
     host.appendChild(go);
     if (S.pickName) {
+        // Right answer: a celebration on the board. A wrong answer shows nothing (no button for it on purpose).
+        const yes = el("button", "tk-right", "Got it right!"); yes.type = "button";
+        yes.onclick = () => { const n = S.pickName, id = add(n, "part"); cheer(n); toast("+ Participation · " + n + (onBoard() && !DEMO ? ". Celebrating on the board." : "."), () => removeEv(id)); };
+        host.appendChild(yes);
         const q = el("div", "tk-quick");
         const good = TAGS.filter((t) => t.s > 0 && !t.off).slice(0, 3), work = TAGS.filter((t) => t.s < 0 && !t.off).slice(0, 2);
         good.concat(work).forEach((t) => {
@@ -244,6 +263,10 @@ function toBoard(name, pool) {
     const shuffled = pool.slice().sort(() => Math.random() - 0.5).slice(0, 30);
     store.set("board/callout", { id: T.newId(), n: name, pool: shuffled, at: Date.now() }).catch(() => toast("The board did not get the pick. Check the connection."));
 }
+function cheer(name) {
+    if (DEMO || !onBoard()) return;
+    store.set("board/callout", { id: T.newId(), n: name, cheer: 1, at: Date.now() }).catch(() => toast("The board did not get it. Check the connection."));
+}
 function undoLastPick(n) {
     const last = evs().filter((e) => e.k === "pick" && e.n === n).pop();
     if (last) removeEv(last.id);
@@ -272,12 +295,12 @@ function drawToday() {
         const d = el("div", "tk-ts " + (t.s > 0 ? "pos" : "neg")); d.appendChild(el("b", null, String(counts[t.k]))); d.appendChild(el("span", null, t.l)); tagBox.appendChild(d);
     });
     if (tagBox.childNodes.length) { host.appendChild(el("h2", "tk-h", "This period")); host.appendChild(tagBox); }
-    // restroom log
+    // passes out of class
     const rr = e.filter((x) => x.k === "rr");
     if (rr.length) {
-        host.appendChild(el("h2", "tk-h", "Restroom today"));
+        host.appendChild(el("h2", "tk-h", "Out of class today"));
         const box = el("div", "tk-list");
-        rr.forEach((x) => { const row = el("div", "tk-li"); row.appendChild(el("b", null, x.n)); row.appendChild(el("span", null, time(x.at) + (x.b ? " to " + time(x.b) + " · " + Math.max(1, Math.round((x.b - x.at) / 60000)) + " min" : " · out now"))); box.appendChild(row); });
+        rr.forEach((x) => { const row = el("div", "tk-li"); row.appendChild(el("b", null, x.n + " · " + T.placeOf(x))); row.appendChild(el("span", null, time(x.at) + (x.b ? " to " + time(x.b) + " · " + Math.max(1, Math.round((x.b - x.at) / 60000)) + " min" : " · out now"))); box.appendChild(row); });
         host.appendChild(box);
     }
     // nobody positive yet
@@ -298,7 +321,7 @@ function feed(list, withName) {
         const left = el("div", "tk-lil");
         left.appendChild(el("span", "tk-pip " + (s > 0 ? "pos" : s < 0 ? "neg" : "plain")));
         const txt = el("div");
-        txt.appendChild(el("b", null, (withName ? x.n + " · " : "") + (x.k === "note" ? "Note" : T.labelOf(TAGS, x.k)) + (x.k === "rr" && x.b ? " (" + Math.max(1, Math.round((x.b - x.at) / 60000)) + " min)" : x.k === "rr" ? " (out now)" : "")));
+        txt.appendChild(el("b", null, (withName ? x.n + " · " : "") + (x.k === "note" ? "Note" : T.labelOf(TAGS, x.k, x)) + (x.k === "rr" && x.b ? " (" + Math.max(1, Math.round((x.b - x.at) / 60000)) + " min)" : x.k === "rr" ? " (out now)" : "")));
         if (x.t) txt.appendChild(el("p", "tk-note", x.t));
         left.appendChild(txt);
         row.appendChild(left);
@@ -360,15 +383,23 @@ function drawSheet() {
 
     if (!many) {
         const row = el("div", "tk-acts");
+        const goOut = (w) => { const others = T.outNow(evs()); const id = add(n, "rr", w && w !== "Restroom" ? { w } : null); toast(n + " is out (" + (w || "Restroom") + ")" + (others.length ? ". " + others.map((o) => o.n).join(", ") + (others.length === 1 ? " is" : " are") + " out too." : "."), () => removeEv(id)); closeSheet(); draw(); };
         const rr = el("button", "tk-act" + (r.rr.out ? " live" : "")); rr.type = "button";
-        rr.appendChild(el("b", null, r.rr.out ? "Back from restroom" : "Restroom"));
-        rr.appendChild(el("small", null, r.rr.out ? "Out " + T.clock(Date.now() - r.rr.out.at) : (r.rr.n ? r.rr.n + (r.rr.n === 1 ? " trip" : " trips") + " today" : "Starts a timer")));
+        rr.appendChild(el("b", null, r.rr.out ? "Back in class" : "Restroom"));
+        rr.appendChild(el("small", null, r.rr.out ? T.placeOf(r.rr.out) + " · out " + T.clock(Date.now() - r.rr.out.at) : (r.rr.n ? r.rr.n + (r.rr.n === 1 ? " pass" : " passes") + " today" : "Tap when they leave")));
         rr.onclick = () => {
-            if (r.rr.out) { const o = r.rr.out; write(o.id, { b: Date.now() }); toast(n + " is back (" + T.clock(Date.now() - o.at) + ").", () => write(o.id, { b: null })); }
-            else { const others = T.outNow(evs()); const id = add(n, "rr"); toast(n + " is out" + (others.length ? ". " + others.map((o) => o.n).join(", ") + (others.length === 1 ? " is" : " are") + " out too." : "."), () => removeEv(id)); }
-            closeSheet(); draw();
+            if (r.rr.out) { const o = r.rr.out; write(o.id, { b: Date.now() }); toast(n + " is back (" + T.clock(Date.now() - o.at) + ").", () => write(o.id, { b: null })); closeSheet(); draw(); }
+            else goOut("Restroom");
         };
         row.appendChild(rr);
+        if (!r.rr.out) {
+            const other = el("button", "tk-act"); other.type = "button";
+            other.appendChild(el("b", null, "Other pass")); other.appendChild(el("small", null, "Nurse, office, water\u2026"));
+            other.onclick = () => { places.hidden = !places.hidden; };
+            row.appendChild(other);
+        }
+        const places = el("div", "tk-places"); places.hidden = true;
+        T.PLACES.filter((w) => w !== "Restroom").forEach((w) => { const b = el("button", "tk-chip", w); b.type = "button"; b.onclick = () => goOut(w); places.appendChild(b); });
         const ab = el("button", "tk-act" + (r.abs ? " on" : "")); ab.type = "button";
         ab.appendChild(el("b", null, r.abs ? "Here after all" : "Absent")); ab.appendChild(el("small", null, r.abs ? "Takes off the absent mark" : "Skipped by the picker"));
         ab.onclick = () => {
@@ -377,7 +408,7 @@ function drawSheet() {
             closeSheet(); draw();
         };
         row.appendChild(ab);
-        box.appendChild(row);
+        box.appendChild(row); box.appendChild(places);
     }
 
     tagGrid(1, "Positive");
@@ -422,9 +453,9 @@ async function drawHistory(box, n) {
     if (!h.days.length) { box.appendChild(empty("Nothing saved yet for " + n + ".", "Taps and notes from the last six weeks show here.", null)); return; }
     const stats = el("div", "tk-hstats");
     const st = (v, l, c) => { const d = el("div", "tk-stat " + c); d.appendChild(el("b", null, String(v))); d.appendChild(el("small", null, l)); stats.appendChild(d); };
-    st(h.good, "positive", "pos"); st(h.work, "needs work", "neg"); st(h.rr, h.rr === 1 ? "restroom trip" : "restroom trips", "plain"); st(h.absent, "absent", "plain");
+    st(h.good, "positive", "pos"); st(h.work, "needs work", "neg"); st(h.rr, h.rr === 1 ? "pass out" : "passes out", "plain"); st(h.absent, "absent", "plain");
     box.appendChild(stats);
-    box.appendChild(el("p", "tk-hint", "Last six weeks in " + S.period + " period" + (h.rr ? ". Restroom: " + h.rrMins + " min in all, about " + Math.round(h.rrMins / h.rr) + " min a trip." : ".")));
+    box.appendChild(el("p", "tk-hint", "Last six weeks in " + S.period + " period" + (h.rr ? ". Out of class: " + T.hm(h.rrMins) + " in all, about " + Math.round(h.rrMins / h.rr) + " min a pass. Totals by week, month, nine weeks and year are on their Full profile." : ".")));
     // day bars: positive up, needs work down
     const days = h.days.slice(0, 15).reverse(), max = Math.max(1, ...days.map((d) => Math.max(d.good, d.work)));
     const chart = el("div", "tk-chart"); chart.setAttribute("role", "img");
@@ -456,7 +487,7 @@ async function drawHistory(box, n) {
     }
     const copy = el("button", "tk-chip", "Copy a summary"); copy.type = "button";
     copy.onclick = () => {
-        const lines = [n + " · " + S.period + " period · last six weeks", h.good + " positive, " + h.work + " needs work, " + h.rr + " restroom trips, " + h.absent + " absent"]
+        const lines = [n + " · " + S.period + " period · last six weeks", h.good + " positive, " + h.work + " needs work, " + h.rr + " passes out of class (" + T.hm(h.rrMins) + "), " + h.absent + " absent"]
             .concat(tagRows.map((t) => t.l + ": " + h.tags[t.k])).concat(h.notes.map((x) => dayLabel(x.day) + ": " + x.t));
         navigator.clipboard.writeText(lines.join("\n")).then(() => toast("Summary copied. Paste it into an email or a parent note."), () => toast("Could not copy on this device."));
     };
@@ -558,7 +589,7 @@ async function start() {
     // a new day (the page left open overnight), and the live restroom clocks
     setInterval(() => {
         if (T.localIso() !== S.day) { S.day = T.localIso(); DOC = null; S.pickName = ""; watchDay(); }
-        document.querySelectorAll(".tk-out").forEach((b) => { const c = b.querySelector(".tk-outclock"); if (c) c.textContent = T.clock(Date.now() - +b.dataset.at); });
+        document.querySelectorAll(".tk-out, .tk-rrb.live").forEach((b) => { const c = b.querySelector(".tk-outclock"); if (c) c.textContent = T.clock(Date.now() - +b.dataset.at); });
     }, 1000);
     draw();
     // a link from a student's profile opens that student

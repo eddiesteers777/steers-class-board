@@ -60,7 +60,7 @@ export async function mountProgress() {
     // The class tally for the last 45 days (one document per day).
     for (let i = 0; i < 45; i++) { const d = new Date(); d.setDate(d.getDate() - i); const k = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); once("tally/" + k, (t) => { if (t && t.periods) { D.tally.set(k, t); soon(); } }); }
     // The Class Tracker (Nov 21) keeps the same behaviour line, one document per day at track/{day}.
-    import("./trackCore.js?v=1").then((TC) => once("settings/track", (st) => { const tags = TC.cleanTags(st); for (let i = 0; i < 45; i++) { const d = new Date(); d.setDate(d.getDate() - i); const k = TC.localIso(d); once("track/" + k, (t) => { if (t && t.ev) { D.tally.set("t:" + k, TC.toTally(Object.assign({ day: k }, t), tags)); soon(); } }); } })).catch(() => {});
+    import("./trackCore.js?v=2").then((TC) => once("settings/track", (st) => { const tags = TC.cleanTags(st); for (let i = 0; i < 45; i++) { const d = new Date(); d.setDate(d.getDate() - i); const k = TC.localIso(d); once("track/" + k, (t) => { if (t && t.ev) { D.tally.set("t:" + k, TC.toTally(Object.assign({ day: k }, t), tags)); soon(); } }); } })).catch(() => {});
 
     // ---------- the model for the period on screen ----------
     function model() {

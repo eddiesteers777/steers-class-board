@@ -7,7 +7,8 @@
 import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=3";
 import { shortNames } from "./vaultCore.js?v=75";
 import * as PC from "./profileCore.js?v=2";
-import * as TC from "./trackCore.js?v=1";
+import * as TC from "./trackCore.js?v=2";
+import { SCHOOL_YEAR, SCHOOL_DAYS } from "./schoolCal.js?v=58";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -99,7 +100,7 @@ export async function mountProfiles() {
             const t = el("div"); t.append(el("h2", null, nm), el("p", null, "No games saved to this profile yet.")); head.append(t);
             const x = el("button", "btn ghost", "Close"); x.type = "button"; x.onclick = () => d.close(); head.append(x); d.append(head);
             d.querySelector("h2").id = "kidName";
-            d.append(inClass(nm), classWork(nm));
+            d.append(inClass(nm), outOfClass(nm), classWork(nm));
             d.showModal(); return;
         }
         const s = PC.summary(kid);
@@ -118,7 +119,7 @@ export async function mountProfiles() {
             tb.append(tr);
         });
         const wrap = el("div", "pfTableWrap"); wrap.append(tb); d.append(el("h3", "pfSec", "Games"), wrap);
-        d.append(inClass(nm), classWork(nm));
+        d.append(inClass(nm), outOfClass(nm), classWork(nm));
         d.showModal();
     }
     // Every document read once (the page only reads).
@@ -136,7 +137,7 @@ export async function mountProfiles() {
             sec.textContent = ""; sec.append(el("h3", "pfSec", "In class (Class Tracker)"));
             if (!h.days.length) sec.append(el("p", "pfLine", "Nothing from the Class Tracker in the last six weeks."));
             else {
-                sec.append(el("p", "pfLine", h.good + " positive · " + h.work + " needs work · " + h.rr + (h.rr === 1 ? " restroom trip" : " restroom trips") + (h.rr ? " (" + h.rrMins + " min)" : "") + " · " + h.absent + " absent · " + h.picks + " times called on"));
+                sec.append(el("p", "pfLine", h.good + " positive · " + h.work + " needs work · " + h.rr + (h.rr === 1 ? " pass out" : " passes out") + (h.rr ? " (" + TC.hm(h.rrMins) + ")" : "") + " · " + h.absent + " absent · " + h.picks + " times called on"));
                 const tags = TAGS.filter((t) => h.tags[t.k]).sort((a, b) => b.s - a.s || h.tags[b.k] - h.tags[a.k]);
                 if (tags.length) { const row = el("div", "pfTagRow"); tags.forEach((t) => row.append(el("span", "pfTag " + (t.s > 0 ? "pos" : "neg"), t.l + " \u00d7" + h.tags[t.k]))); sec.append(row); }
                 h.notes.slice(0, 6).forEach((x) => sec.append(el("p", "pfNote", fmtDay(x.day) + ": " + x.t)));
@@ -145,6 +146,88 @@ export async function mountProfiles() {
             sec.append(el("p", "pfLine small", "Behaviour notes are yours only. They never change a level, XP or score, and students never see them."));
             const a = el("a", "btn ghost", "Open in Class Tracker"); a.href = "tracker.html?per=" + encodeURIComponent(S.period) + "&kid=" + encodeURIComponent(nm) + (demo ? "&demo" : ""); sec.append(a);
         })();
+        return sec;
+    }
+    /** Time out of class: every pass this school year, added up by week, month, nine weeks and year, and editable. */
+    async function loadYear() {
+        const today = TC.localIso(), want = SCHOOL_DAYS.filter((d) => d >= SCHOOL_YEAR.first && d <= today);
+        if (!want.includes(today)) want.push(today);
+        await Promise.all(want.filter((k) => !TRACK.has(k)).map((k) => once("track/" + k).then((t) => TRACK.set(k, t && t.ev ? Object.assign({ day: k }, t) : null))));
+    }
+    async function saveTrip(day, id, data) {
+        const doc = { day, v: 1, ev: { [id]: data } };
+        const cur = TRACK.get(day) || { day, ev: {} }; cur.ev = cur.ev || {}; cur.ev[id] = Object.assign({}, cur.ev[id] || {}, data); TRACK.set(day, cur);
+        if (store.rooms) return store.rooms.save("teacher/" + store.rooms.uid() + "/track/" + day, doc, true);
+        return store.save("track/" + day, cur);   // ?demo: this tab only
+    }
+    const hhmm = (ms) => { const d = new Date(ms); return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2); };
+    const atOf = (day, v) => { const m = /^(\d{1,2}):(\d{2})$/.exec(v || ""); return m ? new Date(day + "T" + ("0" + m[1]).slice(-2) + ":" + m[2]).getTime() : 0; };
+    function outOfClass(nm) {
+        const sec = el("section", "pfIn"); let showAll = false;
+        const head = () => { sec.textContent = ""; sec.append(el("h3", "pfSec", "Time out of class")); };
+        head(); sec.append(el("p", "pfLine", "Adding up this school year\u2026"));
+        const draw = () => {
+            head();
+            const trips = TC.tripsOf([...TRACK.values()].filter(Boolean), S.period, nm), today = TC.localIso();
+            const T = TC.outTotals(trips, today, SCHOOL_YEAR.nineWeeks, SCHOOL_YEAR.first);
+            const tiles = el("div", "pfOutTiles");
+            [["This week", T.week], ["This month", T.month], [T.nineN ? ["", "1st", "2nd", "3rd", "4th"][T.nineN] + " nine weeks" : "Nine weeks", T.nine], ["School year", T.year]].forEach(([l, v]) => {
+                const t = el("div", "pfOutTile"); t.append(el("b", null, TC.hm(v.mins)), el("span", null, l), el("small", null, v.n + (v.n === 1 ? " pass" : " passes"))); tiles.append(t);
+            });
+            sec.append(tiles);
+            if (T.places.length) sec.append(el("p", "pfLine small", "This year by place: " + T.places.map((p) => p.w + " " + TC.hm(p.mins) + " (" + p.n + ")").join(" · ")));
+            if (T.noBack) sec.append(el("p", "pfNote miss", T.noBack + (T.noBack === 1 ? " pass has" : " passes have") + " no back time, so " + (T.noBack === 1 ? "it counts" : "they count") + " as 0 minutes. Add the back time below."));
+            const nw = SCHOOL_YEAR.nineWeeks.find((q) => today >= q.start && today <= q.end), list = showAll || !nw ? trips : trips.filter((x) => x.day >= nw.start);
+            const box = el("div", "pfTrips");
+            if (!list.length) box.append(el("p", "pfLine small", "No passes " + (showAll ? "this school year." : "this nine weeks.")));
+            list.forEach((x) => {
+                const row = el("div", "pfTrip");
+                const day = el("span", "pfTday", fmtDay(x.day));
+                const where = el("select"); where.setAttribute("aria-label", "Where");
+                TC.PLACES.forEach((w) => { const o = el("option", null, w); o.value = w; where.append(o); }); where.value = x.w;
+                const lo = el("label", null, "Out "), out = el("input"); out.type = "time"; out.value = hhmm(x.at); lo.append(out);
+                const lb = el("label", null, "Back "), back = el("input"); back.type = "time"; back.value = x.b ? hhmm(x.b) : ""; lb.append(back);
+                const mins = el("span", "pfTmins", x.b ? x.mins + " min" : "no back time");
+                const save = el("button", "btn ghost", "Save"); save.type = "button"; save.hidden = true;
+                const del = el("button", "btn ghost", "Remove"); del.type = "button";
+                [where, out, back].forEach((i) => i.addEventListener("input", () => { save.hidden = false; }));
+                save.onclick = async () => {
+                    const a = atOf(x.day, out.value), b = back.value ? atOf(x.day, back.value) : 0;
+                    if (!a) { out.focus(); return; }
+                    if (b && b <= a) { mins.textContent = "Back must be after out"; back.focus(); return; }
+                    save.disabled = true;
+                    try { await saveTrip(x.day, x.id, { at: a, b: b || null, w: where.value === "Restroom" ? null : where.value }); draw(); } catch (e) { mins.textContent = "Not saved (" + ((e && e.code) || "connection") + ")"; save.disabled = false; }
+                };
+                del.onclick = async () => {
+                    if (del.dataset.sure !== "1") { del.dataset.sure = "1"; del.textContent = "Tap again to remove"; return; }
+                    try { await saveTrip(x.day, x.id, { x: 1 }); draw(); } catch (e) { mins.textContent = "Not removed"; }
+                };
+                row.append(day, where, lo, lb, mins, save, del); box.append(row);
+            });
+            sec.append(box);
+            const acts = el("div", "pfOutActs");
+            if (nw) { const all = el("button", "btn ghost", showAll ? "This nine weeks only" : "Show the whole year"); all.type = "button"; all.onclick = () => { showAll = !showAll; draw(); }; acts.append(all); }
+            // a pass that was never logged
+            const add = el("details", "pfAdd"); add.append(el("summary", null, "Add a pass you forgot to log"));
+            const f = el("form", "pfAddForm");
+            const dIn = el("input"); dIn.type = "date"; dIn.value = today; dIn.max = today; dIn.min = SCHOOL_YEAR.first; dIn.setAttribute("aria-label", "Day");
+            const wIn = el("select"); wIn.setAttribute("aria-label", "Where"); TC.PLACES.forEach((w) => { const o = el("option", null, w); o.value = w; wIn.append(o); });
+            const oIn = el("input"); oIn.type = "time"; oIn.required = true; oIn.setAttribute("aria-label", "Out");
+            const bIn = el("input"); bIn.type = "time"; bIn.setAttribute("aria-label", "Back");
+            const go = el("button", "btn go", "Add"); go.type = "submit";
+            const lab = (t, i) => { const l = el("label", null, t + " "); l.append(i); return l; };
+            f.append(lab("Day", dIn), lab("Where", wIn), lab("Out", oIn), lab("Back", bIn), go);
+            f.onsubmit = async (ev) => {
+                ev.preventDefault(); const day = dIn.value, a = atOf(day, oIn.value), b = bIn.value ? atOf(day, bIn.value) : 0;
+                if (!day || !a || (b && b <= a)) return;
+                go.disabled = true;
+                try { await saveTrip(day, TC.newId(), { p: S.period, n: nm, k: "rr", at: a, ...(b ? { b } : {}), ...(wIn.value !== "Restroom" ? { w: wIn.value } : {}) }); draw(); } catch (e) { go.disabled = false; }
+            };
+            add.append(f); acts.append(add);
+            sec.append(acts);
+            sec.append(el("p", "pfLine small", "Minutes count from when you tapped Out to when you tapped Back. A week runs Monday to Sunday."));
+        };
+        loadYear().then(draw);
         return sec;
     }
     /** Class work: papers filed for this student on the Student Work page. */
