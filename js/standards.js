@@ -69,7 +69,7 @@ function marks(code) {
         const b = el("button", "m-" + (k || "none"), label); b.type = "button"; b.setAttribute("aria-pressed", String(cur === k));
         b.onclick = () => setMark(code, k); g.appendChild(b);
     });
-    if (cur && when) g.appendChild(el("span", "st-when", short(when, { month: "short", day: "numeric" })));
+    if (cur && when) { const auto = ((progress[cls] || {})[code] || {}).by === "Anchor"; const w = el("span", "st-when", short(when, { month: "short", day: "numeric" }) + (auto ? " · auto" : "")); if (auto) w.title = "Marked by Anchor Board from your approved week. Tap a mark to change it."; g.appendChild(w); }
     return g;
 }
 function list(title, items, cls2) {
