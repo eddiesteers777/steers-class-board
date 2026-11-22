@@ -98,6 +98,41 @@ service cloud.firestore {
       }
     }
 
+    // Fact Blitz (fluency.html for the teacher, fact.html for students): a timed fact fluency check. Found by a 6-digit code.
+    //   flu/{code}          title, the fact set, the clock, the goal and the name list. Any guest with the code can read it.
+    //   flu/{code}/p/{who}  a student's own entry: the name they picked and their runs (each run's log of facts, answers
+    //                       and times). Only that student writes it, only while the check is open, only these fields.
+    //   flu/{code}/s/{who}  what the teacher's page sends that one student: their clock (extra time) and how many check
+    //                       tries they have. Only the teacher writes it, so which students have extra time is never public.
+    // The teacher who opened it can read everything in it and delete it. The teacher's page scores every run from its log.
+    match /flu/{code} {
+      function flu() { return get(/databases/$(database)/documents/flu/$(code)).data; }
+      function fluOwner() { return teacher() && flu().owner == request.auth.uid; }
+
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if teacher() && code.matches('^[1-9][0-9]{5}$')
+        && request.resource.data.owner == request.auth.uid && request.resource.data.kind == 'flu';
+      allow update: if teacher() && resource.data.owner == request.auth.uid
+        && request.resource.data.owner == request.auth.uid;
+      allow delete: if teacher() && resource.data.owner == request.auth.uid;
+
+      match /p/{who} {
+        allow get: if signedIn() && (request.auth.uid == who || fluOwner());
+        allow list, delete: if fluOwner();
+        allow create, update: if signedIn() && request.auth.uid == who && flu().status == 'open'
+          && request.resource.data.keys().hasOnly(['per', 'ni', 'nm', 'at', 'runs'])
+          && request.resource.data.per is string && request.resource.data.per.size() <= 12
+          && request.resource.data.ni is int && request.resource.data.ni >= -1 && request.resource.data.ni < 80
+          && (!('nm' in request.resource.data) || (request.resource.data.nm is string && request.resource.data.nm.size() <= 24))
+          && (!('runs' in request.resource.data) || (request.resource.data.runs is list && request.resource.data.runs.size() <= 30));
+      }
+      match /s/{who} {
+        allow get: if signedIn() && (request.auth.uid == who || fluOwner());
+        allow list, write: if fluOwner();
+      }
+    }
+
     // Class Pages (class.html): the student version of each approved week, for students and parents.
     // Anyone can read it without signing in; only that teacher writes it (Week Review's Approve).
     // It never holds answers, keys or any student information (js/publish.js strips them).

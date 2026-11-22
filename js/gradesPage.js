@@ -6,10 +6,10 @@
    Nothing here is student-visible, and nothing goes on the board.
    ?demo: made-up students in this tab only (js/gradesDemo.js), nothing is saved.
 ========================================== */
-import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=3";
-import * as G from "./gradeCore.js?v=1";
+import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=4";
+import * as G from "./gradeCore.js?v=2";
 import { shortNames } from "./vaultCore.js?v=75";
-import { buildProgress, BAND_WORD } from "./progress.js?v=2";
+import { buildProgress, BAND_WORD } from "./progress.js?v=3";
 import { lineChart } from "./charts.js?v=1";
 import { STANDARDS } from "../data/standards.js?v=57";
 import { SCHOOL_YEAR } from "../data/calendar.js?v=57";

@@ -21,7 +21,7 @@
    item = { id, title, date "YYYY-MM-DD", cat, pts, periods: [], src: { k: "hand" } | { k: "asg", id } | { k: "data", ids: { period: importId } },
             std, off (true = shown but not counted), at }
 ========================================== */
-import { matchRoster } from "./progress.js?v=2";
+import { matchRoster } from "./progress.js?v=3";
 
 /* Eddie's syllabus (2026-27) names these three categories and gives no percentages, so weights start blank.
    With no weights set, the grade is total points; once any weight is set, it is a weighted average. */
@@ -96,7 +96,7 @@ export function cellsFor(item, per, roster, ctx) {
     } else if (src.k === "data") {
         const imp = ctx.imports && ctx.imports.get((src.ids || {})[per]);
         if (imp && Array.isArray(imp.rows)) {
-            const first = imp.source === "Vault Raid" || imp.source === "Assignment";   // these put the overall score first
+            const first = imp.source === "Vault Raid" || imp.source === "Assignment" || imp.source === "Fact Blitz";   // these put the overall score first
             imp.rows.forEach((row) => {
                 const i = matchRoster(row.s, roster); if (i < 0) return;
                 const vals = (row.v || []).filter((v) => v != null && isFinite(v)); if (!vals.length) return;

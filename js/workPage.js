@@ -8,7 +8,7 @@
      work/p_<pid>      { img (JPEG data URL), w, h, set, at }   one page; { removed: true } once deleted or cleared
      work/k_<period>   { notes: { "<roster name>": "private teacher note" }, at }
 ========================================== */
-import { mountStudentsNav, sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=3";
+import { mountStudentsNav, sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=4";
 import { shrink, rotate, buildPdf, mb, pdfPages } from "./studentWork.js?v=58";
 import { SCHOOL_YEAR, isSchoolDay } from "./schoolCal.js?v=58";
 import { weekIdFor } from "./weeksLive.js?v=58";

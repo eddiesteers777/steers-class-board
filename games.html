@@ -100,6 +100,7 @@
 
         const FRONT = ["board", "versus", "rapid"];   // up front; the rest sit under "More board games" (same list as the Remote, js/games.js FRONT_KINDS)
         { const vr = el("div", "glgame vault"); vr.append(el("b", null, "Vault Raid"), el("p", null, "Students join on Chromebooks with a code, answer to earn coins and hacks, and crack each other's vaults. You run it from the Remote."), el("small", null, "Best for every student answering every question")); $("games").append(vr); }
+        { const fb = el("a", "glgame vault"); fb.href = "fluency.html"; fb.style.textDecoration = "none"; fb.style.color = "inherit"; fb.append(el("b", null, "Fact Blitz"), el("p", null, "A timed arcade run of multiplication, division or integer facts on Chromebooks. Speed checks go to the Gradebook; every run shows fluency over time."), el("small", null, "Best for fact fluency: a baseline, then a check every few weeks")); $("games").append(fb); }
         GAMES.forEach(([k, name, how, best]) => { const c = el("div", "glgame " + k); c.append(el("b", null, name), el("p", null, how), el("small", null, best)); $(FRONT.includes(k) ? "games" : "gamesMore").append(c); });
         $("moreGamesSum").textContent = "More board games (" + GAMES.filter(([k]) => !FRONT.includes(k)).length + ")";
         [["all", "All classes"], ...PERIODS.map(([p]) => [p, p + " period"])].forEach(([k, t]) => {
