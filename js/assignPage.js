@@ -14,7 +14,7 @@
 import * as C from "./assignCore.js?v=5";
 import * as V from "./vaultCore.js?v=75";
 import { loadStdBank, inClass, LEVELS } from "./stdBank.js?v=2";
-import { STANDARDS } from "../data/standards.js?v=57";
+import { STANDARDS } from "../data/standards.js?v=58";
 import qrcode from "./vendor/qrcode.js?v=1";
 
 const $ = (id) => document.getElementById(id);

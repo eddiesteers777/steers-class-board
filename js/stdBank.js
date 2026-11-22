@@ -6,7 +6,7 @@
    Items come out in the same shape as js/bank.js extract(): { q, a, cls, kind, std, part?, lvl, choices?, also? }.
    8th Grade problems are also offered to 8th Accelerated, which teaches the same 8th standards (for).
 ========================================== */
-import { STANDARDS } from "../data/standards.js?v=57";
+import { STANDARDS } from "../data/standards.js?v=58";
 
 export const WEEK_ID = "stdbank";
 export const WEEK_LABEL = "Standards bank";
