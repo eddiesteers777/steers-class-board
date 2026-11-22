@@ -7,7 +7,7 @@
 ========================================== */
 import { db } from "./firebase.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import { bellringerSheet, notesSheet, studyGuideSheet, rich } from "./weekSheets.js?v=59";
+import { bellringerSheet, notesSheet, studyGuideSheet, rich } from "./weekSheets.js?v=60";
 
 const qs = new URLSearchParams(location.search), T = qs.get("t") || "", C = qs.get("c") || "";
 const $ = (id) => document.getElementById(id);

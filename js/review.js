@@ -10,11 +10,14 @@ import { WEEKS as PUBLISHED } from "../data/weeks.js?v=61";
 import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, nineWeeksOf, parse } from "./schoolCal.js?v=58";
 import { weekIdFor } from "./weeksLive.js?v=58";
 import { publishWeek, unpublishWeek, classUrl, parentMessage } from "./publish.js?v=60";
-import { closeoutItems, drawCloseout } from "./closeout.js?v=2";
+import { closeoutItems, drawCloseout } from "./closeout.js?v=3";
 import { repeats, saveBankWeek, extract } from "./bank.js?v=2";
 import { figuresIn, isFunction, stripFigures } from "./figures.js?v=1";
 import { bankFor, openBankPicker } from "./bankPick.js?v=2";
 import { STANDARDS } from "../data/standards.js?v=58";
+import { allPapers } from "./weekPapers.js?v=1";
+import { printPapers, saveToDrive } from "./weekPack.js?v=1";
+import * as Drive from "./drive.js?v=2";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -202,8 +205,67 @@ function drawActions() {
         box.appendChild(el("p", "pw-sendp", nb ? "Fix the items marked Fix, then approve." : "Approving puts this week on the board, Planner, Library and Home for every period."));
         const ap = el("button", "btn go big", "Approve and put it on the board"); ap.type = "button"; ap.disabled = !!nb || dirty; if (dirty) ap.title = "Save your changes first"; ap.onclick = () => setApproved(true); box.appendChild(ap);
     }
-    const pr = el("a", "btn ghost", "Print in Week Builder"); pr.href = "builder.html?week=" + id + (demo ? "&demo" : ""); pr.style.textDecoration = "none"; box.appendChild(pr);
-    drawPages(); drawClose();
+    const pr = el("a", "btn ghost", "Change one paper in Week Builder"); pr.href = "builder.html?week=" + id + (demo ? "&demo" : ""); pr.style.textDecoration = "none"; box.appendChild(pr);
+    drawPaper(); drawPages(); drawClose();
+}
+/* Paper for this week: every student paper and key, in Drive order. Print a class's set in one go, or save it all to Drive as Google Docs. */
+let paperBusy = false, paperNote = "", paperLinks = {};
+function drawPaper() {
+    const box = $("paper"); if (!box) return; box.textContent = ""; if (!week) return;
+    const groups = allPapers(week, { guestUrl: new URL("sub.html", location.href).href });
+    box.appendChild(el("h2", "rv-h2", "Paper for this week"));
+    box.appendChild(el("p", "rv-extras", "Everything to print, in your Drive order: 0 Weekly first, then Monday to Friday, each key right after its paper. In the print window, pick your printer or Save as PDF."));
+    const list = el("div", "pk-classes");
+    groups.forEach((g) => {
+        const card = el("section", "pw-class pk-class"), stu = g.papers.filter((p) => !p.key), keys = g.papers.filter((p) => p.key);
+        card.appendChild(el("h3", null, LABEL[g.cid] || g.label));
+        if (!g.papers.length) { card.appendChild(el("p", "rv-extras", "No papers in this class's week yet.")); list.appendChild(card); return; }
+        card.appendChild(el("p", "pk-count", stu.length + (stu.length === 1 ? " paper" : " papers") + " and " + keys.length + (keys.length === 1 ? " key" : " keys")));
+        const det = el("details", "pk-list"); det.appendChild(el("summary", null, "See the files"));
+        const ol = el("ol"); g.papers.forEach((p) => { const li = el("li", p.key ? "pk-key" : "", p.file); if (p.alt) li.appendChild(el("span", "pk-alt", "Alternate Assignments")); ol.appendChild(li); }); det.appendChild(ol); card.appendChild(det);
+        const acts = el("div", "rv-acts");
+        const one = (label, set, kind, cls2) => {
+            const b = el("button", cls2, label); b.type = "button"; b.disabled = !set.length || paperBusy;
+            b.onclick = async () => {
+                if (paperBusy) return; paperBusy = true; drawPaper();
+                try {
+                    await printPapers(week, set, (week.label || id) + " - " + kind + " (" + (LABEL[g.cid] || g.label) + ")");
+                    const stamp = {}; set.forEach((p) => { stamp[p.id] = Date.now(); });
+                    mergeSave("closeout/" + id, { printed: { [g.cid]: stamp } }, co).catch(() => {});   // ticks the printed papers on the close-out list
+                } catch (e) { status("Could not get the papers ready (" + ((e && e.message) || "error") + ")", "bad"); }
+                finally { paperBusy = false; drawPaper(); }
+            };
+            acts.appendChild(b);
+        };
+        one("Print student papers", stu, "Student papers", "btn go");
+        one("Print keys", keys, "Teacher keys", "btn");
+        if (paperLinks[g.cid]) { const a = el("a", "btn ghost", "Open in Drive"); a.href = "https://drive.google.com/drive/folders/" + encodeURIComponent(paperLinks[g.cid]); a.target = "_blank"; a.rel = "noopener"; a.style.textDecoration = "none"; acts.appendChild(a); }
+        card.appendChild(acts); list.appendChild(card);
+    });
+    box.appendChild(list);
+    const drive = el("div", "pk-drive");
+    const sv = el("button", "btn", "Save the whole week to Google Drive"); sv.type = "button"; sv.disabled = paperBusy || demo || !groups.some((g) => g.papers.length);
+    if (demo) sv.title = "Not in test mode";
+    sv.onclick = () => saveWeekToDrive(groups);
+    drive.appendChild(sv);
+    drive.appendChild(el("p", "rv-extras pk-note", paperNote || "Makes a Google Doc for each paper in Anchor Board > Lessons > class > nine weeks > week, so you can open, change or share them. A paper already saved there is left as it is, so saving again only adds what is missing. Fractions in the Docs read ¾ style; the printed papers keep stacked fractions."));
+    box.appendChild(drive);
+    if (!demo) Drive.prepare();
+}
+async function saveWeekToDrive(groups) {
+    if (paperBusy) return; paperBusy = true;
+    const say = (t) => { paperNote = t; const n = document.querySelector("#paper .pk-note"); if (n) n.textContent = t; };
+    drawPaper(); say("Waiting for Google…");
+    try {
+        const B = await import("./backup.js?v=2");
+        let S = null; try { S = await B.settings(); } catch { /* asks for the account below */ }
+        if (!Drive.connected()) await Drive.connect({ pick: !S || !S.account, hint: (S && S.account) || "" });
+        const r = await saveToDrive(week, groups, B, say);
+        paperLinks = r.folders;
+        say("Saved to Google Drive: " + r.made + (r.made === 1 ? " new Doc" : " new Docs") + (r.kept ? ", " + r.kept + " already there and left as they were" : "") + "." + (r.failed.length ? " Could not save: " + r.failed.join(", ") + ". Tap again to try those." : ""));
+    } catch (e) {
+        say(e && e.code && String(e.code).startsWith("drive/") ? Drive.sayError(e) : "Stopped: " + ((e && e.message) || "something went wrong") + ". Tap again to finish; what is already saved stays.");
+    } finally { paperBusy = false; const keep = paperNote; drawPaper(); paperNote = keep; say(keep); }
 }
 /* Close out the week: what is done and what is left, by class. */
 function deepMerge(a, b) { const o = Object.assign({}, a || {}); Object.entries(b).forEach(([k, v]) => { o[k] = v && typeof v === "object" && !Array.isArray(v) ? deepMerge(o[k], v) : v; }); return o; }

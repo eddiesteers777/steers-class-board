@@ -19,6 +19,7 @@ const UP = "https://www.googleapis.com/upload/drive/v3";
 const KEEP = "anchorboard-drive-token";
 export const FOLDER = "application/vnd.google-apps.folder";
 export const SHEET = "application/vnd.google-apps.spreadsheet";
+export const DOC = "application/vnd.google-apps.document";
 
 let token = "", until = 0, client = null, waiting = null, scriptP = null;
 try { const t = JSON.parse(sessionStorage.getItem(KEEP) || "null"); if (t && t.until > Date.now() + 60000) { token = t.token; until = t.until; } } catch { /* storage off */ }

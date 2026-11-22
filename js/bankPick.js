@@ -8,7 +8,7 @@
      onAdd(item) is called with { id, q, a, std, lvl, also? }
 ========================================== */
 import { loadStdBank, inClass, LEVELS } from "./stdBank.js?v=2";
-import { rich } from "./weekSheets.js?v=59";
+import { rich } from "./weekSheets.js?v=60";
 
 const el = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
 

@@ -17,7 +17,7 @@
 import { db } from "./firebase.js";
 import { waitForUser } from "./auth.js";
 import { doc, collection, getDoc, getDocs, setDoc, query, where, documentId, Timestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import * as Drive from "./drive.js?v=1";
+import * as Drive from "./drive.js?v=2";
 import { buildPdf } from "./studentWork.js?v=58";
 import { SCHOOL_YEAR, isSchoolDay } from "./schoolCal.js?v=58";
 import * as W from "./workCore.js?v=1";
@@ -43,7 +43,7 @@ export async function settings() {
     await me();
     const s = await getDoc(tref("settings/drive"));
     const d = s.exists() ? s.data() : {};
-    return { root: d.root || "", account: d.account || "", last: +d.last || 0, lastFile: d.lastFile || "", lastNote: d.lastNote || "", dayFile: d.dayFile || null, sheets: d.sheets || {}, sets: d.sets || {}, moved: d.moved || {} };
+    return { root: d.root || "", account: d.account || "", last: +d.last || 0, lastFile: d.lastFile || "", lastNote: d.lastNote || "", dayFile: d.dayFile || null, sheets: d.sheets || {}, sets: d.sets || {}, moved: d.moved || {}, lessons: d.lessons || {} };
 }
 const keep = (S) => setDoc(tref("settings/drive"), { ...S, at: Date.now() });
 
@@ -139,6 +139,20 @@ async function rootFolder(S) {
     S.sheets = {}; S.sets = {};   // a new folder: send everything again
     return S.root;
 }
+
+/** For other pages that save into the Anchor Board folder (Week Review's lesson papers). Drive must be connected. */
+export async function driveRoot() {
+    await me();
+    const S = await settings();
+    const acct = await Drive.who();
+    if (S.account && acct.email && S.account !== acct.email) { S.root = ""; S.lessons = {}; }   // another Google account: its own folder
+    S.account = acct.email || S.account;
+    const had = S.root, root = await rootFolder(S);
+    if (had !== root) S.lessons = {};   // a new folder: nothing saved there yet
+    await keep(S);
+    return { S, root };
+}
+export const keepDrive = (S) => keep(S);
 
 /**
  * Back up now. Drive must be connected (Drive.connect from a tap first).
