@@ -116,7 +116,7 @@ function writer(path) {
     let busy = false, next = null;
     const w = function (d) {
         d.by = PAGE; d.at = Date.now();
-        if (path === "board/state") seen(d);   // this tab shows its own change at once
+        if (path === "board/state") { seen(d); quickSave(d); }   // this tab shows its own change at once
         if (path === "board/state" && tabs) { try { tabs.postMessage(d); } catch (e) { /* the server copy still gets there */ } }
         next = d; if (busy) return; busy = true;
         (async function () {
@@ -129,13 +129,33 @@ function writer(path) {
 }
 function seen(d) { if (!d || !d.by || !d.at) return; shown = { by: d.by, at: +d.at || 0 }; if (presence) presence.saw(shown.by, shown.at); }
 function setStatus(t) {
-    const st = (t === "Live" || t === "This device only") ? "ok" : (t.startsWith("Connecting") || t.startsWith("Still") ? "wait" : "bad");
+    const st = (t === "Live" || t === "This device only") ? "ok" : (t.startsWith("Connecting") || t.startsWith("Syncing") || t.startsWith("Still") ? "wait" : "bad");
     // data-long: a message to read (not just "Live" or the first "Connecting…"); a phone gives it its own row
-    const s = $("status"); if (s) { s.textContent = t; s.dataset.state = st; s.dataset.long = st === "ok" || t.startsWith("Connecting") ? "" : "1"; }
+    const s = $("status"); if (s) { s.textContent = t; s.dataset.state = st; s.dataset.long = st === "ok" || t.startsWith("Connecting") || t.startsWith("Syncing") ? "" : "1"; }
     // The board view hides the header, so a lost connection shows as a small pill in the corner instead.
     const pill = $("connPill"); if (pill) { pill.hidden = st === "ok" || !synced; pill.textContent = st === "bad" ? "Offline \u00b7 showing the saved lesson \u00b7 reconnecting\u2026" : "Connecting\u2026"; }
 }
-function push() { S.stamp = localIso(); dayBoard(); render(); if (writeState) writeState(JSON.parse(JSON.stringify(S))); }
+function push() {
+    S.stamp = localIso(); dayBoard(); render();
+    // Until the saved state has arrived, only the teacher's own taps are saved: a timer or the bell timeline acting on this
+    // device's older copy must not overwrite a newer board.
+    if (!stateIn) { if (Date.now() - lastInput < 2000) earlyTap = true; else return; }
+    if (writeState) writeState(JSON.parse(JSON.stringify(S)));
+}
+/* Instant start (2026-11-21): the last board state this device saw is kept in localStorage, so the Remote and the board draw
+   the lesson the moment the code has loaded, before sign-in and Firestore have opened (those took 1-3 s on a phone).
+   It notes whose it is; the "school-live:" prefix is cleared on sign-out and account switches (js/auth.js). */
+let earlyTap = false, quickUid = "", stateIn = false, lastInput = 0;
+["pointerdown", "keydown", "change"].forEach((ev) => document.addEventListener(ev, () => { lastInput = Date.now(); }, true));
+const QUICK_KEY = "school-live:board";
+function quickLoad() {
+    try { const q = JSON.parse(localStorage.getItem(QUICK_KEY) || "null"); return q && q.uid && q.d && typeof q.d === "object" ? q : null; } catch (e) { return null; }
+}
+let quickT = 0, quickNext = null;
+function quickSave(d) {   // at most every 400 ms; a big board state is still small next to localStorage's room
+    if (!quickUid || !d) return; quickNext = d; if (quickT) return;
+    quickT = setTimeout(() => { quickT = 0; try { localStorage.setItem(QUICK_KEY, JSON.stringify({ uid: quickUid, d: quickNext })); } catch (e) { /* storage full or off: the next load waits for Firestore */ } }, 400);
+}
 /* Day boards (Board Builder): a saved board can belong to one lesson (week, class, day). When this device moves to that
    lesson (a day or period tap, the morning's fresh start, the bell timeline's next period), the board opens with it.
    Only the device that made the move applies it; the others get the result in the shared state. */
@@ -1672,7 +1692,7 @@ export async function startApp(opts) {
     setFloatDefault((k, T) => { const p = toolApi.defaultPos(k); let n = 0; while (n < 8 && Object.keys(T.pos).some((o) => o !== k && Math.abs(T.pos[o].x - p.x) < 4 && Math.abs(T.pos[o].y - p.y) < 4)) { p.x = Math.min(80, p.x + 5); p.y = Math.min(70, p.y + 6); n++; } return p; });
     if (opts && Array.isArray(opts.weeks) && opts.weeks.length) WEEKS = opts.weeks;
     if (opts && Array.isArray(opts.periods) && opts.periods.length) PERIODS = opts.periods;
-    store = (opts && opts.store) || await import("./boardStore.js?v=59");
+    const storeP = (opts && opts.store) ? Promise.resolve(opts.store) : import("./boardStore.js?v=58");   // loads while the page sets up and draws
     const guest = mode === "sub";
     mountGames({ S, header, store: () => store, writer, now, beep: () => snd.cue("done"), unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     mountLive({ S, header, store: () => store, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
@@ -1737,24 +1757,34 @@ export async function startApp(opts) {
     keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
     document.addEventListener("keydown", (e) => { if (e.target && (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.target.isContentEditable)) return; if (e.altKey || e.ctrlKey || e.metaKey) return; if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); step(1); } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); step(-1); } else if (e.key === "m" || e.key === "M") { S.sound.music = !S.sound.music; push(); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
     let seatWas = "";
-    setInterval(() => { if (!synced) return; if (S.screen === "seats") { const h = seatHiNow(); if (h !== seatWas) { seatWas = h; render(); } } tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); tickLive(); tickNotes(); soundTick(); quickTick(); if (!guest) { planTick(planApi); if (planFold) planFold.tick(); } }, 250);
+    setInterval(() => { if (!synced) return; if (S.screen === "seats") { const h = seatHiNow(); if (h !== seatWas) { seatWas = h; render(); } } tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); tickLive(); tickNotes(); soundTick(); quickTick(); if (!guest && stateIn) { planTick(planApi); if (planFold) planFold.tick(); } }, 250);
     { const p = el("div", "connpill"); p.id = "connPill"; p.setAttribute("role", "status"); p.hidden = true; document.body.appendChild(p); }
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && synced) { tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); soundTick(); } });   // a tab back in view shows the right time at once
     document.body.classList.add("syncing");
     const arrived = () => { if (synced) return; synced = true; document.body.classList.remove("syncing"); sig = ""; };
+    // Draw the last board this device saw right away (see quickLoad); Firestore's copy replaces it when it arrives.
+    const quickQ = !guest && !(opts && opts.store) ? quickLoad() : null, quick = quickQ && quickQ.d;
+    if (quick) {
+        applyState(quick);
+        if (quick.stamp !== localIso()) { S.week = defaultWeek(); S.day = realDay(); S.screen = "today"; resetPos(); }   // the same new-day rule the saved state gets below
+        lessonKey = lessonKeyNow(); arrived(); setStatus("Syncing\u2026");
+    }
     fit(); render();
+    store = await storeP;
     if (studio && studio.ready) studio.ready(studioApi());
 
     // Load timing, kept on this device only (step names and times, no data). ?signincheck shows it.
     const t0 = performance.now(), ms = () => Math.round(performance.now() - t0) + " ms";
     const mark = guest ? () => {} : trail;
-    mark("board-load", mode + ", page " + Math.round(t0) + " ms");
+    mark("board-load", mode + ", page " + Math.round(t0) + " ms" + (quick ? ", drawn from this device's copy" : ""));
     const user = await store.ready();
     mark("board-auth", ms());
     if (!user) { location.replace("login.html"); return; }
+    if (!guest && !(opts && opts.store)) quickUid = user.uid;
+    if (quickQ && quickQ.uid !== user.uid) { try { localStorage.removeItem(QUICK_KEY); } catch (e) { /* fine */ } location.reload(); return; }   // another account's copy: start clean
     if (!guest && user.uid) { try { localStorage.setItem("anchor:subTeacher", user.uid); } catch (e) { /* storage off: the sub link needs ?t= */ } }   // so the guest sub page on this computer can show this teacher's approved weeks
     if (!guest) import("./callout.js?v=2").then((m) => m.mountCallout({ store, cue: (n) => snd.cue(n) })).catch(() => {});   // "Called on" banner from the phone's Class Tracker
-    signedIn = true; slStart(); $("who").textContent = guest ? ((opts && opts.who) || "Guest teacher view, no sign-in") : (user.name ? "Signed in as " + user.name : "Signed in");
+    signedIn = true; inkKey = ""; slStart(); $("who").textContent = guest ? ((opts && opts.who) || "Guest teacher view, no sign-in") : (user.name ? "Signed in as " + user.name : "Signed in");
     if (!guest && "BroadcastChannel" in window) {
         try {
             tabs = new BroadcastChannel("anchorboard-" + user.uid);
@@ -1797,31 +1827,45 @@ export async function startApp(opts) {
         if (planFold) { planFold.refresh(); planFold.editor(); }
     }, () => {});
     if (!guest) store.watch("settings/timeline", (snap) => { if (snap.pending) return; PLAN = cleanPlan(snap.exists ? snap.data : null); if (planFold) { planFold.refresh(); planFold.editor(); } }, () => { PLAN = cleanPlan(null); });
-    store.clockSkew().then((ms) => { skew = ms; tick(); });
-    const slow = setTimeout(() => { mark("board-slow", ms()); setStatus("Still connecting\u2026"); arrived(); render(); }, 10000);   // never leave the teacher on a blank board
+    let skewAsked = false;
+    const askSkew = () => { if (skewAsked) return; skewAsked = true; store.clockSkew().then((v) => { skew = v; tick(); }); };   // after the board state arrives, so it never delays it
+    setTimeout(askSkew, 6000);
+    const slow = setTimeout(() => { mark("board-slow", ms()); setStatus("Still connecting\u2026"); stateIn = true; arrived(); render(); }, 10000);   // never leave the teacher on a blank board
     // Connection, said plainly. The Remote must never look live when the board cannot follow it.
     const LOST = mode === "remote" ? "Not connected. The board will not follow. Reconnecting\u2026" : "Not connected. This screen will not follow the Remote. Reconnecting\u2026";
-    let first = true, gotServer = false, cacheSince = 0, errored = false, checks = 0;
-    const live = () => { cacheSince = 0; errored = false; if (Date.now() - saveFailedAt > 8000) setStatus(guest ? "This device only" : "Live"); };
+    let first = true, gotServer = false, cacheSince = 0, errored = false, checks = 0, misses = 0;
+    const live = () => { cacheSince = 0; errored = false; awaySince = 0; if (Date.now() - saveFailedAt > 8000) setStatus(guest ? "This device only" : "Live"); };
     const lost = () => { if (!guest) setStatus(LOST); };
     window.addEventListener("offline", lost);
+    window.addEventListener("online", () => { if (!guest && store.kick) store.kick(); });   // back online: reconnect now, not on the SDK's next retry
+    // A phone that slept (or a tab left in the background) usually comes back with a dead connection that Firestore only
+    // notices after many seconds. Coming back after 15 s away: reconnect at once, and say "Syncing" until the server answers.
+    let hiddenAt = 0, awaySince = 0;
+    if (!guest) document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") { hiddenAt = Date.now(); return; }
+        if (hiddenAt && Date.now() - hiddenAt > 15000 && gotServer && navigator.onLine) { awaySince = Date.now(); setStatus("Syncing\u2026"); if (store.kick) store.kick(); }
+        hiddenAt = 0; if (cacheSince) cacheSince = Date.now();   // a fresh grace period: time hidden does not count
+    });
     if (!guest) setInterval(async () => {   // a connection can stall with no error: check it, and wake it if it has
         if (document.visibilityState === "hidden") return;
-        if (cacheSince && Date.now() - cacheSince > 5000) lost();
+        // Not connected only after 15 s with no server answer (was 5 s, which a phone's normal start could pass).
+        if ((cacheSince && Date.now() - cacheSince > 15000) || (awaySince && Date.now() - awaySince > 15000)) lost();
         if (!synced || errored || ++checks % 6) return;   // a server read about every 30 s while in view
-        if (!(await store.reachable("board/state"))) { lost(); store.kick && store.kick(); }
+        // One missed check only wakes the connection; "Not connected" needs two in a row (a phone's slow answer is not a lost board).
+        if (!(await store.reachable("board/state"))) { if (++misses >= 2) lost(); store.kick && store.kick(); } else misses = 0;
     }, 5000);
     store.watch("board/state", (snap) => {
-        if (!gotServer && !snap.fromCache) { gotServer = true; mark("board-server", ms()); }
+        if (!gotServer && !snap.fromCache) { gotServer = true; mark("board-server", ms()); setTimeout(askSkew, 1500); }
         if (snap.fromCache) { if (!cacheSince) cacheSince = Date.now(); } else if (!guest) live();
         if ((snap.pending && !(snap.data && snap.data.by && snap.data.by !== PAGE)) || (writeState && writeState.busy())) return;
         // An older copy of a change this tab already heard over the channel must not wind it back.
         if (snap.data && heard.by && snap.data.by === heard.by && (+snap.data.at || 0) < heard.at) return;
         if (!synced) mark("board-shown", ms() + (snap.fromCache ? " (saved copy)" : " (server)"));
         clearTimeout(slow);
-        if (guest) setStatus("This device only"); else if (!snap.fromCache) live(); else if (!gotServer) setStatus("Connecting\u2026");
-        if (snap.exists) { applyState(snap.data); seen(snap.data); }
-        arrived();
+        if (guest) setStatus("This device only"); else if (!snap.fromCache) live(); else if (!gotServer) setStatus(synced ? "Syncing\u2026" : "Connecting\u2026");
+        if (earlyTap) { earlyTap = false; first = false; stateIn = true; arrived(); push(); return; }   // a tap made before sign-in finished wins over the copy it was made on
+        if (snap.exists) { applyState(snap.data); seen(snap.data); quickSave(snap.data); }
+        stateIn = true; arrived();
         if (first) {
             first = false;
             const q = new URLSearchParams(location.search), c = q.get("class"), dy = q.get("day"), di = DK.map((k) => k.toLowerCase()).indexOf((dy || "").toLowerCase());
@@ -1846,7 +1890,7 @@ export async function startApp(opts) {
         render();
     }, (e, fails) => {
         clearTimeout(slow); errored = true; mark("board-sync-error", ((e && e.code) || "error") + ", try " + fails);
-        arrived(); lost(); render();
+        stateIn = true; arrived(); lost(); render();
         // The projected board has no one at its keyboard: if listening keeps failing while the device is online,
         // reload it (at most once every 5 minutes). The saved state comes straight back.
         if (mode === "board" && fails >= 4 && navigator.onLine) {
