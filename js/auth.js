@@ -166,7 +166,10 @@ async function prepareAccountState(user) {
     const nextUid = user?.uid || null;
     const owner = getStorageOwner();
     const firstPreparation = preparedAccountUid === undefined;
-    const uidChanged = !firstPreparation && preparedAccountUid !== nextUid;
+    // Signing in on a page that was signed out is not a switch: there is no other account's copy to clear (an old
+    // account left on this device is caught by ownerMismatch). Counting it made the sign-in page clear and reload itself
+    // just as it was opening the home screen, so the first Google sign-in landed back on the sign-in page (2026-11-21).
+    const uidChanged = !firstPreparation && preparedAccountUid !== null && preparedAccountUid !== nextUid;
     const ownerMismatch = nextUid && owner && owner !== nextUid;
     const signedOutOwner = !nextUid && owner;
     const legacyAccountState = nextUid && !owner && hasLegacyAccountState();
