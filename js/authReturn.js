@@ -1,7 +1,7 @@
 // auth-return.html: finishes a Google sign-in that went out as a full page trip (js/googleRedirect.js).
 import { parseReturnHash } from "./googleRedirect.js";
 import { trail } from "./signInTrail.js";
-import { showLoader, hideLoader } from "./anchorLoader.js?v=1";
+import { showLoader, hideLoader } from "./anchorLoader.js?v=2";
 
 const note = document.getElementById("returnNote");
 const home = document.getElementById("returnHome");

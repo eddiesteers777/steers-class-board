@@ -1,5 +1,6 @@
 // Shared header and footer for the public site (same idea as a shared header component:
 // one place to change the name, the menu and the footer links).
+import { markSvg, ensureCss, showLoader } from "../js/anchorLoader.js?v=2";
 export const BRAND = "Anchor Board";
 const LOGO = "../brand/logo.svg";
 
@@ -13,14 +14,28 @@ const LINKS = [
 
 const page = location.pathname.split("/").pop() || "index.html";
 
+// The header's anchor draws itself in once per visit (the animated logo, 2026-11-22), then stays still.
+function drawIn() {
+    try { if (sessionStorage.getItem("ab-drawn")) return false; sessionStorage.setItem("ab-drawn", "1"); } catch (e) { /* no storage: draw it */ }
+    return true;
+}
+
+// "Try the demo board" shows the moving anchor while the board loads.
+document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest('a[href$="demo.html"]');
+    if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || a.target === "_blank") return;
+    showLoader("Opening the demo board…");
+});
+
 function header() {
+    ensureCss();
     const h = document.getElementById("siteHeader");
     if (!h) return;
     h.className = "nav";
     h.innerHTML = `
 <a class="skip" href="#main">Skip to content</a>
 <div class="wrap nav-in">
-  <a class="brand" href="index.html"><img src="${LOGO}" alt="" width="34" height="34"><span>${BRAND}</span></a>
+  <a class="brand" href="index.html"><span class="brand-mark">${markSvg(drawIn() ? "anl-drawin" : "")}</span><span>${BRAND}</span></a>
   <nav class="nav-links" id="navLinks" aria-label="Main">
     ${LINKS.map(([href, label]) => `<a href="${href}"${href === page ? ' aria-current="page"' : ""}>${label}</a>`).join("")}
     <a class="only-menu" href="../login.html">Teacher sign in</a>

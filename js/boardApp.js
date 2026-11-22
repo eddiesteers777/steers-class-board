@@ -27,6 +27,7 @@ import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=
 import { cleanChart, cleanPeriod, cleanView, seatCount, drawRoom } from "./seats.js?v=7";
 import { DAILY as SL_DAILY, INDEX as SL_INDEX, MAX_DAILY as SL_MAX_DAILY, cleanDeck, cleanIndex, showList, revealSteps, indexHas, liveContext, lessonDate, textOf } from "./slides.js?v=1";
 import { renderSlide, fitSlide, imageLoader, thumb } from "./slideView.js?v=1";
+import { markSvg, ensureCss } from "./anchorLoader.js?v=2";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -822,9 +823,12 @@ function tick() {
     $("tgo").textContent = t.running ? "Pause" : (t.elapsed > 0 ? "Resume" : "Start");
 }
 
+/* Before the first board state arrives (a new device; after that this device's own copy draws at once): the moving anchor. */
 function skeleton() {
-    const k = el("div", "skel"); k.setAttribute("aria-busy", "true"); k.setAttribute("aria-label", "Getting today's lesson");
-    k.appendChild(el("div", "skb hd")); const b = el("div", "skbody"); ["w70", "w90", "w55"].forEach((c) => b.appendChild(el("div", "skb " + c))); k.appendChild(b); return k;
+    ensureCss();
+    const k = el("div", "skel anchorwait"); k.setAttribute("aria-busy", "true"); k.setAttribute("aria-label", "Getting today's lesson");
+    const m = el("div", "awmark"); m.innerHTML = markSvg("anl-loop"); k.appendChild(m);
+    k.appendChild(el("p", "awtext", "Getting today's lesson\u2026")); return k;
 }
 function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
