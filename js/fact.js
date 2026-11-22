@@ -105,8 +105,12 @@ async function open(code) {
     catch (e) { ST.busy = false; ST.err = /operation-not-allowed|admin-restricted/.test((e && e.code) || "") ? "Student sign-in isn't turned on for this site yet. Tell your teacher." : "Couldn't connect. Check the Wi-Fi and try again."; draw(); return; }
     stop();
     ST.code = code; ST.F = null; ST.me = null; ST.s = null; ST.sSeen = false;
-    try { const s = await getDoc(mineRef()); if (s.exists()) { ST.me = Object.assign({ runs: [] }, s.data()); ST.per = ST.me.per; } } catch (e) { /* not there yet */ }
-    unsubF = onSnapshot(doc(db, "flu", code), (s) => {
+    // Their own entry, the check and their clock all load at once (Nov 22: waiting on one before the next was slow).
+    // The check waits for the first look at their own entry, so a returning student lands on their runs, not the name list.
+    const mine = getDoc(mineRef()).then((s) => { if (s.exists() && !ST.me) { ST.me = Object.assign({ runs: [] }, s.data()); ST.per = ST.me.per; } }, () => {});
+    unsubF = onSnapshot(doc(db, "flu", code), async (s) => {
+        await mine;
+        if (ST.code !== code) return;
         ST.busy = false;
         if (!s.exists()) { ST.err = "No Fact Blitz has that code. Check it and try again."; ST.code = ""; ST.step = "code"; stop(); draw(); return; }
         ST.F = Object.assign({}, F.DEFAULTS, s.data()); local.set("code", code);

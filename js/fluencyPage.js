@@ -34,10 +34,9 @@ export async function mountFluency() {
     const demo = new URLSearchParams(location.search).has("demo");
     const store = await import(demo ? "./localStore.js?v=57" : "./boardStore.js?v=58");
     const rooms = demo ? demoRooms() : store.rooms;
-    const PER = demo ? [["1st", "8th"], ["2nd", "8th"], ["5th", "7th"], ["6th", "8th-acc"]] : (await import("../data/weeks.js?v=61")).PERIODS;
     const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
-
-    const user = await store.ready();
+    // Sign-in and the class list (data/weeks.js) load side by side, not one after the other (Nov 22: the page was slow to open).
+    const [user, PER] = await Promise.all([store.ready(), demo ? [["1st", "8th"], ["2nd", "8th"], ["5th", "7th"], ["6th", "8th-acc"]] : import("../data/weeks.js?v=61").then((m) => m.PERIODS)]);
     if (!user) { location.replace("login.html"); return; }
     $("who").textContent = demo ? "Sample students, nothing is saved" : "Signed in as " + user.name;
 
@@ -48,7 +47,9 @@ export async function mountFluency() {
     if (demo) await seedDemo(store, rooms);
     store.watch("rosters/all", (s) => { if (s.pending) return; D.rosters = (s.exists && s.data && s.data.periods) || {}; soon(); }, () => { D.rosters = {}; soon(); });
     store.watch("flu/index", (s) => { if (s.pending) return; D.index = ((s.exists && s.data && s.data.list) || []).filter((x) => x && x.id); status(demo ? "Sample data" : "Live", "ok"); soon(); }, (e) => status("Could not load (" + ((e && e.code) || "error") + ")", "bad"));
-    store.watch("flu/setup", (s) => { if (s.pending) return; D.setup = (s.exists && s.data) || { xt: {} }; D.setup.xt = D.setup.xt || {}; pushClocksAll(); soon(); }, () => { D.setup = { xt: {} }; });
+    D.setup = { xt: {} };   // until flu/setup arrives: nobody has extra time yet, and pushClocks waits for the real one
+    let setupIn = false;
+    store.watch("flu/setup", (s) => { if (s.pending) return; setupIn = true; D.setup = (s.exists && s.data) || { xt: {} }; D.setup.xt = D.setup.xt || {}; pushClocksAll(); soon(); }, () => { setupIn = true; });
 
     const rosterOf = (p) => shortNames(((D.rosters || {})[p] || []).filter(Boolean));
     const periodsWithRoster = () => PER.map((p) => p[0]).filter((p) => rosterOf(p).length);
@@ -76,7 +77,7 @@ export async function mountFluency() {
 
     /** Send each student who joined their own clock (extra time) and tries. Only what changed is written. */
     async function pushClocks(d) {
-        if (!d || d.status !== "open" || !D.setup) return;
+        if (!d || d.status !== "open" || !setupIn) return;   // never send a clock before the extra-time list is in
         const ents = D.entries.get(d.id) || [], sent = D.sent.get(d.id) || new Map(), writes = [];
         ents.forEach(({ id, data }) => {
             if (!data || !data.nm) return;
@@ -173,7 +174,8 @@ export async function mountFluency() {
         if (D.index) watchOpen();
         document.querySelectorAll("#views button").forEach((b) => { b.setAttribute("aria-selected", b.dataset.v === S.view ? "true" : "false"); b.setAttribute("aria-pressed", b.dataset.v === S.view ? "true" : "false"); });
         const out = $("out"); out.textContent = "";
-        if (!D.index || !D.rosters || !D.setup) { out.append(skel()); return; }
+        // The list of checks draws as soon as it arrives; only the parts that need the class lists wait for them.
+        if (!D.index || ((S.view !== "checks" || S.draft) && !D.rosters) || (S.view === "extra" && !setupIn)) { out.append(skel()); return; }
         if (S.err) { const e = el("p", "asErr", S.err); e.setAttribute("role", "alert"); out.append(e); }
         if (S.view === "progress") return drawProgress(out);
         if (S.view === "extra") return drawExtra(out);
