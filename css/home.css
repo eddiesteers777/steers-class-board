@@ -114,3 +114,5 @@
 .hm-flow>.btn{margin-top:2px}
 @media (max-width:900px){.wf-steps{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:480px){.wf-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.hm-auto{margin:10px 0 0;padding:8px 12px;border-radius:12px;background:#EAF4EE;color:#1d4a30;font-size:.92rem}
+.hm-auto a{margin-left:4px;font-weight:700;color:inherit}
