@@ -4,9 +4,10 @@
    and the roster, and shows each student's level, XP, banked coins, badges and every topic's
    accuracy over time. ?demo shows made-up students in this tab and saves nothing.
 ========================================== */
-import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=3";
+import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=4";
 import { shortNames } from "./vaultCore.js?v=75";
 import * as PC from "./profileCore.js?v=2";
+import * as F from "./factCore.js?v=1";
 import * as TC from "./trackCore.js?v=2";
 import { SCHOOL_YEAR, SCHOOL_DAYS } from "./schoolCal.js?v=58";
 
@@ -119,6 +120,13 @@ export async function mountProfiles() {
             tb.append(tr);
         });
         const wrap = el("div", "pfTableWrap"); wrap.append(tb); d.append(el("h3", "pfSec", "Games"), wrap);
+        // Fact Blitz fluency (js/factCore.js): right answers a minute, first check to latest, per fact set
+        const fl = Object.keys(kid.fl || {}).map((set) => [set, F.flTrend(kid.fl[set])]).filter(([, tr]) => tr);
+        if (fl.length) {
+            const ul = el("ul", "pfLine"); fl.forEach(([set, tr]) => ul.append(el("li", null, F.setName(set) + ": " + tr.last.pm + " right a minute (first check " + tr.first.pm + ", " + (tr.change >= 0 ? "+" : "") + tr.change + "), best " + tr.best + ", " + tr.n + " runs")));
+            const a = el("a", null, "See Fact Blitz progress"); a.href = "fluency.html";
+            d.append(el("h3", "pfSec", "Fact fluency"), ul, a);
+        }
         d.append(inClass(nm), outOfClass(nm), classWork(nm));
         d.showModal();
     }

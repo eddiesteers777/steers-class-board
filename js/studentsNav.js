@@ -11,6 +11,7 @@ const STUDENTS = [
     ["profiles.html", "Profiles", "Levels, XP and topic locks from every game"],
     ["grades.html", "Grades", "The gradebook"],
     ["assign.html", "Assignments", "Practice, quizzes and tests"],
+    ["fluency.html", "Fact Blitz", "Timed math facts: speed checks and fluency over time"],
     ["data.html", "Class Data", "Scores and imports"],
     ["work.html", "Student Work", "Scanned papers, filed by week and student"],
 ];

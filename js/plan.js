@@ -12,7 +12,7 @@ import { WEEKS as PUBLISHED } from "../data/weeks.js?v=61";
 import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, eventsOn, nineWeeksOf, daysLeftInNineWeeks, short, parse } from "./schoolCal.js?v=58";
 import { nextUp } from "./standardsNext.js?v=58";
 import { watchPrivateWeeks, weekIdFor } from "./weeksLive.js?v=58";
-import { watchEvidence, classEvidence, evidenceForBrief, weekStandards } from "./planEvidence.js?v=1";
+import { watchEvidence, classEvidence, evidenceForBrief, weekStandards } from "./planEvidence.js?v=2";
 import { openBankPicker, bankFor } from "./bankPick.js?v=2";
 import { rich } from "./weekSheets.js?v=59";
 

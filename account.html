@@ -97,7 +97,7 @@
             const log = $("dLog"), say = (t, bad) => { log.textContent = t; log.dataset.state = bad ? "bad" : ""; };
             const when = (ms) => new Date(ms).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) + " at " + new Date(ms).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
             let B = null, S = null, busy = false;
-            const load = () => B ? Promise.resolve(B) : import("./js/backup.js?v=1").then((m) => (B = m));
+            const load = () => B ? Promise.resolve(B) : import("./js/backup.js?v=2").then((m) => (B = m));
             Drive.prepare();
             async function draw() {
                 await load();

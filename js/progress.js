@@ -85,7 +85,7 @@ export function buildProgress(input) {
     // 1. Class Data sets: one trajectory point per set (the mean of that student's columns), and per-standard points.
     const sets = [];
     (input.imports || []).filter((imp) => imp && imp.period === period && Array.isArray(imp.rows) && !imp.removed).forEach((imp) => {
-        const d = day(imp.date) || (imp.at ? new Date(imp.at).toISOString().slice(0, 10) : ""), vr = imp.source === "Vault Raid" || imp.source === "Assignment";   // both put the overall score first
+        const d = day(imp.date) || (imp.at ? new Date(imp.at).toISOString().slice(0, 10) : ""), vr = imp.source === "Vault Raid" || imp.source === "Assignment" || imp.source === "Fact Blitz";   // these put the overall score first
         sets.push({ id: imp.id, title: imp.title, date: d });
         imp.rows.forEach((row) => {
             const r = recOf(row.s); if (!r) return;
