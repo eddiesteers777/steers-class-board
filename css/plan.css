@@ -195,3 +195,5 @@ dialog.bp::backdrop{background:rgba(8,27,69,.45)}
 .rv-paste{flex-basis:100%;display:grid;gap:8px}
 .rv-paste .btn{justify-self:start;min-height:44px}
 .rv-day .rv-acts{margin-top:6px}
+.rv-slides{margin:10px 0 4px;padding-top:10px;border-top:1px solid rgba(127,127,127,.25)}
+.rv-slides .pw-sendp{margin:0}

@@ -18,6 +18,7 @@ import { STANDARDS } from "../data/standards.js?v=58";
 import { allPapers } from "./weekPapers.js?v=1";
 import { printPapers, saveToDrive } from "./weekPack.js?v=1";
 import * as Drive from "./drive.js?v=2";
+import { buildWeekSlides, plannedDecks } from "./weekSlides.js?v=1";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -205,8 +206,29 @@ function drawActions() {
         box.appendChild(el("p", "pw-sendp", nb ? "Fix the items marked Fix, then approve." : "Approving puts this week on the board, Planner, Library and Home for every period."));
         const ap = el("button", "btn go big", "Approve and put it on the board"); ap.type = "button"; ap.disabled = !!nb || dirty; if (dirty) ap.title = "Save your changes first"; ap.onclick = () => setApproved(true); box.appendChild(ap);
     }
+    if (approved() && plannedDecks(week).length) {
+        const sl = el("div", "rv-slides");
+        sl.appendChild(el("p", "pw-sendp", slideNote || "Approving made each lesson's slides from the plan: Today, the bellringers with answers, then the notes steps. Change them in Board Builder > Slides."));
+        const mk = el("button", "btn ghost", "Make slides for lessons that have none"); mk.type = "button"; mk.disabled = slideBusy; mk.onclick = () => makeSlides();
+        const op = el("a", "btn ghost", "Open Board Builder slides"); op.href = "studio.html" + (demo ? "?demo" : "") + "#slides"; op.style.textDecoration = "none";
+        const ra = el("div", "rv-acts"); ra.append(mk, op); sl.appendChild(ra); box.appendChild(sl);
+    }
     const pr = el("a", "btn ghost", "Change one paper in Week Builder"); pr.href = "builder.html?week=" + id + (demo ? "&demo" : ""); pr.style.textDecoration = "none"; box.appendChild(pr);
     drawPaper(); drawPages(); drawClose();
+}
+/* Slides: made from the plan for every lesson that has none (js/weekSlides.js). */
+let slideBusy = false, slideNote = "";
+async function makeSlides() {
+    if (slideBusy || !week) return; slideBusy = true; slideNote = "Making slides…"; drawActions();
+    try {
+        const r = await buildWeekSlides(store, week, (t) => { slideNote = t; const n = document.querySelector(".rv-slides .pw-sendp"); if (n) n.textContent = t; });
+        const bits = [];
+        if (r.made) bits.push("Made slides for " + r.made + (r.made === 1 ? " lesson" : " lessons"));
+        if (r.kept) bits.push(r.kept + (r.kept === 1 ? " lesson already had slides and was" : " lessons already had slides and were") + " left as " + (r.kept === 1 ? "it was" : "they were"));
+        if (r.failed) bits.push(r.failed + (r.failed === 1 ? " lesson" : " lessons") + " could not be reached. Tap Make slides to try again");
+        slideNote = (bits.join(". ") || "No lessons to make slides for") + ". Change any of them in Board Builder > Slides.";
+    } catch (e) { slideNote = "Slides were not made (" + ((e && e.code) || (e && e.message) || "connection") + "). Tap Make slides to try again."; }
+    finally { slideBusy = false; drawActions(); }
 }
 /* Paper for this week: every student paper and key, in Drive order. Print a class's set in one go, or save it all to Drive as Google Docs. */
 let paperBusy = false, paperNote = "", paperLinks = {};
@@ -457,6 +479,7 @@ async function setApproved(on) {
         await store.save("weekfiles/index", { weeks: list, at: Date.now() }); index = { weeks: list };
         if (canPublish()) { if (on) { await publishWeek(store, uid, week, plan); await saveBankWeek(store, uid, week, true); } else { await unpublishWeek(store, uid, id); await saveBankWeek(store, uid, week, false); } }
         status(demo ? "This device only" : on && canPublish() ? "On the board and Class Pages" : "Saved", "ok"); summary(); drawActions();
+        if (on) await makeSlides();   // every lesson gets its slides from the plan; lessons that already have slides are left alone
     }
     catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); }
 }
