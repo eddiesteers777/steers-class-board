@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="css/board.css?v=57">
     <link rel="stylesheet" href="css/console.css?v=58">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/builder.css?v=62">
+    <link rel="stylesheet" href="css/builder.css?v=63">
     <meta name="theme-color" content="#081B45">
     <script type="module" src="js/caleraOnly.js?v=1"></script>
 </head>
@@ -91,7 +91,7 @@
         import { watchPrivateWeeks } from "./js/weeksLive.js?v=58";
         let WEEKS = PUBLISHED;
         import { quizSheet, quizKey, modQuizSheet, modQuizKey, modStudyGuideSheet, modStudyGuideKey, modNotesSheet, modNotesKey, modHomeworkSheet, modHomeworkKey, subPlanSheet, subWorksheetSheet, sudokuSheet, pageCheck } from "./js/moreSheets.js?v=63";
-        import { DAYS, dayDate, bellringerSheet, bellringerKey, notesSheet, studyGuideSheet, studyGuideKey, speedDatingSheet, speedDatingKey } from "./js/weekSheets.js?v=59";
+        import { DAYS, dayDate, bellringerSheet, bellringerKey, notesSheet, studyGuideSheet, studyGuideKey, speedDatingSheet, speedDatingKey, homeworkSheet, homeworkKey } from "./js/weekSheets.js?v=60";
         // ?demo runs on this device only, like the guest teacher page: nothing is saved to any account.
         const demo = new URLSearchParams(location.search).has("demo");
         const store = await import(demo ? "./js/localStore.js?v=57" : "./js/boardStore.js?v=58");
@@ -193,11 +193,16 @@
         /* The fixed list plus one modified guided notes paper (and key) for each day that has them. */
         function moreList(c) {
             const out = MORE.slice(), at = MORE.findIndex((m) => m[0] === "modhw");
+            if (c.homework && (c.homework.days || []).length) {   // the class's own homework packet (8th) or extra practice (7th), first
+                const name = c.homework.file || (cid === "7th" ? "Extra Practice" : "Homework Packet (Due Thursday)"), word = cid === "7th" ? "extra practice" : "homework packet";
+                out.unshift(["hw", word.charAt(0).toUpperCase() + word.slice(1), () => true, (w, k) => homeworkSheet(w, k), "0 Weekly - " + name, null],
+                    ["hwkey", word.charAt(0).toUpperCase() + word.slice(1) + " key", () => true, (w, k) => homeworkKey(w, k), "0 Weekly - TEACHER KEY - " + name.replace(/\s*\(Due[^)]*\)/i, ""), null]);
+            }
             const days = (c.days || []).map((d, i) => [d, i]).filter(([d]) => d && d.modNotes);
             const extra = days.flatMap(([d, i]) => [
                 ["modnotes" + i, "Modified guided notes, " + DAYS[i], () => true, (w, k) => modNotesSheet(w, k, i), "Guided Notes - " + d.modNotes.title, 2, i],
                 ["modnoteskey" + i, "Modified guided notes key, " + DAYS[i], () => true, (w, k) => modNotesKey(w, k, i), "TEACHER KEY - Guided Notes - " + d.modNotes.title, null, i]]);
-            out.splice(at, 0, ...extra); return out;
+            out.splice(out.findIndex((m) => m[0] === "modhw"), 0, ...extra); return out;
         }
         function previewMore() {
             const c = cls(), host = $("morePapers"), bar = $("moreBar"); host.replaceChildren(); bar.replaceChildren(); $("pageWarn").replaceChildren();

@@ -113,6 +113,49 @@ export function bellringerKey(week, cid) {
     return sheet;
 }
 
+/* ---------- homework packet (8th) / extra practice (7th) ----------
+   Same week-file shape as tools/weekly_kit (docs.homework): homework { title, subtitle, directions, space,
+   pagePerDay, days: [{ day: "Monday", heading, example: { q, steps[] }, problems: [{ q, a, work, check, edited }] }] }. */
+const HW_TITLE = { "7th": "Weekly Extra Practice", "8th": "Weekly Homework Packet", "8th-acc": "Weekly Homework Packet" };
+export function homeworkTitle(week, cid) { const c = week.classes[cid], h = c.homework || {}; return h.title || HW_TITLE[cid] || "Homework"; }
+export function homeworkSheet(week, cid) {
+    const c = week.classes[cid], h = c.homework, sheet = el("section", "sheet hwork");
+    head(sheet, homeworkTitle(week, cid), h.subtitle || c.label + " Mathematics");
+    const name = el("p", "sh-name");
+    [["Name:", "w30"], ["Date:", "w14"], ["Period:", "w8"]].forEach(([t, w]) => { name.appendChild(el("b", null, t + " ")); name.appendChild(el("span", "rule " + w)); });
+    sheet.appendChild(name);
+    if (h.directions) sheet.appendChild(richEl("p", "sh-dir", h.directions));
+    (h.days || []).forEach((day, n) => {
+        const block = el("div", "sh-day");
+        const hd = el("h2", n && h.pagePerDay ? "newpage" : null, day.heading || (day.day || "") + " Problems"); block.appendChild(hd);
+        const ex = day.example;
+        if (ex) { const b = boxed([para(null, "Worked example: ", ex.q), ...(ex.steps || []).map((x) => para(null, "", x))]); b.classList.add("white"); block.appendChild(b); }
+        (day.problems || []).forEach((p, k) => {
+            const item = el("div", "sh-prob"); item.style.marginBottom = (h.space || 18) + "pt";
+            const q = el("p", "sh-q"); q.appendChild(el("b", null, (k + 1) + ". ")); q.appendChild(rich(p.q)); item.appendChild(q);
+            const a = el("p", "sh-ans", "Answer: "); a.appendChild(el("span", "rule w22")); item.appendChild(a);
+            block.appendChild(item);
+        });
+        sheet.appendChild(block);
+    });
+    return sheet;
+}
+export function homeworkKey(week, cid) {
+    const c = week.classes[cid], h = c.homework, sheet = el("section", "sheet key");
+    head(sheet, "TEACHER KEY: " + homeworkTitle(week, cid), c.label + " • Teacher only. Never post or link.");
+    const t = el("table", "sh-table sh-small"), hr = el("tr");
+    [["Day", "1in"], ["#", "0.4in"], ["Answer", "2.2in"], ["Work", ""]].forEach(([x, w]) => { const th = el("th", null, x); if (w) th.style.width = w; hr.appendChild(th); }); t.appendChild(hr);
+    let total = 0, checked = 0, edited = 0;
+    (h.days || []).forEach((day) => (day.problems || []).forEach((p, k) => {
+        total++; if (p.check) checked++; if (p.edited) edited++;
+        const tr = el("tr"); tr.appendChild(el("td", "d", k ? "" : day.day || "")); tr.appendChild(el("td", null, String(k + 1)));
+        tr.appendChild(richEl("td", null, p.a || "")); tr.appendChild(richEl("td", null, p.work || "")); t.appendChild(tr);
+    }));
+    sheet.appendChild(t);
+    sheet.appendChild(el("p", "sh-verify", checked + " of " + total + " answers were recomputed by a written check when the week file was built." + (edited ? " " + edited + " were changed by hand since and are NOT re-checked." : "")));
+    return sheet;
+}
+
 /* ---------- guided notes ---------- */
 function blanks(text, key) {   // [word] -> a blank for students, the bold word for the key
     const frag = document.createDocumentFragment();

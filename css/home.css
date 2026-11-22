@@ -96,3 +96,21 @@
 .aheadrow{gap:8px 14px}
 .aheadrow .aheaddate{min-width:9.5em;font-weight:600}
 .aheadrow .aheadname{flex:1}
+
+/* "This week" planning strip (js/weekFlow.js) */
+.hm-flow{margin-top:18px;background:#fff;border:1px solid rgba(14,27,58,.12);border-radius:16px;padding:12px 16px 14px}
+.hm-flow .wf-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px}
+.hm-flow h2{font-size:1.05rem;margin:2px 0}
+.hm-flow .wf-sum{margin:0;color:#4a5670;font-size:.92rem}
+.wf-steps{list-style:none;padding:0;margin:10px 0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;counter-reset:wf}
+.wf-step{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:12px;background:#F3F6FB;border:1.5px solid transparent;min-width:0}
+.wf-step .wf-mark{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.8rem;border:2px solid #B8C4DA;color:#fff}
+.wf-step .wf-tx{display:grid;min-width:0}
+.wf-step b{font-size:.92rem}
+.wf-step small{color:#4a5670;font-size:.78rem;line-height:1.25;overflow-wrap:anywhere}
+.wf-done .wf-mark{background:#1F8A4C;border-color:#1F8A4C}
+.wf-part .wf-mark{background:#F2B33D;border-color:#F2B33D;color:#3b2a00}
+.wf-next{border-color:#F2B33D;background:#FFF8E6}
+.hm-flow>.btn{margin-top:2px}
+@media (max-width:900px){.wf-steps{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:480px){.wf-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}

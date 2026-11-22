@@ -88,7 +88,7 @@
         import * as store from "./js/boardStore.js?v=58";
         import { summary, deleteEverything } from "./js/accountData.js?v=4";
         import { logout } from "./js/auth.js";
-        import * as Drive from "./js/drive.js?v=1";
+        import * as Drive from "./js/drive.js?v=2";
         import { PERIODS } from "./data/weeks.js?v=61";
         const $ = (id) => document.getElementById(id);
         const status = (t, ok) => { const s = $("status"); s.textContent = t; s.dataset.state = ok ? "ok" : (/Could not/.test(t) ? "bad" : "wait"); };

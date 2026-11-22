@@ -206,3 +206,24 @@ body.builder label.field{max-width:100%;min-width:0}
 body.builder label.field select{max-width:100%;min-width:0}
 .sheet .sh-cards .fig{width:5.2em!important;margin:.15em 0}
 .sheet .sh-cards .fig-table{font-size:8.5pt;margin:.15em 0}
+
+/* ---- Week Review: Paper for this week (js/weekPack.js, js/weekPapers.js) ---- */
+#packPrint{position:absolute;left:-12000px;top:0;width:8.5in;pointer-events:none}
+.pk-classes{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));margin:8px 0 12px}
+.pk-class h3{margin:0 0 2px}
+.pk-count{margin:0 0 6px;font-weight:600}
+.pk-list summary{cursor:pointer;font-weight:600;margin:2px 0 6px}
+.pk-list ol{margin:0 0 8px;padding-left:1.4em;font-size:.86rem;line-height:1.35;overflow-wrap:anywhere}
+.pk-list li.pk-key{opacity:.75}
+.pk-alt{display:inline-block;margin-left:6px;font-size:.72rem;font-weight:700;padding:0 6px;border-radius:999px;background:rgba(127,127,127,.18)}
+.pk-drive{display:grid;gap:6px;justify-items:start;margin:0 0 18px}
+.pk-drive .rv-extras{margin:0;max-width:70ch}
+@media print{
+    html,body,body.console.page{height:auto!important;overflow:visible!important;display:block!important;background:#fff!important}
+    body[data-print="pack"]>*:not(#packPrint){display:none!important}
+    body[data-print="pack"] #packPrint{position:static;left:auto;width:auto}
+    body[data-print="pack"] .pk-paper{break-before:page}
+    body[data-print="pack"] .pk-paper:first-child{break-before:auto}
+    body[data-print="pack"] .sheet{width:auto;padding:0;box-shadow:none;border-radius:0;max-width:none}
+    body[data-print="pack"] .sheet h2.newpage,body[data-print="pack"] .sheet .sh-btitle.newpage,body[data-print="pack"] .sheet .sh-ptitle.newpage{border-top:0!important;padding-top:0!important;margin-top:0!important}
+}
