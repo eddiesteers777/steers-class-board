@@ -13,7 +13,7 @@
 import { login } from "./auth.js";
 import { googleSignInReady } from "./googleSignIn.js";
 import { trail } from "./signInTrail.js";
-import { showLoader, hideLoader } from "./anchorLoader.js?v=1";
+import { showLoader, hideLoader } from "./anchorLoader.js?v=2";
 
 export function wireSignIn(button, note) {
     const say = (t) => { note.textContent = t; };

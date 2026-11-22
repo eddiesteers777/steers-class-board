@@ -140,6 +140,7 @@
         import * as store from "./js/boardStore.js?v=58";
         import { PACK, SETUP } from "./data/weeks.js?v=61";
         import { saveSetup, cleanSetup } from "./js/contentPack.js?v=2";
+        import { showLoader, loaderStep, loaderDone, hideLoader, atLeast } from "./js/anchorLoader.js?v=2";
 
         const $ = (id) => document.getElementById(id);
         const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
@@ -220,10 +221,22 @@
                 bellRows();
             }
             if (at === 3 && n === 4) {
+                // The finish (2026-11-22): "Building your board", each real step ticking off as it is done.
+                const nClasses = current(true).classes.length;
+                showLoader("This takes a few seconds.", { title: "Building your board", steps: [
+                    "Saving your classes", "Setting your bell times", nClasses > 1 ? "Adding the sample lesson to all " + nClasses + " classes" : "Adding the sample lesson", "Getting the Board ready" ] });
+                const stop = (m) => { hideLoader(); $("msg3").textContent = m; $("msg3").className = "msg bad"; };
+                await atLeast(500, Promise.resolve()); loaderStep(0);
                 let have = false;
-                if (!skipBells) { const r = await saveBells(); if (r === null) return; have = r; }
-                else have = await bellsSet();
-                if (!(await save(true))) { $("msg3").textContent = "Could not save. Check the connection and try again."; $("msg3").className = "msg bad"; return; }
+                if (!skipBells) { const r = await atLeast(600, saveBells()); if (r === null) { hideLoader(); return; } have = r; }
+                else have = await atLeast(600, bellsSet());
+                loaderStep(1);
+                if (!(await atLeast(700, save(true)))) { stop("Could not save. Check the connection and try again."); return; }
+                loaderStep(2);
+                // Fetch the Board's page and code now, so it opens at once from the next button.
+                await atLeast(600, Promise.all(["board.html", "remote.html"].map((u) => fetch(u).catch(() => null))));
+                await loaderDone("Put it on your projector and run it from this device.", "Your board is ready");
+                hideLoader();
                 $("todoBells").querySelector("i").className = have ? "ok" : ""; $("todoBells").querySelector("a").hidden = have;
                 const c = current(true).classes[0]; $("firstClass").textContent = c ? "Sample week · " + c.p + " period, " + c.label : "Sample week";
             }

@@ -34,14 +34,18 @@ form.addEventListener("submit", async (e) => {
     if (at < steps.length - 1) { show(at + 1); return; }
     if (val("website")) { done(); return; }   // a bot filled the hidden field
     next.disabled = true; msg.classList.remove("err"); msg.textContent = "Saving...";
+    const L = await import("../js/anchorLoader.js?v=2").catch(() => null);   // the anchor while it saves (2026-11-22)
+    if (L) L.showLoader("Saving your spot…");
     try {
         const { saveSignup } = await import("./waitlist.js?v=1");
         await saveSignup({
             grades: picked("grades"), subject: val("subject").slice(0, 60), board: picked("board"), device: picked("device"),
             email: val("email").slice(0, 120).toLowerCase(), name: val("name").slice(0, 40), note: val("note").slice(0, 500)
         });
+        if (L) { await L.loaderDone("We'll email you when there's a spot.", "You're on the list"); L.hideLoader(); }
         done();
     } catch (err) {
+        if (L) L.hideLoader();
         console.error(err);
         msg.classList.add("err");
         msg.textContent = "That didn't save. Check your connection and try again.";
