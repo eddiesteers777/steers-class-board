@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="css/board.css?v=57">
     <link rel="stylesheet" href="css/console.css?v=58">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/home.css?v=58">
+    <link rel="stylesheet" href="css/home.css?v=59">
     <link rel="stylesheet" href="css/footer.css?v=2">
     <meta name="theme-color" content="#081B45">
     </head>
@@ -74,6 +74,7 @@
         </section>
 
         <div class="hm-glance" id="glance" aria-live="polite"></div>
+        <section class="hm-flow" id="weekflow" aria-label="This week's planning" hidden></section>
         <div class="hm-needs" id="needs" hidden></div>
         <h2 id="todayTitle">Today, period by period</h2>
         <p class="sub" id="todayExtra" hidden></p>
@@ -139,6 +140,7 @@
         if (PACK === "calera") { const sl = document.getElementById("setupLink"); if (sl) sl.hidden = true, sl.style.display = "none"; }
         import { watchPrivateWeeks } from "./js/weeksLive.js?v=58";
         import { closeoutItems, closeoutSummary, closeoutDue } from "./js/closeout.js?v=3";
+        import { mountWeekFlow } from "./js/weekFlow.js?v=1";
         let WEEKS = PUBLISHED;
         // A new teacher (starter pack) doesn't get Mr. Steers' Calera planning pages yet: they are built
         // around his classes, calendar and Alabama standards (js/contentPack.js).
@@ -390,6 +392,7 @@
         if (!user) location.replace("login.html");
         else {
             $("who").textContent = "Signed in as " + (user.name || "teacher");
+            if (PACK === "calera") mountWeekFlow(store, $("weekflow"), PUBLISHED, todayIso);   // where the week being planned stands: plan, built, approved, slides, printed, parents
             watchPrivateWeeks(store, PUBLISHED, (list) => { WEEKS = list; week = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= todayIso) week = w; coRefresh(); statuses(todayIso); render(); });
             store.watch("weekfiles/index", (s) => { if (s.pending) return; coIndex = (s.exists && s.data) || { weeks: [] }; coRefresh(); statuses(todayIso); }, () => {});
             store.watch("settings/closeout", (s) => { if (s.pending) return; coSet = (s.exists && s.data) || {}; coRefresh(); statuses(todayIso); }, () => {});
