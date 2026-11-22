@@ -13,6 +13,11 @@
    students' codes never reach a student's device. Keep the Remote open while a game runs.
    Closing the room deletes rooms/{code} and everything under it.
    Each student's result is saved to Class Data only when the teacher turns that on.
+
+   Fact Blitz can be picked here too (the switch at the top of the panel). The check on the board is
+   teacher/{uid}/games/fact { id, code, title, … }; the check itself is Fact Blitz's (flu/…, js/fluencyKeep.js).
+   The Remote and the board both run Fact Blitz's keeper while a check is up, so clocks (with extra time)
+   and scores keep flowing as long as either one is open.
 ========================================== */
 import * as V from "./vaultCore.js?v=75";
 import * as PC from "./profileCore.js?v=2";
@@ -57,17 +62,17 @@ const lkMe = (p) => { const s = livePf(p); return s ? { xp: s.xp, lv: s.lv, b: s
 const rosterShort = () => V.shortNames((A.rosters()[H.per] || []).filter(Boolean));
 let SETS = null, setsWatched = false, note = "", busy = "", tab = "players", dtab = "report", peek = "", endArm = 0, resetArm = 0;
 let saveTimer = 0, lastSave = 0, panelSig = "", panelAt = 0, padWatch = null, padFor = "", PAD = null;
-const choice = { set: (() => { try { return new URLSearchParams(location.search).get("vset") || ""; } catch (e) { return ""; } })(), mins: 10, names: "roster", board: true, save: false, live: false, work: true, retry: true, steps: true, slow: true, snd: true, comeback: true, sab: true, dj: true, goal: "auto", prof: true };
+const choice = { set: (() => { try { return new URLSearchParams(location.search).get("vset") || ""; } catch (e) { return ""; } })(), mins: 10, names: "roster", board: true, save: false, live: false, work: true, retry: true, steps: true, slow: true, snd: true, comeback: true, sab: true, dj: true, goal: "auto", prof: true, game: (() => { try { return localStorage.getItem("anchorboard-live-game") === "fact" ? "fact" : "vault"; } catch (e) { return "vault"; } })() };
 
 export function mountLive(api) { A = api; }
-export const liveSig = () => rev + "#" + loaded + "#" + hosting + "#" + (PAD ? PAD.it : "");
+export const liveSig = () => rev + "#" + loaded + "#" + hosting + "#" + (PAD ? PAD.it : "") + "#" + fbRev;
 const onLive = () => A && A.S.screen === "live";
 const isRemote = () => A.mode() === "remote";
 const running = () => H && (H.status === "lobby" || H.status === "play");
 const joinUrl = () => location.host + "/" + JOIN_PATH;
 /** A QR code that opens the student page with this game's code already typed in. */
-function qrSvg(code) {
-    const q = qrcode(0, "M"); q.addData(location.origin + "/play.html?code=" + code); q.make();
+function qrSvg(code, url) {
+    const q = qrcode(0, "M"); q.addData(url || location.origin + "/play.html?code=" + code); q.make();
     const n = q.getModuleCount(), m = 2, NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg");
     svg.setAttribute("viewBox", "0 0 " + (n + 2 * m) + " " + (n + 2 * m)); svg.setAttribute("shape-rendering", "crispEdges");
     svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "QR code to join game " + code);
@@ -101,6 +106,7 @@ export function syncLive() {
     }
     watchCmd();
     watchPad();
+    fbWatch();
 }
 /* ---------- moves made on a screen that isn't running the game ----------
    Only the Remote running the game writes the game. When the board (or another Remote)
@@ -822,6 +828,7 @@ function roomDoc() {
 async function openRoom() {
     const meta = (SETS || []).find((s) => s.id === choice.set); if (!meta || busy) return;
     busy = "open"; note = ""; panelSig = ""; drawLivePanel(true);
+    if (FB) fbOff();   // Vault Raid takes the board
     try {
         const set = await A.store().rooms.get("teacher/" + A.store().rooms.uid() + "/games/s_" + meta.id);
         const qs = []; ((set && set.cats) || []).forEach((c) => (c.clues || []).forEach((k) => { if (k && k.q && k.a) qs.push(V.gameQuestion(k, c.n)); }));
@@ -1207,6 +1214,7 @@ function nowPlaying() {
 export function drawLiveStage(st) {
     const per = A.S.period + " period";
     if (!loaded) { st.append(A.header("Student Game", per), el("div", "gbody")); return; }
+    if (!H && FB) { drawFactStage(st); return; }
     if (!H) {
         st.append(A.header("Student Game", per));
         const e = el("div", "empty"); e.append(el("b", null, "No student game is open."), document.createTextNode(isRemote() ? "Pick a question set in the panel beside the board to open one. Students join on their Chromebooks with a code." : "Open one from the Remote."));
@@ -1480,6 +1488,8 @@ function reportPanel(p) {
     p.append(t);
 }
 function setupPanel(p) {
+    gameSwitch(p);
+    if (choice.game === "fact") { factPanel(p); return; }
     const intro = el("div", "vrhero s-setup"), pill = el("span", "vrpill"); pill.append(el("i"), document.createTextNode("Student game"));
     const how = el("details", "vrhow"); how.append(el("summary", null, "How it works"), el("p", null, "Students play on their Chromebooks with a game code and their name. No sign-in. Right answers earn coins and hacks; a hack guesses a classmate's 3-digit vault code to take some of their coins. Each question has a pad to show their work, which you can see here and put on the board."));
     const tt = el("div", "vrhtop"); tt.append(pill); intro.append(tt, el("p", "vrhbig", "Vault Raid"), el("p", "vrhsub", "Chromebooks, a code and a name. No sign-in."), how); p.append(intro);
@@ -1559,4 +1569,135 @@ function workGrid(p) {
         grid.append(b);
     });
     p.append(grid);
+}
+
+/* ---------- Fact Blitz on the Student Game screen ----------
+   teacher/{uid}/games/fact holds the check on the board ({ id: "" } when none). The check is Fact Blitz's own
+   (opened here or on the Fact Blitz page). The keeper (js/fluencyKeep.js) loads only when Fact Blitz is used. */
+let FB = null, fbRev = 0, fbWatched = false, FK = null, FX = null, fkLoading = false, fbT = 0;
+const fbDraft = { mode: "check", set: "", top: 12, secs: 0, all: false };
+function fbWatch() {
+    if (fbWatched || !A.signedIn() || A.mode() === "sub") return; fbWatched = true;
+    if (isRemote() && choice.game === "fact") fkEnsure();
+    A.store().watch("games/fact", (snap) => {
+        if (snap.pending) return;
+        const was = FB ? FB.id : "";
+        FB = snap.exists && snap.data && snap.data.id ? snap.data : null;
+        if (FB) { fkEnsure(); if (FB.id !== was && isRemote()) choice.game = "fact"; }
+        fbRev++; panelSig = ""; A.redraw();
+    }, () => {});
+}
+function fkEnsure() {
+    if (FK || fkLoading) return; fkLoading = true;
+    Promise.all([import("./fluencyKeep.js?v=1"), import("./factCore.js?v=1")]).then(([m, f]) => {
+        FX = f; fkLoading = false;
+        FK = m.createKeeper({ store: A.store(), rooms: A.store().rooms, periods: () => null, onChange: fbChanged, onErr: (msg) => { note = msg; fbChanged(); } });
+        fbChanged();
+    }, () => { fkLoading = false; note = "Couldn't load Fact Blitz. Check the connection, then pick it again."; fbChanged(); });
+}
+// students' runs change often while they play: redraw at most every few tenths of a second
+function fbChanged() { if (fbT) return; fbT = setTimeout(() => { fbT = 0; fbRev++; panelSig = ""; A.redraw(); drawLivePanel(true); }, 300); }
+function setGame(g) {
+    choice.game = g; try { localStorage.setItem("anchorboard-live-game", g); } catch (e) { /* private window */ }
+    if (g === "fact") fkEnsure();
+    note = ""; panelSig = ""; drawLivePanel(true);
+}
+function gameSwitch(p) {
+    const row = el("div", "vrboardsw vrgamesw"), seg = el("div", "vrtabs");
+    [["vault", "Vault Raid"], ["fact", "Fact Blitz"]].forEach(([k, label]) => { const b = btn("btn " + (choice.game === k ? "go" : "ghost"), label, () => setGame(k)); b.setAttribute("aria-pressed", String(choice.game === k)); seg.append(b); });
+    row.append(el("small", null, "GAME"), seg); p.append(row);
+}
+async function fbShow(x) {
+    const doc = { id: x.id, code: x.code, title: x.title, mode: x.mode, set: x.set, top: x.top || 12, secs: x.secs, at: Date.now() };
+    FB = doc; fbRev++; panelSig = ""; A.redraw();
+    try { await A.store().save("games/fact", doc); } catch (e) { note = "Couldn't put it on the board (" + ((e && e.code) || "connection") + ")."; panelSig = ""; A.redraw(); }
+}
+function fbOff() { FB = null; fbRev++; panelSig = ""; A.store().save("games/fact", { id: "", at: Date.now() }).catch(() => {}); A.redraw(); }
+async function fbOpen() {
+    if (busy || !FK) return;
+    const per = A.S.period, periods = fbDraft.all ? FK.periodsWithRoster() : FK.rosterOf(per).length ? [per] : [];
+    if (!periods.length) { note = fbDraft.all ? "Add your class lists on the Rosters page first: students pick their name from them." : "There is no class list for " + per + " period. Add one on the Rosters page first: students pick their name from it."; panelSig = ""; drawLivePanel(true); return; }
+    busy = "fact"; note = ""; panelSig = ""; drawLivePanel(true);
+    try {
+        const d = await FK.openCheck({ mode: fbDraft.mode, set: fbDraft.set, top: fbDraft.top, secs: fbDraft.secs, goal: +((FK.D.setup && FK.D.setup.goal) || FX.DEFAULTS.goal), tries: 1, counts: "first", periods, title: "" });
+        await fbShow(d);
+    } catch (e) { note = "Couldn't open it (" + ((e && e.code) || "connection") + ")."; }
+    busy = ""; panelSig = ""; drawLivePanel(true);
+}
+async function fbClose(d) {
+    if (busy) return; busy = "factclose"; panelSig = ""; drawLivePanel(true);
+    try { await FK.setStatus(d, "closed"); fbOff(); } catch (e) { note = "Couldn't close it (" + ((e && e.code) || "connection") + "). Try again."; }
+    busy = ""; panelSig = ""; drawLivePanel(true);
+}
+/** Joined / playing / done for the board's class (or the whole check when this class isn't in it). Counts only, never names. */
+function fbCounts(d) {
+    const rows = FK.rowsOf(d), mine = (d.periods || []).includes(A.S.period) ? rows.filter((r) => r.per === A.S.period) : rows;
+    return { of: mine.length, in: mine.filter((r) => r.state !== "none").length, playing: mine.filter((r) => r.state === "playing").length, done: mine.filter((r) => r.state === "done" || r.state === "practiced").length };
+}
+const fbFacts = (x) => (FX ? FX.setName(x.set) : "Facts") + " · up to " + (x.top || 12) + " · " + (FX ? FX.fmtSecs(x.secs) : Math.round((x.secs || 0) / 60) + " min");
+function factPanel(p) {
+    fkEnsure();
+    const on = FB && FK ? FK.def(FB.id) : null, x = on || FB;
+    const intro = el("div", "vrhero " + (FB ? (on && on.status !== "open" ? "s-done" : "s-lobby") : "s-setup")), pill = el("span", "vrpill"), tt = el("div", "vrhtop");
+    pill.append(el("i"), document.createTextNode(FB ? (on && on.status !== "open" ? "Closed" : "On the board") : "Student game"));
+    tt.append(pill); if (FB) tt.append(el("span", "vrhcode", "Code " + FB.code));
+    intro.append(tt);
+    if (FB) {
+        intro.append(el("p", "vrhtitle", x.title || "Fact Blitz"), el("p", "vrhbig", "Fact Blitz"), el("p", "vrhsub", (x.mode === "check" ? "Speed check" : "Practice") + " · " + fbFacts(x)));
+        if (on && FK) { const c = fbCounts(on), st = el("div", "vrhstats"); [[c.in + "/" + c.of, "joined"], [c.playing, "playing"], [c.done, "done"]].forEach(([v, l]) => { const s = el("span"); s.append(el("b", null, String(v)), el("small", null, l)); st.append(s); }); intro.append(st); }
+    } else {
+        const how = el("details", "vrhow"); how.append(el("summary", null, "How it works"), el("p", null, "Students go to " + location.host + "/fact on their Chromebooks, type the code and pick their name. No sign-in. Each run is timed and stops on its own. Answers check themselves as they type. A Speed check's score goes to the Gradebook (Add scores) and Student Progress, and every run goes on the student's profile."));
+        intro.append(el("p", "vrhbig", "Fact Blitz"), el("p", "vrhsub", "Timed math facts. A code and a name. No sign-in."), how);
+    }
+    p.append(intro);
+    if (!FK || !FK.D.index || !FK.D.rosters) { p.append(el("p", "gpnote", "Getting your Fact Blitz checks…")); return; }
+    const page = el("a", "btn ghost gplink", "Scores, extra time and progress: Fact Blitz page"); page.href = "fluency.html";
+    if (FB) {
+        const acts = el("div", "gpcol");
+        if (on && on.status === "open") acts.append(btn("btn go vrbig", busy === "factclose" ? "Closing…" : "Close the check", () => fbClose(on)));
+        acts.append(btn("btn ghost", "Take it off the board", fbOff));
+        p.append(acts, el("p", "gpnote", "Keep this Remote or the board open while students play. That's what sends each student their clock (with any extra time) and saves the scores."), page);
+        return;
+    }
+    const open = FK.D.index.filter((y) => y.status === "open");
+    if (open.length) {
+        p.append(sec("Open checks"));
+        const rows = el("div", "gprows");
+        open.slice(0, 6).forEach((y) => { const r = el("div", "gprow vrfbrow"), t = el("div"); t.append(el("b", "gpname", y.title), el("small", "vrsub", (y.mode === "check" ? "Speed check" : "Practice") + " · code " + y.code + " · " + (y.periods || []).join(", "))); r.append(t, btn("btn go vrcall", "Show on board", () => fbShow(y))); rows.append(r); });
+        p.append(rows);
+    }
+    p.append(sec(open.length ? "Or open a new one" : "Open a speed check"));
+    if (!fbDraft.set) { const last = FK.D.index[0] || {}; fbDraft.set = last.set || FX.DEFAULTS.set; fbDraft.top = last.top || 12; }
+    if (!fbDraft.secs) fbDraft.secs = fbDraft.mode === "check" ? 120 : 60;
+    const row = (label, ctl) => { const l = el("label", "gpchk vrfield"); l.append(el("span", null, label), ctl); return l; };
+    const pick = (opts, val, fn) => { const s = el("select"); opts.forEach(([v, t]) => { const o = el("option", null, t); o.value = String(v); s.append(o); }); s.value = String(val); s.onchange = () => { fn(s.value); panelSig = ""; drawLivePanel(true); }; return s; };
+    p.append(row("Kind", pick([["check", "Speed check (for a grade)"], ["practice", "Practice (no grade)"]], fbDraft.mode, (v) => { fbDraft.mode = v; fbDraft.secs = v === "check" ? 120 : 60; })),
+        row("Facts", pick(FX.SETS.map((s) => [s[0], s[1]]), fbDraft.set, (v) => { fbDraft.set = v; })),
+        row("Up to", pick([[12, "12 × 12"], [10, "10 × 10"]], fbDraft.top, (v) => { fbDraft.top = +v; })),
+        row("Time on the clock", pick(FX.TIMES.map((t) => [t, (t / 60) + (t === 60 ? " minute" : " minutes")]), fbDraft.secs, (v) => { fbDraft.secs = +v; })),
+        row("Classes", pick([["one", A.S.period + " period"], ["all", "All my classes"]], fbDraft.all ? "all" : "one", (v) => { fbDraft.all = v === "all"; })));
+    const xt = Object.keys((FK.D.setup && FK.D.setup.xt) || {}).length;
+    p.append(el("p", "gpnote", (xt ? xt + (xt === 1 ? " student has" : " students have") + " extra time from the Fact Blitz page; it's used here too. " : "Extra time is set per student on the Fact Blitz page. ") + (fbDraft.mode === "check" ? "Goal: " + ((FK.D.setup && FK.D.setup.goal) || FX.DEFAULTS.goal) + " right a minute, 1 try." : "")));
+    const go = btn("btn go vrbig", busy === "fact" ? "Opening…" : "Open it and show on the board", fbOpen); go.disabled = !!busy; p.append(go, page);
+}
+/** The board: where to go, the code, a QR code and how many are in. No names. */
+function drawFactStage(st) {
+    const d = FK ? FK.def(FB.id) : null, x = d || FB, closed = d && d.status !== "open";
+    st.append(A.header("Fact Blitz", x.title || "Fact Blitz"));
+    const body = el("div", "gbody vr fbstage"), join = el("div", "vrjoin"), how = el("div", "vrhow");
+    if (closed) {
+        const box = el("div", "gdone"); box.append(el("p", "gwinlab", "Fact Blitz"), el("p", "gwin", "This check is closed."));
+        if (FK) { const c = fbCounts(d); box.append(el("p", "vrclass", c.done + " of " + c.of + " finished")); }
+        body.append(box); st.append(body); return;
+    }
+    how.append(el("p", "vrlab", "Go to"), el("p", "vrurl", location.host + "/fact"), el("p", "vrlab", "Code"), el("p", "vrcode", FB.code.slice(0, 3) + " " + FB.code.slice(3)));
+    const who = el("div", "vrwho"), head = el("div", "vrwhohead"), qr = el("div", "vrqr");
+    qr.append(qrSvg(FB.code, location.origin + "/fact.html?c=" + FB.code), el("p", null, "Scan to join"));
+    const c = d && FK ? fbCounts(d) : null;
+    head.append(qr, el("p", "vrcount", c ? c.in + (c.in === 1 ? " student is in" : " students are in") : "Waiting for students"));
+    who.append(head);
+    if (c) { const bars = el("div", "fbstats"); [[c.playing, "playing now"], [c.done, "finished"]].forEach(([v, l]) => { const s = el("div"); s.append(el("b", null, String(v)), el("span", null, l)); bars.append(s); }); who.append(bars); }
+    who.append(el("p", "fbkind", (x.mode === "check" ? "Speed check" : "Practice") + " · " + fbFacts(x)),
+        el("p", "vrrule", "Pick your name and press Start. Type each answer: it checks itself. Your clock stops on its own."));
+    join.append(how, who); body.append(join); st.append(body);
 }

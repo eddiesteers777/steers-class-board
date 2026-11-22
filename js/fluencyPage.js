@@ -15,6 +15,7 @@
    ?demo: made-up students in this tab only, nothing is saved.
 ========================================== */
 import * as F from "./factCore.js?v=1";
+import { createKeeper } from "./fluencyKeep.js?v=1";
 import * as PC from "./profileCore.js?v=2";
 import { shortNames } from "./vaultCore.js?v=75";
 import { lineChart, sparkline } from "./charts.js?v=1";
@@ -24,7 +25,6 @@ const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "button"; if (fn) b.onclick = fn; return b; };
 const remember = (k, v) => { try { if (v === undefined) return localStorage.getItem("anchorboard-flu-" + k); localStorage.setItem("anchorboard-flu-" + k, v); } catch (e) { return null; } return null; };
-const uidOf = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const ago = (ms) => { if (!ms) return "–"; const m = Math.round((Date.now() - ms) / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : new Date(ms).toLocaleDateString([], { month: "short", day: "numeric" }); };
 const fmtDay = (d) => { const t = new Date(d + "T12:00:00"); return isNaN(t) ? d : t.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }); };
 const joinUrl = (code) => location.origin + "/fact.html?c=" + code;
@@ -45,146 +45,30 @@ export async function mountFluency() {
     $("who").textContent = demo ? "Sample students, nothing is saved" : "Signed in as " + user.name;
 
     const S = { view: remember("view") || "checks", id: "", draft: null, per: remember("per") || "", set: remember("set") || "", err: "", kid: "" };
-    const D = { rosters: null, index: null, defs: new Map(), entries: new Map(), sent: new Map(), setup: null, profiles: new Map(), synced: new Map() };
     let drawT = 0; const soon = () => { clearTimeout(drawT); drawT = setTimeout(draw, 60); };
 
     if (demo) await seedDemo(store, rooms);
-    store.watch("rosters/all", (s) => { if (s.pending) return; D.rosters = (s.exists && s.data && s.data.periods) || {}; soon(); }, () => { D.rosters = {}; soon(); });
-    store.watch("flu/index", (s) => { if (s.pending) return; D.index = ((s.exists && s.data && s.data.list) || []).filter((x) => x && x.id); status(demo ? "Sample data" : "Live", "ok"); soon(); }, (e) => status("Could not load (" + ((e && e.code) || "error") + ")", "bad"));
-    D.setup = { xt: {} };   // until flu/setup arrives: nobody has extra time yet, and pushClocks waits for the real one
-    let setupIn = false;
-    store.watch("flu/setup", (s) => { if (s.pending) return; setupIn = true; D.setup = (s.exists && s.data) || { xt: {} }; D.setup.xt = D.setup.xt || {}; pushClocksAll(); soon(); }, () => { setupIn = true; });
+    // The clocks, saving and opening/closing live in js/fluencyKeep.js, shared with the Student Game screen on the Remote and board.
+    const K = createKeeper({ store, rooms, periods: () => PER, onChange: soon,
+        onIndex: (ok, e) => { if (ok) status(demo ? "Sample data" : "Live", "ok"); else status("Could not load (" + ((e && e.code) || "error") + ")", "bad"); },
+        onErr: (m) => { S.err = m; soon(); } });
+    const D = K.D, def = K.def, rowsOf = K.rowsOf, rosterOf = K.rosterOf, periodsWithRoster = K.periodsWithRoster, xtOf = K.xtOf, autoTitle = K.autoTitle;
+    const syncSoon = K.syncSoon, pushClocksAll = K.pushClocksAll;
 
     let slow = false;
     setTimeout(() => { if (!D.index) { slow = true; status("Slow connection…", "wait"); draw(); } }, 2500);
-    const rosterOf = (p) => shortNames(((D.rosters || {})[p] || []).filter(Boolean));
-    const periodsWithRoster = () => (PER ? PER.map((p) => p[0]) : Object.keys(D.rosters || {}).sort((a, b) => (parseInt(a, 10) || 99) - (parseInt(b, 10) || 99))).filter((p) => rosterOf(p).length);
-    const xtOf = (per, nm) => { const x = +((D.setup && D.setup.xt) || {})[per + "|" + nm] || 1; return F.EXTRA.includes(x) ? x : 1; };
-
-    /* ---------- one check: its private copy, and its students' entries while it is open ---------- */
-    function def(id) {
-        if (!D.defs.has(id)) { D.defs.set(id, null); store.watch("flu/a_" + id, (s) => { if (s.pending) return; if (s.exists) { D.defs.set(id, s.data); watchEntries(s.data); } soon(); }, () => {}); }
-        return D.defs.get(id);
-    }
-    const unsubs = new Map();
-    function watchEntries(d) {
-        if (!d || !d.code || d.removed || unsubs.has(d.id)) return;
-        const u1 = rooms.watchAll("flu/" + d.code + "/p", (list) => { D.entries.set(d.id, list); pushClocks(d); syncSoon(d.id); soon(); }, () => {});
-        const u2 = rooms.watchAll("flu/" + d.code + "/s", (list) => { const m = new Map(); list.forEach((x) => m.set(x.id, x.data)); D.sent.set(d.id, m); pushClocks(d); }, () => {});
-        unsubs.set(d.id, () => { u1(); u2(); });
-    }
-    // open checks keep their entries live from any view, so students joining always get their clock
-    let watchedIndex = "";
-    function watchOpen() {
-        const sig = (D.index || []).filter((x) => x.status === "open").map((x) => x.id).join(",");
-        if (sig === watchedIndex) return; watchedIndex = sig;
-        (D.index || []).filter((x) => x.status === "open").forEach((x) => def(x.id));
-    }
-
-    /** Send each student who joined their own clock (extra time) and tries. Only what changed is written. */
-    async function pushClocks(d) {
-        if (!d || d.status !== "open" || !setupIn) return;   // never send a clock before the extra-time list is in
-        const ents = D.entries.get(d.id) || [], sent = D.sent.get(d.id) || new Map(), writes = [];
-        ents.forEach(({ id, data }) => {
-            if (!data || !data.nm) return;
-            const want = { x: xtOf(data.per, data.nm), rt: Math.max(1, +d.tries || 1) + (+((d.more || {})[data.per + "|" + data.nm]) || 0) };
-            const have = sent.get(id);
-            if (!have || have.x !== want.x || have.rt !== want.rt) { writes.push({ path: "flu/" + d.code + "/s/" + id, data: want }); sent.set(id, want); }
-        });
-        D.sent.set(d.id, sent);
-        if (writes.length) { try { await rooms.many(writes); } catch (e) { writes.forEach((w) => sent.delete(w.path.split("/").pop())); } }
-    }
-    function pushClocksAll() { (D.index || []).filter((x) => x.status === "open").forEach((x) => { const d = D.defs.get(x.id); if (d) pushClocks(d); }); }
-
-    /** Every student on the check's lists, with their runs scored. */
-    function rowsOf(d) {
-        const ents = D.entries.get(d.id) || [], out = [];
-        (d.periods || []).forEach((per) => {
-            const names = (d.names || {})[per] || [];
-            const mine = ents.filter((e) => e.data && e.data.per === per);
-            names.forEach((nm, ni) => {
-                const es = mine.filter((e) => e.data.ni === ni || (e.data.ni < 0 && PC.normName(e.data.nm) === PC.normName(nm)));
-                const runs = es.flatMap((e) => (e.data.runs || []).map((r) => Object.assign({ who: e.id }, r))).sort((a, b) => (a.t0 || 0) - (b.t0 || 0));
-                out.push(rowFor(d, per, ni, nm, runs, es.length > 0));
-            });
-        });
-        return out;
-    }
-    function rowFor(d, per, ni, nm, runs, joined) {
-        const now = Date.now(), counted = d.mode === "check" ? F.countedRun(runs, d.counts, d.goal) : null;
-        const live = runs.find((r) => !r.end && (r.t0 || 0) + (r.s || 0) * 1000 + 5000 > now);
-        // a check still being played has no score or grade yet (the live count shows as "12…")
-        const sc = counted && !(live && live.id === counted.id) ? F.scoreRun(counted) : null;
-        const prac = runs.filter((r) => r.md === "p" && (r.end || (r.t0 || 0) + (r.s || 0) * 1000 < now));
-        const bestP = prac.map((r) => F.scoreRun(r)).sort((a, b) => b.r - a.r)[0] || null;
-        const state = live ? "playing" : counted ? (counted.end ? "done" : "left") : prac.length ? "practiced" : joined ? "joined" : "none";
-        return { per, ni, nm, key: per + "|" + nm, runs, counted, sc, g: sc ? F.gradeOf(sc, d.goal, counted.b) : null, state, live, prac: prac.length, bestP, xt: xtOf(per, nm),
-            more: +((d.more || {})[per + "|" + nm]) || 0 };
-    }
-
-    /* ---------- saving: Class Data (so the Gradebook and Student Progress have it) and profiles ---------- */
-    const syncT = new Map();
-    function syncSoon(id, now) { clearTimeout(syncT.get(id)); syncT.set(id, setTimeout(() => syncNow(id), now ? 200 : 5000)); }
-    async function syncNow(id) {
-        const d = D.defs.get(id); if (!d || d.removed) return;
-        const rows = rowsOf(d), now = Date.now();
-        const finished = (r) => r.end || (r.t0 || 0) + (r.s || 0) * 1000 + 5000 < now;
-        const sig = JSON.stringify(rows.map((r) => [r.key, r.runs.filter(finished).map((x) => x.id + ":" + (x.lg || []).length)]));
-        if (D.synced.get(id + "|sig") === sig) return;
-        try {
-            const day = new Date(d.opened || d.at || now), dayS = day.getFullYear() + "-" + ("0" + (day.getMonth() + 1)).slice(-2) + "-" + ("0" + day.getDate()).slice(-2);
-            // 1. Class Data, one set per period (Speed checks only)
-            if (d.mode === "check") {
-                const ix = await getDoc("data/index"); let imports = (ix && ix.imports) || [];
-                for (const per of d.periods || []) {
-                    const rs = rows.filter((r) => r.per === per && r.sc && r.counted && finished(r.counted));
-                    if (!rs.length) continue;
-                    const imp = { id: "fb" + d.id + "_" + PC.perKey(per), title: "Fact Blitz: " + d.title, std: "", skill: F.setName(d.set) + " facts", date: dayS, source: "Fact Blitz", period: per,
-                        items: ["Score (of goal)", "Accuracy"],
-                        rows: rs.map((r) => ({ s: r.nm, v: [Math.round(r.g * 1e4) / 1e4, Math.round(r.sc.acc * 1e4) / 1e4], pm: one(r.sc.pm), right: r.sc.r })), at: now };
-                    await store.save("data/i_" + imp.id, imp);
-                    imports = imports.filter((x) => x && x.id !== imp.id).concat([{ id: imp.id, title: imp.title, std: "", skill: imp.skill, date: dayS, source: "Fact Blitz", period: per, n: imp.rows.length, items: 2 }]);
-                }
-                await store.save("data/index", { imports, at: now });
-            }
-            // 2. Profiles: every finished run, once each (factCore.addRun skips a run it already has)
-            for (const per of d.periods || []) {
-                const rs = rows.filter((r) => r.per === per && r.runs.some(finished)); if (!rs.length) continue;
-                await rooms.tx("teacher/" + rooms.uid() + "/profiles/" + PC.perKey(per), (cur) => {
-                    const kids = Object.assign({}, (cur && cur.kids) || {}); let changed = false;
-                    rs.forEach((r) => {
-                        const k = PC.kidKey(r.nm); if (!k) return;
-                        const kid = PC.cleanKid(kids[k], r.nm);
-                        r.runs.filter(finished).forEach((run) => {
-                            const got = F.addRun(kid.fl, d.set, Object.assign({}, run, { id: d.id + "." + run.id }), dayS);
-                            if (got.added) { kid.fl = got.fl; kid.xp += got.xp; changed = true; }
-                        });
-                        kids[k] = kid;
-                    });
-                    return changed ? { v: 1, per: String(per).slice(0, 20), kids, at: Date.now() } : null;
-                });
-            }
-            // 3. a small summary on the check itself, for the list
-            const done = rows.filter((r) => r.sc);
-            d.res = { n: rows.length, played: rows.filter((r) => r.runs.length).length, done: done.length, avgR: done.length ? done.reduce((s, r) => s + r.sc.r, 0) / done.length : null, at: now };
-            await store.save("flu/a_" + d.id, JSON.parse(JSON.stringify(d)));
-            D.synced.set(id, now); D.synced.set(id + "|sig", sig); soon();
-        } catch (e) { S.err = "Couldn't save the results yet (" + ((e && e.code) || "connection") + "). They're safe in the check; it tries again on the next change."; soon(); }
-    }
-    const getDoc = (p) => new Promise((res) => { let done = false, un = null; un = store.watch(p, (s) => { if (done || s.pending) return; done = true; res(s.exists ? s.data : null); if (un) setTimeout(un, 0); }, () => { if (!done) { done = true; res(null); } }); });
-    // a run still going has no end yet: look again once its clock is over
-    setInterval(() => { (D.index || []).filter((x) => x.status === "open").forEach((x) => { if (D.defs.get(x.id)) syncSoon(x.id); }); if (S.view === "checks" && S.id) soon(); }, 15000);
+    setInterval(() => { if (S.view === "checks" && S.id) soon(); }, 15000);
 
     /* ---------- drawing ---------- */
     function draw() {
-        if (D.index) watchOpen();
+        if (D.index) K.watchOpen();
         document.querySelectorAll("#views button").forEach((b) => { b.setAttribute("aria-selected", b.dataset.v === S.view ? "true" : "false"); b.setAttribute("aria-pressed", b.dataset.v === S.view ? "true" : "false"); });
         const out = $("out"); out.textContent = "";
         // The list of checks draws as soon as it arrives; only the parts that need the class lists wait for them.
         // A slow connection (seen on an iPhone, Nov 22): after a few seconds the Checks view opens anyway, with New speed check
         // ready, and says the list is still on its way. It never says "no checks" until the list has really arrived.
         const listLate = !D.index && slow && S.view === "checks" && !S.draft && !S.id && D.rosters;
-        if (!listLate && (!D.index || ((S.view !== "checks" || S.draft) && !D.rosters) || (S.view === "extra" && !setupIn))) { out.append(skel()); return; }
+        if (!listLate && (!D.index || ((S.view !== "checks" || S.draft) && !D.rosters) || (S.view === "extra" && !K.setupIn()))) { out.append(skel()); return; }
         if (S.err) { const e = el("p", "asErr", S.err); e.setAttribute("role", "alert"); out.append(e); }
         if (S.view === "progress") return drawProgress(out);
         if (S.view === "extra") return drawExtra(out);
@@ -226,7 +110,6 @@ export async function mountFluency() {
         S.draft = { mode, set: last.set || "mul", top: last.top || 12, secs: mode === "check" ? (last.mode === "check" && last.secs) || 120 : 60, goal: (last.goal || F.DEFAULTS.goal), tries: 1, counts: "first", periods: pers.slice(), title: "" };
         S.id = ""; S.err = ""; draw(); window.scrollTo(0, 0);
     }
-    function autoTitle(dr) { const d = new Date(); return F.setName(dr.set) + (dr.mode === "check" ? " speed check, " : " practice, ") + d.toLocaleDateString([], { month: "short", day: "numeric" }); }
     function drawNew(out) {
         const dr = S.draft, w = el("div", "asBuild");
         w.append(el("h2", "fbH", dr.mode === "check" ? "New speed check" : "New practice"));
@@ -270,28 +153,11 @@ export async function mountFluency() {
     function field(label, input) { const l = el("label", "asField"); l.append(el("span", null, label), input); return l; }
     function sel(opts, val, fn) { const s = el("select"); opts.forEach(([v, t]) => { const o = el("option", null, t); o.value = String(v); if (String(v) === String(val)) o.selected = true; s.append(o); }); s.onchange = () => fn(s.value); return s; }
 
-    async function newCode() {
-        for (let i = 0; i < 12; i++) {
-            const c = String(100000 + Math.floor(Math.random() * 900000));
-            try { const x = await rooms.get("flu/" + c); if (!x) return c; } catch (e) { return c; }
-        }
-        return String(100000 + Math.floor(Math.random() * 900000));
-    }
     async function openCheck(dr) {
         if (!dr.periods.length) { S.err = "Pick at least one class."; draw(); return; }
         S.err = "";
-        try {
-            const id = uidOf(), code = await newCode(), now = Date.now(), title = (dr.title || autoTitle(dr)).trim().slice(0, 80);
-            const names = {}; dr.periods.forEach((p) => { names[p] = rosterOf(p); });
-            const d = { id, code, title, mode: dr.mode, set: dr.set, top: dr.top, secs: dr.secs, goal: dr.goal, tries: dr.tries, counts: dr.counts, periods: dr.periods.slice(), names, status: "open", at: now, opened: now, more: {} };
-            await rooms.save("flu/" + code, { owner: rooms.uid(), kind: "flu", title, mode: d.mode, set: d.set, top: d.top, secs: d.secs, goal: d.goal, tries: d.tries, counts: d.counts, names, status: "open", at: now });
-            await store.save("flu/a_" + id, d);
-            D.index = [{ id, title, mode: d.mode, set: d.set, top: d.top, secs: d.secs, goal: d.goal, code, status: "open", periods: d.periods, at: now }].concat(D.index || []);
-            await store.save("flu/index", { list: D.index, at: now });
-            D.defs.set(id, d); watchEntries(d);
-            if (d.mode === "check" && D.setup && D.setup.goal !== d.goal) { D.setup = Object.assign({}, D.setup, { goal: d.goal }); store.save("flu/setup", { xt: D.setup.xt || {}, goal: d.goal, at: now }).catch(() => {}); }
-            S.draft = null; S.id = id; draw(); window.scrollTo(0, 0);
-        } catch (e) { S.err = "Couldn't open it (" + ((e && e.code) || "connection") + ")."; draw(); }
+        try { const d = await K.openCheck(dr); S.draft = null; S.id = d.id; draw(); window.scrollTo(0, 0); }
+        catch (e) { S.err = "Couldn't open it (" + ((e && e.code) || "connection") + ")."; draw(); }
     }
 
     /* ---------- one check: live ---------- */
@@ -369,28 +235,15 @@ export async function mountFluency() {
         }
     }
     async function setStatus(d, st) {
-        try {
-            await rooms.save("flu/" + d.code, { status: st }, true);
-            d.status = st; await store.save("flu/a_" + d.id, JSON.parse(JSON.stringify(d)));
-            D.index = (D.index || []).map((x) => (x.id === d.id ? Object.assign({}, x, { status: st }) : x)); await store.save("flu/index", { list: D.index, at: Date.now() });
-            if (st === "closed") syncSoon(d.id, true); else watchEntries(d);
-            draw();
-        } catch (e) { S.err = "Couldn't change it (" + ((e && e.code) || "connection") + ")."; draw(); }
+        try { await K.setStatus(d, st); draw(); } catch (e) { S.err = "Couldn't change it (" + ((e && e.code) || "connection") + ")."; draw(); }
     }
     async function anotherTry(d, r) {
         if (!confirm("Give " + r.nm + " another try? " + (d.counts === "best" ? "Their best try counts." : "Their first try still counts unless you change Which try counts. To count only the new try, delete the old score in the Gradebook and type the new one."))) return;
-        d.more = Object.assign({}, d.more || {}); d.more[r.key] = (+d.more[r.key] || 0) + 1;
-        try { await store.save("flu/a_" + d.id, JSON.parse(JSON.stringify(d))); pushClocks(d); draw(); } catch (e) { S.err = "Couldn't save that (" + ((e && e.code) || "connection") + ")."; draw(); }
+        try { await K.moreTries(d, r.key); draw(); } catch (e) { S.err = "Couldn't save that (" + ((e && e.code) || "connection") + ")."; draw(); }
     }
     async function remove(d) {
         if (!confirm("Delete \"" + d.title + "\"? Students lose access and their runs here are deleted. Scores already saved to Class Data, the Gradebook and profiles stay there.")) return;
-        try {
-            if (d.code) { try { await rooms.clear("flu/" + d.code + "/p"); await rooms.clear("flu/" + d.code + "/s"); await rooms.del("flu/" + d.code); } catch (e) { /* already gone */ } }
-            if (unsubs.has(d.id)) { unsubs.get(d.id)(); unsubs.delete(d.id); }
-            D.index = (D.index || []).filter((x) => x.id !== d.id); await store.save("flu/index", { list: D.index, at: Date.now() });
-            await store.save("flu/a_" + d.id, { id: d.id, removed: true, at: Date.now() }); D.defs.delete(d.id);
-            S.id = ""; draw();
-        } catch (e) { S.err = "Couldn't delete (" + ((e && e.code) || "connection") + ")."; draw(); }
+        try { await K.remove(d); S.id = ""; draw(); } catch (e) { S.err = "Couldn't delete (" + ((e && e.code) || "connection") + ")."; draw(); }
     }
     function bigCode(d) {
         const dlg = $("dlg"); dlg.textContent = ""; dlg.className = "asPrev big";
