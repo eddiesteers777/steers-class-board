@@ -36,7 +36,11 @@ export async function mountFluency() {
     const rooms = demo ? demoRooms() : store.rooms;
     const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
     // Sign-in and the class list (data/weeks.js) load side by side, not one after the other (Nov 22: the page was slow to open).
-    const [user, PER] = await Promise.all([store.ready(), demo ? [["1st", "8th"], ["2nd", "8th"], ["5th", "7th"], ["6th", "8th-acc"]] : import("../data/weeks.js?v=61").then((m) => m.PERIODS)]);
+    // The page never waits on data/weeks.js (it can take seconds on a slow connection): until it loads, the periods
+    // come from the rosters in their own order; then the school's period order and list take over.
+    let PER = demo ? [["1st", "8th"], ["2nd", "8th"], ["5th", "7th"], ["6th", "8th-acc"]] : null;
+    if (!demo) import("../data/weeks.js?v=61").then((m) => { PER = m.PERIODS; soon(); }, () => {});
+    const user = await store.ready();
     if (!user) { location.replace("login.html"); return; }
     $("who").textContent = demo ? "Sample students, nothing is saved" : "Signed in as " + user.name;
 
@@ -51,8 +55,10 @@ export async function mountFluency() {
     let setupIn = false;
     store.watch("flu/setup", (s) => { if (s.pending) return; setupIn = true; D.setup = (s.exists && s.data) || { xt: {} }; D.setup.xt = D.setup.xt || {}; pushClocksAll(); soon(); }, () => { setupIn = true; });
 
+    let slow = false;
+    setTimeout(() => { if (!D.index) { slow = true; status("Slow connection…", "wait"); draw(); } }, 2500);
     const rosterOf = (p) => shortNames(((D.rosters || {})[p] || []).filter(Boolean));
-    const periodsWithRoster = () => PER.map((p) => p[0]).filter((p) => rosterOf(p).length);
+    const periodsWithRoster = () => (PER ? PER.map((p) => p[0]) : Object.keys(D.rosters || {}).sort((a, b) => (parseInt(a, 10) || 99) - (parseInt(b, 10) || 99))).filter((p) => rosterOf(p).length);
     const xtOf = (per, nm) => { const x = +((D.setup && D.setup.xt) || {})[per + "|" + nm] || 1; return F.EXTRA.includes(x) ? x : 1; };
 
     /* ---------- one check: its private copy, and its students' entries while it is open ---------- */
@@ -175,7 +181,10 @@ export async function mountFluency() {
         document.querySelectorAll("#views button").forEach((b) => { b.setAttribute("aria-selected", b.dataset.v === S.view ? "true" : "false"); b.setAttribute("aria-pressed", b.dataset.v === S.view ? "true" : "false"); });
         const out = $("out"); out.textContent = "";
         // The list of checks draws as soon as it arrives; only the parts that need the class lists wait for them.
-        if (!D.index || ((S.view !== "checks" || S.draft) && !D.rosters) || (S.view === "extra" && !setupIn)) { out.append(skel()); return; }
+        // A slow connection (seen on an iPhone, Nov 22): after a few seconds the Checks view opens anyway, with New speed check
+        // ready, and says the list is still on its way. It never says "no checks" until the list has really arrived.
+        const listLate = !D.index && slow && S.view === "checks" && !S.draft && !S.id && D.rosters;
+        if (!listLate && (!D.index || ((S.view !== "checks" || S.draft) && !D.rosters) || (S.view === "extra" && !setupIn))) { out.append(skel()); return; }
         if (S.err) { const e = el("p", "asErr", S.err); e.setAttribute("role", "alert"); out.append(e); }
         if (S.view === "progress") return drawProgress(out);
         if (S.view === "extra") return drawExtra(out);
@@ -190,6 +199,7 @@ export async function mountFluency() {
         const bar = el("div", "asBar");
         bar.append(el("p", "asNote", "Students play at " + location.host + "/fact with the code. Each run is timed and stops on its own."), btn("btn go", "New speed check", () => newDraft("check")));
         out.append(bar);
+        if (!D.index) { out.append(el("p", "asNote fbPriv", "Still connecting. Your checks show here as soon as the connection answers; you can start a new one now."), skel()); return; }
         const list = (D.index || []).slice().sort((a, b) => (b.status === "open") - (a.status === "open") || (b.at || 0) - (a.at || 0));
         if (!list.length) {
             const e = el("div", "pgEmpty"); e.append(el("h2", null, "No speed checks yet"), el("p", null, "Open a timed check of multiplication, division or integer facts. Students join on their Chromebooks with a code, the same way as Vault Raid. A check's scores go to the Gradebook (Add scores) and Student Progress; every run goes on the student's profile."));
