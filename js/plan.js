@@ -14,7 +14,7 @@ import { nextUp } from "./standardsNext.js?v=58";
 import { watchPrivateWeeks, weekIdFor } from "./weeksLive.js?v=58";
 import { watchEvidence, classEvidence, evidenceForBrief, weekStandards } from "./planEvidence.js?v=1";
 import { openBankPicker, bankFor } from "./bankPick.js?v=2";
-import { rich } from "./weekSheets.js?v=59";
+import { rich } from "./weekSheets.js?v=60";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -94,7 +94,7 @@ function brief() {
     const last = [...WEEKS].filter((w) => w.monday && w.monday < plan.monday).pop();
     const out = {
         version: 2, made: new Date().toISOString(),
-        rules: "Day plans are the teacher's own: keep each picked bellringer exactly as written (they are checked standards-bank problems, bankId), keep the day's learning target if one is given, and build everything else around them. Use the review standards for spiral bellringers. Evidence is counts only.",
+        rules: "Day plans are the teacher's own: keep each picked bellringer exactly as written (they are checked standards-bank problems, bankId), keep the day's learning target if one is given, and build everything else around them. Use the review standards for spiral bellringers. Evidence is counts only. Put the homework (8th: Homework Packet, Monday to Wednesday, due Thursday; 7th: Extra Practice, Monday to Wednesday) in classes[cls].homework as { title, directions, days: [{ day: \"Monday\", example: { q, steps[] }, problems: [{ q, a, work }] }] } so Week Review prints it with its key.",
         week: { id: plan.id, label: plan.label, nineWeeks: plan.nineWeeks, monday: plan.monday, dates: plan.dates,
             days: plan.days.map((d, i) => Object.assign({ day: DAYS[i], date: d.date, school: d.school, event: d.event || "", type: d.school ? (d.type || "regular") : "no school" },
                 d.school && d.type ? { periods: d.periods || ALLPERIODS, minutes: d.minutes || (d.type === "out" ? 55 : null) } : {})) },

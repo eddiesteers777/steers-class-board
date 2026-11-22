@@ -18,7 +18,7 @@
              worksheet: { title, sub?, pages: [{ heading, notes: [..], example: { q, work, answer }, problems: [{ q, a, work? }] }],
                           exit?: [{ q, a }] } }
 ========================================== */
-import { rich, DAYS, dayDate } from "./weekSheets.js?v=59";
+import { rich, DAYS, dayDate } from "./weekSheets.js?v=60";
 
 const el = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
 const R = (tag, cls, text) => { const e = el(tag, cls); e.appendChild(rich(text)); return e; };

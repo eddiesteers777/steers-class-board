@@ -23,6 +23,7 @@ export function closeoutItems(week, plan, o) {
             out.push(Object.assign({ key, cls: k, clsLabel: label, label: text, auto: autoDone !== null, done: !!(autoDone || m), by: autoDone ? "Anchor" : m ? m.by || "you" : "", at: m ? m.at : 0 }, extra || {}));
         };
         add("approved", "Week approved: on the board and the Class Page", !!(o && o.approved));
+        if (c.homework && (c.homework.days || []).length) add("hw", "Printed the " + (k === "7th" ? "extra practice" : "homework packet") + " and its key", has("hw", "hwkey"));
         if (c.quiz && (c.quiz.items || []).length) add("quiz", "Printed the " + (c.quiz.kind === "test" ? "test" : "quiz") + " and its key", has("quiz", "quizkey"));
         if (c.quiz && c.quiz.modified) add("mod", "Printed the modified quiz and key", has("mod", "modkey"));
         if (c.modStudyGuide) add("modsg", "Printed the modified study guide and key", has("modsg", "modsgkey"));
@@ -46,7 +47,7 @@ export function closeoutItems(week, plan, o) {
 /** "3 of 12" and the short names of what is left, for Home. */
 export function closeoutSummary(items) {
     const left = items.filter((x) => !x.done);
-    const short = (x) => ({ magma: "Magma", bonus: "Magma bonus", magmaMod: "modified Magma", thrillshare: "Thrillshare", schoology: "Schoology link", approved: "approve", quiz: "print the quiz", mod: "print the modified quiz", modsg: "print the modified study guide", modnotes: "print the modified notes", modhw: "print the modified homework", sub: "print the sub folder" }[x.key.split(".")[1]] || x.label);
+    const short = (x) => ({ magma: "Magma", bonus: "Magma bonus", magmaMod: "modified Magma", thrillshare: "Thrillshare", schoology: "Schoology link", approved: "approve", hw: "print the homework", quiz: "print the quiz", mod: "print the modified quiz", modsg: "print the modified study guide", modnotes: "print the modified notes", modhw: "print the modified homework", sub: "print the sub folder" }[x.key.split(".")[1]] || x.label);
     const names = []; left.forEach((x) => { const n = short(x); if (!names.includes(n)) names.push(n); });
     return { done: items.length - left.length, total: items.length, left: left.length, names };
 }
