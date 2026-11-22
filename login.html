@@ -28,7 +28,10 @@
     </main>
     <script type="module">
         import { wireSignIn } from "./js/signInButton.js?v=19";
+        import { waitForUser } from "./js/auth.js";
         wireSignIn(document.getElementById("loginBtnPage"), document.getElementById("loginNote"));
+        // Already signed in (another tab, or a sign-in that just finished): go straight to the home screen.
+        waitForUser().then((u) => { if (u) location.replace("index.html"); }).catch(() => {});
     </script>
 </body>
 </html>
