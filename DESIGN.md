@@ -53,6 +53,13 @@ simpler, one less thing.
   - Pictures are the teacher's own, shrunk on the device (1600 px, under 720 KB) and kept in the teacher's own saved
     data (`slideimg/<id>`): not in Firebase Storage, which needs a paid plan, and never in the repo. With no wifi a
     picture still goes on the slide and goes up when the wifi is back.
+  - **Screens list (Nov 21, Eddie: "get rid of some of those tabs"; Slides is the main one).** Slides comes first as
+    a card ("6 slides for Monday", "Slide 2 of 6 on the board"). Tapping it puts the slides on the board and opens a
+    list of that day's slides as small pictures (every-day ones tagged); tapping one shows it. Then the screens used
+    every day (Seating Chart, Whiteboard, Timer, Student Game), then **More screens**. On a day with slides, Today,
+    Bellringer, Guided Notes and the Agenda live in More screens, since the slides hold them; on a day without, they
+    stay out front. Guided Notes and Speed Dating show only on days that have them. A screen that is up while tucked
+    in More screens is named on the closed fold. Next and Back still walk every screen in order.
 - **Never show the wrong thing while loading.** Show the shape of the screen (a skeleton) until
   the real state arrives. No spinners, and never a flash of another day or period.
 - **Never claim what the site cannot know.** No "current period" without bell times. If the
@@ -61,6 +68,11 @@ simpler, one less thing.
   button for it.
 - **Phone first for the teacher pages.** Check at 390px wide and on desktop. Single column,
   no sideways scroll. Tap targets at least 44px. Text at least 12px. A label on every field.
+  On a phone the page must act like an app: nothing may make it wider than the screen (check the widest status
+  message too, "Not connected…"; the Remote's bar and body clip sideways as a safety net), no double-tap zoom
+  (`touch-action: manipulation` on every element, `css/console.css`), and fields at least 16px so Safari does not
+  zoom in on a tap. Phone layout comes from the page's own width and the screen size, never `innerWidth`, which
+  follows a zoom.
 - **Restraint.** No new fonts, colours, shadows, gradients or corner styles without asking Eddie.
 - **Motion is quick and quiet.** About 240–260ms, never bouncy, and off for reduced-motion.
 - **Student privacy.** Nothing a student could be identified by goes on the board unless the

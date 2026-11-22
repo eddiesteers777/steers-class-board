@@ -16,7 +16,15 @@ body.phone .mirtog{display:inline-flex;align-items:center;gap:6px;background:var
 body.phone.board .mirtog{display:none}
 
 /* the page scrolls like an app; the board picture and Next stay pinned at the top */
-body.phone:not(.board){overflow-y:auto;height:auto;min-height:100%;display:block;-webkit-text-size-adjust:100%}
+body.phone:not(.board){overflow-y:auto;height:auto;min-height:100%;display:block;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+/* Up and down only, like an app: nothing may make the page wider than the phone. clip (not hidden) keeps the board
+   picture pinned at the top, since it does not make a scrolling box. */
+html:has(body.phone:not(.board)){overscroll-behavior-x:none}
+body.phone:not(.board) .cbar,body.phone:not(.board) .cbody{overflow-x:clip}
+body.phone button,body.phone summary,body.phone .qscene,body.phone .sdi{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* Safari zooms into a box with words under 16px when it is tapped, and the page stays zoomed in.
+   Not inside the board picture, which is a shrunken copy of the board. */
+body.phone input:not(#stage *),body.phone select:not(#stage *),body.phone textarea:not(#stage *){font-size:max(16px,1em)!important}
 body.phone:not(.board) .cbar{padding:8px 12px;gap:8px}
 body.phone .cbrand{margin-right:auto;gap:8px}
 body.phone .cbrand img{width:32px;height:32px}
@@ -41,29 +49,64 @@ body.phone.console .seg.days{display:flex;flex:1;min-width:0}
 body.phone.console .seg.days button{flex:1;padding:8px 0;font-size:.9rem}
 body.phone:not(.board) .rail{order:2;width:auto;max-height:none;border:0;padding:12px 10px 90px;display:block;overflow:visible}
 body.phone:not(.board) .railh{display:block;margin:4px 2px 8px}
-body.phone.console .seg.scr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:12px}
-body.phone.console .seg.scr button{border:1.5px solid var(--c-line);border-left:1.5px solid var(--c-line);background:var(--c-surface);text-align:center;padding:12px 4px;font-size:.88rem;font-weight:600;border-radius:12px;min-height:48px;line-height:1.15}
+/* Screens: Slides on top as a big card that opens the day's slides; the screens used every day as two columns of
+   icon buttons; the rest under More screens */
+body.phone.console .seg.scr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
+body.phone.console .seg.scr button{display:flex;align-items:center;gap:10px;border:1.5px solid var(--c-line);border-left:1.5px solid var(--c-line);background:var(--c-surface);color:var(--c-ink);text-align:left;padding:10px 12px;font-size:.95rem;font-weight:600;border-radius:14px;min-height:54px;line-height:1.15}
 body.phone.console .seg.scr button[aria-pressed="true"]{border-color:var(--navy);background:var(--navy);color:#fff}
+body.phone .seg.scr .sci{display:grid;place-items:center;flex:none;width:24px;height:24px;color:var(--navy)}
+body.phone .seg.scr .sci svg{width:22px;height:22px}
+body.phone .seg.scr button[aria-pressed="true"] .sci{color:#fff}
+body.phone .seg.scr .scl{min-width:0}
+body.phone .smore .seg.scr{margin:8px 0 2px}
+body.phone .smore.on>summary{color:var(--navy)}
+body.phone .slpick{gap:10px;margin:0 0 10px}
+body.phone .slcard{min-height:68px;border-radius:16px;padding:10px 14px;gap:12px}
+body.phone .slico{width:42px;height:42px;border-radius:12px}
+body.phone .slico svg{width:24px;height:24px}
+body.phone .slctx b{font-size:1.12rem}
+body.phone .slctx small{font-size:.86rem}
+body.phone .slchev{width:28px;height:28px}
+body.phone .slchev svg{width:22px;height:22px}
+body.phone .sdgrid{gap:10px 8px}
+body.phone .sdt{font-size:.84rem}
+body.phone .sdn{font-size:.8rem}
+body.phone .sdedit{font-size:.95rem;padding:10px 16px}
+/* a tap shows at once, like an app */
+body.phone .slcard,body.phone .qtool,body.phone .qscene,body.phone .sdi .slthumb{transition:transform .08s ease-out}
+body.phone .slcard:active,body.phone .qtool:active,body.phone .qscene:active,body.phone .sdi:active .slthumb{transform:scale(.97)}
 body.phone:not(.board) .rail>details{display:block;width:100%;margin:0 0 10px;background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:14px;padding:10px 12px}
 body.phone:not(.board) .rail>details>summary{font-weight:700;padding:4px 0}
 body.phone:not(.board) .rail>.btn{display:block;width:100%;margin:0 0 10px;min-height:48px;border-radius:14px;font-size:.98rem;text-align:center}
 body.phone:not(.board) .nottoday{width:100%;padding:6px 6px 6px 12px;font-size:.9rem}
 body.phone:not(.board) .nottoday span{flex:1 1 100%}
 
-/* ---------- the top bar on a phone: two even rows ---------- */
-body.phone:not(.board) .cbar{z-index:9;display:grid;grid-template-columns:auto 1fr auto auto;grid-auto-flow:row dense;align-items:center;gap:10px 8px;padding:10px 12px 12px}
-body.phone .cbrand{grid-column:1;margin:0}
+/* ---------- the top bar on a phone: two even rows ----------
+   It must never be wider than the phone: a wide top bar made the whole page slide sideways (Nov 21).
+   Row one: the logo, the boards button, the connection dot and Menu. Row two: the class and the week, side by side.
+   A long message ("Not connected…") gets a row of its own. Flex lines (not a grid), so row two never takes its
+   widths from row one; the boards button starts at nothing and grows to its words, so row one never wraps. */
+body.phone:not(.board) .cbar{z-index:9;display:flex;flex-wrap:wrap;align-items:center;gap:0 8px;padding:10px 12px 12px}
+body.phone:not(.board) .cbar::before{content:"";order:5;flex:0 0 100%;height:0}   /* the break between the two rows */
+:where(body.phone:not(.board) .cbar)>*{order:4;flex:none}   /* anything else in the bar: row one, before Menu */
+body.phone .cbrand{order:1;margin:0 auto 0 0;min-width:0}
+body.phone .cbrand span{width:min-content}   /* "Anchor Board" on two short lines */
 body.phone .cbrand span b{font-size:1.05rem}
-body.phone .live{grid-column:3;grid-row:1}
-body.phone .live[data-state="ok"]{font-size:0;gap:0;padding:9px}
-body.phone .lsbtn{grid-column:2;grid-row:1;justify-self:end;padding:7px 12px;font-size:.86rem;white-space:nowrap}
-body.phone .cbar details.acct{grid-column:4;grid-row:1}
-body.phone .cbar .field{grid-row:2;min-width:0}
-body.phone .cbar .field:first-of-type{grid-column:1 / span 2}
-body.phone .cbar #weekField{grid-column:3 / span 2}
-body.phone .cbar .field:only-of-type,body.phone .cbar:has(#weekField[hidden]) .field:first-of-type{grid-column:1 / -1}
+body.phone .lsbtn{order:2;flex:1 1 0;max-width:max-content;min-width:0;padding:7px 12px;font-size:.86rem;white-space:nowrap}
+body.phone .lsbtn #lsBtnText{min-width:0;overflow:hidden;text-overflow:ellipsis}
+body.phone .live{order:3}
+body.phone .live:not([data-long="1"]){font-size:0;gap:0;padding:9px}   /* the dot alone: green when live, amber while connecting */
+body.phone .live[data-long="1"]{order:8;flex:1 1 100%;margin-top:10px;border-radius:12px;padding:8px 12px;font-size:.86rem;line-height:1.3}
+body.phone .cbar details.acct{order:4}
+body.phone .cbar .field{order:6;flex:1 1 0;min-width:0;margin-top:10px}
+body.phone .cbar #weekField{order:7;flex-grow:1.2}
 body.phone .cbar .field select{height:44px;border-radius:12px;font-weight:600}
-body.phone .recpill{grid-column:1 / -1}
+body.phone .recpill{order:9;flex:1 1 100%;margin-top:10px}
+@media (max-width:379px){body.phone .cbrand span{display:none}}   /* small phones: the logo alone */
+/* The Board Builder: the logo, Board or Slides, the boards button and Menu on row one (its own dot only when there is news) */
+body.phone .cbar:has(.smode) .cbrand span{display:none}
+body.phone .cbar .smode{order:1;margin-right:auto}
+body.phone .cbar:has(.smode) .live:not([data-long="1"]){display:none}
 .phmenu{font-size:.9rem}
 body.phone .acct>summary.phmenu{padding:9px 30px 9px 12px;border-radius:12px}
 body.phone .acct .pop{min-width:230px;padding:8px;border-radius:16px;z-index:50}
