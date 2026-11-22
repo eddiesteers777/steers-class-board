@@ -27,11 +27,12 @@
         <p id="loginNote" class="note" role="status"></p>
     </main>
     <script type="module">
-        import { wireSignIn } from "./js/signInButton.js?v=19";
+        import { wireSignIn } from "./js/signInButton.js?v=20";
         import { waitForUser } from "./js/auth.js";
+        import { showLoader } from "./js/anchorLoader.js?v=1";
         wireSignIn(document.getElementById("loginBtnPage"), document.getElementById("loginNote"));
         // Already signed in (another tab, or a sign-in that just finished): go straight to the home screen.
-        waitForUser().then((u) => { if (u) location.replace("index.html"); }).catch(() => {});
+        waitForUser().then((u) => { if (u) { showLoader("Opening Anchor Board…"); location.replace("index.html"); } }).catch(() => {});
     </script>
 </body>
 </html>
