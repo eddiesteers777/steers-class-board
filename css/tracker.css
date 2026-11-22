@@ -219,3 +219,4 @@
 .tk-rrb:active{transform:scale(.97)}
 .tk-rrb.live{border:0;background:#F2B33D;color:#3A2A00}
 .tk-rrb .tk-outclock{font-variant-numeric:tabular-nums;font-weight:600}
+.tk-loading .tk-hint{margin-top:12px;text-align:center}

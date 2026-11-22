@@ -63,6 +63,37 @@ async function realStore() {
 const S = { period: "", view: remember("view") || "class", day: T.localIso(), sel: null, pickName: "", sheetFor: null, sheetTab: "today", sort: remember("sort") || "az" };
 let PROFILES = {}, profWatch = {};   // game profiles per period (read only), for the level line on a student
 let store = null, PERIODS = [], ROSTER = {}, DOC = null, TAGS = T.cleanTags(null), unsubDay = null, boardPeriod = "";
+// Taps made while the page is still signing in wait here and save as soon as it is ready.
+let readyNow; const readyP = new Promise((r) => { readyNow = r; });
+// rosterIn: the class lists came from the server (or Firestore's saved copy that has them). fromQuick: drawn from this
+// phone's last copy. Until one of those, the page says it is loading, never "No names" (Nov 22: it showed "No names" while loading).
+let rosterIn = false, fromQuick = false, slow = false;
+const WANT = Q.get("period") || Q.get("per");
+/* The periods to show: the school's list (data/weeks.js) once it is in, until then the ones the class lists have. */
+const periodList = () => PERIODS.length ? PERIODS : Object.keys(ROSTER).sort((a, b) => (parseInt(a, 10) || 99) - (parseInt(b, 10) || 99) || a.localeCompare(b)).map((p) => [p, ""]);
+function choosePeriod() {
+    const list = periodList(); if (!list.length) return;
+    if (S.period && list.some((x) => x[0] === S.period)) return;
+    const last = remember("period");
+    S.period = [WANT, last].find((p) => p && list.some((x) => x[0] === p)) || list[0][0];
+}
+
+/* ---------- quick copy (Nov 22): the last class lists, tags and today's taps this phone saw ----------
+   The page draws from it at once and the server's answer replaces it a moment later, the same way the Remote opens
+   (js/boardApp.js). The "school-live:" name means signing out or switching accounts clears it (js/auth.js). */
+const QUICK = "school-live:tracker";
+let quickT = 0, quickUid = "";
+function quickLoad() {
+    try {
+        const q = JSON.parse(localStorage.getItem(QUICK) || "null");
+        return q && q.uid && q.uid === localStorage.getItem("school-account-storage-owner") && q.roster && typeof q.roster === "object" ? q : null;
+    } catch (e) { return null; }
+}
+function quickSave() {
+    if (DEMO || !quickUid || !rosterIn) return;
+    clearTimeout(quickT);
+    quickT = setTimeout(() => { try { localStorage.setItem(QUICK, JSON.stringify({ uid: quickUid, periods: PERIODS, roster: ROSTER, tags: TAGS, day: S.day, doc: DOC })); } catch (e) { /* storage full or off: the next visit waits for the server */ } }, 400);
+}
 const evsAll = () => T.events(DOC);
 const evs = () => T.events(DOC, S.period);
 const names = () => ROSTER[S.period] || [];
@@ -74,7 +105,7 @@ function write(id, data) {
     // Show it at once; Firestore keeps the write if the wifi drops and sends it when it is back.
     DOC = DOC || { day: S.day, ev: {} }; DOC.ev = DOC.ev || {}; DOC.ev[id] = Object.assign({}, DOC.ev[id] || {}, data);
     draw();
-    return store.merge("track/" + S.day, doc).then(() => { if (!DEMO) status("Saved", "ok"); }).catch((e) => { status("Not saved (" + ((e && e.code) || "connection") + ")", "bad"); toast("That tap did not save. Check the connection and try again."); });
+    return readyP.then((st) => st.merge("track/" + S.day, doc)).then(() => { if (!DEMO) status("Saved", "ok"); }).catch((e) => { status("Not saved (" + ((e && e.code) || "connection") + ")", "bad"); toast("That tap did not save. Check the connection and try again."); });
 }
 function add(name, k, extra) {
     const id = T.newId(), e = Object.assign({ p: S.period, n: name, k, at: Date.now() }, extra || {});
@@ -94,7 +125,7 @@ function toast(text, undo) {
 /* ---------- the top: periods and today's numbers ---------- */
 function drawPeriods() {
     const box = $("periods"); box.textContent = "";
-    PERIODS.forEach(([p]) => {
+    periodList().forEach(([p]) => {
         const b = el("button", null, p); b.type = "button"; b.setAttribute("aria-pressed", String(p === S.period));
         if (p === boardPeriod) { b.title = "The board is on " + p + " period"; b.classList.add("onboard"); }
         b.onclick = () => { if (S.period === p) return; S.period = p; S.pickName = ""; S.sel = null; remember("period", p); draw(); };
@@ -130,7 +161,7 @@ function drawSummary() {
 function drawClass() {
     const host = $("view"); host.textContent = "";
     const list = names();
-    if (!list.length) return host.appendChild(empty("No names for " + S.period + " period yet.", "Add your class lists on the Rosters page. First name and last initial is plenty.", "Open Rosters", "rosters.html"));
+    if (!list.length) return host.appendChild(noNames("Add your class lists on the Rosters page. First name and last initial is plenty."));
     const by = T.dayByKid(evs(), TAGS), present = list.filter((n) => !(by[n] && by[n].abs));
     const noGood = present.filter((n) => !(by[n] && by[n].good));
     // tools row
@@ -199,6 +230,16 @@ function drawClass() {
     }
 }
 
+/** No names to show: still loading (say so), or really none for this period. */
+function noNames(body) {
+    if (!rosterIn && !fromQuick) {
+        const d = el("div", "tk-loading");
+        const sk = el("div", "tk-skel"); sk.setAttribute("aria-hidden", "true"); for (let i = 0; i < 6; i++) sk.appendChild(el("i")); d.appendChild(sk);
+        d.appendChild(el("p", "tk-hint", slow ? "Still loading your class lists. The connection is slow; names show here as soon as they arrive." : "Loading your class lists…"));
+        return d;
+    }
+    return empty("No names for " + (S.period ? S.period + " period" : "this period") + " yet.", body, "Open Rosters", "rosters.html");
+}
 function empty(title, body, btn, href) {
     const d = el("div", "tk-empty"); d.appendChild(el("h2", null, title)); d.appendChild(el("p", null, body));
     if (btn) { const a = el("a", "tk-primary", btn); a.href = href; d.appendChild(a); }
@@ -210,7 +251,7 @@ let rolling = false;
 function drawPick() {
     const host = $("view"); host.textContent = "";
     const list = names();
-    if (!list.length) return host.appendChild(empty("No names for " + S.period + " period yet.", "The picker uses your class list.", "Open Rosters", "rosters.html"));
+    if (!list.length) return host.appendChild(noNames("The picker uses your class list."));
     const e = evs(), round = T.pickRound(list, e), by = T.dayByKid(e, TAGS);
     const stage = el("div", "tk-stage");
     stage.appendChild(el("p", "tk-stagek", S.pickName ? "Called on" : "Ready"));
@@ -261,11 +302,11 @@ const onBoard = () => remember("onboard") !== "0";
 function toBoard(name, pool) {
     if (DEMO || !onBoard()) return;
     const shuffled = pool.slice().sort(() => Math.random() - 0.5).slice(0, 30);
-    store.set("board/callout", { id: T.newId(), n: name, pool: shuffled, at: Date.now() }).catch(() => toast("The board did not get the pick. Check the connection."));
+    readyP.then((st) => st.set("board/callout", { id: T.newId(), n: name, pool: shuffled, at: Date.now() })).catch(() => toast("The board did not get the pick. Check the connection."));
 }
 function cheer(name) {
     if (DEMO || !onBoard()) return;
-    store.set("board/callout", { id: T.newId(), n: name, cheer: 1, at: Date.now() }).catch(() => toast("The board did not get it. Check the connection."));
+    readyP.then((st) => st.set("board/callout", { id: T.newId(), n: name, cheer: 1, at: Date.now() })).catch(() => toast("The board did not get it. Check the connection."));
 }
 function undoLastPick(n) {
     const last = evs().filter((e) => e.k === "pick" && e.n === n).pop();
@@ -441,7 +482,8 @@ const HIST = new Map();   // day -> doc (null when none), loaded once per page v
 async function loadHistory(days) {
     const want = [];
     for (let i = 0; i < days; i++) { const d = new Date(); d.setDate(d.getDate() - i); const k = T.localIso(d); if (k !== S.day && !HIST.has(k)) want.push(k); }
-    await Promise.all(want.map((k) => store.get("track/" + k).then((d) => HIST.set(k, d && d.ev ? Object.assign({ day: k }, d) : null)).catch(() => HIST.set(k, null))));
+    const st = await readyP;
+    await Promise.all(want.map((k) => st.get("track/" + k).then((d) => HIST.set(k, d && d.ev ? Object.assign({ day: k }, d) : null)).catch(() => HIST.set(k, null))));
     return [...HIST.values()].filter(Boolean).concat(DOC ? [Object.assign({ day: S.day }, DOC)] : []);
 }
 async function drawHistory(box, n) {
@@ -528,13 +570,14 @@ function openTags() {
         // keep removed tags as hidden, so old taps still show their name
         TAGS.forEach((t) => { if (!clean.some((x) => x.k === t.k)) clean.push(Object.assign({}, t, { off: 1 })); });
         TAGS = T.cleanTags({ tags: clean }); d.close(); draw();
-        try { await store.set("settings/track", { tags: TAGS, at: Date.now() }); toast("Tags saved."); } catch (e) { toast("Tags did not save (" + ((e && e.code) || "connection") + ")."); }
+        try { await (await readyP).set("settings/track", { tags: TAGS, at: Date.now() }); toast("Tags saved."); } catch (e) { toast("Tags did not save (" + ((e && e.code) || "connection") + ")."); }
     };
     d.showModal();
 }
 
 /* ---------- drawing ---------- */
 function watchProfiles() {
+    if (!store || !S.period) return;
     const k = perKey(S.period); if (DEMO || profWatch[k]) return; profWatch[k] = 1;
     store.watch("profiles/" + k, (snap) => { if (snap.pending) return; PROFILES[k] = (snap.exists && snap.data && snap.data.kids) || {}; }, () => {});
 }
@@ -550,21 +593,30 @@ function watchDay() {
     if (unsubDay) unsubDay();
     unsubDay = store.watch("track/" + S.day, (snap) => {
         if (snap.pending) return;
+        if (snap.fromCache && !snap.exists && DOC) return;   // an empty saved copy: keep today's taps from the quick copy until the server answers
         DOC = snap.exists ? snap.data : { day: S.day, ev: {} };
+        quickSave();
         if (!DEMO) status(snap.fromCache ? "Offline: taps save when back" : "Live", snap.fromCache ? "wait" : "ok");
         if (!rolling) draw();
     }, (e) => status("Could not load today (" + ((e && e.code) || "error") + ")", "bad"));
 }
 
 async function start() {
-    store = DEMO ? demoStore() : await realStore();
-    PERIODS = DEMO ? ["1st", "2nd", "4th", "5th", "6th"].map((p) => [p, ""]) : (await import("../data/weeks.js?v=61")).PERIODS;
-    const user = await store.ready();
-    if (!user) { location.replace("login.html"); return; }
-    $("who").textContent = DEMO ? "Sample names, nothing is saved" : "Only you see this";
-    if (DEMO) status("Sample class", "ok");
-    const want = Q.get("period") || Q.get("per"), last = remember("period");
-    S.period = [want, last].find((p) => p && PERIODS.some((x) => x[0] === p)) || PERIODS[0][0];
+    // Nov 22: the page used to load the store, then the school's period list (data/weeks.js, with every week's lessons),
+    // then sign-in, one after another, before drawing anything. Now: draw this phone's last copy at once, load the store
+    // and the period list side by side, and never wait on the period list.
+    const q = DEMO ? null : quickLoad();
+    if (q) {
+        ROSTER = q.roster; fromQuick = true;
+        if (Array.isArray(q.periods)) PERIODS = q.periods;
+        if (Array.isArray(q.tags)) TAGS = T.cleanTags({ tags: q.tags });
+        if (q.day === S.day && q.doc && typeof q.doc === "object") DOC = q.doc;
+        status("Syncing…", "wait");
+    }
+    const storeP = DEMO ? Promise.resolve(demoStore()) : realStore();
+    if (DEMO) PERIODS = ["1st", "2nd", "4th", "5th", "6th"].map((p) => [p, ""]);
+    else import("../data/weeks.js?v=61").then((m) => { if (Array.isArray(m.PERIODS) && m.PERIODS.length) { PERIODS = m.PERIODS; choosePeriod(); draw(); quickSave(); } }, () => {});
+    choosePeriod();
     [...$("views").children].forEach((b) => { b.onclick = () => { S.view = b.dataset.v; remember("view", S.view); if (S.view !== "class") S.sel = null; draw(); window.scrollTo({ top: 0 }); }; });
     $("sheetClose").onclick = closeSheet;
     $("sheet").addEventListener("click", (e) => { if (e.target === $("sheet")) closeSheet(); });   // tap outside the card
@@ -572,15 +624,28 @@ async function start() {
     $("selGo").onclick = () => { if (S.sel && S.sel.size) openSheet([...S.sel]); };
     $("tagsBtn").onclick = openTags;
     $("tagsClose").onclick = () => $("tagsDlg").close();
+    setTimeout(() => { if (!rosterIn) { slow = true; draw(); } }, 6000);
+    draw();
+
+    const st = await storeP;
+    const user = await st.ready();
+    if (!user) { location.replace("login.html"); return; }
+    if (q && q.uid !== user.uid) { ROSTER = {}; PERIODS = []; DOC = null; TAGS = T.cleanTags(null); fromQuick = false; S.period = ""; }
+    store = st; quickUid = user.uid; readyNow(st);
+    $("who").textContent = DEMO ? "Sample names, nothing is saved" : "Only you see this";
+    if (DEMO) status("Sample class", "ok");
+    const want = WANT;
     store.watch("rosters/all", (snap) => {
+        if (snap.fromCache && !snap.exists) return;   // an empty saved copy is not "no class lists": wait for the server
         const ps = (snap.exists && snap.data && snap.data.periods) || {}; ROSTER = {};
         Object.keys(ps).forEach((k) => { if (Array.isArray(ps[k])) ROSTER[k] = ps[k].map((n) => String(n).slice(0, 60)).filter(Boolean); });
-        draw();
+        rosterIn = true; choosePeriod();
+        draw(); quickSave();
     }, () => {});
-    store.watch("settings/track", (snap) => { if (snap.pending) return; TAGS = T.cleanTags(snap.exists ? snap.data : null); draw(); }, () => {});
+    store.watch("settings/track", (snap) => { if (snap.pending || (snap.fromCache && !snap.exists)) return; TAGS = T.cleanTags(snap.exists ? snap.data : null); draw(); quickSave(); }, () => {});
     if (!DEMO) store.watch("board/state", (snap) => {   // follow the board's period when it changes (never claim a period on our own)
         const p = snap.exists && snap.data && snap.data.period;
-        if (typeof p !== "string" || p === boardPeriod || !PERIODS.some((x) => x[0] === p)) return;
+        if (typeof p !== "string" || p === boardPeriod || !periodList().some((x) => x[0] === p)) return;
         const first = !boardPeriod; boardPeriod = p;
         if (!first || !want) { if (S.period !== p) { S.period = p; S.pickName = ""; S.sel = null; remember("period", p); toast("Switched to " + p + " period, like the board."); } }
         draw();
