@@ -34,9 +34,12 @@ export async function mountFluency() {
     const demo = new URLSearchParams(location.search).has("demo");
     const store = await import(demo ? "./localStore.js?v=57" : "./boardStore.js?v=58");
     const rooms = demo ? demoRooms() : store.rooms;
-    const PER = demo ? [["1st", "8th"], ["2nd", "8th"], ["5th", "7th"], ["6th", "8th-acc"]] : (await import("../data/weeks.js?v=61")).PERIODS;
     const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
-
+    // Sign-in and the class list (data/weeks.js) load side by side, not one after the other (Nov 22: the page was slow to open).
+    // The page never waits on data/weeks.js (it can take seconds on a slow connection): until it loads, the periods
+    // come from the rosters in their own order; then the school's period order and list take over.
+    let PER = demo ? [["1st", "8th"], ["2nd", "8th"], ["5th", "7th"], ["6th", "8th-acc"]] : null;
+    if (!demo) import("../data/weeks.js?v=61").then((m) => { PER = m.PERIODS; soon(); }, () => {});
     const user = await store.ready();
     if (!user) { location.replace("login.html"); return; }
     $("who").textContent = demo ? "Sample students, nothing is saved" : "Signed in as " + user.name;
@@ -48,10 +51,14 @@ export async function mountFluency() {
     if (demo) await seedDemo(store, rooms);
     store.watch("rosters/all", (s) => { if (s.pending) return; D.rosters = (s.exists && s.data && s.data.periods) || {}; soon(); }, () => { D.rosters = {}; soon(); });
     store.watch("flu/index", (s) => { if (s.pending) return; D.index = ((s.exists && s.data && s.data.list) || []).filter((x) => x && x.id); status(demo ? "Sample data" : "Live", "ok"); soon(); }, (e) => status("Could not load (" + ((e && e.code) || "error") + ")", "bad"));
-    store.watch("flu/setup", (s) => { if (s.pending) return; D.setup = (s.exists && s.data) || { xt: {} }; D.setup.xt = D.setup.xt || {}; pushClocksAll(); soon(); }, () => { D.setup = { xt: {} }; });
+    D.setup = { xt: {} };   // until flu/setup arrives: nobody has extra time yet, and pushClocks waits for the real one
+    let setupIn = false;
+    store.watch("flu/setup", (s) => { if (s.pending) return; setupIn = true; D.setup = (s.exists && s.data) || { xt: {} }; D.setup.xt = D.setup.xt || {}; pushClocksAll(); soon(); }, () => { setupIn = true; });
 
+    let slow = false;
+    setTimeout(() => { if (!D.index) { slow = true; status("Slow connection…", "wait"); draw(); } }, 2500);
     const rosterOf = (p) => shortNames(((D.rosters || {})[p] || []).filter(Boolean));
-    const periodsWithRoster = () => PER.map((p) => p[0]).filter((p) => rosterOf(p).length);
+    const periodsWithRoster = () => (PER ? PER.map((p) => p[0]) : Object.keys(D.rosters || {}).sort((a, b) => (parseInt(a, 10) || 99) - (parseInt(b, 10) || 99))).filter((p) => rosterOf(p).length);
     const xtOf = (per, nm) => { const x = +((D.setup && D.setup.xt) || {})[per + "|" + nm] || 1; return F.EXTRA.includes(x) ? x : 1; };
 
     /* ---------- one check: its private copy, and its students' entries while it is open ---------- */
@@ -76,7 +83,7 @@ export async function mountFluency() {
 
     /** Send each student who joined their own clock (extra time) and tries. Only what changed is written. */
     async function pushClocks(d) {
-        if (!d || d.status !== "open" || !D.setup) return;
+        if (!d || d.status !== "open" || !setupIn) return;   // never send a clock before the extra-time list is in
         const ents = D.entries.get(d.id) || [], sent = D.sent.get(d.id) || new Map(), writes = [];
         ents.forEach(({ id, data }) => {
             if (!data || !data.nm) return;
@@ -173,7 +180,11 @@ export async function mountFluency() {
         if (D.index) watchOpen();
         document.querySelectorAll("#views button").forEach((b) => { b.setAttribute("aria-selected", b.dataset.v === S.view ? "true" : "false"); b.setAttribute("aria-pressed", b.dataset.v === S.view ? "true" : "false"); });
         const out = $("out"); out.textContent = "";
-        if (!D.index || !D.rosters || !D.setup) { out.append(skel()); return; }
+        // The list of checks draws as soon as it arrives; only the parts that need the class lists wait for them.
+        // A slow connection (seen on an iPhone, Nov 22): after a few seconds the Checks view opens anyway, with New speed check
+        // ready, and says the list is still on its way. It never says "no checks" until the list has really arrived.
+        const listLate = !D.index && slow && S.view === "checks" && !S.draft && !S.id && D.rosters;
+        if (!listLate && (!D.index || ((S.view !== "checks" || S.draft) && !D.rosters) || (S.view === "extra" && !setupIn))) { out.append(skel()); return; }
         if (S.err) { const e = el("p", "asErr", S.err); e.setAttribute("role", "alert"); out.append(e); }
         if (S.view === "progress") return drawProgress(out);
         if (S.view === "extra") return drawExtra(out);
@@ -188,6 +199,7 @@ export async function mountFluency() {
         const bar = el("div", "asBar");
         bar.append(el("p", "asNote", "Students play at " + location.host + "/fact with the code. Each run is timed and stops on its own."), btn("btn go", "New speed check", () => newDraft("check")));
         out.append(bar);
+        if (!D.index) { out.append(el("p", "asNote fbPriv", "Still connecting. Your checks show here as soon as the connection answers; you can start a new one now."), skel()); return; }
         const list = (D.index || []).slice().sort((a, b) => (b.status === "open") - (a.status === "open") || (b.at || 0) - (a.at || 0));
         if (!list.length) {
             const e = el("div", "pgEmpty"); e.append(el("h2", null, "No speed checks yet"), el("p", null, "Open a timed check of multiplication, division or integer facts. Students join on their Chromebooks with a code, the same way as Vault Raid. A check's scores go to the Gradebook (Add scores) and Student Progress; every run goes on the student's profile."));
