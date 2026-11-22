@@ -13,7 +13,7 @@ let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
 import { tickTools, defaultTools, mergeTools, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=60";
-import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal } from "./panels.js?v=11";
+import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf } from "./panels.js?v=11";
 import { cleanStickers, renderStickers } from "./stickers.js?v=1";
 import * as snd from "./sound.js?v=60";
 import { createMathPad } from "./mathPad.js?v=2";
@@ -24,8 +24,8 @@ import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } fr
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=6";
 import { cleanChart, cleanPeriod, cleanView, seatCount, drawRoom } from "./seats.js?v=7";
-import { DAILY as SL_DAILY, INDEX as SL_INDEX, MAX_DAILY as SL_MAX_DAILY, cleanDeck, cleanIndex, showList, revealSteps, indexHas, liveContext, lessonDate } from "./slides.js?v=1";
-import { renderSlide, fitSlide, imageLoader } from "./slideView.js?v=1";
+import { DAILY as SL_DAILY, INDEX as SL_INDEX, MAX_DAILY as SL_MAX_DAILY, cleanDeck, cleanIndex, showList, revealSteps, indexHas, liveContext, lessonDate, textOf } from "./slides.js?v=1";
+import { renderSlide, fitSlide, imageLoader, thumb } from "./slideView.js?v=1";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -130,7 +130,8 @@ function writer(path) {
 function seen(d) { if (!d || !d.by || !d.at) return; shown = { by: d.by, at: +d.at || 0 }; if (presence) presence.saw(shown.by, shown.at); }
 function setStatus(t) {
     const st = (t === "Live" || t === "This device only") ? "ok" : (t.startsWith("Connecting") || t.startsWith("Still") ? "wait" : "bad");
-    const s = $("status"); if (s) { s.textContent = t; s.dataset.state = st; }
+    // data-long: a message to read (not just "Live" or the first "Connecting…"); a phone gives it its own row
+    const s = $("status"); if (s) { s.textContent = t; s.dataset.state = st; s.dataset.long = st === "ok" || t.startsWith("Connecting") ? "" : "1"; }
     // The board view hides the header, so a lost connection shows as a small pill in the corner instead.
     const pill = $("connPill"); if (pill) { pill.hidden = st === "ok" || !synced; pill.textContent = st === "bad" ? "Offline \u00b7 showing the saved lesson \u00b7 reconnecting\u2026" : "Connecting\u2026"; }
 }
@@ -241,7 +242,7 @@ function slHas(k) {
 }
 /** The slide on the board now: { list, i, s }, or null when this lesson has none (or they have not loaded). */
 function deckNow() { const list = slList(); if (!list.length) return null; const i = Math.max(0, Math.min(S.slide, list.length - 1)); return { list, i, s: list[i] }; }
-function slImg() { if (!slImages) slImages = imageLoader(() => store, () => { if (S.screen === "deck") { sig = ""; render(); } }); return slImages; }
+function slImg() { if (!slImages) slImages = imageLoader(() => store, () => { slImgVer++; if (S.screen === "deck") { sig = ""; render(); } else if (slDropOpen && synced) screensUi(); }); return slImages; }
 const slLive = () => { const w = W(), d = D(); return liveContext(w, L(), d, S.day, lessonDate(w, S.day, d)); };
 /** Into the Slides screen from the screen before it (n = 1: the first slide) or after it (n = -1: the last slide, all shown). */
 function slEnter(n) { const list = slList(); S.screen = "deck"; S.show = false; if (n > 0 || !list.length) { S.slide = 0; S.sstep = 0; } else { S.slide = list.length - 1; S.sstep = revealSteps(list[S.slide]); } }
@@ -302,21 +303,130 @@ function studioApi() {
         redraw: () => { sig = ""; layerSig = ""; render(); }, fit: () => fit(), defaultPos: (k) => toolApi.defaultPos(k), step: (n) => step(n) };
 }
 /* ---------- controls ---------- */
-function seg(host, items, current, onPick) {
+function seg(host, items, current, onPick, icon) {
     // Same buttons as last time: update them in place. Rebuilding them on every redraw broke taps, because
     // the first touch of any tap wakes the sound (a redraw) and the button under the finger was replaced
     // before the tap finished, so the tap never landed (the music style buttons, Nov 19).
-    const key = items.map((x) => x[0] + "\u0001" + x[1]).join("\u0002");
+    // icon(id): an icon before each label (shown on a phone).
+    const key = items.map((x) => x[0] + "\u0001" + x[1]).join("\u0002") + (icon ? "\u0003" : "");
     if (host.dataset.seg === key && host.children.length === items.length) {
         items.forEach(([id], i) => { const b = host.children[i]; b.setAttribute("aria-pressed", String(id === current)); b.onclick = () => onPick(id); });
         return;
     }
     host.dataset.seg = key; host.textContent = "";
     items.forEach(([id, label]) => {
-        const b = el("button", null, label); b.type = "button";
+        const b = el("button", null, icon ? null : label); b.type = "button";
+        if (icon) { const i = el("span", "sci"); i.innerHTML = icon(id); b.append(i, el("span", "scl", label)); }
         b.setAttribute("aria-pressed", String(id === current));
         b.onclick = () => onPick(id); host.appendChild(b);
     });
+}
+/* ---------- Screens: the day's slides first, then the screens used every day, then More screens ----------
+   Eddie, Nov 21: fewer tabs, Slides as the main screen, and a drop-down of the slides that are really there for
+   that day. Tapping Slides puts them on the board and opens that list; tapping a slide in it shows that slide.
+   On a day with slides, the plan's own screens (Today, Bellringer, Guided Notes, Agenda) move into More screens,
+   since the slides hold them; on a day without, they stay out front. Guided Notes and Speed Dating show only on
+   days that have them. Next and Back still walk every screen in order, as before. */
+const SCR_MAIN = ["seats", "blank", "timer", "live"], SCR_LESSON = ["today", "bell", "notes", "speed"];
+const SCR_IC = {
+    deck: '<rect x="3" y="4" width="18" height="12.5" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/>',
+    seats: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/>',
+    blank: '<path d="M4 20h4L19.2 8.8a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+    timer: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2.5h6"/>',
+    live: '<rect x="2.5" y="7" width="19" height="11" rx="5.5"/><path d="M7.5 10.5v4M5.5 12.5h4"/><circle cx="15.5" cy="11" r="1"/><circle cx="17.5" cy="14" r="1"/>',
+    today: '<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/><circle cx="12" cy="15.5" r="1.8"/>',
+    bell: '<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
+    notes: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3.5"/>',
+    speed: '<path d="M4 8.5h14l-3.5-3.5M20 15.5H6l3.5 3.5"/>',
+    agenda: '<path d="M10 6h10M10 12h10M10 18h10"/><path d="M3.5 6l1.3 1.3L7.5 4.6M3.5 12l1.3 1.3 2.7-2.7"/><circle cx="5.5" cy="18" r="1.2"/>',
+    steps: '<path d="M4 20h4.5v-4.5H13V11h4.5V6.5H20"/>',
+    fix: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 20 20M8 10.5l2 2 3.5-4"/>',
+    game: '<path d="M7 4h10v5a5 5 0 01-10 0z"/><path d="M7 6H4v1a3 3 0 003 3M17 6h3v1a3 3 0 01-3 3M12 14v3M8 20h8"/>',
+    tools: '<rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="15" r="1"/><circle cx="15" cy="9" r="1"/><circle cx="9" cy="15" r="1"/>',
+};
+const svgIcon = (paths, wd) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (wd || 1.8) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + "</svg>";
+const scrIcon = (id) => svgIcon(SCR_IC[id] || SCR_IC.deck);
+let scrMoreOpen = false, slDropOpen = false, slDropSig = "", slImgVer = 0;
+function pickScreen(id) { if (id === "deck" && S.screen !== "deck") S.sstep = 0; S.screen = id; S.show = false; push(); }
+function screensUi() {
+    const host = $("screens"); if (!host) return;
+    const order = screenOrder(), withDeck = order.includes("deck"), d = D();
+    const off = { notes: !notesFrames(d).length, speed: !isSpeedDay() };   // nothing for them today
+    const main = (withDeck && slHas() ? [] : SCR_LESSON.filter((id) => order.includes(id) && !off[id])).concat(SCR_MAIN.filter((id) => order.includes(id)));
+    const more = order.filter((id) => id !== "deck" && !main.includes(id) && !off[id]);
+    const named = (ids) => ids.map((id) => [id, screenName(id)]);
+    seg(host, named(main), S.screen, pickScreen, scrIcon);
+    let mf = $("scrMore");
+    if (!mf) {
+        mf = el("details", "menu fold smore"); mf.id = "scrMore"; mf.open = scrMoreOpen;
+        const sm = el("summary"); sm.id = "scrMoreSum"; mf.appendChild(sm);
+        const g = el("div", host.className); g.id = "screensMore"; g.setAttribute("role", "group"); g.setAttribute("aria-label", "More screens"); mf.appendChild(g);
+        mf.addEventListener("toggle", () => { scrMoreOpen = mf.open; });
+        host.after(mf);
+    }
+    mf.hidden = !more.length;
+    seg($("screensMore"), named(more), S.screen, pickScreen, scrIcon);
+    // The board on one of these: say so on the closed fold, so the screen up is never hidden
+    const on = more.includes(S.screen) ? screenName(S.screen) : "", sm = $("scrMoreSum");
+    if (sm.dataset.on !== on || !sm.firstChild) { sm.dataset.on = on; sm.textContent = "More screens"; if (on) sm.appendChild(el("span", "smon", on + " is on")); }
+    mf.classList.toggle("on", !!on);
+    if (withDeck) slidesPick(host); else if ($("slPick")) $("slPick").remove();
+}
+const slEditHref = () => "studio.html#slides/" + encodeURIComponent(S.week) + "/" + encodeURIComponent(S.cls) + "/" + S.day;
+/** A slide's name in the list: its biggest words, with the live fields filled in for this lesson. */
+function slideTitle(s, live) {
+    const t = (s.els || []).filter((e) => e.k === "bx" && e.html).sort((a, b) => b.fs - a.fs || a.y - b.y)[0];
+    const fill = (m, k) => { const v = live ? live[k] : ""; return Array.isArray(v) ? v.join(", ") : v == null ? "" : String(v); };
+    const words = t ? textOf(t.html).replace(/\{\{\s*(\w+)\s*\}\}/g, fill).split("\n").map((x) => x.trim()).filter(Boolean)[0] || "" : "";
+    return words.slice(0, 80) || (s.els && s.els.some((e) => e.k === "pc") ? "Picture" : "Slide");
+}
+/** Slides: the card (what is on the board) and, when open, the day's slides as pictures to tap. */
+function slidesPick(host) {
+    let box = $("slPick");
+    if (!box) {
+        box = el("div", "slpick"); box.id = "slPick";
+        const b = el("button", "slcard"); b.id = "slCard"; b.type = "button"; b.setAttribute("aria-controls", "slDrop");
+        b.innerHTML = '<span class="slico">' + scrIcon("deck") + '</span><span class="slctx"><b>Slides</b><small id="slSub"></small></span><span class="slchev">' + svgIcon('<path d="M6 9l6 6 6-6"/>', 2.2) + "</span>";
+        b.onclick = () => {
+            if (slList().length && S.screen !== "deck") { slDropOpen = true; pickScreen("deck"); return; }   // on the board, list open
+            slDropOpen = !slDropOpen; slidesPick($("screens"));
+        };
+        const dr = el("div", "sldrop"); dr.id = "slDrop"; dr.hidden = true; dr.setAttribute("role", "group"); dr.setAttribute("aria-label", "This day's slides");
+        box.append(b, dr); host.before(box);
+    }
+    const loaded = !slOn || slLoaded(), list = slList(), n = list.length, on = S.screen === "deck", day = FULL[S.day] || "this day";
+    const dn = on && n ? deckNow() : null;
+    const words = !loaded ? "Loading\u2026" : !n ? "None for " + day + " yet" : dn ? "Slide " + (dn.i + 1) + " of " + n + " on the board" : n + (n === 1 ? " slide" : " slides") + " for " + day;
+    const sub = $("slSub"); if (sub.textContent !== words) sub.textContent = words;
+    const card = $("slCard"); card.classList.toggle("on", on); card.setAttribute("aria-expanded", String(slDropOpen));
+    const dr = $("slDrop"); dr.hidden = !slDropOpen;
+    if (!slDropOpen) return;
+    // two across (three on a phone for a long lesson, so 30 slides stay a short scroll), more on a wide rail
+    const w = box.clientWidth || 300, cols = Math.max(isPhone() && n > 12 ? 3 : 2, Math.min(4, Math.floor(w / 170))), tw = Math.floor((w - 8 * (cols - 1)) / cols);
+    const live = slLive(), look = S.look || {};
+    const k = JSON.stringify([loaded, lessonKeyNow(), SL.ver, slImgVer, list.map((s) => s.id), tw, cols, live, look.theme, look.bg, look.mark]);
+    if (k !== slDropSig) {
+        slDropSig = k; dr.textContent = "";
+        if (!loaded) dr.appendChild(el("p", "sdnote", "Loading the slides\u2026"));
+        else if (!n) dr.appendChild(el("p", "sdnote", "No slides for " + day + " yet. Make them in the Board Builder: from your plan, a layout or a blank slide."));
+        else {
+            const g = el("div", "sdgrid"); g.style.gridTemplateColumns = "repeat(" + cols + ",minmax(0,1fr))";
+            const opt = { live, img: slImg().src, logo: lookSeal(), board: { grad: gradOf(look.theme || "navy"), cls: "stagebg pv-" + (look.bg || "anchor") } };
+            list.forEach((s, i) => {
+                const b = el("button", "sdi"), t = slideTitle(s, live), th = thumb(s, opt, tw); b.type = "button"; b.dataset.i = i;
+                th.appendChild(el("span", "sdn", String(i + 1)));
+                if (s.daily) th.appendChild(el("span", "sdd", "Every day"));
+                b.append(th, el("span", "sdt", t));
+                b.setAttribute("aria-label", "Slide " + (i + 1) + ": " + t + (s.daily ? ", every day" : ""));
+                b.onclick = () => { S.screen = "deck"; S.slide = i; S.sstep = 0; S.show = false; push(); };
+                g.appendChild(b);
+            });
+            dr.appendChild(g);
+        }
+        if (mode === "remote" && !studio && loaded) { const a = el("a", "sdedit", n ? "Edit these slides" : "Make slides for " + day); a.href = slEditHref(); dr.appendChild(a); }
+    }
+    const cur = dn ? dn.i : -1;   // the slide on the board, marked in place (no rebuild while a finger is down)
+    dr.querySelectorAll(".sdi").forEach((b) => { const me = +b.dataset.i === cur; b.classList.toggle("on", me); if (me) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current"); });
 }
 let notTodayShut = (() => { try { return sessionStorage.getItem("anchorboard-nottoday") || ""; } catch (e) { return ""; } })();
 /* Phone: one-tap setups (layouts) and the panels used most, at the top of the controls.
@@ -340,7 +450,7 @@ function quickBar() {
         QUICK.forEach((k) => { const b = el("button", "qtool"); b.type = "button"; b.dataset.k = k; const ic = el("span", "qti"); ic.innerHTML = pIcon(k); b.appendChild(ic); b.appendChild(el("span", "qtl", labelOf(k))); b.onclick = () => { panelToggle(S.tools, k); push(); }; tg.appendChild(b); });
         q.appendChild(tg);
         q.appendChild(liveControls());
-        rail.prepend(q);
+        ($("editDay") || $("scrMore") || $("screens") || rail.firstChild).after(q);   // under Screens: the day's slides come first
     }
     q.querySelectorAll(".qscene").forEach((b) => { const on = sceneActive(S, b._raw); b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); });
     q.querySelectorAll(".qtool").forEach((b) => { const k = b.dataset.k, ok = panelOk(k), on = !!S.tools.on[k]; b.hidden = !ok; b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); });
@@ -429,7 +539,7 @@ function buildControls() {
             x.onclick = () => { notTodayShut = nk; try { sessionStorage.setItem("anchorboard-nottoday", nk); } catch (e) { /* this visit only */ } nt.hidden = true; fit(); }; nt.appendChild(x);
         }
     }
-    seg($("screens"), SCREENS.filter((x) => !subHides(x[0])), S.screen, (id) => { if (id === "deck" && S.screen !== "deck") S.sstep = 0; S.screen = id; S.show = false; push(); });
+    screensUi();
     const sel = $("weekSel"); sel.textContent = "";
     WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + (isPhone() ? String(x.dates || "").replace(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*/g, "$1") : x.dates)); o.value = x.id; sel.appendChild(o); });
     sel.value = w.id; $("weekField").hidden = WEEKS.length < 2;
@@ -457,7 +567,16 @@ const narrowWrap = () => { if (phoneMirror()) return false; const w = $("wrap");
    and shrunk to fit, so the teacher sees exactly what the class sees. "Phone size" turns it off on that phone. */
 const MIRROR_KEY = "anchorboard-phone-mirror";
 let mirrorOn = (() => { try { return localStorage.getItem(MIRROR_KEY) !== "off"; } catch (e) { return true; } })();
-const isPhone = () => mode !== "board" && Math.min(window.innerWidth, window.innerHeight) < 600 && window.innerWidth < 1000;
+/* A phone, held either way. The page's own width (clientWidth), not innerWidth: on an iPhone innerWidth follows a
+   pinch or double-tap zoom, and a zoomed-out Remote once came back with the laptop layout (Nov 21). A small touch
+   screen is a phone whatever the page width says. */
+let smallTouchIs = null;
+const smallTouch = () => { if (smallTouchIs == null) { try { smallTouchIs = Math.min(screen.width, screen.height) < 600 && (matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0); } catch (e) { smallTouchIs = false; } } return smallTouchIs; };
+const isPhone = () => {
+    if (mode === "board") return false;
+    const de = document.documentElement, w = de.clientWidth || window.innerWidth, h = de.clientHeight || window.innerHeight;
+    return (Math.min(w, h) < 600 && w < 1000) || smallTouch();
+};
 const phoneMirror = () => mirrorOn && isPhone();
 const PANEL_KEYS = PANEL_LIST.map((x) => x[0]);
 /** Minimized panels: live chips at the foot of the shelf. */
@@ -469,6 +588,7 @@ let shelfApplied = "";
 function fit() {
     const w = $("wrap"), st = $("stage");
     document.body.classList.toggle("phone", isPhone()); document.body.classList.toggle("mirror", phoneMirror());
+    if (isPhone() && !phoneHeadDone) phoneHeader();
     const mir = phoneMirror(), Wd = mir ? 1280 : w.clientWidth - 16, H = mir ? 720 : w.clientHeight - 16;
     if (Wd < 50 || H < 50) return;
     const se = synced ? shelfEm() : 0;
@@ -608,9 +728,12 @@ function soundPanel() {
     snd.onChange(soundControls);
 }
 /* On a phone the top bar is two tidy rows: logo, connection and boards, and a menu button; then the class and week
-   side by side. Music and Board view move into the menu. Done once at load (a phone stays a phone). */
+   side by side. Music and Board view move into the menu. Done once (a phone stays a phone): at load, or on the first
+   fit that finds a phone, should the page have opened at another size. */
+let phoneHeadReady = false, phoneHeadDone = false;
 function phoneHeader() {
-    if (!isPhone()) return;
+    if (!phoneHeadReady || phoneHeadDone || !isPhone()) return;
+    phoneHeadDone = true;
     const acct = document.querySelector(".cbar details.acct"), pop = acct && acct.querySelector(".pop"); if (!pop) return;
     const sum = acct.querySelector("summary"); if (sum) { sum.textContent = "Menu"; sum.classList.add("phmenu"); sum.setAttribute("aria-label", "Menu"); }
     const top = [el("p", "pophead", "This phone"), $("boardBtn"), $("musicBtn"), el("p", "pophead", "Pages")].filter(Boolean);
@@ -1102,7 +1225,7 @@ function renderDock() {
 /* "Edit this day": opens Quick lesson on the class and day showing, for the agenda, bellringer, target, supplies and reminders. */
 function renderEditLink() {
     const sc = $("screens"); if (!sc || mode !== "remote") return;
-    let a = $("editDay"); if (!a) { a = el("a", "btn editday"); a.id = "editDay"; a.target = "_blank"; a.rel = "noopener"; a.title = "Agenda, bellringer, learning target, supplies, reminders and exit ticket"; sc.after(a); }
+    let a = $("editDay"); if (!a) { a = el("a", "btn editday"); a.id = "editDay"; a.target = "_blank"; a.rel = "noopener"; a.title = "Agenda, bellringer, learning target, supplies, reminders and exit ticket"; ($("scrMore") || sc).after(a); }
     const w = W(), dk = DK[S.day] || "Mon", q = new URLSearchParams({ day: dk.toLowerCase() });
     if (w.monday) q.set("monday", w.monday); if (S.cls) q.set("class", S.cls);
     const href = "lesson.html?" + q;
@@ -1567,11 +1690,11 @@ export async function startApp(opts) {
     $("boardBtn").onclick = () => { document.body.classList.add("board"); unlockSound(); try { const p = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ok */ } fit(); soundSync(); };
     $("exit").onclick = () => { document.body.classList.remove("board"); soundSync(); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* ok */ } fit(); };
     $("signOut").onclick = async () => { try { await store.signOut(); } finally { location.replace("login.html"); } };
-    window.addEventListener("resize", fit);
+    window.addEventListener("resize", fit); window.addEventListener("pageshow", () => fit());   // pageshow: back to a page the phone kept
     if (window.ResizeObserver) new ResizeObserver(fit).observe($("wrap")); document.addEventListener("fullscreenchange", () => setTimeout(fit, 60));
     document.addEventListener("pointerdown", unlockSound); document.addEventListener("keydown", unlockSound);
     soundPanel();
-    phoneHeader();
+    phoneHeadReady = true; phoneHeader();
     if (!guest) planFold = mountPlanFold(planApi, $("planAnchor") || $("soundMenu") || $("toolsMenu"));
     $("flowNext").onclick = () => step(1); $("flowBack").onclick = () => step(-1);
     {   // Phone: swipe the board picture left for Next, right for Back (the picture shows the result at once)
