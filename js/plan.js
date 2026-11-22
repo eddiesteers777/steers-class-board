@@ -31,6 +31,22 @@ const HOMEWORK = { "8th": "Homework Packet, Monday to Wednesday problems, due Th
 
 let WEEKS = PUBLISHED, progress = {}, planner = { weeks: {} }, rosters = {}, plan = null, mon = "", saveT = 0, dirty = false;
 let evDocs = null, sets = [], asgs = [];
+/* ---------- quick copy (Nov 22): what this phone saw last time, so the week draws at once ----------
+   Standards marks, the Planner, the class lists and the last few saved plans. The server's answer replaces them a
+   moment later. The "school-live:" name means signing out or switching accounts clears it (js/auth.js). */
+const QUICK = "school-live:plan", got = new Set();
+let quickUid = "", quickT = 0, quickPlans = {};
+function quickLoad(uid) { try { const q = JSON.parse(localStorage.getItem(QUICK) || "null"); return q && q.uid === uid ? q : null; } catch (e) { return null; } }
+function quickSave() {
+    if (demo || !quickUid || got.size < 3) return;
+    clearTimeout(quickT);
+    quickT = setTimeout(() => {
+        if (plan && plan.at) quickPlans[plan.id] = plan;
+        const keep = Object.values(quickPlans).sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 3);
+        quickPlans = Object.fromEntries(keep.map((x) => [x.id, x]));
+        try { localStorage.setItem(QUICK, JSON.stringify({ uid: quickUid, progress, planner, rosters, plans: quickPlans })); } catch (e) { /* storage full or off: the next visit waits for the server */ }
+    }, 800);
+}
 const openDays = new Set();   // which day drawers are open ("8th:2")
 const CUT = (() => { try { const v = parseFloat(localStorage.getItem("anchorboard-progress-cut")); return v > 0 && v < 1 ? v : 0.7; } catch (e) { return 0.7; } })();
 const TEMPLATES = ["Guided notes", "Practice", "Speed dating", "Review game", "Stations", "Practice + study guide", "Quiz", "Test", "Reteach + practice", "Review"];
@@ -85,7 +101,7 @@ function freshPlan(m) {
 function touch() { dirty = true; status("Saving…"); clearTimeout(saveT); saveT = setTimeout(save, 600); summary(); }
 async function save() {
     if (!plan) return; plan.at = Date.now();
-    try { await store.save("plans/" + plan.id, JSON.parse(JSON.stringify(plan))); dirty = false; status(demo ? "This device only" : "Saved", "ok"); return true; }   // JSON copy: Firestore refuses undefined values
+    try { await store.save("plans/" + plan.id, JSON.parse(JSON.stringify(plan))); dirty = false; status(demo ? "This device only" : "Saved", "ok"); quickSave(); return true; }   // JSON copy: Firestore refuses undefined values
     catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); return false; }
 }
 
@@ -396,14 +412,17 @@ let unwatch = 0;
 function openWeek(m) {
     mon = m; const fresh = freshPlan(m), id = fresh.id; plan = null; const my = ++unwatch;
     history.replaceState(null, "", "?week=" + id + (demo ? "&demo" : ""));
-    $("view").hidden = true; $("skel").hidden = false;
+    const merge = (d) => d && d.classes ? Object.assign(fresh, d, { days: fresh.days.map((x, i) => { const o = (d.days || [])[i] || {}; return Object.assign(x, { type: o.type || "" }, o.periods ? { periods: o.periods } : {}, o.minutes ? { minutes: o.minutes } : {}); }) }) : fresh;
+    const q = quickPlans[id];
+    if (q && q.classes) { plan = merge(JSON.parse(JSON.stringify(q))); $("skel").hidden = true; $("view").hidden = false; draw(); }   // last saved copy on this phone
+    else { $("view").hidden = true; $("skel").hidden = false; }
     store.watch("plans/" + id, (snap) => {
         if (my !== unwatch || snap.pending || (plan && dirty)) return;
         const d = snap.exists && snap.data;
         if (plan && (!d || d.at === plan.at)) return;   // our own save coming back: keep the page as it is
         if (plan && document.activeElement && $("view").contains(document.activeElement)) return;   // never redraw under the teacher's typing
-        plan = d && d.classes ? Object.assign(fresh, d, { days: fresh.days.map((x, i) => { const o = (d.days || [])[i] || {}; return Object.assign(x, { type: o.type || "" }, o.periods ? { periods: o.periods } : {}, o.minutes ? { minutes: o.minutes } : {}); }) }) : fresh;
-        $("skel").hidden = true; $("view").hidden = false; draw();
+        plan = merge(d);
+        $("skel").hidden = true; $("view").hidden = false; draw(); quickSave();
     }, () => { if (my !== unwatch) return; plan = fresh; $("skel").hidden = true; $("view").hidden = false; draw(); status("Could not load a saved plan", "bad"); });
 }
 
@@ -416,11 +435,33 @@ const user = await store.ready();
 if (!user) location.replace("login.html");
 else {
     $("who").textContent = demo ? "This device only, nothing is saved" : (user.name ? "Signed in as " + user.name : "Signed in");
-    status(demo ? "This device only" : "Live", "ok");
-    let got = 0; const ready = () => { if (++got === 3) { const w = qs.get("week"); const hit = w && /^(week|q\d+w)\d+$/.test(w) ? findMonday(w) : ""; openWeek(hit || defaultMonday()); } };
-    store.watch("standards/progress", (s) => { if (s.pending) return; progress = (s.exists && s.data) || {}; ready(); }, ready);
-    store.watch("planner/plans", (s) => { if (s.pending) return; planner = (s.exists && s.data) || { weeks: {} }; if (!planner.weeks) planner.weeks = {}; ready(); }, ready);
-    store.watch("rosters/all", (s) => { if (s.pending) return; rosters = (s.exists && s.data && s.data.periods) || {}; ready(); }, ready);
+    status(demo ? "This device only" : "Loading…", demo ? "ok" : "wait");
+    // The week opens once standards marks, the Planner and the class lists are each in (Nov 22: it used to count any three
+    // answers, so an empty first answer from the phone's saved copy could fill the plan with no standards marks).
+    // An empty saved copy waits for the server; after 5 s the week opens with what is in.
+    let opened = false;
+    const open = () => { if (opened) return; opened = true; const w = qs.get("week"); const hit = w && /^(week|q\d+w)\d+$/.test(w) ? findMonday(w) : ""; openWeek(hit || defaultMonday()); };
+    const ready = (k) => {
+        const was = got.size; got.add(k); quickSave();
+        if (got.size < 3 || was === 3) return;
+        if (!demo) status("Live", "ok");
+        if (!opened) return open();
+        // Opened from the quick copy: a week not saved yet is filled again from what the server says (never under typing).
+        if (quickSig !== sig() && plan && !plan.at && !dirty && !(document.activeElement && $("view").contains(document.activeElement))) openWeek(mon);
+    };
+    const sig = () => JSON.stringify([progress, planner, rosters]);
+    let quickSig = "";
+    const q = demo ? null : quickLoad(user.uid);
+    quickUid = user.uid;
+    if (q) {
+        progress = q.progress || {}; planner = q.planner && q.planner.weeks ? q.planner : { weeks: {} }; rosters = q.rosters || {}; quickPlans = q.plans || {}; quickSig = sig();
+        status("Syncing…", "wait"); open();
+    }
+    setTimeout(() => { if (!opened) { open(); if (!demo) status("Slow connection: suggestions may change", "wait"); } }, 5000);
+    const empty = (s) => s.pending || (s.fromCache && !s.exists);
+    store.watch("standards/progress", (s) => { if (empty(s)) return; progress = (s.exists && s.data) || {}; ready("p"); }, () => ready("p"));
+    store.watch("planner/plans", (s) => { if (empty(s)) return; planner = (s.exists && s.data) || { weeks: {} }; if (!planner.weeks) planner.weeks = {}; ready("w"); }, () => ready("w"));
+    store.watch("rosters/all", (s) => { if (empty(s)) return; rosters = (s.exists && s.data && s.data.periods) || {}; ready("r"); }, () => ready("r"));
     watchPrivateWeeks(store, PUBLISHED, (list) => { WEEKS = list; if (plan) summary(); });
     watchEvidence(store, (d) => { evDocs = d; if (plan) drawEvidenceAll(); });
     store.watch("games/index", (s) => { if (s.pending) return; sets = ((s.exists && s.data && s.data.sets) || []).filter((x) => x && x.id); }, () => {});

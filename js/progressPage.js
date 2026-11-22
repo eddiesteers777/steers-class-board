@@ -7,7 +7,7 @@
 import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=4";
 import { buildProgress, distribution, standardOverTime, needGroups, missedOn, heatmap, engagement, fidelity, studentSummary, stdIn, BAND_WORD } from "./progress.js?v=3";
 import { lineChart, sparkline, bandBar, meter } from "./charts.js?v=1";
-import { STANDARDS } from "../data/standards.js?v=57";
+import { STANDARDS } from "../data/standards.js?v=58";
 
 const DEMO_PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
 const MARK = { teaching: "Teaching", taught: "Taught", reteach: "Reteach" };

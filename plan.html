@@ -14,6 +14,12 @@
     <link rel="stylesheet" href="css/planner.css?v=58">
     <link rel="stylesheet" href="css/plan.css?v=65">
     <meta name="theme-color" content="#081B45">
+    <!-- Fetch the big and late files right away, side by side with the page code (Nov 22: the page waited on them one after another). -->
+    <link rel="modulepreload" href="data/standards.js?v=58">
+    <link rel="modulepreload" href="js/boardStore.js?v=58">
+    <link rel="modulepreload" href="js/firebase.js">
+    <link rel="modulepreload" href="js/auth.js">
+    <link rel="modulepreload" href="js/contentPack.js?v=2">
     <script type="module" src="js/caleraOnly.js?v=1"></script>
 </head>
 <body class="console page planner">
@@ -47,7 +53,8 @@
         </div>
     </main>
     <datalist id="pwTemplates"><option value="Guided notes"><option value="Practice"><option value="Speed dating"><option value="Review game"><option value="Stations"><option value="Practice + study guide"><option value="Reteach + practice"><option value="Quiz"><option value="Test"><option value="Review"></datalist>
-    <script type="module" src="js/plan.js?v=63"></script>
+    <script type="module" src="js/plan.js?v=64"></script>
     <script type="module">import { mountPlanNav } from "./js/studentsNav.js?v=4"; mountPlanNav("plan.html");</script>
+    <script src="js/offline.js?v=1" defer></script>
 </body>
 </html>
