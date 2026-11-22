@@ -8,9 +8,14 @@
    Firebase code from gstatic, fonts) so the page itself can open with no connection.
 
    How it answers:
-     - The site's own files: the network first, so a new version is always used when online.
-       If the network fails or takes longer than a few seconds, the saved copy answers instead,
+     - Pages (HTML): the network first, so a new version is always used when online.
+       If the network fails or takes longer than a couple of seconds, the saved copy answers instead,
        and the network answer still refreshes the saved copy when it arrives.
+     - Code and styles (.js, .css): the saved copy answers at once and the network refreshes it in
+       the background (2026-11-21). The Remote loads about 65 code files, one level after another;
+       asking the network first for each one cost a phone 1-2 s on every reload after the browser's
+       own one-hour cache ran out. Pages ask for code by ?v= number, so a new deploy's code is a new
+       address and comes from the network; at worst a file whose number was not raised is one load behind.
      - Firebase code (pinned versions on www.gstatic.com) and Google Fonts: the saved copy first,
        since those files never change at the same address.
      - Everything else (the database, sign-in, Drive, YouTube) is never touched here.
@@ -24,7 +29,7 @@
 ========================================== */
 const CACHE = "anchor-site-v1";
 const WARM_EVERY = 6 * 3600 * 1000;
-const NET_WAIT = 4000;   // ms before the saved copy answers a slow request
+const NET_WAIT = 2500;   // ms before the saved copy answers a slow page request
 const CORE = ["board.html", "remote.html", "index.html", "login.html", "brand/logo.svg", "favicon.svg"];
 const PINNED = [/^https:\/\/www\.gstatic\.com\/firebasejs\//, /^https:\/\/fonts\.(googleapis|gstatic)\.com\//];
 
@@ -51,7 +56,7 @@ self.addEventListener("fetch", (event) => {
     const url = new URL(req.url);
     if (sameSite(url)) {
         if (skipPath(url)) return;
-        event.respondWith(networkFirst(req, event));
+        event.respondWith(/\.(js|css)$/.test(url.pathname) ? savedFirst(req, event) : networkFirst(req, event));
         if (req.mode === "navigate") event.waitUntil(warmMaybe());
     } else if (PINNED.some((re) => re.test(req.url))) {
         event.respondWith(cacheFirst(req));
@@ -90,6 +95,16 @@ function networkFirst(req, event) {
                 if (!(await fallback()) && !done) { done = true; resolve(offlinePage(req)); }
             });
     });
+}
+
+// Code and styles: the exact saved file at once (same address, same ?v=), refreshed from the network in the background.
+// Nothing saved at that address yet: the network, as networkFirst does.
+async function savedFirst(req, event) {
+    let hit;
+    try { hit = await (await caches.open(CACHE)).match(req); } catch { hit = null; }
+    if (!hit) return networkFirst(req, event);
+    event.waitUntil(fetch(req).then((res) => keep(req, res)).catch(() => {}));
+    return hit;
 }
 
 async function cacheFirst(req) {

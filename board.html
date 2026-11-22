@@ -7,7 +7,14 @@
     <meta name="robots" content="noindex">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&family=Patrick+Hand&display=swap">
+    <!-- Start the connections and the sign-in/database code at once, so they load alongside the board code (2026-11-21). -->
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin>
+    <link rel="modulepreload" href="js/boardStore.js?v=58">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&family=Patrick+Hand&display=swap" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/board.css?v=62">
     <link rel="stylesheet" href="css/console.css?v=61">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
@@ -49,7 +56,7 @@
     </div>
     <button id="exit" type="button">Show controls</button>
     <script type="module">
-        import { startApp } from "./js/boardApp.js?v=127";
+        import { startApp } from "./js/boardApp.js?v=128";
         startApp({ mode: "board" });
     </script>
     <script src="js/offline.js?v=1" defer></script>
