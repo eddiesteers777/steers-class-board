@@ -11,10 +11,10 @@ put("attendance/2026-11-17", { out: { "1st": { "ben-k": { n: "Ben K.", at: 1 } }
 put("rosters/all", { periods: { "1st": ["Ava Rivera", "Ben Kim"] } });
 put("catchup/1st", {});
 const store = { watch(path, next) { setTimeout(() => next({ exists: docs.has(path), data: docs.get(path), pending: false }), 0); return () => {}; } };
-window.__saved = []; window.__printed = [];
+window.__saved = []; window.__printed = []; window.__pub = [];
 mountCatchup({ store, el, host: document.getElementById("cu"), periods: [["1st", "8th"]], weeks: [week5], per: "1st", key: "ben-k", today: "2026-11-23",
   print: async (w, papers, title) => { window.__printed.push({ n: papers.length, title, key: papers.some((p) => p.key) }); },
   bank: async () => [], copyVersion: () => ({ text: "", n: 0 }), poolFor: () => [],
-  save: async (path, data) => { window.__saved.push({ path, data }); } });
+  save: async (path, data) => { window.__saved.push({ path, data }); }, savePub: async (path, data) => { window.__pub.push({ path, data }); }, grade: () => "8th grade" });
 window.__ready = true;
 </script></body></html>

@@ -8,6 +8,7 @@
 import { db } from "./firebase.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { bellringerSheet, notesSheet, studyGuideSheet, rich } from "./weekSheets.js?v=60";
+import { vidOf, videoBlock } from "./catchupVideo.js?v=1";
 
 const qs = new URLSearchParams(location.search), T = qs.get("t") || "", C = qs.get("c") || "";
 const $ = (id) => document.getElementById(id);
@@ -17,7 +18,7 @@ const iso = (d) => d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) 
 const dayIso = (w, i) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(w.monday || ""); return m ? iso(new Date(+m[1], +m[2] - 1, +m[3] + i)) : ""; };
 const md = (w, i) => { const s = dayIso(w, i); return s ? (+s.slice(5, 7)) + "/" + (+s.slice(8)) : ""; };
 
-let index = null, week = null, cls = null;
+let index = null, week = null, cls = null, cvDoc = null;   // cvDoc: the catch-up videos Mr. Steers checked (pub/{uid}/cv/{weekId})
 
 function fail(msg) { $("skel").hidden = true; const m = $("main"); m.textContent = ""; const b = el("section", "cp-empty"); b.appendChild(el("h1", null, "This page is not ready")); b.appendChild(el("p", null, msg)); m.appendChild(b); }
 
@@ -82,6 +83,7 @@ function draw() {
         const line = el("p", "cp-line"); line.appendChild(rich(d.agendaLine || "")); card.appendChild(line);
         if (d.lt && !/no school/i.test(d.agendaLine)) { const lt = el("p", "cp-daylt"); lt.appendChild(rich("I can " + d.lt.replace(/^I can\s*/i, ""))); card.appendChild(lt); }
         if (d.notes) { const b = el("button", "cp-btn", "Guided notes"); b.type = "button"; b.onclick = () => openPaper("notes" + i); card.appendChild(b); }
+        { const v = vidOf(cvDoc, C, i); if (v) card.appendChild(videoBlock(el, v, "Missed " + DAYS[i] + "? Watch the catch-up video")); }
         if ((d.problems || []).length) {
             const det = el("details", "cp-bell"); det.appendChild(el("summary", null, "Bellringer (" + d.problems.length + ")"));
             const ol = el("ol"); d.problems.forEach((p) => { const li = el("li"); li.appendChild(rich(p.q)); ol.appendChild(li); }); det.appendChild(ol); card.appendChild(det);
@@ -126,6 +128,7 @@ async function start() {
         if (!pick) { pick = index.weeks[0]; for (const w of index.weeks) if (w.monday && dayIso(w, -2) <= t) pick = w; }   // from the Saturday before, a week is "this week"
         const ws = await getDoc(doc(db, "pub/" + T + "/weeks/" + pick.id));
         week = ws.exists() ? ws.data() : null; cls = week && week.classes && week.classes[C];
+        try { const cv = await getDoc(doc(db, "pub/" + T + "/cv/" + pick.id)); cvDoc = cv.exists() ? cv.data() : null; } catch (e) { cvDoc = null; }   // no videos is fine
         if (!cls) { fail("This class has nothing posted for " + pick.label + " yet."); return; }
         draw();
     } catch (e) { fail("The page could not load. Check the internet connection and try again."); }
