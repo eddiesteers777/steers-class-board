@@ -65,3 +65,10 @@ body.paper-open{overflow:hidden}
     body.paper-open .cp-sheet .sheet{padding:0}
     html,body.paper-open{height:auto!important;overflow:visible!important}
 }
+
+/* Catch-up video (absence dashboard part D) */
+.cv-box{margin:10px 0 4px;padding:10px 12px;border:1px solid var(--k-bd,#D5DCE9);border-radius:12px;background:var(--k-sub,#F6F9FD)}
+.cv-title{display:block;font-size:.92rem;margin-bottom:6px;color:var(--k-ink,#0E1B3A)}
+.cv-play{min-height:44px;padding:0 14px;border-radius:12px;border:1.5px solid var(--s-acc,#1B4FBF);background:var(--s-acc,#1B4FBF);color:#fff;font:600 .92rem/1 inherit;cursor:pointer}
+.cv-frame{display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:10px;background:#000}
+.cv-open{display:inline-block;margin:8px 0 0 10px;font-size:.85rem;color:var(--k-link,#1B4FBF)}
