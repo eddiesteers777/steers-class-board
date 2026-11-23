@@ -60,6 +60,23 @@ simpler, one less thing.
     Bellringer, Guided Notes and the Agenda live in More screens, since the slides hold them; on a day without, they
     stay out front. Guided Notes and Speed Dating show only on days that have them. A screen that is up while tucked
     in More screens is named on the closed fold. Next and Back still walk every screen in order.
+- **Premium finish and site colors (Nov 23).** Eddie asked for the Spotlight tab's premium look across the whole site
+  ("not necessarily glass everywhere") and a setting that changes the site's colors. `css/skin.css` loads last on every
+  teacher page and `js/scheme.js` loads first in `<head>` (so nothing flashes). Neither is on the projected board
+  (board.html, sub.html, demo.html) or the student pages: the board keeps its Board look.
+  - Glass only on what floats over the page: the top bar (sticky, frosted), menus, dialogs, the hero card's buttons.
+    Everything else is a solid card: one hairline, one soft layered shadow, a small lift on hover for links.
+  - Buttons and tabs echo the Spotlight toolbar: the scheme's gradient with a top highlight, Spotlight amber for the
+    one next step, pill tabs on an inset track.
+  - **Site colors** (Home > Settings): 9 accent schemes (Anchor navy, Royal, Ocean, Teal, Forest, Plum, Berry, Crimson,
+    Slate) and Light / Night / Match device. Saved on the device (`anchorboard-scheme`) and in the account
+    (`settings/site`); Home applies a newer choice from another device. Amber, green and red keep their meanings in
+    every scheme.
+  - How colors are wired: page styles use `var(--s-acc,#1B4FBF)` (scheme accents) and `var(--k-sub,#F6F9FD)`,
+    `--k-ok-*`, `--k-bad-*`, `--k-warn-*`, `--k-ink`, `--k-mute`, `--k-bd` (Night swaps). The fallback is the old
+    color, so a page without the skin looks exactly as before. New page CSS should use these names, not raw hex.
+  - Anything drawn as the board (`#stage`, the tool shelf, Spotlight, slide drawings, look previews) is pinned back to
+    the board palette, so the scheme and Night never change what students see. Printing is always light.
 - **Never show the wrong thing while loading.** Show the shape of the screen (a skeleton) until
   the real state arrives. No spinners, and never a flash of another day or period.
 - **Never claim what the site cannot know.** No "current period" without bell times. If the
@@ -73,7 +90,7 @@ simpler, one less thing.
   (`touch-action: manipulation` on every element, `css/console.css`), and fields at least 16px so Safari does not
   zoom in on a tap. Phone layout comes from the page's own width and the screen size, never `innerWidth`, which
   follows a zoom.
-- **Restraint.** No new fonts, colours, shadows, gradients or corner styles without asking Eddie.
+- **Restraint.** No new fonts, colours, shadows, gradients or corner styles without asking Eddie (the Nov 23 skin is the approved set).
 - **Motion is quick and quiet.** About 240–260ms, never bouncy, and off for reduced-motion.
 - **Student privacy.** Nothing a student could be identified by goes on the board unless the
   teacher puts it there (name picker, groups, the Seating Chart screen). No student data in this public repo, ever.

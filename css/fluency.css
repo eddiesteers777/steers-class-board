@@ -1,21 +1,21 @@
 /* Fact Blitz, the teacher's page (fluency.html, js/fluencyPage.js). Built on console.css + progress.css + assign.css. */
 .fbH{font-family:var(--display);font-size:1.5rem;margin:0}
 .fbSt{font-weight:600}
-.fbSt[data-s="playing"]{color:#0F6B40}
-.fbSt[data-s="left"]{color:#8E1B21}
+.fbSt[data-s="playing"]{color:var(--k-ok-ink,#0F6B40)}
+.fbSt[data-s="left"]{color:var(--k-bad-ink,#8E1B21)}
 .fbSt[data-s="none"]{color:var(--c-mute);font-weight:500}
-.fbCh[data-d="up"]{color:#0F6B40}
-.fbCh[data-d="down"]{color:#8E1B21}
+.fbCh[data-d="up"]{color:var(--k-ok-ink,#0F6B40)}
+.fbCh[data-d="down"]{color:var(--k-bad-ink,#8E1B21)}
 .fbMissed{margin-top:16px}
 .fbMiss{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
-.fbMiss li{display:flex;flex-direction:column;background:#F7F9FC;border:1.5px solid var(--c-line);border-radius:12px;padding:8px 12px}
+.fbMiss li{display:flex;flex-direction:column;background:var(--k-sub,#F7F9FC);border:1.5px solid var(--c-line);border-radius:12px;padding:8px 12px}
 .fbMiss b{font-family:var(--display);font-size:1.15rem}
 .fbMiss small{color:var(--c-mute)}
-.fbPriv{background:#F4F7FC;border-radius:12px;padding:10px 14px;margin:0 0 14px;max-width:760px}
+.fbPriv{background:var(--k-sub,#F4F7FC);border-radius:12px;padding:10px 14px;margin:0 0 14px;max-width:760px}
 .fbXt{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
-.fbXtRow{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1.5px solid var(--c-line);border-radius:12px;padding:6px 8px 6px 14px}
-.fbXtRow.on{border-color:#F0D58E;background:#FFFBEF}
-.fbXtRow select{font:inherit;min-height:44px;padding:6px 10px;border:1.5px solid var(--c-line);border-radius:10px;background:#fff}
+.fbXtRow{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--c-surface,#fff);border:1.5px solid var(--c-line);border-radius:12px;padding:6px 8px 6px 14px}
+.fbXtRow.on{border-color:var(--k-warn-line,#F0D58E);background:var(--k-warn-bg,#FFFBEF)}
+.fbXtRow select{font:inherit;min-height:44px;padding:6px 10px;border:1.5px solid var(--c-line);border-radius:10px;background:var(--c-surface,#fff)}
 .asPrev.fbKid{max-width:760px}
 .fbKidSet{margin:10px 0 16px}
 .fbKidSet h3{margin:0 0 4px;font-family:var(--display)}

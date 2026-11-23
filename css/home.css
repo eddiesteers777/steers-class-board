@@ -6,22 +6,22 @@
 .hm-gt{background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;box-shadow:0 8px 32px rgba(8,27,69,.06)}
 .hm-gt b{font-family:var(--display);font-size:1.45rem;font-weight:800;letter-spacing:-.02em;line-height:1.15}
 .hm-gt span{font-size:.84rem;color:var(--c-mute);line-height:1.4}
-.hm-gt.accent{background:#E6EEFB;border-color:#BFD0EE}
-.hm-gt.accent b{color:#10358A}
+.hm-gt.accent{background:var(--s-tint,#E6EEFB);border-color:var(--s-tint2,#BFD0EE)}
+.hm-gt.accent b{color:var(--s-acc2,#10358A)}
 .hm-week{grid-column:1/-1}
 .hm-week h2{margin:14px 0 8px}
 .hm-weekrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .hm-wk{display:flex;flex-direction:column;gap:3px;background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:14px;padding:12px 14px;text-decoration:none;color:var(--c-ink);transition:border-color .2s,transform .2s}
-.hm-wk:hover{border-color:#9FB0CC;transform:translateY(-1px)}
+.hm-wk:hover{border-color:var(--s-edge,#9FB0CC);transform:translateY(-1px)}
 .hm-wk i{font-style:normal;font-size:.74rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--c-mute)}
 .hm-wk b{font-weight:700;line-height:1.3}
 .hm-wk b.none{color:var(--c-mute);font-weight:600}
-.hm-wk span{font-size:.82rem;color:#10358A;font-weight:600}
+.hm-wk span{font-size:.82rem;color:var(--s-acc2,#10358A);font-weight:600}
 .hm-wk span:empty{display:none}
 
-.hm-needs{margin-top:18px;background:#FFF8E6;border:1.5px solid #F2D58A;border-radius:16px;padding:6px 16px 10px}
-.hm-needs h2{font-size:1.05rem;margin:8px 0 4px;color:#5A4200}
-.hm-need{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid #F2E2B5}
+.hm-needs{margin-top:18px;background:var(--k-warn-bg,#FFF8E6);border:1.5px solid var(--k-warn-line,#F2D58A);border-radius:16px;padding:6px 16px 10px}
+.hm-needs h2{font-size:1.05rem;margin:8px 0 4px;color:var(--k-warn-ink,#5A4200)}
+.hm-need{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--k-warn-line,#F2E2B5)}
 .hm-need:first-of-type{border-top:0}
 .hm-need p{margin:0;font-size:.92rem;line-height:1.4}
 .hm-need .btn{text-decoration:none;min-height:40px;display:inline-flex;align-items:center}
@@ -47,7 +47,7 @@
 /* ---------- side panel ---------- */
 :root{--side-w:272px;--side-min:76px}
 .hm-side{position:fixed;left:0;top:0;bottom:0;z-index:20;width:var(--side-w);display:flex;flex-direction:column;
-  background:linear-gradient(180deg,#0B2559 0%,#081B45 55%,#06142F 100%);color:#F4F7FB;
+  background:linear-gradient(180deg,var(--s-mid,#0B2559) 0%,var(--navy,#081B45) 55%,#06142F 100%);color:#F4F7FB;
   box-shadow:1px 0 0 rgba(255,255,255,.06),12px 0 40px rgba(8,27,69,.18);transition:width .28s cubic-bezier(.2,.8,.2,1),transform .28s cubic-bezier(.2,.8,.2,1);overflow:hidden}
 .hm-shead{display:flex;align-items:center;gap:8px;padding:18px 14px 8px 22px;min-height:60px}
 .hm-stitle{font-family:var(--display);font-weight:800;font-size:1.05rem;letter-spacing:-.01em;flex:1;white-space:nowrap}
@@ -92,27 +92,27 @@
 @media (prefers-reduced-motion:reduce){.hm-side,body.hm-home,.hm-sl,.hm-sl svg,.hm-smin{transition:none}.hm-wk{transition:none}.hm-wk:hover{transform:none}}
 
 /* Bell times: Plan ahead (a date that starts on another schedule) */
-.bpick2 input[type=date]{font:inherit;color:var(--c-ink);border:1.5px solid var(--c-line);border-radius:8px;padding:6px 8px;background:#fff;min-height:40px}
+.bpick2 input[type=date]{font:inherit;color:var(--c-ink);border:1.5px solid var(--c-line);border-radius:8px;padding:6px 8px;background:var(--c-surface,#fff);min-height:40px}
 .aheadrow{gap:8px 14px}
 .aheadrow .aheaddate{min-width:9.5em;font-weight:600}
 .aheadrow .aheadname{flex:1}
 
 /* "This week" planning strip (js/weekFlow.js) */
-.hm-flow{margin-top:18px;background:#fff;border:1px solid rgba(14,27,58,.12);border-radius:16px;padding:12px 16px 14px}
+.hm-flow{margin-top:18px;background:var(--c-surface,#fff);border:1px solid rgba(14,27,58,.12);border-radius:16px;padding:12px 16px 14px}
 .hm-flow .wf-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px}
 .hm-flow h2{font-size:1.05rem;margin:2px 0}
-.hm-flow .wf-sum{margin:0;color:#4a5670;font-size:.92rem}
+.hm-flow .wf-sum{margin:0;color:var(--k-mute,#4a5670);font-size:.92rem}
 .wf-steps{list-style:none;padding:0;margin:10px 0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;counter-reset:wf}
-.wf-step{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:12px;background:#F3F6FB;border:1.5px solid transparent;min-width:0}
+.wf-step{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:12px;background:var(--k-sub,#F3F6FB);border:1.5px solid transparent;min-width:0}
 .wf-step .wf-mark{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.8rem;border:2px solid #B8C4DA;color:#fff}
 .wf-step .wf-tx{display:grid;min-width:0}
 .wf-step b{font-size:.92rem}
-.wf-step small{color:#4a5670;font-size:.78rem;line-height:1.25;overflow-wrap:anywhere}
+.wf-step small{color:var(--k-mute,#4a5670);font-size:.78rem;line-height:1.25;overflow-wrap:anywhere}
 .wf-done .wf-mark{background:#1F8A4C;border-color:#1F8A4C}
 .wf-part .wf-mark{background:#F2B33D;border-color:#F2B33D;color:#3b2a00}
-.wf-next{border-color:#F2B33D;background:#FFF8E6}
+.wf-next{border-color:#F2B33D;background:var(--k-warn-bg,#FFF8E6)}
 .hm-flow>.btn{margin-top:2px}
 @media (max-width:900px){.wf-steps{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:480px){.wf-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.hm-auto{margin:10px 0 0;padding:8px 12px;border-radius:12px;background:#EAF4EE;color:#1d4a30;font-size:.92rem}
+.hm-auto{margin:10px 0 0;padding:8px 12px;border-radius:12px;background:var(--k-ok-bg,#EAF4EE);color:var(--k-ok-ink,#1d4a30);font-size:.92rem}
 .hm-auto a{margin-left:4px;font-weight:700;color:inherit}

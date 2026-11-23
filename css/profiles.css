@@ -3,21 +3,21 @@
 .pfRow{display:grid;grid-template-columns:52px minmax(140px,1.2fr) minmax(140px,1fr) auto;align-items:center;gap:14px;text-align:left;font:inherit;color:var(--c-ink);background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:16px;padding:10px 16px;min-height:64px;cursor:pointer}
 .pfRow:hover:not(:disabled){border-color:#7FAEDD}
 .pfRow.none{opacity:.65;cursor:default}
-.pfLv{width:44px;height:44px;border-radius:50%;background:#081B45;color:#F2B33D;font-family:var(--display);font-weight:800;font-size:1.25rem;display:grid;place-items:center;box-shadow:inset 0 0 0 3px #F2B33D}
+.pfLv{width:44px;height:44px;border-radius:50%;background:var(--navy,#081B45);color:#F2B33D;font-family:var(--display);font-weight:800;font-size:1.25rem;display:grid;place-items:center;box-shadow:inset 0 0 0 3px #F2B33D}
 .pfLv.big{width:60px;height:60px;font-size:1.7rem;flex:none}
 .pfWho{display:flex;flex-direction:column;min-width:0}
 .pfWho small,.pfMid small{color:var(--c-mute);font-size:.84rem}
 .pfMid{display:flex;flex-direction:column;gap:4px;min-width:0}
-.pfBar{height:8px;border-radius:999px;background:#E4E9F2;overflow:hidden}
+.pfBar{height:8px;border-radius:999px;background:var(--k-sub,#E4E9F2);overflow:hidden}
 .pfBar i{display:block;height:100%;background:#F2B33D;border-radius:inherit}
 .pfStats{display:flex;gap:10px;flex-wrap:wrap;font-weight:600;font-size:.9rem;color:var(--c-ink)}
-.pfStats span{background:#EEF1F6;border-radius:999px;padding:4px 10px}
+.pfStats span{background:var(--k-sub,#EEF1F6);border-radius:999px;padding:4px 10px}
 .pfTableWrap{overflow-x:auto;margin:12px 0}
 .pfTable{width:100%;border-collapse:collapse;background:var(--c-surface);border-radius:14px;overflow:hidden;font-size:.92rem}
 .pfTable th{text-align:left;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:var(--c-mute);padding:10px 12px;border-bottom:1.5px solid var(--c-line);white-space:nowrap}
-.pfTable td{padding:9px 12px;border-bottom:1px solid #EEF1F6;vertical-align:middle}
+.pfTable td{padding:9px 12px;border-bottom:1px solid var(--k-bd,#EEF1F6);vertical-align:middle}
 .pfPct{font-weight:700}
-.pfPct.ok{color:#14633D}.pfPct.mid{color:#8A5F00}.pfPct.low{color:#B4232A}
+.pfPct.ok{color:var(--k-ok-ink,#14633D)}.pfPct.mid{color:var(--k-warn-ink,#8A5F00)}.pfPct.low{color:var(--k-bad-ink,#B4232A)}
 .pfDots{white-space:nowrap}
 .pfDots i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px;background:#E4C3C5}
 .pfDots i.y{background:#2E9A69}
@@ -38,26 +38,26 @@
 .pfLine.small{font-weight:400;font-size:13px;color:var(--c-mute)}
 .pfTagRow{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
 .pfTag{font-size:13px;font-weight:600;padding:4px 10px;border-radius:999px}
-.pfTag.pos{background:#E3F5EC;color:#0F6B40}
-.pfTag.neg{background:#FBE9EA;color:#8E1B21}
+.pfTag.pos{background:var(--k-ok-bg,#E3F5EC);color:var(--k-ok-ink,#0F6B40)}
+.pfTag.neg{background:var(--k-bad-bg,#FBE9EA);color:var(--k-bad-ink,#8E1B21)}
 .pfNote{margin:4px 0;font-size:14px;line-height:1.5}
-.pfNote.miss{color:#8E1B21}
+.pfNote.miss{color:var(--k-bad-ink,#8E1B21)}
 /* Time out of class (Nov 21) */
 .pfOutTiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:6px 0 8px}
 @media (max-width:560px){.pfOutTiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.pfOutTile{background:#fff;border:1.5px solid var(--c-line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column}
+.pfOutTile{background:var(--c-surface,#fff);border:1.5px solid var(--c-line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column}
 .pfOutTile b{font-family:var(--display);font-size:1.25rem;line-height:1.1}
 .pfOutTile span{font-size:13px;font-weight:600;color:var(--c-ink)}
 .pfOutTile small{font-size:12px;color:var(--c-mute)}
 .pfTrips{display:flex;flex-direction:column;gap:6px;margin:8px 0}
-.pfTrip{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:#fff;border:1.5px solid var(--c-line);border-radius:12px;padding:8px 10px;font-size:14px}
+.pfTrip{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:var(--c-surface,#fff);border:1.5px solid var(--c-line);border-radius:12px;padding:8px 10px;font-size:14px}
 .pfTrip .pfTday{font-weight:700;min-width:96px}
-.pfTrip select,.pfTrip input,.pfAddForm select,.pfAddForm input{font:16px var(--ui);min-height:40px;border:1.5px solid var(--c-line);border-radius:10px;padding:0 8px;background:#fff;color:var(--c-ink)}
+.pfTrip select,.pfTrip input,.pfAddForm select,.pfAddForm input{font:16px var(--ui);min-height:40px;border:1.5px solid var(--c-line);border-radius:10px;padding:0 8px;background:var(--c-surface,#fff);color:var(--c-ink)}
 .pfTrip label,.pfAddForm label{display:inline-flex;align-items:center;gap:4px;font-size:13px;color:var(--c-mute)}
 .pfTrip .pfTmins{font-weight:600;color:var(--c-ink);min-width:70px}
 .pfTrip .btn{min-height:40px;padding:0 12px}
 .pfTrip .btn[hidden]{display:none}
 .pfOutActs{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
 .pfOutActs .btn{min-height:44px}
-.pfAdd summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:600;color:#10358A}
+.pfAdd summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:600;color:var(--s-acc2,#10358A)}
 .pfAddForm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}

@@ -37,12 +37,12 @@ body[data-bg="glow"] #stageBg,.pv-glow{background:radial-gradient(42em 30em at 8
 /* Remote rail: small swatches and tiles on the light console */
 .lookpick.compact{gap:8px;padding:6px 8px 4px}
 .lookpick.compact .lookthemes{gap:4px}
-.lookpick.compact .lookth{min-width:0;padding:2px;color:var(--c-ink,#0E1B3A)}
+.lookpick.compact .lookth{min-width:0;padding:2px;color:var(--k-ink,#0E1B3A)}
 .lookpick.compact .lookth .lsw{width:30px;height:30px}
 .lookpick.compact .lookth .lnm{display:none}
 .lookpick.compact .lookth.on .lsw{box-shadow:0 0 0 2px #fff,0 0 0 4px #F2B33D}
 .lookpick.compact .lookbgs{grid-template-columns:repeat(3,1fr);gap:6px}
-.lookpick.compact .lookbg{color:var(--c-ink,#0E1B3A)}
+.lookpick.compact .lookbg{color:var(--k-ink,#0E1B3A)}
 .lookpick.compact .lookbg .lnm{font-size:11.5px}
 .lookpick.compact .lookbg .lpv{border-radius:7px;font-size:2.5px}
 .lookpick.compact .lookbg.on .lpv{box-shadow:0 0 0 2px #fff,0 0 0 4px #F2B33D}
@@ -73,7 +73,7 @@ body[data-bg="snow"] #stage .hdr::before,body[data-bg="lights"] #stage .hdr::bef
 .lookpresets .lookbg .lpv{font-size:5px}
 .lookpick.compact .lookpresets{grid-template-columns:repeat(2,1fr)}
 .lookpick.compact .lookpresets .lookbg .lpv{font-size:3px}
-.lookpick.compact .lookh{color:var(--c-mute,#5A6785);font-size:11.5px;margin:0}
+.lookpick.compact .lookh{color:var(--k-mute,#5A6785);font-size:11.5px;margin:0}
 .lookpick.compact .lookh.xmas::before{color:#2C6FB0}
 
 /* ---- the logo picker: the mark drawn in the chosen colours ---- */
@@ -85,7 +85,7 @@ body[data-bg="snow"] #stage .hdr::before,body[data-bg="lights"] #stage .hdr::bef
 .lookmk .lnm{font-size:13px;font-weight:600}
 .lookbg .lpv .lpm{position:absolute;left:6%;top:9%;width:16%;aspect-ratio:1;border-radius:22%;z-index:1}
 .lookpick.compact .lookmarks{gap:4px}
-.lookpick.compact .lookmk{min-width:0;padding:2px;color:var(--c-ink,#0E1B3A)}
+.lookpick.compact .lookmk{min-width:0;padding:2px;color:var(--k-ink,#0E1B3A)}
 .lookpick.compact .lookmk .lmk{width:32px;height:32px;border-radius:8px}
 .lookpick.compact .lookmk .lnm{display:none}
 .lookpick.compact .lookmk.on .lmk{box-shadow:0 0 0 2px #fff,0 0 0 4px #F2B33D}
@@ -109,7 +109,7 @@ body[data-fx="confetti"] .stagefx i{opacity:.65}
 .lookfx.on .lfx{box-shadow:0 0 0 2px #081B45,0 0 0 4px #F2B33D}
 .lookfx .lnm{font-size:13px;font-weight:600}
 .lookpick.compact .lookfxs{grid-template-columns:repeat(3,1fr);gap:6px}
-.lookpick.compact .lookfx{color:var(--c-ink,#0E1B3A)}
+.lookpick.compact .lookfx{color:var(--k-ink,#0E1B3A)}
 .lookpick.compact .lookfx .lfx{font-size:12px;border-radius:7px}
 .lookpick.compact .lookfx .fx-none::before{font-size:11px}
 .lookpick.compact .lookfx .lnm{font-size:11.5px}

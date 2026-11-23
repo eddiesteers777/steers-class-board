@@ -8,35 +8,37 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <script src="js/scheme.js?v=1"></script>
     <link rel="stylesheet" href="css/board.css?v=57">
-    <link rel="stylesheet" href="css/console.css?v=58">
+    <link rel="stylesheet" href="css/console.css?v=62">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
+    <link rel="stylesheet" href="css/skin.css?v=1">
     <meta name="theme-color" content="#081B45">
     <style>
-        .acct { max-width: 640px; }
-        .acct table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #D5DCE9; border-radius: 16px; overflow: hidden; margin: 8px 0 24px; }
-        .acct td { padding: 10px 14px; border-top: 1px solid #D5DCE9; font-size: 15px; }
-        .acct tr:first-child td { border-top: 0; }
-        .acct td.n { text-align: right; font-variant-numeric: tabular-nums; color: #55627F; width: 90px; }
-        .danger { background: #fff; border: 1px solid #E8B4AE; border-radius: 16px; padding: 16px; }
-        .danger h2 { margin-top: 0; color: #8A1C14; }
-        .danger input { width: 100%; max-width: 260px; font: inherit; padding: 10px 12px; border: 1px solid #D5DCE9; border-radius: 12px; min-height: 46px; }
-        .danger .btn.del { background: #B3261E; color: #fff; border-color: #B3261E; }
-        .danger .btn.del:disabled { opacity: .45; cursor: not-allowed; }
-        #log { font-size: 14px; color: #55627F; margin-top: 10px; white-space: pre-line; }
-        .drive { background: #fff; border: 1px solid #D5DCE9; border-radius: 16px; padding: 16px; margin: 0 0 24px; }
-        .drive h2 { margin-top: 0; }
-        .drive .state { font-size: 15px; margin: 6px 0 10px; }
-        .drive .state[data-due="1"] { color: #8A5A00; font-weight: 600; }
-        .drive .rowx { flex-wrap: wrap; gap: 8px; }
-        .drive .dlog { font-size: 14px; color: #55627F; margin-top: 10px; white-space: pre-line; min-height: 1em; }
-        .drive .dlog[data-state="bad"] { color: #8A1C14; }
-        .drive h3 { font-size: 16px; margin: 18px 0 4px; }
-        .drive .mv { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; border-top: 1px solid #D5DCE9; padding: 10px 0; font-size: 15px; }
-        .drive details { margin-top: 14px; font-size: 14px; color: #55627F; }
-        .drive details summary { cursor: pointer; font-weight: 600; color: #22304F; }
-        .drive ol { padding-left: 20px; margin: 8px 0; }
-        .drive a { color: #1A56C4; }
+        .acct { max-width:640px; }
+        .acct table { width:100%; border-collapse:collapse; background:var(--c-surface,#fff); border:1px solid var(--k-bd,#D5DCE9); border-radius:16px; overflow:hidden; margin:8px 0 24px; }
+        .acct td { padding:10px 14px; border-top:1px solid var(--k-bd,#D5DCE9); font-size:15px; }
+        .acct tr:first-child td { border-top:0; }
+        .acct td.n { text-align:right; font-variant-numeric:tabular-nums; color:#55627F; width:90px; }
+        .danger { background:var(--c-surface,#fff); border:1px solid var(--k-bad-line,#E8B4AE); border-radius:16px; padding:16px; }
+        .danger h2 { margin-top:0; color:var(--k-bad-ink,#8A1C14); }
+        .danger input { width:100%; max-width:260px; font:inherit; padding:10px 12px; border:1px solid var(--k-bd,#D5DCE9); border-radius:12px; min-height:46px; }
+        .danger .btn.del { background:#B3261E; color:#fff; border-color:#B3261E; }
+        .danger .btn.del:disabled { opacity:.45; cursor:not-allowed; }
+        #log { font-size:14px; color:#55627F; margin-top:10px; white-space:pre-line; }
+        .drive { background:var(--c-surface,#fff); border:1px solid var(--k-bd,#D5DCE9); border-radius:16px; padding:16px; margin:0 0 24px; }
+        .drive h2 { margin-top:0; }
+        .drive .state { font-size:15px; margin:6px 0 10px; }
+        .drive .state[data-due="1"] { color:var(--k-warn-ink,#8A5A00); font-weight:600; }
+        .drive .rowx { flex-wrap:wrap; gap:8px; }
+        .drive .dlog { font-size:14px; color:#55627F; margin-top:10px; white-space:pre-line; min-height:1em; }
+        .drive .dlog[data-state="bad"] { color:var(--k-bad-ink,#8A1C14); }
+        .drive h3 { font-size:16px; margin:18px 0 4px; }
+        .drive .mv { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; border-top:1px solid var(--k-bd,#D5DCE9); padding:10px 0; font-size:15px; }
+        .drive details { margin-top:14px; font-size:14px; color:#55627F; }
+        .drive details summary { cursor:pointer; font-weight:600; color:var(--k-ink,#22304F); }
+        .drive ol { padding-left:20px; margin:8px 0; }
+        .drive a { color:var(--k-mute,#1A56C4); }
     </style>
 </head>
 <body class="console page">
