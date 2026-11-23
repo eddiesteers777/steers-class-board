@@ -493,7 +493,7 @@ export function lookPicker(api, compact) {
     });
     box.appendChild(bg);
     box.appendChild(el("p", "lookh", "Photos"));
-    box.appendChild(photoPicker(el, S.look, (id) => { S.look = Object.assign({}, S.look, { bg: id }); api.push(); refreshSheet(); }, () => refreshSheet()));
+    box.appendChild(photoPicker(el, S.look, (id) => { S.look = Object.assign({}, S.look, { bg: id }); api.push(); refreshSheet(); }, () => { if (api.relook) api.relook(); else refreshSheet(); }));   // relook: a host that draws the picker itself (Spotlight)
     box.appendChild(el("p", "lookh", "Effects"));   // falling shapes behind the lesson
     const fx = el("div", "lookfxs"); fx.setAttribute("role", "group"); fx.setAttribute("aria-label", "Board effect");
     const curFx = S.look.fx || "none";

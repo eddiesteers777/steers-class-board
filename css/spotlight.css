@@ -13,6 +13,11 @@ body.spotmode .cbar,body.spotmode .srail,body.spotmode .flowbar,body.spotmode #e
 body.spotmode .cbody{height:100%}
 body.spotmode .wrap{padding:8px}
 body.spotmode #stage{border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08)}
+/* a photo background fills the whole screen: the board's frame goes and the photo runs edge to edge behind it */
+body.spotmode.spphoto{background:var(--ph-veil),var(--spph) center/cover no-repeat;background-color:#081B45;min-height:100vh}
+body.spotmode.spphoto #stage{background:transparent!important;border-radius:0;box-shadow:none}
+body.spotmode.spphoto #stageBg{opacity:0!important}
+body.spotmode.spphoto .wrap,body.spotmode.spphoto .cbody,body.spotmode.spphoto .console{background:transparent!important}
 body.spotmode .toolshelf{filter:drop-shadow(0 12px 30px rgba(0,0,0,.35))}
 
 /* one glass surface */
@@ -106,7 +111,11 @@ body.spotmode .toolshelf{filter:drop-shadow(0 12px 30px rgba(0,0,0,.35))}
 
 /* the sheet: Background, or the panel that was tapped */
 .spsheet{left:50%;bottom:calc(var(--m) + var(--bar) + 10px);transform:translateX(-50%);width:min(420px,calc(100vw - 32px));padding:12px 14px 14px;border-radius:22px;animation:spUp .3s cubic-bezier(.2,.9,.25,1.15)}
-.spsheet.wide{width:min(560px,calc(100vw - 32px))}
+/* Background: a glass side panel on the right, between the top cards and the toolbar, so it never runs under the toolbar */
+.spsheet.wide{left:auto;right:var(--m);top:calc(var(--m) + var(--top) + 10px);bottom:calc(var(--m) + var(--bar) + 10px);transform:none;width:min(400px,calc(100vw - 2 * var(--m)));
+    display:flex;flex-direction:column;box-sizing:border-box;animation:spSide .3s cubic-bezier(.2,.9,.25,1.05)}
+.spsheet.wide .spshbody{flex:1;min-height:0;max-height:none}
+@keyframes spSide{from{opacity:0;transform:translateX(24px)}}
 .spsheet[hidden]{display:none}
 .spsh{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .spsh b{flex:1;font-family:var(--display,inherit);font-size:17px;font-weight:700}
@@ -139,6 +148,7 @@ body.spotdraw #stage .spotink canvas{cursor:crosshair}
     .spscr{bottom:calc(var(--m) + var(--bar) + 10px)}
     body.spotdraw .spscr{bottom:calc(var(--m) + var(--bar) + 76px)}
     .spot.tucked .spscr{bottom:var(--m)}
+    .spsheet.wide{bottom:calc(var(--m) + 2 * var(--bar) + 20px)}
     .spot.tucked .spdock{left:var(--m);transform:none}
 }
 /* small screens */
