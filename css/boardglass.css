@@ -1,0 +1,36 @@
+/* Anchor Board — the projected board dressed like Spotlight (Eddie, 2026-11-23: "make the open board look the same as the spotlight").
+   Loaded last on board.html, sub.html and demo.html; every rule is body.board only.
+   1. A photo background runs edge to edge: no navy frame around the board.
+   2. The board's own controls are frosted glass: the drawing rail, Back/Next, the screen count, Panels, Show controls.
+   3. The bottom corners never stack: left = Back, Next and the screen count; right = Show controls, Panels above it,
+      Tap for sound above that. They still fade to almost nothing while the mouse is still (body.idle, boardApp.js). */
+body.board{--bg-fill:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.06));--bg-line:rgba(255,255,255,.26);--bg-hi:rgba(255,255,255,.42);
+  --bg-shadow:0 14px 40px rgba(2,8,26,.45),0 2px 8px rgba(2,8,26,.22)}
+
+/* 1. edge to edge: the stage's photo layer covers the whole screen (the stage itself still keeps its 16:9 layout) */
+body.board[data-bg^="ph-"] #stageBg,body.board[data-bg^="my-"] #stageBg{position:fixed;inset:0;border-radius:0;z-index:0}
+body.board[data-bg^="ph-"] #stage,body.board[data-bg^="my-"] #stage{background:transparent!important;box-shadow:none}
+
+/* 2. glass */
+body.board .wbrail,body.board .bnav button,body.board .bpanels,body.board #exit,body.board .spotcount{
+  background:var(--bg-fill);background-color:rgba(12,28,66,.42);-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);
+  border:1px solid var(--bg-line);box-shadow:inset 0 1px 0 var(--bg-hi),var(--bg-shadow);color:#F4F8FF}
+body.board .wbrail{border-radius:1.1em}
+body.board .wbrail .rsep{background:rgba(255,255,255,.22)}
+body.board .bnav button{width:50px;height:50px;font-size:28px}
+body.board .bnav button:hover:not(:disabled){background-color:rgba(40,70,140,.55)}
+body.board .bpanels,body.board #exit{height:44px;padding:0 16px;border-radius:999px;display:inline-flex;align-items:center;gap:8px;font:600 15px/1 var(--ui,system-ui),sans-serif;opacity:.6}
+body.board .bpanels:hover,body.board #exit:hover{opacity:1}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+  body.board .wbrail,body.board .bnav button,body.board .bpanels,body.board #exit,body.board .spotcount{background:rgba(12,28,66,.88)}}
+
+/* 3. the corners */
+body.board .bnav{left:14px;bottom:14px;opacity:.6}
+body.board .spotcount{position:fixed;left:134px;right:auto;bottom:22px;z-index:5;font-size:15px;padding:7px 14px}
+body.board #exit{right:14px;bottom:14px}
+body.board .bpanels{right:14px;bottom:66px}
+body.board .sndtap{right:14px;bottom:118px;z-index:6}
+/* the light fade while nobody touches the mouse (Eddie loves it): the corners go almost clear */
+body.board.idle .bnav,body.board.idle .bpanels,body.board.idle #exit{opacity:.12}
+body.board.idle .spotcount{opacity:0}
+body.board.idle .sndtap{opacity:.55;transition:opacity .3s}
