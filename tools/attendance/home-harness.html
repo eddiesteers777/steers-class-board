@@ -1,0 +1,28 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Absences card harness</title>
+<link rel="stylesheet" href="../../css/board.css"><link rel="stylesheet" href="../../css/console.css"><link rel="stylesheet" href="../../css/home.css"><link rel="stylesheet" href="../../css/absences.css"><link rel="stylesheet" href="../../css/skin.css"></head>
+<body><main><section class="abs" id="absent" aria-label="Absences" hidden></section></main>
+<script type="module">
+import { mountAbsences } from "../../js/absenceHome.js";
+const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+const day = (n, ag) => ({ name: n, agenda: ag });
+const weeks = [{ id: "week5", monday: "2026-11-16", classes: { "8th": { label: "8th Grade", assessment: { type: "test", day: 3, name: "Test" }, days: [day("Monday", ["Guided Notes Day 1"]), day("Tuesday", ["Speed Dating Activity", "Guided Notes Day 1"]), day("Wednesday", ["Fact Blitz", "Guided Notes Day 2"]), day("Thursday", ["Test"]), day("Friday", ["Vault Raid"])] }, "7th": { label: "7th Grade", days: [day("Monday", ["Guided Notes"]), day("Tuesday", []), day("Wednesday", []), day("Thursday", []), day("Friday", [])] } } },
+  { id: "week6", monday: "2026-11-23", classes: { "8th": { label: "8th Grade", days: [day("Monday", ["Guided Notes Day 3"]), day("Tuesday", []), day("Wednesday", []), day("Thursday", []), day("Friday", [])] } } }];
+const q = new URLSearchParams(location.search), EMPTY = q.has("empty");
+const docs = new Map(), subs = [];
+const put = (p, d) => docs.set(p, d);
+if (!EMPTY) {
+  put("attendance/2026-11-17", { out: { "1st": { "ben-k": { n: "Ben K.", at: 1 }, "ava-r": { n: "Ava R.", at: 1 } } } });
+  put("attendance/2026-11-18", { out: { "1st": { "cara-l": { n: "Cara L.", at: 1 } } } });
+  put("attendance/2026-11-19", { out: { "1st": { "ben-k": { n: "Ben K.", at: 1 } } } });
+  put("attendance/2026-11-23", { out: { "1st": { "cara-l": { n: "Cara L.", at: 1 } }, "5th": { "dev-p": { n: "Dev P.", at: 1 } } } });
+}
+put("gb/setup", { cats: [{ id: "hw", name: "Homework" }, { id: "cw", name: "Class Work" }, { id: "qt", name: "Quizzes & Tests" }] });
+put("gb/items", { list: [{ id: "g1", title: "Speed Dating", date: "2026-11-17", cat: "cw", periods: ["1st", "2nd"] }] });
+put("data/index", { imports: [{ id: "f1", period: "1st", date: "2026-11-18", source: "Fact Blitz", title: "Fact Blitz: Integer facts" }] });
+put("rosters/all", { periods: { "1st": ["Ava Rivera", "Ben Kim", "Cara Lopez"], "5th": ["Dev Patel"] } });
+put("profiles/1st", { kids: { "ben-k": { t: { "s-8-5": { a: 6, h: "100101" } } } } });
+const store = { watch(path, next) { setTimeout(() => next({ exists: docs.has(path), data: docs.get(path), pending: false }), 0); return () => {}; } };
+weeks[0].classes["8th"].days[1].notes = { standard: "8.5 Solve linear equations" };
+window.__m = mountAbsences({ store, host: document.getElementById("absent"), el, periods: [["1st", "8th"], ["2nd", "8th"], ["5th", "7th"]], today: "2026-11-23", weeks, classLabel: (c) => c === "8th" ? "8th Grade" : "7th Grade" });
+window.__ready = true;
+</script></body></html>

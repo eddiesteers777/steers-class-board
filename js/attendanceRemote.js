@@ -16,7 +16,7 @@ const busy = new Set();
 
 export function mountAttendance(a, anchor) {
     api = a; const { el } = a;
-    box = el("details", "menu fold outmenu"); box.id = "outMenu"; box.open = true;
+    box = el("details", "menu fold outmenu"); box.id = "outMenu"; box.open = true; box.hidden = true;   // shown only once signed in on the Remote
     const sum = el("summary", null, "Who’s out "); count = el("span", "count"); count.id = "outCount"; sum.appendChild(count); box.appendChild(sum);
     body = el("div", "outbody"); box.appendChild(body);
     if (anchor && anchor.after) anchor.after(box); else document.querySelector(".rail").prepend(box);
