@@ -16,15 +16,17 @@ import * as CU from "./catchupCore.js?v=1";
 import { papersFor } from "./weekPapers.js?v=1";
 import { kidKey, perKey } from "./profileCore.js?v=2";
 import { shortNames } from "./vaultCore.js?v=75";
+import * as V from "./catchupVideo.js?v=1";
 
 /**
  * o = { store, el, host, periods, weeks, per, key, today, print(week, papers, title), bank() -> Promise<items>,
- *       copyVersion, poolFor (js/acapAssign.js), save(path, data) -> Promise (merge write to teacher/{uid}/<path>) }
+ *       copyVersion, poolFor (js/acapAssign.js), save(path, data) -> Promise (merge write to teacher/{uid}/<path>),
+ *       savePub(path, data) -> Promise (merge write to pub/{uid}/<path>: the checked catch-up video students see), grade }
  */
 export function mountCatchup(o) {
     const { store, el, host, periods, per, key, today } = o;
-    const D = { att: new Map(), trk: new Map(), gb: { items: [], cats: [] }, data: [], asg: [], names: [], mk: null, weeks: o.weeks || [] };
-    const S = { open: {}, route: {}, show: {}, note: "" };
+    const D = { att: new Map(), trk: new Map(), gb: { items: [], cats: [] }, data: [], asg: [], names: [], mk: null, vid: new Map(), weeks: o.weeks || [] };
+    const S = { open: {}, route: {}, show: {}, note: "", vin: {}, pack: {} };
     let timer = null; const seen = new Set();
     const soon = () => { clearTimeout(timer); timer = setTimeout(draw, 40); };
     const cls = ((periods || []).find((p) => p[0] === per) || [])[1] || "";
@@ -39,6 +41,64 @@ export function mountCatchup(o) {
     store.watch("asg/index", (s) => { if (s.pending) return; D.asg = (s.exists && s.data && Array.isArray(s.data.list)) ? s.data.list : []; soon(); }, () => {});
     store.watch("rosters/all", (s) => { if (s.pending) return; const p = (s.exists && s.data && s.data.periods) || {}; D.names = shortNames(((p[per] || []).filter(Boolean)).map((n) => String(n).slice(0, 60))); soon(); }, () => {});
     store.watch("catchup/" + perKey(per), (s) => { if (s.pending) return; D.mk = s.exists ? s.data : {}; soon(); }, () => { D.mk = {}; soon(); });
+
+    /** The day's catch-up video (one per class and day, shared by every student who missed it): teacher/{uid}/catchvid/{weekId}. */
+    const watchVid = (id) => { if (D.vid.has(id)) return; D.vid.set(id, null); store.watch("catchvid/" + id, (s) => { if (s.pending) return; D.vid.set(id, s.exists ? s.data : {}); soon(); }, () => { D.vid.set(id, {}); soon(); }); };
+    async function setVid(w, i, priv, pub) {
+        S.note = "";
+        const d = D.vid.get(w.id) || {}; d.v = Object.assign({}, d.v, priv.v); D.vid.set(w.id, d); draw();   // show it at once
+        try { await o.save("catchvid/" + w.id, priv); if (pub) await o.savePub("cv/" + w.id, pub); }
+        catch (e) { S.note = "The video link did not save (" + ((e && e.code) || "connection") + "). Try again."; draw(); }
+    }
+    function videoSection(card, d, w) {
+        const i = K.dayIndex(d.day), sid = w.id + "|" + i; watchVid(w.id);
+        card.appendChild(el("h3", null, "Catch-up video"));
+        const doc = D.vid.get(w.id); if (doc === null) { card.appendChild(el("p", "cu-hint", "Loading…")); return; }
+        const v = V.vidOf(doc, cls, i), dayLabel = d.name + " " + d.day.slice(5).replace("-", "/");
+        if (v) {
+            card.appendChild(V.videoBlock(el, v, "Catch-up video: " + dayLabel));
+            const st = el("p", "cu-hint", v.ok ? "Checked and showing on the Class Page under " + d.name + ". One video for everyone who missed this day." : "Not on the Class Page yet. Watch it first: students see it only after you tick the box.");
+            card.appendChild(st);
+            const row = el("div", "cu-marks");
+            const lab = el("label", "cv-ok"), cb = el("input"); cb.type = "checkbox"; cb.checked = !!v.ok;
+            cb.onchange = () => setVid(w, i, V.okWrite(cls, i, v.u, cb.checked), V.pubWrite(cls, i, cb.checked ? v.u : "", "Catch-up video: " + dayLabel));
+            lab.append(cb, el("span", null, "I watched it: the math matches the worksheet. Show it to students.")); row.appendChild(lab); card.appendChild(row);
+            const acts = el("div", "cu-marks");
+            const cp = el("button", "btn ghost", "Copy link for Schoology"); cp.type = "button"; cp.onclick = async () => { try { await navigator.clipboard.writeText(v.u); cp.textContent = "Link copied"; } catch (e) { cp.textContent = v.u; } };
+            const rm = el("button", "btn ghost", "Remove video"); rm.type = "button"; rm.onclick = () => setVid(w, i, V.clearWrite(cls, i), V.pubWrite(cls, i, "", ""));
+            acts.append(cp, rm); card.appendChild(acts);
+            return;
+        }
+        const notes = notesOf(d.day), pack = V.geminiPack(notes, { grade: o.grade ? o.grade(cls) : "", day: dayLabel });
+        if (!pack) { card.appendChild(el("p", "cu-hint", "No guided notes for this day, so there is nothing to make a video from.")); return; }
+        if (!S.pack[sid]) {
+            const b = el("button", "btn", "Make it in Gemini"); b.type = "button"; b.onclick = () => { S.pack[sid] = true; draw(); };
+            card.appendChild(el("p", "cu-hint", "One short video for everyone who missed " + d.name + ": the learning target, vocabulary and " + pack.examples + " worked example" + (pack.examples > 1 ? "s" : "") + " from these notes."));
+            card.appendChild(b);
+        } else {
+            const steps = el("ol", "cv-steps");
+            [["Open Gemini Notebook and start a new notebook.", null],
+             ["Add a source: choose Copied text and paste the lesson.", "lesson"],
+             ["In Studio, choose Video Overview, open its options and paste the instructions.", "ask"],
+             ["When it is ready, download it, put it in Google Drive, share it so students can open it, and paste the link below.", null]].forEach(([t, k]) => {
+                const li = el("li", null, t);
+                if (k) { const btn = el("button", "btn ghost", k === "lesson" ? "Copy the lesson" : "Copy the instructions"); btn.type = "button"; const txt = k === "lesson" ? pack.source : pack.ask; btn.onclick = async () => { try { await navigator.clipboard.writeText(txt); btn.textContent = "Copied"; } catch (e) { btn.textContent = "Select and copy below"; } }; li.appendChild(btn); }
+                steps.appendChild(li);
+            });
+            card.appendChild(steps);
+            const open = el("a", "btn ghost", "Open Gemini Notebook"); open.href = V.GEMINI_URL; open.target = "_blank"; open.rel = "noopener"; card.appendChild(open);
+            const det = el("details", "cv-see"); det.appendChild(el("summary", null, "See what you are pasting"));
+            const ta1 = el("textarea", "cu-copy"); ta1.readOnly = true; ta1.rows = 8; ta1.value = pack.source; ta1.setAttribute("aria-label", "The lesson for Gemini");
+            const ta2 = el("textarea", "cu-copy"); ta2.readOnly = true; ta2.rows = 6; ta2.value = pack.ask; ta2.setAttribute("aria-label", "The video instructions for Gemini");
+            det.append(ta1, ta2); card.appendChild(det);
+        }
+        const f = el("div", "cv-link"), lab = el("label", null), inp = el("input"); inp.type = "url"; inp.placeholder = "https://drive.google.com/file/d/…"; inp.value = S.vin[sid] || ""; inp.setAttribute("aria-label", "Video link for " + d.name);
+        inp.oninput = () => { S.vin[sid] = inp.value; };
+        lab.append(el("span", null, "Video link"), inp);
+        const go = el("button", "btn go", "Save link"); go.type = "button";
+        go.onclick = () => { const u = V.cleanUrl(inp.value); if (!u) { S.note = "That link will not work here. Use a Google Drive or YouTube link that starts with https://."; draw(); return; } delete S.vin[sid]; setVid(w, i, V.linkWrite(cls, i, u), null); };
+        f.append(lab, go); card.appendChild(f);
+    }
 
     /** This student's missed days, from the same records the Home card reads. */
     function student() {
@@ -108,6 +168,7 @@ export function mountCatchup(o) {
                 const acts = el("span", "cu-acts"); acts.append(show, pr); row.appendChild(acts); card.appendChild(row);
                 if (S.show[sid]) { const box = el("div", "cu-sheet"); try { box.appendChild(p.build(w)); } catch (e) { box.appendChild(el("p", "cu-hint", "This paper could not be drawn (" + e.message + ").")); } card.appendChild(box); }
             });
+            if (w && w.classes && w.classes[cls]) videoSection(card, d, w);
             // the catch-up choice
             card.appendChild(el("h3", null, "Assign catch-up"));
             const pick = el("div", "cu-routes"); pick.setAttribute("role", "radiogroup"); pick.setAttribute("aria-label", "Where the catch-up goes");

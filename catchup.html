@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
     <link rel="stylesheet" href="css/builder.css?v=64">
     <link rel="stylesheet" href="css/absences.css?v=2">
-    <link rel="stylesheet" href="css/catchup.css?v=1">
+    <link rel="stylesheet" href="css/catchup.css?v=2">
     <link rel="stylesheet" href="css/skin.css?v=2">
     <meta name="theme-color" content="#081B45">
     <script type="module" src="js/caleraOnly.js?v=1"></script>
@@ -29,7 +29,7 @@
         import { WEEKS as PUBLISHED, PERIODS } from "./data/weeks.js?v=61";
         import * as store from "./js/boardStore.js?v=58";
         import { watchPrivateWeeks } from "./js/weeksLive.js?v=58";
-        import { mountCatchup } from "./js/catchupPage.js?v=1";
+        import { mountCatchup } from "./js/catchupPage.js?v=2";
         import { printPapers } from "./js/weekPack.js?v=1";
         import { loadStdBank } from "./js/stdBank.js?v=2";
         import { copyVersion, poolFor } from "./js/acapAssign.js?v=3";
@@ -44,7 +44,9 @@
             if (!PERIODS.some((p) => p[0] === per) || !key) { host.textContent = ""; host.append(el("h1", null, "Catch-up"), el("p", "cu-lead", "Open a student from the Absences card on Home.")); const a = el("a", "btn ghost", "Back to Home"); a.href = "index.html"; host.appendChild(a); }
             else {
                 const C = mountCatchup({ store, el, host, periods: PERIODS, weeks: PUBLISHED, per, key, today: localIso(), print: printPapers, bank: loadStdBank, copyVersion, poolFor,
-                    save: (path, data) => store.rooms.save("teacher/" + store.rooms.uid() + "/" + path, data, true) });
+                    save: (path, data) => store.rooms.save("teacher/" + store.rooms.uid() + "/" + path, data, true),
+                    savePub: (path, data) => store.rooms.save("pub/" + store.rooms.uid() + "/" + path, data, true),
+                    grade: (c) => ({ "7th": "7th grade", "8th": "8th grade", "8th-acc": "8th grade Accelerated" }[c] || "") });
                 watchPrivateWeeks(store, PUBLISHED, (list) => C.setWeeks(list));
             }
         }
