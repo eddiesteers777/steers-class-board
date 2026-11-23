@@ -7,7 +7,7 @@
    set the screen and the panels in one tap. All of it lives in S.tools
    inside the shared board state, so the board and the Remote always match.
 ========================================== */
-import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=62";
+import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=63";
 import { meterEl, setVoice, camBody, tooLoud } from "./roomSense.js?v=1";
 import { MARKS, markUrl } from "./marks.js?v=1";
 import { EFFECTS, FX_AMOUNTS, applyEffect, effectSample } from "./effects.js?v=3";
@@ -41,6 +41,7 @@ const IC = {
     trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
     lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
     unlock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/>',
+    style: '<path d="M12 3a9 9 0 0 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a5 5 0 0 0 5-5C21 6.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10.5" cy="7" r="1.2"/><circle cx="15.5" cy="7.5" r="1.2"/>',
     pin: '<path d="M9 4h6l-1 6 3 3v2H7v-2l3-3-1-6zM12 15v5"/>',
     front: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/>',
     back: '<rect x="4" y="4" width="11" height="11" rx="2"/><path d="M15 9h4a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-4"/>',

@@ -12,15 +12,16 @@ import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=62";
+import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=63";
 import { setPhotoStore } from "./myPhotos.js?v=1";
-import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf } from "./panels.js?v=15";
+import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=16";
 import { cleanStickers, renderStickers } from "./stickers.js?v=1";
 import * as snd from "./sound.js?v=60";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { senseIdle } from "./roomSense.js?v=1";
-import { openSettings, closeSettings, refreshSettings, psOpen } from "./panelSettings.js?v=1";
+import { openSettings, closeSettings, refreshSettings, psOpen } from "./panelSettings.js?v=2";
+import { applySty } from "./panelStyle.js?v=1";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=62";
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=89";
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=11";
@@ -1315,7 +1316,7 @@ const panelOps = {
     small(k) { delete centered[k]; S.tools.min[k] = true; push(); },
     side(k) { const T = S.tools; delete centered[k]; delete T.pos[k]; panelOn(T, k, { dock: true }); push(); },
     float(k) { S.tools.pos[k] = toolApi.defaultPos(k); push(); },
-    remove(k) { const T = S.tools; delete centered[k]; if (T.pin) delete T.pin[k]; if (T.lock) delete T.lock[k]; panelOff(T, k); if (psOpen() === k) closeSettings(); push(); },
+    remove(k) { const T = S.tools; delete centered[k]; if (T.pin) delete T.pin[k]; if (T.lock) delete T.lock[k]; if (T.sty) delete T.sty[k]; panelOff(T, k); if (psOpen() === k) closeSettings(); push(); },
 };
 function panelHead(k, w, docked, canDock) {
     const tail = el("span", "hbtns");
@@ -1345,6 +1346,7 @@ function panelMenu(k, docked, canDock) {
     item("min", "Make it small", () => panelOps.small(k));
     if (docked) item("float", "Float over the lesson", () => panelOps.float(k));
     else if (canDock && k !== "groups") item("dock", "Put it on the side", () => panelOps.side(k));
+    item("style", "Style", () => openSettings(k, psApi(), "style"));
     item("gear", "Settings", () => openSettings(k, psApi()));
     sep();
     item("trash", "Remove", () => panelOps.remove(k), false, "danger");
@@ -1370,6 +1372,8 @@ function hbtn(ic, label, fn, cls) { const b = el("button", "close pbtn" + (cls ?
 const inside = (r, e) => e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
 /** Where a panel dropped on the shelf goes: before the first docked panel whose middle is below the pointer. */
 function shelfSlot(shelf, y, skip) { for (const c of shelf.querySelectorAll(".docked")) { if (c === skip) continue; const r = c.getBoundingClientRect(); if (y < r.top + r.height / 2) return c; } return shelf.querySelector(".ptray"); }
+/** A panel's own style (js/panelStyle.js): color, finish, how see-through. "Match board" takes the board look's colors. */
+function styOf(w, k) { const st = (S.tools.sty || {})[k]; if (st) applySty(w, st, themeCols(S.look.theme)); }
 let placed = {};   // where each panel was last drawn, so only a panel that just arrived animates in
 function renderLayer() {
     const layer = $("toolLayer"); if (!layer || dragging) return;
@@ -1378,7 +1382,7 @@ function renderLayer() {
     layer.textContent = ""; const shelf = shelfEl(), docked = shelfKeys(), chips = chipKeys(), canDock = !narrowWrap(), stage = $("stage"); shelf.textContent = "";
     const T = S.tools, minimize = (k) => { T.min[k] = true; push(); }, now2 = {};
     docked.forEach((k) => {   // on the shelf: beside the lesson, never over it
-        const w = buildPanel(k, toolApi), h = w.querySelector("h3"); w.classList.add("docked"); w.dataset.panel = k; now2[k] = "dock";
+        const w = buildPanel(k, toolApi), h = w.querySelector("h3"); styOf(w, k); w.classList.add("docked"); w.dataset.panel = k; now2[k] = "dock";
         h.appendChild(panelHead(k, w, true, canDock)); if (placed[k] !== "dock") w.classList.add("enter"); shelf.appendChild(w);
         // Drag a shelf panel up or down to reorder it, or out onto the lesson to float it there.
         h.addEventListener("pointerdown", (e) => {
@@ -1416,7 +1420,7 @@ function renderLayer() {
     }
     PANEL_KEYS.forEach((k) => {
         if (!T.on[k] || T.min[k] || docked.includes(k) || !panelOk(k)) return;
-        const w = buildPanel(k, toolApi), p = posOf(k); w.classList.add("float"); w.dataset.panel = k; now2[k] = "float"; if (placed[k] !== "float") w.classList.add("enter");
+        const w = buildPanel(k, toolApi), p = posOf(k); styOf(w, k); w.classList.add("float"); w.dataset.panel = k; now2[k] = "float"; if (placed[k] !== "float") w.classList.add("enter");
         if (studio && pickedPanel === k) w.classList.add("picked");
         w.style.left = p.x + "%"; w.style.top = p.y + "%"; w.style.fontSize = p.s + "em";
         { const zi = (T.zo || []).indexOf(k); w.style.zIndex = String(20 + (zi < 0 ? 0 : zi + 1)); }   // Bring to front / Send to back, the same on every screen

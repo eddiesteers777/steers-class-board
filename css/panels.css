@@ -290,3 +290,86 @@ body.board.idle .pmenu{opacity:1}
 .psmini svg{width:14px;height:14px}
 @media (max-width:560px){.psdrawer{top:auto;left:8px;right:8px;bottom:8px;width:auto;max-height:78vh;transform:translateY(calc(100% + 20px))}.psdrawer.show{transform:none}}
 @media (prefers-reduced-motion:reduce){.psdrawer{transition:opacity .15s}}
+
+/* ---------- Panel styles (Eddie, 2026-11-23; js/panelStyle.js) ----------
+   A styled panel carries .psty plus a finish (.pf-*), corners (.pr-*) and .plight/.pdark, and four numbers set on it:
+   --pbg / --pbg2 (fill and deeper fill, "r g b"), --pacc (edge and glow) and --pa (how solid, 0.35-1).
+   Only the fill goes see-through: words and numbers stay fully solid. :is(#stage,body) beats the board's own card rules. */
+:is(#stage,body) .card.psty{--pink:#10358A;--ink:var(--pink);background:rgb(var(--pbg) / var(--pa));color:var(--pink);border:.06em solid rgb(var(--pacc) / .3);
+  transition:background .25s,box-shadow .25s,border-color .25s,border-radius .25s}
+:is(#stage,body) .card.psty.pdark{--pink:#F4F7FB;--ink:#F4F7FB;--navy:#F4F7FB;--deep:#B9D3EE;--soft:#C9D6EA;--paper:rgba(255,255,255,.1)}
+:is(#stage,body) .card.psty h3{background:transparent;color:var(--pink);border-bottom:0}
+:is(#stage,body) .card.psty.pdark h3::before{background-image:var(--ring-mark)}
+:is(#stage,body) .card.psty.pdark h3 .close,:is(#stage,body) .card.psty.pdark h3 .pbtn{color:#F4F7FB}
+:is(#stage,body) .card.psty.pdark h3 .pbtn:hover{background:rgba(255,255,255,.14)}
+:is(#stage,body) .card.psty.pdark .vsub,:is(#stage,body) .card.psty.pdark .pnote{color:#C9D6EA}
+:is(#stage,body) .card.psty.pdark .minis button:not(.primary){background:rgba(255,255,255,.12);color:#F4F7FB;border-color:rgba(255,255,255,.25)}
+:is(#stage,body) .card.psty.pdark .pring .trk{stroke:rgba(255,255,255,.18)}
+:is(#stage,body) .card.psty.pdark .pring .arc{stroke:rgb(var(--pacc))}
+:is(#stage,body) .card.psty.pdark .pring .ptime{color:#F4F7FB}
+:is(#stage,body) .card.psty.pdark .pring.done .ptime{color:#FF9DA0}
+:is(#stage,body) .card.psty.pdark :is(.tbtns button.alt,.outlist button,.sfbtns button.alt,.sfstep){border-color:rgba(255,255,255,.4)}
+:is(#stage,body) .card.psty.pdark .lights{background:#060B1C;box-shadow:inset 0 0 0 .08em rgba(255,255,255,.14)}
+:is(#stage,body) .card.psty.pdark .tmode button[aria-pressed="true"]{background:rgba(255,255,255,.92);color:#0B2559}
+:is(#stage,body) .card.psty.pdark .pagenda .now button{background:rgba(242,179,61,.2);color:#FFE7A8}
+:is(#stage,body) .card.psty.pdark .pagenda .done button{color:#9DB0CC}
+:is(#stage,body) .card.psty.pdark .team{background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 .06em rgba(255,255,255,.2)}
+:is(#stage,body) .card.psty.pdark .goalbar,:is(#stage,body) .card.psty.pdark .bar{background:rgba(255,255,255,.16)}
+/* corners */
+:is(#stage,body) .card.psty.pr-soft{border-radius:1em}
+:is(#stage,body) .card.psty.pr-round{border-radius:1.8em}
+:is(#stage,body) .card.psty.pr-round h3{padding-left:1.4em}
+:is(#stage,body) .card.psty.pr-square{border-radius:.25em}
+/* finishes */
+:is(#stage,body) .card.psty.pf-solid{box-shadow:0 .35em 1.2em rgba(4,12,32,.3)}
+:is(#stage,body) .card.psty.pf-glass{background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.05) 55%,rgba(255,255,255,0)),rgb(var(--pbg) / calc(var(--pa) * .7));
+  -webkit-backdrop-filter:blur(.9em) saturate(170%);backdrop-filter:blur(.9em) saturate(170%);border:.07em solid rgba(255,255,255,.45);
+  box-shadow:inset 0 .07em 0 rgba(255,255,255,.65),inset 0 -.05em 0 rgba(255,255,255,.08),0 .9em 2.2em rgba(2,8,26,.38)}
+:is(#stage,body) .card.psty.pdark.pf-glass{border-color:rgba(255,255,255,.22);box-shadow:inset 0 .07em 0 rgba(255,255,255,.3),0 .9em 2.2em rgba(0,0,0,.45)}
+:is(#stage,body) .card.psty.pf-glossy{background:linear-gradient(180deg,rgba(255,255,255,.6) 0%,rgba(255,255,255,.2) 2.2em,rgba(255,255,255,0) 2.3em),
+  linear-gradient(180deg,rgb(var(--pbg) / var(--pa)) 30%,rgb(var(--pbg2) / var(--pa)));
+  box-shadow:inset 0 .08em 0 rgba(255,255,255,.9),inset 0 -.25em .5em rgba(0,0,0,.1),0 .2em 0 rgb(var(--pbg2) / .9),0 .8em 1.6em rgba(2,8,26,.38)}
+:is(#stage,body) .card.psty.pdark.pf-glossy{background:linear-gradient(180deg,rgba(255,255,255,.26) 0%,rgba(255,255,255,.08) 2.2em,rgba(255,255,255,0) 2.3em),
+  linear-gradient(180deg,rgb(var(--pbg) / var(--pa)) 30%,rgb(var(--pbg2) / var(--pa)));box-shadow:inset 0 .08em 0 rgba(255,255,255,.4),0 .2em 0 rgba(0,0,0,.35),0 .8em 1.6em rgba(0,0,0,.45)}
+:is(#stage,body) .card.psty.pf-grad{background:radial-gradient(120% 90% at 0% 0%,rgba(255,255,255,.18),transparent 60%),linear-gradient(155deg,rgb(var(--pbg) / var(--pa)),rgb(var(--pbg2) / var(--pa)));
+  box-shadow:0 .7em 1.8em rgba(2,8,26,.35)}
+:is(#stage,body) .card.psty.pf-glow{border:.12em solid rgb(var(--pacc));box-shadow:0 0 .7em rgb(var(--pacc) / .7),0 0 2.4em rgb(var(--pacc) / .35),inset 0 0 1em rgb(var(--pacc) / .22)}
+:is(#stage,body) .card.psty.pf-glow h3{text-shadow:0 0 .6em rgb(var(--pacc) / .8)}
+:is(#stage,body) .card.psty.pf-grain{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .25 0 0 0 0 .2 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"),
+  linear-gradient(180deg,rgba(255,255,255,.12),rgba(0,0,0,.04)),rgb(var(--pbg) / var(--pa));box-shadow:0 .1em .2em rgba(0,0,0,.18),0 .6em 1.4em rgba(2,8,26,.3)}
+:is(#stage,body) .card.psty.pf-frame{background:rgb(var(--pbg) / calc(var(--pa) * .4));-webkit-backdrop-filter:blur(.35em);backdrop-filter:blur(.35em);border:.16em solid rgb(var(--pacc));box-shadow:0 .5em 1.4em rgba(2,8,26,.3)}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){:is(#stage,body) .card.psty.pf-glass,:is(#stage,body) .card.psty.pf-frame{background:rgb(var(--pbg) / max(var(--pa),.85))}}
+
+/* the Style section in the Settings side panel */
+.pslab{margin:12px 0 6px;font-size:12px;font-weight:700;color:rgba(226,236,255,.75)}
+.pspv{display:grid;place-items:center;height:120px;margin:2px 0 4px;border-radius:14px;overflow:hidden;font-size:15px;
+  background:var(--ring-grad,linear-gradient(135deg,#173F86,#081B45)),#0B2559;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.pspv .card{position:relative;width:11em;box-shadow:0 .4em 1em rgba(0,0,0,.3)}
+.pspv .card .in{align-items:center;padding:.3em .8em .6em;gap:0}
+.pspvb{font-family:var(--display,inherit);font-size:1.7em;font-weight:800;line-height:1.1}
+.pspvs{font-size:.75em;opacity:.8}
+.pspresets{display:grid!important;grid-template-columns:repeat(3,1fr);gap:8px}
+.psprst{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px 7px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:inherit;font:inherit;cursor:pointer;
+  background-image:radial-gradient(circle at 50% 30%,rgba(127,174,221,.35),transparent 70%)}
+.psprst:hover{background-color:rgba(255,255,255,.1)}
+.psprst.on{border-color:#F2B33D;box-shadow:0 0 0 1px #F2B33D}
+.pspt{display:block;width:54px;height:34px;font-size:9px;position:relative}
+.pspt i{position:absolute;left:18%;right:18%;top:40%;height:12%;border-radius:2px;background:currentColor;opacity:.55}
+.psptn{font-size:11.5px;font-weight:700;line-height:1.15;text-align:center}
+.psswatches{display:grid!important;grid-template-columns:repeat(7,1fr);gap:6px}
+.pssw2{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;min-width:0}
+.pssw2 i{display:block;width:32px;height:32px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3),0 3px 8px rgba(0,0,0,.35);transition:transform .15s}
+.pssw2 span{font-size:10px;font-weight:600;line-height:1.1;text-align:center;opacity:.85;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pssw2:hover i{transform:scale(1.08)}
+.pssw2.on i{box-shadow:0 0 0 2px #0B1530,0 0 0 4px #F2B33D}
+.psfinish{display:grid!important;grid-template-columns:1fr 1fr;gap:8px}
+.psfin{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:12px;border:1px solid rgba(255,255,255,.14);color:inherit;font:inherit;text-align:left;cursor:pointer;
+  background:linear-gradient(135deg,rgba(23,63,134,.55),rgba(8,27,69,.55))}
+.psfin:hover{border-color:rgba(255,255,255,.3)}
+.psfin.on{border-color:#F2B33D;box-shadow:0 0 0 1px #F2B33D}
+.psft{flex:none;width:34px;height:34px;font-size:9px}
+.psftx{display:flex;flex-direction:column;min-width:0}
+.psftx b{font-size:13px;line-height:1.2}
+.psftx small{font-size:10.5px;line-height:1.25;opacity:.72;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.psop{margin-top:12px}
+.pshint{margin:4px 0 0}
