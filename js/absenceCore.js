@@ -9,7 +9,9 @@
      gb         Gradebook: { items: gb/items list, cats: gb/setup cats }   -> graded or not, and the category's name
      data       Class Data index (data/index imports): Fact Blitz and Vault Raid sets carry source, period, date
      asg        Assignments index (asg/index list)
-     behind     (period, studentName, codes[]) => the standards among codes the student is still working on
+     behind     (period, studentName, codes[]) => the standards among codes the student is still working on (game profile)
+     found      (period, studentName) => the student's foundational-track placement { skill } or null (ACAP Phase 3,
+                js/foundational.js: found/{period}, students Eddie places by hand)
 
    Graded or practice follows the Gradebook (Eddie, Nov 23): something is GRADED when it belongs to a Gradebook
    category (Homework, Class Work, Quizzes & Tests). A quiz or test, and homework, are graded by their name;
@@ -19,7 +21,8 @@
      days     absent 2 or more days in one school week
      test     missed a test or quiz (a make-up is due)
      work     missed 3 or more graded assignments in the last two weeks
-     behind   missed a lesson on a standard the student was already working on (not Secure yet)
+     behind   behind on foundational skills and missed class: placed on the foundational track (Phase 3), or missed a
+              lesson on a standard the game profile shows is not Secure yet
 ========================================== */
 import { isDay } from "./attendanceCore.js?v=1";
 import { topicOf } from "./profileCore.js?v=2";
@@ -54,7 +57,7 @@ export const catName = (gb, id) => { const c = ((gb && gb.cats) || []).find((x) 
 /** How an agenda line reads: { kind, cat } where cat is a gradebook category id the NAME alone settles, else "". */
 export function classify(text) {
     const t = String(text || "");
-    if (/\b(test|quiz|assessment|exam)\b/i.test(t) && !/study guide|review|jeopardy|practice (test|quiz)/i.test(t)) return { kind: /\bquiz\b/i.test(t) && !/\btest\b/i.test(t) ? "quiz" : "test", cat: "qt" };
+    if (/\b(test|quiz|assessment|exam)\b/i.test(t) && !/study guide|review|jeopardy|practice (test|quiz)|correction|retake/i.test(t)) return { kind: /\bquiz\b/i.test(t) && !/\btest\b/i.test(t) ? "quiz" : "test", cat: "qt" };
     if (/homework|extra practice|\bhw\b/i.test(t)) return { kind: "homework", cat: "hw" };
     if (/fact blitz/i.test(t)) return { kind: "game", game: "Fact Blitz", cat: "" };
     if (/vault raid/i.test(t)) return { kind: "game", game: "Vault Raid", cat: "" };
@@ -77,8 +80,9 @@ export function itemsFor(ctx) {
     const add = (t, extra) => { t = label(t); if (!t || out.some((x) => x.t.toLowerCase() === t.toLowerCase())) return; const k = classify(t); out.push(Object.assign({ t, kind: k.kind, cat: k.cat, game: k.game || "", graded: !!k.cat, catName: k.cat ? catName(gb, k.cat) : "", makeup: k.kind === "test" || k.kind === "quiz" }, extra || {})); };
     if (d) {
         (d.agenda || []).forEach((a) => add(a));
-        const as = c.assessment; if (as && +as.day === idx) add(as.name || (as.type === "quiz" ? "Quiz" : "Test"));
-        const q = c.quiz; if (q && +q.day === idx) add(q.kind === "quiz" ? "Quiz" : "Test");
+        const hasTest = () => out.some((x) => x.makeup);   // the agenda already names the day's test: never count it twice
+        const as = c.assessment; if (as && +as.day === idx && !hasTest()) add(as.name || (as.type === "quiz" ? "Quiz" : "Test"));
+        const q = c.quiz; if (q && +q.day === idx && !hasTest()) add(q.kind === "quiz" ? "Quiz" : "Test");
         const hw = c.homework; if (hw && (hw.days || []).some((h) => +h.day === idx)) add("Homework, day " + (idx + 1));
     }
     (data || []).filter((m) => m && m.period === per && String(m.date || "").slice(0, 10) === day && (m.source === "Fact Blitz" || m.source === "Vault Raid")).forEach((m) => {
@@ -140,9 +144,12 @@ export function buildDashboard(input) {
         if (tests.length) warnings.push({ k: "test", text: "Missed a " + (tests[0].i.kind === "quiz" ? "quiz" : "test") + " (" + tests[0].d.name + "): make-up needed" });
         const graded = days.reduce((n, d) => n + d.items.filter((i) => i.graded && !i.makeup).length, 0) + tests.length;
         if (graded >= GRADED_WORK) warnings.push({ k: "work", text: "Missed " + graded + " graded assignments" });
-        if (typeof behind === "function") {
-            const codes = Array.from(new Set(days.flatMap((d) => d.stds))), hit = codes.length ? behind(s.per, s.nm, codes) || [] : [];
-            if (hit.length) warnings.push({ k: "behind", text: "Missed " + hit.join(", ") + ", which was still being worked on" });
+        {
+            const codes = Array.from(new Set(days.flatMap((d) => d.stds))), hit = typeof behind === "function" && codes.length ? behind(s.per, s.nm, codes) || [] : [];
+            const pl = typeof input.found === "function" ? input.found(s.per, s.nm) : null, bits = [];
+            if (pl) bits.push("On the foundational track" + (pl.skill ? " (" + pl.skill + ")" : ""));
+            if (hit.length) bits.push("missed " + hit.join(", ") + ", which was still being worked on");
+            if (bits.length) { const t = bits.join("; "); warnings.push({ k: "behind", text: t.charAt(0).toUpperCase() + t.slice(1) }); }
         }
         if (!perOut.has(s.per)) perOut.set(s.per, { per: s.per, cls: ((periods || []).find((p) => p[0] === s.per) || [])[1] || "", students: [] });
         perOut.get(s.per).students.push({ key: s.key, nm: s.nm, today: s.days.includes(today), days, warnings });

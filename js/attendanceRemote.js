@@ -10,9 +10,9 @@
 import * as A from "./attendanceCore.js?v=1";
 import { shortNames } from "./vaultCore.js?v=75";
 import { PERIOD_KEYS } from "./boardTools.js?v=63";
+import { kidKey } from "./profileCore.js?v=2";
 
 let api = null, box = null, body = null, count = null, unsub = null, watchedDay = "", DOC = null, note = "";
-const busy = new Set();
 
 export function mountAttendance(a, anchor) {
     api = a; const { el } = a;
@@ -37,45 +37,56 @@ export function syncAttendance() {
     draw();
 }
 
-const names = (per) => shortNames((api.rosters()[per] || []).filter(Boolean));
+/** Short names in the SAME positions as the roster (a blank line stays ""), because the Name Picker counts positions in the raw roster. */
+export function posNames(raw) {
+    const lines = (raw || []).map((n) => String(n || "").trim()), filled = lines.map((n, i) => (n ? i : -1)).filter((i) => i >= 0), sn = shortNames(filled.map((i) => lines[i]));
+    const out = lines.map(() => ""); filled.forEach((i, k) => { out[i] = sn[k]; }); return out;
+}
+const names = (per) => posNames(api.rosters()[per]);
 const period = () => (api.periods().some((p) => p[0] === api.S.period) ? api.S.period : (api.periods()[0] || [""])[0]);
 
-/** Keep the Name Picker / Group maker's own list (roster positions, today only) in step with the record. */
-function mirror() {
-    const T = api.S.tools, day = api.today(); if (!DOC) return;
-    const next = {}; let changed = T.absent.day !== day;
-    PERIOD_KEYS.forEach((per) => {
-        const n = names(per); if (!n.length && !(DOC.out[per])) return;
-        const pos = A.positionsOut(DOC, per, n), cur = T.absent.day === day ? (T.absent.periods[per] || []) : [];
-        next[per] = pos; if (pos.join() !== cur.slice().sort((x, y) => x - y).join()) changed = true;
+/**
+ * Keep the Name Picker / Group maker's own list (roster positions, today only) in step with the record.
+ * The record wins for every student it names: marked out -> in the list, tapped back in -> out of it. Taps made only in
+ * the Name Picker today stay. A list from an earlier day is dropped.
+ */
+export function mirrorList(absent, doc, day, namesOf, periods) {
+    const sameDay = absent.day === day, next = {};
+    periods.forEach((per) => {
+        const n = namesOf(per), m = (doc && doc.out && doc.out[per]) || {}, pos = (k) => n.findIndex((x) => x && kidKey(x) === k);
+        const set = new Set(sameDay ? (absent.periods[per] || []) : []);
+        Object.keys(m).forEach((k) => { const i = pos(k); if (i < 0) return; if (m[k].x) set.delete(i); else set.add(i); });
+        if (set.size || (sameDay && absent.periods[per])) next[per] = Array.from(set).sort((a, b) => a - b);
     });
-    if (!changed) return;
-    // positions the Remote's own list already holds stay (a tap in the Name Picker is a mark too); the record adds to them
-    T.absent.day = day; PERIOD_KEYS.forEach((per) => { const have = T.absent.periods[per] || []; T.absent.periods[per] = Array.from(new Set((next[per] || []).concat(T.absent.day === day ? have : []))).sort((x, y) => x - y); });
-    api.push();
+    const was = JSON.stringify(sameDay ? absent.periods : {}), now = JSON.stringify(next);
+    return { changed: !sameDay || was !== now, list: { day, periods: next } };
+}
+function mirror() {
+    if (!DOC) return; const T = api.S.tools;
+    const r = mirrorList(T.absent, DOC, api.today(), names, PERIOD_KEYS); if (!r.changed) return;
+    T.absent.day = r.list.day; T.absent.periods = r.list.periods; api.push();
 }
 
-async function tap(per, nm, out) {
-    const day = api.today(), key = per + "|" + nm; if (busy.has(key)) return; busy.add(key);
+/** One tap: shown at once and saved in the background, so a mis-tap can be undone straight away even on slow wifi. */
+function tap(per, nm, out) {
+    const day = api.today();
     DOC = DOC || A.cleanDoc(null, day);
     const w = A.tapWrite(day, per, nm, out); (DOC.out[per] = DOC.out[per] || {}); Object.assign(DOC.out[per], w.out[per]);
-    // the Remote's own list, at once
-    const T = api.S.tools, at = n_(per).indexOf(nm); if (T.absent.day !== day) { T.absent.day = day; T.absent.periods = {}; }
-    if (at >= 0) { const cur = (T.absent.periods[per] || []).filter((i) => i !== at); if (out) cur.push(at); T.absent.periods[per] = cur; api.push(); }
+    const T = api.S.tools, at = names(per).indexOf(nm); if (T.absent.day !== day) { T.absent.day = day; T.absent.periods = {}; }
+    if (at >= 0) { const cur = (T.absent.periods[per] || []).filter((i) => i !== at); if (out) cur.push(at); T.absent.periods[per] = cur.sort((a, b) => a - b); api.push(); }
     note = ""; draw();
+    let p;
     try {
         const st = api.store();
-        // the signed-in store merges one student into the day's document; a stand-in store (no rooms) saves the whole copy
-        if (st.rooms && st.rooms.uid()) await st.rooms.save("teacher/" + st.rooms.uid() + "/attendance/" + day, w, true);
-        else await st.save("attendance/" + day, DOC);
-    } catch (e) { note = "That tap did not save (" + ((e && e.code) || "connection") + "). Tap again."; }
-    busy.delete(key); draw();
+        // the signed-in store merges one student into the day's document (it is kept on the device until the wifi is back); a stand-in store saves the whole copy
+        p = st.rooms && st.rooms.uid() ? st.rooms.save("teacher/" + st.rooms.uid() + "/attendance/" + day, w, true) : st.save("attendance/" + day, DOC);
+    } catch (e) { p = Promise.reject(e); }
+    Promise.resolve(p).catch((e) => { note = "That tap did not save (" + ((e && e.code) || "connection") + "). Tap again."; draw(); });
 }
-const n_ = (per) => names(per);
 
 function draw() {
     if (!api || !box || box.hidden) return;
-    const { el } = api, per = period(), list = n_(per), doc = DOC || A.cleanDoc(null, api.today());
+    const { el } = api, per = period(), list = names(per).filter(Boolean), doc = DOC || A.cleanDoc(null, api.today());
     const outNow = A.outList(doc, per), total = outNow.length;
     count.textContent = total ? total + " out" : "";
     body.textContent = "";

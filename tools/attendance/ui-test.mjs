@@ -20,7 +20,7 @@ for (const [w, h, tag] of [[390, 800, "phone"], [1280, 800, "desktop"]]) {
     assert.equal(saved.length, 2); assert.equal(saved[0].path, "teacher/t1/attendance/2026-11-24"); assert.equal(saved[0].merge, true);
     assert.deepEqual(Object.keys(saved[0].data.out["1st"]), ["ben-k"]);   // one student per write
     assert.ok(!JSON.stringify(saved).includes("Kim"), "last name never saved");
-    const abs = await p.evaluate(() => window.__S.tools.absent); assert.equal(abs.day, "2026-11-24"); assert.deepEqual(abs.periods["1st"].sort(), [2, 4]);   // Name Picker list in step
+    const abs = await p.evaluate(() => window.__S.tools.absent); assert.equal(abs.day, "2026-11-24"); assert.deepEqual(abs.periods["1st"].sort(), [3, 5]);   // Name Picker list in step, at RAW roster positions (line 2 is blank)
     await tap("Ben"); assert.equal(await p.textContent("#outCount"), "1 out");   // tap again = back in
     assert.equal((await p.evaluate(() => window.__saved))[2].data.out["1st"]["ben-k"].x, 1);
     await p.click('.outper button:has-text("2nd")'); assert.equal(await p.evaluate(() => window.__pushes) > 0, true);

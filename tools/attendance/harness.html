@@ -5,7 +5,7 @@
 import { mountAttendance, syncAttendance } from "../../js/attendanceRemote.js";
 const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
 const saved = []; window.__saved = saved; window.__pushes = 0;
-const ROSTERS = { "1st": ["Ava Rivera", "Ava Tran", "Ben Kim", "Cara Lopez", "Dev Patel"], "2nd": ["Eli Stone", "Fay Wu"] };
+const ROSTERS = { "1st": ["Ava Rivera", "Ava Tran", "", "Ben Kim", "Cara Lopez", "Dev Patel"], "2nd": ["Eli Stone", "Fay Wu"] };
 const S = { period: "1st", tools: { absent: { day: "", periods: {} } } }, subs = new Set(); let doc = null;
 const store = { rooms: { uid: () => "t1", save: async (path, data, merge) => { saved.push({ path, data, merge }); } },
   watch(path, next) { setTimeout(() => next({ exists: !!doc, data: doc, pending: false }), 0); return () => {}; }, save: async () => {} };

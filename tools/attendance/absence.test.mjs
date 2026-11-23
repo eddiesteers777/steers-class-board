@@ -77,3 +77,16 @@ assert.deepEqual(C.behindFromKid(null, ["8.5"]), []);
 // the saved record holds no more than a key, short name, day and time
 assert.ok(!JSON.stringify(docs).match(/birth|dob|id":|last/i));
 console.log("absence dashboard core: all checks passed");
+
+// Re-review fixes (Nov 23): corrections are not a missed test; a test named twice counts once; the foundational track
+assert.equal(C.classify("Test Corrections").kind, "activity"); assert.equal(C.classify("Quiz retake").kind, "activity");
+const wk2 = JSON.parse(JSON.stringify(weeks)); wk2[0].classes["8th"].assessment = { type: "test", day: 3, name: "Unit 3 Test" };
+const tItems = C.itemsFor({ weeks: wk2, periods, gb, data: [], asg: [], per: "1st", day: "2026-11-19" });
+assert.equal(tItems.filter((x) => x.makeup).length, 1, "agenda 'Test' + assessment 'Unit 3 Test' = one test");
+const found = (per, nm) => (nm === "Ava R." ? { skill: "Add integers" } : null);
+const DF = C.buildDashboard({ absences: absences(docs, []), weeks: wk, periods, gb, data, asg: [], behind, found, today: "2026-11-23" });
+const ava = DF.periods[0].students.find((s) => s.nm === "Ava R.");
+assert.deepEqual(ava.warnings.map((w) => w.k), ["behind"]); assert.equal(ava.warnings[0].text, "On the foundational track (Add integers)");
+const ben2 = DF.periods[0].students.find((s) => s.nm === "Ben K.");
+assert.equal(ben2.warnings.find((w) => w.k === "behind").text, "Missed 8.5, which was still being worked on");
+console.log("absence dashboard re-review checks: all passed");

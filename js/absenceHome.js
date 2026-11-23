@@ -9,11 +9,13 @@ import * as AC from "./attendanceCore.js?v=1";
 import * as K from "./absenceCore.js?v=1";
 import { shortNames } from "./vaultCore.js?v=75";
 import { kidKey, perKey } from "./profileCore.js?v=2";
+import { placementOf } from "./foundational.js?v=1";
+import { nameOf } from "./foundBank.js?v=1";
 
-const WARN_WORD = { days: "Out often", test: "Test", work: "Graded work", behind: "Was behind" };
+const WARN_WORD = { days: "Out often", test: "Test", work: "Graded work", behind: "Foundational" };
 
 export function mountAbsences(opts) {
-    const { store, host, el, periods, today } = opts, D = { att: new Map(), trk: new Map(), gb: { items: [], cats: [] }, data: [], asg: [], rost: {}, prof: new Map(), weeks: opts.weeks || [] };
+    const { store, host, el, periods, today } = opts, D = { att: new Map(), trk: new Map(), gb: { items: [], cats: [] }, data: [], asg: [], rost: {}, prof: new Map(), found: new Map(), weeks: opts.weeks || [] };
     let timer = null; const seenDays = new Set();
     const soon = () => { clearTimeout(timer); timer = setTimeout(draw, 60); };
     const days = []; for (let i = 0; i < K.WINDOW_DAYS; i++) { const d = new Date(today + "T12:00:00"); d.setDate(d.getDate() - i); const k = K.isoOf(d); if (K.dayIndex(k) >= 0) days.push(k); }
@@ -28,8 +30,10 @@ export function mountAbsences(opts) {
     store.watch("rosters/all", (s) => { if (s.pending) return; const p = (s.exists && s.data && s.data.periods) || {}; D.rost = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) D.rost[k] = shortNames(p[k].filter(Boolean).map((n) => String(n).slice(0, 60))); }); soon(); }, () => {});
     const watchProf = (per) => { if (D.prof.has(per)) return; D.prof.set(per, null); store.watch("profiles/" + perKey(per), (s) => { if (s.pending) return; D.prof.set(per, s.exists ? s.data : false); soon(); }, () => { D.prof.set(per, false); }); };
 
+    const watchFound = (per) => { if (D.found.has(per)) return; D.found.set(per, null); store.watch("found/" + perKey(per), (s) => { if (s.pending) return; D.found.set(per, s.exists ? s.data : false); soon(); }, () => { D.found.set(per, false); }); };
+    const found = (per, nm) => { watchFound(per); const pl = placementOf(D.found.get(per) || null, nm); return pl ? { skill: nameOf(pl.start) || "" } : null; };
     const behind = (per, nm, codes) => { watchProf(per); const prof = D.prof.get(per), kid = prof && prof.kids ? prof.kids[kidKey(nm)] : null; return K.behindFromKid(kid, codes); };
-    const dash = () => K.buildDashboard({ absences: AC.absences(days.map((k) => ({ day: k, doc: D.att.get(k) })).filter((x) => x.doc), [...D.trk.values()].filter(Boolean)), weeks: D.weeks, periods, gb: D.gb, data: D.data, asg: D.asg, behind, today });
+    const dash = () => K.buildDashboard({ absences: AC.absences(days.map((k) => ({ day: k, doc: D.att.get(k) })).filter((x) => x.doc), [...D.trk.values()].filter(Boolean)), weeks: D.weeks, periods, gb: D.gb, data: D.data, asg: D.asg, behind, found, today });
 
     function draw() {
         host.textContent = "";

@@ -8,9 +8,9 @@ for (const [w, h, tag] of [[390, 900, "phone"], [1280, 900, "desktop"]]) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h } }), p = await ctx.newPage();
     p.on("console", (m) => { if (m.type() === "error") logs.push(tag + ": " + m.text()); }); p.on("pageerror", (e) => logs.push(tag + " PAGEERROR: " + e.message));
     await p.goto(BASE); await p.waitForSelector(".abs-kid", { timeout: 8000 });
-    await p.waitForSelector('.abs-warn:has-text("8.5")', { timeout: 8000 });   // the "was behind" check waits for the game profile to load
+    await p.waitForSelector('.abs-warn:has-text("8.5")', { timeout: 8000 }); await p.waitForSelector('.abs-warn:has-text("foundational")', { timeout: 8000 });   // the "was behind" check waits for the game profile to load
     const txt = await p.textContent("#absent");
-    assert.match(txt, /2 out today/); assert.match(txt, /1 needs a look/);
+    assert.match(txt, /2 out today/); assert.match(txt, /2 need a look/);
     assert.match(txt, /1st period · 8th Grade/); assert.match(txt, /5th period · 7th Grade/);
     assert.match(txt, /Missed Tuesday — Speed Dating Activity, Guided Notes Day 1/);
     assert.match(txt, /Missed Thursday — Test \(make-up needed\)/);
@@ -18,9 +18,10 @@ for (const [w, h, tag] of [[390, 900, "phone"], [1280, 900, "desktop"]]) {
     assert.match(txt, /Missed Wednesday — Fact Blitz: Integer facts, Guided Notes Day 2/); assert.match(txt, /Fact Blitz: Integer facts · practice/);
     assert.match(txt, /Missed Monday — Guided Notes Day 3/);
     assert.match(txt, /Out often/); assert.match(txt, /Missed 8\.5, which was still being worked on/);
-    const names = await p.$$eval(".abs-top b", (b) => b.map((x) => x.textContent)); assert.deepEqual(names, ["Ben", "Cara", "Ava", "Dev"]);   // first names only: no last names or initials (no duplicate first names)
+    const names = await p.$$eval(".abs-top b", (b) => b.map((x) => x.textContent)); assert.deepEqual(names, ["Ben", "Cara", "Ava", "Dev"]);
+    assert.match(txt, /On the foundational track \(Add integers\)/);   // ACAP Phase 3 placement (found/{period})   // first names only: no last names or initials (no duplicate first names)
     assert.ok(!/Kim|Lopez|Rivera|Patel|Ben K|Cara L|Ava R|Dev P/.test(txt), "no last name or initial anywhere on the card");
-    assert.equal(await p.$$eval(".abs-kid.warn", (k) => k.length), 1);
+    assert.equal(await p.$$eval(".abs-kid.warn", (k) => k.length), 2);
     const wide = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth); assert.ok(wide <= 0, tag + " no sideways scroll");
     const small = await p.$$eval(".abs-tag, .abs-chip, .abs-line, .abs-warn", (n) => n.filter((x) => parseFloat(getComputedStyle(x).fontSize) < 12).length); assert.equal(small, 0, tag + " text at least 12px");
     // text must be readable on its own background (the first version passed every text check with white names on a white card)

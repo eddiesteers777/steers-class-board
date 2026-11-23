@@ -20,6 +20,7 @@ put("gb/setup", { cats: [{ id: "hw", name: "Homework" }, { id: "cw", name: "Clas
 put("gb/items", { list: [{ id: "g1", title: "Speed Dating", date: "2026-11-17", cat: "cw", periods: ["1st", "2nd"] }] });
 put("data/index", { imports: [{ id: "f1", period: "1st", date: "2026-11-18", source: "Fact Blitz", title: "Fact Blitz: Integer facts" }] });
 put("rosters/all", { periods: { "1st": ["Ava Rivera", "Ben Kim", "Cara Lopez"], "5th": ["Dev Patel"] } });
+put("found/5th", { kids: { "dev-p": { nm: "Dev P.", start: "F:intAdd", at: 1 } } });
 put("profiles/1st", { kids: { "ben-k": { t: { "s-8-5": { a: 6, h: "100101" } } } } });
 const store = { watch(path, next) { setTimeout(() => next({ exists: docs.has(path), data: docs.get(path), pending: false }), 0); return () => {}; } };
 weeks[0].classes["8th"].days[1].notes = { standard: "8.5 Solve linear equations" };
