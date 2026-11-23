@@ -10,6 +10,7 @@
    is the same shared state, so the projected board follows as you build. "Save this board" keeps the
    look, panels, stickers and screen as one layout that the Remote, the board and the bell timeline can use.
    Slides (the switch in the header): the teacher's own slides for each lesson, Google Slides-style (js/slideEditor.js).
+   Spotlight (the third tab): the board full screen, with a glass toolbar to pop panels on and draw on the background (js/spotlight.js).
 ========================================== */
 import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MAX_SCENES, MAX_DAYB } from "./boardTools.js?v=60";
 import { SCENES, sceneActive, applyScene, saveScene, panelOn, panelOff, panelToggle, PANEL_INFO, labelOf, icon, LOOK_THEMES, LOOK_BGS, LOOK_PRESETS,
@@ -46,16 +47,26 @@ const pushNow = () => { A.push(); refresh(); };
    Slides opens the slide editor in place of the board (js/slideEditor.js, loaded the first time). It has its own
    week, class and day, so building next week's slides never moves the live board; "Show on board" is the one way across.
    The address keeps the lesson (#slides/<week>/<class>/<day>), so a reload or a link from the board opens the same slides. */
-let mode = "board", editor = null, wantSlides = null;
+let mode = "board", editor = null, wantSlides = null, spot = null, wantSpot = false;
 function lessonFromHash() {
     const m = /^#slides(?:\/([^/]*)\/([^/]*)\/([0-4]))?$/.exec(location.hash || ""); if (!m) return null;
     try { return m[1] ? { week: decodeURIComponent(m[1]), cls: decodeURIComponent(m[2]), day: +m[3] } : {}; } catch (e) { return {}; }
 }
 function setMode(m, at) {
-    mode = m === "slides" ? "slides" : "board";
+    const was = mode;
+    mode = m === "slides" ? "slides" : m === "spot" ? "spot" : "board";
     try { sessionStorage.setItem("anchorboard-studio-mode", mode); } catch (e) { /* this visit only */ }
     document.body.classList.toggle("slidemode", mode === "slides");
     document.querySelectorAll("#modeSwitch button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
+    if (was === "spot" && mode !== "spot" && spot) spot.closeSpot();
+    if (mode === "spot") {
+        const app = $("slideApp"); if (app) app.hidden = true; wantSlides = null; if (editor) editor.closeEditor();
+        if (/^#slides/.test(location.hash)) { try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* the address is a convenience */ } }
+        if (!A.synced()) { wantSpot = true; return; }   // open on the saved board, once it has arrived
+        import("./spotlight.js?v=1").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
+            .catch(() => { setMode("board"); note("saveNote", "Spotlight did not load. Check the connection and reload the page."); });
+        return;
+    }
     const app = $("slideApp"); if (!app) return;
     if (mode === "slides") {
         app.hidden = false;
@@ -76,7 +87,7 @@ export const studio = {
         A = api;
         document.querySelectorAll("#modeSwitch button").forEach((b) => { b.onclick = () => setMode(b.dataset.mode); });
         { const at = lessonFromHash(); let m = "board"; try { m = sessionStorage.getItem("anchorboard-studio-mode") || "board"; } catch (e) { /* board */ }
-            if (at) setMode("slides", at); else if (m === "slides") setMode("slides"); }
+            if (at) setMode("slides", at); else if (m === "slides" || m === "spot") setMode(m); }
         window.addEventListener("hashchange", () => { const at = lessonFromHash(); if (at && at.week) setMode("slides", at); });
         try { const s = sessionStorage.getItem("anchorboard-studio-step"); if (STEPS.some((x) => x[0] === s)) step = s; } catch (e) { /* first step */ }
         drawSteps(); showStep(step);
@@ -96,6 +107,8 @@ export const studio = {
     render() {
         if (!A) return;
         if (wantSlides && A.synced()) { const at = wantSlides; wantSlides = null; setMode("slides", at); }
+        if (wantSpot && A.synced()) { wantSpot = false; if (mode === "spot") setMode("spot"); }
+        if (mode === "spot") { if (spot) spot.renderSpot(); return; }   // full screen: the rail is hidden
         if (mode === "slides") { if (editor) editor.weeksChanged(); return; }   // the board is hidden: nothing on the rail to redraw
         refresh();
     },
@@ -104,6 +117,7 @@ export const studio = {
     pick(kind, id) {
         pick = kind ? { kind, id } : null;
         if (A) A.pickPanel(pick && pick.kind === "panel" ? pick.id : "");
+        if (mode === "spot") { if (spot) spot.pickSpot(kind, id); return; }
         document.querySelectorAll("#stickerLayer .stk").forEach((w) => w.classList.toggle("sel", !!pick && pick.kind === "sticker" && w.dataset.id === pick.id));
         if (kind === "sticker" && step !== "stickers") showStep("stickers");
         else if (kind === "panel" && step !== "panels") showStep("panels");
