@@ -15,6 +15,9 @@ import { watchPrivateWeeks, weekIdFor } from "./weeksLive.js?v=58";
 import { watchEvidence, classEvidence, evidenceForBrief, weekStandards } from "./planEvidence.js?v=3";
 import { openBankPicker, bankFor } from "./bankPick.js?v=2";
 import { rich } from "./weekSheets.js?v=60";
+import { loadStdBank } from "./stdBank.js?v=2";
+import { bellWeek } from "./acapFormats.js?v=2";
+const bellMsg = {};   // the last "Fill every day" result, per class
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -242,6 +245,30 @@ function drawClass(cls, label, periods) {
     rv.appendChild(radd);
     rv.appendChild(el("small", "pw-hint", "Claude mixes these into the bellringers. The day picker offers their bank problems too."));
     card.appendChild(rv);
+
+    // Every day's bellringers in one tap: 2 on this week's standards and 2 spiral review (ACAP readiness, js/acapFormats.js bellWeek).
+    const bf = el("div", "pw-field"); bf.appendChild(el("span", "pw-lab", "Bellringers for the week"));
+    const brow = el("div", "pw-brow"), bmsg = el("small", "pw-hint", bellMsg[cls] || "Fills each school day up to 4 from the standards bank: 2 on this week's standards, 2 review. Days keep what you already picked. Nothing goes to the board until you approve the week.");
+    bmsg.setAttribute("role", "status");
+    const fillAll = el("button", "btn", "Fill every day: 2 new + 2 review"); fillAll.type = "button";
+    fillAll.disabled = !c.standards.length && !spiral.length;
+    if (fillAll.disabled) fillAll.title = "Pick this week's standards first";
+    fillAll.onclick = async () => {
+        fillAll.disabled = true; bmsg.textContent = "Filling…";
+        try {
+            const ev = evidenceOf(cls), fromData = ev ? [...ev.reteach, ...ev.below.slice().sort((a, b) => b.low - a.low || a.avg - b.avg).map((x) => x.code)] : [];
+            const review = [...new Set(spiral.length ? spiral : fromData)].filter((x) => !c.standards.includes(x)).slice(0, 3);
+            const days = plan.days.map((pd, i) => ({ school: !!pd.school, bell: (dayOf(c, i).bell || []) }));
+            const add = bellWeek({ cls, bank: await loadStdBank(), now: c.standards, review, days });
+            let n = 0; add.forEach((list, i) => { if (!list.length) return; const d = dayOf(c, i); d.bell = [...(d.bell || []), ...list.map((x) => ({ id: x.id, q: x.q, a: x.a, std: x.std, lvl: x.lvl, also: x.also }))]; n += list.length; });
+            // The newest Vault Raid spiral for this class (Student Progress > Readiness) becomes the last school day's review game, if that day has none.
+            const sp = sets.filter((x) => x.sp && x.cls === cls).sort((x, y) => (y.at || 0) - (x.at || 0))[0], last = plan.days.map((pd, i) => (pd.school ? i : -1)).filter((i) => i >= 0).pop();
+            let game = ""; if (sp && last != null && !dayOf(c, last).set) { dayOf(c, last).set = { id: sp.id, title: sp.title || "" }; game = " " + DAYS[last] + "'s review game: " + (sp.title || "your Vault Raid spiral") + "."; touch(); }
+            bellMsg[cls] = (n ? "Added " + n + " bellringers. Review: " + (review.length ? review.join(", ") + (spiral.length ? " (your review standards)" : " (from What the data says)") : "none yet, so all on this week's standards") + ". Open a day to see them or remove one." : "Every day already has 4 bellringers, or the bank has no more for these standards.") + game;
+            if (n) touch(); drawClasses();
+        } catch (e) { bmsg.textContent = "Could not load the question bank. Try again."; fillAll.disabled = false; }
+    };
+    brow.appendChild(fillAll); bf.append(brow, bmsg); card.appendChild(bf);
 
     // Quiz or test
     const qa = el("div", "pw-row");
