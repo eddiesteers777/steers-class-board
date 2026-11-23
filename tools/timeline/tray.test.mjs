@@ -33,4 +33,9 @@ assert.equal(m, C.estimateMins({ type: "practice", skills: sk, opts: { need: 4 }
 assert.equal(Tr.minutes({ items: [] }, bank, "8th", []), 0);
 const h = Tr.handoff(t, bank, "8th", STANDARDS["8th"].standards, 5);
 assert.equal(h.title, "8.25, 8.11 practice"); assert.equal(h.need, 4); assert.equal(h.cls, "8th"); assert.equal(h.skills.length, 2);
+// Floor (foundational) skills go in the tray too, from js/foundBank.js.
+const ft = Tr.add({ items: [] }, "F:eq2"); const fs = Tr.skills(ft, bank, "8th", STANDARDS["8th"].standards);
+assert.equal(fs.length, 1); assert.equal(fs[0].std, "F:eq2"); assert.ok(fs[0].pool.length > 0 && fs[0].pool.every((x) => x.a)); assert.match(fs[0].name, /^Floor: Two-step/);
+assert.ok(Tr.counts(bank, "8th", "F:eq2").all >= 6);
+assert.match(Tr.handoff(Tr.add(ft, "8.25"), bank, "8th", STANDARDS["8th"].standards).title, /^Two-step equations, 8\.25 practice$/);
 console.log("tray tests: passed (" + m + " min)");

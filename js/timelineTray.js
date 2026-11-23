@@ -7,6 +7,9 @@
 ========================================== */
 import * as C from "./assignCore.js?v=7";
 import { inClass } from "./stdBank.js?v=2";
+import { isFoundational, problemsFor, nameOf } from "./foundBank.js?v=1";
+
+export const FLOOR_N = 12;   // problems drawn from a floor (foundational) skill, made from numbers in js/foundBank.js
 
 export const NEED = 4;          // Eddie, Nov 23: assignments made from the Timeline need 4 right per skill
 export const LEVEL_DEFAULT = [1, 2];
@@ -15,11 +18,13 @@ export const HANDOFF_KEY = "anchorboard-asg-handoff";
 /** Bank problems for one standard in one class, at the given levels, in the Assignments shape. */
 export function poolFor(bank, cls, code, lv) {
     const want = lv && lv.length ? lv : [1, 2, 3];
+    if (isFoundational(code)) return problemsFor(code, FLOOR_N).filter((x) => want.includes(x.lvl)).map(C.cleanItem);
     return (bank || []).filter((x) => x.std === code && inClass(x, cls) && want.includes(x.lvl) && x.q && x.a).map(C.cleanItem);
 }
 /** How many bank problems a standard has at each level: { 1: n, 2: n, 3: n, all: n }. */
 export function counts(bank, cls, code) {
     const out = { 1: 0, 2: 0, 3: 0, all: 0 };
+    if (isFoundational(code)) { problemsFor(code, FLOOR_N).forEach((x) => { out[x.lvl]++; out.all++; }); return out; }
     (bank || []).forEach((x) => { if (x.std === code && inClass(x, cls) && x.q && x.a) { out[x.lvl] = (out[x.lvl] || 0) + 1; out.all++; } });
     return out;
 }
@@ -48,7 +53,7 @@ export function skills(t, bank, cls, standards) {
     return fresh(t).items.map((x) => {
         const s = byCode.get(x.code), pool = poolFor(bank, cls, x.code, x.lv);
         if (!pool.length) return null;
-        const name = x.code + (s ? " " + s.text.split(/[,;.:]/)[0].slice(0, 70).trim() : "");
+        const name = isFoundational(x.code) ? "Floor: " + nameOf(x.code) : x.code + (s ? " " + s.text.split(/[,;.:]/)[0].slice(0, 70).trim() : "");
         return { src: "bank:" + x.code, name, std: x.code, pool, need: x.need, w: x.w, pin: -1 };
     }).filter(Boolean);
 }
@@ -60,5 +65,5 @@ export function minutes(t, bank, cls, standards) {
 /** What assign.html picks up: a practice draft for this class. */
 export function handoff(t, bank, cls, standards, now = Date.now()) {
     const sk = skills(t, bank, cls, standards);
-    return { v: 1, from: "timeline", at: now, cls, type: "practice", need: NEED, title: sk.map((x) => x.std).join(", ") + " practice", skills: sk };
+    return { v: 1, from: "timeline", at: now, cls, type: "practice", need: NEED, title: sk.map((x) => (isFoundational(x.std) ? nameOf(x.std) : x.std)).join(", ").slice(0, 70) + " practice", skills: sk };
 }

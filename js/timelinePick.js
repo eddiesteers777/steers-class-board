@@ -9,7 +9,9 @@ import { STANDARDS } from "../data/standards.js?v=58";
 import { loadStdBank, LEVELS } from "./stdBank.js?v=2";
 import * as C from "./assignCore.js?v=7";
 import { mathText } from "./vaultCore.js?v=75";
-import * as Tr from "./timelineTray.js?v=1";
+import * as Tr from "./timelineTray.js?v=2";
+import * as K from "./timelineLinks.js?v=1";
+import { isFoundational, stepOf } from "./foundBank.js?v=1";
 
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "button"; if (fn) b.onclick = fn; return b; };
@@ -30,17 +32,20 @@ export function mount(opt) {
     const shade = el("div", "tp-shade"); shade.hidden = true; shade.onclick = () => close();
     const bar = el("section", "tp-tray"); bar.setAttribute("aria-label", "Tray");
     document.body.append(shade, panel, bar);
-    const S = { code: "", lvl: 2, i: 0, show: false, lv: Tr.LEVEL_DEFAULT.slice(), open: false, trays: {} };
+    const S = { code: "", lvl: 2, i: 0, show: false, lv: Tr.LEVEL_DEFAULT.slice(), open: false, trays: {}, edit: false };
     const cls = () => opt.cls();
     const tray = () => (S.trays[cls()] = S.trays[cls()] || load(cls()));
     const setTray = (t) => { S.trays[cls()] = Tr.clean(t); store(cls(), S.trays[cls()]); drawTray(); opt.onChange(); };
-    const std = (code) => (STANDARDS[cls()] || { standards: [] }).standards.find((s) => s.code === code);
+    const std = (code) => {
+        if (isFoundational(code)) { const st = stepOf(code); return st ? { code, floor: true, name: st.name, text: st.name + ". A below-grade-level skill from the foundational ladder, for students who are not ready for the grade-level work yet.", helps: st.helps || [] } : null; }
+        return (STANDARDS[cls()] || { standards: [] }).standards.find((s) => s.code === code);
+    };
 
     function close() { panel.hidden = true; shade.hidden = true; document.body.classList.remove("tp-on"); const back = document.querySelector('[data-pick="' + S.code + '"]'); S.code = ""; if (back) back.focus(); }
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !panel.hidden) close(); });
 
     function open(code) {
-        S.code = code; S.show = false;
+        S.code = code; S.show = false; S.edit = false;
         const t = tray().items.find((x) => x.code === code); S.lv = t ? t.lv.slice() : Tr.LEVEL_DEFAULT.slice();
         panel.hidden = false; shade.hidden = false; document.body.classList.add("tp-on");
         if (!bank) { panel.textContent = ""; panel.append(el("p", "tp-note", "Loading the problem bank…")); bankReady().then(() => { if (S.code === code) { pickLevel(); draw(); } }); return; }
@@ -52,10 +57,13 @@ export function mount(opt) {
     function draw() {
         panel.textContent = ""; const s = std(S.code); if (!s) return;
         const head = el("header", "tp-head");
-        const t = el("div"); const c = el("span", "st-code", S.code); t.append(c);
+        const t = el("div"); const c = el("span", "st-code" + (s.floor ? " tp-fcode" : ""), s.floor ? "Floor skill" : S.code); t.append(c);
         if (s.critical) t.append(el("span", "pl-chip k-crit", "★ Critical"));
         head.append(t, btn("tp-close", "Close", close));
-        panel.append(head, el("p", "tp-std", s.text));
+        if (s.floor) panel.append(head, el("h2", "tp-fname", s.name), el("p", "tp-std", s.text));
+        else panel.append(head, el("p", "tp-std", s.text));
+        if (s.floor && s.helps.length) panel.append(el("p", "tp-note", "Anchor's guess at what it opens up: " + s.helps.join(", ") + "."));
+        if (!s.floor) panel.append(linksBox(s.code));
         const n = Tr.counts(bank, cls(), S.code);
         if (!n.all) { panel.append(el("p", "tp-note", "No bank problems for this standard yet.")); return; }
         // level tabs
@@ -101,6 +109,36 @@ export function mount(opt) {
         panel.append(add);
     }
 
+    /* ---------- builds on + floor skills for one standard ---------- */
+    function linksBox(code) {
+        const box = el("section", "tp-links");
+        const needs = K.needsOf(code);
+        const nb = el("div", "tp-lrow"); nb.append(el("b", null, "Builds on"));
+        if (!needs.length) nb.append(el("span", "tp-note", "Nothing earlier in 7th or 8th grade."));
+        needs.forEach((c) => { const here = K.inClass(cls(), c); const b = btn("tp-need" + (here && opt.marks(c) === "taught" ? " ok" : ""), opt.needLabel(c), here ? () => open(c) : null); if (!here) { b.disabled = true; b.title = "An earlier grade's standard"; } nb.append(b); });
+        box.append(nb);
+        const floors = opt.floors(), fl = K.floorOf(cls(), code, floors), custom = K.isCustomFloor(cls(), code, floors);
+        const fb = el("div", "tp-lrow"); fb.append(el("b", null, "Floor skills"));
+        if (!fl.length) fb.append(el("span", "tp-note", custom ? "None (you turned them off)." : "None on the foundational ladder yet."));
+        fl.forEach((id) => fb.append(btn("tl-fchip", K.floorName(id), () => open(id))));
+        fb.append(btn("tp-edit", S.edit ? "Done" : "Change", () => { S.edit = !S.edit; draw(); }));
+        box.append(fb);
+        if (S.edit) {
+            const ed = el("div", "tp-fedit");
+            K.LADDER_STEPS.forEach((st) => {
+                const l = el("label"), i = el("input"); i.type = "checkbox"; i.checked = fl.includes(st.id);
+                i.onchange = () => { const next = i.checked ? fl.concat([st.id]) : fl.filter((x) => x !== st.id); opt.setFloors(K.setFloor(opt.floors(), cls(), code, next)); };
+                l.append(i, document.createTextNode(" " + st.name)); ed.append(l);
+            });
+            const row = el("div", "tp-btns");
+            if (custom) row.append(btn("btn ghost sm", "Use Anchor's suggestion", () => opt.setFloors(K.setFloor(opt.floors(), cls(), code, null))));
+            ed.append(row, el("p", "tp-note", "Your floor skills save to your account for this class. Change them each year as your students change."));
+            box.append(ed);
+        }
+        box.append(el("p", "tp-note", "Builds on and floor skills are Anchor's suggestions, not district wording."));
+        return box;
+    }
+
     /* ---------- the tray ---------- */
     function drawTray() {
         bar.textContent = ""; const t = tray(), C2 = STANDARDS[cls()];
@@ -109,7 +147,7 @@ export function mount(opt) {
         const mins = bank ? Tr.minutes(t, bank, cls(), C2.standards) : 0;
         const top = el("div", "tp-ttop");
         const tog = btn("tp-ttog", null, () => { S.open = !S.open; drawTray(); }); tog.setAttribute("aria-expanded", String(S.open));
-        tog.append(el("b", null, "Tray"), el("span", null, " · " + t.items.length + (t.items.length === 1 ? " standard" : " standards") + (mins ? " · about " + mins + " min" : "")));
+        tog.append(el("b", null, "Tray"), el("span", null, " · " + t.items.length + (t.items.length === 1 ? " skill" : " skills") + (mins ? " · about " + mins + " min" : "")));
         top.append(tog);
         const go = btn("btn sm", "Make assignment", () => {
             if (!bank) return;
@@ -126,7 +164,8 @@ export function mount(opt) {
             h.innerHTML = '<svg viewBox="0 0 10 16" width="10" height="16" aria-hidden="true"><g fill="currentColor"><circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="2" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="2" cy="14" r="1.5"/><circle cx="8" cy="14" r="1.5"/></g></svg>';
             h.onkeydown = (e) => { if (e.key === "ArrowUp" || e.key === "ArrowDown") { e.preventDefault(); setTray(Tr.move(tray(), x.code, idx + (e.key === "ArrowUp" ? -1 : 1))); const n = bar.querySelector('[data-code="' + x.code + '"] .tp-h'); if (n) n.focus(); } };
             h.onpointerdown = (e) => sortStart(e, li, x.code);
-            const name = btn("tp-name", null, () => open(x.code)); name.append(el("b", null, x.code), el("span", null, s ? " " + s.text.slice(0, 60) + (s.text.length > 60 ? "…" : "") : ""));
+            const name = btn("tp-name", null, () => open(x.code)); if (isFoundational(x.code)) name.append(el("b", null, "Floor"), el("span", null, " " + K.floorName(x.code)));
+            else name.append(el("b", null, x.code), el("span", null, s ? " " + s.text.slice(0, 60) + (s.text.length > 60 ? "…" : "") : ""));
             const lv = el("small", "tp-lvs", x.lv.map((k) => LEVELS[k]).join(", ") + " · " + (bank ? Tr.poolFor(bank, cls(), x.code, x.lv).length : "…") + " problems");
             const mid = el("div", "tp-mid"); mid.append(name, lv);
             const num = (label, v, min, max, f) => { const l = el("label", "tp-num"); const i = el("input"); i.type = "number"; i.min = min; i.max = max; i.value = v; i.onchange = () => f(Math.max(min, Math.min(max, Math.round(+i.value || min)))); l.append(el("span", null, label), i); return l; };
@@ -136,7 +175,7 @@ export function mount(opt) {
         });
         bar.append(ul);
         const foot = el("div", "tp-tfoot");
-        foot.append(el("small", null, "Practice, " + Tr.NEED + " right per standard by default. You pick periods, due date and the rest in Assignments."));
+        foot.append(el("small", null, "Practice, " + Tr.NEED + " right per skill by default. You pick periods, due date and the rest in Assignments."));
         foot.append(btn("btn ghost sm", "Clear tray", () => { setTray({ items: [] }); }));
         bar.append(foot);
     }
