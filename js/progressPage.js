@@ -15,6 +15,7 @@ import * as K from "./checks.js?v=1";
 import * as FB from "./foundBank.js?v=1";
 import * as FT from "./foundational.js?v=1";
 import * as AF from "./acapFormats.js?v=1";
+import { catchUp } from "./asgSync.js?v=1";
 import { matchRoster } from "./progress.js?v=4";
 import { perKey } from "./profileCore.js?v=2";
 import { shortNames } from "./vaultCore.js?v=75";
@@ -55,7 +56,7 @@ export async function mountProgress() {
     // ---------- loading (each document once; the page reads, never writes) ----------
     let drawT = 0; const soon = () => { clearTimeout(drawT); drawT = setTimeout(draw, 60); };
     const once = (path, fn) => { let done = false, un = null; un = store.watch(path, (s) => { if (done || s.pending) return; done = true; fn(s.exists ? s.data : null); if (un) setTimeout(un, 0); }, () => { if (!done) { done = true; fn(null); } }); };
-    store.watch("rosters/all", (s) => { if (s.pending) return; D.rosters = (s.exists && s.data && s.data.periods) || {}; soon(); }, () => {});
+    store.watch("rosters/all", (s) => { if (s.pending) return; D.rosters = (s.exists && s.data && s.data.periods) || {}; if (!s.fromCache) D.rosIn = true; soon(); setTimeout(catchSoon, 0); }, () => {});
     store.watch("standards/progress", (s) => { if (s.pending) return; D.marks = (s.exists && s.data) || {}; soon(); }, () => {});
     store.watch("games/results", (s) => { if (s.pending) return; D.results = ((s.exists && s.data && s.data.list) || []).filter((r) => r && r.id); soon(); }, () => {});
     store.watch("data/index", (s) => {
@@ -71,11 +72,25 @@ export async function mountProgress() {
     // ACAP readiness: game profiles (cracked locks) per period, and the Assignments list (one extra credit a week).
     store.watch("flu/index", (s) => { if (s.pending) return; D.flu = ((s.exists && s.data && s.data.list) || []).filter((x) => x && x.id); soon(); }, () => {});
     store.watch("games/index", (s) => { if (s.pending) return; D.sets = ((s.exists && s.data && s.data.sets) || []).filter((x) => x && x.id); soon(); }, () => {});
-    store.watch("asg/index", (s) => { if (s.pending) return; D.asg = ((s.exists && s.data && s.data.list) || []).filter((x) => x && x.id); soon(); }, () => {});
+    store.watch("asg/index", (s) => { if (s.pending) return; D.asg = ((s.exists && s.data && s.data.list) || []).filter((x) => x && x.id); if (!s.fromCache) D.asgIn = true; soon(); setTimeout(catchSoon, 0); }, () => {});
     // Foundational track placements (Eddie places students by hand), one document per period.
     const watchFound = (per) => { if (D.found.has(per)) return; D.found.set(per, null); store.watch("found/" + perKey(per), (s) => { if (s.pending) return; D.found.set(per, s.exists ? s.data : false); soon(); }, () => D.found.set(per, false)); };
     const watchProf = (per) => { if (D.prof.has(per)) return; D.prof.set(per, null); store.watch("profiles/" + perKey(per), (s) => { if (s.pending) return; D.prof.set(per, s.exists ? s.data : false); soon(); }, () => D.prof.set(per, false)); };
     const rooms = demo ? memRooms() : store.rooms;
+    // Assignment results (checks, Work on next, foundational practice) reach Readiness without opening the Assignments page:
+    // once the class lists and the assignments list are in, copy any open assignment whose attempts changed.
+    let caught = false;
+    const catchSoon = () => {
+        if (caught || demo || !D.asgIn || !D.rosIn) return; caught = true;
+        // From the server, not this device's saved copy (which can be behind): wait for a server answer, up to 6 seconds.
+        const fresh = (listen, isServer) => new Promise((res) => { let un = null, done = false, last = null; const end = (v) => { if (done) return; done = true; res(v); if (un) setTimeout(un, 0); };
+            un = listen((v, server) => { last = v; if (server) end(v); }, () => end(last)); setTimeout(() => end(last), 6000); });
+        const get = (path) => fresh((ok, bad) => store.watch(path, (sn) => { if (!sn.pending) ok(sn.exists ? sn.data : null, !sn.fromCache); }, bad));
+        // A collection has no "from the server" flag here: take the attempts once they stop changing (or after 6 seconds).
+        const entriesOf = (code) => new Promise((res) => { let un = null, done = false, last = [], t = 0; const end = () => { if (done) return; done = true; res(last); if (un) setTimeout(un, 0); };
+            un = rooms.watchAll("asg/" + code + "/p", (list) => { last = list; clearTimeout(t); t = setTimeout(end, list.length ? 1200 : 4000); }, end); setTimeout(end, 6000); });
+        catchUp({ save: (p, x) => store.save(p, x), get }, D.asg, D.rosters, entriesOf).then((n) => { if (n) status("Live · " + n + (n === 1 ? " assignment's" : " assignments'") + " new results added", "ok"); }).catch(() => {});
+    };
     const bank = () => (D.bank ? Promise.resolve(D.bank) : import("./stdBank.js?v=2").then((m) => m.loadStdBank()).then((b) => (D.bank = b)));
     // The class tally for the last 45 days (one document per day).
     for (let i = 0; i < 45; i++) { const d = new Date(); d.setDate(d.getDate() - i); const k = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); once("tally/" + k, (t) => { if (t && t.periods) { D.tally.set(k, t); soon(); } }); }
