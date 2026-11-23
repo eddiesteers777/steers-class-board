@@ -113,7 +113,8 @@ body.console.page{background:
   var(--c-bg);background-repeat:no-repeat}
 
 /* top bar: frosted glass that stays put while the page scrolls under it */
-body.console.page .cbar{position:sticky;top:0;z-index:30;background:var(--k-glass);-webkit-backdrop-filter:var(--k-glass-blur);backdrop-filter:var(--k-glass-blur);
+/* z-index 18: over the page as it scrolls, under side panels, drawers and their dimmed backdrops (Home Pages drawer is 19-20). */
+body.console.page .cbar{position:sticky;top:0;z-index:18;background:var(--k-glass);-webkit-backdrop-filter:var(--k-glass-blur);backdrop-filter:var(--k-glass-blur);
   box-shadow:0 1px 0 var(--k-line),0 8px 24px -18px rgba(var(--s-rgb),.35)!important}
 .cbar::after{background:linear-gradient(90deg,var(--s-hi) 0 25%,var(--s-sky) 25% 50%,var(--s-light) 50% 75%,#F2B33D 75% 100%)!important;height:2px!important;bottom:-2px!important;opacity:.9}
 .cbrand img{box-shadow:0 4px 12px -4px rgba(var(--s-rgb),.5)}

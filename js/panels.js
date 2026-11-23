@@ -7,7 +7,7 @@
    set the screen and the panels in one tap. All of it lives in S.tools
    inside the shared board state, so the board and the Remote always match.
 ========================================== */
-import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=62";
+import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=63";
 import { meterEl, setVoice, camBody, tooLoud } from "./roomSense.js?v=1";
 import { MARKS, markUrl } from "./marks.js?v=1";
 import { EFFECTS, FX_AMOUNTS, applyEffect, effectSample } from "./effects.js?v=3";
@@ -35,12 +35,14 @@ const IC = {
     pick: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0114 0"/>',
     groups: '<circle cx="8" cy="9" r="3"/><circle cx="16.5" cy="9" r="3"/><path d="M2.5 19a5.5 5.5 0 0111 0M11 19a5.5 5.5 0 0111 0"/>',
     layout: '<rect x="3" y="4" width="12" height="16" rx="2"/><rect x="17" y="4" width="4" height="7" rx="1.5"/><rect x="17" y="13" width="4" height="7" rx="1.5"/>',
+    slide: '<rect x="3" y="5" width="13" height="10" rx="2"/><path d="M7 19h13a1 1 0 0 0 1-1V9"/>',
     cam: '<rect x="2.5" y="6" width="13.5" height="12" rx="2.5"/><path d="M16 10.5l5.5-3v9l-5.5-3z"/>',
     gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
     more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
     trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
     lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
     unlock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/>',
+    style: '<path d="M12 3a9 9 0 0 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a5 5 0 0 0 5-5C21 6.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10.5" cy="7" r="1.2"/><circle cx="15.5" cy="7.5" r="1.2"/>',
     pin: '<path d="M9 4h6l-1 6 3 3v2H7v-2l3-3-1-6zM12 15v5"/>',
     front: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/>',
     back: '<rect x="4" y="4" width="11" height="11" rx="2"/><path d="M15 9h4a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-4"/>',
@@ -56,6 +58,7 @@ export const PANEL_INFO = {
     traffic: "Stop, slow down, go", work: "From silent to group work", clock: "Time and date", stopwatch: "Count up from zero", text: "Type a note for the room",
     dice: "Roll one to three dice", score: "Points for teams or periods", goal: "Class points toward a reward", pick: "A random name, no repeats", groups: "Random groups from the roster",
     cam: "The camera, live, and recording to this device",
+    slide: "One of this lesson's slides, as a panel you can move and size",
 };
 
 /* ---------- layouts ---------- */
@@ -128,7 +131,24 @@ export function panelToggle(T, k) { if (T.on[k] && !T.min[k]) panelOff(T, k); el
 export function ordered(T, keys) { const o = T.order; return keys.slice().sort((a, b) => { const ia = o.indexOf(a), ib = o.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); }); }
 
 /* ---------- lesson panels ---------- */
+/** The Slide panel (Eddie, 2026-11-23): one of the lesson's slides in a panel that moves, sizes and styles like the rest.
+    It opens filling the screen (spotlight.js), with arrows for the slides before and after. tools.slp = the slide's id. */
+function slidePanel(api) {
+    const { S, el } = api, T = S.tools, c = api.card(labelOf("slide"), "tool panel tool-slide"), b = c.i;
+    const list = api.slideList ? api.slideList() : [], at = Math.max(0, list.findIndex((x) => x.id === T.slp)), cur = list[at];
+    const stage = el("div", "pslide"); b.appendChild(stage);
+    if (!cur) stage.appendChild(el("p", "vsub", api.slidesReady && !api.slidesReady() ? "Getting your slides…" : "No slides for this lesson yet. Make them in the Slides tab."));
+    else requestAnimationFrame(() => { if (stage.isConnected) api.slideInto(stage, cur); });
+    if (list.length > 1) {
+        const row = el("div", "minis pslnav"), go = (n) => { const x = list[Math.min(list.length - 1, Math.max(0, at + n))]; if (x) { T.slp = x.id; api.push(); } };
+        const pv = el("button", null, "‹ Back"), nx = el("button", null, "Next ›"); pv.type = nx.type = "button"; pv.disabled = at <= 0; nx.disabled = at >= list.length - 1;
+        pv.onclick = (e) => { e.stopPropagation(); go(-1); }; nx.onclick = (e) => { e.stopPropagation(); go(1); };
+        row.append(pv, el("span", "pslnum", (at + 1) + " / " + list.length), nx); b.appendChild(row);
+    }
+    return c.c;
+}
 export function buildPanel(k, api) {
+    if (k === "slide") return slidePanel(api);
     if (k === "cam") { const c = api.card(labelOf(k), "tool tool-cam"); c.i.appendChild(camBody(api.el)); return c.c; }
     if (k === "work") {   // the voice level, and the room's microphone against it (js/roomSense.js, this device only)
         const w = buildWidget(k, api); setVoice(api.S.tools.work); const inn = w.querySelector(".in") || w; inn.appendChild(meterEl(api.el)); return w;
@@ -227,6 +247,7 @@ export function chipValue(k, api) {
     if (k === "traffic") return { v: { red: "Stop", yellow: "Slow down", green: "Go" }[T.traffic], tone: T.traffic === "yellow" ? "amber" : T.traffic };
     if (k === "work") { const w = WORK.find((x) => x[0] === T.work) || WORK[0]; return tooLoud() ? { v: "Too loud!", tone: "red" } : { v: w[1], tone: "v-" + w[0] }; }
     if (k === "cam") return { v: "Camera" };
+    if (k === "slide") { const l = api.slideList ? api.slideList() : [], i = Math.max(0, l.findIndex((x) => x.id === T.slp)); return { v: l.length ? "Slide " + (i + 1) + " of " + l.length : "No slides" }; }
     if (k === "text") return { v: (T.text || "No message").slice(0, 28) + ((T.text || "").length > 28 ? "…" : "") };
     if (k === "dice") { const vals = T.dice.vals.slice(0, T.dice.n); return { v: vals.join(" · ") + (vals.length > 1 ? " = " + vals.reduce((a, x) => a + x, 0) : "") }; }
     if (k === "score") return { v: T.score.teams.map((x) => x.s).join(" – ") };

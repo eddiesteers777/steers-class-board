@@ -151,8 +151,8 @@ body.spotmode .spotx .wbrail{display:none}
     border:.06em solid rgba(255,255,255,.22);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);pointer-events:none;transition:opacity .4s}
 body.board.idle .spotcount,body.spotmode .spotcount{opacity:0}
 
-/* panels on a Spotlight screen: frosted glass cards that pop in */
-#stage:has(.spotx) .card.float{background:rgba(250,252,255,.78);-webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);
+/* panels on a Spotlight screen: frosted glass cards that pop in (a panel with its own style, .psty, keeps that style: css/panels.css) */
+#stage:has(.spotx) .card.float:not(.psty){background:rgba(250,252,255,.78);-webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);
     border:.06em solid rgba(255,255,255,.75);box-shadow:inset 0 .06em 0 rgba(255,255,255,.9),0 1em 2.6em rgba(2,8,26,.42);border-radius:.9em}
 #stage:has(.spotx) .float.enter,.float.sppop{animation:spPop .42s cubic-bezier(.18,.9,.22,1.25)}
 @keyframes spPop{0%{opacity:0;transform:scale(.6) translateY(1em)}60%{opacity:1}100%{transform:none}}
