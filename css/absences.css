@@ -23,3 +23,7 @@
 .abs-chip.graded{border-color:var(--k-ok-line,#9AD8B8);background:var(--k-ok-bg,#E3F5EC);color:var(--k-ok-ink,#0F6B40)}
 .abs-more{margin:6px 0 0;font-size:.8rem;color:var(--k-mute,#55627F)}
 @media (min-width:900px){.abs{padding:24px}}
+.abs-tag.ok{background:var(--k-ok-bg,#E3F5EC);border-color:var(--k-ok-line,#9AD8B8);color:var(--k-ok-ink,#0F6B40)}
+.abs-st{margin-left:8px;vertical-align:1px}
+.abs-day.done .abs-line,.abs-day.done .abs-chips{opacity:.7}
+.abs-go{display:inline-flex;align-items:center;min-height:44px;margin-top:10px;text-decoration:none}

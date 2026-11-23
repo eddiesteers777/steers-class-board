@@ -10,6 +10,7 @@
      data       Class Data index (data/index imports): Fact Blitz and Vault Raid sets carry source, period, date
      asg        Assignments index (asg/index list)
      behind     (period, studentName, codes[]) => the standards among codes the student is still working on (game profile)
+     marks      (period, studentName) => catch-up marks by day { "<day>": { st: "assigned"|"done", via } } (js/catchupCore.js)
      found      (period, studentName) => the student's foundational-track placement { skill } or null (ACAP Phase 3,
                 js/foundational.js: found/{period}, students Eddie places by hand)
 
@@ -17,6 +18,8 @@
    category (Homework, Class Work, Quizzes & Tests). A quiz or test, and homework, are graded by their name;
    anything else is graded only when a Gradebook item for that period and day matches it. The rest is practice.
 
+   A day marked "done" (caught up) stays listed but no longer counts toward any warning; a student whose missed days
+   are all caught up has no warnings.
    Warnings (Eddie's four):
      days     absent 2 or more days in one school week
      test     missed a test or quiz (a make-up is due)
@@ -110,19 +113,21 @@ export function missedLine(day, items, hasPlan) {
     return "Missed " + dayName(day) + " — " + (bits.length ? bits.join(", ") : "nothing recorded for that day");
 }
 
-/** Standards a missed day covered: codes written on that day's notes, else the class quiz's codes for the week. Never guessed. */
+/** Standards a missed day covered: codes written on that day's notes (its standard line or its practice problems), else the class quiz's codes for the week. Never guessed. */
 export function standardsFor(ctx) {
     const { weeks, periods, per, day } = ctx, idx = dayIndex(day); if (idx < 0) return [];
     const cls = ((periods || []).find((p) => p[0] === per) || [])[1], wk = weekFor(weeks, day), c = wk && wk.classes && wk.classes[cls], d = c && c.days && c.days[idx], seen = new Set(), out = [];
     const take = (txt) => { const t = topicOf(txt); if (t && t.std && !seen.has(t.std)) { seen.add(t.std); out.push(t.std); } };
     if (d && d.notes && d.notes.standard) String(d.notes.standard).split(/[;,\n]/).forEach(take);
+    // codes the week file wrote on that day's practice problems (Week 5: "std": "8.25")
+    if (d && d.notes) ((d.notes.practice || [])).forEach((x) => ((x && x.problems) || [x]).forEach((p) => p && p.std && take(p.std)));
     if (!out.length && c && c.quiz && Array.isArray(c.quiz.items)) c.quiz.items.forEach((q) => q && q.std && take(q.std));
     return out;
 }
 
 /**
  * The dashboard. input: { absences, weeks, periods, gb, data, asg, behind, today, rosterOf }
- * Returns { periods: [{ per, cls, students: [{ key, nm, today, days: [{ day, name, items, line, hasPlan, stds }], warnings: [{ k, text }] }] }], warned, outToday }
+ * Returns { periods: [{ per, cls, students: [{ key, nm, today, allDone, days: [{ day, name, items, line, hasPlan, stds, mark }], warnings: [{ k, text }] }] }], warned, outToday }
  * Periods with no absence in the window are left out. Students with a warning, then today's absences, come first.
  */
 export function buildDashboard(input) {
@@ -136,23 +141,25 @@ export function buildDashboard(input) {
             const ctx = { weeks, periods, gb, data, asg, per: s.per, day }, items = itemsFor(ctx), cls = ((periods || []).find((p) => p[0] === s.per) || [])[1], wk = weekFor(weeks, day);
             return { day, name: dayName(day), items, hasPlan: !!(wk && wk.classes && wk.classes[cls] && wk.classes[cls].days[dayIndex(day)]), stds: standardsFor(ctx), line: "" };
         });
-        days.forEach((d) => { d.line = missedLine(d.day, d.items, d.hasPlan); });
-        const warnings = [], mon = mondayOf(today), thisWeek = s.days.filter((d) => mondayOf(d) === mon).length;
-        const worst = Math.max(thisWeek, ...Array.from(s.days.reduce((m, d) => m.set(mondayOf(d), (m.get(mondayOf(d)) || 0) + 1), new Map()).values()));
+        const mk = typeof input.marks === "function" ? input.marks(s.per, s.nm) || {} : {};
+        days.forEach((d) => { d.line = missedLine(d.day, d.items, d.hasPlan); d.mark = mk[d.day] || null; });
+        const open = days.filter((d) => !(d.mark && d.mark.st === "done")), warnings = [];
+        const allDone = !open.length;
+        const worst = allDone ? 0 : Math.max(...Array.from(s.days.reduce((m, d) => m.set(mondayOf(d), (m.get(mondayOf(d)) || 0) + 1), new Map()).values()));
         if (worst >= ABSENT_DAYS) warnings.push({ k: "days", text: "Absent " + worst + " days in one week" });
-        const tests = days.flatMap((d) => d.items.filter((i) => i.makeup).map((i) => ({ d, i })));
+        const tests = open.flatMap((d) => d.items.filter((i) => i.makeup).map((i) => ({ d, i })));
         if (tests.length) warnings.push({ k: "test", text: "Missed a " + (tests[0].i.kind === "quiz" ? "quiz" : "test") + " (" + tests[0].d.name + "): make-up needed" });
-        const graded = days.reduce((n, d) => n + d.items.filter((i) => i.graded && !i.makeup).length, 0) + tests.length;
+        const graded = open.reduce((n, d) => n + d.items.filter((i) => i.graded && !i.makeup).length, 0) + tests.length;
         if (graded >= GRADED_WORK) warnings.push({ k: "work", text: "Missed " + graded + " graded assignments" });
         {
-            const codes = Array.from(new Set(days.flatMap((d) => d.stds))), hit = typeof behind === "function" && codes.length ? behind(s.per, s.nm, codes) || [] : [];
+            const codes = Array.from(new Set(open.flatMap((d) => d.stds))), hit = typeof behind === "function" && codes.length ? behind(s.per, s.nm, codes) || [] : [];
             const pl = typeof input.found === "function" ? input.found(s.per, s.nm) : null, bits = [];
             if (pl) bits.push("On the foundational track" + (pl.skill ? " (" + pl.skill + ")" : ""));
             if (hit.length) bits.push("missed " + hit.join(", ") + ", which was still being worked on");
-            if (bits.length) { const t = bits.join("; "); warnings.push({ k: "behind", text: t.charAt(0).toUpperCase() + t.slice(1) }); }
+            if (bits.length && !allDone) { const t = bits.join("; "); warnings.push({ k: "behind", text: t.charAt(0).toUpperCase() + t.slice(1) }); }
         }
         if (!perOut.has(s.per)) perOut.set(s.per, { per: s.per, cls: ((periods || []).find((p) => p[0] === s.per) || [])[1] || "", students: [] });
-        perOut.get(s.per).students.push({ key: s.key, nm: s.nm, today: s.days.includes(today), days, warnings });
+        perOut.get(s.per).students.push({ key: s.key, nm: s.nm, today: s.days.includes(today), days, warnings, allDone });
     });
     const order = (periods || []).map((p) => p[0]), rank = (p) => (order.indexOf(p) < 0 ? 99 : order.indexOf(p));
     const list = Array.from(perOut.values()).sort((a, b) => rank(a.per) - rank(b.per));

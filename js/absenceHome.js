@@ -6,16 +6,17 @@
    plan says so.
 ========================================== */
 import * as AC from "./attendanceCore.js?v=1";
-import * as K from "./absenceCore.js?v=1";
+import * as K from "./absenceCore.js?v=2";
 import { shortNames } from "./vaultCore.js?v=75";
 import { kidKey, perKey } from "./profileCore.js?v=2";
 import { placementOf } from "./foundational.js?v=1";
 import { nameOf } from "./foundBank.js?v=1";
+import { marksOf, STATUS_WORD, ROUTES } from "./catchupCore.js?v=1";
 
 const WARN_WORD = { days: "Out often", test: "Test", work: "Graded work", behind: "Foundational" };
 
 export function mountAbsences(opts) {
-    const { store, host, el, periods, today } = opts, D = { att: new Map(), trk: new Map(), gb: { items: [], cats: [] }, data: [], asg: [], rost: {}, prof: new Map(), found: new Map(), weeks: opts.weeks || [] };
+    const { store, host, el, periods, today } = opts, D = { att: new Map(), trk: new Map(), gb: { items: [], cats: [] }, data: [], asg: [], rost: {}, prof: new Map(), found: new Map(), cu: new Map(), weeks: opts.weeks || [] };
     let timer = null; const seenDays = new Set();
     const soon = () => { clearTimeout(timer); timer = setTimeout(draw, 60); };
     const days = []; for (let i = 0; i < K.WINDOW_DAYS; i++) { const d = new Date(today + "T12:00:00"); d.setDate(d.getDate() - i); const k = K.isoOf(d); if (K.dayIndex(k) >= 0) days.push(k); }
@@ -32,8 +33,10 @@ export function mountAbsences(opts) {
 
     const watchFound = (per) => { if (D.found.has(per)) return; D.found.set(per, null); store.watch("found/" + perKey(per), (s) => { if (s.pending) return; D.found.set(per, s.exists ? s.data : false); soon(); }, () => { D.found.set(per, false); }); };
     const found = (per, nm) => { watchFound(per); const pl = placementOf(D.found.get(per) || null, nm); return pl ? { skill: nameOf(pl.start) || "" } : null; };
+    const watchCu = (per) => { if (D.cu.has(per)) return; D.cu.set(per, null); store.watch("catchup/" + perKey(per), (s) => { if (s.pending) return; D.cu.set(per, s.exists ? s.data : false); soon(); }, () => { D.cu.set(per, false); }); };
+    const marks = (per, nm) => { watchCu(per); return marksOf(D.cu.get(per) || null, nm); };
     const behind = (per, nm, codes) => { watchProf(per); const prof = D.prof.get(per), kid = prof && prof.kids ? prof.kids[kidKey(nm)] : null; return K.behindFromKid(kid, codes); };
-    const dash = () => K.buildDashboard({ absences: AC.absences(days.map((k) => ({ day: k, doc: D.att.get(k) })).filter((x) => x.doc), [...D.trk.values()].filter(Boolean)), weeks: D.weeks, periods, gb: D.gb, data: D.data, asg: D.asg, behind, found, today });
+    const dash = () => K.buildDashboard({ absences: AC.absences(days.map((k) => ({ day: k, doc: D.att.get(k) })).filter((x) => x.doc), [...D.trk.values()].filter(Boolean)), weeks: D.weeks, periods, gb: D.gb, data: D.data, asg: D.asg, behind, found, marks, today });
 
     function draw() {
         host.textContent = "";
@@ -52,15 +55,18 @@ export function mountAbsences(opts) {
                 const row = el("article", "abs-kid" + (S.warnings.length ? " warn" : "")), top = el("div", "abs-top");
                 top.appendChild(el("b", null, AC.displayName(S.nm, names.length ? names : P.students.map((x) => x.nm))));
                 if (S.today) top.appendChild(el("span", "abs-tag out", "Out today"));
+                if (S.allDone) top.appendChild(el("span", "abs-tag ok", "All caught up"));
                 S.warnings.forEach((w) => { const t = el("span", "abs-tag w-" + w.k, WARN_WORD[w.k] || "Look"); t.title = w.text; top.appendChild(t); });
                 row.appendChild(top);
                 S.warnings.forEach((w) => row.appendChild(el("p", "abs-warn", w.text)));
                 S.days.slice(0, 5).forEach((d) => {
-                    const line = el("div", "abs-day"); line.appendChild(el("p", "abs-line", d.line));
+                    const line = el("div", "abs-day" + (d.mark && d.mark.st === "done" ? " done" : "")), lp = el("p", "abs-line", d.line); line.appendChild(lp);
+                    if (d.mark) lp.appendChild(el("span", "abs-tag " + (d.mark.st === "done" ? "ok" : "out") + " abs-st", STATUS_WORD[d.mark.st] + (d.mark.via ? " (" + ROUTES[d.mark.via].name + ")" : "")));
                     if (d.items.length) { const chips = el("p", "abs-chips"); d.items.forEach((i) => { const c = el("span", "abs-chip " + (i.graded ? "graded" : "practice"), i.t + " · " + (i.graded ? (i.catName ? "graded, " + i.catName : "graded") : "practice")); chips.appendChild(c); }); line.appendChild(chips); }
                     row.appendChild(line);
                 });
                 if (S.days.length > 5) row.appendChild(el("p", "abs-more", "and " + (S.days.length - 5) + " earlier days"));
+                { const a = el("a", "btn" + (S.allDone ? " ghost" : " go") + " abs-go", S.allDone ? "Open catch-up" : "Catch-up: worksheet and assign"); a.href = "catchup.html?p=" + encodeURIComponent(P.per) + "&k=" + encodeURIComponent(S.key); row.appendChild(a); }
                 sec.appendChild(row);
             });
             host.appendChild(sec);
