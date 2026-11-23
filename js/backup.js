@@ -21,7 +21,7 @@ import * as Drive from "./drive.js?v=2";
 import { buildPdf } from "./studentWork.js?v=58";
 import { SCHOOL_YEAR, isSchoolDay } from "./schoolCal.js?v=58";
 import * as W from "./workCore.js?v=1";
-import * as G from "./gradeCore.js?v=3";
+import * as G from "./gradeCore.js?v=4";
 import { shortNames } from "./vaultCore.js?v=75";
 
 // Every top-level folder under teacher/{uid}/ (keep in step with js/accountData.js COLLECTIONS).

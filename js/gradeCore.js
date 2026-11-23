@@ -21,7 +21,7 @@
    item = { id, title, date "YYYY-MM-DD", cat, pts, periods: [], src: { k: "hand" } | { k: "asg", id } | { k: "data", ids: { period: importId } },
             std, off (true = shown but not counted), xc (true = extra credit: points earned add, points possible don't), at }
 ========================================== */
-import { matchRoster } from "./progress.js?v=3";
+import { matchRoster } from "./progress.js?v=4";
 
 /* Eddie's syllabus (2026-27) names these three categories and gives no percentages, so weights start blank.
    With no weights set, the grade is total points; once any weight is set, it is a weighted average. */

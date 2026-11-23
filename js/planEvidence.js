@@ -8,7 +8,7 @@
    Counts only. No student name ever leaves this file, so the brief Claude reads stays free of names.
    Nothing is stored: the evidence is worked out on the page each time, like Student Progress.
 ========================================== */
-import { buildProgress, distribution, stdIn } from "./progress.js?v=3";
+import { buildProgress, distribution, stdIn } from "./progress.js?v=4";
 
 const mean = (xs) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : null);
 

@@ -11,8 +11,8 @@
    tests go out without the key: this page checks them.
    ?demo: made-up students in this tab only, nothing is saved.
 ========================================== */
-import * as C from "./assignCore.js?v=6";
-import { namesOnly, indexEntry } from "./acapAssign.js?v=1";
+import * as C from "./assignCore.js?v=7";
+import { namesOnly, indexEntry } from "./acapAssign.js?v=2";
 import * as V from "./vaultCore.js?v=75";
 import { loadStdBank, inClass, LEVELS } from "./stdBank.js?v=2";
 import { STANDARDS } from "../data/standards.js?v=58";

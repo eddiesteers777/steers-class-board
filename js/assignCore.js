@@ -259,7 +259,7 @@ export function toProgress(def, per, scored, roster) {
     const id = "as" + def.id + "_" + per.replace(/[^A-Za-z0-9]/g, ""), date = today(new Date(def.opened || def.at || Date.now()));
     const title = TYPES[def.type].label + ": " + def.title;
     const cols = def.type === "fix" ? [] : def.skills;
-    const imp = def.type === "fix" ? null : { id, title, std: "", skill: "", date, source: "Assignment", period: per, asg: def.id,
+    const imp = def.type === "fix" ? null : { id, title, std: "", skill: "", date, source: "Assignment", period: per, asg: def.id, kind: def.type,
         items: ["Grade"].concat(cols.map((sk) => sk.name)), istd: [""].concat(cols.map((sk) => sk.std || "")),
         rows: rows.map((r) => ({ s: rosterName(r), v: [r.withFix != null ? r.withFix : r.grade].concat(cols.map((sk, k) => (r.parts[k] ? (isTest(def.type) ? (r.parts[k].y ? (r.parts[k].ok ? 1 : 0) : null) : r.parts[k].grade) : null))) })),
         at: Date.now() };

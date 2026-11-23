@@ -6,13 +6,15 @@
    ?demo fills a this-tab store with made-up students (js/progressDemo.js) and saves nothing.
 ========================================== */
 import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=4";
-import { buildProgress, distribution, standardOverTime, needGroups, missedOn, heatmap, engagement, fidelity, studentSummary, stdIn, BAND_WORD } from "./progress.js?v=3";
+import { buildProgress, distribution, standardOverTime, needGroups, missedOn, heatmap, engagement, fidelity, studentSummary, stdIn, BAND_WORD } from "./progress.js?v=4";
 import { lineChart, sparkline, bandBar, meter } from "./charts.js?v=1";
 import { STANDARDS } from "../data/standards.js?v=58";
 import * as R from "./readiness.js?v=1";
-import * as AA from "./acapAssign.js?v=1";
-import { matchRoster } from "./progress.js?v=3";
+import * as AA from "./acapAssign.js?v=2";
+import * as K from "./checks.js?v=1";
+import { matchRoster } from "./progress.js?v=4";
 import { perKey } from "./profileCore.js?v=2";
+import { shortNames } from "./vaultCore.js?v=75";
 
 const DEMO_PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
 const MARK = { teaching: "Teaching", taught: "Taught", reteach: "Reteach" };
@@ -33,7 +35,7 @@ export async function mountProgress() {
 
     const S = { period: [sharedPeriod(""), remember("period")].find((p) => p && PERIODS.some((x) => x[0] === p)) || "1st", view: remember("view") || "today", game: "", sort: "need", std: "" };
     if (!CLS[S.period]) S.period = PER[0][0];
-    const D = { rosters: {}, marks: {}, index: null, imports: new Map(), results: [], pindex: null, details: new Map(), tally: new Map(), prof: new Map(), asg: [], bank: null };
+    const D = { rosters: {}, marks: {}, index: null, imports: new Map(), results: [], pindex: null, details: new Map(), tally: new Map(), prof: new Map(), asg: [], bank: null, flu: [] };
 
     // ---------- controls ----------
     PERIODS.forEach(([k, label]) => { const b = el("button", null, k + " period"); b.type = "button"; b.dataset.k = k; b.title = label; b.onclick = () => { S.period = k; S.game = ""; S.std = ""; remember("period", k); saveSharedPeriod(k); draw(); }; $("periodTabs").appendChild(b); });
@@ -63,6 +65,7 @@ export async function mountProgress() {
         soon();
     }, () => { D.pindex = []; soon(); });
     // ACAP readiness: game profiles (cracked locks) per period, and the Assignments list (one extra credit a week).
+    store.watch("flu/index", (s) => { if (s.pending) return; D.flu = ((s.exists && s.data && s.data.list) || []).filter((x) => x && x.id); soon(); }, () => {});
     store.watch("asg/index", (s) => { if (s.pending) return; D.asg = ((s.exists && s.data && s.data.list) || []).filter((x) => x && x.id); soon(); }, () => {});
     const watchProf = (per) => { if (D.prof.has(per)) return; D.prof.set(per, null); store.watch("profiles/" + perKey(per), (s) => { if (s.pending) return; D.prof.set(per, s.exists ? s.data : false); soon(); }, () => D.prof.set(per, false)); };
     const rooms = demo ? memRooms() : store.rooms;
@@ -253,6 +256,7 @@ export async function mountProgress() {
         const RD = M.ready(), all = [...RD.values()].filter(Boolean), bp = M.bp;
         out.appendChild(el("h2", null, "ACAP readiness · " + bp.grade + " blueprint"));
         out.appendChild(el("p", "pgNote", R.NOT_A_PREDICTION + (M.cls === "8th-acc" ? " 8th Accelerated is scored on the Grade 8 blueprint; Algebra I standards are tracked on the other tabs, not weighted here." : "")));
+        checksPanel(out, M, all);
         // category tiles
         const tiles = el("div", "rdCats");
         bp.cats.forEach((c) => {
@@ -302,6 +306,72 @@ export async function mountProgress() {
         });
         wrap.appendChild(T); out.appendChild(wrap);
         out.appendChild(el("p", "sub", "Column numbers are standard numbers (" + bp.key + ".1, " + bp.key + ".2, …). Hover or tap and hold a square for the score and what the lock still needs."));
+    }
+
+    // ---------- the checks: Monday diagnostic, Friday check, cumulative check, Fact Blitz ----------
+    let CK = null;   // the check being built: { kind, cls, slots, periods, msg }
+    const fmtAgo = (ms) => { if (!ms) return "never"; const d = Math.round((Date.now() - ms) / 864e5); return fmtDay(new Date(ms).toISOString().slice(0, 10)) + (d < 1 ? " (today)" : " (" + d + (d === 1 ? " day" : " days") + " ago)"); };
+    function checksPanel(out, M, all) {
+        out.appendChild(el("h2", null, "Checks"));
+        const perOfCls = PER.filter((p) => p[1] === M.cls).map((p) => p[0]);
+        const need = new Map(R.classFocus(all).map((f) => [f.code, f.need]));
+        const scored = new Set(all.flatMap((x) => x.rows.filter((r) => r.state !== "none").map((r) => r.code)));
+        const grid = el("div", "rdChecks");
+        Object.entries(K.KINDS).forEach(([kind, k]) => {
+            const last = D.asg.filter((a) => a.chk === kind && a.cls === M.cls && a.status !== "draft").sort((a, b) => (b.opened || b.at || 0) - (a.opened || a.at || 0))[0];
+            const c = el("section", "rdCheck"); c.append(el("b", null, k.label), el("p", null, k.blurb), el("small", null, "Last given: " + (last ? fmtAgo(last.opened || last.at) : "never") + (kind === "cum" && last ? " · next due " + fmtDay(new Date((last.opened || last.at) + 28 * 864e5).toISOString().slice(0, 10)) : "")));
+            const b = el("button", "btn" + (CK && CK.kind === kind && CK.cls === M.cls ? "" : " ghost"), "Build it"); b.type = "button"; b.setAttribute("aria-label", "Build a " + k.label);
+            b.onclick = () => { const ctx = { cls: M.cls, order: M.order, marks: Object.fromEntries(Object.entries(D.marks[M.cls] || {}).map(([c, m]) => [c, (m && m.s) || ""])), need, scored }; CK = { kind, cls: M.cls, ctx, slots: K.planCheck(kind, ctx), periods: perOfCls.slice(), msg: "" }; draw(); };
+            c.appendChild(b); grid.appendChild(c);
+        });
+        const lastFlu = (D.flu || []).filter((f) => f.mode === "check").sort((a, b) => (b.at || 0) - (a.at || 0))[0];
+        const f = el("section", "rdCheck"); f.append(el("b", null, "Fluency (Fact Blitz)"), el("p", null, "Monthly speed check, same 2-minute format every time so the trend means something. Each student's first, latest and change are on the Fact Blitz page."), el("small", null, "Last speed check: " + (lastFlu ? fmtAgo(lastFlu.at) + " · next due " + fmtDay(new Date(lastFlu.at + 30 * 864e5).toISOString().slice(0, 10)) : "never")));
+        const fa = el("a", "btn ghost", "Open Fact Blitz"); fa.href = "fluency.html"; f.appendChild(fa); grid.appendChild(f);
+        out.appendChild(grid);
+        if (CK && CK.cls === M.cls) out.appendChild(checkBuilder(M, perOfCls));
+    }
+    function checkBuilder(M, perOfCls) {
+        const k = K.KINDS[CK.kind], box = el("section", "rdBuild");
+        box.append(el("h3", null, k.label + " for " + ((STANDARDS[M.cls] || {}).label || M.cls)));
+        box.appendChild(el("p", "pgProfile", CK.kind === "diag" ? "The two earlier standards are the class's weakest standards taught before the new one. Swap any question's standard below." : CK.kind === "cum" ? "Spread by ACAP blueprint points over the standards marked Teaching, Taught or Reteach on the Standards page, the class's weakest first. Swap any question's standard below." : "From the standards marked Teaching on the Standards page. Swap any question's standard below."));
+        if (CK.kind !== "cum" && CK.slots.length) {
+            // One choice for the week's standard re-plans the whole check (the earlier standards follow it).
+            const cur = (CK.slots.find((x) => x.role !== "prior") || CK.slots[0]).code, l = el("label", "field rdWeek"), sel = el("select");
+            M.order.forEach((code) => { const o = el("option", null, code + " · " + short((M.std(code) || {}).text || "", 70)); o.value = code; sel.appendChild(o); });
+            sel.value = cur; sel.onchange = () => { CK.slots = K.planCheck(CK.kind, Object.assign({}, CK.ctx, { focus: [sel.value] })); CK.msg = ""; draw(); };
+            l.append(el("span", null, CK.kind === "diag" ? "New standard this week" : "This week's standard"), sel); box.appendChild(l);
+        }
+        const counts = K.catCounts(M.cls, CK.slots); box.appendChild(el("p", "pgProfile", [...counts.entries()].map(([n, c]) => n + ": " + c).join(" · ")));
+        const list = el("ol", "rdSlots");
+        CK.slots.forEach((sl, i) => {
+            const li = el("li"), sel = el("select"); sel.setAttribute("aria-label", "Standard for question " + (i + 1));
+            M.order.forEach((code) => { const o = el("option", null, code + " · " + short((M.std(code) || {}).text || "", 70)); o.value = code; sel.appendChild(o); });
+            sel.value = sl.code; sel.onchange = () => { sl.code = sel.value; CK.msg = ""; draw(); };
+            li.append(el("span", "rdRole", K.ROLE_WORD[sl.role]), sel); list.appendChild(li);
+        });
+        box.appendChild(list);
+        const pers = el("div", "rdPers"); pers.appendChild(el("span", null, "Periods"));
+        perOfCls.forEach((p) => { const l = el("label", "asChk sm"), c = el("input"); c.type = "checkbox"; c.checked = CK.periods.includes(p); c.onchange = () => { CK.periods = perOfCls.filter((q) => (q === p ? c.checked : CK.periods.includes(q))); }; l.append(c, document.createTextNode(" " + p)); pers.appendChild(l); });
+        box.appendChild(pers);
+        box.appendChild(el("p", "pgProfile", "It goes out as a Quiz: one question per line, one try, no feedback until you release results on Assignments. Each answer lands in Readiness by student and standard."));
+        const row = el("div", "rdBtns"), msg = el("p", "rdMsg", CK.msg || ""); msg.setAttribute("role", "status");
+        const go = el("button", "btn go", "Approve and assign"); go.type = "button";
+        go.onclick = async () => {
+            if (!CK.periods.length) { CK.msg = "Pick at least one period."; draw(); return; }
+            go.disabled = true; msg.textContent = "Saving…";
+            try {
+                const items = await bank(), title = K.titleFor(CK.kind, CK.slots), def = K.buildQuiz(CK.kind, CK.slots, items, M.cls, CK.periods, title);
+                if (!def) throw Object.assign(new Error("bank"), { code: "a standard here has no problems in the bank yet; swap it" });
+                const names = Object.fromEntries(CK.periods.map((p) => [p, shortNames((D.rosters[p] || []).filter(Boolean))]));
+                const saved = await AA.approveWith(store, rooms, user.uid, def, D.asg, names);
+                D.asg = D.asg.filter((a) => a.id !== saved.id).concat([AA.indexEntry(saved)]);
+                CK.msg = "Assigned: " + saved.title + ". Code " + saved.code + " for " + CK.periods.join(", ") + " period. Release results on Assignments when everyone is done.";
+                CK.slots = []; draw();
+            } catch (e) { CK.msg = "Not assigned (" + ((e && e.code) || "connection") + "). Try again."; draw(); }
+        };
+        const cancel = el("button", "btn ghost", "Close"); cancel.type = "button"; cancel.onclick = () => { CK = null; draw(); };
+        if (CK.slots.length) row.append(go); row.append(cancel); box.append(row, msg);
+        return box;
     }
 
     // ---------- Questions: the Vault Raid heatmap ----------

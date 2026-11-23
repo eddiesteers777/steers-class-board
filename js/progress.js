@@ -97,7 +97,7 @@ export function buildProgress(input) {
             vals.forEach(({ v, k }) => {
                 if (vr && k === 0 && (imp.items || []).length > 1) return;   // "All questions" is the overall, the categories carry the standards
                 const code = (imp.istd && imp.istd[k]) || imp.std || stdIn((imp.items || [])[k], codes) || (vr ? stdIn(imp.title, codes) : "");
-                addStd(r, code, d, v, imp.title);
+                addStd(r, code, d, v, imp.title, imp.kind === "quiz" || imp.kind === "test" ? 1 : 3);   // a quiz column is one question, not a whole set
             });
         });
     });
