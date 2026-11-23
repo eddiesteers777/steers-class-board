@@ -1,13 +1,18 @@
 /* ==========================================
    Anchor Board — Student Progress page (progress.html).
-   Reads only; writes nothing. Loads the teacher's own documents, builds the record with
-   js/progress.js and draws one view at a time: Today, Class, Students, Questions.
+   Loads the teacher's own documents, builds the record with js/progress.js and draws one view at a time:
+   Today, Class, Students, Readiness, Questions. It writes only when the teacher taps Approve on a student's
+   "Work on next" card (ACAP readiness, js/readiness.js + js/acapAssign.js): that saves one Practice assignment.
    ?demo fills a this-tab store with made-up students (js/progressDemo.js) and saves nothing.
 ========================================== */
 import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=4";
 import { buildProgress, distribution, standardOverTime, needGroups, missedOn, heatmap, engagement, fidelity, studentSummary, stdIn, BAND_WORD } from "./progress.js?v=3";
 import { lineChart, sparkline, bandBar, meter } from "./charts.js?v=1";
 import { STANDARDS } from "../data/standards.js?v=58";
+import * as R from "./readiness.js?v=1";
+import * as AA from "./acapAssign.js?v=1";
+import { matchRoster } from "./progress.js?v=3";
+import { perKey } from "./profileCore.js?v=2";
 
 const DEMO_PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
 const MARK = { teaching: "Teaching", taught: "Taught", reteach: "Reteach" };
@@ -28,7 +33,7 @@ export async function mountProgress() {
 
     const S = { period: [sharedPeriod(""), remember("period")].find((p) => p && PERIODS.some((x) => x[0] === p)) || "1st", view: remember("view") || "today", game: "", sort: "need", std: "" };
     if (!CLS[S.period]) S.period = PER[0][0];
-    const D = { rosters: {}, marks: {}, index: null, imports: new Map(), results: [], pindex: null, details: new Map(), tally: new Map() };
+    const D = { rosters: {}, marks: {}, index: null, imports: new Map(), results: [], pindex: null, details: new Map(), tally: new Map(), prof: new Map(), asg: [], bank: null };
 
     // ---------- controls ----------
     PERIODS.forEach(([k, label]) => { const b = el("button", null, k + " period"); b.type = "button"; b.dataset.k = k; b.title = label; b.onclick = () => { S.period = k; S.game = ""; S.std = ""; remember("period", k); saveSharedPeriod(k); draw(); }; $("periodTabs").appendChild(b); });
@@ -57,6 +62,11 @@ export async function mountProgress() {
         D.pindex.slice(-400).forEach((m) => { if (!D.details.has(m.id)) { D.details.set(m.id, null); once("progress/g_" + m.id, (d) => { D.details.set(m.id, d || false); soon(); }); } });
         soon();
     }, () => { D.pindex = []; soon(); });
+    // ACAP readiness: game profiles (cracked locks) per period, and the Assignments list (one extra credit a week).
+    store.watch("asg/index", (s) => { if (s.pending) return; D.asg = ((s.exists && s.data && s.data.list) || []).filter((x) => x && x.id); soon(); }, () => {});
+    const watchProf = (per) => { if (D.prof.has(per)) return; D.prof.set(per, null); store.watch("profiles/" + perKey(per), (s) => { if (s.pending) return; D.prof.set(per, s.exists ? s.data : false); soon(); }, () => D.prof.set(per, false)); };
+    const rooms = demo ? memRooms() : store.rooms;
+    const bank = () => (D.bank ? Promise.resolve(D.bank) : import("./stdBank.js?v=2").then((m) => m.loadStdBank()).then((b) => (D.bank = b)));
     // The class tally for the last 45 days (one document per day).
     for (let i = 0; i < 45; i++) { const d = new Date(); d.setDate(d.getDate() - i); const k = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); once("tally/" + k, (t) => { if (t && t.periods) { D.tally.set(k, t); soon(); } }); }
     // The Class Tracker (Nov 21) keeps the same behaviour line, one document per day at track/{day}.
@@ -71,7 +81,17 @@ export async function mountProgress() {
         const P = buildProgress({ roster: (D.rosters[S.period] || []).map((n) => String(n).slice(0, 60)), codes, imports, results: D.results, details, tally: [...D.tally.values()], period: S.period, cut });
         const order = []; C.units.forEach((u) => u.standards.forEach((x) => { if (!order.includes(x.code)) order.push(x.code); })); C.standards.forEach((s) => { if (!order.includes(s.code)) order.push(s.code); });
         const std = (code) => C.standards.find((s) => s.code === code) || null;
-        return { P, cut, cls, C, order, std, mark: (code) => ((D.marks[cls] || {})[code] || {}).s || "" };
+        watchProf(S.period);
+        const roster = (D.rosters[S.period] || []).map((n) => String(n).slice(0, 60));
+        let RD = null;   // readiness, worked out the first time a view asks for it
+        const ready = () => {
+            if (RD) return RD;
+            const nameOf = (s) => { const i = matchRoster(s, roster); return i >= 0 ? roster[i] : ""; };
+            const trail = R.answerTrail(P.details, nameOf), prof = D.prof.get(S.period) || null;
+            RD = new Map(P.students.filter((r) => r.onRoster).map((r) => [r.s, R.readinessOf(cls, C.standards, r, trail.get(r.s), R.kidOf(prof, r.s))]));
+            return RD;
+        };
+        return { P, cut, cls, C, order, std, ready, bp: R.blueprintFor(cls), mark: (code) => ((D.marks[cls] || {})[code] || {}).s || "" };
     }
 
     function draw() {
@@ -83,7 +103,7 @@ export async function mountProgress() {
         out.replaceChildren();
         if (!(D.rosters[S.period] || []).length) out.appendChild(empty("No class list for " + S.period + " period yet.", "Progress joins every score to a roster name. Add the class on the Rosters page first.", "Open Rosters", "rosters.html"));
         else if (!withData.length) out.appendChild(empty("No results for " + S.period + " period yet.", "Bring in a quiz, exit ticket or app report on Class Data, or play Vault Raid with “Save results to Class Data” on. Progress builds from there.", "Open Class Data", "data.html"));
-        else ({ today, class: classView, students, questions }[S.view] || today)(out, M);
+        else ({ today, class: classView, students, ready: readiness, questions }[S.view] || today)(out, M);
     }
     const skeleton = () => { const s = el("div", "pgSkel"); s.setAttribute("aria-hidden", "true"); s.append(el("i"), el("i"), el("i")); return s; };
     function empty(h, p, label, href) { const box = el("div", "pgEmpty"); box.append(el("h2", null, h), el("p", null, p)); const a = el("a", "btn go", label); a.href = href; box.appendChild(a); return box; }
@@ -220,6 +240,70 @@ export async function mountProgress() {
         out.appendChild(box);
     }
 
+    // ---------- Readiness: ACAP-weighted Not Yet / Developing / Secure by standard ----------
+    const ST_CLS = { secure: "rd-s", developing: "rd-d", notyet: "rd-n", none: "rd-0" }, ST_SYM = { secure: "S", developing: "D", notyet: "N", none: "·" };
+    const shareTxt = (c, bp) => c.pts + " of " + bp.total + " points (" + Math.round((100 * c.pts) / bp.total) + "%, worked out from the blueprint)";
+    function rdKey() {
+        const key = el("div", "pgKey");
+        [["s", "Secure: lock met and 80%+ latest"], ["d", "Developing: 50 to 79%, or 80%+ before the lock"], ["n", "Not Yet: under 50%"], ["0", "Not checked yet"]].forEach(([k, t]) => { const s = el("span"); s.append(el("i", "rd-" + k), document.createTextNode(t)); key.appendChild(s); });
+        return key;
+    }
+    function readiness(out, M) {
+        if (!M.bp) { out.appendChild(el("p", "sub", "This class has no ACAP blueprint weights.")); return; }
+        const RD = M.ready(), all = [...RD.values()].filter(Boolean), bp = M.bp;
+        out.appendChild(el("h2", null, "ACAP readiness · " + bp.grade + " blueprint"));
+        out.appendChild(el("p", "pgNote", R.NOT_A_PREDICTION + (M.cls === "8th-acc" ? " 8th Accelerated is scored on the Grade 8 blueprint; Algebra I standards are tracked on the other tabs, not weighted here." : "")));
+        // category tiles
+        const tiles = el("div", "rdCats");
+        bp.cats.forEach((c) => {
+            const t = el("div", "rdCat"), sum = (k) => all.reduce((s, x) => s + (((x.cats.find((y) => y.id === c.id) || {})[k]) || 0), 0);
+            const tot = sum("secure") + sum("developing") + sum("notyet") + sum("none");
+            t.append(el("b", null, c.name), el("small", null, "Standards " + bp.key + "." + c.from + "–" + bp.key + "." + c.to + " · " + shareTxt(c, bp)));
+            const bar = el("div", "rdBar"); [["secure", "s"], ["developing", "d"], ["notyet", "n"], ["none", "0"]].forEach(([k, z]) => { const n = sum(k); if (!n) return; const i = el("i", "rd-" + z); i.style.flexGrow = n; i.title = n + " " + R.STATE_WORD[k]; bar.appendChild(i); });
+            t.append(bar, el("small", null, tot ? sum("secure") + " Secure · " + sum("developing") + " Developing · " + sum("notyet") + " Not Yet · " + sum("none") + " not checked (student × standard)" : "No students yet"));
+            tiles.appendChild(t);
+        });
+        out.appendChild(tiles);
+        // where to focus
+        out.appendChild(el("h2", null, "Where to focus"));
+        const focus = R.classFocus(all).slice(0, 5);
+        if (!focus.length) out.appendChild(el("p", "sub", "Nothing scored below Secure yet. Readiness fills in from tagged Class Data sets, Vault Raid games built from the standards bank, and Assignments."));
+        else {
+            out.appendChild(el("p", "sub", "Ranked by how far students are from Secure times each standard's share of its category's blueprint points. Tap a name to see their Work on next card."));
+            const grid = el("div", "pgGroups");
+            focus.forEach((f, k) => {
+                const card = el("section", "pgGroup rdFocus"), head = el("div", "pgGHead");
+                head.append(el("span", "pgGNum", "#" + (k + 1)), el("h3", null, f.code + (f.critical ? " ★" : "")), chip(f.cat.name));
+                card.append(head, el("p", "pgGText", short(f.text, 140)));
+                card.appendChild(el("p", "pgProfile", f.notyet + " Not Yet · " + f.developing + " Developing · " + f.secure + " Secure · about " + (Math.round(f.cat.per * 10) / 10) + " of " + bp.total + " points per standard in this category"));
+                const who = el("div", "pgWho");
+                [...RD.entries()].filter(([, x]) => x).map(([s, x]) => ({ s, r: x.rows.find((y) => y.code === f.code) })).filter((y) => y.r && (y.r.state === "notyet" || y.r.state === "developing")).sort((a, b) => a.r.latest - b.r.latest)
+                    .forEach((y, i, arr) => { if (i < 6) { const b = nameBtn(M, y.s); b.appendChild(el("small", null, R.STATE_WORD[y.r.state] + " " + pct(y.r.latest))); who.appendChild(b); } else if (i === 6) who.appendChild(el("small", "rdMore", "+" + (arr.length - 6) + " more on the grid below")); });
+                card.appendChild(who); grid.appendChild(card);
+            });
+            out.appendChild(grid);
+        }
+        // the grid
+        out.appendChild(el("h2", null, "Every student, every standard"));
+        out.appendChild(rdKey());
+        const codes = M.C.standards.map((s) => s.code).filter((c) => R.catOf(M.cls, c));
+        const wrap = el("div", "gridwrap rdWrap"), T = el("table", "rdGrid"), h1 = el("tr"), h2 = el("tr");
+        h1.appendChild(el("th", "rdN", "")); h2.appendChild(el("th", "rdN", "Student"));
+        bp.cats.forEach((c) => { const mine = codes.filter((x) => R.catOf(M.cls, x).id === c.id); if (!mine.length) return; const th = el("th", "rdCh", c.name + " · " + c.pts + " pts"); th.colSpan = mine.length; h1.appendChild(th); mine.forEach((x, i) => { const t = el("th", i === 0 ? "rdC first" : "rdC", x.split(".")[1]); t.title = x + " " + short((M.std(x) || {}).text || "", 120); h2.appendChild(t); }); });
+        T.append(h1, h2);
+        [...RD.entries()].forEach(([s, x]) => {
+            if (!x) return; const tr = el("tr"), n = el("th", "rdN"); n.appendChild(nameBtn(M, s)); tr.appendChild(n);
+            bp.cats.forEach((c) => codes.filter((y) => R.catOf(M.cls, y).id === c.id).forEach((code, i) => {
+                const r = x.rows.find((y) => y.code === code), td = el("td", ST_CLS[r.state] + (i === 0 ? " first" : ""), ST_SYM[r.state]);
+                td.title = s + " · " + code + ": " + R.STATE_WORD[r.state] + (r.latest != null ? ", " + pct(r.latest) + " latest" : "") + (r.state !== "none" && !r.lock.met ? " · lock: " + r.lock.left : r.lock.met ? " · lock met" : "");
+                tr.appendChild(td);
+            }));
+            T.appendChild(tr);
+        });
+        wrap.appendChild(T); out.appendChild(wrap);
+        out.appendChild(el("p", "sub", "Column numbers are standard numbers (" + bp.key + ".1, " + bp.key + ".2, …). Hover or tap and hold a square for the score and what the lock still needs."));
+    }
+
     // ---------- Questions: the Vault Raid heatmap ----------
     function questions(out, M) {
         const games = M.P.details.slice().reverse();
@@ -263,6 +347,7 @@ export async function mountProgress() {
     function kidTeacher(dlg, M, r) {
         const { cut } = M;
         if (!r.onRoster) dlg.appendChild(el("p", "pgWarn", "This name did not match the " + S.period + " period roster. Fix the spelling on the Rosters page to join it to the right student."));
+        if (M.bp && r.onRoster) kidReady(dlg, M, r);
         dlg.appendChild(el("h3", null, "Growth"));
         if (r.sets.length) {
             const refs = r.target && !r.target.top ? [{ v: r.baseline, label: "Start", kind: "base" }, { v: r.target.typical, label: "Typical", kind: "target" }, { v: r.target.stretch, label: "Stretch", kind: "stretch" }] : r.baseline != null ? [{ v: r.baseline, label: "Start", kind: "base" }] : [];
@@ -308,6 +393,70 @@ export async function mountProgress() {
         dlg.appendChild(el("h3", null, "Class tally (behaviour, kept apart)"));
         dlg.appendChild(el("p", "sub", b.days ? "Last 45 days, " + b.days + (b.days === 1 ? " day" : " days") + " marked: " + b.p + " participation · " + b.t + " on task · " + b.r + " redirects. This never changes a score, group or target." : "Nothing on the class tally in the last 45 days."));
     }
+    /* ---------- one student's ACAP readiness and Work on next (nothing is assigned until Approve) ---------- */
+    const pickAt = new Map();   // which suggestion is showing, per student
+    function kidReady(dlg, M, r) {
+        const x = M.ready().get(r.s); if (!x) return;
+        dlg.appendChild(el("h3", null, "ACAP readiness"));
+        const cats = el("div", "rdKCats");
+        x.cats.forEach((c) => {
+            const row = el("div", "rdKCat"), bar = el("div", "rdBar");
+            [["secure", "s"], ["developing", "d"], ["notyet", "n"], ["none", "0"]].forEach(([k, z]) => { if (!c[k]) return; const i = el("i", "rd-" + z); i.style.flexGrow = c[k]; bar.appendChild(i); });
+            row.append(el("b", null, c.name), el("small", null, c.pts + " of " + x.bp.total + " pts · " + c.secure + " Secure, " + c.developing + " Developing, " + c.notyet + " Not Yet, " + c.none + " not checked"), bar);
+            cats.appendChild(row);
+        });
+        dlg.appendChild(cats);
+        dlg.appendChild(el("p", "pgNote", R.NOT_A_PREDICTION));
+
+        const card = el("section", "rdNext"); dlg.appendChild(card);
+        const mine = D.asg.filter((a) => a.only && a.only.per === S.period && a.only.nm === r.s && a.status === "open");
+        const paint = () => {
+            card.replaceChildren(); const list = x.next, k = Math.min(pickAt.get(r.s) || 0, Math.max(0, list.length - 1)), s = list[k];
+            card.appendChild(el("b", "rdNextH", "Work on next"));
+            if (!s) { card.appendChild(el("p", null, x.rows.some((y) => y.state !== "none") ? "Nothing below Secure among the standards scored so far." : "Nothing scored yet. A Monday diagnostic, a tagged Class Data set or a standards-bank Vault Raid game fills this in.")); return; }
+            const h = el("div", "pgGHead"); h.append(el("h3", null, s.code + (s.critical ? " ★" : "")), el("span", "pgBand rdb-" + (s.state === "notyet" ? "n" : "d"), R.STATE_WORD[s.state] + " " + pct(s.latest)));
+            if (list.length > 1) h.appendChild(el("small", "rdOf", "Suggestion " + (k + 1) + " of " + list.length));
+            card.append(h, el("p", "pgGText", short(s.text, 220)), el("p", "pgProfile", R.whyLine(s, x.bp.total)));
+            const calc = R.calcOf(M.cls, s.code); if (calc) card.appendChild(el("p", "pgProfile", "Calculator on ACAP for this standard: " + ({ yes: "yes", no: "no (practise without one)", neutral: "either way" }[calc])));
+            card.appendChild(el("p", "pgProfile", "Approve makes a Practice assignment for " + r.s + " only: 5 right from the standards bank (" + (s.state === "notyet" ? "On-ramp and On level" : "On level and Stretch") + " problems), worked steps after a miss. It counts toward the lock."));
+            const row = el("div", "rdBtns"), msg = el("p", "rdMsg"); msg.setAttribute("role", "status");
+            const xcHas = R.extraThisWeek(D.asg, S.period, r.s);
+            const go = (xc) => async () => {
+                row.querySelectorAll("button").forEach((b) => { b.disabled = true; }); msg.textContent = "Saving…";
+                try {
+                    const items = await bank(), pool = AA.poolFor(items, M.cls, s.code, s.state);
+                    if (pool.length < 3) throw Object.assign(new Error("few"), { code: "the bank has too few problems for " + s.code });
+                    const def = AA.makeDef({ cls: M.cls, per: S.period, nm: r.s, code: s.code, text: s.text, state: s.state, latest: s.latest, pool, xc });
+                    const saved = await AA.approve(store, rooms, user.uid, def, D.asg, D.rosters[S.period] || []);
+                    D.asg = D.asg.filter((a) => a.id !== saved.id).concat([AA.indexEntry(saved)]);
+                    row.hidden = true;
+                    msg.replaceChildren(document.createTextNode("Assigned" + (xc ? " as extra credit" : "") + ". Code " + saved.code + " · " + r.s.split(" ")[0] + " opens "), (() => { const a = el("a", null, "do.html?c=" + saved.code); a.href = "do.html?c=" + saved.code; a.target = "_blank"; return a; })(), document.createTextNode(" and taps their name. Results show on Assignments."));
+                } catch (e) { msg.textContent = "Not assigned (" + ((e && e.code) || "connection") + "). Try again."; row.querySelectorAll("button").forEach((b) => { b.disabled = false; }); }
+            };
+            const b1 = el("button", "btn go", "Approve practice"); b1.type = "button"; b1.onclick = go(false);
+            const b2 = el("button", "btn", xcHas ? "Extra credit used this week" : "Approve as extra credit"); b2.type = "button"; b2.disabled = !!xcHas; b2.onclick = go(true);
+            if (xcHas) b2.title = "One extra credit a week for now: " + xcHas.title;
+            const b3 = el("button", "btn ghost", "Copy for DeltaMath / Magma"); b3.type = "button";
+            b3.onclick = async () => {
+                const items = await bank(), cv = AA.copyVersion({ code: s.code, text: s.text, calc, pool: AA.poolFor(items, M.cls, s.code, s.state, 11) }, r.s);
+                if (!cv.n) { msg.textContent = "The bank has too few problems for " + s.code + " to make a copy."; return; }
+                copyBox(card, cv.text, s.code);
+            };
+            row.append(b1, b2, b3);
+            if (list.length > 1) { const b4 = el("button", "btn ghost", "Another suggestion"); b4.type = "button"; b4.onclick = () => { pickAt.set(r.s, (k + 1) % list.length); paint(); }; row.append(b4); }
+            card.append(row, msg);
+            if (mine.length) { const o = el("p", "pgProfile"); o.textContent = "Open for " + r.s + " now: " + mine.map((a) => a.title + (a.code ? " (code " + a.code + ")" : "")).join(" · "); card.appendChild(o); }
+        };
+        paint();
+    }
+    function copyBox(card, text, code) {
+        const old = card.querySelector(".rdCopy"); if (old) old.remove();
+        const box = el("div", "rdCopy"), ta = el("textarea"); ta.value = text; ta.rows = 14; ta.readOnly = true; ta.setAttribute("aria-label", "Practice for " + code + " to paste into DeltaMath or Magma Math");
+        const b = el("button", "btn ghost", "Copy"); b.type = "button";
+        b.onclick = async () => { try { await navigator.clipboard.writeText(text); b.textContent = "Copied"; } catch (e) { ta.select(); b.textContent = "Press Ctrl+C"; } };
+        box.append(el("small", null, "One worked example, the problems, then the answer key (keep the key for yourself). Paste into a DeltaMath custom problem set or a Magma Math assignment."), ta, b);
+        card.appendChild(box);
+    }
     function kidStudent(dlg, M, r) {
         const sum = studentSummary(r, M.cut, (code) => stdLine(M, code)), box = el("div", "pgStu");
         box.appendChild(el("p", "pgStuHi", "Here's your progress, " + r.s.split(" ")[0] + "."));
@@ -327,4 +476,10 @@ export async function mountProgress() {
     $("kid").addEventListener("click", (e) => { if (e.target === $("kid")) $("kid").close(); });   // tap outside to close
 
     draw();
+}
+
+/** ?demo: assignments are "saved" in this tab only. */
+function memRooms() {
+    const docs = new Map();
+    return { get: async (p) => (docs.has(p) ? JSON.parse(JSON.stringify(docs.get(p))) : null), save: async (p, d) => { docs.set(p, JSON.parse(JSON.stringify(d))); } };
 }

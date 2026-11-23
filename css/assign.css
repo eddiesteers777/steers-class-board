@@ -13,6 +13,7 @@
 .asChip.t-fix{background:var(--k-sub,#F1EAFB);color:var(--k-ink,#4B2A84);border-color:var(--k-bd,#D7C7F0)}
 .asChip.s-open{background:var(--k-ok-bg,#E3F5EC);color:var(--k-ok-ink,#0F6B40);border-color:var(--k-ok-line,#B6E2CB)}
 .asChip.s-draft{border-style:dashed}
+.asChip.s-xc{background:#FFF4D6;color:#6B4A00;border-color:#F1D48A}.asChip.s-one{background:var(--c-bg,#EEF3FB);color:var(--c-ink,#0B1F44)}
 
 /* list */
 .asList{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
