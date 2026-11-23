@@ -278,3 +278,13 @@ body.sldragging,body.sldragging *{cursor:grabbing!important;user-select:none!imp
 @media (prefers-reduced-motion:reduce){.spop,.stoast,.sembig,.sft{animation:none;transition:none}}
 .cbar:has(.smode) .cbrand{margin-right:0}
 .cbar .smode{margin-right:auto}
+
+/* ---------- In Spotlight: this lesson's Spotlight screens, under the slides (js/slideEditor.js spotRow) ---------- */
+.sfh.sfspot{margin-top:14px}
+.sfspots{display:flex;flex-direction:column;gap:8px;padding:4px 10px 12px}
+.sfsp{display:flex;flex-direction:column;gap:4px;padding:5px;border-radius:10px;border:1px solid var(--c-line,#D9E2EF);background:var(--c-card,#fff);color:inherit;font:inherit;text-align:left;cursor:pointer}
+.sfsp:hover{border-color:var(--amber,#F2B33D)}
+.sfsp.on{border-color:var(--amber,#F2B33D);box-shadow:0 0 0 2px rgba(242,179,61,.35)}
+.sfspv{position:relative;display:block;aspect-ratio:16/9;border-radius:7px;overflow:hidden;background:#0a1838}
+.sfspv .slthumb{position:absolute;left:0;top:0}
+.sfspn{font-size:12px;font-weight:700;color:var(--mute,#55627F)}
