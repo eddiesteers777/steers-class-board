@@ -1754,6 +1754,8 @@ async function keepAwake() { try { if ("wakeLock" in navigator && !wake && docum
 window.addEventListener("error", (e) => setStatus("Error: " + (e.message || "script problem")));
 window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.reason && (e.reason.code || e.reason.message)) || "request failed")));
 
+let serverAt = 0;   // last time the server answered for board/state (a live snapshot or a direct read)
+const HEAL_KEY = "anchorboard-healed", HEAL_WAIT = 3500;
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
     studio = (opts && opts.studio) || null; document.body.classList.toggle("studio", !!studio);
@@ -1839,6 +1841,32 @@ export async function startApp(opts) {
         lessonKey = lessonKeyNow(); arrived(); setStatus("Syncing\u2026");
     }
     fit(); render();
+    // Coming back to the tab (another app, the lock screen, another tab): if the server has not answered within a
+    // few seconds, reload the page (2026-11-22). A phone often brings a page back with its connection, or its
+    // offline copy, frozen in a state that never recovers in that tab; Eddie found a new Safari tab fixed it. A
+    // reload is that new tab, and costs about a second, since the board is drawn from this device's copy at once.
+    // At most once a minute, so a truly slow network keeps the normal retry instead of reloading over and over.
+    if (!guest && !(opts && opts.store)) {
+        let hidAt = 0, healT = 0;
+        const heal = (why) => {
+            if (document.visibilityState === "hidden") return;
+            const back = Date.now(); clearTimeout(healT);
+            healT = setTimeout(async () => {
+                if (serverAt >= back || document.visibilityState === "hidden" || !navigator.onLine) return;
+                if (store && signedIn && await store.reachable("board/state", 2500)) { serverAt = Date.now(); return; }
+                if (serverAt >= back || document.visibilityState === "hidden" || !navigator.onLine) return;
+                try { if (Date.now() - (+sessionStorage.getItem(HEAL_KEY) || 0) < 60000) return; sessionStorage.setItem(HEAL_KEY, String(Date.now())); } catch (e) { return; }
+                trail("board-heal", why + ", no answer in " + Math.round((Date.now() - back) / 100) / 10 + " s, reloading");
+                location.reload();
+            }, HEAL_WAIT);
+        };
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden") { hidAt = Date.now(); clearTimeout(healT); return; }
+            if (hidAt && Date.now() - hidAt > 3000) heal("back after " + Math.round((Date.now() - hidAt) / 1000) + " s away");
+            hidAt = 0;
+        });
+        window.addEventListener("pageshow", (e) => { if (e.persisted) heal("page kept by the browser"); });   // Safari's back/forward copy: frozen, not reloaded
+    }
     store = await storeP;
     if (studio && studio.ready) studio.ready(studioApi());
 
@@ -1908,11 +1936,12 @@ export async function startApp(opts) {
     window.addEventListener("offline", lost);
     window.addEventListener("online", () => { if (!guest && store.kick) store.kick(); });   // back online: reconnect now, not on the SDK's next retry
     // A phone that slept (or a tab left in the background) usually comes back with a dead connection that Firestore only
-    // notices after many seconds. Coming back after 15 s away: reconnect at once, and say "Syncing" until the server answers.
+    // notices after many seconds. Coming back after 3 s away (was 15 s): reconnect at once, and say "Syncing" until the server
+    // answers. If it does not answer, the check near the top of startApp reloads the page.
     let hiddenAt = 0, awaySince = 0;
     if (!guest) document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "hidden") { hiddenAt = Date.now(); return; }
-        if (hiddenAt && Date.now() - hiddenAt > 15000 && gotServer && navigator.onLine) { awaySince = Date.now(); setStatus("Syncing\u2026"); if (store.kick) store.kick(); }
+        if (hiddenAt && Date.now() - hiddenAt > 3000 && gotServer && navigator.onLine) { awaySince = Date.now(); setStatus("Syncing\u2026"); if (store.kick) store.kick(); }
         hiddenAt = 0; if (cacheSince) cacheSince = Date.now();   // a fresh grace period: time hidden does not count
     });
     if (!guest) setInterval(async () => {   // a connection can stall with no error: check it, and wake it if it has
@@ -1921,9 +1950,10 @@ export async function startApp(opts) {
         if ((cacheSince && Date.now() - cacheSince > 15000) || (awaySince && Date.now() - awaySince > 15000)) lost();
         if (!synced || errored || ++checks % 6) return;   // a server read about every 30 s while in view
         // One missed check only wakes the connection; "Not connected" needs two in a row (a phone's slow answer is not a lost board).
-        if (!(await store.reachable("board/state"))) { if (++misses >= 2) lost(); store.kick && store.kick(); } else misses = 0;
+        if (!(await store.reachable("board/state"))) { if (++misses >= 2) lost(); store.kick && store.kick(); } else { misses = 0; serverAt = Date.now(); }
     }, 5000);
     store.watch("board/state", (snap) => {
+        if (!snap.fromCache) serverAt = Date.now();
         if (!gotServer && !snap.fromCache) { gotServer = true; mark("board-server", ms()); setTimeout(askSkew, 1500); }
         if (snap.fromCache) { if (!cacheSince) cacheSince = Date.now(); } else if (!guest) live();
         if ((snap.pending && !(snap.data && snap.data.by && snap.data.by !== PAGE)) || (writeState && writeState.busy())) return;
