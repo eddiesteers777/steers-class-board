@@ -19,7 +19,13 @@ for (const [w, h, tag] of [[390, 900, "phone"], [1280, 900, "desktop"]]) {
     assert.match(txt, /Missed Monday — Guided Notes Day 3/);
     assert.match(txt, /Out often/); assert.match(txt, /Missed 8\.5, which was still being worked on/);
     const names = await p.$$eval(".abs-top b", (b) => b.map((x) => x.textContent)); assert.deepEqual(names, ["Ben", "Cara", "Ava", "Dev"]);
-    assert.match(txt, /On the foundational track \(Add integers\)/);   // ACAP Phase 3 placement (found/{period})   // first names only: no last names or initials (no duplicate first names)
+    assert.match(txt, /On the foundational track \(Add integers\)/);
+    await p.waitForSelector('.abs-st', { timeout: 8000 }); const t2 = await p.textContent("#absent");
+    assert.match(t2, /Missed Thursday — Test \(make-up needed\)Catch-up assigned \(Magma Math\)/);   // assigned is not done: the test warning stays
+    assert.match(t2, /Missed a test \(Thursday\): make-up needed/);
+    assert.match(t2, /All caught up/);                                                            // Ava's only missed day is done
+    assert.equal(await p.getAttribute('.abs-kid:has(b:text-is("Ben")) a.abs-go', "href"), "catchup.html?p=1st&k=ben-k");
+    assert.equal(await p.textContent('.abs-kid:has(b:text-is("Ava")) a.abs-go'), "Open catch-up");   // ACAP Phase 3 placement (found/{period})   // first names only: no last names or initials (no duplicate first names)
     assert.ok(!/Kim|Lopez|Rivera|Patel|Ben K|Cara L|Ava R|Dev P/.test(txt), "no last name or initial anywhere on the card");
     assert.equal(await p.$$eval(".abs-kid.warn", (k) => k.length), 2);
     const wide = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth); assert.ok(wide <= 0, tag + " no sideways scroll");

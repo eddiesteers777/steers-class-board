@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Catch-up harness</title>
+<link rel="stylesheet" href="../../css/board.css"><link rel="stylesheet" href="../../css/console.css"><link rel="stylesheet" href="../../css/theme-rings.css"><link rel="stylesheet" href="../../css/builder.css"><link rel="stylesheet" href="../../css/absences.css"><link rel="stylesheet" href="../../css/catchup.css"><link rel="stylesheet" href="../../css/skin.css"></head>
+<body class="console page"><main class="cu" id="cu"></main>
+<script type="module">
+import week5 from "../../data/week5.js";
+import { mountCatchup } from "../../js/catchupPage.js";
+const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+const docs = new Map(), put = (p, d) => docs.set(p, d);
+put("attendance/2026-11-16", { out: { "1st": { "ben-k": { n: "Ben K.", at: 1 } } } });
+put("attendance/2026-11-17", { out: { "1st": { "ben-k": { n: "Ben K.", at: 1 } } } });
+put("rosters/all", { periods: { "1st": ["Ava Rivera", "Ben Kim"] } });
+put("catchup/1st", {});
+const store = { watch(path, next) { setTimeout(() => next({ exists: docs.has(path), data: docs.get(path), pending: false }), 0); return () => {}; } };
+window.__saved = []; window.__printed = [];
+mountCatchup({ store, el, host: document.getElementById("cu"), periods: [["1st", "8th"]], weeks: [week5], per: "1st", key: "ben-k", today: "2026-11-23",
+  print: async (w, papers, title) => { window.__printed.push({ n: papers.length, title, key: papers.some((p) => p.key) }); },
+  bank: async () => [], copyVersion: () => ({ text: "", n: 0 }), poolFor: () => [],
+  save: async (path, data) => { window.__saved.push({ path, data }); } });
+window.__ready = true;
+</script></body></html>
