@@ -8,13 +8,14 @@
      bottom        the toolbar: Click / Draw, Background, every panel, and a button to tuck the toolbar away
                    (tucked, it keeps only Click, Draw and the button to bring it back)
      above it      when Draw is on: pen, highlighter, eraser, inks, line size, math tools, undo, clear
-     bottom left   the screens: back, "2 / 4", next, and + to add a screen after this one
+     top right     Show on board (lit while the live board shows Spotlight)
+     bottom right  the screens: back, "2 / 4", next, and + to add a screen after this one
 
    Each Spotlight screen keeps its own panels, look and drawing (boardApp.js spotApi; state in wb.spot).
    Frosted glass: translucent layers with a backdrop blur, a light top edge and a soft shadow.
 ========================================== */
-import { PANEL_LIST, LESSON_PANELS, TOOL_LIST } from "./boardTools.js?v=60";
-import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker } from "./panels.js?v=11";
+import { PANEL_LIST, LESSON_PANELS, TOOL_LIST } from "./boardTools.js?v=61";
+import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker } from "./panels.js?v=12";
 import { wbIcon } from "./wbIcons.js?v=1";
 
 let A = null, host = null, onBack = null, tucked = false, sheet = "", picked = "", built = false, lastSig = "";
@@ -72,10 +73,9 @@ export function closeSpot() {
 export function renderSpot() { if (A && host && !host.hidden) paint(); }
 /** A panel on the board was tapped: its quick settings open over the toolbar. */
 export function pickSpot(kind, id) {
-    if (!A || !host || host.hidden || (kind && A.spot.draw())) return;   // while drawing, a touch on a panel is not a pick
-    picked = kind === "panel" ? id : "";
-    if (picked) sheet = "panel"; else if (sheet === "panel") sheet = "";
-    lastSig = ""; paint();
+    // Each panel has its own Settings and More menus in its title bar now (js/boardApp.js), so a tap on a panel opens nothing here.
+    if (!A || !host || host.hidden) return;
+    if (sheet === "panel") { sheet = ""; picked = ""; lastSig = ""; paint(); }
 }
 
 /* ---------- the pieces, made once ---------- */
@@ -87,7 +87,12 @@ function build() {
         button("spb spfull", svg(IC.full), "Full screen", toggleFull));
     host.appendChild(top);
 
-    // bottom left: the screens
+    // top right: put Spotlight on the live board (it follows every change from then on)
+    const live = el("div", "spg splive");
+    live.appendChild(button("spb splivebtn", "<i></i><span>Show on board</span>", "Show this on the live board", () => { A.spot.open(); flash("On the live board"); }));
+    host.appendChild(live);
+
+    // bottom right: the screens
     const scr = el("div", "spg spscr"); scr.id = "spScr"; scr.setAttribute("role", "group"); scr.setAttribute("aria-label", "Screens");
     scr.append(button("spb sparrow", svg(IC.prev, 2.2), "Back a screen", () => go(-1)), el("span", "spcount"), button("spb sparrow", svg(IC.next, 2.2), "Next screen", () => go(1)),
         el("i", "spsep"), button("spb spadd", svg(IC.plus, 2.2) + "<span>Screen</span>", "Add a screen after this one", () => { if (A.spot.add()) flash("New screen"); }),
@@ -192,7 +197,7 @@ function keys(e) {
 function paintFull() { const b = host && host.querySelector(".spfull"); if (!b) return; const f = isFull(); b.innerHTML = svg(f ? IC.unfull : IC.full); b.title = f ? "Leave full screen" : "Full screen"; b.setAttribute("aria-label", b.title); b.setAttribute("aria-pressed", String(f)); setTimeout(() => A && A.fit(), 80); }
 function paint() {
     const S = A.S, T = S.tools, drawing = A.spot.draw(), p = A.spot.pages();
-    const sig = JSON.stringify([T.on, T.min, Object.keys(T.pos), drawing, tucked, sheet, picked, p, A.spot.tool(), A.spot.pen(), A.spot.size(), S.look, Date.now() - delArm < 3000, picked && T.pos[picked] ? T.pos[picked].s : 0]);
+    const sig = JSON.stringify([S.screen, T.on, T.min, Object.keys(T.pos), drawing, tucked, sheet, picked, p, A.spot.tool(), A.spot.pen(), A.spot.size(), S.look, Date.now() - delArm < 3000, picked && T.pos[picked] ? T.pos[picked].s : 0]);
     if (sig === lastSig) return; lastSig = sig;
     host.classList.toggle("tucked", tucked); document.body.classList.toggle("spotdraw", drawing);
     // toolbar
@@ -209,6 +214,9 @@ function paint() {
         const ar = host.querySelectorAll(".sparrow"); ar[0].disabled = p.n <= 0; ar[1].disabled = p.n >= p.count - 1;
         host.querySelector(".spadd").disabled = p.count >= p.max;
         const del = host.querySelector(".spdel"); del.hidden = p.count < 2; del.classList.toggle("armed", Date.now() - delArm < 3000); }
+    { const b = host.querySelector(".splivebtn"), on = S.screen === "canvas"; b.classList.toggle("onair", on);
+        const t = on ? "Live on the board" : "Show on board"; const sp = b.querySelector("span"); if (sp.textContent !== t) sp.textContent = t;
+        b.title = on ? "The live board is showing Spotlight. Every change shows there right away." : "The live board moved to another screen. Tap to bring it back to Spotlight."; b.setAttribute("aria-label", b.title); }
     paintPen(drawing);
     paintSheet();
     paintFull();
