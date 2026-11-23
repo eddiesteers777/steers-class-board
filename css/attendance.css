@@ -1,0 +1,13 @@
+/* Who's out (Remote). Colors use the site's scheme names with the old color as the fallback (DESIGN.md, Nov 23). */
+.outbody{padding:6px 2px 2px}
+.outper{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.outper button{min-height:44px;padding:0 12px;border-radius:12px;border:1.5px solid var(--k-bd,#D5DCE9);background:var(--c-surface,#fff);color:var(--c-ink,#0E1B3A);font:600 .85rem/1 inherit;cursor:pointer}
+.outper button[aria-pressed="true"]{background:var(--s-acc,#1B4FBF);border-color:var(--s-acc,#1B4FBF);color:#fff}
+.outhint{margin:0 0 8px;font-size:.8rem;color:var(--k-mute,#55627F)}
+.outgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
+.outgrid button{min-height:44px;padding:4px 8px;border-radius:12px;border:1.5px solid var(--k-bd,#D5DCE9);background:var(--c-surface,#fff);color:var(--c-ink,#0E1B3A);font:600 .9rem/1.15 inherit;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.outgrid button.out{background:var(--k-bad-bg,#FDECEC);border-color:var(--k-bad-ink,#B42318);color:var(--k-bad-ink,#B42318);text-decoration:line-through}
+.outsum{margin:8px 0 0;font-size:.8rem;font-weight:600;color:var(--k-mute,#55627F)}
+.outbad{margin:6px 0 0;font-size:.8rem;color:var(--k-bad-ink,#B42318)}
+.fold .count:not(:empty).outcount{background:var(--k-bad-bg,#FDECEC);color:var(--k-bad-ink,#B42318)}
+#outCount:not(:empty){background:var(--k-bad-bg,#FDECEC);color:var(--k-bad-ink,#B42318)}

@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="css/console.css?v=64">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
     <link rel="stylesheet" href="css/home.css?v=61">
+    <link rel="stylesheet" href="css/absences.css?v=1">
     <link rel="stylesheet" href="css/footer.css?v=2">
     <link rel="stylesheet" href="css/skin.css?v=2">
     <meta name="theme-color" content="#081B45">
@@ -57,6 +58,7 @@
     </aside>
     <div class="hm-scrim" id="sideScrim" hidden></div>
     <main>
+        <section class="abs" id="absent" aria-label="Absences" hidden></section>
         <section class="nowcard" aria-labelledby="nowTitle">
             <div class="nowmain">
                 <p class="nowwhen" id="nowWhen"></p>
@@ -152,7 +154,7 @@
         import { closeoutItems, closeoutSummary, closeoutDue } from "./js/closeout.js?v=3";
         import { mountWeekFlow } from "./js/weekFlow.js?v=1";
         import { runAutoStandards } from "./js/autoStandards.js?v=1";
-        let WEEKS = PUBLISHED;
+        let WEEKS = PUBLISHED, ABS = null;
         // A new teacher (starter pack) doesn't get Mr. Steers' Calera planning pages yet: they are built
         // around his classes, calendar and Alabama standards (js/contentPack.js).
         if (PACK !== "calera") document.querySelectorAll(["plan", "review", "bank", "planner", "builder", "standards"].map((p) => 'a[href="' + p + '.html"]').join(",")).forEach((a) => { a.hidden = true; a.style.display = "none"; });
@@ -425,7 +427,8 @@
         if (!user) location.replace("login.html");
         else {
             $("who").textContent = "Signed in as " + (user.name || "teacher");
-            if (PACK === "calera") mountWeekFlow(store, $("weekflow"), PUBLISHED, todayIso);   // where the week being planned stands: plan, built, approved, slides, printed, parents
+            if (PACK === "calera") mountWeekFlow(store, $("weekflow"), PUBLISHED, todayIso);
+            if (PACK === "calera") import("./js/absenceHome.js?v=1").then((m) => { ABS = m.mountAbsences({ store, host: $("absent"), el, periods: PERIODS, today: todayIso, weeks: WEEKS, classLabel: (c) => ((WEEKS[WEEKS.length - 1] || { classes: {} }).classes[c] || {}).label || c }); }).catch(() => {});   // absences by period (Phase 2B); a failure here never blocks Home
             // Standards mark themselves from approved weeks: Teaching from Monday, Taught the day after the quiz or test.
             if (PACK === "calera") runAutoStandards(store, todayIso).then((ch) => {
                 if (!ch.length) return;
@@ -434,7 +437,7 @@
                 P.append((t ? "Marked taught after the quiz: " + t + ". " : "") + (g ? "Marked teaching this week: " + g + ". " : ""));
                 const a = el("a", null, "Change on Standards"); a.href = "standards.html"; P.append(a); P.hidden = false;
             }).catch(() => {});
-            watchPrivateWeeks(store, PUBLISHED, (list) => { WEEKS = list; week = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= todayIso) week = w; coRefresh(); statuses(todayIso); render(); });
+            watchPrivateWeeks(store, PUBLISHED, (list) => { WEEKS = list; if (ABS) ABS.setWeeks(WEEKS); week = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= todayIso) week = w; coRefresh(); statuses(todayIso); render(); });
             store.watch("weekfiles/index", (s) => { if (s.pending) return; coIndex = (s.exists && s.data) || { weeks: [] }; coRefresh(); statuses(todayIso); }, () => {});
             store.watch("settings/closeout", (s) => { if (s.pending) return; coSet = (s.exists && s.data) || {}; coRefresh(); statuses(todayIso); }, () => {});
             // Weekly Google Drive backup (account.html, js/backup.js): a reminder once the last one is a week old.
