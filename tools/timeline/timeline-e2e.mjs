@@ -59,6 +59,12 @@ await t.goto(BASE + "/timeline.html?emu&pack=calera&cls=8th"); await t.waitForTi
 assert.ok(!(await t.locator("#reset").isHidden()));
 await t.locator("#reset").click(); await t.locator("#reset").click(); await t.waitForTimeout(1500);
 assert.equal((await read("standards/timeline"))["8th"], undefined);
+// Floor skills: change 8.25's on the side panel; it saves to standards/floors.
+await t.locator(".pl-seg button", { hasText: "8th Grade" }).click(); await t.waitForTimeout(300);
+await t.locator("#tl-8-25 .tl-text").click(); await t.locator(".tp-edit").click();
+await t.locator(".tp-fedit label", { hasText: "Add integers" }).locator("input").check(); await t.waitForTimeout(1500);
+assert.deepEqual((await read("standards/floors"))["8th"]["8.25"], ["F:eq2", "F:intAdd"]);
+await t.keyboard.press("Escape");
 // 7th and 8th Acc.
 await t.locator(".pl-seg button", { hasText: "7th Grade" }).click(); await t.waitForTimeout(300);
 assert.equal(await t.locator(".tl-card").count(), 22);

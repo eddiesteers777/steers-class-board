@@ -8,8 +8,9 @@
 import { STANDARDS } from "../data/standards.js?v=58";
 import { SCHOOL_YEAR, today, short, daysLeftInNineWeeks, nineWeeksOf } from "./schoolCal.js?v=57";
 import * as T from "./timelineCore.js?v=1";
-import { mount as mountPick, bankNow } from "./timelinePick.js?v=1";
-import { counts as bankCounts, has as inTray } from "./timelineTray.js?v=1";
+import { mount as mountPick, bankNow } from "./timelinePick.js?v=2";
+import { counts as bankCounts, has as inTray } from "./timelineTray.js?v=2";
+import * as K from "./timelineLinks.js?v=1";
 
 const demo = new URLSearchParams(location.search).has("demo");
 const store = await import(demo ? "./localStore.js?v=57" : "./boardStore.js?v=58");
@@ -27,20 +28,21 @@ const ORDN = ["1st", "2nd", "3rd", "4th"];
 const q0 = new URLSearchParams(location.search);
 let cls = CLASSES.some((c) => c[0] === q0.get("cls")) ? q0.get("cls") : (keep("tl-cls") || keep("std-cls") || "8th");
 if (!STANDARDS[cls]) cls = "8th";
-let progress = {}, order = {}, menuFor = "";
-const pending = { p: false, o: false };
-const timers = { p: 0, o: 0 };
+let progress = {}, order = {}, floors = {}, menuFor = "";
+const pending = { p: false, o: false, f: false };
+const timers = { p: 0, o: 0, f: 0 };
+const PATHS = { p: "standards/progress", o: "standards/timeline", f: "standards/floors" };
 
 /* ---------- saving (whole doc, like the Standards page) ---------- */
 function saveLater(which) {
     pending[which] = true; status("Saving…"); clearTimeout(timers[which]);
     timers[which] = setTimeout(async () => {
-        const path = which === "p" ? "standards/progress" : "standards/timeline", data = which === "p" ? progress : order;
-        try { await store.save(path, data); pending[which] = false; if (!pending.p && !pending.o) status(demo ? "This device only" : "Saved", "ok"); }
+        const path = PATHS[which], data = which === "p" ? progress : which === "o" ? order : floors;
+        try { await store.save(path, data); pending[which] = false; if (!pending.p && !pending.o && !pending.f) status(demo ? "This device only" : "Saved", "ok"); }
         catch (e) { status("Could not save (" + ((e && e.code) || "connection") + ")", "bad"); }
     }, 500);
 }
-window.addEventListener("beforeunload", (e) => { if (pending.p || pending.o) { e.preventDefault(); e.returnValue = ""; } });
+window.addEventListener("beforeunload", (e) => { if (pending.p || pending.o || pending.f) { e.preventDefault(); e.returnValue = ""; } });
 
 const lanes = () => T.lanesFor(cls, order[cls]);
 const markOf = (code) => ((progress[cls] || {})[code] || {}).s || "";
@@ -101,9 +103,33 @@ function card(code, li, idx, nowLane) {
     pb.type = "button"; pb.setAttribute("aria-label", "Problems for " + code); pb.onclick = () => pick.open(code);
     sb.appendChild(pb);
     body.appendChild(sb);
+    body.appendChild(linksLine(code));
     c.append(h, body);
     return c;
 }
+
+/* ---------- builds on + floor skills (data/stdLinks.js, js/timelineLinks.js) ---------- */
+const markIn = (c2, code) => ((progress[c2] || {})[code] || {}).s || "";
+const gradeOf = (code) => (/^7\./.test(code) ? "7th" : /^8\./.test(code) ? "8th" : "");
+/** A need as text: its code, plus ✓ when taught in this class, or its grade when it is an earlier grade's standard. */
+function needLabel(code) {
+    if (K.inClass(cls, code)) return code + (markIn(cls, code) === "taught" ? " ✓" : "");
+    return code + " (" + gradeOf(code) + " grade)";
+}
+function linksLine(code) {
+    const box = el("div", "tl-links");
+    const needs = K.needsOf(code), late = K.needsAfter(cls, lanes(), code);
+    if (late.length) { const w = chip("early", "⚠ " + late.join(", ") + " comes later"); w.title = code + " builds on " + late.join(", ") + ", which is later in your order."; box.appendChild(w); }
+    if (needs.length) { const p = el("span", "tl-needs"); p.appendChild(el("b", null, "Builds on ")); p.appendChild(document.createTextNode(needs.map(needLabel).join(", "))); box.appendChild(p); }
+    const fl = K.floorOf(cls, code, floors);
+    if (fl.length) {
+        const f = el("div", "tl-floor"); f.appendChild(el("b", null, "Floor"));
+        fl.forEach((id) => { const b = el("button", "tl-fchip", K.floorName(id)); b.type = "button"; b.title = "Problems for this floor skill"; b.onclick = () => pick.open(id); f.appendChild(b); });
+        box.appendChild(f);
+    }
+    return box;
+}
+function setFloors(next) { floors = next; saveLater("f"); draw(); pick.redraw(); }
 
 /* ---------- lanes ---------- */
 function draw() {
@@ -175,6 +201,8 @@ function nextPanel(L) {
         const go = el("button", "st-nstart", "Start teaching"); go.type = "button"; go.onclick = () => setMark(x.code, "teaching");
         top.appendChild(go); li.appendChild(top);
         li.appendChild(el("p", "st-ntext", cut(x.text, 150)));
+        const nd = K.needsOf(x.code), fl = K.floorOf(cls, x.code, floors);
+        if (nd.length || fl.length) li.appendChild(el("p", "tl-nneeds", [nd.length ? "Builds on " + nd.map(needLabel).join(", ") : "", fl.length ? "Floor: " + fl.map(K.floorName).join(", ") : ""].filter(Boolean).join(" · ")));
         list.appendChild(li);
     });
     if (n.next.length) box.appendChild(list);
@@ -278,7 +306,7 @@ function cancelDrag() { if (!drag) return; drag.hole.remove(); drag.cardEl.hidde
 function escDrag(e) { if (e.key === "Escape") cancelDrag(); }
 
 /* ---------- start ---------- */
-const pick = mountPick({ cls: () => cls, demo, onChange: () => { if (!drag) draw(); } });
+const pick = mountPick({ cls: () => cls, demo, onChange: () => { if (!drag) draw(); }, floors: () => floors, setFloors, marks: (code) => markIn(cls, code), needLabel });
 
 $("reset").onclick = () => {
     if (!confirmReset()) return;
@@ -301,7 +329,12 @@ const user = await store.ready();
 if (!user) location.replace("login.html");
 else {
     $("who").textContent = demo ? "This device only, nothing is saved" : "Signed in as " + user.name;
-    let got = 0; const live = () => { if (++got >= 2) status(demo ? "This device only" : "Live", "ok"); };
+    let got = 0; const live = () => { if (++got >= 3) status(demo ? "This device only" : "Live", "ok"); };
+    store.watch("standards/floors", (snap) => {
+        if (snap.pending || pending.f) return;
+        const d = (snap.exists && snap.data) || {}; floors = d && typeof d === "object" ? d : {};
+        live(); if (!drag) { draw(); pick.redraw(); }
+    }, (e) => status("Could not load your floor skills (" + ((e && e.code) || "error") + ")", "bad"));
     store.watch("standards/progress", (snap) => {
         if (snap.pending || pending.p) return;
         const d = (snap.exists && snap.data) || {}; progress = d && typeof d === "object" ? d : {};

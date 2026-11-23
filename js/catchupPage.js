@@ -12,7 +12,7 @@
 ========================================== */
 import * as AC from "./attendanceCore.js?v=1";
 import * as K from "./absenceCore.js?v=2";
-import * as CU from "./catchupCore.js?v=2";
+import * as CU from "./catchupCore.js?v=3";
 import { papersFor } from "./weekPapers.js?v=1";
 import { kidKey, perKey } from "./profileCore.js?v=2";
 import { shortNames } from "./vaultCore.js?v=75";
@@ -25,7 +25,7 @@ import * as V from "./catchupVideo.js?v=2";
  */
 export function mountCatchup(o) {
     const { store, el, host, periods, per, key, today } = o;
-    const D = { att: new Map(), trk: new Map(), gb: { items: [], cats: [] }, data: [], asg: [], names: [], mk: null, vid: new Map(), weeks: o.weeks || [] };
+    const D = { att: new Map(), trk: new Map(), gb: { items: [], cats: [] }, data: [], asg: [], names: [], mk: null, vid: new Map(), mod: null, weeks: o.weeks || [] };
     const S = { open: {}, route: {}, show: {}, note: "", vin: {}, pack: {} };
     let timer = null; const seen = new Set();
     const soon = () => { clearTimeout(timer); timer = setTimeout(draw, 40); };
@@ -41,6 +41,11 @@ export function mountCatchup(o) {
     store.watch("asg/index", (s) => { if (s.pending) return; D.asg = (s.exists && s.data && Array.isArray(s.data.list)) ? s.data.list : []; soon(); }, () => {});
     store.watch("rosters/all", (s) => { if (s.pending) return; const p = (s.exists && s.data && s.data.periods) || {}; D.names = shortNames(((p[per] || []).filter(Boolean)).map((n) => String(n).slice(0, 60))); soon(); }, () => {});
     store.watch("catchup/" + perKey(per), (s) => { if (s.pending) return; D.mk = s.exists ? s.data : {}; soon(); }, () => { D.mk = {}; soon(); });
+    // the modified group (8th Regular only): this student gets the modified papers and practice
+    const modClass = CU.MOD_CLASSES.includes(cls);
+    if (modClass) store.watch("modgroup/" + perKey(per), (s) => { if (s.pending) return; D.mod = s.exists ? s.data : {}; soon(); }, () => { D.mod = {}; soon(); });
+    let NM = "";   // this student's short name, once known
+    const isMod = () => modClass && !!NM && CU.inMod(D.mod, NM);
 
     /** The day's catch-up video (one per class and day, shared by every student who missed it): teacher/{uid}/catchvid/{weekId}. */
     const watchVid = (id) => { if (D.vid.has(id)) return; D.vid.set(id, null); store.watch("catchvid/" + id, (s) => { if (s.pending) return; D.vid.set(id, s.exists ? s.data : {}); soon(); }, () => { D.vid.set(id, {}); soon(); }); };
@@ -113,6 +118,10 @@ export function mountCatchup(o) {
 
     async function practice(day, route) {
         const dl = K.dayName(day) + ", " + day.slice(5).replace("-", "/");
+        if (isMod()) {
+            const w = weekOf(day), c = w && w.classes && w.classes[cls], dd = c && c.days[K.dayIndex(day)], m = CU.copyFromModNotes(dd && dd.modNotes, route, dl);
+            if (m.n) return { text: m.text, from: "the modified guided notes for that day" };
+        }
         const fromNotes = CU.copyFromNotes(notesOf(day), route, dl);
         if (fromNotes.n) return { text: fromNotes.text, from: "the guided notes for that day" };
         const codes = K.standardsFor({ weeks: D.weeks, periods, per, day });
@@ -147,6 +156,16 @@ export function mountCatchup(o) {
         document.title = shown + " catch-up | Anchor Board";
         host.appendChild(el("h1", null, shown + ": catch-up"));
         host.appendChild(el("p", "cu-lead", per + " period. " + (s.allDone ? "All caught up." : s.days.filter((d) => !(d.mark && d.mark.st === "done")).length + " of " + s.days.length + " missed days still to catch up.")));
+        NM = s.nm;
+        if (modClass) {
+            const lab = el("label", "cv-ok cu-mod"), cb = el("input"); cb.type = "checkbox"; cb.checked = isMod(); cb.disabled = D.mod === null;
+            cb.onchange = async () => {
+                D.mod = D.mod || {}; D.mod.kids = Object.assign({}, D.mod.kids, CU.modWrite(s.nm, cb.checked).kids); S.open = {}; draw();   // show it at once; practice is made again for the right notes
+                try { await o.save("modgroup/" + perKey(per), CU.modWrite(s.nm, cb.checked)); } catch (e) { S.note = "That did not save (" + ((e && e.code) || "connection") + "). Try again."; draw(); }
+            };
+            lab.append(cb, el("span", null, "In the modified group: use the modified guided notes, quiz and practice"));
+            host.appendChild(lab);
+        }
         s.warnings.forEach((w) => host.appendChild(el("p", "abs-warn", w.text)));
         if (S.note) { const n = el("p", "abs-warn", S.note); n.setAttribute("role", "status"); host.appendChild(n); }
         s.days.forEach((d) => {
@@ -157,7 +176,7 @@ export function mountCatchup(o) {
             card.appendChild(el("p", "abs-line", d.line));
             if (d.items.length) { const chips = el("p", "abs-chips"); d.items.forEach((i) => chips.appendChild(el("span", "abs-chip " + (i.graded ? "graded" : "practice"), i.t + " · " + (i.graded ? (i.catName ? "graded, " + i.catName : "graded") : "practice")))); card.appendChild(chips); }
             // the missed worksheet(s): the day's own papers, made from the week file
-            const papers = w && w.classes && w.classes[cls] ? CU.dayPapers(papersFor(w, cls), K.dayIndex(d.day)) : [];
+            const papers = w && w.classes && w.classes[cls] ? CU.dayPapers(papersFor(w, cls), K.dayIndex(d.day), isMod()) : [];
             card.appendChild(el("h3", null, "Worksheet"));
             if (!papers.length) card.appendChild(el("p", "cu-hint", w ? "No paper for this day in the week file." : "This week is not in Anchor, so there is no paper to show."));
             papers.forEach((p) => {

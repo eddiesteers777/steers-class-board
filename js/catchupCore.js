@@ -33,10 +33,26 @@ export const ROUTES = {
 export const ROUTE_KEYS = Object.keys(ROUTES);
 export const STATUS_WORD = { assigned: "Catch-up assigned", done: "Caught up" };
 
-/** The day's student papers from a papersFor() list: that day's papers only, never a key or the modified group's copy. */
-export function dayPapers(papers, idx) {
-    return (papers || []).filter((p) => p && !p.key && !p.alt && new RegExp("^" + (idx + 1) + " ").test(String(p.pre || "")));
+/**
+ * The day's student papers from a papersFor() list: that day's papers only, never a key. For a student in the
+ * modified group (mod = true), the modified version replaces the regular one where there is one (modified guided
+ * notes for the notes, the modified quiz for the quiz); papers with no modified version stay as they are.
+ */
+export function dayPapers(papers, idx, mod) {
+    const onDay = (p) => p && !p.key && new RegExp("^" + (idx + 1) + " ").test(String(p.pre || ""));
+    const reg = (papers || []).filter((p) => onDay(p) && !p.alt);
+    if (!mod) return reg;
+    const alt = (papers || []).filter((p) => onDay(p) && p.alt), altOf = { ["notes" + idx]: "modnotes" + idx, quiz: "mod" };
+    const out = reg.map((p) => alt.find((a) => a.id === altOf[p.id]) || p);
+    alt.forEach((a) => { if (!out.includes(a)) out.push(a); });
+    return out;
 }
+
+/* ---------- the modified group (Nov 23): 8th grade students Eddie marks by hand, per period ----------
+   teacher/{uid}/modgroup/{period} = { kids: { <kidKey>: { nm, on: 1|0, at } }, at } (one student per write, merge) */
+export const MOD_CLASSES = ["8th"];   // only 8th Regular has modified papers in the week file
+export const modWrite = (nm, on, at = Date.now()) => ({ kids: { [kidKey(nm)]: { nm: String(nm).trim().slice(0, 24), on: on ? 1 : 0, at } }, at });
+export const inMod = (doc, nm) => !!(doc && doc.kids && doc.kids[kidKey(nm)] && doc.kids[kidKey(nm)].on);
 
 /** One mark for the record: a partial document to merge into catchup/{period}. */
 export function markWrite(nm, day, st, via, at = Date.now()) {
@@ -111,5 +127,21 @@ export function copyFromNotes(notes, route, dayLabel) {
     }
     if (probs.length) { L.push("", "Problems"); probs.forEach((x, k) => L.push((k + 1) + ". " + plain(x.q))); }
     if (probs.length) { L.push("", "Answer key (teacher only)"); probs.forEach((x, k) => L.push((k + 1) + ". " + plain(x.a))); }
+    return { text: L.join("\n"), n: probs.length };
+}
+
+/**
+ * Practice to paste from the modified group's guided notes (modNotes: examples with plain steps and an answer,
+ * practice [{ q, a }]): the first example, up to 10 practice problems, then the key. Copied from the week file.
+ */
+export function copyFromModNotes(mn, route, dayLabel) {
+    if (!mn) return { text: "", n: 0 };
+    const probs = (mn.practice || []).filter((x) => x && x.q && x.a != null).slice(0, 10), ex = (mn.examples || []).find((e) => e && e.q);
+    if (!probs.length && !ex) return { text: "", n: 0 };
+    const R = ROUTES[route] || ROUTES.deltamath, L = [];
+    L.push("Catch-up (modified): " + plain(mn.title || "Missed lesson") + (dayLabel ? " (" + dayLabel + ")" : ""));
+    L.push("For " + R.name + ": " + R.when);
+    if (ex) { L.push("", "Worked example" + (ex.title ? ": " + plain(ex.title) : ""), plain(ex.q)); (ex.steps || []).forEach((t, k) => L.push("  Step " + (k + 1) + ": " + plain(t))); if (ex.answer) L.push("  Answer: " + plain(ex.answer)); }
+    if (probs.length) { L.push("", "Problems"); probs.forEach((x, k) => L.push((k + 1) + ". " + plain(x.q))); L.push("", "Answer key (teacher only)"); probs.forEach((x, k) => L.push((k + 1) + ". " + plain(x.a))); }
     return { text: L.join("\n"), n: probs.length };
 }
