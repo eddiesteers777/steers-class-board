@@ -6,6 +6,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Waiting on Eddie
 | # | Item | What is needed |
 |---|------|----------------|
+| 43 | Standards Timeline, Phase 1 (branch `claude/project-thread-0ii4wr`) | Built on a branch, waiting on "push it". timeline.html: four nine-weeks lanes in Eddie's locked v1 order (8th, 7th; 8th Acc = district units split across the year), drag to reorder (saves to standards/timeline only), same Not yet / Teaching / Taught / Reteach marks as Standards, Next up in timeline order, Reset. Next: Phase 2 problem picker (bank by level, preview, + to a tray, time estimate, hand off to Assignments), Phase 3 depends-on links + floor skills (Eddie reviews the links first). |
 | 40 | ACAP readiness: scores reach Readiness on their own | Phases 1-5 are live (PRs #133, #134, #135, #137, #139). On a branch, waiting on "push it": Student Progress copies new results from open assignments (last 3 weeks) when it opens, through js/asgSync.js (the Assignments page uses the same code). Corrections and tests with corrections still need the Assignments page. Next for Eddie: place the foundational students by hand, try the spiral + formats on a Chromebook. |
 | 18 | Enter the other bell schedules | The editor holds named schedules now (see Done). Eddie enters the real times: 3rd-period lunch A/B/C, gym dismissal, dismissal, 1-hour and 2-hour activity. Never guess times. |
 | 3 | Fit the Class Data import to each app | One real export each from Wayground, Blooket, DeltaMath and Magma Math (names can be blanked out). |

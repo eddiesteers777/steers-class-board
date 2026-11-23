@@ -23,10 +23,11 @@ const PLAN = [
     ["builder.html", "Week Builder", "Print the week's paperwork"],
     ["planner.html", "Planner", "Day, week, month and year"],
     ["standards.html", "Standards", "By unit, with critical marks"],
+    ["timeline.html", "Timeline", "Teaching order by nine weeks"],
     ["bank.html", "Question Bank", "Every checked question"],
     ["library.html", "Library", "Every week by class and unit"],
 ];
-const CALERA_ONLY = ["plan.html", "review.html", "builder.html", "planner.html", "standards.html", "bank.html"];
+const CALERA_ONLY = ["plan.html", "review.html", "builder.html", "planner.html", "standards.html", "timeline.html", "bank.html"];
 const SECTIONS = { students: ["Students", STUDENTS], plan: ["Plan", PLAN] };
 const CSS = `
 .stuNav{display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:1080px;margin:18px auto -6px;padding:0 18px}
