@@ -4,7 +4,7 @@
    and the roster, and shows each student's level, XP, banked coins, badges and every topic's
    accuracy over time. ?demo shows made-up students in this tab and saves nothing.
 ========================================== */
-import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=4";
+import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=5";
 import { shortNames } from "./vaultCore.js?v=75";
 import * as PC from "./profileCore.js?v=2";
 import * as F from "./factCore.js?v=1";
