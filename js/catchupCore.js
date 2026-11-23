@@ -62,7 +62,8 @@ function topSlash(t) { let d = 0; for (let k = 0; k < t.length; k++) { if (t[k] 
 const wrap = (x) => (/[\s+\-−×÷/]/.test(x) ? "(" + x + ")" : x);
 /**
  * Week-file markup to plain text that pastes anywhere: {3/4} -> 3/4, 4{2/3} -> 4 2/3, a complex fraction
- * {1{1/2}/−{3/4}} -> (1 1/2)/(−3/4), § -> $, a picture token -> [picture]. Braces nest, so this reads them in pairs.
+ * {1{1/2}/−{3/4}} -> (1 1/2)/(−3/4), x^{2} -> x^2, x^{2n} -> x^(2n), § -> $, a picture token -> [picture].
+ * Braces nest, so this reads them in pairs. Braces with no fraction inside are real braces (a set) and stay. Phase 1's DeltaMath / Magma copy uses this too (js/acapAssign.js).
  */
 export function plain(s) {
     let t = String(s == null ? "" : s).replace(/§/g, "$").replace(/\[\[[^\]]*\]\]/g, "[picture]"), out = "";
@@ -70,7 +71,9 @@ export function plain(s) {
         if (t[i] !== "{") { out += t[i]; continue; }
         const j = closing(t, i); if (j < 0) { out += t.slice(i); break; }
         const inner = t.slice(i + 1, j), parts = topSlash(inner);
-        const txt = parts ? (() => { const a = plain(parts[0]).trim(), b = plain(parts[1]).trim(); return wrap(a) + "/" + wrap(b); })() : plain(inner);
+        if (out.endsWith("^")) { const x = parts ? wrap(plain(parts[0]).trim()) + "/" + wrap(plain(parts[1]).trim()) : plain(inner).trim(); out += x.length > 1 ? "(" + x + ")" : x; i = j; continue; }   // x^{2} -> x^2, x^{2n} -> x^(2n)
+        if (!parts) { out += "{" + plain(inner) + "}"; i = j; continue; }   // not a fraction: real braces, like the set {1, 2, 4} or {(1, 3), (2, 5)}
+        const txt = (() => { const a = plain(parts[0]).trim(), b = plain(parts[1]).trim(); return wrap(a) + "/" + wrap(b); })();
         const coef = parts && /^[A-Za-z(]/.test(t.slice(j + 1, j + 2)) && !/^\(/.test(txt);   // {3/4}x is (3/4)x, never 3/(4x)
         out += (/\d$/.test(out) && parts && !/[{]/.test(parts[0]) ? " " : "") + (coef ? "(" + txt + ")" : txt);   // 4{2/3} is the mixed number 4 2/3
         i = j;

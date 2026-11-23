@@ -43,6 +43,13 @@ assert.equal(K.plain("{1{1/2}/−{3/4}}"), "(1 1/2)/(−3/4)");   // Week 5 7th 
 assert.equal(K.plain("{{3/4}/{1/8}}"), "(3/4)/(1/8)");
 assert.equal(K.plain("x^2 + {3/4}x"), "x^2 + (3/4)x");
 assert.equal(K.plain("−{2/3} ÷ (−{4/9})"), "−2/3 ÷ (−4/9)");
+// real braces stay (sets and relations); exponents as before (Nov 23 paste fix, checked against the whole standards bank)
+assert.equal(K.plain("{1, 2, 4}"), "{1, 2, 4}"); assert.equal(K.plain("What is the domain of {(1, 3), (2, 5), (4, 3)}?"), "What is the domain of {(1, 3), (2, 5), (4, 3)}?");
+assert.equal(K.plain("x^{2}"), "x^2"); assert.equal(K.plain("2^{n−1}"), "2^(n−1)"); assert.equal(K.plain("4^{1/2}"), "4^(1/2)");
+assert.equal(K.plain("Expand: −{2/3}(6x − 9)"), "Expand: −(2/3)(6x − 9)");
+// Phase 1's DeltaMath / Magma copy now uses the same converter
+const AA = await import("../../js/acapAssign.js");
+["{1, 2, 4}", "x^{2n}", "{3/4}x", "2{1/4}", "{{3/4}/{1/8}}"].forEach((t) => assert.equal(AA.plain(t), K.plain(t))); assert.equal(AA.plain("{1{1/2}/−{3/4}}"), "(1 1/2)/(−3/4)");
 
 // the dashboard: a caught-up day no longer counts; all caught up = no warnings
 const day = (n, ag) => ({ name: n, agenda: ag });

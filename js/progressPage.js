@@ -10,7 +10,7 @@ import { buildProgress, distribution, standardOverTime, needGroups, missedOn, he
 import { lineChart, sparkline, bandBar, meter } from "./charts.js?v=1";
 import { STANDARDS } from "../data/standards.js?v=58";
 import * as R from "./readiness.js?v=1";
-import * as AA from "./acapAssign.js?v=3";
+import * as AA from "./acapAssign.js?v=4";
 import * as K from "./checks.js?v=1";
 import * as FB from "./foundBank.js?v=1";
 import * as FT from "./foundational.js?v=1";
