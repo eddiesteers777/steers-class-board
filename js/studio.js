@@ -13,11 +13,11 @@
    Spotlight (the third tab): the board full screen, with a glass toolbar to pop panels on and draw on the background (js/spotlight.js).
 ========================================== */
 import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MAX_SCENES, MAX_DAYB } from "./boardTools.js?v=62";
-import { SCENES, sceneActive, applyScene, saveScene, panelOn, panelOff, panelToggle, PANEL_INFO, labelOf, icon, LOOK_THEMES, LOOK_BGS, LOOK_PHOTOS, LOOK_PRESETS,
-    presetTile, photoPicker, photoGroupNow, gradOf, themeCols, MARKS, EFFECTS, FX_AMOUNTS } from "./panels.js?v=14";
+import { SCENES, sceneActive, applyScene, saveScene, panelOn, panelOff, panelToggle, PANEL_INFO, labelOf, icon, LOOK_THEMES, LOOK_BGS, LOOK_PHOTOS, bgName, LOOK_PRESETS,
+    presetTile, photoPicker, photoGroupNow, gradOf, themeCols, MARKS, EFFECTS, FX_AMOUNTS } from "./panels.js?v=15";
 import { markUrl } from "./marks.js?v=1";
 import { addStepAndEdit } from "./bellPlan.js?v=6";
-import { effectSample } from "./effects.js?v=2";
+import { effectSample } from "./effects.js?v=3";
 import { STICKER_SETS, WORDS, WORD_COLORS, MAX_STICKERS, makeSticker, stickerFace, cleanSticker } from "./stickers.js?v=1";
 
 const $ = (id) => document.getElementById(id);
@@ -63,7 +63,7 @@ function setMode(m, at) {
         const app = $("slideApp"); if (app) app.hidden = true; wantSlides = null; if (editor) editor.closeEditor();
         if (/^#slides/.test(location.hash)) { try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* the address is a convenience */ } }
         if (!A.synced()) { wantSpot = true; return; }   // open on the saved board, once it has arrived
-        import("./spotlight.js?v=4").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
+        import("./spotlight.js?v=5").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
             .catch(() => { setMode("board"); note("saveNote", "Spotlight did not load. Check the connection and reload the page."); });
         return;
     }
@@ -71,7 +71,7 @@ function setMode(m, at) {
     if (mode === "slides") {
         app.hidden = false;
         if (!A.synced()) { wantSlides = at || {}; return; }   // open on the lesson the board is on, once that has arrived
-        import("./slideEditor.js?v=4").then((mod) => { editor = mod; if (mode === "slides") mod.openEditor(A, app, at && at.week ? at : null); })
+        import("./slideEditor.js?v=5").then((mod) => { editor = mod; if (mode === "slides") mod.openEditor(A, app, at && at.week ? at : null); })
             .catch(() => { app.textContent = "The slide editor did not load. Check the connection and reload the page."; });
     } else {
         app.hidden = true; wantSlides = null;
@@ -151,7 +151,7 @@ function showStep(id) {
 function stepStatus() {
     const S = A.S, T = S.tools, n = Object.keys(T.on).length, k = S.stickers.length, set = (id, t) => { const x = document.querySelector('[data-status="' + id + '"]'); if (x && x.textContent !== t) x.textContent = t; };
     const preset = LOOK_PRESETS.find((p) => S.look.theme === p[2] && S.look.bg === p[3] && (S.look.mark || "anchor") === p[4] && (S.look.fx || "none") === p[5]);
-    set("look", preset ? preset[1] : nameOf(LOOK_THEMES, S.look.theme) + " · " + nameOf(LOOK_BGS.concat(LOOK_PHOTOS), S.look.bg) + (S.look.fx && S.look.fx !== "none" ? " · " + nameOf(EFFECTS, S.look.fx) : ""));
+    set("look", preset ? preset[1] : nameOf(LOOK_THEMES, S.look.theme) + " · " + bgName(S.look.bg) + (S.look.fx && S.look.fx !== "none" ? " · " + nameOf(EFFECTS, S.look.fx) : ""));
     set("panels", n ? n + (n === 1 ? " panel on" : " panels on") : "No panels yet");
     set("stickers", k ? k + (k === 1 ? " sticker" : " stickers") : "None yet");
     set("lesson", A.dayName() + " · " + A.classLabel());
@@ -223,7 +223,7 @@ function drawLook() {
         });
         box.appendChild(bg);
     } else if (lookTab === "photos") {
-        box.appendChild(photoPicker(el, S.look, (id) => setLook({ bg: id }), refresh));
+        box.appendChild(photoPicker(el, S.look, (id) => setLook({ bg: id }), refresh, { guest: A.guest() }));
     } else if (lookTab === "fx") {
         const amt = el("div", "schips small"); amt.setAttribute("role", "group"); amt.setAttribute("aria-label", "How many fall at once");
         amt.appendChild(el("span", "schiph", "How many"));

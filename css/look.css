@@ -159,6 +159,13 @@ body[data-bg="leaves"] #stage .hdr::before,body[data-bg="confetti"] #stage .hdr:
 body[data-fx="bubbles"] .stagefx i{animation-name:fxRise;opacity:.45}
 body[data-fx="rain"] .stagefx b{animation:none;transform:rotate(12deg)}
 body[data-fx="rain"] .stagefx i{opacity:.35}
+/* Nov 22 effects: fireflies, rockets and fireworks rise; fireflies glow and blink; integers are coloured by sign (js/effects.js) */
+body[data-fx="fireflies"] .stagefx i,body[data-fx="rockets"] .stagefx i,body[data-fx="fireworks"] .stagefx i{animation-name:fxRise}
+body[data-fx="fireflies"] .stagefx i{opacity:.9}
+body[data-fx="fireflies"] .stagefx b{text-shadow:0 0 .5em currentColor,0 0 1.2em currentColor;animation:fxSway 4s ease-in-out infinite alternate,fxBlink 3.4s ease-in-out infinite}
+@keyframes fxBlink{0%,100%{opacity:.25}50%{opacity:1}}
+body[data-fx="fractions"] .stagefx i,body[data-fx="integers"] .stagefx i,body[data-fx="greek"] .stagefx i{opacity:.55}
+.lookfx .fx-fractions,.lookfx .fx-greek,.lookfx .fx-music{color:#F2B33D}.lookfx .fx-integers{color:#7FD3A8}.lookfx .fx-fireflies{color:#FFE29A;text-shadow:0 0 6px #FFE29A}
 body[data-fx="apples"] .stagefx i,body[data-fx="pencils"] .stagefx i,body[data-fx="soccer"] .stagefx i,body[data-fx="football"] .stagefx i,body[data-fx="gifts"] .stagefx i,
 body[data-fx="snowmen"] .stagefx i,body[data-fx="flowers"] .stagefx i,body[data-fx="clovers"] .stagefx i{opacity:.6}
 @keyframes fxRise{from{top:calc(100% + 1em)}to{top:-3em}}
@@ -196,17 +203,29 @@ body.studio .float.picked{box-shadow:0 0 0 .18em #F2B33D,0 1.2em 2.6em rgba(4,12
 body.board .lookmore{display:none}
 
 /* ---- Photos (js/panels.js LOOK_PHOTOS): real photos from Unsplash, credits in photos/CREDITS.md ----
-   The board gets the full photo (photos/*.webp, 2560 wide); picker tiles get the small one (photos/sm/).
-   A veil in the board's colours sits on the photo so white lesson text stays easy to read from the back row. */
+   The board gets the full photo (photos/*.webp); picker tiles get the small one (photos/sm/).
+   A veil in the board's colours sits on the photo so white lesson text stays easy to read from the back row.
+   Photo of the day (pd-*): js/panels.js puts today's photo in --ph-day and the board's data-bg; its picker tile is a mosaic.
+   The teacher's own picture (my-*, js/myPhotos.js): js/panels.js puts it in --ph-mine. */
 body{--ph-veil:linear-gradient(180deg,color-mix(in srgb,var(--look-out,#081B45) 46%,transparent) 0%,color-mix(in srgb,var(--look-out,#081B45) 24%,transparent) 45%,color-mix(in srgb,var(--look-out,#081B45) 58%,transparent) 100%)}
-body[data-bg^="ph-"] #stageBg,.stagebg[class*="pv-ph-"]{opacity:1;background-size:cover;background-position:center;background-repeat:no-repeat}
-.stagebg[class*="pv-ph-"]{filter:none !important}
-.lookpg{display:flex;flex-wrap:wrap;gap:6px}
+body[data-bg^="ph-"] #stageBg,body[data-bg^="my-"] #stageBg,.stagebg[class*="pv-ph-"],.stagebg[class*="pv-pd-"],.stagebg[class*="pv-my-"]{opacity:1;background-size:cover;background-position:center;background-repeat:no-repeat}
+.stagebg[class*="pv-ph-"],.stagebg[class*="pv-pd-"],.stagebg[class*="pv-my-"]{filter:none !important}
+body[data-bg^="my-"] #stageBg,.stagebg[class*="pv-my-"]{background-image:var(--ph-veil),var(--ph-mine,none)}
+.stagebg[class*="pv-pd-"]{background-image:var(--ph-veil),var(--ph-day,none)}
+.lookphotos{display:flex;flex-direction:column;gap:8px}
+.lookpg{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.lookpgh{font-size:11.5px;font-weight:700;opacity:.65;min-width:92px}
 .lookpgc{border:1px solid rgba(185,211,238,.35);background:transparent;color:inherit;font:inherit;font-size:13px;font-weight:600;padding:5px 12px;border-radius:999px;cursor:pointer}
+.lookpgc.special{border-color:rgba(242,179,61,.6)}
 .lookpgc.on{background:#F2B33D;border-color:#F2B33D;color:#081B45}
-.lookphotos{display:flex;flex-direction:column;gap:10px}
 .lookcred{font-size:12px;opacity:.75;margin:0}
+.lookmsg{font-size:13px;font-weight:600;color:#F2B33D;margin:0}
+.lookbg{position:relative}
 .lookbg .lwho{font-size:11px;opacity:.7;margin-top:-4px}
+.lpvadd{display:flex !important;align-items:center;justify-content:center;font-size:40px !important;line-height:1;font-weight:300;color:#7FAEDD;border:2px dashed #7FAEDD;background:rgba(127,174,221,.08) !important}
+.lookdel{position:absolute;top:6px;right:6px;z-index:2;min-width:26px;height:26px;padding:0 8px;border-radius:13px;background:rgba(8,27,69,.85);color:#fff;font-size:14px;font-weight:700;line-height:26px;text-align:center;cursor:pointer;box-shadow:0 0 0 1px rgba(255,255,255,.4)}
+.lookdel[data-sure="1"]{background:#C8323C}
+.lookdel:focus-visible{outline:2px solid #F2B33D;outline-offset:2px}
 body[data-bg="ph-mtn-lake"] #stageBg,.pv-ph-mtn-lake{background-image:var(--ph-veil),url(../photos/mtn-lake.webp)}
 body[data-bg="ph-mtn-peak"] #stageBg,.pv-ph-mtn-peak{background-image:var(--ph-veil),url(../photos/mtn-peak.webp)}
 body[data-bg="ph-mtn-ridge"] #stageBg,.pv-ph-mtn-ridge{background-image:var(--ph-veil),url(../photos/mtn-ridge.webp)}
@@ -236,6 +255,71 @@ body[data-bg="ph-ani-bear"] #stageBg,.pv-ph-ani-bear{background-image:var(--ph-v
 body[data-bg="ph-ani-turtle"] #stageBg,.pv-ph-ani-turtle{background-image:var(--ph-veil),url(../photos/ani-turtle.webp)}
 body[data-bg="ph-ani-zebra"] #stageBg,.pv-ph-ani-zebra{background-image:var(--ph-veil),url(../photos/ani-zebra.webp)}
 body[data-bg="ph-ani-flamingo"] #stageBg,.pv-ph-ani-flamingo{background-image:var(--ph-veil),url(../photos/ani-flamingo.webp)}
+body[data-bg="ph-wtr-bridge"] #stageBg,.pv-ph-wtr-bridge{background-image:var(--ph-veil),url(../photos/wtr-bridge.webp)}
+body[data-bg="ph-wtr-pool"] #stageBg,.pv-ph-wtr-pool{background-image:var(--ph-veil),url(../photos/wtr-pool.webp)}
+body[data-bg="ph-wtr-basalt"] #stageBg,.pv-ph-wtr-basalt{background-image:var(--ph-veil),url(../photos/wtr-basalt.webp)}
+body[data-bg="ph-wtr-forest"] #stageBg,.pv-ph-wtr-forest{background-image:var(--ph-veil),url(../photos/wtr-forest.webp)}
+body[data-bg="ph-wtr-cave"] #stageBg,.pv-ph-wtr-cave{background-image:var(--ph-veil),url(../photos/wtr-cave.webp)}
+body[data-bg="ph-sky-aurora"] #stageBg,.pv-ph-sky-aurora{background-image:var(--ph-veil),url(../photos/sky-aurora.webp)}
+body[data-bg="ph-sky-lagoon"] #stageBg,.pv-ph-sky-lagoon{background-image:var(--ph-veil),url(../photos/sky-lagoon.webp)}
+body[data-bg="ph-sky-pines"] #stageBg,.pv-ph-sky-pines{background-image:var(--ph-veil),url(../photos/sky-pines.webp)}
+body[data-bg="ph-sky-milky"] #stageBg,.pv-ph-sky-milky{background-image:var(--ph-veil),url(../photos/sky-milky.webp)}
+body[data-bg="ph-sky-peaks"] #stageBg,.pv-ph-sky-peaks{background-image:var(--ph-veil),url(../photos/sky-peaks.webp)}
+body[data-bg="ph-sky-orion"] #stageBg,.pv-ph-sky-orion{background-image:var(--ph-veil),url(../photos/sky-orion.webp)}
+body[data-bg="ph-sky-galaxy"] #stageBg,.pv-ph-sky-galaxy{background-image:var(--ph-veil),url(../photos/sky-galaxy.webp)}
+body[data-bg="ph-sky-earth"] #stageBg,.pv-ph-sky-earth{background-image:var(--ph-veil),url(../photos/sky-earth.webp)}
+body[data-bg="ph-sky-lights"] #stageBg,.pv-ph-sky-lights{background-image:var(--ph-veil),url(../photos/sky-lights.webp)}
+body[data-bg="ph-sky-orbit"] #stageBg,.pv-ph-sky-orbit{background-image:var(--ph-veil),url(../photos/sky-orbit.webp)}
+body[data-bg="ph-dsr-canyon"] #stageBg,.pv-ph-dsr-canyon{background-image:var(--ph-veil),url(../photos/dsr-canyon.webp)}
+body[data-bg="ph-dsr-rocks"] #stageBg,.pv-ph-dsr-rocks{background-image:var(--ph-veil),url(../photos/dsr-rocks.webp)}
+body[data-bg="ph-dsr-wave"] #stageBg,.pv-ph-dsr-wave{background-image:var(--ph-veil),url(../photos/dsr-wave.webp)}
+body[data-bg="ph-dsr-swirl"] #stageBg,.pv-ph-dsr-swirl{background-image:var(--ph-veil),url(../photos/dsr-swirl.webp)}
+body[data-bg="ph-dsr-river"] #stageBg,.pv-ph-dsr-river{background-image:var(--ph-veil),url(../photos/dsr-river.webp)}
+body[data-bg="ph-dsr-slot"] #stageBg,.pv-ph-dsr-slot{background-image:var(--ph-veil),url(../photos/dsr-slot.webp)}
+body[data-bg="ph-win-cabin"] #stageBg,.pv-ph-win-cabin{background-image:var(--ph-veil),url(../photos/win-cabin.webp)}
+body[data-bg="ph-win-lake"] #stageBg,.pv-ph-win-lake{background-image:var(--ph-veil),url(../photos/win-lake.webp)}
+body[data-bg="ph-win-pines"] #stageBg,.pv-ph-win-pines{background-image:var(--ph-veil),url(../photos/win-pines.webp)}
+body[data-bg="ph-win-village"] #stageBg,.pv-ph-win-village{background-image:var(--ph-veil),url(../photos/win-village.webp)}
+body[data-bg="ph-win-river"] #stageBg,.pv-ph-win-river{background-image:var(--ph-veil),url(../photos/win-river.webp)}
+body[data-bg="ph-win-valley"] #stageBg,.pv-ph-win-valley{background-image:var(--ph-veil),url(../photos/win-valley.webp)}
+body[data-bg="ph-win-falls"] #stageBg,.pv-ph-win-falls{background-image:var(--ph-veil),url(../photos/win-falls.webp)}
+body[data-bg="ph-fal-lake"] #stageBg,.pv-ph-fal-lake{background-image:var(--ph-veil),url(../photos/fal-lake.webp)}
+body[data-bg="ph-fal-larch"] #stageBg,.pv-ph-fal-larch{background-image:var(--ph-veil),url(../photos/fal-larch.webp)}
+body[data-bg="ph-fal-path"] #stageBg,.pv-ph-fal-path{background-image:var(--ph-veil),url(../photos/fal-path.webp)}
+body[data-bg="ph-fal-aspen"] #stageBg,.pv-ph-fal-aspen{background-image:var(--ph-veil),url(../photos/fal-aspen.webp)}
+body[data-bg="ph-fal-stream"] #stageBg,.pv-ph-fal-stream{background-image:var(--ph-veil),url(../photos/fal-stream.webp)}
+body[data-bg="ph-spr-water"] #stageBg,.pv-ph-spr-water{background-image:var(--ph-veil),url(../photos/spr-water.webp)}
+body[data-bg="ph-spr-mirror"] #stageBg,.pv-ph-spr-mirror{background-image:var(--ph-veil),url(../photos/spr-mirror.webp)}
+body[data-bg="ph-spr-path"] #stageBg,.pv-ph-spr-path{background-image:var(--ph-veil),url(../photos/spr-path.webp)}
+body[data-bg="ph-spr-branch"] #stageBg,.pv-ph-spr-branch{background-image:var(--ph-veil),url(../photos/spr-branch.webp)}
+body[data-bg="ph-sea-coral"] #stageBg,.pv-ph-sea-coral{background-image:var(--ph-veil),url(../photos/sea-coral.webp)}
+body[data-bg="ph-sea-sunlit"] #stageBg,.pv-ph-sea-sunlit{background-image:var(--ph-veil),url(../photos/sea-sunlit.webp)}
+body[data-bg="ph-sea-reef"] #stageBg,.pv-ph-sea-reef{background-image:var(--ph-veil),url(../photos/sea-reef.webp)}
+body[data-bg="ph-sea-orange"] #stageBg,.pv-ph-sea-orange{background-image:var(--ph-veil),url(../photos/sea-orange.webp)}
+body[data-bg="ph-sea-breach"] #stageBg,.pv-ph-sea-breach{background-image:var(--ph-veil),url(../photos/sea-breach.webp)}
+body[data-bg="ph-sea-humpback"] #stageBg,.pv-ph-sea-humpback{background-image:var(--ph-veil),url(../photos/sea-humpback.webp)}
+body[data-bg="ph-sea-shark"] #stageBg,.pv-ph-sea-shark{background-image:var(--ph-veil),url(../photos/sea-shark.webp)}
+body[data-bg="ph-sea-dolphin"] #stageBg,.pv-ph-sea-dolphin{background-image:var(--ph-veil),url(../photos/sea-dolphin.webp)}
+body[data-bg="ph-mth-hex"] #stageBg,.pv-ph-mth-hex{background-image:var(--ph-veil),url(../photos/mth-hex.webp)}
+body[data-bg="ph-mth-honey"] #stageBg,.pv-ph-mth-honey{background-image:var(--ph-veil),url(../photos/mth-honey.webp)}
+body[data-bg="ph-mth-nautilus"] #stageBg,.pv-ph-mth-nautilus{background-image:var(--ph-veil),url(../photos/mth-nautilus.webp)}
+body[data-bg="ph-mth-sunflower"] #stageBg,.pv-ph-mth-sunflower{background-image:var(--ph-veil),url(../photos/mth-sunflower.webp)}
+body[data-bg="ph-mth-fern"] #stageBg,.pv-ph-mth-fern{background-image:var(--ph-veil),url(../photos/mth-fern.webp)}
+body[data-bg="ph-mth-stairs"] #stageBg,.pv-ph-mth-stairs{background-image:var(--ph-veil),url(../photos/mth-stairs.webp)}
+body[data-bg="ph-mth-succ"] #stageBg,.pv-ph-mth-succ{background-image:var(--ph-veil),url(../photos/mth-succ.webp)}
+body[data-bg="ph-mth-ammonite"] #stageBg,.pv-ph-mth-ammonite{background-image:var(--ph-veil),url(../photos/mth-ammonite.webp)}
+body[data-bg="ph-spt-field"] #stageBg,.pv-ph-spt-field{background-image:var(--ph-veil),url(../photos/spt-field.webp)}
+body[data-bg="ph-spt-stadium"] #stageBg,.pv-ph-spt-stadium{background-image:var(--ph-veil),url(../photos/spt-stadium.webp)}
+body[data-bg="ph-spt-ball"] #stageBg,.pv-ph-spt-ball{background-image:var(--ph-veil),url(../photos/spt-ball.webp)}
+body[data-bg="ph-spt-goals"] #stageBg,.pv-ph-spt-goals{background-image:var(--ph-veil),url(../photos/spt-goals.webp)}
+body[data-bg="ph-ani-penguin"] #stageBg,.pv-ph-ani-penguin{background-image:var(--ph-veil),url(../photos/ani-penguin.webp)}
+body[data-bg="ph-ani-king"] #stageBg,.pv-ph-ani-king{background-image:var(--ph-veil),url(../photos/ani-king.webp)}
+body[data-bg="ph-ani-owl"] #stageBg,.pv-ph-ani-owl{background-image:var(--ph-veil),url(../photos/ani-owl.webp)}
+body[data-bg="ph-ani-eagleowl"] #stageBg,.pv-ph-ani-eagleowl{background-image:var(--ph-veil),url(../photos/ani-eagleowl.webp)}
+body[data-bg="ph-ani-barnowl"] #stageBg,.pv-ph-ani-barnowl{background-image:var(--ph-veil),url(../photos/ani-barnowl.webp)}
+body[data-bg="ph-ani-elephants"] #stageBg,.pv-ph-ani-elephants{background-image:var(--ph-veil),url(../photos/ani-elephants.webp)}
+body[data-bg="ph-ani-herd"] #stageBg,.pv-ph-ani-herd{background-image:var(--ph-veil),url(../photos/ani-herd.webp)}
+body[data-bg="ph-ani-wolf"] #stageBg,.pv-ph-ani-wolf{background-image:var(--ph-veil),url(../photos/ani-wolf.webp)}
 :is(.lpv,.sbpv) .pv-ph-mtn-lake{background-image:var(--ph-veil),url(../photos/sm/mtn-lake.webp)}
 :is(.lpv,.sbpv) .pv-ph-mtn-peak{background-image:var(--ph-veil),url(../photos/sm/mtn-peak.webp)}
 :is(.lpv,.sbpv) .pv-ph-mtn-ridge{background-image:var(--ph-veil),url(../photos/sm/mtn-ridge.webp)}
@@ -265,3 +349,82 @@ body[data-bg="ph-ani-flamingo"] #stageBg,.pv-ph-ani-flamingo{background-image:va
 :is(.lpv,.sbpv) .pv-ph-ani-turtle{background-image:var(--ph-veil),url(../photos/sm/ani-turtle.webp)}
 :is(.lpv,.sbpv) .pv-ph-ani-zebra{background-image:var(--ph-veil),url(../photos/sm/ani-zebra.webp)}
 :is(.lpv,.sbpv) .pv-ph-ani-flamingo{background-image:var(--ph-veil),url(../photos/sm/ani-flamingo.webp)}
+:is(.lpv,.sbpv) .pv-ph-wtr-bridge{background-image:var(--ph-veil),url(../photos/sm/wtr-bridge.webp)}
+:is(.lpv,.sbpv) .pv-ph-wtr-pool{background-image:var(--ph-veil),url(../photos/sm/wtr-pool.webp)}
+:is(.lpv,.sbpv) .pv-ph-wtr-basalt{background-image:var(--ph-veil),url(../photos/sm/wtr-basalt.webp)}
+:is(.lpv,.sbpv) .pv-ph-wtr-forest{background-image:var(--ph-veil),url(../photos/sm/wtr-forest.webp)}
+:is(.lpv,.sbpv) .pv-ph-wtr-cave{background-image:var(--ph-veil),url(../photos/sm/wtr-cave.webp)}
+:is(.lpv,.sbpv) .pv-ph-sky-aurora{background-image:var(--ph-veil),url(../photos/sm/sky-aurora.webp)}
+:is(.lpv,.sbpv) .pv-ph-sky-lagoon{background-image:var(--ph-veil),url(../photos/sm/sky-lagoon.webp)}
+:is(.lpv,.sbpv) .pv-ph-sky-pines{background-image:var(--ph-veil),url(../photos/sm/sky-pines.webp)}
+:is(.lpv,.sbpv) .pv-ph-sky-milky{background-image:var(--ph-veil),url(../photos/sm/sky-milky.webp)}
+:is(.lpv,.sbpv) .pv-ph-sky-peaks{background-image:var(--ph-veil),url(../photos/sm/sky-peaks.webp)}
+:is(.lpv,.sbpv) .pv-ph-sky-orion{background-image:var(--ph-veil),url(../photos/sm/sky-orion.webp)}
+:is(.lpv,.sbpv) .pv-ph-sky-galaxy{background-image:var(--ph-veil),url(../photos/sm/sky-galaxy.webp)}
+:is(.lpv,.sbpv) .pv-ph-sky-earth{background-image:var(--ph-veil),url(../photos/sm/sky-earth.webp)}
+:is(.lpv,.sbpv) .pv-ph-sky-lights{background-image:var(--ph-veil),url(../photos/sm/sky-lights.webp)}
+:is(.lpv,.sbpv) .pv-ph-sky-orbit{background-image:var(--ph-veil),url(../photos/sm/sky-orbit.webp)}
+:is(.lpv,.sbpv) .pv-ph-dsr-canyon{background-image:var(--ph-veil),url(../photos/sm/dsr-canyon.webp)}
+:is(.lpv,.sbpv) .pv-ph-dsr-rocks{background-image:var(--ph-veil),url(../photos/sm/dsr-rocks.webp)}
+:is(.lpv,.sbpv) .pv-ph-dsr-wave{background-image:var(--ph-veil),url(../photos/sm/dsr-wave.webp)}
+:is(.lpv,.sbpv) .pv-ph-dsr-swirl{background-image:var(--ph-veil),url(../photos/sm/dsr-swirl.webp)}
+:is(.lpv,.sbpv) .pv-ph-dsr-river{background-image:var(--ph-veil),url(../photos/sm/dsr-river.webp)}
+:is(.lpv,.sbpv) .pv-ph-dsr-slot{background-image:var(--ph-veil),url(../photos/sm/dsr-slot.webp)}
+:is(.lpv,.sbpv) .pv-ph-win-cabin{background-image:var(--ph-veil),url(../photos/sm/win-cabin.webp)}
+:is(.lpv,.sbpv) .pv-ph-win-lake{background-image:var(--ph-veil),url(../photos/sm/win-lake.webp)}
+:is(.lpv,.sbpv) .pv-ph-win-pines{background-image:var(--ph-veil),url(../photos/sm/win-pines.webp)}
+:is(.lpv,.sbpv) .pv-ph-win-village{background-image:var(--ph-veil),url(../photos/sm/win-village.webp)}
+:is(.lpv,.sbpv) .pv-ph-win-river{background-image:var(--ph-veil),url(../photos/sm/win-river.webp)}
+:is(.lpv,.sbpv) .pv-ph-win-valley{background-image:var(--ph-veil),url(../photos/sm/win-valley.webp)}
+:is(.lpv,.sbpv) .pv-ph-win-falls{background-image:var(--ph-veil),url(../photos/sm/win-falls.webp)}
+:is(.lpv,.sbpv) .pv-ph-fal-lake{background-image:var(--ph-veil),url(../photos/sm/fal-lake.webp)}
+:is(.lpv,.sbpv) .pv-ph-fal-larch{background-image:var(--ph-veil),url(../photos/sm/fal-larch.webp)}
+:is(.lpv,.sbpv) .pv-ph-fal-path{background-image:var(--ph-veil),url(../photos/sm/fal-path.webp)}
+:is(.lpv,.sbpv) .pv-ph-fal-aspen{background-image:var(--ph-veil),url(../photos/sm/fal-aspen.webp)}
+:is(.lpv,.sbpv) .pv-ph-fal-stream{background-image:var(--ph-veil),url(../photos/sm/fal-stream.webp)}
+:is(.lpv,.sbpv) .pv-ph-spr-water{background-image:var(--ph-veil),url(../photos/sm/spr-water.webp)}
+:is(.lpv,.sbpv) .pv-ph-spr-mirror{background-image:var(--ph-veil),url(../photos/sm/spr-mirror.webp)}
+:is(.lpv,.sbpv) .pv-ph-spr-path{background-image:var(--ph-veil),url(../photos/sm/spr-path.webp)}
+:is(.lpv,.sbpv) .pv-ph-spr-branch{background-image:var(--ph-veil),url(../photos/sm/spr-branch.webp)}
+:is(.lpv,.sbpv) .pv-ph-sea-coral{background-image:var(--ph-veil),url(../photos/sm/sea-coral.webp)}
+:is(.lpv,.sbpv) .pv-ph-sea-sunlit{background-image:var(--ph-veil),url(../photos/sm/sea-sunlit.webp)}
+:is(.lpv,.sbpv) .pv-ph-sea-reef{background-image:var(--ph-veil),url(../photos/sm/sea-reef.webp)}
+:is(.lpv,.sbpv) .pv-ph-sea-orange{background-image:var(--ph-veil),url(../photos/sm/sea-orange.webp)}
+:is(.lpv,.sbpv) .pv-ph-sea-breach{background-image:var(--ph-veil),url(../photos/sm/sea-breach.webp)}
+:is(.lpv,.sbpv) .pv-ph-sea-humpback{background-image:var(--ph-veil),url(../photos/sm/sea-humpback.webp)}
+:is(.lpv,.sbpv) .pv-ph-sea-shark{background-image:var(--ph-veil),url(../photos/sm/sea-shark.webp)}
+:is(.lpv,.sbpv) .pv-ph-sea-dolphin{background-image:var(--ph-veil),url(../photos/sm/sea-dolphin.webp)}
+:is(.lpv,.sbpv) .pv-ph-mth-hex{background-image:var(--ph-veil),url(../photos/sm/mth-hex.webp)}
+:is(.lpv,.sbpv) .pv-ph-mth-honey{background-image:var(--ph-veil),url(../photos/sm/mth-honey.webp)}
+:is(.lpv,.sbpv) .pv-ph-mth-nautilus{background-image:var(--ph-veil),url(../photos/sm/mth-nautilus.webp)}
+:is(.lpv,.sbpv) .pv-ph-mth-sunflower{background-image:var(--ph-veil),url(../photos/sm/mth-sunflower.webp)}
+:is(.lpv,.sbpv) .pv-ph-mth-fern{background-image:var(--ph-veil),url(../photos/sm/mth-fern.webp)}
+:is(.lpv,.sbpv) .pv-ph-mth-stairs{background-image:var(--ph-veil),url(../photos/sm/mth-stairs.webp)}
+:is(.lpv,.sbpv) .pv-ph-mth-succ{background-image:var(--ph-veil),url(../photos/sm/mth-succ.webp)}
+:is(.lpv,.sbpv) .pv-ph-mth-ammonite{background-image:var(--ph-veil),url(../photos/sm/mth-ammonite.webp)}
+:is(.lpv,.sbpv) .pv-ph-spt-field{background-image:var(--ph-veil),url(../photos/sm/spt-field.webp)}
+:is(.lpv,.sbpv) .pv-ph-spt-stadium{background-image:var(--ph-veil),url(../photos/sm/spt-stadium.webp)}
+:is(.lpv,.sbpv) .pv-ph-spt-ball{background-image:var(--ph-veil),url(../photos/sm/spt-ball.webp)}
+:is(.lpv,.sbpv) .pv-ph-spt-goals{background-image:var(--ph-veil),url(../photos/sm/spt-goals.webp)}
+:is(.lpv,.sbpv) .pv-ph-ani-penguin{background-image:var(--ph-veil),url(../photos/sm/ani-penguin.webp)}
+:is(.lpv,.sbpv) .pv-ph-ani-king{background-image:var(--ph-veil),url(../photos/sm/ani-king.webp)}
+:is(.lpv,.sbpv) .pv-ph-ani-owl{background-image:var(--ph-veil),url(../photos/sm/ani-owl.webp)}
+:is(.lpv,.sbpv) .pv-ph-ani-eagleowl{background-image:var(--ph-veil),url(../photos/sm/ani-eagleowl.webp)}
+:is(.lpv,.sbpv) .pv-ph-ani-barnowl{background-image:var(--ph-veil),url(../photos/sm/ani-barnowl.webp)}
+:is(.lpv,.sbpv) .pv-ph-ani-elephants{background-image:var(--ph-veil),url(../photos/sm/ani-elephants.webp)}
+:is(.lpv,.sbpv) .pv-ph-ani-herd{background-image:var(--ph-veil),url(../photos/sm/ani-herd.webp)}
+:is(.lpv,.sbpv) .pv-ph-ani-wolf{background-image:var(--ph-veil),url(../photos/sm/ani-wolf.webp)}
+:is(.lpv,.sbpv) .pv-pd-all{background-image:url(../photos/sm/mtn-lake.webp),url(../photos/sm/sky-aurora.webp),url(../photos/sm/ani-fox.webp),url(../photos/sm/sea-shark.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
+:is(.lpv,.sbpv) .pv-pd-mtn{background-image:url(../photos/sm/mtn-lake.webp),url(../photos/sm/mtn-peak.webp),url(../photos/sm/mtn-ridge.webp),url(../photos/sm/mtn-dusk.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
+:is(.lpv,.sbpv) .pv-pd-bch{background-image:url(../photos/sm/bch-gold.webp),url(../photos/sm/bch-palms.webp),url(../photos/sm/bch-sunset.webp),url(../photos/sm/bch-waves.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
+:is(.lpv,.sbpv) .pv-pd-wtr{background-image:url(../photos/sm/lnd-valley.webp),url(../photos/sm/lnd-mist.webp),url(../photos/sm/lnd-cabin.webp),url(../photos/sm/lnd-tree.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
+:is(.lpv,.sbpv) .pv-pd-dsr{background-image:url(../photos/sm/dsr-canyon.webp),url(../photos/sm/dsr-rocks.webp),url(../photos/sm/dsr-wave.webp),url(../photos/sm/dsr-swirl.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
+:is(.lpv,.sbpv) .pv-pd-cty{background-image:url(../photos/sm/cty-dawn.webp),url(../photos/sm/cty-bridge.webp),url(../photos/sm/cty-lake.webp),url(../photos/sm/cty-pink.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
+:is(.lpv,.sbpv) .pv-pd-sky{background-image:url(../photos/sm/sky-aurora.webp),url(../photos/sm/sky-lagoon.webp),url(../photos/sm/sky-pines.webp),url(../photos/sm/sky-milky.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
+:is(.lpv,.sbpv) .pv-pd-ani{background-image:url(../photos/sm/ani-fox.webp),url(../photos/sm/ani-lion.webp),url(../photos/sm/ani-bear.webp),url(../photos/sm/ani-zebra.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
+:is(.lpv,.sbpv) .pv-pd-sea{background-image:url(../photos/sm/ani-turtle.webp),url(../photos/sm/sea-coral.webp),url(../photos/sm/sea-sunlit.webp),url(../photos/sm/sea-reef.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
+:is(.lpv,.sbpv) .pv-pd-fal{background-image:url(../photos/sm/lnd-autumn.webp),url(../photos/sm/fal-lake.webp),url(../photos/sm/fal-larch.webp),url(../photos/sm/fal-path.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
+:is(.lpv,.sbpv) .pv-pd-win{background-image:url(../photos/sm/win-cabin.webp),url(../photos/sm/win-lake.webp),url(../photos/sm/win-pines.webp),url(../photos/sm/win-village.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
+:is(.lpv,.sbpv) .pv-pd-spr{background-image:url(../photos/sm/lnd-flowers.webp),url(../photos/sm/spr-water.webp),url(../photos/sm/spr-mirror.webp),url(../photos/sm/spr-path.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
+:is(.lpv,.sbpv) .pv-pd-mth{background-image:url(../photos/sm/mth-hex.webp),url(../photos/sm/mth-honey.webp),url(../photos/sm/mth-nautilus.webp),url(../photos/sm/mth-sunflower.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
+:is(.lpv,.sbpv) .pv-pd-spt{background-image:url(../photos/sm/spt-field.webp),url(../photos/sm/spt-stadium.webp),url(../photos/sm/spt-ball.webp),url(../photos/sm/spt-goals.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
