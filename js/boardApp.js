@@ -16,7 +16,7 @@ import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST,
 import { setPhotoStore } from "./myPhotos.js?v=1";
 import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=16";
 import { cleanStickers, renderStickers } from "./stickers.js?v=1";
-import * as snd from "./sound.js?v=60";
+import * as snd from "./sound.js?v=61";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { senseIdle } from "./roomSense.js?v=1";
@@ -758,6 +758,7 @@ function soundTick() {
     // Vault Raid: the theme song follows the game, and each big moment has its own sound.
     const g = liveSound(); snd.gameSong(g.song); snd.gamePhase(g.phase); g.cues.forEach((c) => snd.cue(c));
 }
+let musicGroup = "";   // which group of music styles the Sound menu is showing
 function soundPanel() {
     const rail = document.querySelector(".rail"), host = $("soundHost"); if ((!rail && !host) || $("soundMenu")) return;
     const box = el("details", "menu fold"); box.id = "soundMenu"; box.open = window.innerWidth > 860;
@@ -766,6 +767,8 @@ function soundPanel() {
     const toggle = (id, label) => { const x = el("button", "sndtog"); x.type = "button"; x.id = id; x.appendChild(el("span", null, label)); x.appendChild(el("i")); b.appendChild(x); return x; };
     const slider = (id, label) => { const w = el("label", "sndvol"); w.appendChild(el("span", null, label)); const r = el("input"); r.type = "range"; r.min = "0"; r.max = "100"; r.step = "5"; r.id = id; w.appendChild(r); b.appendChild(w); return r; };
     toggle("sndMusic", "Music").onclick = () => { S.sound.music = !S.sound.music; snd.unlock(); push(); };
+    // Music styles in groups: a row of group chips, then the styles in that group (js/genres.js has the list).
+    const grp = el("div", "seg sndgrp"); grp.id = "sndGroup"; grp.setAttribute("role", "group"); grp.setAttribute("aria-label", "Kind of music"); b.appendChild(grp);
     const sty = el("div", "seg sndsty"); sty.id = "sndStyle"; sty.setAttribute("role", "group"); sty.setAttribute("aria-label", "Music style"); b.appendChild(sty);
     const mv = slider("sndMv", "Music volume");
     mv.oninput = () => { S.sound.mv = +mv.value / 100; soundSync(); quiet(); };
@@ -835,7 +838,11 @@ function soundControls() {
     const so = S.sound, here = playsHere();
     const on = (id, v) => { const x = $(id); x.setAttribute("aria-pressed", String(v)); x.querySelector("i").textContent = v ? "On" : "Off"; };
     on("sndMusic", so.music); on("sndFx", so.fx); on("sndGame", so.game);
-    seg($("sndStyle"), snd.STYLES, so.style, (v) => { S.sound.style = v; S.sound.music = true; snd.unlock(); push(); });
+    const groups = snd.STYLE_GROUPS, mine = groups.find((g) => g[1].some((x) => x[0] === so.style));
+    if (!musicGroup || !groups.some((g) => g[0] === musicGroup)) musicGroup = mine ? mine[0] : groups[0][0];
+    if ($("sndGroup")) seg($("sndGroup"), groups.map((g) => [g[0], g[0] + (mine && mine[0] === g[0] ? " \u2022" : "")]), musicGroup, (v) => { musicGroup = v; soundControls(); });
+    const shown = (groups.find((g) => g[0] === musicGroup) || groups[0])[1];
+    seg($("sndStyle"), shown, so.style, (v) => { S.sound.style = v; S.sound.music = true; snd.unlock(); push(); });
     [["sndMv", so.mv], ["sndFv", so.fxv]].forEach(([id, v]) => { const r = $(id); if (document.activeElement !== r) r.value = String(Math.round(v * 100)); });
     if ($("sndAt")) seg($("sndAt"), [["board", "The board"], ["here", "This device"]], so.at && so.at === DEVICE ? "here" : (so.at ? "other" : "board"), (v) => { S.sound.at = v === "here" ? DEVICE : ""; snd.unlock(); push(); });
     $("soundCount").textContent = so.music ? "Music on" : "";
