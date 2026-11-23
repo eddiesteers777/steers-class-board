@@ -10,12 +10,12 @@ import { buildProgress, distribution, standardOverTime, needGroups, missedOn, he
 import { lineChart, sparkline, bandBar, meter } from "./charts.js?v=1";
 import { STANDARDS } from "../data/standards.js?v=58";
 import * as R from "./readiness.js?v=1";
-import * as AA from "./acapAssign.js?v=3";
+import * as AA from "./acapAssign.js?v=4";
 import * as K from "./checks.js?v=1";
 import * as FB from "./foundBank.js?v=1";
 import * as FT from "./foundational.js?v=1";
 import * as AF from "./acapFormats.js?v=1";
-import { catchUp } from "./asgSync.js?v=1";
+import { catchUp } from "./asgSync.js?v=2";
 import { matchRoster } from "./progress.js?v=4";
 import { perKey } from "./profileCore.js?v=2";
 import { shortNames } from "./vaultCore.js?v=75";

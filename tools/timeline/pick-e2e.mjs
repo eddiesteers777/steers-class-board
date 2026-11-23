@@ -1,0 +1,40 @@
+// Standards Timeline picker + tray + hand-off to Assignments, in ?demo (nothing saved). Needs the repo served at 127.0.0.1:5000.
+// Run: node tools/timeline/pick-e2e.mjs
+const pw = await import(process.env.PLAYWRIGHT || "playwright"), { chromium } = pw.default || pw;
+import fs from "node:fs"; fs.mkdirSync("./shots", { recursive: true });
+const b = await chromium.launch(); const errs = [];
+const c = await b.newContext({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 2 });
+await c.route(/fonts\.(googleapis|gstatic)/, (r) => r.fulfill({ body: "", contentType: "text/css" }));
+const p = await c.newPage(); p.on("pageerror", (e) => errs.push(e.message));
+await p.goto("http://127.0.0.1:5000/timeline.html?demo"); await p.waitForTimeout(2500);
+console.log("probs label:", await p.locator("#tl-8-25 .tl-probs").textContent());
+await p.locator("#tl-8-25 .tl-text").click(); await p.waitForTimeout(400);
+console.log("panel:", (await p.locator(".tp-panel").textContent()).slice(0, 200));
+await p.locator(".tp-btns button", { hasText: "Show answer" }).click();
+await p.screenshot({ path: "./shots/p1-picker.png" });
+await p.locator(".tp-btns button", { hasText: "Another problem" }).click();
+console.log("count:", await p.locator(".tp-count").textContent());
+await p.locator(".tp-btns button", { hasText: "Add to tray" }).click();
+await p.locator(".tp-close").click();
+await p.locator("#tl-8-26 .tl-probs").click(); await p.locator(".tp-btns button", { hasText: "Add to tray" }).click(); await p.locator(".tp-close").click();
+await p.locator("#tl-8-11 .tl-probs").click(); await p.locator(".tp-chk input").nth(2).check(); await p.locator(".tp-btns button", { hasText: "Add to tray" }).click(); await p.keyboard.press("Escape");
+console.log("tray:", await p.locator(".tp-ttog").textContent(), "| card:", await p.locator("#tl-8-25 .tl-probs").textContent());
+await p.locator(".tp-ttog").click();
+// drag 8.11 to top
+const h = await p.locator('.tp-row[data-code="8.11"] .tp-h').boundingBox(), t = await p.locator('.tp-row[data-code="8.25"]').boundingBox();
+await p.mouse.move(h.x + 8, h.y + 8); await p.mouse.down(); await p.mouse.move(h.x + 8, t.y + 4, { steps: 8 }); await p.mouse.up(); await p.waitForTimeout(200);
+console.log("order:", await p.locator(".tp-row").evaluateAll((n) => n.map((x) => x.dataset.code).join(",")));
+await p.locator('.tp-row[data-code="8.26"] .tp-num input').first().fill("6"); await p.locator('.tp-row[data-code="8.26"] .tp-num input').first().dispatchEvent("change");
+console.log("tray now:", await p.locator(".tp-ttog").textContent());
+await p.screenshot({ path: "./shots/p2-tray.png" });
+await p.locator(".tp-tray .btn", { hasText: "Make assignment" }).click(); await p.waitForTimeout(3000);
+console.log("url:", p.url());
+console.log("builder:", (await p.locator(".asIn").textContent()).slice(0, 300));
+console.log("est:", await p.locator(".asEst").textContent());
+await p.screenshot({ path: "./shots/p3-assign.png" });
+const m = await c.newPage(); await m.setViewportSize({ width: 390, height: 844 });
+await m.goto("http://127.0.0.1:5000/timeline.html?demo"); await m.waitForTimeout(2500);
+await m.locator("#tl-8-25 .tl-probs").click(); await m.waitForTimeout(300);
+console.log("phone overflow:", await m.evaluate(() => document.documentElement.scrollWidth));
+await m.screenshot({ path: "./shots/p4-phone.png" });
+console.log("errors:", errs); await b.close(); if (errs.length) process.exit(1); console.log("pick e2e: passed");

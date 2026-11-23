@@ -7,7 +7,7 @@
    io = { save(path, data) -> Promise, get(path) -> Promise<data | null> } (paths under teacher/{uid}).
 ========================================== */
 import * as C from "./assignCore.js?v=7";
-import { namesOnly } from "./acapAssign.js?v=3";
+import { namesOnly } from "./acapAssign.js?v=4";
 import { shortNames } from "./vaultCore.js?v=75";
 
 /** The name lists an assignment shows: one student's line for a one-student assignment, else each period's roster. */

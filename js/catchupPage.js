@@ -12,11 +12,11 @@
 ========================================== */
 import * as AC from "./attendanceCore.js?v=1";
 import * as K from "./absenceCore.js?v=2";
-import * as CU from "./catchupCore.js?v=1";
+import * as CU from "./catchupCore.js?v=2";
 import { papersFor } from "./weekPapers.js?v=1";
 import { kidKey, perKey } from "./profileCore.js?v=2";
 import { shortNames } from "./vaultCore.js?v=75";
-import * as V from "./catchupVideo.js?v=1";
+import * as V from "./catchupVideo.js?v=2";
 
 /**
  * o = { store, el, host, periods, weeks, per, key, today, print(week, papers, title), bank() -> Promise<items>,

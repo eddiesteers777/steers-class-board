@@ -76,13 +76,11 @@ async function freeCode(rooms) {
 }
 
 /* ---------- the DeltaMath / Magma Math copy ---------- */
-/** Bank markup to plain text that pastes anywhere: {3/4} -> 3/4, 4{2/3} -> 4 2/3, § -> $, ^{2} -> ^2. */
-export function plain(s) {
-    return String(s == null ? "" : s).replace(/§/g, "$")
-        .replace(/(\d)\{([^{}]+)\/([^{}]+)\}/g, "$1 $2/$3")
-        .replace(/\{([^{}]+)\/([^{}]+)\}/g, (m, a, b) => (/[\s+\-−×÷]/.test(a.trim()) ? "(" + a.trim() + ")" : a.trim()) + "/" + (/[\s+\-−×÷]/.test(b.trim()) ? "(" + b.trim() + ")" : b.trim()))
-        .replace(/\^\{([^{}]+)\}/g, (m, x) => "^" + (x.length > 1 ? "(" + x + ")" : x));
-}
+/** Bank markup to plain text that pastes anywhere: {3/4} -> 3/4, 4{2/3} -> 4 2/3, {{3/4}/{1/8}} -> (3/4)/(1/8), § -> $,
+    x^{2n} -> x^(2n). Fixed Nov 23 (Eddie OK'd): nested braces used to paste as {1 1/2/−3/4}; now the brace-aware
+    converter in js/catchupCore.js does it, so both copies read the same. */
+import { plain } from "./catchupCore.js?v=2";
+export { plain };
 /**
  * One worked example and 8 to 10 problems for a standard, as text to paste into DeltaMath or Magma Math.
  * Same seed, same problems. Returns { text, n } (n = problems, 0 when the bank has too few).
