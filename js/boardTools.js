@@ -9,7 +9,7 @@
 import { cleanStickers } from "./stickers.js?v=1";
 import { cleanSty } from "./panelStyle.js?v=1";
 
-export const TOOL_LIST = [["traffic", "Traffic light"], ["work", "Voice level"], ["clock", "Clock"], ["stopwatch", "Stopwatch"], ["text", "Message"], ["dice", "Dice"], ["score", "Scoreboard"], ["goal", "Class goal"], ["pick", "Name picker"], ["groups", "Group maker"], ["cam", "Webcam"]];
+export const TOOL_LIST = [["traffic", "Traffic light"], ["work", "Voice level"], ["clock", "Clock"], ["stopwatch", "Stopwatch"], ["text", "Message"], ["dice", "Dice"], ["score", "Scoreboard"], ["goal", "Class goal"], ["pick", "Name picker"], ["groups", "Group maker"], ["cam", "Webcam"], ["slide", "Slide"]];
 /* Lesson panels (js/panels.js builds them) sit in the same panel system as the tools. */
 export const LESSON_PANELS = [["ptimer", "Timer"], ["target", "Learning target"], ["agenda", "Agenda"], ["period", "Period clock"]];
 export const PANEL_LIST = LESSON_PANELS.concat(TOOL_LIST);
@@ -32,7 +32,7 @@ export function defaultTools() {
         sw: { running: false, t0: 0, elapsed: 0 },
         pick: { period: "", cur: -1, used: [] }, groups: { period: "", size: 3, order: [] }, absent: { day: "", periods: {} },
         palert: { on: true, at: [5, 1], sound: true },   // Period clock alerts: minutes before the end of class (0 = the bell)
-        pin: {}, lock: {}, zo: [], sty: {} };   // panels shown on every screen, panels locked in place, the stacking order (back to front), each panel's own style (js/panelStyle.js)
+        pin: {}, lock: {}, zo: [], sty: {}, slp: "" };   // panels shown on every screen, panels locked in place, the stacking order (back to front), each panel's own style (js/panelStyle.js)
 }
 export const PALERT_MINS = [15, 10, 5, 2, 1, 0];
 export function mergeTools(d) {
@@ -50,6 +50,7 @@ export function mergeTools(d) {
     if (d.v === 2 && d.pos && typeof d.pos === "object") PANEL_LIST.forEach(([k]) => { const q = d.pos[k]; if (q) t.pos[k] = { x: Math.min(95, Math.max(0, +q.x || 0)), y: Math.min(92, Math.max(0, +q.y || 0)), s: Math.min(3, Math.max(0.5, +q.s || 1)) }; });
     { const keys = (o) => { const r = {}; if (o && typeof o === "object") PANEL_LIST.forEach(([k]) => { if (o[k]) r[k] = true; }); return r; };
         t.pin = keys(d.pin); t.lock = keys(d.lock);
+        if (typeof d.slp === "string" && /^[A-Za-z0-9_-]{1,40}$/.test(d.slp)) t.slp = d.slp;   // which slide the Slide panel shows
         if (d.sty && typeof d.sty === "object") PANEL_LIST.forEach(([k]) => { const s = cleanSty(d.sty[k]); if (s) t.sty[k] = s; });
         if (Array.isArray(d.zo)) d.zo.forEach((k) => { if (PANEL_LIST.some((x) => x[0] === k) && !t.zo.includes(k)) t.zo.push(k); }); }
     if (d.palert && typeof d.palert === "object") t.palert = { on: d.palert.on !== false, sound: d.palert.sound !== false, at: Array.isArray(d.palert.at) ? PALERT_MINS.filter((m) => d.palert.at.includes(m)) : t.palert.at };

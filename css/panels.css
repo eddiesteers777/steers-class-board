@@ -373,3 +373,12 @@ body.board.idle .pmenu{opacity:1}
 .psftx small{font-size:10.5px;line-height:1.25;opacity:.72;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .psop{margin-top:12px}
 .pshint{margin:4px 0 0}
+
+/* the Slide panel (js/panels.js slidePanel): one lesson slide, drawn to fit, with Back / Next */
+.float.tool-slide{width:30em}
+.pslide{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:.45em;background:#fff;box-shadow:0 0 0 .06em rgba(16,53,138,.15)}
+.pslide>.vsub{position:absolute;inset:0;display:grid;place-items:center;padding:1em;text-align:center;font-size:.8em}
+.pslnav{align-items:center;justify-content:center;margin-top:.45em}
+.pslnav .pslnum{font-size:.7em;font-weight:700;min-width:4.5em;text-align:center;font-variant-numeric:tabular-nums}
+.pslnav button:disabled{opacity:.35;cursor:default}
+.docked.tool-slide .pslnav{margin-top:.3em}

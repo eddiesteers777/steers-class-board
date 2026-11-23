@@ -237,7 +237,10 @@ const toolApi = { S, el, push, quiet, now, card, rosters: () => ROSTERS, cue: (n
     day: () => D(), lesson: () => L(), rich, bells: () => BELLS, guest: () => mode === "sub", panelOk: (k) => panelOk(k), screenOk: (id) => screenOk(id),
     defaultPos: (k) => { const d = DEFAULT_POS[k] || [10, 30]; return { x: d[0], y: d[1], s: 1 }; }, bellSeconds: () => { const l = L(); return (l && l.bellSeconds) || 300; },
     agendaKey: () => [S.week, S.period, S.day].join("|"), noteKind: () => { if (S.screen !== "notes") return ""; const fr = notesFrames(D()); const f = fr[Math.min(S.note, fr.length - 1)]; return (f && f.kind) || ""; }, freeView, timerGo: () => timerGo("free"), timerReset: () => { S.timers.free = Object.assign(blankTimer(), { dur: S.timers.free.dur || 300 }); push(); },
-    timerSet: (sec) => { S.timers.free = Object.assign(blankTimer(), { dur: sec }); } };
+    timerSet: (sec) => { S.timers.free = Object.assign(blankTimer(), { dur: sec }); },
+    // the Slide panel (js/panels.js slidePanel): this lesson's slides, drawn to fit the panel
+    slideList: () => slList(), slidesReady: () => !slOn || slLoaded(),
+    slideInto: (host, sl) => { host.textContent = ""; const r = renderSlide(sl, { step: revealSteps(sl), fresh: 0, live: slLive(), img: slImg().src, logo: lookSeal(), scale: (host.clientWidth || 640) / 1600 }); r.setAttribute("role", "img"); r.setAttribute("aria-label", "Slide"); host.appendChild(r); fitSlide(host, r); } };
 function toolSig() { const t = Object.assign({}, S.tools); delete t.text; t.goal = Object.assign({}, t.goal); delete t.goal.text; const f = S.timers.free; return JSON.stringify([t, S.period, Object.keys(ROSTERS).map((k) => k + ROSTERS[k].length), f.running, f.dur, f.t0, f.elapsed, S.week, S.cls, S.day, !!BELLS, S.tools.on.agenda ? [S.screen, S.screen === "notes" ? S.note : 0] : 0]); }
 const panelOk = (k) => !(mode === "sub" && (k === "pick" || k === "groups" || (k === "cam" && !studio)));   // a sub never gets the camera (the Board Builder demo does)
 function screenOk(id) { if (!screenOrder().includes(id)) return false; if (id === "notes") return notesFrames(D()).length > 0; if (id === "speed") return isSpeedDay(); return true; }
@@ -276,7 +279,7 @@ function slWatch() {
     SL.key = k; SL.lesson = null; SL.ver++; if (slUnsub) { slUnsub(); slUnsub = null; }
     slUnsub = store.watch("slides/" + k, (snap) => { if (snap.pending || SL.key !== k) return; SL.lesson = cleanDeck(snap.exists ? snap.data : null); SL.ver++; slChanged(); }, () => { if (SL.key === k) { SL.lesson = cleanDeck(null); SL.ver++; slChanged(); } });
 }
-function slChanged() { if (!synced) return; if (S.screen === "deck") sig = ""; render(); }
+function slChanged() { if (!synced) return; if (S.screen === "deck") sig = ""; if (S.tools.on.slide) layerSig = ""; render(); }
 const slLoaded = () => slOn && SL.key === lessonKeyNow() && !!SL.lesson && !!SL.daily;
 const slList = () => (slLoaded() ? showList(SL.daily, SL.lesson) : []);
 /** Whether a lesson has slides to show: its own list once loaded, else the index. */
@@ -1234,7 +1237,7 @@ function blanked(text, reveal) {
 }
 
 /* ---------- floating tools (shown over every screen) ---------- */
-const DEFAULT_POS = { cam: [56, 34], pick: [34, 30], groups: [10, 24],  traffic: [2, 23], work: [10, 55], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40], goal: [60, 30], ptimer: [66, 18], target: [24, 8], agenda: [4, 18], period: [66, 6] };
+const DEFAULT_POS = { slide: [2, 2], cam: [56, 34], pick: [34, 30], groups: [10, 24],  traffic: [2, 23], work: [10, 55], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40], goal: [60, 30], ptimer: [66, 18], target: [24, 8], agenda: [4, 18], period: [66, 6] };
 let topZ = 1;
 let layerSig = "", dragging = false;
 function posOf(k) { const p = S.tools.pos[k]; if (p) return p; const d = DEFAULT_POS[k] || [10, 30]; return { x: d[0], y: d[1], s: 1 }; }

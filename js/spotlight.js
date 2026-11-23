@@ -125,7 +125,7 @@ function build() {
     const rack = el("div", "sprack");
     [LESSON_PANELS, TOOL_LIST].forEach((list, li) => {
         if (li) rack.appendChild(el("i", "spsep thin"));
-        list.forEach(([k, label]) => {
+        list.filter(([k]) => k !== "slide").forEach(([k, label]) => {
             const b = button("spt", icon(k) + "<span>" + shortName(k, label) + "</span>", (PANEL_INFO[k] || label), () => togglePanel(k));
             b.dataset.k = k; rack.appendChild(b);
         });
@@ -152,6 +152,16 @@ function togglePanel(k) {
     A.push();
     if (T.pos[k]) roomFor(k);
     const w = document.querySelector('#toolLayer [data-panel="' + k + '"]'); if (w) { w.classList.remove("sppop"); void w.offsetWidth; w.classList.add("sppop"); }
+}
+/** The Slide panel shows slide id: on, floating, in front. It opens about half the screen, not all of it (Eddie, 2026-11-23). */
+function slidePanel(id) {
+    const T = A.S.tools, fresh = !T.on.slide || T.min.slide || !T.pos.slide; T.slp = id;
+    if (!T.on.slide) panelOn(T, "slide");
+    delete T.min.slide;
+    if (!T.pos.slide) T.pos.slide = { x: 4, y: 6, s: 1 };
+    T.zo = (T.zo || []).filter((x) => x !== "slide").concat(["slide"]);
+    A.push();
+    if (fresh) { roomFor("slide"); const w = document.querySelector('#toolLayer [data-panel="slide"]'); if (w) { w.classList.remove("sppop"); void w.offsetWidth; w.classList.add("sppop"); } }
 }
 /** A panel that just popped on goes to the first open spot (top right first, then leftward and down), never on top of another one. */
 function roomFor(k) {
@@ -207,7 +217,7 @@ function keys(e) {
 function paintFull() { const b = host && host.querySelector(".spfull"); if (!b) return; const f = isFull(); b.innerHTML = svg(f ? IC.unfull : IC.full); b.title = f ? "Leave full screen" : "Full screen"; b.setAttribute("aria-label", b.title); b.setAttribute("aria-pressed", String(f)); setTimeout(() => A && A.fit(), 80); }
 function paint() {
     const S = A.S, T = S.tools, drawing = A.spot.draw(), p = A.spot.pages();
-    const sig = JSON.stringify([S.screen, T.on, T.min, Object.keys(T.pos), drawing, tucked, sheet, picked, p, photoGroupNow(), sheet === "screens" || sheet === "slides" ? A.spot.slides().map((x) => x.id).join(",") + A.spot.slidesReady() + JSON.stringify(A.S.wb.spot) : "", A.spot.slideIdOf(p.n), A.spot.tool(), A.spot.pen(), A.spot.size(), S.look, Date.now() - delArm < 3000, picked && T.pos[picked] ? T.pos[picked].s : 0]);
+    const sig = JSON.stringify([S.screen, T.on, T.min, Object.keys(T.pos), drawing, tucked, sheet, picked, p, photoGroupNow(), sheet === "screens" || sheet === "slides" ? String(T.slp) + A.spot.slides().map((x) => x.id).join(",") + A.spot.slidesReady() + JSON.stringify(A.S.wb.spot) : "", A.spot.slideIdOf(p.n), A.spot.tool(), A.spot.pen(), A.spot.size(), S.look, Date.now() - delArm < 3000, picked && T.pos[picked] ? T.pos[picked].s : 0]);
     if (sig === lastSig) return; lastSig = sig;
     host.classList.toggle("tucked", tucked); document.body.classList.toggle("spotdraw", drawing);
     // a photo background runs edge to edge behind the board, with no frame around it
@@ -344,9 +354,13 @@ function screensSheet(sh, head, keepTop, slidesFirst) {
     } else {
         const g2 = el("div", "spstiles"); box.appendChild(g2);
         list.forEach((x, i) => {
-            const inn = have.has(x.id), b = button("spstile slide" + (inn ? " in" : ""), "", inn ? "Go to this slide" : "Bring this slide in after this screen", () => { if (A.spot.openSlide(x.id)) flash(inn ? "Slide " + (i + 1) : "Slide " + (i + 1) + " added"); else flash("No room for more screens"); });
+            // From the Slides button a slide opens as a panel (move it, size it, style it); from the screen count it becomes a screen.
+            const T = A.S.tools, inPanel = slidesFirst && T.on.slide && T.slp === x.id;
+            const inn = have.has(x.id), b = slidesFirst
+                ? button("spstile slide" + (inPanel ? " in" : ""), "", "Open this slide as a panel", () => { slidePanel(x.id); flash("Slide " + (i + 1) + " is up"); })
+                : button("spstile slide" + (inn ? " in" : ""), "", inn ? "Go to this slide" : "Bring this slide in after this screen", () => { if (A.spot.openSlide(x.id)) flash(inn ? "Slide " + (i + 1) : "Slide " + (i + 1) + " added"); else flash("No room for more screens"); });
             const pv = el("span", "spspv"); pv.appendChild(A.spot.thumb(x.s, 150));
-            b.append(el("span", "spsnum", String(i + 1)), pv, el("span", "spsnm", inn ? "In Spotlight" : x.daily ? "Every day" : "Tap to bring in"));
+            b.append(el("span", "spsnum", String(i + 1)), pv, el("span", "spsnm", slidesFirst ? (inPanel ? "On the board" : x.daily ? "Every day · tap to show" : "Tap to show") : inn ? "In Spotlight" : x.daily ? "Every day" : "Tap to bring in"));
             g2.appendChild(b);
         });
     }

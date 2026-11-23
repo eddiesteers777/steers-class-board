@@ -35,6 +35,7 @@ const IC = {
     pick: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0114 0"/>',
     groups: '<circle cx="8" cy="9" r="3"/><circle cx="16.5" cy="9" r="3"/><path d="M2.5 19a5.5 5.5 0 0111 0M11 19a5.5 5.5 0 0111 0"/>',
     layout: '<rect x="3" y="4" width="12" height="16" rx="2"/><rect x="17" y="4" width="4" height="7" rx="1.5"/><rect x="17" y="13" width="4" height="7" rx="1.5"/>',
+    slide: '<rect x="3" y="5" width="13" height="10" rx="2"/><path d="M7 19h13a1 1 0 0 0 1-1V9"/>',
     cam: '<rect x="2.5" y="6" width="13.5" height="12" rx="2.5"/><path d="M16 10.5l5.5-3v9l-5.5-3z"/>',
     gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
     more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
@@ -57,6 +58,7 @@ export const PANEL_INFO = {
     traffic: "Stop, slow down, go", work: "From silent to group work", clock: "Time and date", stopwatch: "Count up from zero", text: "Type a note for the room",
     dice: "Roll one to three dice", score: "Points for teams or periods", goal: "Class points toward a reward", pick: "A random name, no repeats", groups: "Random groups from the roster",
     cam: "The camera, live, and recording to this device",
+    slide: "One of this lesson's slides, as a panel you can move and size",
 };
 
 /* ---------- layouts ---------- */
@@ -129,7 +131,24 @@ export function panelToggle(T, k) { if (T.on[k] && !T.min[k]) panelOff(T, k); el
 export function ordered(T, keys) { const o = T.order; return keys.slice().sort((a, b) => { const ia = o.indexOf(a), ib = o.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); }); }
 
 /* ---------- lesson panels ---------- */
+/** The Slide panel (Eddie, 2026-11-23): one of the lesson's slides in a panel that moves, sizes and styles like the rest.
+    It opens filling the screen (spotlight.js), with arrows for the slides before and after. tools.slp = the slide's id. */
+function slidePanel(api) {
+    const { S, el } = api, T = S.tools, c = api.card(labelOf("slide"), "tool panel tool-slide"), b = c.i;
+    const list = api.slideList ? api.slideList() : [], at = Math.max(0, list.findIndex((x) => x.id === T.slp)), cur = list[at];
+    const stage = el("div", "pslide"); b.appendChild(stage);
+    if (!cur) stage.appendChild(el("p", "vsub", api.slidesReady && !api.slidesReady() ? "Getting your slides…" : "No slides for this lesson yet. Make them in the Slides tab."));
+    else requestAnimationFrame(() => { if (stage.isConnected) api.slideInto(stage, cur); });
+    if (list.length > 1) {
+        const row = el("div", "minis pslnav"), go = (n) => { const x = list[Math.min(list.length - 1, Math.max(0, at + n))]; if (x) { T.slp = x.id; api.push(); } };
+        const pv = el("button", null, "‹ Back"), nx = el("button", null, "Next ›"); pv.type = nx.type = "button"; pv.disabled = at <= 0; nx.disabled = at >= list.length - 1;
+        pv.onclick = (e) => { e.stopPropagation(); go(-1); }; nx.onclick = (e) => { e.stopPropagation(); go(1); };
+        row.append(pv, el("span", "pslnum", (at + 1) + " / " + list.length), nx); b.appendChild(row);
+    }
+    return c.c;
+}
 export function buildPanel(k, api) {
+    if (k === "slide") return slidePanel(api);
     if (k === "cam") { const c = api.card(labelOf(k), "tool tool-cam"); c.i.appendChild(camBody(api.el)); return c.c; }
     if (k === "work") {   // the voice level, and the room's microphone against it (js/roomSense.js, this device only)
         const w = buildWidget(k, api); setVoice(api.S.tools.work); const inn = w.querySelector(".in") || w; inn.appendChild(meterEl(api.el)); return w;
@@ -228,6 +247,7 @@ export function chipValue(k, api) {
     if (k === "traffic") return { v: { red: "Stop", yellow: "Slow down", green: "Go" }[T.traffic], tone: T.traffic === "yellow" ? "amber" : T.traffic };
     if (k === "work") { const w = WORK.find((x) => x[0] === T.work) || WORK[0]; return tooLoud() ? { v: "Too loud!", tone: "red" } : { v: w[1], tone: "v-" + w[0] }; }
     if (k === "cam") return { v: "Camera" };
+    if (k === "slide") { const l = api.slideList ? api.slideList() : [], i = Math.max(0, l.findIndex((x) => x.id === T.slp)); return { v: l.length ? "Slide " + (i + 1) + " of " + l.length : "No slides" }; }
     if (k === "text") return { v: (T.text || "No message").slice(0, 28) + ((T.text || "").length > 28 ? "…" : "") };
     if (k === "dice") { const vals = T.dice.vals.slice(0, T.dice.n); return { v: vals.join(" · ") + (vals.length > 1 ? " = " + vals.reduce((a, x) => a + x, 0) : "") }; }
     if (k === "score") return { v: T.score.teams.map((x) => x.s).join(" – ") };
