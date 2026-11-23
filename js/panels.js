@@ -10,7 +10,8 @@
 import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=62";
 import { meterEl, setVoice, camBody, tooLoud } from "./roomSense.js?v=1";
 import { MARKS, markUrl } from "./marks.js?v=1";
-import { EFFECTS, FX_AMOUNTS, applyEffect, effectSample } from "./effects.js?v=2";
+import { EFFECTS, FX_AMOUNTS, applyEffect, effectSample } from "./effects.js?v=3";
+import { isMine, mineList, mineSrc, onMine, addMine, removeMine, MY_MAX } from "./myPhotos.js?v=1";
 import { cleanStickers } from "./stickers.js?v=1";
 export { MARKS, EFFECTS, FX_AMOUNTS };
 
@@ -296,7 +297,8 @@ export function openSheet(api) {
 }
 export function closeSheet() { if (!sheet) return; sheet.classList.remove("open"); sheet.hidden = true; }
 export const sheetOpen = () => !!sheet && !sheet.hidden;
-export function refreshSheet() {
+export function refreshSheet() { refreshSheetNow(); }
+function refreshSheetNow() {
     if (!sheetOpen()) return;
     const api = sheetApi, { S, el } = api, T = S.tools, keep = sheet.querySelector(".psave input"), draft = keep ? keep.value : "", hadFocus = keep && document.activeElement === keep;
     const scroll = sheet.querySelector(".pbox") ? sheet.querySelector(".pbox").scrollTop : 0;
@@ -364,18 +366,67 @@ export const LOOK_BGS = [["anchor", "Big logo"], ["plain", "Plain"], ["rings", "
     // Board Builder, Nov 21
     ["axes", "Coordinate plane"], ["paper", "Notebook"], ["chalk", "Chalk dust"], ["shapes", "Shapes"], ["hex", "Honeycomb"],
     ["waves", "Waves"], ["hills", "Hills"], ["space", "Space"], ["sunset", "Sunset glow"], ["bokeh", "Soft lights"], ["leaves", "Fall leaves"], ["confetti", "Confetti"]];
-/* Real photos (photos/*.webp; the small tiles are photos/sm/*.webp). All from Unsplash, whose licence lets anyone use them
-   free with no credit required; the photographer is still named on each tile and in photos/CREDITS.md.
-   A veil in the board's colours (css/look.css) keeps the lesson readable on top. [id, name, group, photographer] */
-export const LOOK_PHOTO_GROUPS = ["Mountains", "Beaches", "Landscapes", "Cities", "Animals"];
-export const LOOK_PHOTOS = [
-    ["ph-mtn-lake", "Mountain lake", "Mountains", "Tobias Keller"], ["ph-mtn-peak", "Alpine peak", "Mountains", "Pietro De Grandi"], ["ph-mtn-ridge", "Wildflower ridge", "Mountains", "Daniela Kokina"], ["ph-mtn-dusk", "Ridges at dusk", "Mountains", "Sven Pieren"], ["ph-mtn-snow", "Snowy valley", "Mountains", "Kalen Emsley"], ["ph-mtn-mist", "Misty summit", "Mountains", "v2osk"],
-    ["ph-bch-gold", "Golden shore", "Beaches", "Sean Oulashin"], ["ph-bch-palms", "Palm beach", "Beaches", "Matthew Brodeur"], ["ph-bch-sunset", "Beach sunset", "Beaches", "Cristofer Maximilian"], ["ph-bch-waves", "Waves", "Beaches", "Mink Mingle"], ["ph-bch-cove", "Hidden cove", "Beaches", "Derek Thomson"],
-    ["ph-lnd-valley", "Valley river", "Landscapes", "Bailey Zindel"], ["ph-lnd-mist", "Misty forest", "Landscapes", "pine watt"], ["ph-lnd-autumn", "Autumn forest", "Landscapes", "Johannes Plenio"], ["ph-lnd-cabin", "Lake cabin", "Landscapes", "Luca Bravo"], ["ph-lnd-tree", "Lone tree", "Landscapes", "Ken Cheung"], ["ph-lnd-flowers", "Lakeside flowers", "Landscapes", "Mark Harpur"],
-    ["ph-cty-dawn", "Skyline at dawn", "Cities", "Jonathan Roger"], ["ph-cty-bridge", "Bridge at night", "Cities", "Luca Bravo"], ["ph-cty-lake", "Lakefront skyline", "Cities", "Jeff Brown"], ["ph-cty-pink", "Pink sky harbor", "Cities", "Muzammil Soorma"], ["ph-cty-sunset", "Sunset towers", "Cities", "Shea Rouda"], ["ph-cty-night", "Night reflections", "Cities", "Pang Yuhao"],
-    ["ph-ani-fox", "Fox", "Animals", "Ray Hennessy"], ["ph-ani-lion", "Lion and cub", "Animals", "Zdeněk Macháček"], ["ph-ani-bear", "Polar bear", "Animals", "Hans-Jurgen Mager"], ["ph-ani-turtle", "Sea turtle", "Animals", "Wexor Tmg"], ["ph-ani-zebra", "Zebras", "Animals", "sutirta budiman"], ["ph-ani-flamingo", "Flamingo", "Animals", "Alejandro Contreras"],
+/* Real photos (photos/*.webp, 2560 wide; the small tiles are photos/sm/*.webp). All from Unsplash, whose licence lets anyone
+   use them free with no credit required; the photographer is still named on each tile and in photos/CREDITS.md.
+   A veil in the board's colours (css/look.css) keeps the lesson readable on top. [id, name, group key, photographer]
+   Ids never change once saved (boards and saved looks keep them); a photo can move to another group freely. */
+export const PHOTO_SECTIONS = [
+    ["Places", [["mtn", "Mountains"], ["bch", "Beaches"], ["wtr", "Forests & water"], ["dsr", "Deserts & canyons"], ["cty", "Cities"], ["sky", "Night sky & space"]]],
+    ["Living things", [["ani", "Animals"], ["sea", "Ocean life"]]],
+    ["Seasons", [["fal", "Fall"], ["win", "Winter"], ["spr", "Spring"]]],
+    ["For class", [["mth", "Math in nature"], ["spt", "Sports"]]],
 ];
-const isPhoto = (id) => LOOK_PHOTOS.some((x) => x[0] === id);
+const PHOTO_GROUP = new Map(PHOTO_SECTIONS.flatMap((s) => s[1]));
+export const LOOK_PHOTOS = [
+    ["ph-mtn-lake", "Mountain lake", "mtn", "Tobias Keller"], ["ph-mtn-peak", "Alpine peak", "mtn", "Pietro De Grandi"], ["ph-mtn-ridge", "Wildflower ridge", "mtn", "Daniela Kokina"],
+    ["ph-mtn-dusk", "Ridges at dusk", "mtn", "Sven Pieren"], ["ph-mtn-snow", "Snowy valley", "mtn", "Kalen Emsley"], ["ph-mtn-mist", "Misty summit", "mtn", "v2osk"],
+    ["ph-bch-gold", "Golden shore", "bch", "Sean Oulashin"], ["ph-bch-palms", "Palm beach", "bch", "Matthew Brodeur"], ["ph-bch-sunset", "Beach sunset", "bch", "Cristofer Maximilian"],
+    ["ph-bch-waves", "Waves", "bch", "Mink Mingle"], ["ph-bch-cove", "Hidden cove", "bch", "Derek Thomson"],
+    ["ph-lnd-valley", "Valley river", "wtr", "Bailey Zindel"], ["ph-lnd-mist", "Misty forest", "wtr", "pine watt"], ["ph-lnd-cabin", "Lake cabin", "wtr", "Luca Bravo"],
+    ["ph-lnd-tree", "Lone tree", "wtr", "Ken Cheung"], ["ph-wtr-bridge", "Bridge falls", "wtr", "Blake Verdoorn"], ["ph-wtr-pool", "Falls pool", "wtr", "Jeffrey Workman"],
+    ["ph-wtr-basalt", "Hidden falls", "wtr", "MJ Tangonan"], ["ph-wtr-forest", "Forest falls", "wtr", "John Rodenn Castillo"], ["ph-wtr-cave", "Behind the falls", "wtr", "v2osk"],
+    ["ph-dsr-canyon", "Canyon country", "dsr", "K. Mitch Hodge"], ["ph-dsr-rocks", "Red rocks", "dsr", "Thomas Ten"], ["ph-dsr-wave", "Sandstone wave", "dsr", "Tyler Franta"],
+    ["ph-dsr-swirl", "Painted desert", "dsr", "John Fowler"], ["ph-dsr-river", "Canyon river", "dsr", "Megan Clark"], ["ph-dsr-slot", "Slot canyon", "dsr", "Nick Kelly"],
+    ["ph-cty-dawn", "Skyline at dawn", "cty", "Jonathan Roger"], ["ph-cty-bridge", "Bridge at night", "cty", "Luca Bravo"], ["ph-cty-lake", "Lakefront skyline", "cty", "Jeff Brown"],
+    ["ph-cty-pink", "Pink sky harbor", "cty", "Muzammil Soorma"], ["ph-cty-sunset", "Sunset towers", "cty", "Shea Rouda"], ["ph-cty-night", "Night reflections", "cty", "Pang Yuhao"],
+    ["ph-sky-aurora", "Northern lights", "sky", "Johny Goerend"], ["ph-sky-lagoon", "Aurora lagoon", "sky", "v2osk"], ["ph-sky-pines", "Aurora forest", "sky", "Vincent Guth"],
+    ["ph-sky-milky", "Milky Way", "sky", "Dns Dgn"], ["ph-sky-peaks", "Starry peaks", "sky", "Benjamin Voros"], ["ph-sky-orion", "Orion Nebula", "sky", "Bryan Goff"],
+    ["ph-sky-galaxy", "Galaxy", "sky", "Jeremy Thomas"], ["ph-sky-earth", "Planet Earth", "sky", "NASA"], ["ph-sky-lights", "Earth at night", "sky", "NASA"],
+    ["ph-sky-orbit", "From orbit", "sky", "NASA"],
+    ["ph-ani-fox", "Fox", "ani", "Ray Hennessy"], ["ph-ani-lion", "Lion and cub", "ani", "Zdeněk Macháček"], ["ph-ani-bear", "Polar bear", "ani", "Hans-Jurgen Mager"],
+    ["ph-ani-zebra", "Zebras", "ani", "sutirta budiman"], ["ph-ani-flamingo", "Flamingo", "ani", "Alejandro Contreras"], ["ph-ani-penguin", "Penguin", "ani", "Cornelius Ventures"],
+    ["ph-ani-king", "King penguin", "ani", "Ian Parker"], ["ph-ani-owl", "Little owl", "ani", "Zdeněk Macháček"], ["ph-ani-eagleowl", "Eagle owl", "ani", "Dirk van Wolferen"],
+    ["ph-ani-barnowl", "Barn owl", "ani", "Ronan Furuta"], ["ph-ani-elephants", "Elephants at dusk", "ani", "Mylon Ollila"], ["ph-ani-herd", "Elephant herd", "ani", "Matthew Spiteri"],
+    ["ph-ani-wolf", "Gray wolf", "ani", "Marc-Olivier Jodoin"],
+    ["ph-ani-turtle", "Sea turtle", "sea", "Wexor Tmg"], ["ph-sea-coral", "Coral garden", "sea", "qui nguyen"], ["ph-sea-sunlit", "Sunlit reef", "sea", "Hiroko Yoshii"],
+    ["ph-sea-reef", "Reef fish", "sea", "Shifaz Abdul Hakkim"], ["ph-sea-orange", "Orange fish", "sea", "Francesco Ungaro"], ["ph-sea-breach", "Whale breach", "sea", "Todd Cravens"],
+    ["ph-sea-humpback", "Humpback", "sea", "Gabriel Dizzi"], ["ph-sea-shark", "Whale shark", "sea", "Sebastian Pena Lambarri"], ["ph-sea-dolphin", "Dolphin", "sea", "Pagie Page"],
+    ["ph-lnd-autumn", "Autumn forest", "fal", "Johannes Plenio"], ["ph-fal-lake", "Autumn lake", "fal", "Ryan Liu"], ["ph-fal-larch", "Golden larches", "fal", "Federica Galli"],
+    ["ph-fal-path", "Golden path", "fal", "Lukasz Szmigiel"], ["ph-fal-aspen", "Aspen valley", "fal", "Thomas Morse"], ["ph-fal-stream", "Yellow woods", "fal", "Isakov Eldiiar"],
+    ["ph-win-cabin", "Snowy cabin", "win", "Ian Keefe"], ["ph-win-lake", "Frozen lake", "win", "Tim Stief"], ["ph-win-pines", "Snowy pines", "win", "Annie Spratt"],
+    ["ph-win-village", "Winter sunset", "win", "Michael Niessl"], ["ph-win-river", "Snowy creek", "win", "Pietro Donà"], ["ph-win-valley", "Winter valley", "win", "jms"],
+    ["ph-win-falls", "Icy falls", "win", "Alessio Zappatore"],
+    ["ph-lnd-flowers", "Lakeside flowers", "spr", "Mark Harpur"], ["ph-spr-water", "Cherry lake", "spr", "Mark Tegethoff"], ["ph-spr-mirror", "Blossom mirror", "spr", "Redd Francisco"],
+    ["ph-spr-path", "Blossom path", "spr", "Maud Bocquillod"], ["ph-spr-branch", "Cherry branches", "spr", "Nagy Arnold"],
+    ["ph-mth-hex", "Hexagon honeycomb", "mth", "Jonas Hensel"], ["ph-mth-honey", "Honey hexagons", "mth", "Cristina Marin"], ["ph-mth-nautilus", "Nautilus spiral", "mth", "Manila Kumari"],
+    ["ph-mth-sunflower", "Sunflower spirals", "mth", "Lisa Siefert"], ["ph-mth-fern", "Fern spiral", "mth", "FELIXFELIX FELIX"], ["ph-mth-stairs", "Spiral staircase", "mth", "Otto Freijser"],
+    ["ph-mth-succ", "Succulent spiral", "mth", "Christian Lambert"], ["ph-mth-ammonite", "Ammonite spiral", "mth", "David Clode"],
+    ["ph-spt-field", "Field at sunset", "spt", "Amina"], ["ph-spt-stadium", "Stadium", "spt", "Eliézer Fernandes"], ["ph-spt-ball", "Game ball", "spt", "Connor Coyne"],
+    ["ph-spt-goals", "Practice field", "spt", "Jonathan Adams"],
+];
+/* A new photo every day: pd-all from every group, pd-<group> from one group. The same photo all day on every screen. */
+export const DAILY_PHOTOS = [["pd-all", "Photo of the day", ""]].concat(PHOTO_SECTIONS.flatMap((s) => s[1].map(([k, n]) => ["pd-" + k, n + ", a new one each day", k])));
+const isPhoto = (id) => LOOK_PHOTOS.some((x) => x[0] === id) || DAILY_PHOTOS.some((x) => x[0] === id) || isMine(id);
+/** Every background name, for labels: patterns, photos, daily photos and the teacher's own pictures. */
+export const bgName = (id) => { const f = LOOK_BGS.concat(LOOK_PHOTOS, DAILY_PHOTOS).find((x) => x[0] === id); if (f) return f[1]; const m = mineList().find((x) => x.id === id); return m ? m.name : isMine(id) ? "My picture" : id; };
+/** The photo a daily background shows on a given day (a fixed shuffle, so neighbouring days differ). */
+export function dailyPhoto(bg, when) {
+    const g = bg === "pd-all" ? "" : bg.slice(3), list = LOOK_PHOTOS.filter((x) => !g || x[2] === g);
+    if (!list.length) return "";
+    const order = list.map((x, i) => [x[0], ((i + 1) * 2654435761) % 4294967296]).sort((a, b) => a[1] - b[1]).map((x) => x[0]);
+    const d = when || new Date(), day = Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 86400000);
+    return order[((day % order.length) + order.length) % order.length];
+}
 /* One tap for a whole look: [id, name, colours, background, logo, effect, group]. */
 export const LOOK_PRESETS = [
     ["math", "Math class", "navy", "axes", "pi", "math", "Every day"], ["chalkboard", "Chalkboard", "chalk", "chalk", "anchor", "none", "Every day"],
@@ -386,6 +437,8 @@ export const LOOK_PRESETS = [
     ["xmas-pines", "Winter forest", "evergreen", "trees", "tree", "none", "Winter"], ["xmas-candy", "Candy cane", "cranberry", "candy", "star", "none", "Winter"],
     ["snowmen", "Snow day", "winter", "hills", "snowflake", "snowmen", "Winter"], ["valentine", "Valentine's", "berry", "bokeh", "anchor", "hearts", "Spring"],
     ["clover", "Lucky day", "forest", "hills", "anchor", "clovers", "Spring"], ["spring", "Spring", "teal", "hills", "anchor", "flowers", "Spring"],
+    ["p-day", "Photo of the day", "navy", "pd-all", "anchor", "none", "Photos"], ["p-winter", "Winter cabin", "winter", "ph-win-cabin", "snowflake", "snow", "Photos"],
+    ["p-aurora", "Northern lights", "midnight", "ph-sky-aurora", "star", "sparkles", "Photos"],
     ["p-lake", "Mountain lake", "navy", "ph-mtn-lake", "anchor", "none", "Photos"], ["p-beach", "Beach sunset", "sunset", "ph-bch-sunset", "anchor", "none", "Photos"],
     ["p-forest", "Misty forest", "forest", "ph-lnd-mist", "anchor", "none", "Photos"], ["p-city", "City at night", "midnight", "ph-cty-bridge", "star", "none", "Photos"],
     ["p-fox", "Fox in the snow", "ocean", "ph-ani-fox", "anchor", "snow", "Photos"],
@@ -401,13 +454,25 @@ let lookApplied = "", seal = "brand/logo.svg";
 /** The header logo for the current look (brand/logo.svg for Navy + Anchor). */
 export const lookSeal = () => seal;
 const MARK_VARS = ["--ring-mark", "--ring-mark-light", "--ring-wm"];
+let lastLook = null, dayT = 0;
+/* At midnight a daily photo turns over to the next one, even on a board left open overnight. */
+function dayTimer() {
+    clearTimeout(dayT); const n = new Date(), next = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1, 0, 0, 30);
+    dayT = setTimeout(() => { if (lastLook && /^pd-/.test(lastLook.bg)) { lookApplied = ""; applyLook(lastLook); } }, Math.min(next - n, 2147483000));
+}
+onMine(() => { if (lastLook && isMine(lastLook.bg)) { lookApplied = ""; applyLook(lastLook); } });
 export function applyLook(look) {
     applyEffect(look.fx || "none", look.fxn);   // has its own did-it-change check
-    const key = look.theme + "|" + look.bg + "|" + (look.mark || "anchor"); if (key === lookApplied) return; lookApplied = key;
+    lastLook = look;
+    // A daily photo shows one real photo all day; the teacher's own picture shows once it has loaded.
+    const daily = /^pd-/.test(look.bg), shown = daily ? dailyPhoto(look.bg) : look.bg, mine = isMine(look.bg) ? mineSrc(look.bg) : "";
+    const key = look.theme + "|" + shown + "|" + (look.mark || "anchor") + "|" + (mine ? mine.length : 0); if (key === lookApplied) return; lookApplied = key;
     const b = document.body, t = LOOK_THEMES.find((x) => x[0] === look.theme) || LOOK_THEMES[0];
+    if (daily) { b.style.setProperty("--ph-day", 'url("photos/' + shown.slice(3) + '.webp")'); dayTimer(); } else b.style.removeProperty("--ph-day");
+    if (mine) b.style.setProperty("--ph-mine", 'url("' + mine + '")'); else b.style.removeProperty("--ph-mine");
     if (t[0] === "navy") { b.style.removeProperty("--ring-grad"); b.style.removeProperty("--look-out"); b.style.removeProperty("--look-mid"); b.style.removeProperty("--look-hi"); }
     else { b.style.setProperty("--ring-grad", gradOf(t[0])); b.style.setProperty("--look-out", t[2][2]); b.style.setProperty("--look-mid", t[2][1]); b.style.setProperty("--look-hi", t[2][0]); }
-    b.dataset.theme = t[0]; b.dataset.bg = look.bg;
+    b.dataset.theme = t[0]; b.dataset.bg = shown;
     // The logo follows the colour scheme; Navy + Anchor keeps the brand files exactly as they are
     const mk = look.mark || "anchor";
     if (t[0] === "navy" && mk === "anchor") { MARK_VARS.forEach((v) => b.style.removeProperty(v)); seal = "brand/logo.svg"; }
@@ -429,32 +494,77 @@ export function presetTile(api, p, after) {
     b.onclick = () => { S.look = presetLook(p, S.look.fxn); api.push(); if (after) after(); };
     return b;
 }
-/** The photo backgrounds: a row of group chips, then that group's tiles. pick(id) sets the background; after() redraws. */
-let photoGroup = "";
-/** Which group of photos is showing (so a redraw check can see a chip change). */
-export const photoGroupNow = () => photoGroup;
-export function photoPicker(el, look, pick, after) {
-    const cur = LOOK_PHOTOS.find((x) => x[0] === look.bg);
-    if (!photoGroup) photoGroup = cur ? cur[2] : LOOK_PHOTO_GROUPS[0];
+/** The photo backgrounds: chips for each group (in sections), then that group's tiles. pick(id) sets the background;
+    after() redraws. "day" shows the photo-of-the-day choices, "mine" the teacher's own pictures. */
+let photoGroup = "", mineMsg = "", pickerAfter = null;
+onMine(() => { if (pickerAfter) pickerAfter(); });
+/** What the photo picker shows (so a redraw check can see a chip change or a new picture). */
+export const photoGroupNow = () => photoGroup + "|" + mineMsg + "|" + mineList().map((x) => x.id).join(",");
+const groupOf = (bg) => { if (/^pd-/.test(bg)) return "day"; if (isMine(bg)) return "mine"; const f = LOOK_PHOTOS.find((x) => x[0] === bg); return f ? f[2] : "day"; };
+export function photoPicker(el, look, pick, after, opts) {
+    const o = opts || {};
+    pickerAfter = after || null;
+    if (!photoGroup) photoGroup = groupOf(look.bg);
     const box = el("div", "lookphotos");
-    const chips = el("div", "lookpg"); chips.setAttribute("role", "group"); chips.setAttribute("aria-label", "Kind of photo");
-    LOOK_PHOTO_GROUPS.forEach((g) => {
-        const c = el("button", "lookpgc" + (g === photoGroup ? " on" : ""), g); c.type = "button"; c.setAttribute("aria-pressed", String(g === photoGroup));
-        c.onclick = () => { photoGroup = g; if (after) after(); }; chips.appendChild(c);
+    const chip = (key, name, row, extra) => {
+        const c = el("button", "lookpgc" + (extra ? " " + extra : "") + (key === photoGroup ? " on" : ""), name); c.type = "button"; c.setAttribute("aria-pressed", String(key === photoGroup));
+        c.onclick = () => { photoGroup = key; mineMsg = ""; if (after) after(); }; row.appendChild(c);
+    };
+    const top = el("div", "lookpg"); top.setAttribute("role", "group"); top.setAttribute("aria-label", "Photo choices");
+    chip("day", "\u2605 Photo of the day", top, "special"); if (!o.guest) chip("mine", "My pictures", top, "special");
+    box.appendChild(top);
+    PHOTO_SECTIONS.forEach(([sec, groups]) => {
+        const row = el("div", "lookpg"); row.setAttribute("role", "group"); row.setAttribute("aria-label", sec);
+        row.appendChild(el("span", "lookpgh", sec)); groups.forEach(([k, n]) => chip(k, n, row)); box.appendChild(row);
     });
-    box.appendChild(chips);
-    const grid = el("div", "lookbgs"); grid.setAttribute("role", "group"); grid.setAttribute("aria-label", photoGroup + " photos");
-    LOOK_PHOTOS.filter((x) => x[2] === photoGroup).forEach(([id, name, , who]) => {
-        const on = look.bg === id, b = el("button", "lookbg" + (on ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(on)); b.title = name + ". Photo: " + who + " on Unsplash";
-        const pv = el("span", "lpv"); pv.style.background = gradOf(look.theme); pv.appendChild(el("span", "stagebg pv-" + id)); b.appendChild(pv); b.appendChild(el("span", "lnm", name)); b.appendChild(el("span", "lwho", who));
-        b.onclick = () => pick(id); grid.appendChild(b);
-    });
+    const grid = el("div", "lookbgs"); grid.setAttribute("role", "group");
+    const tile = (id, name, sub, title, fill) => {
+        const on = look.bg === id, b = el("button", "lookbg" + (on ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(on)); if (title) b.title = title;
+        const pv = el("span", "lpv"); pv.style.background = gradOf(look.theme); const sb = el("span", "stagebg pv-" + id); if (fill) fill(sb); pv.appendChild(sb);
+        b.appendChild(pv); b.appendChild(el("span", "lnm", name)); if (sub) b.appendChild(el("span", "lwho", sub));
+        b.onclick = () => pick(id); grid.appendChild(b); return b;
+    };
+    if (photoGroup === "day") {
+        grid.setAttribute("aria-label", "Photo of the day");
+        box.appendChild(el("p", "lookcred", "The board shows a different photo each day, the same one on every screen, and turns over at midnight."));
+        tile("pd-all", "Photo of the day", "From all " + LOOK_PHOTOS.length + " photos");
+        PHOTO_SECTIONS.forEach(([, groups]) => groups.forEach(([k, n]) => tile("pd-" + k, n, LOOK_PHOTOS.filter((x) => x[2] === k).length + " photos, one a day")));
+    } else if (photoGroup === "mine") {
+        grid.setAttribute("aria-label", "My pictures");
+        const mine = mineList();
+        box.appendChild(el("p", "lookcred", "Add a picture from your computer: a class photo of a field trip, your own landscape, anything. It is made smaller and saved to your account, up to " + MY_MAX + ". Pictures with students' faces are best kept off the board unless you have permission."));
+        if (mine.length < MY_MAX) {
+            const add = el("button", "lookbg lookadd"); add.type = "button";
+            const pv = el("span", "lpv lpvadd", "+"); add.append(pv, el("span", "lnm", "Add a picture"), el("span", "lwho", "JPG, PNG or WebP"));
+            const inp = el("input"); inp.type = "file"; inp.accept = "image/*"; inp.hidden = true;
+            inp.onchange = async () => {
+                const f = inp.files && inp.files[0]; inp.value = ""; if (!f) return;
+                mineMsg = "Adding the picture\u2026"; if (after) after();
+                const r = await addMine(f); mineMsg = r.ok ? "" : r.why;
+                if (r.ok) pick(r.id); if (after) after();
+            };
+            add.onclick = () => inp.click(); grid.append(add, inp);
+        }
+        mine.forEach((x) => {
+            const t = tile(x.id, x.name, new Date(x.at).toLocaleDateString(undefined, { month: "short", day: "numeric" }), x.name, (sb) => { sb.style.backgroundImage = 'var(--ph-veil),url("' + x.t + '")'; });
+            const del = el("span", "lookdel", "\u00d7"); del.setAttribute("role", "button"); del.tabIndex = 0; del.title = "Delete " + x.name; del.setAttribute("aria-label", "Delete " + x.name);
+            const go = async (ev) => { ev.stopPropagation(); ev.preventDefault(); if (del.dataset.sure !== "1") { del.dataset.sure = "1"; del.textContent = "Delete?"; return; } await removeMine(x.id); if (look.bg === x.id) pick("anchor"); if (after) after(); };
+            del.onclick = go; del.onkeydown = (ev) => { if (ev.key === "Enter" || ev.key === " ") go(ev); };
+            t.appendChild(del);
+        });
+        if (mineMsg) box.appendChild(el("p", "lookmsg", mineMsg));
+    } else {
+        grid.setAttribute("aria-label", (PHOTO_GROUP.get(photoGroup) || "") + " photos");
+        tile("pd-" + photoGroup, "A new one each day", "From these " + LOOK_PHOTOS.filter((x) => x[2] === photoGroup).length);
+        LOOK_PHOTOS.filter((x) => x[2] === photoGroup).forEach(([id, name, , who]) => tile(id, name, who, name + ". Photo: " + who + " on Unsplash"));
+    }
     box.appendChild(grid);
-    box.appendChild(el("p", "lookcred", "Photos from Unsplash, free to use. The name under each one is the photographer."));
+    if (photoGroup !== "mine") box.appendChild(el("p", "lookcred", "Photos from Unsplash, free to use. The name under each one is the photographer."));
     return box;
 }
 /** Swatches for the colour scheme and tiles for the background. compact: the Remote's rail. */
 export function lookPicker(api, compact) {
+    const refreshSheet = api.refresh || api.relook || refreshSheetNow;   // Spotlight redraws its own sheet
     const { S, el } = api, box = el("div", "lookpick" + (compact ? " compact" : ""));
     const th = el("div", "lookthemes"); th.setAttribute("role", "group"); th.setAttribute("aria-label", "Board colors");
     {   // Quick looks: colours, background, logo and effect together, one tap
@@ -493,7 +603,7 @@ export function lookPicker(api, compact) {
     });
     box.appendChild(bg);
     box.appendChild(el("p", "lookh", "Photos"));
-    box.appendChild(photoPicker(el, S.look, (id) => { S.look = Object.assign({}, S.look, { bg: id }); api.push(); refreshSheet(); }, () => { if (api.relook) api.relook(); else refreshSheet(); }));   // relook: a host that draws the picker itself (Spotlight)
+    box.appendChild(photoPicker(el, S.look, (id) => { S.look = Object.assign({}, S.look, { bg: id }); api.push(); refreshSheet(); }, () => { if (api.relook) api.relook(); else refreshSheet(); }, { guest: api.guest && api.guest() }));   // relook: a host that draws its own sheet (Spotlight)
     box.appendChild(el("p", "lookh", "Effects"));   // falling shapes behind the lesson
     const fx = el("div", "lookfxs"); fx.setAttribute("role", "group"); fx.setAttribute("aria-label", "Board effect");
     const curFx = S.look.fx || "none";

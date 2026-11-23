@@ -2,7 +2,8 @@
 import assert from "node:assert/strict";
 import { cleanSticker, cleanStickers, makeSticker, MAX_STICKERS } from "../../js/stickers.js";
 import { cleanScene, mergeTools, defaultTools, MAX_SCENES, MAX_DAYB } from "../../js/boardTools.js";
-import { saveScene, sceneActive, cleanLook, LOOK_PRESETS, LOOK_THEMES, LOOK_BGS, LOOK_PHOTOS, presetLook } from "../../js/panels.js";
+import { saveScene, sceneActive, cleanLook, LOOK_PRESETS, LOOK_THEMES, LOOK_BGS, LOOK_PHOTOS, DAILY_PHOTOS, PHOTO_SECTIONS, dailyPhoto, bgName, presetLook } from "../../js/panels.js";
+import { existsSync } from "node:fs";
 import { EFFECTS } from "../../js/effects.js";
 import { MARKS } from "../../js/marks.js";
 
@@ -60,9 +61,33 @@ t("a board counts as showing only with its look and stickers", () => {
 });
 t("every Quick look uses colours, backgrounds, logos and effects that exist", () => {
     const has = (list, id) => list.some((x) => x[0] === id);
-    LOOK_PRESETS.forEach((p) => { assert.ok(has(LOOK_THEMES, p[2]), p[1]); assert.ok(has(LOOK_BGS.concat(LOOK_PHOTOS), p[3]), p[1]); assert.ok(has(MARKS, p[4]), p[1]); assert.ok(has(EFFECTS, p[5]), p[1]);
+    LOOK_PRESETS.forEach((p) => { assert.ok(has(LOOK_THEMES, p[2]), p[1]); assert.ok(has(LOOK_BGS.concat(LOOK_PHOTOS, DAILY_PHOTOS), p[3]), p[1]); assert.ok(has(MARKS, p[4]), p[1]); assert.ok(has(EFFECTS, p[5]), p[1]);
         assert.deepEqual(cleanLook(presetLook(p)), presetLook(p)); });
 });
+t("photos: every one has its files, a known group and a short id; daily photos turn over each day", () => {
+    const groups = new Set(PHOTO_SECTIONS.flatMap((s) => s[1].map((g) => g[0]))), ids = new Set();
+    LOOK_PHOTOS.forEach(([id, name, g, who]) => {
+        assert.ok(/^ph-[a-z]+-[a-z]+$/.test(id) && id.length <= 16, id); assert.ok(!ids.has(id), "twice: " + id); ids.add(id);
+        assert.ok(groups.has(g), id + " group " + g); assert.ok(name && who, id);
+        assert.ok(existsSync("photos/" + id.slice(3) + ".webp") && existsSync("photos/sm/" + id.slice(3) + ".webp"), "files for " + id);
+        assert.equal(cleanLook({ bg: id }).bg, id);
+    });
+    groups.forEach((g) => assert.ok(LOOK_PHOTOS.some((x) => x[2] === g), "empty group " + g));
+    DAILY_PHOTOS.forEach(([id]) => { assert.equal(cleanLook({ bg: id }).bg, id); assert.ok(id.length <= 16); });
+    const day = (n) => new Date(2026, 0, 1 + n, 12);
+    const seen = new Set(); for (let i = 0; i < 40; i++) { const x = dailyPhoto("pd-all", day(i)); assert.ok(ids.has(x)); seen.add(x); }
+    assert.ok(seen.size >= 30, "pd-all repeats too soon");
+    assert.equal(dailyPhoto("pd-win", day(3)), dailyPhoto("pd-win", day(3)));   // same all day, on every screen
+    for (let i = 0; i < 10; i++) assert.equal(LOOK_PHOTOS.find((x) => x[0] === dailyPhoto("pd-mth", day(i)))[2], "mth");
+    const sp = LOOK_PHOTOS.filter((x) => x[2] === "spt").length, run = new Set(); for (let i = 0; i < sp; i++) run.add(dailyPhoto("pd-spt", day(i)));
+    assert.equal(run.size, sp, "a group shows every photo before repeating");
+    assert.equal(bgName("pd-all"), "Photo of the day"); assert.equal(bgName("ph-ani-fox"), "Fox");
+});
+t("own pictures: only well-formed my- ids are kept", () => {
+    assert.equal(cleanLook({ bg: "my-ab12cd34" }).bg, "my-ab12cd34");
+    ["my-", "my-AB", "my-<x>", "my-12345678901234"].forEach((b) => assert.equal(cleanLook({ bg: b }).bg, "anchor", b));
+});
+t("effects: unique ids", () => { const ids = EFFECTS.map((e) => e[0]); assert.equal(new Set(ids).size, ids.length); });
 t("cleanLook keeps the effect amount and drops anything unknown", () => {
     assert.equal(cleanLook({ fxn: 3 }).fxn, 3); assert.equal(cleanLook({ fxn: 9 }).fxn, 2); assert.equal(cleanLook({ bg: "nope" }).bg, "anchor");
 });

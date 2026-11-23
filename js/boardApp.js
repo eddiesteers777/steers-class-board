@@ -13,7 +13,8 @@ let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
 import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=62";
-import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf } from "./panels.js?v=14";
+import { setPhotoStore } from "./myPhotos.js?v=1";
+import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf } from "./panels.js?v=15";
 import { cleanStickers, renderStickers } from "./stickers.js?v=1";
 import * as snd from "./sound.js?v=60";
 import { createMathPad } from "./mathPad.js?v=2";
@@ -1952,6 +1953,7 @@ export async function startApp(opts) {
         window.addEventListener("pageshow", (e) => { if (e.persisted) heal("page kept by the browser"); });   // Safari's back/forward copy: frozen, not reloaded
     }
     store = await storeP;
+    setPhotoStore(() => store);   // the teacher's own background pictures (js/myPhotos.js)
     if (studio && studio.ready) studio.ready(studioApi());
 
     // Load timing, kept on this device only (step names and times, no data). ?signincheck shows it.
