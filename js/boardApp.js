@@ -12,13 +12,14 @@ import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=61";
-import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf } from "./panels.js?v=12";
+import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=62";
+import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf } from "./panels.js?v=13";
 import { cleanStickers, renderStickers } from "./stickers.js?v=1";
 import * as snd from "./sound.js?v=60";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
-import { micSens, setMicSens, camMirror, setCamMirror, senseIdle } from "./roomSense.js?v=1";
+import { senseIdle } from "./roomSense.js?v=1";
+import { openSettings, closeSettings, refreshSettings, psOpen } from "./panelSettings.js?v=1";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=62";
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=89";
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=11";
@@ -853,7 +854,7 @@ function render() {
     slWatch(); syncGames(); syncLive(); syncNotes(); buildControls(); soundSync(); applyLook(S.look); renderLookFold(); renderEditLink(); drawStickers(); deckNotes();
     if (studio && studio.render) studio.render();
     const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : "", S.screen === "seats" ? seatSig() : "", S.screen === "steps" ? stepsSig() : "", S.screen === "deck" ? JSON.stringify([SL.ver, S.slide, S.sstep, slPen, S.look.mark, inkBase()]) : "", S.screen === "canvas" ? JSON.stringify([inkBase(), pageNow(), pageCount(), spotDraw]) : ""]);
-    renderDock(); drawGamePanel(); drawLivePanel(); drawNotesPanel();
+    renderDock(); drawGamePanel(); drawLivePanel(); drawNotesPanel(); refreshSettings();
     if (sheetOpen()) refreshSheet();
     if (ns === sig) { if (S.screen === "steps") stepsSync(); renderLayer(); tick(); tickTools(toolApi); placeCard(); return; }
     sig = ns;
@@ -1268,49 +1269,71 @@ function drawStickers() {
         onChange: (list) => { S.stickers = cleanStickers(list); push(); }, busy: (b) => { stickerBusy = b; } } : null);
 }
 /* One small icon button in a panel's title bar. */
-/* Each panel's title bar: Settings (size, and the panel's own options), More (Center stage, make it small, shelf or float)
+/* Each panel's title bar: Settings (a side panel on the right with that panel's own settings, js/panelSettings.js),
+   More (Center stage, Show in all screens, Lock in place, Bring to front, Send to back, Make it small, the side, Remove)
    and a trash can. The open menu is kept here, so it stays open when the panel is drawn again. */
 let pmenu = { k: "", kind: "" };
 const centered = {};   // panels on Center stage on this device -> where each one was before
-const SIZES_P = [[0.75, "S"], [1, "M"], [1.35, "L"], [1.8, "XL"]];
+/** Everything the More menu and the Settings side panel can do to a panel, in one place. */
+/** Stacking order, back to front, of every panel that is on: the saved order first, the rest in the order they came on. */
+function zoAll() { const T = S.tools, on = Object.keys(T.on).filter((k) => T.on[k]); return (T.zo || []).filter((k) => T.on[k]).concat(on.filter((k) => !(T.zo || []).includes(k))); }
+const panelOps = {
+    isCentered: (k) => !!centered[k], pinned: (k) => !!(S.tools.pin || {})[k], locked: (k) => !!(S.tools.lock || {})[k],
+    size(k, sz) {   // never bigger than the board: the panel shrinks to fit and slides back on screen
+        const T = S.tools, q = Object.assign({}, T.pos[k] || toolApi.defaultPos(k)), layer = $("toolLayer"), w = layer && layer.querySelector('.float[data-panel="' + k + '"]');
+        let s = Math.min(3, Math.max(0.5, sz));
+        if (w && layer.clientWidth && layer.clientHeight) { const s0 = (T.pos[k] && T.pos[k].s) || 1, wp = w.offsetWidth / layer.clientWidth * 100 / s0, hp = w.offsetHeight / layer.clientHeight * 100 / s0;
+            s = Math.max(0.5, Math.min(s, 96 / wp, 94 / hp)); q.x = Math.max(0, Math.min(q.x, 100 - wp * s - 1)); q.y = Math.max(0, Math.min(q.y, 100 - hp * s - 1)); }
+        q.s = Math.round(s * 100) / 100; q.x = Math.round(Math.min(q.x, 95) * 10) / 10; q.y = Math.round(Math.min(q.y, 92) * 10) / 10; T.pos[k] = q; delete T.min[k]; delete centered[k]; push();
+    },
+    move(k, at) {   // a corner or the middle, measured from the panel as drawn
+        const T = S.tools, layer = $("toolLayer"), w = layer && layer.querySelector('.float[data-panel="' + k + '"]'), q = Object.assign({}, T.pos[k] || toolApi.defaultPos(k));
+        const bw = w && layer.clientWidth ? w.offsetWidth / layer.clientWidth * 100 : 25, bh = w && layer.clientHeight ? w.offsetHeight / layer.clientHeight * 100 : 30, m = 2;
+        q.x = at === "tl" || at === "bl" ? m : at === "c" ? (100 - bw) / 2 : 100 - bw - m; q.y = at === "tl" || at === "tr" ? m : at === "c" ? (100 - bh) / 2 : 100 - bh - m;
+        q.x = Math.round(Math.max(0, Math.min(95, q.x)) * 10) / 10; q.y = Math.round(Math.max(0, Math.min(92, q.y)) * 10) / 10; T.pos[k] = q; delete T.min[k]; delete centered[k]; push();
+    },
+    front(k) { const T = S.tools; T.zo = zoAll().filter((x) => x !== k).concat([k]); push(); },
+    back(k) { const T = S.tools; T.zo = [k].concat(zoAll().filter((x) => x !== k)); push(); },
+    lock(k, on) { const T = S.tools; T.lock = T.lock || {}; if (on === undefined) on = !T.lock[k]; if (on) T.lock[k] = true; else delete T.lock[k]; push(); },
+    pin(k, on) { const T = S.tools; T.pin = T.pin || {}; if (on === undefined) on = !T.pin[k]; if (on) T.pin[k] = true; else delete T.pin[k]; push(); },
+    center: (k) => centerStage(k),
+    uncenter(k) { const was = centered[k]; delete centered[k]; if (was) S.tools.pos[k] = was; push(); },
+    small(k) { delete centered[k]; S.tools.min[k] = true; push(); },
+    side(k) { const T = S.tools; delete centered[k]; delete T.pos[k]; panelOn(T, k, { dock: true }); push(); },
+    float(k) { S.tools.pos[k] = toolApi.defaultPos(k); push(); },
+    remove(k) { const T = S.tools; delete centered[k]; if (T.pin) delete T.pin[k]; if (T.lock) delete T.lock[k]; panelOff(T, k); if (psOpen() === k) closeSettings(); push(); },
+};
 function panelHead(k, w, docked, canDock) {
-    const T = S.tools, tail = el("span", "hbtns");
-    const open = (kind) => { pmenu = pmenu.k === k && pmenu.kind === kind ? { k: "", kind: "" } : { k, kind }; layerSig = ""; renderLayer(); };
-    const g = hbtn("gear", "Settings for " + labelOf(k), () => open("set"), pmenu.k === k && pmenu.kind === "set" ? "on" : "");
-    const m = hbtn("more", "More for " + labelOf(k), () => open("more"), pmenu.k === k && pmenu.kind === "more" ? "on" : "");
-    const x = hbtn("trash", "Take " + labelOf(k) + " off the board", () => { delete centered[k]; pmenu = { k: "", kind: "" }; panelOff(T, k); push(); });
+    const tail = el("span", "hbtns");
+    if (panelOps.locked(k)) { const lk = hbtn("lock", labelOf(k) + " is locked in place. More > Unlock to move it.", () => openMenu(k), "lockmark"); tail.appendChild(lk); }
+    if (panelOps.pinned(k)) { const pn = el("span", "pinmark"); pn.innerHTML = pIcon("pin"); pn.title = "Shows on every screen"; tail.appendChild(pn); }
+    const g = hbtn("gear", "Settings for " + labelOf(k), () => { closeMenu(); openSettings(k, psApi()); }, psOpen() === k ? "on" : "");
+    const m = hbtn("more", "More for " + labelOf(k), () => openMenu(k), pmenu.k === k ? "on" : "");
+    const x = hbtn("trash", "Remove " + labelOf(k), () => { closeMenu(); panelOps.remove(k); });
     tail.append(g, m, x);
     if (pmenu.k === k) w.appendChild(panelMenu(k, docked, canDock));
     return tail;
 }
+function openMenu(k) { pmenu = pmenu.k === k ? { k: "", kind: "" } : { k, kind: "more" }; layerSig = ""; renderLayer(); }
+function closeMenu() { pmenu = { k: "", kind: "" }; }
 function panelMenu(k, docked, canDock) {
-    const T = S.tools, box = el("div", "pmenu"); box.setAttribute("role", "menu");
+    const box = el("div", "pmenu"); box.setAttribute("role", "menu");
     box.addEventListener("pointerdown", (e) => e.stopPropagation());
-    const close = () => { pmenu = { k: "", kind: "" }; };
-    const item = (ic, t, fn, on) => { const b = el("button", "pmi" + (on ? " on" : "")); b.type = "button"; b.setAttribute("role", "menuitem"); b.innerHTML = pIcon(ic) + "<span>" + t + "</span>"; b.onclick = (e) => { e.stopPropagation(); fn(); }; box.appendChild(b); return b; };
-    if (pmenu.kind === "set") {
-        box.appendChild(el("p", "pmh", "Size"));
-        const row = el("div", "pmsizes"), cur = T.pos[k] ? T.pos[k].s || 1 : 1;
-        SIZES_P.forEach(([sz, n]) => { const b = el("button", T.pos[k] && Math.abs(cur - sz) < 0.05 ? "on" : "", n); b.type = "button"; b.title = "Size " + n;
-            b.onclick = (e) => { e.stopPropagation(); const q = Object.assign({}, T.pos[k] || toolApi.defaultPos(k)); q.s = sz; q.x = Math.min(q.x, 95); q.y = Math.min(q.y, 92); T.pos[k] = q; delete T.min[k]; delete centered[k]; push(); }; row.appendChild(b); });
-        box.appendChild(row);
-        if (k === "work") {
-            box.appendChild(el("p", "pmh", "Microphone sensitivity"));
-            const r = el("input", "pmrange"); r.type = "range"; r.min = "0.5"; r.max = "2"; r.step = "0.1"; r.value = String(micSens()); r.setAttribute("aria-label", "Microphone sensitivity");
-            r.oninput = () => setMicSens(+r.value); box.appendChild(r);
-            box.appendChild(el("p", "pmnote", "Higher picks up quieter voices. The meter only listens on the device where you tap Listen."));
-        } else if (k === "cam") {
-            item("cam", camMirror() ? "Mirror: on" : "Mirror: off", () => { setCamMirror(!camMirror()); layerSig = ""; renderLayer(); }, camMirror());
-            box.appendChild(el("p", "pmnote", "Videos save to this device's Downloads. Nothing is uploaded."));
-        } else box.appendChild(el("p", "pmnote", "Drag a corner of the panel to size it any way you like."));
-    } else {
-        if (centered[k]) item("stage", "Back to its spot", () => { const was = centered[k]; delete centered[k]; T.pos[k] = was; close(); push(); });
-        else item("stage", "Center stage", () => { close(); centerStage(k); });
-        item("min", "Make it small", () => { close(); delete centered[k]; T.min[k] = true; push(); });
-        if (docked) item("float", "Float over the lesson", () => { close(); T.pos[k] = toolApi.defaultPos(k); push(); });
-        else if (canDock && k !== "groups") item("dock", "Put it on the side", () => { close(); delete centered[k]; delete T.pos[k]; panelOn(T, k, { dock: true }); push(); });
-        item("trash", "Take it off", () => { close(); delete centered[k]; panelOff(T, k); push(); });
-    }
+    const item = (ic, t, fn, on, cls) => { const b = el("button", "pmi" + (on ? " on" : "") + (cls ? " " + cls : "")); b.type = "button"; b.setAttribute("role", "menuitem"); b.innerHTML = pIcon(ic) + "<span>" + t + "</span>"; b.onclick = (e) => { e.stopPropagation(); closeMenu(); fn(); }; box.appendChild(b); return b; };
+    const sep = () => box.appendChild(el("i", "pmsep"));
+    if (centered[k]) item("stage", "Back to its spot", () => panelOps.uncenter(k)); else item("stage", "Center stage", () => panelOps.center(k));
+    item("pin", panelOps.pinned(k) ? "Show on this screen only" : "Show in all screens", () => panelOps.pin(k), panelOps.pinned(k));
+    item("lock", panelOps.locked(k) ? "Unlock" : "Lock in place", () => panelOps.lock(k), panelOps.locked(k));
+    sep();
+    item("front", "Bring to front", () => panelOps.front(k));
+    item("back", "Send to back", () => panelOps.back(k));
+    sep();
+    item("min", "Make it small", () => panelOps.small(k));
+    if (docked) item("float", "Float over the lesson", () => panelOps.float(k));
+    else if (canDock && k !== "groups") item("dock", "Put it on the side", () => panelOps.side(k));
+    item("gear", "Settings", () => openSettings(k, psApi()));
+    sep();
+    item("trash", "Remove", () => panelOps.remove(k), false, "danger");
     return box;
 }
 /** Center stage: the panel comes front and center and big, over everything else. More > Back to its spot undoes it. */
@@ -1322,10 +1345,11 @@ function centerStage(k) {
     if (w && LW && LH) { wp = w.offsetWidth / LW * 100 / s1; hp = w.offsetHeight / LH * 100 / s1; }
     const sz = Math.max(1, Math.min(3, 62 / wp, 86 / hp));
     centered[k] = was; delete T.min[k];
+    T.zo = zoAll().filter((x) => x !== k).concat([k]);
     T.pos[k] = { x: Math.round(Math.max(0, (100 - wp * sz) / 2) * 10) / 10, y: Math.round(Math.max(0, Math.min(92, (100 - hp * sz) / 2)) * 10) / 10, s: Math.round(sz * 100) / 100 };
     push();
-    const w2 = layer && layer.querySelector('.float[data-panel="' + k + '"]'); if (w2) w2.style.zIndex = String(++topZ);
 }
+const psApi = () => ({ S, el, push, quiet, ops: panelOps, toolApi, rosters: () => ROSTERS, label: labelOf, icon: pIcon, editHref: () => studioApi().editHref() });
 // A tap anywhere else closes the menu. Only the menu goes: the panels are not redrawn under the finger, so the tap still lands.
 document.addEventListener("pointerdown", (e) => { if (pmenu.k && !(e.target.closest && e.target.closest(".pmenu,.hbtns"))) { pmenu = { k: "", kind: "" }; document.querySelectorAll(".pmenu").forEach((m) => m.remove()); document.querySelectorAll(".hbtns .pbtn.on").forEach((b) => b.classList.remove("on")); } });
 function hbtn(ic, label, fn, cls) { const b = el("button", "close pbtn" + (cls ? " " + cls : "")); b.type = "button"; b.innerHTML = pIcon(ic); b.title = label; b.setAttribute("aria-label", label); b.onclick = (e) => { e.stopPropagation(); fn(); }; return b; }
@@ -1381,6 +1405,8 @@ function renderLayer() {
         const w = buildPanel(k, toolApi), p = posOf(k); w.classList.add("float"); w.dataset.panel = k; now2[k] = "float"; if (placed[k] !== "float") w.classList.add("enter");
         if (studio && pickedPanel === k) w.classList.add("picked");
         w.style.left = p.x + "%"; w.style.top = p.y + "%"; w.style.fontSize = p.s + "em";
+        { const zi = (T.zo || []).indexOf(k); w.style.zIndex = String(20 + (zi < 0 ? 0 : zi + 1)); }   // Bring to front / Send to back, the same on every screen
+        const lockedK = !!(T.lock || {})[k]; if (lockedK) w.classList.add("locked");
         const h = w.querySelector("h3");
         h.appendChild(panelHead(k, w, false, canDock));
         if (centered[k]) w.classList.add("staged");
@@ -1417,8 +1443,8 @@ function renderLayer() {
             };
             window.addEventListener("pointermove", move); window.addEventListener("pointerup", end); window.addEventListener("pointercancel", end);
         };
-        h.addEventListener("pointerdown", (e) => start(e, "move")); grips.forEach((g) => g.addEventListener("pointerdown", (e) => start(e, "size")));
-        w.addEventListener("pointerdown", () => { w.style.zIndex = String(++topZ); if (studio && studio.pick) studio.pick("panel", k); });
+        if (!lockedK) { h.addEventListener("pointerdown", (e) => start(e, "move")); grips.forEach((g) => g.addEventListener("pointerdown", (e) => start(e, "size"))); }   // locked: no moving or sizing
+        w.addEventListener("pointerdown", () => { if (studio && studio.pick) studio.pick("panel", k); });
         layer.appendChild(w);
     });
     placed = now2;

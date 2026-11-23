@@ -14,8 +14,8 @@
    Each Spotlight screen keeps its own panels, look and drawing (boardApp.js spotApi; state in wb.spot).
    Frosted glass: translucent layers with a backdrop blur, a light top edge and a soft shadow.
 ========================================== */
-import { PANEL_LIST, LESSON_PANELS, TOOL_LIST } from "./boardTools.js?v=61";
-import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker } from "./panels.js?v=12";
+import { PANEL_LIST, LESSON_PANELS, TOOL_LIST } from "./boardTools.js?v=62";
+import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker } from "./panels.js?v=13";
 import { wbIcon } from "./wbIcons.js?v=1";
 
 let A = null, host = null, onBack = null, tucked = false, sheet = "", picked = "", built = false, lastSig = "";
@@ -81,15 +81,15 @@ export function pickSpot(kind, id) {
 /* ---------- the pieces, made once ---------- */
 function build() {
     built = true; host.textContent = "";
-    // top left: back + full screen
+    // top left: back
     const top = el("div", "spg sptop");
-    top.append(button("spb spback", svg(IC.back, 2.2) + "<span>Board Builder</span>", "Back to the Board Builder", () => onBack && onBack()),
-        button("spb spfull", svg(IC.full), "Full screen", toggleFull));
+    top.append(button("spb spback", svg(IC.back, 2.2) + "<span>Board Builder</span>", "Back to the Board Builder", () => onBack && onBack()));
     host.appendChild(top);
 
-    // top right: put Spotlight on the live board (it follows every change from then on)
+    // top right: full screen / back to normal, then put Spotlight on the live board (it follows every change from then on)
     const live = el("div", "spg splive");
-    live.appendChild(button("spb splivebtn", "<i></i><span>Show on board</span>", "Show this on the live board", () => { A.spot.open(); flash("On the live board"); }));
+    live.append(button("spb spfull", svg(IC.full), "Full screen", toggleFull), el("i", "spsep"),
+        button("spb splivebtn", "<i></i><span>Show on board</span>", "Show this on the live board", () => { A.spot.open(); flash("On the live board"); }));
     host.appendChild(live);
 
     // bottom right: the screens

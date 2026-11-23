@@ -30,7 +30,8 @@ export function defaultTools() {
         goal: { text: "", target: 20, pts: {} },
         sw: { running: false, t0: 0, elapsed: 0 },
         pick: { period: "", cur: -1, used: [] }, groups: { period: "", size: 3, order: [] }, absent: { day: "", periods: {} },
-        palert: { on: true, at: [5, 1], sound: true } };   // Period clock alerts: minutes before the end of class (0 = the bell)
+        palert: { on: true, at: [5, 1], sound: true },   // Period clock alerts: minutes before the end of class (0 = the bell)
+        pin: {}, lock: {}, zo: [] };   // panels shown on every screen, panels locked in place, and the stacking order (back to front)
 }
 export const PALERT_MINS = [15, 10, 5, 2, 1, 0];
 export function mergeTools(d) {
@@ -46,6 +47,9 @@ export function mergeTools(d) {
     if (!Number.isFinite(t.agenda.at)) t.agenda.at = -1;
     // v 2: tools sit on a shelf unless the teacher floats them. Positions saved before that are dropped once.
     if (d.v === 2 && d.pos && typeof d.pos === "object") PANEL_LIST.forEach(([k]) => { const q = d.pos[k]; if (q) t.pos[k] = { x: Math.min(95, Math.max(0, +q.x || 0)), y: Math.min(92, Math.max(0, +q.y || 0)), s: Math.min(3, Math.max(0.5, +q.s || 1)) }; });
+    { const keys = (o) => { const r = {}; if (o && typeof o === "object") PANEL_LIST.forEach(([k]) => { if (o[k]) r[k] = true; }); return r; };
+        t.pin = keys(d.pin); t.lock = keys(d.lock);
+        if (Array.isArray(d.zo)) d.zo.forEach((k) => { if (PANEL_LIST.some((x) => x[0] === k) && !t.zo.includes(k)) t.zo.push(k); }); }
     if (d.palert && typeof d.palert === "object") t.palert = { on: d.palert.on !== false, sound: d.palert.sound !== false, at: Array.isArray(d.palert.at) ? PALERT_MINS.filter((m) => d.palert.at.includes(m)) : t.palert.at };
     if (["green", "yellow", "red"].includes(d.traffic)) t.traffic = d.traffic;
     if (WORK.some((w) => w[0] === d.work)) t.work = d.work;

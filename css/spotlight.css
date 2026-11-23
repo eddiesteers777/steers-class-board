@@ -33,10 +33,10 @@ body.spotmode .toolshelf{filter:drop-shadow(0 12px 30px rgba(0,0,0,.35))}
 .spsep{display:block;flex:none;width:1px;align-self:stretch;margin:6px 4px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.28),transparent)}
 .spsep.thin{margin:10px 2px;opacity:.6}
 
-/* top left: back + full screen */
+/* top left: back */
 .sptop{left:var(--m);top:var(--m);height:var(--top);box-sizing:border-box;display:flex;align-items:center;gap:2px;padding:0 5px}
-/* top right: Show on board */
-.splive{right:var(--m);top:var(--m);height:var(--top);box-sizing:border-box;display:flex;align-items:center;padding:0 5px}
+/* top right: full screen + Show on board */
+.splive{right:var(--m);top:var(--m);height:var(--top);box-sizing:border-box;display:flex;align-items:center;gap:4px;padding:0 5px}
 .splivebtn{gap:9px;padding:0 16px 0 13px;font-size:14px}
 .splivebtn i{width:9px;height:9px;border-radius:50%;background:rgba(226,236,255,.5);flex:none;transition:background .2s,box-shadow .2s}
 .splivebtn.onair i{background:#7CE0B0;box-shadow:0 0 0 3px rgba(124,224,176,.25),0 0 10px #7CE0B0}
