@@ -11,6 +11,7 @@
    Vault Raid uses every question (js/vaultCore.js gameQuestion); the Review Board shows the first 6 skills x 6.
 ========================================== */
 import * as V from "./vaultCore.js?v=75";
+import * as F from "./acapFormats.js?v=1";
 import { WEEKS as PUBLISHED } from "../data/weeks.js?v=61";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { extract, norm as bnorm, KINDS } from "./bank.js?v=2";
@@ -36,7 +37,9 @@ const TOOLS = [["−", "−", "Minus sign"], ["×", "×", "Times"], ["÷", "÷",
 const uidOf = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 let uid = "", SETS = [], set = blank(), sel = 0, dirty = false, saving = false, tryText = "";
 function blank() { return { id: "", title: "", per: qs.get("per") && PERIODS.some((p) => p[0] === qs.get("per")) ? [qs.get("per")] : [], qs: [newQ()] }; }
-function newQ(o) { return Object.assign({ k: uidOf(), s: "", q: "", a: "", al: [], h: "", st: "", ch: null }, o || {}); }
+function newQ(o) { return Object.assign({ k: uidOf(), s: "", q: "", a: "", al: [], h: "", st: "", ch: null, fm: "" }, o || {}); }
+/** An ACAP format question (js/acapFormats.js) whose answer is still letters: "A, C" (select all) or "B, A, C" (order). */
+const lettered = (x) => (x.fm === "ms" || x.fm === "ord") && !!x.ch && F.lettersOk(x.a, x.ch.filter((t) => t.trim()).length, x.fm);
 /** The teacher's own steps: one per line, at most 4, each up to 200 characters. */
 const stepLines = (t) => String(t || "").split(/\n+/).map((x) => x.trim().slice(0, 200)).filter(Boolean).slice(0, V.STEP_MAX);
 const cur = () => set.qs[sel];
@@ -44,7 +47,7 @@ const cur = () => set.qs[sel];
 /* ---------- reading and writing a set ---------- */
 function fromDoc(d, meta) {
     const out = { id: d.id || meta.id, title: d.title || meta.title || "", per: Array.isArray(meta.per) ? meta.per.slice() : Array.isArray(d.per) ? d.per.slice() : [], qs: [] };
-    (d.cats || []).forEach((c) => (c.clues || []).forEach((k) => { if (k && k.q) out.qs.push(newQ({ s: c.n || "", q: k.q, a: k.a || "", al: Array.isArray(k.al) ? k.al.slice() : [], h: k.h || "", st: Array.isArray(k.st) ? k.st.join("\n") : "", ch: Array.isArray(k.ch) && k.ch.length >= 2 ? k.ch.slice() : null })); }));
+    (d.cats || []).forEach((c) => (c.clues || []).forEach((k) => { if (k && k.q) out.qs.push(newQ({ s: c.n || "", q: k.q, a: k.a || "", al: Array.isArray(k.al) ? k.al.slice() : [], h: k.h || "", st: Array.isArray(k.st) ? k.st.join("\n") : "", ch: Array.isArray(k.ch) && k.ch.length >= 2 ? k.ch.slice() : null, fm: typeof k.fm === "string" ? k.fm : "" })); }));
     if (d.final && d.final.q) out.qs.push(newQ({ s: d.final.c || "Final", q: d.final.q, a: d.final.a || "" }));
     if (!out.qs.length) out.qs.push(newQ());
     return out;
@@ -59,6 +62,8 @@ function toDoc() {
         if (x.h.trim()) k.h = x.h.trim().slice(0, 200);
         if (stepLines(x.st).length) k.st = stepLines(x.st);
         if (x.ch) k.ch = x.ch.map((t) => t.trim()).filter(Boolean).slice(0, 5);
+        // An ACAP format stays one only while its answer still fits it (tapping a single right choice makes it plain multiple choice).
+        if (x.fm === "not" || x.fm === "sw" || lettered(x)) k.fm = x.fm;
         c.clues.push(k);
     });
     return { id: set.id, title: (set.title.trim() || "Review game").slice(0, 80), maker: 1, per: set.per.slice(), cats, final: null };
@@ -74,6 +79,7 @@ function issues(x) {
     if (x.ch) {
         const ch = x.ch.map((t) => t.trim());
         if (ch.filter(Boolean).length < 2) add("Give at least 2 choices.", true);
+        else if (lettered(x)) add(x.fm === "ms" ? "ACAP select all: the right answer is " + x.a + ". Tapping one circle turns it into a one-answer question." : "ACAP order the steps: the right order is " + x.a + ". Tapping one circle turns it into a one-answer question.");
         else if (!x.a.trim() || !ch.includes(x.a.trim())) add("Tap the circle next to the right choice.", true);
         if (new Set(ch.filter(Boolean).map((t) => t.toLowerCase())).size < ch.filter(Boolean).length) add("Two choices are the same.");
     } else if (!x.a.trim()) add("Add the answer.", true);

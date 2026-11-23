@@ -213,3 +213,9 @@ main>.field select,#out>.field select{max-width:520px;width:100%}
 .rdFKid p{margin:0}
 .rdFKid select,.rdBtns select{min-height:44px;max-width:100%}
 .rdFall{font-weight:600}
+
+/* Vault Raid spiral set */
+.rdSpiral .rdPers select{min-height:40px;max-width:100%;flex:1 1 200px}
+.rdSpList{margin:4px 0;padding-left:28px;display:grid;gap:4px;max-height:360px;overflow:auto;font-size:.92rem}
+.rdSpList li{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.rdSpList .rdRole{min-width:0}
