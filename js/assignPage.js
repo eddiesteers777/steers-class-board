@@ -530,6 +530,19 @@ export async function mountAssign() {
 
     // Open straight to an assignment from a link (assign.html?a=<id>).
     const qa = new URLSearchParams(location.search).get("a"); if (qa) { S.view = "results"; S.id = qa; }
+    // From the Standards Timeline tray (timeline.html "Make assignment"): open the builder with those standards as a practice draft.
+    if (new URLSearchParams(location.search).get("from") === "timeline") {
+        let h = null; try { h = JSON.parse(localStorage.getItem("anchorboard-asg-handoff") || "null"); localStorage.removeItem("anchorboard-asg-handoff"); } catch (e) { h = null; }
+        if (h && h.from === "timeline" && Date.now() - (h.at || 0) < 30 * 60e3 && Array.isArray(h.skills) && h.skills.length) {
+            const saved = (() => { try { return JSON.parse(remember("defaults") || "{}"); } catch (e) { return {}; } })();
+            const cls = classes.includes(h.cls) ? h.cls : classes[0];
+            S.draft = { id: "", title: String(h.title || "").slice(0, 80), type: "practice", cls, periods: PER.filter((p) => p[1] === cls).map((p) => p[0]),
+                skills: h.skills.map((x) => ({ k: "s" + uidOf(), w: Math.max(1, Math.min(5, +x.w || 1)), pin: -1, src: String(x.src || ""), name: String(x.name || x.std || "").slice(0, 90), std: String(x.std || ""), need: Math.max(1, Math.min(10, +x.need || 4)), pool: (x.pool || []).map(C.cleanItem) })),
+                opts: Object.assign({}, C.DEFAULTS, saved, { need: Math.max(1, Math.min(10, +h.need || 4)) }), due: 0, status: "draft" };
+            S.view = "build"; S.prev = null;
+        }
+        window.history.replaceState(null, "", location.pathname + (demo ? "?demo" : ""));
+    }
     draw();
 }
 

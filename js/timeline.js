@@ -8,6 +8,8 @@
 import { STANDARDS } from "../data/standards.js?v=58";
 import { SCHOOL_YEAR, today, short, daysLeftInNineWeeks, nineWeeksOf } from "./schoolCal.js?v=57";
 import * as T from "./timelineCore.js?v=1";
+import { mount as mountPick, bankNow } from "./timelinePick.js?v=1";
+import { counts as bankCounts, has as inTray } from "./timelineTray.js?v=1";
 
 const demo = new URLSearchParams(location.search).has("demo");
 const store = await import(demo ? "./localStore.js?v=57" : "./boardStore.js?v=58");
@@ -76,7 +78,9 @@ function card(code, li, idx, nowLane) {
     if (u) top.appendChild(el("span", "tl-unit", (C.unitWord || "Unit") + " " + u.id));
     else top.appendChild(el("span", "tl-unit", "No unit doc"));
     body.appendChild(top);
-    const t = el("p", "tl-text", cut(s.text, 120)); t.title = s.text; body.appendChild(t);
+    // Tap the wording (or Problems) to open the problem picker for this standard.
+    const t = el("button", "tl-text", cut(s.text, 120)); t.type = "button"; t.title = s.text + "\n\nShow problems for " + code; t.dataset.pick = code;
+    t.onclick = () => pick.open(code); body.appendChild(t);
     // status: one button that opens the four marks
     const sb = el("div", "tl-status");
     if (menuFor === code) {
@@ -92,6 +96,10 @@ function card(code, li, idx, nowLane) {
         if (st && when) sb.appendChild(el("span", "tl-when", short(when, { month: "short", day: "numeric" })));
         if (st !== "taught" && st !== "teaching" && nowLane >= 0 && li < nowLane) sb.appendChild(chip("early", "Behind plan"));
     }
+    const B = bankNow(), n = B ? bankCounts(B, cls, code).all : null;
+    const pb = el("button", "tl-probs" + (pick && inTray(pick.tray(), code) ? " in" : ""), pick && inTray(pick.tray(), code) ? "In tray ✓" : n == null ? "Problems" : n + " problems");
+    pb.type = "button"; pb.setAttribute("aria-label", "Problems for " + code); pb.onclick = () => pick.open(code);
+    sb.appendChild(pb);
     body.appendChild(sb);
     c.append(h, body);
     return c;
@@ -133,7 +141,7 @@ function draw() {
 
 function seg() {
     const box = $("classes"); box.textContent = "";
-    CLASSES.forEach(([k, label]) => { const b = el("button", null, label); b.type = "button"; b.setAttribute("aria-pressed", String(k === cls)); b.onclick = () => { cls = k; keep("tl-cls", k); menuFor = ""; draw(); }; box.appendChild(b); });
+    CLASSES.forEach(([k, label]) => { const b = el("button", null, label); b.type = "button"; b.setAttribute("aria-pressed", String(k === cls)); b.onclick = () => { cls = k; keep("tl-cls", k); menuFor = ""; draw(); pick.redraw(); }; box.appendChild(b); });
 }
 
 /* ---------- Next up, in the Timeline's order ---------- */
@@ -270,6 +278,8 @@ function cancelDrag() { if (!drag) return; drag.hole.remove(); drag.cardEl.hidde
 function escDrag(e) { if (e.key === "Escape") cancelDrag(); }
 
 /* ---------- start ---------- */
+const pick = mountPick({ cls: () => cls, demo, onChange: () => { if (!drag) draw(); } });
+
 $("reset").onclick = () => {
     if (!confirmReset()) return;
     delete order[cls]; saveLater("o"); draw(); say("Order reset");
