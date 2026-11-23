@@ -13,7 +13,7 @@
    The pack is made only from the day's checked guided notes (target, vocabulary, the key idea, the first two worked
    examples, word for word), and tells Gemini not to change a number or add a problem.
 ========================================== */
-import { plain } from "./catchupCore.js?v=1";
+import { plain } from "./catchupCore.js?v=2";
 
 export const MAX_MIN = 5;
 export const vidKey = (cls, i) => cls + "|" + i;
