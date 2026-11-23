@@ -2,8 +2,7 @@
    Loaded last on board.html, sub.html and demo.html; every rule is body.board only.
    1. A photo background runs edge to edge: no navy frame around the board.
    2. The board's own controls are frosted glass: the drawing rail, Back/Next, the screen count, Panels, Show controls.
-   3. The bottom corners never stack: left = Back, Next and the screen count; right = Show controls, Panels above it,
-      Tap for sound above that. They still fade to almost nothing while the mouse is still (body.idle, boardApp.js). */
+   3. Nothing stacks: top right = Panels and Show controls, top left = Tap for sound, bottom right = Back, count, Next. They still fade to almost nothing while the mouse is still (body.idle, boardApp.js). */
 body.board{--bg-fill:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.06));--bg-line:rgba(255,255,255,.26);--bg-hi:rgba(255,255,255,.42);
   --bg-shadow:0 14px 40px rgba(2,8,26,.45),0 2px 8px rgba(2,8,26,.22)}
 
@@ -24,12 +23,13 @@ body.board .bpanels:hover,body.board #exit:hover{opacity:1}
 @supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
   body.board .wbrail,body.board .bnav button,body.board .bpanels,body.board #exit,body.board .spotcount{background:rgba(12,28,66,.88)}}
 
-/* 3. the corners */
-body.board .bnav{left:14px;bottom:14px;opacity:.6}
-body.board .spotcount{position:fixed;left:134px;right:auto;bottom:22px;z-index:5;font-size:15px;padding:7px 14px}
-body.board #exit{right:14px;bottom:14px}
-body.board .bpanels{right:14px;bottom:66px}
-body.board .sndtap{right:14px;bottom:118px;z-index:6}
+/* 3. the corners (Eddie, 2026-11-23): top right = Panels and Show controls side by side, top left = Tap for sound,
+      bottom right = Back, the screen count and Next */
+body.board #exit{top:14px;right:14px;bottom:auto}
+body.board .bpanels{top:14px;right:164px;bottom:auto}
+body.board .sndtap{top:14px;left:14px;right:auto;bottom:auto;z-index:6}
+body.board .bnav{left:auto;right:14px;bottom:14px;opacity:.6}
+body.board .spotcount{position:fixed;left:auto;right:130px;bottom:22px;z-index:5;font-size:15px;padding:7px 14px}
 /* the light fade while nobody touches the mouse (Eddie loves it): the corners go almost clear */
 body.board.idle .bnav,body.board.idle .bpanels,body.board.idle #exit{opacity:.12}
 body.board.idle .spotcount{opacity:0}
