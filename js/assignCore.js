@@ -86,7 +86,7 @@ export function publicDoc(def, names, owner) {
     const item = (x) => { const it = { q: x.q, ch: x.ch && x.ch.length >= 2 ? x.ch : [], b: boxOf(x) }; if (keyed) { it.a = x.a; it.al = x.al || []; it.st = stepsOf(x); } return it; };
     return {
         owner, kind: "asg", v: 1, title: clip(def.title, 80), type: def.type, status: def.status === "open" ? "open" : "closed",
-        due: +def.due || 0, lock: !!(o.lock && def.due), names,
+        due: +def.due || 0, lock: !!(o.lock && def.due), names, one: !!def.only,
         opts: { need: o.need, tries: o.tries, cap: o.cap, example: !!o.example, stuck: !!o.stuck, shuffle: !!o.shuffle, back: o.back,
             pass: o.pass ? String(hash("ab|" + def.code + "|" + String(o.pass).trim().toLowerCase())) : "" },
         rel: isTest(def.type) ? (def.rel || "none") : "",

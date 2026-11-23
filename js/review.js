@@ -279,7 +279,7 @@ async function saveWeekToDrive(groups) {
     const say = (t) => { paperNote = t; const n = document.querySelector("#paper .pk-note"); if (n) n.textContent = t; };
     drawPaper(); say("Waiting for Google…");
     try {
-        const B = await import("./backup.js?v=2");
+        const B = await import("./backup.js?v=3");
         let S = null; try { S = await B.settings(); } catch { /* asks for the account below */ }
         if (!Drive.connected()) await Drive.connect({ pick: !S || !S.account, hint: (S && S.account) || "" });
         const r = await saveToDrive(week, groups, B, say);

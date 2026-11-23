@@ -7,7 +7,7 @@
    ?demo: made-up students in this tab only (js/gradesDemo.js), nothing is saved.
 ========================================== */
 import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=4";
-import * as G from "./gradeCore.js?v=2";
+import * as G from "./gradeCore.js?v=3";
 import { shortNames } from "./vaultCore.js?v=75";
 import { buildProgress, BAND_WORD } from "./progress.js?v=3";
 import { lineChart } from "./charts.js?v=1";
@@ -148,7 +148,7 @@ export async function mountGrades() {
         T.cols.forEach((c) => {
             const th = el("th"), b = btn("gbCol" + (c.item.off ? " off" : ""), null, () => openItem(c.item.id));
             const cat = catOf(st, c.item.cat);
-            b.append(el("b", null, short(c.item.title)), el("small", null, cat.name + " · " + fmtDay(c.item.date)), el("small", null, (c.item.off ? "Not counted" : "Out of " + c.item.pts) + " · avg " + G.pct(c.avg)));
+            b.append(el("b", null, short(c.item.title)), el("small", null, cat.name + " · " + fmtDay(c.item.date)), el("small", null, (c.item.off ? "Not counted" : c.item.xc ? "Extra credit, up to +" + c.item.pts : "Out of " + c.item.pts) + " · avg " + G.pct(c.avg)));
             b.title = c.item.title + " (" + srcWord(c.item) + ")"; th.append(b); hr.append(th);
         });
         const thead = el("thead"); thead.append(hr); t.append(thead);
@@ -223,6 +223,8 @@ export async function mountGrades() {
         const opts = el("div", "gbOpts");
         const cnt = el("label", "gbCheck"), cb = el("input"); cb.type = "checkbox"; cb.checked = !it.off; cb.onchange = () => { it.off = !cb.checked; saveItems(); }; cnt.append(cb, el("span", null, "Count this in the grade"));
         opts.append(cnt);
+        const xc = el("label", "gbCheck"), xb = el("input"); xb.type = "checkbox"; xb.checked = !!it.xc; xb.onchange = () => { it.xc = xb.checked; saveItems(); draw(); }; xc.append(xb, el("span", null, "Extra credit (adds points, never adds to points possible)"));
+        opts.append(xc);
         if (it.src.k === "hand") {
             const pers = el("div", "gbPers"); pers.append(el("span", null, "Periods"));
             PER.forEach(([p]) => { const l = el("label", "gbCheck"), c = el("input"); c.type = "checkbox"; c.checked = it.periods.includes(p); c.onchange = () => { it.periods = PER.map((x) => x[0]).filter((q) => (q === p ? c.checked : it.periods.includes(q))); if (!it.periods.length) { it.periods = [p]; c.checked = true; } saveItems(); }; l.append(c, el("span", null, p)); pers.append(l); });

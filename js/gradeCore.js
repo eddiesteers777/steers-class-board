@@ -19,7 +19,7 @@
      gb/items     { list: [item], skip: [source keys the teacher chose not to grade], at }
      gb/s_<id>    { sc: { "<period>|<roster name>": { p: points | null, x: "" | "m" | "ex", n: note } }, at }
    item = { id, title, date "YYYY-MM-DD", cat, pts, periods: [], src: { k: "hand" } | { k: "asg", id } | { k: "data", ids: { period: importId } },
-            std, off (true = shown but not counted), at }
+            std, off (true = shown but not counted), xc (true = extra credit: points earned add, points possible don't), at }
 ========================================== */
 import { matchRoster } from "./progress.js?v=3";
 
@@ -31,6 +31,8 @@ export const DEFAULT_SETUP = {
     missing: "zero",
 };
 export const FLAG = { m: "Missing", ex: "Excused" };
+/** Points an extra-credit assignment is worth when it comes in (editable on the column). A starting guess, not Eddie's number yet. */
+export const XC_PTS = 5;
 
 const mean = (xs) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : null);
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
@@ -123,6 +125,7 @@ export function counts(cell, item, setup) {
     if (item.off || !(item.pts > 0)) return null;
     if (!cell) return null;
     if (cell.x === "ex") return null;
+    if (item.xc) return cell.f != null ? { earned: cell.f * item.pts, possible: 0 } : null;   // extra credit: never a zero, never adds to possible
     if (cell.f != null) return { earned: cell.f * item.pts, possible: item.pts };
     if (cell.x === "m" && setup.missing === "zero") return { earned: 0, possible: item.pts };
     return null;   // not turned in / not entered yet: left out, never a silent zero
@@ -223,7 +226,7 @@ export function candidates(asgIndex, dataIndex, items, skip, setup) {
     (asgIndex || []).filter((a) => a && a.id && a.status !== "draft" && a.type !== "fix").forEach((a) => {
         const src = { k: "asg", id: a.id }; if (have.has(srcKey(src))) return;
         const date = isoDay(a.opened || a.at);
-        out.push({ src, title: a.title || "Assignment", date, periods: a.periods || [], kind: a.type === "practice" ? "Practice" : a.type === "quiz" ? "Quiz" : "Test", from: "Assignments", cat: guessCat({ type: a.type, title: a.title }, setup), at: a.at || 0 });
+        out.push({ src, title: a.title || "Assignment", date, periods: a.periods || [], kind: a.xc ? "Extra credit" : a.type === "practice" ? "Practice" : a.type === "quiz" ? "Quiz" : "Test", from: "Assignments", cat: guessCat({ type: a.type, title: a.title }, setup), at: a.at || 0, xc: !!a.xc, pts: a.xc ? XC_PTS : 0 });
     });
     const groups = new Map();
     (dataIndex || []).filter((m) => m && m.id && m.source !== "Assignment" && !linkedImp.has(m.id) && m.period).forEach((m) => {
@@ -242,7 +245,7 @@ export function isoDay(ms) { const d = new Date(+ms || Date.now()); return d.get
 /** A new item from a candidate (or by hand). Linked items are out of 100 by default, so each counts like one percentage score. */
 export function makeItem(o, id) {
     return { id, title: String(o.title || "New grade").trim().slice(0, 80), date: day(o.date) || isoDay(), cat: o.cat, pts: Math.max(0, +o.pts || (o.src && o.src.k !== "hand" ? 100 : 10)),
-        periods: (o.periods || []).slice(), src: o.src || { k: "hand" }, std: String(o.std || "").slice(0, 12), off: !!o.off, at: Date.now() };
+        periods: (o.periods || []).slice(), src: o.src || { k: "hand" }, std: String(o.std || "").slice(0, 12), off: !!o.off, xc: !!o.xc, at: Date.now() };
 }
 
 /** Parse a typed score: "8", "8.5", "85%" (of the item's points), "8/10" (scaled to the item's points). null when blank or not a number. */

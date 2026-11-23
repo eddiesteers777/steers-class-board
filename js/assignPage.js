@@ -11,7 +11,8 @@
    tests go out without the key: this page checks them.
    ?demo: made-up students in this tab only, nothing is saved.
 ========================================== */
-import * as C from "./assignCore.js?v=5";
+import * as C from "./assignCore.js?v=6";
+import { namesOnly, indexEntry } from "./acapAssign.js?v=1";
 import * as V from "./vaultCore.js?v=75";
 import { loadStdBank, inClass, LEVELS } from "./stdBank.js?v=2";
 import { STANDARDS } from "../data/standards.js?v=58";
@@ -63,9 +64,10 @@ export async function mountAssign() {
         if (!d || !d.code || unsubs.has(d.id)) return;
         unsubs.set(d.id, rooms.watchAll("asg/" + d.code + "/p", (list) => { D.entries.set(d.id, list); soon(); syncSoon(d.id); }, () => {}));
     }
-    const namesFor = (periods) => Object.fromEntries(periods.map((p) => [p, V.shortNames((D.rosters[p] || []).filter(Boolean))]));
+    // A "Work on next" assignment (Student Progress) is for one student: only that name shows, positions kept.
+    const namesFor = (periods, d) => (d && d.only ? namesOnly(D.rosters[d.only.per] || [], d.only) : Object.fromEntries(periods.map((p) => [p, V.shortNames((D.rosters[p] || []).filter(Boolean))])));
     function scored(d) {
-        const rows = C.joinEntries(D.entries.get(d.id) || [], namesFor(d.periods || []));
+        const rows = C.joinEntries(D.entries.get(d.id) || [], namesFor(d.periods || [], d));
         const out = C.scoreRows(d, rows);
         if (C.isTest(d.type) && d.fixId) { const f = D.defs.get(d.fixId), fr = f && f.res && f.res.rows || []; out.forEach((r) => { const x = fr.find((y) => y.key === r.key); if (x && x.after != null) r.withFix = Math.max(r.grade, x.after); }); }
         return out;
@@ -98,6 +100,8 @@ export async function mountAssign() {
             const d = def(m.id); if (d && d.status === "open") watchEntries(d);
             const c = el("button", "asCard"); c.type = "button"; c.onclick = () => { if (m.status === "draft") { S.draft = JSON.parse(JSON.stringify(d || m)); S.view = "build"; } else { S.view = "results"; S.id = m.id; S.period = ""; } draw(); window.scrollTo(0, 0); };
             const top = el("div", "asCardTop"); top.append(chip(C.TYPES[m.type].label, "t-" + m.type), chip(m.status === "open" ? "Open" : m.status === "draft" ? "Draft" : "Closed", "s-" + m.status));
+            if (m.xc) top.append(chip("Extra credit", "s-xc"));
+            if (m.only) top.append(chip("For " + m.only.nm, "s-one"));
             if (m.code && m.status === "open") top.append(el("span", "asCode", m.code));
             c.append(top, el("h3", null, m.title));
             const facts = el("p", "asFacts"); facts.textContent = [clsLabel(m.cls), (m.periods || []).join(", ") + " period", m.n + (m.n === 1 ? " skill" : " skills"), m.due ? "Due " + fmtWhen(m.due) : ""].filter(Boolean).join(" · "); c.append(facts);
@@ -269,7 +273,7 @@ export async function mountAssign() {
             const clean = JSON.parse(JSON.stringify(d));
             await store.save("asg/a_" + d.id, clean); D.defs.set(d.id, clean);
             await saveIndex(clean);
-            if (d.status !== "draft") await rooms.save("asg/" + d.code, C.publicDoc(clean, namesFor(clean.periods), user.uid));
+            if (d.status !== "draft") await rooms.save("asg/" + d.code, C.publicDoc(clean, namesFor(clean.periods, clean), user.uid));
             // Corrections, once assigned, are remembered on their test so the test's scores rise with them.
             if (clean.type === "fix" && clean.fixOf && clean.status === "open") { const t = D.defs.get(clean.fixOf); if (t && t.fixId !== clean.id) { t.fixId = clean.id; await saveDef(t); } }
             status(demo ? "Sample data" : "Live", "ok");
@@ -277,7 +281,7 @@ export async function mountAssign() {
         } catch (e) { S.err = "Couldn't save (" + ((e && e.code) || "connection") + "). Try again."; status("Not saved", "bad"); draw(); }
     }
     async function saveIndex(d) {
-        const m = { id: d.id, title: d.title, type: d.type, cls: d.cls, periods: d.periods, code: d.code || "", status: d.status, at: d.at, due: d.due || 0, n: d.skills.length };
+        const m = indexEntry(d);
         D.index = (D.index || []).filter((x) => x.id !== d.id).concat([m]);
         await store.save("asg/index", { list: D.index, at: Date.now() });
     }
@@ -333,12 +337,12 @@ export async function mountAssign() {
         if (S.err) out.append(el("p", "asErr", S.err));
         // period tabs
         if (pers.length > 1) { const pt = el("div", "tabs asPerTabs"); pers.forEach((p) => { const b = btn(null, p + " period", () => { S.period = p; S.open = ""; draw(); }); b.setAttribute("aria-pressed", String(p === S.period)); pt.append(b); }); out.append(pt); }
-        const names = namesFor([S.period])[S.period] || [], mine = rows.filter((r) => r.per === S.period), started = mine.filter((r) => r.started);
+        const names = namesFor([S.period], d)[S.period] || [], nN = names.filter(Boolean).length, mine = rows.filter((r) => r.per === S.period), started = mine.filter((r) => r.started);
         // tiles
         const tiles = el("div", "pgTiles small");
         const tile = (b, s, sm) => { const t = el("div", "pgTile"); t.append(el("b", null, b), el("span", null, s)); if (sm) t.append(el("small", null, sm)); return t; };
         const avg = (f) => (started.length ? started.reduce((s, r) => s + f(r), 0) / started.length : null);
-        tiles.append(tile(started.length + " of " + (names.length || started.length), "started", names.length ? (names.length - mine.filter((r) => r.ni >= 0 && r.started).length) + " not yet" : ""));
+        tiles.append(tile(started.length + " of " + (nN || started.length), "started", nN ? (nN - mine.filter((r) => r.ni >= 0 && r.started).length) + " not yet" : ""));
         tiles.append(tile(C.pct(avg((r) => (r.withFix != null ? r.withFix : r.grade))), "average grade", "points earned"));
         tiles.append(tile(C.pct(avg((r) => r.complete)), "average complete", "how much was attempted"));
         if (C.isTest(d.type)) tiles.append(tile(String(mine.filter((r) => r.done).length), "turned in"));
@@ -379,7 +383,7 @@ export async function mountAssign() {
             if (S.open === r.key) { const dr = el("tr", "asDetail"), td = el("td"); td.colSpan = 5 + (d.type === "fix" ? 1 : d.skills.length); td.append(history(d, r)); dr.append(td); tb.append(dr); }
         });
         // roster students with no entry
-        names.forEach((nm, ni) => { if (mine.some((r) => r.ni === ni && r.started)) return; const tr = el("tr", "asRow none"); tr.append(el("td", "asNm", nm), el("td", null, "Not started")); for (let j = 0; j < 3 + (d.type === "fix" ? 1 : d.skills.length); j++) tr.append(el("td")); tb.append(tr); });
+        names.forEach((nm, ni) => { if (!nm || mine.some((r) => r.ni === ni && r.started)) return; const tr = el("tr", "asRow none"); tr.append(el("td", "asNm", nm), el("td", null, "Not started")); for (let j = 0; j < 3 + (d.type === "fix" ? 1 : d.skills.length); j++) tr.append(el("td")); tb.append(tr); });
         t.append(tb); wrap.append(t);
         if (!mine.length && !names.length) wrap.append(el("p", "asNote", "No class list for this period. Add one on the Rosters page so students can tap their name."));
         return wrap;
@@ -417,7 +421,7 @@ export async function mountAssign() {
     async function saveDef(d) {
         try {
             await store.save("asg/a_" + d.id, JSON.parse(JSON.stringify(d))); D.defs.set(d.id, d); await saveIndex(d);
-            if (d.code) await rooms.save("asg/" + d.code, C.publicDoc(d, namesFor(d.periods), user.uid));
+            if (d.code) await rooms.save("asg/" + d.code, C.publicDoc(d, namesFor(d.periods, d), user.uid));
             S.err = ""; syncSoon(d.id, true);
         } catch (e) { S.err = "Couldn't save (" + ((e && e.code) || "connection") + ")."; }
         draw();

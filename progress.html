@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="css/board.css?v=57">
     <link rel="stylesheet" href="css/console.css?v=64">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/progress.css?v=2">
+    <link rel="stylesheet" href="css/progress.css?v=3">
     <link rel="stylesheet" href="css/skin.css?v=2">
     <meta name="theme-color" content="#081B45">
 </head>
@@ -34,6 +34,7 @@
             <button type="button" data-v="today" role="tab">Today</button>
             <button type="button" data-v="class" role="tab">Class</button>
             <button type="button" data-v="students" role="tab">Students</button>
+            <button type="button" data-v="ready" role="tab">Readiness</button>
             <button type="button" data-v="questions" role="tab">Questions</button>
         </nav>
 
@@ -49,6 +50,8 @@
                 <li><b>Growth never counts against a student.</b> A dip shows as 0 points earned, not a minus. Effort is kept apart: tries, misses they came back and fixed, steps used and time come from Vault Raid and Assignments.</li>
                 <li><b>Behaviour is not learning.</b> The class tally shows only on a student's own page, under its own heading, and never changes a score, group or target.</li>
                 <li><b>Names.</b> Everything is matched to your Rosters page (first name and last initial). A pasted full name is matched and shown by its roster name; a name with no roster match shows as first name and last initial, marked "not on roster".</li>
+                <li><b>Readiness</b> (ACAP blueprint, 2024, ALSDE): Secure = the lock is met (5 right, 6 of the last 8, on 2 different days, in Vault Raid or Assignments) and the latest score on the standard is 80% or better. Developing = 50 to 79%, or 80%+ before the lock. Not Yet = under 50%. Category shares are blueprint points ÷ 46, worked out here; ALSDE prints points, not percentages. This is classroom readiness, not a prediction of an ACAP score.</li>
+                <li><b>Work on next</b> ranks a student's standards that are not Secure by how far from Secure times the standard's share of its category's points. Nothing is assigned until you tap Approve. Extra credit is one a week per student for now.</li>
                 <li><b>Vault Raid effort</b> is saved only for games where you save results to Class Data. Games before Nov 19, 2026 have scores but no effort detail.</li>
             </ul>
         </details>
@@ -59,7 +62,7 @@
     <script type="module">
         import { mountStudentsNav } from "./js/studentsNav.js?v=4";
         mountStudentsNav("progress.html");
-        import { mountProgress } from "./js/progressPage.js?v=7";
+        import { mountProgress } from "./js/progressPage.js?v=8";
         mountProgress();
     </script>
 </body>
