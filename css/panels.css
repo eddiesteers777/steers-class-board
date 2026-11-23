@@ -214,3 +214,79 @@ body.board.idle .pmenu{opacity:1}
 .camctl .camrecb[hidden]{display:none}
 .camnote{margin:0;font-size:.62em;color:var(--mute,#55627F);min-height:1em}
 @media (prefers-reduced-motion:reduce){.pmenu,.card.tooloud,.camrec{animation:none}}
+
+/* ---------- More menu extras, lock and pin marks ---------- */
+.pmenu .pmsep{display:block;height:.08em;margin:.3em .5em;background:rgba(255,255,255,.16)}
+.pmenu .pmi.danger{color:#FFB4B0}
+.pmenu .pmi.danger:hover{background:rgba(229,72,77,.25)}
+.card h3 .pbtn.lockmark{opacity:1;color:#F2B33D}
+.card h3 .pinmark{display:inline-grid;place-items:center;width:1.3em;height:1.55em;color:#8CC8FF}
+.card h3 .pinmark svg{width:.9em;height:.9em}
+.float.locked{cursor:default}
+.float.locked .grip,.float.locked .rsz{display:none}
+
+/* ---------- Settings: a glass side panel on the right (js/panelSettings.js) ---------- */
+.psdrawer{position:fixed;z-index:9000;top:12px;right:12px;bottom:12px;width:min(370px,calc(100vw - 24px));display:flex;flex-direction:column;
+    border-radius:22px;color:#F4F8FF;font-family:inherit;font-size:15px;overflow:hidden;
+    background:linear-gradient(180deg,rgba(22,44,96,.86),rgba(8,20,52,.9));-webkit-backdrop-filter:blur(24px) saturate(170%);backdrop-filter:blur(24px) saturate(170%);
+    border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 24px 60px rgba(2,8,26,.55);
+    transform:translateX(calc(100% + 30px));opacity:0;pointer-events:none;transition:transform .32s cubic-bezier(.2,.9,.25,1),opacity .2s}
+.psdrawer.show{transform:none;opacity:1;pointer-events:auto}
+.psh{display:flex;align-items:center;gap:12px;padding:16px 14px 14px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
+.psic{display:grid;place-items:center;width:40px;height:40px;flex:none;border-radius:12px;background:linear-gradient(180deg,rgba(140,200,255,.4),rgba(86,150,230,.2));box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.psic svg{width:22px;height:22px}
+.pstt{flex:1;min-width:0;display:flex;flex-direction:column}
+.pstt small{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(226,236,255,.62)}
+.pstt b{font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.psx{display:grid;place-items:center;width:38px;height:38px;flex:none;border:0;border-radius:12px;background:rgba(255,255,255,.1);color:inherit;cursor:pointer}
+.psx:hover{background:rgba(255,255,255,.2)}
+.psx svg{width:18px;height:18px}
+.psbody{flex:1;overflow-y:auto;padding:4px 16px 18px;overscroll-behavior:contain}
+.pssec{padding:14px 0;border-bottom:1px solid rgba(255,255,255,.09)}
+.pssec:last-child{border-bottom:0}
+.pssec h4{margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(226,236,255,.7)}
+.psnote{margin:-2px 0 10px;font-size:13px;line-height:1.4;color:rgba(226,236,255,.7)}
+.psrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.psrow:first-of-type{margin-top:0}
+.pschip{min-height:36px;padding:0 13px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:inherit;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.pschip:hover{background:rgba(255,255,255,.14)}
+.pschip.on{background:linear-gradient(180deg,rgba(140,200,255,.6),rgba(86,150,230,.38));border-color:rgba(160,210,255,.7);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.pschips.sizes .pschip{flex:1}
+.pschips.lights .pschip{flex:1}
+.psrange input{flex:1;accent-color:#F2B33D;min-width:0}
+.psrv{min-width:52px;text-align:right;font-weight:700;font-size:13px;color:rgba(226,236,255,.85)}
+.psrl{font-size:13px;font-weight:600;color:rgba(226,236,255,.8)}
+.psspots{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.psspot{position:relative;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);cursor:pointer;padding:0}
+.psspot:hover{background:rgba(255,255,255,.15)}
+.psspot i{position:absolute;width:12px;height:9px;border-radius:3px;background:#F2B33D}
+.sp-tl i{left:6px;top:6px}.sp-tr i{right:6px;top:6px}.sp-bl i{left:6px;bottom:6px}.sp-br i{right:6px;bottom:6px}.sp-c i{left:calc(50% - 6px);top:calc(50% - 4.5px)}
+.pslayer{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.psbtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:inherit;font:inherit;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;box-sizing:border-box}
+.psbtn:hover{background:rgba(255,255,255,.16)}
+.psbtn svg{width:17px;height:17px;flex:none}
+.psbtn.small{min-height:34px}
+.psbtn.go{background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00;border-color:transparent}
+.psbtn.danger{color:#FFB4B0;border-color:rgba(255,140,140,.35)}
+.psbtn.danger:hover{background:rgba(229,72,77,.25)}
+.psend .psbtn{width:100%}
+.pstog{display:flex;align-items:center;gap:12px;width:100%;padding:10px 0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.pstl{flex:1;display:flex;flex-direction:column;gap:2px}
+.pstl b{font-size:15px}
+.pstl small{font-size:12.5px;color:rgba(226,236,255,.65)}
+.pssw{position:relative;width:44px;height:26px;flex:none;border-radius:20px;background:rgba(255,255,255,.18);transition:background .2s}
+.pssw::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);transition:transform .2s}
+.pstog.on .pssw{background:#2FB46B}
+.pstog.on .pssw::after{transform:translateX(18px)}
+.psta,.pstext,.psteam input,.psnum{box-sizing:border-box;padding:9px 11px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(2,10,30,.35);color:#fff;font:inherit;font-size:15px}
+.psta,.pstext{width:100%;resize:vertical;margin-bottom:8px}
+.psta:focus,.pstext:focus,.psteam input:focus,.psnum:focus{outline:2px solid rgba(140,200,255,.7);outline-offset:1px}
+.psnum{width:74px}
+.psinline span{font-size:14px;color:rgba(226,236,255,.8)}
+.psteam{flex-wrap:nowrap}
+.psteam input{flex:1;min-width:0}
+.pssc{min-width:34px;text-align:center;font-size:17px}
+.psmini{display:grid;place-items:center;width:32px;height:32px;flex:none;border-radius:10px;border:0;background:rgba(255,255,255,.08);color:inherit;cursor:pointer}
+.psmini svg{width:14px;height:14px}
+@media (max-width:560px){.psdrawer{top:auto;left:8px;right:8px;bottom:8px;width:auto;max-height:78vh;transform:translateY(calc(100% + 20px))}.psdrawer.show{transform:none}}
+@media (prefers-reduced-motion:reduce){.psdrawer{transition:opacity .15s}}

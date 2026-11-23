@@ -7,7 +7,7 @@
    set the screen and the panels in one tap. All of it lives in S.tools
    inside the shared board state, so the board and the Remote always match.
 ========================================== */
-import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=61";
+import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=62";
 import { meterEl, setVoice, camBody, tooLoud } from "./roomSense.js?v=1";
 import { MARKS, markUrl } from "./marks.js?v=1";
 import { EFFECTS, FX_AMOUNTS, applyEffect, effectSample } from "./effects.js?v=2";
@@ -38,6 +38,12 @@ const IC = {
     gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
     more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
     trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+    lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    unlock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/>',
+    pin: '<path d="M9 4h6l-1 6 3 3v2H7v-2l3-3-1-6zM12 15v5"/>',
+    front: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/>',
+    back: '<rect x="4" y="4" width="11" height="11" rx="2"/><path d="M15 9h4a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-4"/>',
+    small: '<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/>',
     stage: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><rect x="7.5" y="8" width="9" height="8" rx="1.5"/>',
     min: '<path d="M6 12h12"/>', float: '<path d="M14 4h6v6M20 4l-8 8"/><path d="M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/>',
     dock: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>',
@@ -77,10 +83,14 @@ export function sceneActive(S, raw) {
 }
 export function applyScene(S, raw, api) {
     const sc = asScene(raw), T = S.tools, avail = (k) => api.panelOk(k);
+    // "Show in all screens": a pinned panel stays where it is through every layout and Spotlight screen
+    const keep = Object.keys(T.pin || {}).filter((k) => T.on[k]).map((k) => [k, !!T.min[k], T.pos[k] ? Object.assign({}, T.pos[k]) : null]);
     T.on = {}; T.min = {}; T.pos = {};
+    keep.forEach(([k, mn, p]) => { T.on[k] = true; if (mn) T.min[k] = true; if (p) T.pos[k] = p; });
     Object.keys(sc.on).filter(avail).forEach((k) => { T.on[k] = true; if (sc.min[k]) T.min[k] = true; });
     Object.keys(sc.pos || {}).forEach((k) => { if (T.on[k]) T.pos[k] = Object.assign({}, sc.pos[k]); });
     (sc.float || []).forEach((k) => { if (T.on[k] && !T.min[k] && !T.pos[k]) T.pos[k] = (floatAt && floatAt(k, T)) || api.defaultPos(k); });
+    keep.forEach(([k, mn, p]) => { T.on[k] = true; if (mn) T.min[k] = true; else delete T.min[k]; if (p) T.pos[k] = p; });
     T.order = (sc.order || []).filter((k) => T.on[k]);
     if (sc.work) T.work = sc.work;
     if (sc.look) S.look = cleanLook(sc.look);          // a board saved in the Board Builder brings its look
@@ -483,7 +493,7 @@ export function lookPicker(api, compact) {
     });
     box.appendChild(bg);
     box.appendChild(el("p", "lookh", "Photos"));
-    box.appendChild(photoPicker(el, S.look, (id) => { S.look = Object.assign({}, S.look, { bg: id }); api.push(); refreshSheet(); }, () => refreshSheet()));
+    box.appendChild(photoPicker(el, S.look, (id) => { S.look = Object.assign({}, S.look, { bg: id }); api.push(); refreshSheet(); }, () => { if (api.relook) api.relook(); else refreshSheet(); }));   // relook: a host that draws the picker itself (Spotlight)
     box.appendChild(el("p", "lookh", "Effects"));   // falling shapes behind the lesson
     const fx = el("div", "lookfxs"); fx.setAttribute("role", "group"); fx.setAttribute("aria-label", "Board effect");
     const curFx = S.look.fx || "none";

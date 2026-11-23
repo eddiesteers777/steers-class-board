@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { cleanSticker, cleanStickers, makeSticker, MAX_STICKERS } from "../../js/stickers.js";
 import { cleanScene, mergeTools, defaultTools, MAX_SCENES, MAX_DAYB } from "../../js/boardTools.js";
-import { saveScene, sceneActive, cleanLook, LOOK_PRESETS, LOOK_THEMES, LOOK_BGS, presetLook } from "../../js/panels.js";
+import { saveScene, sceneActive, cleanLook, LOOK_PRESETS, LOOK_THEMES, LOOK_BGS, LOOK_PHOTOS, presetLook } from "../../js/panels.js";
 import { EFFECTS } from "../../js/effects.js";
 import { MARKS } from "../../js/marks.js";
 
@@ -60,7 +60,7 @@ t("a board counts as showing only with its look and stickers", () => {
 });
 t("every Quick look uses colours, backgrounds, logos and effects that exist", () => {
     const has = (list, id) => list.some((x) => x[0] === id);
-    LOOK_PRESETS.forEach((p) => { assert.ok(has(LOOK_THEMES, p[2]), p[1]); assert.ok(has(LOOK_BGS, p[3]), p[1]); assert.ok(has(MARKS, p[4]), p[1]); assert.ok(has(EFFECTS, p[5]), p[1]);
+    LOOK_PRESETS.forEach((p) => { assert.ok(has(LOOK_THEMES, p[2]), p[1]); assert.ok(has(LOOK_BGS.concat(LOOK_PHOTOS), p[3]), p[1]); assert.ok(has(MARKS, p[4]), p[1]); assert.ok(has(EFFECTS, p[5]), p[1]);
         assert.deepEqual(cleanLook(presetLook(p)), presetLook(p)); });
 });
 t("cleanLook keeps the effect amount and drops anything unknown", () => {

@@ -14,8 +14,8 @@
    Each Spotlight screen keeps its own panels, look and drawing (boardApp.js spotApi; state in wb.spot).
    Frosted glass: translucent layers with a backdrop blur, a light top edge and a soft shadow.
 ========================================== */
-import { PANEL_LIST, LESSON_PANELS, TOOL_LIST } from "./boardTools.js?v=61";
-import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker } from "./panels.js?v=13";
+import { PANEL_LIST, LESSON_PANELS, TOOL_LIST } from "./boardTools.js?v=62";
+import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker, photoGroupNow } from "./panels.js?v=14";
 import { wbIcon } from "./wbIcons.js?v=1";
 
 let A = null, host = null, onBack = null, tucked = false, sheet = "", picked = "", built = false, lastSig = "";
@@ -62,7 +62,7 @@ export function openSpot(api, hostEl, back) {
 export function closeSpot() {
     if (!A) return;
     A.spot.draw(false); sheet = ""; picked = "";
-    document.body.classList.remove("spotmode", "spotdraw");
+    document.body.classList.remove("spotmode", "spotdraw", "spphoto"); document.body.style.removeProperty("--spph");
     if (host) host.hidden = true;
     window.removeEventListener("keydown", keys, true);
     document.removeEventListener("fullscreenchange", paintFull);
@@ -81,15 +81,15 @@ export function pickSpot(kind, id) {
 /* ---------- the pieces, made once ---------- */
 function build() {
     built = true; host.textContent = "";
-    // top left: back + full screen
+    // top left: back
     const top = el("div", "spg sptop");
-    top.append(button("spb spback", svg(IC.back, 2.2) + "<span>Board Builder</span>", "Back to the Board Builder", () => onBack && onBack()),
-        button("spb spfull", svg(IC.full), "Full screen", toggleFull));
+    top.append(button("spb spback", svg(IC.back, 2.2) + "<span>Board Builder</span>", "Back to the Board Builder", () => onBack && onBack()));
     host.appendChild(top);
 
-    // top right: put Spotlight on the live board (it follows every change from then on)
+    // top right: full screen / back to normal, then put Spotlight on the live board (it follows every change from then on)
     const live = el("div", "spg splive");
-    live.appendChild(button("spb splivebtn", "<i></i><span>Show on board</span>", "Show this on the live board", () => { A.spot.open(); flash("On the live board"); }));
+    live.append(button("spb spfull", svg(IC.full), "Full screen", toggleFull), el("i", "spsep"),
+        button("spb splivebtn", "<i></i><span>Show on board</span>", "Show this on the live board", () => { A.spot.open(); flash("On the live board"); }));
     host.appendChild(live);
 
     // bottom right: the screens
@@ -154,6 +154,10 @@ function roomFor(k) {
     // offsets, not screen boxes: a panel that is popping in is still scaled down
     const LW = layer.clientWidth, LH = layer.clientHeight, pc = (w) => ({ l: w.offsetLeft / LW * 100, t: w.offsetTop / LH * 100, r: (w.offsetLeft + w.offsetWidth) / LW * 100, b: (w.offsetTop + w.offsetHeight) / LH * 100 });
     const others = Array.from(layer.querySelectorAll(".float")).filter((w) => w !== me).map(pc);
+    // the glass cards and the toolbar float over the board too: keep clear of them
+    const LR = layer.getBoundingClientRect(), sx = LR.width / LW || 1;
+    host.querySelectorAll(".sptop,.splive,.spdock,.spscr").forEach((c) => { const r = c.getBoundingClientRect(); if (!r.width) return;
+        others.push({ l: (r.left - LR.left) / sx / LW * 100, t: (r.top - LR.top) / sx / LH * 100, r: (r.right - LR.left) / sx / LW * 100, b: (r.bottom - LR.top) / sx / LH * 100 }); });
     const box = pc(me), w = box.r - box.l, h = box.b - box.t, m = 1.2;
     const hits = (x, y) => others.some((o) => x < o.r + m && x + w > o.l - m && y < o.b + m && y + h > o.t - m);
     if (!hits(box.l, box.t)) return;
@@ -197,9 +201,13 @@ function keys(e) {
 function paintFull() { const b = host && host.querySelector(".spfull"); if (!b) return; const f = isFull(); b.innerHTML = svg(f ? IC.unfull : IC.full); b.title = f ? "Leave full screen" : "Full screen"; b.setAttribute("aria-label", b.title); b.setAttribute("aria-pressed", String(f)); setTimeout(() => A && A.fit(), 80); }
 function paint() {
     const S = A.S, T = S.tools, drawing = A.spot.draw(), p = A.spot.pages();
-    const sig = JSON.stringify([S.screen, T.on, T.min, Object.keys(T.pos), drawing, tucked, sheet, picked, p, A.spot.tool(), A.spot.pen(), A.spot.size(), S.look, Date.now() - delArm < 3000, picked && T.pos[picked] ? T.pos[picked].s : 0]);
+    const sig = JSON.stringify([S.screen, T.on, T.min, Object.keys(T.pos), drawing, tucked, sheet, picked, p, photoGroupNow(), A.spot.tool(), A.spot.pen(), A.spot.size(), S.look, Date.now() - delArm < 3000, picked && T.pos[picked] ? T.pos[picked].s : 0]);
     if (sig === lastSig) return; lastSig = sig;
     host.classList.toggle("tucked", tucked); document.body.classList.toggle("spotdraw", drawing);
+    // a photo background runs edge to edge behind the board, with no frame around it
+    { const ph = /^ph-[a-z]+-[a-z]+$/.test(S.look.bg || "") ? S.look.bg.slice(3) : ""; document.body.classList.toggle("spphoto", !!ph);
+        // a full address: a url() inside a CSS variable is read from the stylesheet's folder
+        if (ph) document.body.style.setProperty("--spph", 'url("' + new URL("photos/" + ph + ".webp", location.href).href + '")'); else document.body.style.removeProperty("--spph"); }
     // toolbar
     host.querySelectorAll(".spm").forEach((b) => { const on = (b.dataset.m === "draw") === drawing; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("on", on); });
     host.querySelectorAll(".sprack .spt").forEach((b) => {
@@ -255,13 +263,17 @@ function paintSheet() {
     if (!want) { sh.hidden = true; sh.dataset.k = ""; sh.textContent = ""; return; }
     sh.hidden = false;
     // The look picker redraws itself on each tap (it is built fresh), the panel card when its size changes.
+    const was = sh.querySelector(".spshbody"), keepTop = was && sh.dataset.k === want ? was.scrollTop : 0;
     sh.textContent = ""; sh.dataset.k = want;
     const head = el("div", "spsh");
     if (want === "look") {
         const ic = el("span", "spshi"); ic.innerHTML = svg(IC.bg); head.append(ic, el("b", null, "Background"));
         head.appendChild(button("spb spclose", svg(IC.x, 2.2), "Close", () => openSheet("")));
         sh.appendChild(head);
-        const box = el("div", "spshbody"); box.appendChild(lookPicker(Object.assign({}, A.toolApi, { push: () => { A.push(); lastSig = ""; paint(); } }), false)); sh.appendChild(box);
+        // rebuilt on every tap, so it keeps its scroll place (a photo far down the list stays in view)
+        const redo = () => { lastSig = ""; paint(); };
+        const box = el("div", "spshbody"); box.appendChild(lookPicker(Object.assign({}, A.toolApi, { push: () => { A.push(); redo(); }, relook: redo }), false)); sh.appendChild(box);
+        if (keepTop) box.scrollTop = keepTop;
         sh.className = "spg spsheet wide";
     } else {
         const k = picked, T = A.S.tools; sh.className = "spg spsheet";
