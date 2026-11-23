@@ -11,8 +11,13 @@
 let ctx = null, master = null, fxBus = null, musicBus = null, gameBus = null, duckGain = null, verb = null, noise = null;
 let cfg = { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", game: true }, here = false;
 
-const STYLES = [["calm", "Calm"], ["chill", "Chill"], ["focus", "Focus"], ["upbeat", "Upbeat"], ["christmas", "Christmas"], ["thanksgiving", "Thanksgiving"]];
-export { STYLES };
+import { GENRES, GENRE_GROUPS, createGenre } from "./genres.js?v=1";
+const FIRST = [["calm", "Calm"], ["chill", "Chill"], ["focus", "Focus"], ["upbeat", "Upbeat"], ["christmas", "Christmas"], ["thanksgiving", "Thanksgiving"]];
+/* Every music style: the first six (played by schedule() below) and the library in js/genres.js. */
+const STYLES = FIRST.concat(Object.keys(GENRES).map((k) => [k, GENRES[k].name]));
+/* The styles in the groups the Sound menu shows: [group name, [[id, name], ...]]. */
+const STYLE_GROUPS = GENRE_GROUPS.map(([g, ids]) => [g, ids.map((id) => STYLES.find((x) => x[0] === id)).filter(Boolean)]);
+export { STYLES, STYLE_GROUPS };
 
 /** Start (or wake) the audio engine. Browsers only allow this after a tap or key press. */
 export function unlock() {
@@ -235,12 +240,18 @@ function startMusic() {
     const out = ctx.createGain(); out.gain.setValueAtTime(0.0001, ctx.currentTime); out.gain.exponentialRampToValueAtTime(1, ctx.currentTime + 2.5); out.connect(musicBus);
     const send2 = ctx.createGain(); send2.connect(verb);
     send2.gain.setValueAtTime(0.0001, ctx.currentTime); send2.gain.exponentialRampToValueAtTime(1, ctx.currentTime + 2.5);
+    if (GENRES[cfg.style]) {   // a style from the library (js/genres.js) runs its own scheduler
+        const g = createGenre(ctx, cfg.style, out, send2, noise);
+        mus = { out, send: send2, style: cfg.style, genre: g };
+        mus.timer = setInterval(() => { if (mus && mus.genre) mus.genre.fill(ctx.currentTime + 1.2); }, 120); g.fill(ctx.currentTime + 1.2);
+        return;
+    }
     const st0 = STYLE[cfg.style] || STYLE.focus, ks = keysOf(st0);
     mus = { out, send: send2, step: 0, bar: 0, next: ctx.currentTime + 0.15, key: ks[Math.floor(Math.random() * ks.length)], prog: Math.floor(Math.random() * progsOf(st0).length), lastMel: 2, style: cfg.style };
     mus.timer = setInterval(schedule, 120); schedule();
 }
 function stopMusic() {
-    if (!mus) return; const m = mus; mus = null; clearInterval(m.timer);
+    if (!mus) return; const m = mus; mus = null; clearInterval(m.timer); if (m.genre) m.genre.stop();
     if (!ctx) return; const t = ctx.currentTime;
     try { m.out.gain.cancelScheduledValues(t); m.out.gain.setValueAtTime(Math.max(0.0001, m.out.gain.value), t); m.out.gain.exponentialRampToValueAtTime(0.0001, t + 1.2); m.send.gain.cancelScheduledValues(t); m.send.gain.setValueAtTime(Math.max(0.0001, m.send.gain.value), t); m.send.gain.exponentialRampToValueAtTime(0.0001, t + 1.2); } catch (e) { /* ignore */ }
     setTimeout(() => { try { m.out.disconnect(); m.send.disconnect(); } catch (e) { /* ignore */ } }, 1500);
