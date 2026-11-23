@@ -10,11 +10,14 @@ import { buildProgress, distribution, standardOverTime, needGroups, missedOn, he
 import { lineChart, sparkline, bandBar, meter } from "./charts.js?v=1";
 import { STANDARDS } from "../data/standards.js?v=58";
 import * as R from "./readiness.js?v=1";
-import * as AA from "./acapAssign.js?v=2";
+import * as AA from "./acapAssign.js?v=3";
 import * as K from "./checks.js?v=1";
+import * as FB from "./foundBank.js?v=1";
+import * as FT from "./foundational.js?v=1";
 import { matchRoster } from "./progress.js?v=4";
 import { perKey } from "./profileCore.js?v=2";
 import { shortNames } from "./vaultCore.js?v=75";
+import { cleanItem as C_clean } from "./assignCore.js?v=7";
 
 const DEMO_PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
 const MARK = { teaching: "Teaching", taught: "Taught", reteach: "Reteach" };
@@ -35,7 +38,7 @@ export async function mountProgress() {
 
     const S = { period: [sharedPeriod(""), remember("period")].find((p) => p && PERIODS.some((x) => x[0] === p)) || "1st", view: remember("view") || "today", game: "", sort: "need", std: "" };
     if (!CLS[S.period]) S.period = PER[0][0];
-    const D = { rosters: {}, marks: {}, index: null, imports: new Map(), results: [], pindex: null, details: new Map(), tally: new Map(), prof: new Map(), asg: [], bank: null, flu: [] };
+    const D = { rosters: {}, marks: {}, index: null, imports: new Map(), results: [], pindex: null, details: new Map(), tally: new Map(), prof: new Map(), asg: [], bank: null, flu: [], found: new Map() };
 
     // ---------- controls ----------
     PERIODS.forEach(([k, label]) => { const b = el("button", null, k + " period"); b.type = "button"; b.dataset.k = k; b.title = label; b.onclick = () => { S.period = k; S.game = ""; S.std = ""; remember("period", k); saveSharedPeriod(k); draw(); }; $("periodTabs").appendChild(b); });
@@ -67,6 +70,8 @@ export async function mountProgress() {
     // ACAP readiness: game profiles (cracked locks) per period, and the Assignments list (one extra credit a week).
     store.watch("flu/index", (s) => { if (s.pending) return; D.flu = ((s.exists && s.data && s.data.list) || []).filter((x) => x && x.id); soon(); }, () => {});
     store.watch("asg/index", (s) => { if (s.pending) return; D.asg = ((s.exists && s.data && s.data.list) || []).filter((x) => x && x.id); soon(); }, () => {});
+    // Foundational track placements (Eddie places students by hand), one document per period.
+    const watchFound = (per) => { if (D.found.has(per)) return; D.found.set(per, null); store.watch("found/" + perKey(per), (s) => { if (s.pending) return; D.found.set(per, s.exists ? s.data : false); soon(); }, () => D.found.set(per, false)); };
     const watchProf = (per) => { if (D.prof.has(per)) return; D.prof.set(per, null); store.watch("profiles/" + perKey(per), (s) => { if (s.pending) return; D.prof.set(per, s.exists ? s.data : false); soon(); }, () => D.prof.set(per, false)); };
     const rooms = demo ? memRooms() : store.rooms;
     const bank = () => (D.bank ? Promise.resolve(D.bank) : import("./stdBank.js?v=2").then((m) => m.loadStdBank()).then((b) => (D.bank = b)));
@@ -84,7 +89,7 @@ export async function mountProgress() {
         const P = buildProgress({ roster: (D.rosters[S.period] || []).map((n) => String(n).slice(0, 60)), codes, imports, results: D.results, details, tally: [...D.tally.values()], period: S.period, cut });
         const order = []; C.units.forEach((u) => u.standards.forEach((x) => { if (!order.includes(x.code)) order.push(x.code); })); C.standards.forEach((s) => { if (!order.includes(s.code)) order.push(s.code); });
         const std = (code) => C.standards.find((s) => s.code === code) || null;
-        watchProf(S.period);
+        watchProf(S.period); watchFound(S.period);
         const roster = (D.rosters[S.period] || []).map((n) => String(n).slice(0, 60));
         let RD = null;   // readiness, worked out the first time a view asks for it
         const ready = () => {
@@ -92,6 +97,8 @@ export async function mountProgress() {
             const nameOf = (s) => { const i = matchRoster(s, roster); return i >= 0 ? roster[i] : ""; };
             const trail = R.answerTrail(P.details, nameOf), prof = D.prof.get(S.period) || null;
             RD = new Map(P.students.filter((r) => r.onRoster).map((r) => [r.s, R.readinessOf(cls, C.standards, r, trail.get(r.s), R.kidOf(prof, r.s))]));
+            const fdoc = D.found.get(S.period) || null;   // the foundational ladder for students placed on it
+            P.students.filter((r) => r.onRoster).forEach((r) => { const x = RD.get(r.s); if (x) x.ladder = FT.ladderOf(FT.placementOf(fdoc, r.s), r, trail.get(r.s)); });
             return RD;
         };
         return { P, cut, cls, C, order, std, ready, bp: R.blueprintFor(cls), mark: (code) => ((D.marks[cls] || {})[code] || {}).s || "" };
@@ -110,7 +117,7 @@ export async function mountProgress() {
     }
     const skeleton = () => { const s = el("div", "pgSkel"); s.setAttribute("aria-hidden", "true"); s.append(el("i"), el("i"), el("i")); return s; };
     function empty(h, p, label, href) { const box = el("div", "pgEmpty"); box.append(el("h2", null, h), el("p", null, p)); const a = el("a", "btn go", label); a.href = href; box.appendChild(a); return box; }
-    const stdLine = (M, code) => { const s = M.std(code); return s ? short(s.text, 90) : ""; };
+    const stdLine = (M, code) => { if (FB.isFoundational(code)) return "Foundational: " + FB.nameOf(code); const s = M.std(code); return s ? short(s.text, 90) : ""; };
     const chip = (text, cls) => el("span", "pgChip " + (cls || ""), text);
     const nameBtn = (M, s) => { const b = el("button", "pgName", s); b.type = "button"; b.onclick = () => openKid(M, s); return b; };
 
@@ -257,6 +264,7 @@ export async function mountProgress() {
         out.appendChild(el("h2", null, "ACAP readiness · " + bp.grade + " blueprint"));
         out.appendChild(el("p", "pgNote", R.NOT_A_PREDICTION + (M.cls === "8th-acc" ? " 8th Accelerated is scored on the Grade 8 blueprint; Algebra I standards are tracked on the other tabs, not weighted here." : "")));
         checksPanel(out, M, all);
+        foundPanel(out, M);
         // category tiles
         const tiles = el("div", "rdCats");
         bp.cats.forEach((c) => {
@@ -353,6 +361,13 @@ export async function mountProgress() {
         const pers = el("div", "rdPers"); pers.appendChild(el("span", null, "Periods"));
         perOfCls.forEach((p) => { const l = el("label", "asChk sm"), c = el("input"); c.type = "checkbox"; c.checked = CK.periods.includes(p); c.onchange = () => { CK.periods = perOfCls.filter((q) => (q === p ? c.checked : CK.periods.includes(q))); }; l.append(c, document.createTextNode(" " + p)); pers.appendChild(l); });
         box.appendChild(pers);
+        const placed = CK.periods.flatMap((p) => FT.placedNames(D.found.get(p)).map((nm) => ({ p, nm })));
+        if (placed.length) {
+            if (CK.fall == null) CK.fall = CK.kind === "week";   // Friday check: the foundational group works its own step instead; diagnostics and the cumulative check still go to everyone
+            const l = el("label", "asChk sm rdFall"), c = el("input"); c.type = "checkbox"; c.checked = CK.fall; c.onchange = () => { CK.fall = c.checked; };
+            l.append(c, document.createTextNode(" Foundational group (" + placed.map((x) => x.nm).join(", ") + ") gets their own foundational practice instead of this check"));
+            box.appendChild(l);
+        }
         box.appendChild(el("p", "pgProfile", "It goes out as a Quiz: one question per line, one try, no feedback until you release results on Assignments. Each answer lands in Readiness by student and standard."));
         const row = el("div", "rdBtns"), msg = el("p", "rdMsg", CK.msg || ""); msg.setAttribute("role", "status");
         const go = el("button", "btn go", "Approve and assign"); go.type = "button";
@@ -362,10 +377,13 @@ export async function mountProgress() {
             try {
                 const items = await bank(), title = K.titleFor(CK.kind, CK.slots), def = K.buildQuiz(CK.kind, CK.slots, items, M.cls, CK.periods, title);
                 if (!def) throw Object.assign(new Error("bank"), { code: "a standard here has no problems in the bank yet; swap it" });
-                const names = Object.fromEntries(CK.periods.map((p) => [p, shortNames((D.rosters[p] || []).filter(Boolean))]));
+                const fall = CK.fall ? CK.periods.flatMap((p) => FT.placedNames(D.found.get(p)).map((nm) => ({ p, nm }))) : [];
+                const names = Object.fromEntries(CK.periods.map((p) => { const lines = (D.rosters[p] || []).filter(Boolean), sn = shortNames(lines); return [p, sn.map((n, i) => (fall.some((x) => x.p === p && (x.nm === lines[i] || x.nm === n)) ? "" : n))]; }));
                 const saved = await AA.approveWith(store, rooms, user.uid, def, D.asg, names);
                 D.asg = D.asg.filter((a) => a.id !== saved.id).concat([AA.indexEntry(saved)]);
-                CK.msg = "Assigned: " + saved.title + ". Code " + saved.code + " for " + CK.periods.join(", ") + " period. Release results on Assignments when everyone is done.";
+                let extra = "";
+                if (fall.length) { const made = await approveFound(M, fall); extra = " Foundational practice: " + made + "."; }
+                CK.msg = "Assigned: " + saved.title + ". Code " + saved.code + " for " + CK.periods.join(", ") + " period. Release results on Assignments when everyone is done." + extra;
                 CK.slots = []; draw();
             } catch (e) { CK.msg = "Not assigned (" + ((e && e.code) || "connection") + "). Try again."; draw(); }
         };
@@ -467,6 +485,7 @@ export async function mountProgress() {
     const pickAt = new Map();   // which suggestion is showing, per student
     function kidReady(dlg, M, r) {
         const x = M.ready().get(r.s); if (!x) return;
+        kidFound(dlg, M, r, x);
         dlg.appendChild(el("h3", null, "ACAP readiness"));
         const cats = el("div", "rdKCats");
         x.cats.forEach((c) => {
@@ -518,6 +537,79 @@ export async function mountProgress() {
             if (mine.length) { const o = el("p", "pgProfile"); o.textContent = "Open for " + r.s + " now: " + mine.map((a) => a.title + (a.code ? " (code " + a.code + ")" : "")).join(" · "); card.appendChild(o); }
         };
         paint();
+    }
+    /* ---------- the foundational track (students Eddie places by hand) ---------- */
+    const placeDoc = async (doc, name) => { await store.save("found/" + perKey(S.period), doc); D.found.set(S.period, doc); draw(); if (name && $("kid").open) openKid(model(), name); };
+    /** One-student foundational practice on each student's current step; skips a step already open. Returns a summary. */
+    async function approveFound(M, who) {
+        const RD = M.ready(), done = [], skip = [];
+        for (const w of who) {
+            const per = w.p || S.period; if (per !== S.period) { skip.push(w.nm + " (open " + per + " period to assign)"); continue; }
+            const x = RD.get(w.nm), cur = x && x.ladder && x.ladder.current; if (!cur) { skip.push(w.nm + " (every step Secure)"); continue; }
+            const open = FT.openFor(D.asg, per, w.nm, cur.id); if (open) { skip.push(w.nm + " (" + cur.name + " already open, code " + open.code + ")"); continue; }
+            const pool = FB.problemsFor(cur.id).map(C_clean);
+            const def = AA.makeDef({ cls: M.cls, per, nm: w.nm, code: cur.id, text: cur.name, state: cur.state, latest: cur.latest, pool, fnd: true });
+            const saved = await AA.approve(store, rooms, user.uid, def, D.asg, D.rosters[per] || []);
+            D.asg = D.asg.filter((a) => a.id !== saved.id).concat([AA.indexEntry(saved)]);
+            done.push(w.nm + " " + cur.name + " (code " + saved.code + ")");
+        }
+        return (done.length ? done.join(", ") : "none made") + (skip.length ? "; skipped " + skip.join(", ") : "");
+    }
+    function foundPanel(out, M) {
+        const RD = M.ready(), kids = [...RD.entries()].filter(([, x]) => x && x.ladder);
+        out.appendChild(el("h2", null, "Foundational group"));
+        if (!kids.length) { out.appendChild(el("p", "sub", "Nobody placed in " + S.period + " period. Open a student and tap “Place on the foundational track” when grade-level work is out of reach. They work one skill at a time and move up only when it's Secure.")); return; }
+        out.appendChild(el("p", "sub", "One skill at a time, pounded until Secure (the lock and 80%+), then the next. Practice is 5 right a day from that skill, with worked steps after a miss."));
+        const box = el("div", "rdFound");
+        kids.forEach(([nm, x]) => {
+            const L = x.ladder, row = el("div", "rdFRow"), cur = L.current;
+            row.appendChild(nameBtn(M, nm));
+            row.appendChild(ladderStrip(L));
+            const open = cur && FT.openFor(D.asg, S.period, nm, cur.id);
+            row.appendChild(el("small", null, cur ? cur.name + " · " + R.STATE_WORD[cur.state] + (cur.latest != null ? " " + pct(cur.latest) : "") + (cur.lock.met ? "" : " · lock: " + cur.lock.left) + (open ? " · open, code " + open.code : "") : "Every step Secure: ready for grade-level work"));
+            box.appendChild(row);
+        });
+        out.appendChild(box);
+        const row = el("div", "rdBtns"), msg = el("p", "rdMsg"); msg.setAttribute("role", "status");
+        const go = el("button", "btn go", "Approve today's foundational practice for all " + kids.length); go.type = "button";
+        go.onclick = async () => { go.disabled = true; msg.textContent = "Saving…"; try { msg.textContent = "Made: " + (await approveFound(M, kids.map(([nm]) => ({ p: S.period, nm })))) + "."; } catch (e) { msg.textContent = "Not assigned (" + ((e && e.code) || "connection") + "). Try again."; go.disabled = false; } };
+        row.appendChild(go); out.append(row, msg);
+    }
+    function ladderStrip(L) {
+        const strip = el("div", "rdLadder");
+        L.steps.forEach((s) => { if (s.before) return; const i = el("i", s.state === "secure" ? "rd-s" : L.current && s.id === L.current.id ? "rd-cur" : s.state === "none" ? "rd-0" : s.state === "notyet" ? "rd-n" : "rd-d", s.state === "secure" ? "✓" : ""); i.title = s.name + ": " + R.STATE_WORD[s.state]; strip.appendChild(i); });
+        return strip;
+    }
+    function kidFound(dlg, M, r, x) {
+        const doc = D.found.get(S.period) || null, pl = FT.placementOf(doc, r.s), L = x.ladder;
+        const sec = el("section", "rdFKid"); dlg.appendChild(sec);
+        const sel = el("select"); sel.setAttribute("aria-label", "Start the ladder at");
+        FB.LADDER.forEach((s, i) => { const o = el("option", null, (i + 1) + ". " + s.name); o.value = s.id; sel.appendChild(o); });
+        sel.value = pl ? pl.start : FB.LADDER[0].id;
+        if (!pl) {
+            sec.append(el("b", "rdNextH", "Foundational track"), el("p", "pgProfile", "For when grade-level work is out of reach. They work one below-grade skill at a time and only move up when it's Secure. Start at:"));
+            const b = el("button", "btn", "Place on the foundational track"); b.type = "button"; b.onclick = () => placeDoc(FT.place(doc, r.s, sel.value), r.s);
+            const row = el("div", "rdBtns"); row.append(sel, b); sec.appendChild(row); return;
+        }
+        sec.classList.add("on");
+        const cur = L && L.current;
+        sec.append(el("b", "rdNextH", "Foundational track · step " + (cur ? FB.LADDER.findIndex((s) => s.id === cur.id) + 1 : "done") + " of " + FB.LADDER.length));
+        if (L) sec.appendChild(ladderStrip(L));
+        if (cur) {
+            sec.append(el("h3", null, cur.name), el("p", "pgProfile", R.STATE_WORD[cur.state] + (cur.latest != null ? " (" + pct(cur.latest) + " latest)" : "") + ". Secure needs the lock" + (cur.lock.met ? " (met)" : ": " + cur.lock.left) + " and 80%+ latest. It opens up " + cur.helps.join(", ") + "."));
+        } else sec.appendChild(el("p", null, "Every step from the start is Secure. Time for grade-level work (Work on next below)."));
+        const row = el("div", "rdBtns"), msg = el("p", "rdMsg"); msg.setAttribute("role", "status");
+        if (cur) {
+            const open = FT.openFor(D.asg, S.period, r.s, cur.id);
+            const go = el("button", "btn go", open ? "Open now, code " + open.code : "Approve " + cur.name.toLowerCase() + " practice"); go.type = "button"; go.disabled = !!open;
+            go.onclick = async () => { go.disabled = true; msg.textContent = "Saving…"; try { msg.textContent = "Made: " + (await approveFound(M, [{ p: S.period, nm: r.s }])) + "."; } catch (e) { msg.textContent = "Not assigned (" + ((e && e.code) || "connection") + ")."; go.disabled = false; } };
+            const cp = el("button", "btn ghost", "Copy for DeltaMath / Magma"); cp.type = "button";
+            cp.onclick = () => { const cv = AA.copyVersion({ code: cur.name, text: "", calc: "", pool: FB.problemsFor(cur.id).map(C_clean) }, r.s); copyBox(sec, cv.text, cur.name); };
+            row.append(go, cp);
+        }
+        const mv = el("button", "btn ghost", "Start at"); mv.type = "button"; mv.onclick = () => placeDoc(FT.place(doc, r.s, sel.value), r.s);
+        const off = el("button", "btn ghost", "Take off the track"); off.type = "button"; off.onclick = () => placeDoc(FT.unplace(doc, r.s), r.s);
+        row.append(sel, mv, off); sec.append(row, msg);
     }
     function copyBox(card, text, code) {
         const old = card.querySelector(".rdCopy"); if (old) old.remove();

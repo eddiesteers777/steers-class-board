@@ -228,7 +228,7 @@ function homeCard() {
     const list = el("div", "dskills");
     skills.forEach((sk, j) => {
         const s = states[j], b = btn("dskill" + (s.mastered ? " done" : s.capped ? " capped" : s.served ? " going" : ""), null, () => openSkill(j));
-        const t = el("span", "dskt"); t.append(el("b", null, A.type === "fix" ? "Question " + (sk.kid + 1) : sk.name)); if (sk.std) t.append(el("small", null, "Standard " + sk.std));
+        const t = el("span", "dskt"); t.append(el("b", null, A.type === "fix" ? "Question " + (sk.kid + 1) : sk.name)); if (sk.std) t.append(el("small", null, /^F:/.test(sk.std) ? "Building block skill" : "Standard " + sk.std));
         const r = el("span", "dskr"); r.append(dots(Math.min(s.right, s.need), s.need), el("small", null, s.mastered ? "Done ✓" : s.capped ? "Ask your teacher" : s.served ? s.right + " of " + s.need + " right" : "Start"));
         b.append(t, r); b.setAttribute("aria-label", (A.type === "fix" ? "Question " + (sk.kid + 1) : sk.name) + ", " + (s.mastered ? "done" : s.right + " of " + s.need + " right")); list.append(b);
     });
@@ -248,7 +248,7 @@ function workCard() {
     const s = stateOf(sk), c = card("wide dwork" + (ST.fb && ST.fb.kind === "right" ? " good" : ST.fb && ST.fb.kind !== "right" ? " miss" : ""));
     const top = el("div", "dtop");
     top.append(btn("pbtn ghost dback", "← Skills", home));
-    const tt = el("div", "dtt"); tt.append(el("b", null, A.type === "fix" ? "Question " + (sk.kid + 1) : sk.name)); if (sk.std) tt.append(el("small", null, "Standard " + sk.std));
+    const tt = el("div", "dtt"); tt.append(el("b", null, A.type === "fix" ? "Question " + (sk.kid + 1) : sk.name)); if (sk.std) tt.append(el("small", null, /^F:/.test(sk.std) ? "Building block skill" : "Standard " + sk.std));
     const pr = el("div", "dprog"); pr.append(dots(Math.min(s.right, s.need), s.need), el("small", null, s.right + " of " + s.need + " right"));
     top.append(tt, pr); c.append(top);
 

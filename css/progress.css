@@ -198,3 +198,18 @@ main>.field select,#out>.field select{max-width:520px;width:100%}
 .rdRole{font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--c-mute);min-width:118px}
 .rdPers{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-weight:600}
 .rdWeek{display:flex;flex-direction:column;gap:4px;max-width:640px}.rdWeek select{min-height:40px}
+
+/* Foundational track */
+.rdFound{display:grid;gap:8px;margin:6px 0 8px}
+.rdFRow{display:grid;grid-template-columns:minmax(120px,auto) auto 1fr;gap:6px 14px;align-items:center;background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:14px;padding:8px 12px}
+.rdFRow small{color:var(--c-mute);font-size:.85rem}
+@media (max-width:640px){.rdFRow{grid-template-columns:1fr}}
+.rdLadder{display:flex;gap:3px;flex-wrap:wrap}
+.rdLadder i{width:18px;height:18px;border-radius:5px;font-style:normal;font-size:.7rem;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+.rdLadder i.rd-cur{background:#fff;box-shadow:inset 0 0 0 3px #E0A526}
+.rdFKid{border:1.5px dashed var(--c-line);border-radius:16px;padding:12px 16px;margin-top:8px;margin-bottom:8px;display:flex;flex-direction:column;gap:6px}
+.rdFKid.on{border:2px solid #7C5CC4;background:var(--c-bg)}
+.rdFKid h3{margin:0;font-family:var(--display);font-size:1.2rem}
+.rdFKid p{margin:0}
+.rdFKid select,.rdBtns select{min-height:44px;max-width:100%}
+.rdFall{font-weight:600}
