@@ -28,9 +28,9 @@ export function poolFor(bank, cls, code, state, atLeast = 6) {
 
 /** The assignment, before saving. o = { cls, per, nm, code, text, state, latest, pool, xc } */
 export function makeDef(o) {
-    const now = Date.now(), name = o.code + " " + firstPart(o.text);
+    const now = Date.now(), name = o.fnd ? firstPart(o.text) : o.code + " " + firstPart(o.text);
     return {
-        id: uidOf(), title: (o.xc ? "Extra credit: " : "Practice: ") + name, type: "practice", cls: o.cls, periods: [o.per],
+        id: uidOf(), title: (o.fnd ? "Building blocks: " : o.xc ? "Extra credit: " : "Practice: ") + name, fnd: o.fnd ? o.code : undefined, type: "practice", cls: o.cls, periods: [o.per],
         skills: [{ k: "s0", src: "bank:" + o.code, name, std: o.code, need: 5, w: 1, pin: -1, pool: o.pool }],
         opts: Object.assign({}, C.DEFAULTS, { need: 5 }), due: 0, status: "open", opened: now, at: now,
         only: { per: o.per, nm: o.nm }, xc: !!o.xc, acap: { state: o.state || "", latest: o.latest == null ? null : Math.round(o.latest * 100) / 100 },
@@ -45,7 +45,7 @@ export function namesOnly(roster, only) {
 }
 export const indexEntry = (d) => {
     const m = { id: d.id, title: d.title, type: d.type, cls: d.cls, periods: d.periods, code: d.code || "", status: d.status, at: d.at, due: d.due || 0, n: d.skills.length };
-    if (d.only) m.only = d.only; if (d.xc) m.xc = true; if (d.opened) m.opened = d.opened; if (d.chk) m.chk = d.chk;
+    if (d.only) m.only = d.only; if (d.xc) m.xc = true; if (d.opened) m.opened = d.opened; if (d.chk) m.chk = d.chk; if (d.fnd) m.fnd = d.fnd;
     return m;
 };
 

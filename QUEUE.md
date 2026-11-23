@@ -6,7 +6,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Waiting on Eddie
 | # | Item | What is needed |
 |---|------|----------------|
-| 40 | ACAP readiness, Phase 2 (the checks) | Phase 1 is live (PR #133). Phase 2 is built on a branch, waiting on "push it": Monday diagnostic, Friday check and cumulative check builders on Readiness. Then give one Monday diagnostic for real (week of Nov 30) and release results on Assignments. Phases 3-4 (foundational fallback, ACAP formats + 70/30 spiral) come after. |
+| 40 | ACAP readiness, Phase 3 (foundational track) | Phases 1-2 are live (PRs #133, #134). Phase 3 is built on a branch, waiting on "push it". Then place the four 2nd period students and the low 7th graders by hand (open a student on Student Progress > Readiness, pick the starting skill), and approve their first practice. Phase 4 (ACAP formats + 70/30 spiral in Vault Raid) comes after. |
 | 18 | Enter the other bell schedules | The editor holds named schedules now (see Done). Eddie enters the real times: 3rd-period lunch A/B/C, gym dismissal, dismissal, 1-hour and 2-hour activity. Never guess times. |
 | 3 | Fit the Class Data import to each app | One real export each from Wayground, Blooket, DeltaMath and Magma Math (names can be blanked out). |
 | 19 | Student Work: turn on Claude reading names | Built (functions/index.js readNames + "Read names with Claude" on the check-names step). Eddie: Blaze plan, ANTHROPIC_API_KEY in Secret Manager, then run Actions > Deploy functions. District OK for sending names to Anthropic still not confirmed. |

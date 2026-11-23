@@ -25,7 +25,8 @@ await t.evaluate(async () => {
     const A = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js"), F = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js");
     const c = await A.signInWithCredential(auth, A.GoogleAuthProvider.credential(JSON.stringify({ sub: "teachacap", email: "teacher@example.com", email_verified: true, name: "Test Teacher" })));
     const u = c.user.uid, d = (p) => F.doc(db, "teacher/" + u + "/" + p);
-    await F.setDoc(d("asg/index"), { list: [], at: Date.now() });   // a fresh week of extra credit on every run
+    await F.setDoc(d("asg/index"), { list: [], at: Date.now() });
+    await F.setDoc(d("found/2nd"), { kids: {}, at: Date.now() });   // a fresh week of extra credit on every run
     await F.setDoc(d("settings/pack"), { pack: "calera", how: "test", at: Date.now() });
     await F.setDoc(d("standards/progress"), { "8th": { "8.5": { s: "taught" }, "8.4": { s: "taught" }, "8.20": { s: "teaching" } } });
     await F.setDoc(d("rosters/all"), { periods: { "2nd": ["Ava R.", "Ben S.", "Cam T."] }, at: Date.now() });
@@ -89,6 +90,34 @@ await t.screenshot({ path: OUT + "/7-checks.png" });
 const s2 = await S.newPage(); watch(s2, "student2");
 await s2.goto(BASE + "/do.html?emu&c=" + dcode); await s2.waitForSelector(".pname", { timeout: 30000 });
 assert.deepEqual(await s2.$$eval(".pname", (b) => b.map((x) => x.textContent)), ["Ava R.", "Ben S.", "Cam T."]);
+
+// ---------- foundational track: place Cam, approve, then a Friday check leaves Cam out and makes Cam's practice ----------
+await t.goto(BASE + "/progress.html?emu&pack=calera");
+await t.waitForSelector("#periodTabs button[data-k='2nd']", { timeout: 30000 });
+await t.click("#periodTabs button[data-k='2nd']"); await t.click('#views button[data-v="ready"]');
+await t.waitForSelector(".rdGrid", { timeout: 20000 });
+await t.click(".rdGrid .pgName:has-text('Cam T.')"); await t.waitForSelector(".rdFKid");
+await t.selectOption(".rdFKid select", "F:intAdd");
+await t.click(".rdFKid button:has-text('Place on the foundational track')");
+await t.waitForSelector(".rdFKid.on h3", { timeout: 20000 });
+assert.equal(await t.textContent(".rdFKid.on h3"), "Add integers");
+await t.screenshot({ path: OUT + "/8-foundational-card.png" });
+await t.click("#kid .btn.ghost:has-text('Close')");
+await t.waitForSelector(".rdFRow");
+await t.click(".rdCheck:nth-child(2) button");   // Friday check
+assert.ok(await t.$(".rdFall input:checked"), "Friday check falls back for the foundational group by default");
+await t.click("text=Approve and assign");
+await t.waitForFunction(() => /Foundational practice/.test((document.querySelector(".rdBuild .rdMsg") || {}).textContent || ""), null, { timeout: 30000 });
+const fmsg = await t.textContent(".rdBuild .rdMsg"); console.log(fmsg);
+assert.match(fmsg, /Cam T\. Add integers \(code \d{6}\)/);
+const wcode = fmsg.match(/Code (\d{6}) for/)[1], fcode = fmsg.match(/Add integers \(code (\d{6})\)/)[1];
+await t.screenshot({ path: OUT + "/9-foundational-group.png", fullPage: true });
+const s3 = await S.newPage(); watch(s3, "student3");
+await s3.goto(BASE + "/do.html?emu&c=" + wcode); await s3.waitForSelector(".pname", { timeout: 30000 });
+assert.deepEqual(await s3.$$eval(".pname", (b) => b.map((x) => x.textContent)), ["Ava R.", "Ben S."], "Cam is not on the Friday check");
+await s3.goto(BASE + "/do.html?emu&c=" + fcode); await s3.waitForSelector(".pname", { timeout: 30000 });
+assert.deepEqual(await s3.$$eval(".pname", (b) => b.map((x) => x.textContent)), ["Cam T."]);
+await s3.click(".pname"); await s3.waitForTimeout(1500); await s3.screenshot({ path: OUT + "/10-cam-foundational.png" });
 
 // ---------- Assignments list shows the chips; Grades offers the extra credit ----------
 await t.goto(BASE + "/assign.html?emu&pack=calera"); await t.waitForSelector(".asCard", { timeout: 30000 });
