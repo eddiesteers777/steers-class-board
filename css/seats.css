@@ -14,16 +14,16 @@
 .k-board{background:linear-gradient(180deg,#173F86,#0B2559);border-radius:.5cqw;box-shadow:0 .3cqw .8cqw rgba(8,27,69,.25)}
 .k-board .slab{color:#F4F7FB;font-size:1.05cqw;letter-spacing:.12em;text-transform:uppercase}
 .k-teacher{background:#E9D8B4;border:.22cqw solid #C9A86A;border-radius:.7cqw;box-shadow:0 .3cqw .9cqw rgba(8,27,69,.15)}
-.k-teacher .slab{color:#5A4214}
+.k-teacher .slab{color:var(--k-warn-ink,#5A4214)}
 .k-door{background:repeating-linear-gradient(90deg,#C08A3E 0 .5cqw,#B07A30 .5cqw 1cqw);border-radius:.3cqw}
 .k-door .slab{color:#fff;font-size:.95cqw}
-.k-window{background:linear-gradient(90deg,#BFE0F6,#E6F4FD,#BFE0F6);border:.15cqw solid #8FBDE0;border-radius:.2cqw}
-.k-window .slab{font-size:.85cqw;color:#2F5F8F}
+.k-window{background:linear-gradient(90deg,#BFE0F6,var(--k-sub,#E6F4FD),#BFE0F6);border:.15cqw solid #8FBDE0;border-radius:.2cqw}
+.k-window .slab{font-size:.85cqw;color:var(--k-mute,#2F5F8F)}
 .k-shelf{background:#DCE3EE;border:.18cqw solid #A9B7CE;border-radius:.4cqw}
 .k-station{background:rgba(127,174,221,.16);border:.2cqw dashed #7FAEDD;border-radius:1cqw}
 .k-rug{background:radial-gradient(circle at 50% 50%,rgba(242,179,61,.22),rgba(242,179,61,.1));border:.25cqw solid rgba(242,179,61,.45);border-radius:1.4cqw}
-.k-rug .slab{align-items:flex-end;padding-bottom:.6cqw;color:#8A6410}
-.k-lamp{border-radius:50%;background:radial-gradient(circle at 50% 50%,#FFF8E1 0 22%,#FFD36B 23% 40%,rgba(242,179,61,.35) 41% 62%,rgba(242,179,61,0) 72%);box-shadow:0 0 2.4cqw 1.2cqw rgba(255,206,92,.38)}
+.k-rug .slab{align-items:flex-end;padding-bottom:.6cqw;color:var(--k-warn-ink,#8A6410)}
+.k-lamp{border-radius:50%;background:radial-gradient(circle at 50% 50%,var(--k-warn-bg,#FFF8E1) 0 22%,#FFD36B 23% 40%,rgba(242,179,61,.35) 41% 62%,rgba(242,179,61,0) 72%);box-shadow:0 0 2.4cqw 1.2cqw rgba(255,206,92,.38)}
 .k-lamp::after{content:"";position:absolute;inset:34%;border-radius:50%;border:.18cqw solid #C98F1F;opacity:.55}
 .k-label .slab{font-family:var(--display,'Bricolage Grotesque',sans-serif);font-weight:700;font-size:1.25cqw;color:var(--sr-mute)}
 
@@ -31,7 +31,7 @@
 .scell{position:absolute;background:var(--sr-desk);border:.18cqw solid var(--sr-edge);border-radius:.6cqw;box-shadow:0 .25cqw .7cqw rgba(8,27,69,.12)}
 .k-pair .scell:not(:first-child),.k-trio .scell:not(:first-child),.k-table4 .scell,.k-table6 .scell{border-radius:.35cqw}
 .round>.scell{border-radius:50%}
-.k-round::before{content:"";position:absolute;inset:20%;border-radius:50%;background:#E8EEF7;border:.18cqw solid var(--sr-edge)}
+.k-round::before{content:"";position:absolute;inset:20%;border-radius:50%;background:var(--k-sub,#E8EEF7);border:.18cqw solid var(--sr-edge)}
 .scell::after{content:"";position:absolute;background:var(--sr-chair);border-radius:1cqw;pointer-events:none}
 .ch-b::after{left:50%;bottom:-1.25cqw;width:3.4cqw;height:.9cqw;transform:translateX(-50%)}
 .ch-t::after{left:50%;top:-1.25cqw;width:3.4cqw;height:.9cqw;transform:translateX(-50%)}
@@ -41,19 +41,19 @@
 .stag b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 1.6cqw/1.05 var(--display,'Bricolage Grotesque',sans-serif);font-size:min(1.6cqw,var(--nf,1.6cqw));color:var(--sr-ink);letter-spacing:-.01em}
 .stag small{font:600 1.05cqw/1.1 var(--ui,'Instrument Sans',sans-serif);color:var(--sr-mute)}
 .stag i{font:600 1cqw/1 var(--ui,'Instrument Sans',sans-serif);font-style:normal;color:#A4B5D2}
-.scell.full{background:#FFFFFF;border-color:#7FA2D4}
-.scell.open{background:#F1F5FB}
+.scell.full{background:var(--c-surface,#FFFFFF);border-color:#7FA2D4}
+.scell.open{background:var(--k-sub,#F1F5FB)}
 
 /* the teacher's chair: a seat and a backrest in the teacher-desk wood, never a student seat */
 .k-tchair::before{content:"";position:absolute;left:12%;right:12%;top:30%;bottom:6%;border-radius:22% 22% 30% 30%;background:#E9D8B4;border:.2cqw solid #C9A86A;box-shadow:0 .3cqw .8cqw rgba(8,27,69,.15)}
 .k-tchair::after{content:"";position:absolute;left:6%;right:6%;top:4%;height:26%;border-radius:.8cqw .8cqw .3cqw .3cqw;background:#C9A86A;box-shadow:0 .2cqw .5cqw rgba(8,27,69,.18)}
 /* a chair on its own: the seat is the cell, the back is a bar behind it */
-.k-chair .scell{border-radius:1.2cqw 1.2cqw .6cqw .6cqw;background:#F4F8FD}
-.k-chair .scell.full{background:#FFFFFF}
+.k-chair .scell{border-radius:1.2cqw 1.2cqw .6cqw .6cqw;background:var(--k-sub,#F4F8FD)}
+.k-chair .scell.full{background:var(--c-surface,#FFFFFF)}
 .k-chair .scell::after{left:4%;right:4%;width:auto;bottom:-1.5cqw;height:1.2cqw;transform:none;border-radius:.5cqw .5cqw 1cqw 1cqw;background:#9DB7DA}
 /* one student lit up: "Where do I sit?" */
-.scell.hi{background:#FFF6E2;border-color:var(--sr-amber);z-index:3;box-shadow:0 0 0 .5cqw rgba(242,179,61,.45),0 .6cqw 2cqw rgba(242,179,61,.45);animation:srPulse 1.6s ease-in-out infinite}
-.scell.hi .stag b{color:#5A3E00}
+.scell.hi{background:var(--k-warn-bg,#FFF6E2);border-color:var(--sr-amber);z-index:3;box-shadow:0 0 0 .5cqw rgba(242,179,61,.45),0 .6cqw 2cqw rgba(242,179,61,.45);animation:srPulse 1.6s ease-in-out infinite}
+.scell.hi .stag b{color:var(--k-warn-ink,#5A3E00)}
 .seatroom.lit .scell.full:not(.hi){opacity:.38;transition:opacity .3s}
 @keyframes srPulse{0%,100%{box-shadow:0 0 0 .4cqw rgba(242,179,61,.5),0 .6cqw 2cqw rgba(242,179,61,.35)}50%{box-shadow:0 0 0 1.1cqw rgba(242,179,61,.12),0 .6cqw 2.6cqw rgba(242,179,61,.55)}}
 

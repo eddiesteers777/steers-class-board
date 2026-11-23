@@ -15,11 +15,13 @@
     <meta property="og:url" content="https://anchorboard.web.app/">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <script src="js/scheme.js?v=1"></script>
     <link rel="stylesheet" href="css/board.css?v=57">
-    <link rel="stylesheet" href="css/console.css?v=58">
+    <link rel="stylesheet" href="css/console.css?v=62">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/home.css?v=60">
+    <link rel="stylesheet" href="css/home.css?v=61">
     <link rel="stylesheet" href="css/footer.css?v=2">
+    <link rel="stylesheet" href="css/skin.css?v=1">
     <meta name="theme-color" content="#081B45">
     </head>
 <body class="console page hm-home">
@@ -86,6 +88,13 @@
 
         <dialog class="hm-dialog" id="settings" aria-labelledby="settingsTitle">
           <div class="hm-dhead"><h2 id="settingsTitle">Settings</h2><button class="btn ghost" id="settingsClose" type="button">Done</button></div>
+          <section class="sk-colors" aria-labelledby="skTitle">
+            <h3 class="bellh" id="skTitle">Site colors</h3>
+            <p class="sub">Pick the colors for your teacher pages on this device and your others. The projected board keeps its own Board look.</p>
+            <div class="sk-sw" id="skSw" role="group" aria-label="Color scheme"></div>
+            <div class="sk-modes" id="skModes" role="group" aria-label="Light or Night"></div>
+            <p class="sk-note" id="skNote" role="status"></p>
+          </section>
           <div class="bells" id="bells">
             <h3 class="bellh">Bell times</h3>
             <p class="sub">Enter when each period starts and ends. The top panel then follows the clock and shows the class you are teaching. Keep more than one schedule (activity days, early dismissal) and pick which one runs today. Tomorrow goes back to Regular on its own.</p>
@@ -266,6 +275,28 @@
             return out;
         }
         render(); setInterval(render, 30000);
+
+        /* ---------- site colors (js/scheme.js, css/skin.css) ---------- */
+        const SK = window.AnchorScheme;
+        const MODE_ICON = { light: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+            dark: '<svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>', auto: '<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>' };
+        let skSaved = null, skTimer = 0;
+        function skPaint() {
+            if (!SK) return;
+            const cur = SK.get();
+            $("skSw").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.c === cur.c)));
+            $("skModes").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.m === cur.m)));
+        }
+        function skPick(o) {
+            const cur = SK.set(o); skPaint();
+            clearTimeout(skTimer);   // one save after the teacher stops tapping around
+            skTimer = setTimeout(async () => { try { await store.save("settings/site", { c: cur.c, m: cur.m, at: cur.at }); $("skNote").textContent = "Saved. Your other devices pick this up when they open Home."; } catch (e) { $("skNote").textContent = "Saved on this device. Not saved to your account yet (" + ((e && e.code) || "connection") + ")."; } }, 700);
+        }
+        if (SK) {
+            SK.list.forEach(([id, name, c]) => { const b = document.createElement("button"); b.type = "button"; b.className = "sk-s"; b.dataset.c = id; b.innerHTML = '<i style="background:linear-gradient(135deg,' + c[0] + ' 0%,' + c[1] + ' 55%,' + c[2] + ' 100%)"></i><span></span>'; b.lastChild.textContent = name; b.onclick = () => skPick({ c: id }); $("skSw").appendChild(b); });
+            SK.modes.forEach(([id, name]) => { const b = document.createElement("button"); b.type = "button"; b.dataset.m = id; b.innerHTML = MODE_ICON[id] + "<span></span>"; b.lastChild.textContent = name; b.onclick = () => skPick({ m: id }); $("skModes").appendChild(b); });
+            skPaint();
+        } else $("skSw").closest("section").hidden = true;
         /* ---------- settings dialog ---------- */
         const dlg = $("settings");
         function openSettings() { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", ""); }
@@ -407,6 +438,8 @@
             store.watch("weekfiles/index", (s) => { if (s.pending) return; coIndex = (s.exists && s.data) || { weeks: [] }; coRefresh(); statuses(todayIso); }, () => {});
             store.watch("settings/closeout", (s) => { if (s.pending) return; coSet = (s.exists && s.data) || {}; coRefresh(); statuses(todayIso); }, () => {});
             // Weekly Google Drive backup (account.html, js/backup.js): a reminder once the last one is a week old.
+            // Site colors from the account: a newer choice made on another device wins over this device's.
+            if (SK) store.watch("settings/site", (s) => { if (s.pending || !s.exists || !s.data) return; const d = s.data, cur = SK.get(); if ((+d.at || 0) > (cur.at || 0) && (d.c !== cur.c || d.m !== cur.m)) { SK.set({ c: d.c, m: d.m, at: +d.at }, true); skPaint(); } }, () => {});
             store.watch("settings/drive", (s) => { if (s.pending) return; const d = (s.exists && s.data) || {}; driveDue = !!d.root && Date.now() - (+d.last || 0) > 7 * 86400000; statuses(todayIso); }, () => {});
             let loaded = false;
             store.watch("settings/bells", (snap) => { if (snap.pending) return; doc = cleanDoc(snap.exists && snap.data); useToday(); bellsLoaded = true; statuses(todayIso); if (!loaded) { loaded = true; fillBells(); } else pickers(); render(); }, () => {});
