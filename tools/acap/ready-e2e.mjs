@@ -27,6 +27,7 @@ await t.evaluate(async () => {
     const u = c.user.uid, d = (p) => F.doc(db, "teacher/" + u + "/" + p);
     await F.setDoc(d("asg/index"), { list: [], at: Date.now() });   // a fresh week of extra credit on every run
     await F.setDoc(d("settings/pack"), { pack: "calera", how: "test", at: Date.now() });
+    await F.setDoc(d("standards/progress"), { "8th": { "8.5": { s: "taught" }, "8.4": { s: "taught" }, "8.20": { s: "teaching" } } });
     await F.setDoc(d("rosters/all"), { periods: { "2nd": ["Ava R.", "Ben S.", "Cam T."] }, at: Date.now() });
     const imp = (id, std, date, rows) => ({ id, title: "Exit ticket " + std, std, skill: "", date, source: "Test", period: "2nd", items: ["Q1-4"], rows, at: Date.parse(date) });
     await F.setDoc(d("data/i_x1"), imp("x1", "8.5", "2026-11-16", [{ s: "Ava R.", v: [0.9] }, { s: "Ben S.", v: [0.25] }, { s: "Cam T.", v: [0.6] }]));
@@ -68,6 +69,26 @@ console.log("student sees", names);
 assert.deepEqual(names, ["Ben S."]);
 assert.equal(await s.$("text=My name isn't here"), null);
 await s.screenshot({ path: OUT + "/5-student-names.png" });
+
+// ---------- the checks: a Friday check on the standard marked Teaching, assigned to 2nd period ----------
+await t.goto(BASE + "/progress.html?emu&pack=calera");
+await t.waitForSelector("#periodTabs button[data-k='2nd']", { timeout: 30000 });
+await t.click("#periodTabs button[data-k='2nd']"); await t.click('#views button[data-v="ready"]');
+await t.waitForSelector(".rdCheck", { timeout: 20000 });
+await t.click(".rdCheck:nth-child(1) button");   // Monday diagnostic
+const diag = await t.$$eval(".rdSlots li", (l) => l.map((x) => x.querySelector(".rdRole").textContent + " " + x.querySelector("select").value));
+console.log("diagnostic", diag);
+assert.deepEqual(diag.filter((x) => x.startsWith("New")).map((x) => x.split(" ").pop()), ["8.20", "8.20", "8.20"]);
+assert.equal(diag.filter((x) => x.startsWith("Earlier")).length, 2);
+for (const p of ["1st", "4th"]) { const box = t.locator(".rdPers label", { hasText: p }).locator("input"); if (await box.isChecked()) await box.uncheck(); }
+await t.click("text=Approve and assign");
+await t.waitForFunction(() => /Code \d{6}/.test((document.querySelector(".rdBuild .rdMsg") || {}).textContent || ""), null, { timeout: 20000 });
+const dmsg = await t.textContent(".rdBuild .rdMsg"); console.log(dmsg); const dcode = dmsg.match(/Code (\d{6})/)[1];
+assert.match(dmsg, /for 2nd period/);
+await t.screenshot({ path: OUT + "/7-checks.png" });
+const s2 = await S.newPage(); watch(s2, "student2");
+await s2.goto(BASE + "/do.html?emu&c=" + dcode); await s2.waitForSelector(".pname", { timeout: 30000 });
+assert.deepEqual(await s2.$$eval(".pname", (b) => b.map((x) => x.textContent)), ["Ava R.", "Ben S.", "Cam T."]);
 
 // ---------- Assignments list shows the chips; Grades offers the extra credit ----------
 await t.goto(BASE + "/assign.html?emu&pack=calera"); await t.waitForSelector(".asCard", { timeout: 30000 });

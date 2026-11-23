@@ -12,7 +12,7 @@
    Also: a plain-text copy of the same practice for DeltaMath or Magma Math (one worked example, then 8 to 10
    problems, then the answer key), since neither app takes an import from this site.
 ========================================== */
-import * as C from "./assignCore.js?v=6";
+import * as C from "./assignCore.js?v=7";
 import { shortNames } from "./vaultCore.js?v=75";
 import { levelsFor } from "./readiness.js?v=1";
 
@@ -45,7 +45,7 @@ export function namesOnly(roster, only) {
 }
 export const indexEntry = (d) => {
     const m = { id: d.id, title: d.title, type: d.type, cls: d.cls, periods: d.periods, code: d.code || "", status: d.status, at: d.at, due: d.due || 0, n: d.skills.length };
-    if (d.only) m.only = d.only; if (d.xc) m.xc = true; if (d.opened) m.opened = d.opened;
+    if (d.only) m.only = d.only; if (d.xc) m.xc = true; if (d.opened) m.opened = d.opened; if (d.chk) m.chk = d.chk;
     return m;
 };
 
@@ -54,11 +54,15 @@ export const indexEntry = (d) => {
  * asg/index list; roster: the period's roster. Returns the saved assignment (with its code).
  */
 export async function approve(store, rooms, uid, def, index, roster) {
+    return approveWith(store, rooms, uid, def, index, namesOnly(roster, def.only));
+}
+/** The same for any assignment, with its name lists ({ period: [short names] }). Used by the checks (js/checks.js) too. */
+export async function approveWith(store, rooms, uid, def, index, names) {
     def.code = await freeCode(rooms);
     const clean = JSON.parse(JSON.stringify(def));
     await store.save("asg/a_" + clean.id, clean);
     await store.save("asg/index", { list: (index || []).filter((x) => x.id !== clean.id).concat([indexEntry(clean)]), at: Date.now() });
-    await rooms.save("asg/" + clean.code, C.publicDoc(clean, namesOnly(roster, clean.only), uid));
+    await rooms.save("asg/" + clean.code, C.publicDoc(clean, names, uid));
     return clean;
 }
 async function freeCode(rooms) {
