@@ -1244,19 +1244,30 @@ const DEFAULT_POS = { slide: [2, 2], cam: [56, 34], pick: [34, 30], groups: [10,
 let topZ = 1;
 let layerSig = "", dragging = false;
 function posOf(k) { const p = S.tools.pos[k]; if (p) return p; const d = DEFAULT_POS[k] || [10, 30]; return { x: d[0], y: d[1], s: 1 }; }
-/* The Remote's rail: layouts first, then every panel as a switch. */
+/* The Remote's rail: every panel as a switch. */
 function renderDock() {
-    const dock = $("dock"); if (!dock) return; dock.textContent = ""; const T = S.tools;
+    const dock = $("dock"); if (!dock) return; const T = S.tools;
     { const n = Object.keys(T.on).length, tc = $("toolCount"); if (tc) tc.textContent = n ? n + " on" : ""; }
-    dock.appendChild(el("p", "dockh", "Layouts"));
-    const sc = el("div", "rscenes"); sc.setAttribute("role", "group"); sc.setAttribute("aria-label", "Layouts");
-    SCENES.filter((x) => !(x.guestless && mode === "sub")).concat(T.scenes).forEach((x) => { const on = sceneActive(S, x), b = el("button", on ? "on" : "", x.n); b.type = "button"; b.setAttribute("aria-pressed", String(on)); b.title = x.d || "Your saved layout"; b.onclick = () => applyScene(S, x, toolApi); sc.appendChild(b); });
-    dock.appendChild(sc);
+    // Same switches as last time: update them in place, so a flipped switch slides instead of being redrawn already on.
+    const keys = LESSON_PANELS.concat(TOOL_LIST).filter(([k]) => panelOk(k)).map(([k]) => k).join(",") + "|" + mode + "|" + studio;
+    if (dock.dataset.keys === keys && dock.firstChild) {
+        dock.querySelectorAll("button.psw").forEach((b) => {
+            const k = b.dataset.k, on = !!T.on[k], small = on && !!T.min[k];
+            if (b.getAttribute("aria-pressed") !== String(on)) b.setAttribute("aria-pressed", String(on));
+            const d = b.querySelector(".dmin"); if (small && !d) b.insertBefore(el("small", "dmin", "small"), b.querySelector(".swk")); else if (!small && d) d.remove();
+            b.title = small ? "Show it again" : "";
+        });
+        const c = dock.querySelector(".clear"); if (c) c.hidden = !Object.keys(T.on).length;
+        return;
+    }
+    dock.textContent = ""; dock.dataset.keys = keys;
+    // No layout chips here (Eddie, 2026-11-23: "get rid of these layouts in the panel view"). Layouts still live in
+    // "All panels and layouts" and in bell steps.
     [["Lesson", LESSON_PANELS], ["Classroom", TOOL_LIST]].forEach(([h, list]) => {
         dock.appendChild(el("p", "dockh", h));
         list.filter(([k]) => panelOk(k)).forEach(([k, label]) => {
             // An on/off slider for each panel (Eddie, 2026-11-20: "toggle on and off sliders").
-            const b = el("button", "psw"); b.type = "button"; b.setAttribute("aria-pressed", String(!!T.on[k])); b.appendChild(el("span", "pswl", label));
+            const b = el("button", "psw"); b.type = "button"; b.dataset.k = k; b.setAttribute("aria-pressed", String(!!T.on[k])); b.appendChild(el("span", "pswl", label));
             if (T.on[k] && T.min[k]) { b.appendChild(el("small", "dmin", "small")); b.title = "Show it again"; }
             b.appendChild(el("i", "swk"));
             b.onclick = () => { panelToggle(T, k); push(); }; dock.appendChild(b);
@@ -1264,7 +1275,7 @@ function renderDock() {
     });
     const more = el("button", "more"); more.type = "button"; more.innerHTML = pIcon("layout") + "<span>All panels and layouts</span>"; more.onclick = () => openSheet(toolApi); dock.appendChild(more);
     if (mode === "remote" && !studio) { const bb = el("a", "more bbuild"); bb.href = "studio.html"; bb.innerHTML = pIcon("float") + "<span>Board Builder</span>"; bb.title = "Look, panels, stickers and the lesson, in one place"; dock.appendChild(bb); }
-    if (Object.keys(T.on).length) { const c = el("button", "clear", "Hide all"); c.type = "button"; c.onclick = () => { T.on = {}; T.min = {}; T.pos = {}; T.order = []; push(); }; dock.appendChild(c); }
+    { const c = el("button", "clear", "Hide all"); c.hidden = !Object.keys(T.on).length; c.type = "button"; c.onclick = () => { T.on = {}; T.min = {}; T.pos = {}; T.order = []; push(); }; dock.appendChild(c); }
 }
 /* "Edit this day": opens Quick lesson on the class and day showing, for the agenda, bellringer, target, supplies and reminders. */
 function renderEditLink() {

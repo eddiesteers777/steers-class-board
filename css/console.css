@@ -104,6 +104,7 @@ body.console.page{overflow:auto;display:block;height:auto;min-height:100%}
 .console .rail .toolchips button:hover{background:var(--c-bg)}
 .console .rail .toolchips .clear{color:var(--k-bad-ink,#8E1B21);font-weight:600;margin-top:4px}
 .console .rail .toolchips .clear::before{display:none}
+.console .rail .toolchips .clear[hidden]{display:none}
 .console .rail .files{display:flex;flex-direction:column;gap:1px;padding-top:4px}
 .console .rail .files a{border:0;border-radius:8px;padding:6px 10px;color:var(--s-acc,#1B4FBF);font-size:.9rem;font-weight:500;text-decoration:none}
 .console .rail .files a:hover{background:var(--c-bg);text-decoration:underline}
@@ -346,11 +347,23 @@ body.board .recpill{display:none}
 /* ---------- On/off sliders (Eddie, 2026-11-20) ----------
    The rail's panel list and every On/Off setting (sound, music, bell timeline, period alerts) use one slider look. */
 .console .rail .toolchips button.psw::before{display:none}
-.console .rail .toolchips button.psw{min-height:38px}
+.console .rail .toolchips button.psw{min-height:40px;border-radius:12px;background:linear-gradient(90deg,color-mix(in srgb,var(--s-acc,#1B4FBF) 13%,transparent),transparent) no-repeat 0 0/0% 100%;transition:background-size .5s cubic-bezier(.22,.9,.24,1),background-color .15s}
+.console .rail .toolchips button.psw[aria-pressed="true"]{background-size:100% 100%}
 .console .rail .toolchips .pswl{flex:1;min-width:0}
 .console .rail .toolchips button.psw .dmin{margin-left:0}
-.swk,.sndtog i{flex:none;position:relative;display:inline-block;width:42px;height:24px;border-radius:999px;background:#C9D1DE;padding:0 !important;font-size:0 !important;color:transparent !important;transition:background .18s}
-.swk::after,.sndtog i::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--c-surface,#fff);box-shadow:0 1px 3px rgba(4,12,34,.3);transition:transform .18s}
-[aria-pressed="true"] > .swk,.sndtog[aria-pressed="true"] i{background:var(--green,#1F9D55) !important}
-[aria-pressed="true"] > .swk::after,.sndtog[aria-pressed="true"] i::after{transform:translateX(18px)}
+/* On/off switches (Eddie, 2026-11-23: "a more premium classy look and a cool slide over animation").
+   The colour wipes in behind the knob as it glides across, the knob springs into place and stretches while pressed. */
+.swk,.sndtog i{flex:none;position:relative;display:inline-block;width:46px;height:26px;border-radius:999px;padding:0 !important;font-size:0 !important;color:transparent !important;isolation:isolate;
+  background:linear-gradient(180deg,#D3DAE6,#E6EBF2);box-shadow:inset 0 1px 2px rgba(8,27,69,.28),inset 0 0 0 1px rgba(8,27,69,.07)}
+.swk::before,.sndtog i::before{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;
+  background:linear-gradient(135deg,var(--s-acc,#1B4FBF) 0%,color-mix(in srgb,var(--s-acc,#1B4FBF) 55%,#7FD3FF) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 2px rgba(0,0,0,.18);clip-path:inset(0 100% 0 0 round 999px);transition:clip-path .42s cubic-bezier(.22,.9,.24,1)}
+.swk::after,.sndtog i::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:999px;
+  background:radial-gradient(circle at 35% 30%,#fff 0%,#fff 45%,#EEF2F8 100%);box-shadow:0 1px 1px rgba(4,12,34,.18),0 3px 8px rgba(4,12,34,.28);
+  transition:transform .46s cubic-bezier(.34,1.5,.5,1),width .18s ease,left .18s ease,box-shadow .3s}
+[aria-pressed="true"] > .swk::before,.sndtog[aria-pressed="true"] i::before{clip-path:inset(0 0 0 0 round 999px)}
+[aria-pressed="true"] > .swk::after,.sndtog[aria-pressed="true"] i::after{transform:translateX(20px);box-shadow:0 1px 1px rgba(4,12,34,.2),0 3px 10px color-mix(in srgb,var(--s-acc,#1B4FBF) 45%,transparent)}
+:active > .swk::after,.sndtog:active i::after{width:25px}
+[aria-pressed="true"]:active > .swk::after,.sndtog[aria-pressed="true"]:active i::after{left:-2px}
+@media (prefers-reduced-motion:reduce){.swk::before,.swk::after,.sndtog i::before,.sndtog i::after{transition:none}}
 .sndtog span{text-align:left}
