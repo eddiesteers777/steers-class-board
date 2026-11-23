@@ -1,0 +1,152 @@
+/* Anchor Board — Spotlight, the Board Builder's full-screen tab (js/spotlight.js).
+   Frosted glass: a translucent fill with a backdrop blur, a bright hairline on top, a soft deep shadow.
+   The controls are px (they sit over the page); the stage keeps its own em sizes. */
+.spot{--g-fill:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.06));--g-line:rgba(255,255,255,.24);--g-hi:rgba(255,255,255,.42);
+    --g-shadow:0 18px 50px rgba(2,8,26,.5),0 2px 8px rgba(2,8,26,.25);--g-ink:#F4F8FF;--g-soft:rgba(226,236,255,.72);--g-on:linear-gradient(180deg,rgba(140,200,255,.5),rgba(86,150,230,.32));
+    position:fixed;inset:0;z-index:40;pointer-events:none;font-family:var(--ui);color:var(--g-ink)}
+.spot[hidden]{display:none}
+.spot>*{pointer-events:auto}
+
+/* the page behind the board: deep navy with a glow, and nothing else */
+body.spotmode{background:radial-gradient(120% 90% at 50% 0%,#18346d 0%,#0a1838 45%,#050c1f 100%)}
+body.spotmode .cbar,body.spotmode .srail,body.spotmode .flowbar,body.spotmode #exit,body.spotmode #slideApp{display:none!important}
+body.spotmode .cbody{height:100%}
+body.spotmode .wrap{padding:8px}
+body.spotmode #stage{border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08)}
+body.spotmode .toolshelf{filter:drop-shadow(0 12px 30px rgba(0,0,0,.35))}
+
+/* one glass surface */
+.spg{background:var(--g-fill);-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);border:1px solid var(--g-line);
+    box-shadow:inset 0 1px 0 var(--g-hi),inset 0 -1px 0 rgba(255,255,255,.05),var(--g-shadow);border-radius:20px;position:absolute;background-color:rgba(12,28,66,.42)}
+.spg::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,.14) 0%,rgba(255,255,255,0) 38%);mix-blend-mode:screen}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){.spg{background-color:rgba(12,28,66,.9)}}
+
+/* buttons */
+.spot button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.spot button:focus-visible{outline:2px solid #8CC8FF;outline-offset:2px}
+.spb{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:40px;height:40px;padding:0 10px;border:0;border-radius:13px;background:transparent;
+    font-weight:600;font-size:14px;transition:background .18s,transform .12s,color .18s,opacity .18s;position:relative}
+.spb svg{width:20px;height:20px;flex:none}
+.spb:hover{background:rgba(255,255,255,.12)}
+.spb:active{transform:scale(.94)}
+.spb:disabled{opacity:.32;pointer-events:none}
+.spsep{display:block;flex:none;width:1px;align-self:stretch;margin:6px 4px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.28),transparent)}
+.spsep.thin{margin:10px 2px;opacity:.6}
+
+/* top left: back + full screen */
+.sptop{left:18px;top:16px;display:flex;align-items:center;gap:2px;padding:5px}
+.spback{padding:0 14px 0 8px}
+.spback span{font-size:14px}
+
+/* bottom left: screens */
+.spscr{left:18px;bottom:18px;display:flex;align-items:center;gap:2px;padding:5px;transition:transform .3s cubic-bezier(.2,.9,.25,1.2),opacity .25s}
+.spscr:hover{transform:translateY(-2px)}
+.spcount{min-width:52px;text-align:center;font-family:var(--display,inherit);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.spot .spadd{background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00;padding:0 13px 0 9px;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 6px 16px rgba(242,179,61,.35)}
+.spot .spadd:hover{background:linear-gradient(180deg,#FFDB8A,#F5BE55)}
+.spdel{color:var(--g-soft)}
+.spdel.armed{background:rgba(229,72,77,.85);color:#fff}
+
+/* the toolbar */
+.spdock{left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:4px;padding:6px;max-width:calc(100vw - 600px);border-radius:24px;
+    transition:max-width .35s cubic-bezier(.2,.8,.2,1),padding .25s}
+.spmodes{display:flex;gap:2px;padding:3px;border-radius:17px;background:rgba(0,8,30,.32);box-shadow:inset 0 1px 3px rgba(0,0,0,.35)}
+.spm{display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 14px;border:0;border-radius:14px;background:transparent;font-weight:700;font-size:14px;color:var(--g-soft);transition:background .2s,color .2s,box-shadow .2s}
+.spm svg{width:19px;height:19px}
+.spm:hover{color:#fff}
+.spm.on{background:var(--g-on);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 4px 14px rgba(60,130,230,.35)}
+.spm[data-m="draw"].on{background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 4px 14px rgba(242,179,61,.4)}
+.spfulltools{flex:1 1 auto;display:flex;align-items:center;gap:2px;min-width:0;overflow:hidden;transition:opacity .25s}
+.sprack{flex:1 1 auto;display:flex;align-items:center;gap:2px;overflow-x:auto;scrollbar-width:none;min-width:0;padding:2px 0;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 10px,#000 calc(100% - 10px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 10px,#000 calc(100% - 10px),transparent 100%)}
+.sprack::-webkit-scrollbar{display:none}
+.spt{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:68px;height:54px;padding:4px 2px 3px;border:0;border-radius:14px;background:transparent;
+    color:var(--g-soft);transition:background .18s,color .18s,transform .12s;position:relative}
+.spt[hidden]{display:none}
+.spt svg{width:22px;height:22px;transition:transform .25s cubic-bezier(.2,.9,.25,1.4)}
+.spt span{font-size:10.5px;font-weight:600;line-height:1.1;white-space:nowrap;max-width:64px;overflow:hidden;text-overflow:ellipsis}
+.spt:hover{background:rgba(255,255,255,.1);color:#fff}
+.spt:hover svg{transform:translateY(-2px) scale(1.08)}
+.spt:active{transform:scale(.93)}
+.spt[data-st="on"],.spt.on{background:var(--g-on);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.spt[data-st="on"]::after,.spt[data-st="min"]::after{content:"";position:absolute;top:5px;right:9px;width:7px;height:7px;border-radius:50%;background:#7CE0B0;box-shadow:0 0 8px #7CE0B0}
+.spt[data-st="min"]::after{background:#F2B33D;box-shadow:0 0 8px #F2B33D}
+.sptbg{width:84px}
+.sptuck{width:40px;padding:0;color:var(--g-soft)}
+
+/* tucked: Click, Draw, and the button to bring the toolbar back */
+.spot.tucked .spdock{max-width:220px;padding:5px}
+.spot.tucked .spfulltools,.spot.tucked .spdock>.spsep{display:none}
+.spot.tucked .spm{padding:0 12px}
+.spot.tucked .spsheet{display:none}
+
+/* the pen row, over the toolbar while drawing */
+.sppen{left:50%;bottom:92px;transform:translateX(-50%);display:flex;align-items:center;gap:3px;padding:5px 7px;border-radius:18px;animation:spUp .28s cubic-bezier(.2,.9,.25,1.15)}
+.sppen[hidden]{display:none}
+.spot.tucked .sppen{bottom:76px}
+.sptool{width:40px;padding:0;color:var(--g-soft)}
+.sptool[aria-pressed="true"]{background:var(--g-on);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.sptool.amber{background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00}
+.sptool.armed{background:rgba(229,72,77,.85);color:#fff}
+.spink{width:28px;height:28px;margin:0 2px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:var(--ink);padding:0;box-shadow:inset 0 2px 3px rgba(255,255,255,.45),0 3px 8px rgba(0,0,0,.35);transition:transform .15s}
+.spink:hover{transform:scale(1.1)}
+.spink[aria-pressed="true"]{box-shadow:0 0 0 3px rgba(10,24,56,.9),0 0 0 5px #fff,0 3px 10px rgba(0,0,0,.4);transform:scale(1.08)}
+.spsizes{display:flex;gap:1px}
+.spsize{width:34px;height:40px;border:0;border-radius:11px;background:transparent;display:grid;place-items:center;padding:0}
+.spsize i{display:block;border-radius:50%;background:#F4F8FF}
+.spsize[data-s="0"] i{width:5px;height:5px}.spsize[data-s="1"] i{width:9px;height:9px}.spsize[data-s="2"] i{width:14px;height:14px}
+.spsize:hover{background:rgba(255,255,255,.1)}
+.spsize[aria-pressed="true"]{background:var(--g-on)}
+
+/* the sheet: Background, or the panel that was tapped */
+.spsheet{left:50%;bottom:92px;transform:translateX(-50%);width:min(420px,calc(100vw - 32px));padding:12px 14px 14px;border-radius:22px;animation:spUp .3s cubic-bezier(.2,.9,.25,1.15)}
+.spsheet.wide{width:min(560px,calc(100vw - 32px))}
+.spsheet[hidden]{display:none}
+.spsh{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.spsh b{flex:1;font-family:var(--display,inherit);font-size:17px;font-weight:700}
+.spshi{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--g-on);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.spshi svg{width:19px;height:19px}
+.spclose{width:34px;min-width:34px;height:34px;padding:0;border-radius:11px;color:var(--g-soft)}
+.spshbody{max-height:min(52vh,460px);overflow-y:auto;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent}
+.spshbody .lookh{color:var(--g-soft)}
+.spshbody .lookbg .lnm,.spshbody .lookth .lnm{color:var(--g-ink)}
+.spchips{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.spchiph{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--g-soft);margin-right:4px}
+.spchip{min-width:44px;height:38px;padding:0 12px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(255,255,255,.07);font-weight:700;font-size:14px;transition:background .18s}
+.spchip:hover{background:rgba(255,255,255,.15)}
+.spchip[aria-pressed="true"]{background:var(--g-on);border-color:rgba(160,210,255,.6)}
+.spchip.wide{flex:1}
+.spchip.danger{color:#FFB3B6;border-color:rgba(255,120,125,.35)}
+.spchip.danger:hover{background:rgba(229,72,77,.25)}
+
+.sptoast{position:absolute;left:50%;top:18px;transform:translate(-50%,-14px);margin:0;padding:9px 18px;border-radius:999px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;
+    background:rgba(12,28,66,.6);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--g-line);box-shadow:var(--g-shadow);transition:opacity .25s,transform .3s cubic-bezier(.2,.9,.25,1.2)}
+.sptoast.on{opacity:1;transform:translate(-50%,0)}
+@keyframes spUp{from{opacity:0;transform:translate(-50%,12px) scale(.97)}}
+
+/* drawing: a pen cursor over the board, and the panels let the ink through until Click is back */
+body.spotdraw #stage .spotink canvas{cursor:crosshair}
+
+/* narrower screens: the screens pill sits over the toolbar's left end */
+@media (max-width:1300px){
+    .spdock{max-width:calc(100vw - 36px)}
+    .spscr{bottom:92px}
+    .spot.tucked .spscr{bottom:18px}
+    .spot.tucked .spdock{left:auto;right:18px;transform:none}
+    .sppen,.spsheet{bottom:92px}
+    body.spotdraw .spscr{bottom:150px}
+}
+/* small screens */
+@media (max-width:900px){
+    .spdock{max-width:calc(100vw - 24px);bottom:72px}
+    .spscr{bottom:14px;left:12px}
+    .sptop{left:12px;top:12px}
+    .spback span{display:none}
+    .sppen{bottom:142px;max-width:calc(100vw - 24px);overflow-x:auto}
+    .spsheet{bottom:142px}
+    .spm span,.sptbg span{display:none}
+    .sptbg{width:52px}
+    .spt{width:58px}
+    .spot.tucked .spdock{bottom:72px}
+    .spot.tucked .sppen{bottom:128px}
+}

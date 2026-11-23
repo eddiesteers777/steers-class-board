@@ -12,7 +12,7 @@ import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { tickTools, defaultTools, mergeTools, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=60";
+import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=60";
 import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf } from "./panels.js?v=11";
 import { cleanStickers, renderStickers } from "./stickers.js?v=1";
 import * as snd from "./sound.js?v=60";
@@ -64,7 +64,7 @@ function rich(text) {
 }
 function richEl(tag, cls, text) { const e = el(tag, cls); e.appendChild(rich(text)); return e; }
 
-const SCREENS = [["seats", "Seating Chart"], ["agenda", "Weekly Agenda"], ["today", "Today"], ["deck", "Slides"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["steps", "Show Steps"], ["speed", "Speed Dating"], ["fix", "Fix It"], ["game", "Review Game"], ["live", "Student Game"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"]];
+const SCREENS = [["seats", "Seating Chart"], ["agenda", "Weekly Agenda"], ["today", "Today"], ["deck", "Slides"], ["bell", "Bellringer"], ["notes", "Guided Notes"], ["steps", "Show Steps"], ["speed", "Speed Dating"], ["fix", "Fix It"], ["game", "Review Game"], ["live", "Student Game"], ["timer", "Timer"], ["tools", "Tools"], ["blank", "Whiteboard"], ["canvas", "Spotlight"]];
 const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 // Each period and the class plan it follows.
 let PERIODS = PACK_PERIODS;
@@ -88,12 +88,28 @@ function defaultWeek() {
 }
 const wd = new Date().getDay();
 /* Canvas-first whiteboard: where the lesson card sits (fractions of the paper), its size, and the extra pages per board. */
-function defaultWb() { return { card: { x: 0.06, y: 0.05, w: 1, hide: false }, pg: { k: "", n: 0 }, pages: {} }; }
+function defaultWb() { return { card: { x: 0.06, y: 0.05, w: 1, hide: false }, pg: { k: "", n: 0 }, pages: {}, spot: {} }; }
+/* Spotlight (the Board Builder's full-screen tab, js/spotlight.js): the look's own background, ink on top and panels over it.
+   Each lesson keeps a short run of Spotlight screens in wb.spot["<week>_<class>_d<day>"] = { n: the screen showing, s: one saved
+   panel layout per screen }. Each screen's drawing is its own ink doc, like a whiteboard page. */
+const MAX_SPOT = 12, MAX_SPOT_LESSONS = 8;
+const spotId = () => "s" + Date.now().toString(36).slice(-6) + Math.random().toString(36).slice(2, 6);   // names the screen's ink doc
+const blankSpot = () => cleanScene({ id: spotId(), n: "Spotlight", screen: "canvas" });
+function cleanSpot(o) {
+    const out = {}; if (!o || typeof o !== "object") return out;
+    Object.keys(o).filter((k) => /^[\w.-]{1,40}_[\w.-]{1,20}_d[0-4]$/.test(k)).slice(-MAX_SPOT_LESSONS).forEach((k) => {
+        const v = o[k] || {}, s = Array.isArray(v.s) ? v.s.slice(0, MAX_SPOT).map((x) => (x && typeof x === "object" ? cleanScene(Object.assign({}, x, { id: /^s[a-z0-9]{1,14}$/.test(x.id) ? x.id : spotId(), n: "Spotlight", screen: "canvas" })) : blankSpot())) : [];
+        if (!s.length) return;
+        out[k] = { n: Math.max(0, Math.min(s.length - 1, Math.floor(+v.n || 0))), s };
+    });
+    return out;
+}
 function cleanWb(o) {
     const d = defaultWb(); if (!o || typeof o !== "object") return d; const c = o.card || {}, num = (v, a, b, def) => (typeof v === "number" && v >= a && v <= b ? v : def);
     d.card = { x: num(c.x, 0, 0.95, 0.06), y: num(c.y, 0, 0.95, 0.05), w: num(c.w, 0, 2, 1), hide: !!c.hide };
     if (o.pg && typeof o.pg.k === "string") d.pg = { k: o.pg.k.slice(0, 120), n: num(o.pg.n, 0, 11, 0) };
     if (o.pages && typeof o.pages === "object") Object.keys(o.pages).slice(-40).forEach((k) => { const n = Math.floor(+o.pages[k]); if (n > 1) d.pages[k.slice(0, 120)] = Math.min(12, n); });
+    d.spot = cleanSpot(o.spot);
     return d;
 }
 const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0, slide: 0, sstep: 0,
@@ -322,7 +338,8 @@ function studioApi() {
         editHref: () => { const w = W(), q = new URLSearchParams({ day: (DK[S.day] || "Mon").toLowerCase() }); if (w.monday) q.set("monday", w.monday); if (S.cls) q.set("class", S.cls); return "lesson.html?" + q; },
         // Outline the panel in place: never rebuild the layer here, since this runs on the pointerdown that may start a drag.
         pickPanel: (k) => { pickedPanel = k || ""; document.querySelectorAll("#toolLayer .float").forEach((w) => w.classList.toggle("picked", w.dataset.panel === pickedPanel)); },
-        redraw: () => { sig = ""; layerSig = ""; render(); }, fit: () => fit(), defaultPos: (k) => toolApi.defaultPos(k), step: (n) => step(n) };
+        redraw: () => { sig = ""; layerSig = ""; render(); }, fit: () => fit(), defaultPos: (k) => toolApi.defaultPos(k), step: (n) => step(n),
+        spot: spotApi };
 }
 /* ---------- controls ---------- */
 function seg(host, items, current, onPick, icon) {
@@ -834,7 +851,7 @@ function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
     slWatch(); syncGames(); syncLive(); syncNotes(); buildControls(); soundSync(); applyLook(S.look); renderLookFold(); renderEditLink(); drawStickers(); deckNotes();
     if (studio && studio.render) studio.render();
-    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : "", S.screen === "seats" ? seatSig() : "", S.screen === "steps" ? stepsSig() : "", S.screen === "deck" ? JSON.stringify([SL.ver, S.slide, S.sstep, slPen, S.look.mark, inkBase()]) : ""]);
+    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : "", S.screen === "seats" ? seatSig() : "", S.screen === "steps" ? stepsSig() : "", S.screen === "deck" ? JSON.stringify([SL.ver, S.slide, S.sstep, slPen, S.look.mark, inkBase()]) : "", S.screen === "canvas" ? JSON.stringify([inkBase(), pageNow(), pageCount(), spotDraw]) : ""]);
     renderDock(); drawGamePanel(); drawLivePanel(); drawNotesPanel();
     if (sheetOpen()) refreshSheet();
     if (ns === sig) { if (S.screen === "steps") stepsSync(); renderLayer(); tick(); tickTools(toolApi); placeCard(); return; }
@@ -845,6 +862,7 @@ function render() {
     if (S.screen === "seats") { drawSeats(st); renderLayer(); watchInk(); return; }
     if (S.screen === "steps") { drawSteps(st); renderLayer(); watchInk(); return; }
     if (S.screen === "deck") { drawDeck(st); renderLayer(); watchInk(); tick(); return; }
+    if (S.screen === "canvas") { drawSpot(st); renderLayer(); watchInk(); tick(); return; }
     if (!l) { st.appendChild(el("div", "empty", "No lesson found for this class and week.")); watchInk(); return; }
     const w = W();
     if (S.screen === "agenda") {
@@ -1359,6 +1377,66 @@ function fitShelf() {
     if (sh.scrollHeight > sh.clientHeight + 2) sh.style.fontSize = Math.max(base * 0.6, base * sh.clientHeight / sh.scrollHeight * 0.98) + "px";
 }
 
+/* ---------- Spotlight: the full-screen canvas (studio.html, js/spotlight.js) ----------
+   No header and no paper: the board's own look shows edge to edge, the panels float over it, and the teacher can draw right
+   on it. On the board and the Remote it is the "Spotlight" screen, with the usual tool rail; in the Board Builder the
+   Spotlight toolbar drives the pen instead (spotApi), and taps go to the panels until Draw is on. */
+let spotDraw = false;
+const spotKey = () => [S.week, S.period, "d" + S.day].join("_");
+const spotDeck = () => S.wb.spot[spotKey()] || null;
+/** The id of the Spotlight screen showing (its drawing is ink/<week>_<period>_d<day>_spot_<id>). */
+const spotNowId = () => { const d = spotDeck(); return d && d.s[d.n] ? d.s[d.n].id : "s0"; };
+function spotSnap(id) {
+    const T = S.tools, on = {}, min = {}, pos = {};
+    Object.keys(T.on).forEach((k) => { on[k] = true; if (T.min[k]) min[k] = true; if (T.pos[k]) pos[k] = T.pos[k]; });
+    return cleanScene({ id: id || spotId(), n: "Spotlight", screen: "canvas", on, min, pos, order: T.order.slice(), work: T.on.work ? T.work : "", look: S.look, stk: S.stickers || [] });
+}
+/** The lesson's Spotlight screens, made the first time with what the board shows now as screen 1. */
+function spotEnsure() {
+    const k = spotKey(); let d = S.wb.spot[k];
+    if (!d) { const ks = Object.keys(S.wb.spot); if (ks.length >= MAX_SPOT_LESSONS) delete S.wb.spot[ks[0]]; d = S.wb.spot[k] = { n: 0, s: [spotSnap("s0")] }; }
+    return d;
+}
+/** Leave screen d.n (keeping its panels, look and stickers) and open screen i with its own. */
+function spotGo(i) {
+    const d = spotEnsure(); i = Math.max(0, Math.min(d.s.length - 1, i));
+    d.s[d.n] = spotSnap(d.s[d.n].id); d.n = i; S.screen = "canvas"; S.show = false;
+    applyScene(S, d.s[i], Object.assign({}, toolApi, { push: () => {} })); push();
+}
+const spotApi = {
+    open() { const d = spotEnsure(); if (S.screen !== "canvas") { S.screen = "canvas"; S.show = false; } d.n = Math.min(d.n, d.s.length - 1); push(); },
+    pages: () => { const d = spotDeck(); return d ? { n: d.n, count: d.s.length, max: MAX_SPOT } : { n: 0, count: 1, max: MAX_SPOT }; },
+    go: (i) => spotGo(i),
+    /** A new screen right after this one: the same look, no panels and no drawing yet. */
+    add() {
+        const d = spotEnsure(); if (d.s.length >= MAX_SPOT) return false;
+        d.s[d.n] = spotSnap(d.s[d.n].id); const fresh = blankSpot(); fresh.look = JSON.parse(JSON.stringify(S.look)); d.s.splice(d.n + 1, 0, fresh);
+        d.n++; S.screen = "canvas"; applyScene(S, fresh, Object.assign({}, toolApi, { push: () => {} })); push(); return true;
+    },
+    remove() {
+        const d = spotEnsure(); if (d.s.length < 2) return false; const gone = d.n;
+        spotClearInk(d.s[gone].id);
+        d.s.splice(gone, 1); d.n = Math.min(gone, d.s.length - 1); applyScene(S, d.s[d.n], Object.assign({}, toolApi, { push: () => {} })); push(); return true;
+    },
+    draw(on) { if (on === undefined) return spotDraw; spotDraw = !!on; const cv = $("cv"); if (cv && S.screen === "canvas") cv.classList.toggle("drawoff", !spotDraw); return spotDraw; },
+    tool: () => (pad && pad.on ? "move" : tool), setTool(k) { if (k === "move") { if (pad) pad.setOn(true); } else { tool = k; if (pad) pad.setOn(false); } retool(); },
+    pens: () => penSet().map((k) => [k, inkColor(k), SPOT_PENS[k] ? SPOT_PENS[k][1] : k]), pen: () => { fixPen(); return pen; }, setPen(k) { pen = k; if (tool === "eraser") tool = "pen"; if (pad) pad.setOn(false); retool(); },
+    size: () => size, setSize(n) { size = Math.max(0, Math.min(2, n)); retool(); },
+    undo: () => undo(), math: () => { if (pad) pad.openMenu(); },
+    clear() { snap(); strokes = []; padItems = []; if (pad) pad.clear(); redraw(); saveInk(); },
+    hasInk: () => strokes.length > 0 || padItems.length > 0,
+};
+/* A removed screen's drawing is emptied (each screen's ink doc is named by the screen's id, so the others never move). */
+function spotClearInk(id) { if (!store || !signedIn) return; writer("ink/" + [S.week, S.period, "d" + S.day, "spot", id].join("_"))({ strokes: [], items: [], paper: "", at: Date.now() }); }
+function drawSpot(st) {
+    spotEnsure(); fixPen();
+    const box = el("div", "spotx"), cv = makeCv(); cv.classList.add("spotink");
+    if (studio && !spotDraw) cv.classList.add("drawoff");
+    box.appendChild(cv);
+    const d = spotDeck(); if (d && d.s.length > 1) { const c = el("p", "spotcount", (d.n + 1) + " / " + d.s.length); box.appendChild(c); }
+    st.appendChild(box); bindCanvas(); sizeCanvas();
+}
+
 /* ---------- whiteboard ink ---------- */
 let canvas = null, ctx = null, strokes = [], cur = null, pen = "ink", size = 1, paper = "", inkKey = "", inkUnsub = null, inkWrite = null, clearArm = 0;
 let pad = null, hist = [], padItems = [];   // pad: the math tools under the ink (js/mathPad.js); hist: undo copies; padItems: the tools, kept while the screen redraws
@@ -1376,7 +1454,13 @@ function undo() {
 }
 function setPaper(p) { paper = p; const cv = $("cv"); if (cv) { PAPERS.forEach(([k]) => { if (k) cv.classList.remove("p-" + k); }); if (p) cv.classList.add("p-" + p); } }
 const PENS = { ink: "--pen-ink", blue: "--pen-blue", red: "--pen-red", green: "--pen-green" }, SIZES = [3, 6, 11];
+// Spotlight draws on the board's dark background, so it has light inks of its own.
+const SPOT_PENS = { white: ["#F6F9FD", "White ink"], amber: ["#F2B33D", "Gold ink"], sky: ["#8CC8FF", "Sky ink"], pink: ["#FF8FB8", "Pink ink"], mint: ["#7CE0B0", "Mint ink"] };
 const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const inkColor = (c) => (SPOT_PENS[c] ? SPOT_PENS[c][0] : css(PENS[c] || PENS.ink) || "#14213D");
+/** The inks that suit the screen up now: light ones on Spotlight, dark ones on paper. */
+function penSet() { return S.screen === "canvas" ? Object.keys(SPOT_PENS) : Object.keys(PENS); }
+function fixPen() { const set = penSet(); if (!set.includes(pen)) pen = set[0]; }
 /* The tool rail floats on the left of the paper: pen, highlighter, eraser, move; four inks and a size;
    then math tools, undo, paper and clear. Icons only, with names for screen readers and on hover. */
 let tool = "pen";   // "pen", "hi" (highlighter) or "eraser"
@@ -1391,10 +1475,10 @@ function rail() {
     b("move", "Move the math tools", moving, () => { if (pad) pad.setOn(!pad.on); retool(); });
     t.appendChild(el("i", "rsep"));
     const sw = el("div", "rsw");
-    Object.keys(PENS).forEach((k) => { const x = el("button", "sw"); x.type = "button"; x.style.background = css(PENS[k]); x.title = k === "ink" ? "Navy ink" : k[0].toUpperCase() + k.slice(1) + " ink"; x.setAttribute("aria-label", x.title); x.setAttribute("aria-pressed", String(pen === k)); x.onclick = () => { pen = k; if (tool === "eraser") tool = "pen"; if (pad) pad.setOn(false); retool(); }; sw.appendChild(x); });
+    fixPen(); penSet().forEach((k) => { const x = el("button", "sw"); x.type = "button"; x.style.background = inkColor(k); x.title = SPOT_PENS[k] ? SPOT_PENS[k][1] : k === "ink" ? "Navy ink" : k[0].toUpperCase() + k.slice(1) + " ink"; x.setAttribute("aria-label", x.title); x.setAttribute("aria-pressed", String(pen === k)); x.onclick = () => { pen = k; if (tool === "eraser") tool = "pen"; if (pad) pad.setOn(false); retool(); }; sw.appendChild(x); });
     t.appendChild(sw);
     const sz = el("button", "rb size"); sz.type = "button"; sz.title = ["Thin", "Medium", "Thick"][size] + " line (tap to change)"; sz.setAttribute("aria-label", sz.title);
-    const dot = el("i"); dot.style.width = dot.style.height = [0.35, 0.6, 0.9][size] + "em"; dot.style.background = tool === "hi" ? "#F2B33D" : pen === "ink" ? "#F4F7FB" : css(PENS[pen]); sz.appendChild(dot); sz.onclick = () => { size = (size + 1) % 3; retool(); }; t.appendChild(sz);
+    const dot = el("i"); dot.style.width = dot.style.height = [0.35, 0.6, 0.9][size] + "em"; dot.style.background = tool === "hi" ? "#F2B33D" : pen === "ink" ? "#F4F7FB" : inkColor(pen); sz.appendChild(dot); sz.onclick = () => { size = (size + 1) % 3; retool(); }; t.appendChild(sz);
     t.appendChild(el("i", "rsep"));
     b("math", "Add a math tool", null, () => { if (pad) pad.openMenu(); }, "amber");
     b("undo", "Undo", null, undo);
@@ -1410,7 +1494,7 @@ function retool() { const old = $("tools"); if (old) old.parentNode.replaceChild
 function sizeCanvas() { fitPdf(); if (!canvas) return; const r = canvas.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2); if (r.width < 2) return; canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr); ctx = canvas.getContext("2d"); redraw(); if (pad) pad.resize(); }
 function drawStroke(s) {
     if (!ctx || !s.p || s.p.length < 2) return; const Wd = canvas.width, H = canvas.height, p = s.p;
-    ctx.globalCompositeOperation = s.e ? "destination-out" : "source-over"; ctx.strokeStyle = s.h && (s.c === "ink" || !PENS[s.c]) ? "#F2B33D" : (css(PENS[s.c] || PENS.ink) || "#14213D");
+    ctx.globalCompositeOperation = s.e ? "destination-out" : "source-over"; ctx.strokeStyle = s.h && (s.c === "ink" || s.c === "white" || (!PENS[s.c] && !SPOT_PENS[s.c])) ? "#F2B33D" : inkColor(s.c);
     ctx.globalAlpha = s.h ? 0.38 : 1;
     ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.lineWidth = (s.e ? 5 : s.h ? 3.4 : 1) * (SIZES[s.w] || 6) * Wd / 1400;
     ctx.beginPath(); ctx.moveTo(p[0] / 10000 * Wd, p[1] / 10000 * H); if (p.length === 2) ctx.lineTo(p[0] / 10000 * Wd + 0.1, p[1] / 10000 * H);
@@ -1420,7 +1504,7 @@ function drawStroke(s) {
 function redraw() { if (!ctx || !canvas) return; ctx.clearRect(0, 0, canvas.width, canvas.height); strokes.forEach(drawStroke); if (cur) drawStroke(cur); }
 function pt(e) { const r = canvas.getBoundingClientRect(); return [Math.round(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * 10000), Math.round(Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) * 10000)]; }
 function bindCanvas() {
-    canvas.addEventListener("pointerdown", (e) => { if (e.button || (pad && pad.on)) return; e.preventDefault(); try { canvas.setPointerCapture(e.pointerId); } catch (x) { /* ok */ } const p = pt(e); cur = { c: pen, w: size, e: tool === "eraser" ? 1 : 0, p: [p[0], p[1]] }; if (tool === "hi") cur.h = 1; redraw(); });
+    canvas.addEventListener("pointerdown", (e) => { if (e.button || (pad && pad.on)) return; e.preventDefault(); try { canvas.setPointerCapture(e.pointerId); } catch (x) { /* ok */ } fixPen(); const p = pt(e); cur = { c: pen, w: size, e: tool === "eraser" ? 1 : 0, p: [p[0], p[1]] }; if (tool === "hi") cur.h = 1; redraw(); });
     canvas.addEventListener("pointermove", (e) => { if (!cur) return; const p = pt(e), a = cur.p, n = a.length; if (Math.abs(p[0] - a[n - 2]) + Math.abs(p[1] - a[n - 1]) < 14) return; a.push(p[0], p[1]); redraw(); });
     const end = () => { if (!cur) return; snap(); strokes.push(cur); cur = null; redraw(); saveInk(); };
     canvas.addEventListener("pointerup", end); canvas.addEventListener("pointercancel", end);
@@ -1433,11 +1517,11 @@ function saveInk() {
     if (JSON.stringify(body).length > 700000) { note("This board is full. Clear it to keep saving."); return; }
     note(""); inkWrite(JSON.parse(JSON.stringify(body)));
 }
-function inkBase() { return [S.week, S.period, "d" + S.day, S.screen === "deck" ? "s" + (((deckNow() || {}).s || {}).id || "none") : S.screen === "notes" ? "n" + S.note + (S.show && pdfFrame() ? "w" : "") : S.screen === "fix" ? "fix" + ((fixCur() || {}).n || 0) : S.screen === "live" ? (liveReview() || { key: "live" }).key : ((S.screen === "bell" && D()) ? "p" + S.prob : "blank")].join("_"); }
-function pageCount() { return S.wb.pages[inkBase()] || 1; }
-function pageNow() { const b = inkBase(); return S.wb.pg.k === b ? Math.min(S.wb.pg.n, pageCount() - 1) : 0; }
+function inkBase() { return [S.week, S.period, "d" + S.day, S.screen === "deck" ? "s" + (((deckNow() || {}).s || {}).id || "none") : S.screen === "notes" ? "n" + S.note + (S.show && pdfFrame() ? "w" : "") : S.screen === "fix" ? "fix" + ((fixCur() || {}).n || 0) : S.screen === "live" ? (liveReview() || { key: "live" }).key : S.screen === "canvas" ? "spot_" + spotNowId() : ((S.screen === "bell" && D()) ? "p" + S.prob : "blank")].join("_"); }
+function pageCount() { if (S.screen === "canvas") { const d = spotDeck(); return d ? d.s.length : 1; } return S.wb.pages[inkBase()] || 1; }
+function pageNow() { if (S.screen === "canvas") { const d = spotDeck(); return d ? d.n : 0; } const b = inkBase(); return S.wb.pg.k === b ? Math.min(S.wb.pg.n, pageCount() - 1) : 0; }
 function watchInk() {
-    const key = canvas ? inkBase() + (pageNow() ? "_pg" + pageNow() : "") : "";
+    const key = canvas ? inkBase() + (pageNow() && S.screen !== "canvas" ? "_pg" + pageNow() : "") : "";
     if (key === inkKey) return; inkKey = key; if (inkUnsub) { inkUnsub(); inkUnsub = null; } inkWrite = null; strokes = []; cur = null; hist = []; padItems = []; if (pad) pad.setItems([]); redraw();
     if (!key || !signedIn) return;
     inkWrite = writer("ink/" + key);
@@ -1578,6 +1662,7 @@ function applyState(d) {
 function isSpeedDay() { const d = D(); return !!d && /speed dating/i.test((d.agendaLine || "") + " " + (d.agenda || []).join(" ")); }
 function flow(n) {
     if (S.screen === "game") { gameFlow(n); return; }
+    if (S.screen === "canvas") { const d = spotDeck(); if (d && d.n + n >= 0 && d.n + n < d.s.length) spotGo(d.n + n); return; }   // Spotlight: its own screens
     if (S.screen === "deck") {   // Next shows the next piece set to appear, then the next slide; past either end, the screen changes
         const dn = deckNow(); if (!dn) return;
         const steps = revealSteps(dn.s), at = Math.min(S.sstep, steps);
@@ -1626,7 +1711,7 @@ function flow(n) {
 const subHides = (id) => mode === "sub" && (id === "game" || id === "live" || id === "seats" || id === "steps" || (id === "deck" && !studio));
 const screenOrder = () => SCREENS.filter((x) => !subHides(x[0])).map((x) => x[0]);
 function nextScreen(n) {   // skips Slides, Guided Notes and Speed Dating on days that have none
-    const d = D(), skip = { notes: !notesFrames(d).length, speed: !isSpeedDay(), deck: !slHas() };
+    const d = D(), skip = { notes: !notesFrames(d).length, speed: !isSpeedDay(), deck: !slHas(), canvas: true };
     const o = screenOrder().filter((id) => id === S.screen || !skip[id]), j = o.indexOf(S.screen) + n;
     return j >= 0 && j < o.length ? o[j] : null;
 }
@@ -1641,9 +1726,10 @@ function step(n) {
     push();
 }
 function stepLabel() { const l = flowLabel(); if (l !== "Next") return l; const t = nextScreen(1); return t ? "Next: " + screenName(t) : "Next"; }
-function backLabel() { if (["today", "bell", "notes", "speed", "fix"].includes(S.screen) || (S.screen === "steps" && S.walk.step > 0) || (S.screen === "deck" && (S.slide > 0 || S.sstep > 0))) return "Back"; const t = nextScreen(-1); return t ? "Back: " + screenName(t) : "Back"; }
+function backLabel() { if (["today", "bell", "notes", "speed", "fix"].includes(S.screen) || (S.screen === "steps" && S.walk.step > 0) || (S.screen === "deck" && (S.slide > 0 || S.sstep > 0)) || (S.screen === "canvas" && (spotDeck() || { n: 0 }).n > 0)) return "Back"; const t = nextScreen(-1); return t ? "Back: " + screenName(t) : "Back"; }
 function flowLabel() {
     if (S.screen === "game") return gameFlowLabel();
+    if (S.screen === "canvas") { const d = spotDeck(); return d && d.n < d.s.length - 1 ? "Next: Screen " + (d.n + 2) : "Next"; }
     if (S.screen === "deck") { const dn = deckNow(); if (!dn) return "Next"; if (Math.min(S.sstep, revealSteps(dn.s)) < revealSteps(dn.s)) return "Next: Show more"; return dn.i < dn.list.length - 1 ? "Next: Slide " + (dn.i + 2) : "Next"; }
     if (S.screen === "steps") return stepPlayer && stepFor === S.walk.id && S.walk.step < stepPlayer.count - 1 ? "Next: Step " + (S.walk.step + 2) : "Next";
     const d = D(), len = (d && d.problems && d.problems.length) || 0, frames = notesFrames(d), hasNotes = frames.length > 0;

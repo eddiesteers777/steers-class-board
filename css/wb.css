@@ -139,3 +139,21 @@ body.idle .lnjoin{opacity:.9}
 .cv .pdfclip{position:absolute;overflow:hidden;background:#fff;box-shadow:0 .2em 1em rgba(8,27,69,.25)}
 .cv .pdfclip img{position:absolute;left:0;max-width:none;user-select:none}
 .cv .pdfwait{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;margin:0;color:var(--mute,#55627F);font-size:.8em;text-align:center;padding:1em}
+
+/* ---------- Spotlight: the full-screen canvas screen (js/boardApp.js drawSpot; the Board Builder tab is css/spotlight.css) ---------- */
+.spotx{position:relative;flex:1;min-height:0;width:100%;height:100%}
+.spotx .cv{position:absolute;inset:0;background:transparent!important}
+.spotx .cv canvas{background:transparent}
+.spotx .cv.drawoff>canvas{pointer-events:none}
+.spotx .cv.drawoff .wbrail{display:none}
+body.spotmode .spotx .wbrail{display:none}
+.spotcount{position:absolute;right:.8em;bottom:.6em;z-index:3;margin:0;font-size:.7em;font-weight:700;padding:.2em .7em;border-radius:999px;background:rgba(255,255,255,.12);color:#f6f9fd;
+    border:.06em solid rgba(255,255,255,.22);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);pointer-events:none;transition:opacity .4s}
+body.board.idle .spotcount,body.spotmode .spotcount{opacity:0}
+
+/* panels on a Spotlight screen: frosted glass cards that pop in */
+#stage:has(.spotx) .card.float{background:rgba(250,252,255,.78);-webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);
+    border:.06em solid rgba(255,255,255,.75);box-shadow:inset 0 .06em 0 rgba(255,255,255,.9),0 1em 2.6em rgba(2,8,26,.42);border-radius:.9em}
+#stage:has(.spotx) .float.enter,.float.sppop{animation:spPop .42s cubic-bezier(.18,.9,.22,1.25)}
+@keyframes spPop{0%{opacity:0;transform:scale(.6) translateY(1em)}60%{opacity:1}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.spot *,#stage:has(.spotx) .float.enter,.float.sppop{animation:none!important;transition:none!important}}
