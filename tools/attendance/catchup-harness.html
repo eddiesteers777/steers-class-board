@@ -10,6 +10,12 @@ put("attendance/2026-11-16", { out: { "1st": { "ben-k": { n: "Ben K.", at: 1 } }
 put("attendance/2026-11-17", { out: { "1st": { "ben-k": { n: "Ben K.", at: 1 } } } });
 put("rosters/all", { periods: { "1st": ["Ava Rivera", "Ben Kim"] } });
 put("catchup/1st", {});
+if (new URLSearchParams(location.search).has("mod")) {   // made-up modified notes on Monday (answers checked in catchup.test.mjs)
+  week5.classes["8th"].days[0].modNotes = { title: "Find the Missing Angle", ican: ["find a missing angle in a triangle"], idea: "The three angles add to 180°.", steps: ["Add the two angles.", "Subtract from 180."],
+    examples: [{ title: "Two angles given", q: "A triangle has angles 40° and 80°. Find x.", steps: ["40 + 80 + x = 180", "120 + x = 180", "x = 60°"], answer: "x = 60°" }],
+    practice: [{ q: "A triangle has angles 30° and 70°. Find x.", a: "x = 80°" }, { q: "A triangle has angles 90° and 45°. Find x.", a: "x = 45°" }, { q: "A triangle has angles 60° and 60°. Find x.", a: "x = 60°" }] };
+  put("modgroup/1st", {});
+}
 const store = { watch(path, next) { setTimeout(() => next({ exists: docs.has(path), data: docs.get(path), pending: false }), 0); return () => {}; } };
 window.__saved = []; window.__printed = []; window.__pub = [];
 mountCatchup({ store, el, host: document.getElementById("cu"), periods: [["1st", "8th"]], weeks: [week5], per: "1st", key: "ben-k", today: "2026-11-23",

@@ -66,3 +66,21 @@ assert.deepEqual(run(() => ({ "2026-11-19": { st: "assigned", via: "deltamath" }
 // the standard a missed day covered now also comes from codes on that day's practice problems (Week 5: 8.25)
 assert.deepEqual(C.standardsFor({ weeks: [wk5], periods: [["1st", "8th"]], per: "1st", day: "2026-11-16" }), ["8.25"]);
 console.log("catch-up core: all checks passed");
+
+// the modified group (Nov 23): modified papers replace the regular ones where there is one; practice from modNotes
+const mp = [{ id: "notes0", pre: "1 Monday" }, { id: "notes0key", pre: "1 Monday", key: true }, { id: "modnotes0", pre: "1 Monday", alt: true }, { id: "modnotes0key", pre: "1 Monday", alt: true, key: true },
+    { id: "sd", pre: "2 Tuesday" }, { id: "quiz", pre: "4 Thursday" }, { id: "mod", pre: "4 Thursday", alt: true }];
+assert.deepEqual(K.dayPapers(mp, 0, true).map((p) => p.id), ["modnotes0"]);
+assert.deepEqual(K.dayPapers(mp, 0, false).map((p) => p.id), ["notes0"]);
+assert.deepEqual(K.dayPapers(mp, 3, true).map((p) => p.id), ["mod"]);
+assert.deepEqual(K.dayPapers(mp, 1, true).map((p) => p.id), ["sd"]);      // no modified version: the regular paper stays
+assert.deepEqual(K.modWrite("Ben K.", true, 4), { kids: { "ben-k": { nm: "Ben K.", on: 1, at: 4 } }, at: 4 });
+assert.ok(K.inMod({ kids: { "ben-k": { on: 1 } } }, "ben k")); assert.ok(!K.inMod({ kids: { "ben-k": { on: 0 } } }, "Ben K.")); assert.ok(!K.inMod(null, "Ben K."));
+const mn = { title: "Find the Missing Angle", examples: [{ title: "Two angles given", q: "A triangle has angles 40° and 80°. Find x.", steps: ["40 + 80 + x = 180", "120 + x = 180", "x = 60°"], answer: "x = 60°" }],
+    practice: [{ q: "A triangle has angles 30° and 70°. Find x.", a: "x = 80°" }, { q: "A triangle has angles 90° and 45°. Find x.", a: "x = 45°" }, { q: "A triangle has angles 60° and 60°. Find x.", a: "x = 60°" }] };
+mn.practice.concat([{ q: mn.examples[0].q, a: mn.examples[0].answer }]).forEach((p) => { const g = (p.q.match(/(\d+)°/g) || []).map((x) => parseInt(x, 10)), x = parseInt(p.a.replace(/\D+/g, ""), 10); assert.equal(g[0] + g[1] + x, 180, "fixture answer checked: " + p.q); });
+const mc = K.copyFromModNotes(mn, "deltamath", "Monday, 11/16");
+assert.equal(mc.n, 3); assert.match(mc.text, /^Catch-up \(modified\): Find the Missing Angle \(Monday, 11\/16\)/);
+assert.match(mc.text, /Step 3: x = 60°\n  Answer: x = 60°/); assert.match(mc.text, /Answer key \(teacher only\)\n1\. x = 80°\n2\. x = 45°\n3\. x = 60°/);
+assert.deepEqual(K.copyFromModNotes(null, "magma"), { text: "", n: 0 });
+console.log("modified group catch-up: all checks passed");
