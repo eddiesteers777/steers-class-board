@@ -354,6 +354,18 @@ export const LOOK_BGS = [["anchor", "Big logo"], ["plain", "Plain"], ["rings", "
     // Board Builder, Nov 21
     ["axes", "Coordinate plane"], ["paper", "Notebook"], ["chalk", "Chalk dust"], ["shapes", "Shapes"], ["hex", "Honeycomb"],
     ["waves", "Waves"], ["hills", "Hills"], ["space", "Space"], ["sunset", "Sunset glow"], ["bokeh", "Soft lights"], ["leaves", "Fall leaves"], ["confetti", "Confetti"]];
+/* Real photos (photos/*.webp; the small tiles are photos/sm/*.webp). All from Unsplash, whose licence lets anyone use them
+   free with no credit required; the photographer is still named on each tile and in photos/CREDITS.md.
+   A veil in the board's colours (css/look.css) keeps the lesson readable on top. [id, name, group, photographer] */
+export const LOOK_PHOTO_GROUPS = ["Mountains", "Beaches", "Landscapes", "Cities", "Animals"];
+export const LOOK_PHOTOS = [
+    ["ph-mtn-lake", "Mountain lake", "Mountains", "Tobias Keller"], ["ph-mtn-peak", "Alpine peak", "Mountains", "Pietro De Grandi"], ["ph-mtn-ridge", "Wildflower ridge", "Mountains", "Daniela Kokina"], ["ph-mtn-dusk", "Ridges at dusk", "Mountains", "Sven Pieren"], ["ph-mtn-snow", "Snowy valley", "Mountains", "Kalen Emsley"], ["ph-mtn-mist", "Misty summit", "Mountains", "v2osk"],
+    ["ph-bch-gold", "Golden shore", "Beaches", "Sean Oulashin"], ["ph-bch-palms", "Palm beach", "Beaches", "Matthew Brodeur"], ["ph-bch-sunset", "Beach sunset", "Beaches", "Cristofer Maximilian"], ["ph-bch-waves", "Waves", "Beaches", "Mink Mingle"], ["ph-bch-cove", "Hidden cove", "Beaches", "Derek Thomson"],
+    ["ph-lnd-valley", "Valley river", "Landscapes", "Bailey Zindel"], ["ph-lnd-mist", "Misty forest", "Landscapes", "pine watt"], ["ph-lnd-autumn", "Autumn forest", "Landscapes", "Johannes Plenio"], ["ph-lnd-cabin", "Lake cabin", "Landscapes", "Luca Bravo"], ["ph-lnd-tree", "Lone tree", "Landscapes", "Ken Cheung"], ["ph-lnd-flowers", "Lakeside flowers", "Landscapes", "Mark Harpur"],
+    ["ph-cty-dawn", "Skyline at dawn", "Cities", "Jonathan Roger"], ["ph-cty-bridge", "Bridge at night", "Cities", "Luca Bravo"], ["ph-cty-lake", "Lakefront skyline", "Cities", "Jeff Brown"], ["ph-cty-pink", "Pink sky harbor", "Cities", "Muzammil Soorma"], ["ph-cty-sunset", "Sunset towers", "Cities", "Shea Rouda"], ["ph-cty-night", "Night reflections", "Cities", "Pang Yuhao"],
+    ["ph-ani-fox", "Fox", "Animals", "Ray Hennessy"], ["ph-ani-lion", "Lion and cub", "Animals", "Zdeněk Macháček"], ["ph-ani-bear", "Polar bear", "Animals", "Hans-Jurgen Mager"], ["ph-ani-turtle", "Sea turtle", "Animals", "Wexor Tmg"], ["ph-ani-zebra", "Zebras", "Animals", "sutirta budiman"], ["ph-ani-flamingo", "Flamingo", "Animals", "Alejandro Contreras"],
+];
+const isPhoto = (id) => LOOK_PHOTOS.some((x) => x[0] === id);
 /* One tap for a whole look: [id, name, colours, background, logo, effect, group]. */
 export const LOOK_PRESETS = [
     ["math", "Math class", "navy", "axes", "pi", "math", "Every day"], ["chalkboard", "Chalkboard", "chalk", "chalk", "anchor", "none", "Every day"],
@@ -364,12 +376,15 @@ export const LOOK_PRESETS = [
     ["xmas-pines", "Winter forest", "evergreen", "trees", "tree", "none", "Winter"], ["xmas-candy", "Candy cane", "cranberry", "candy", "star", "none", "Winter"],
     ["snowmen", "Snow day", "winter", "hills", "snowflake", "snowmen", "Winter"], ["valentine", "Valentine's", "berry", "bokeh", "anchor", "hearts", "Spring"],
     ["clover", "Lucky day", "forest", "hills", "anchor", "clovers", "Spring"], ["spring", "Spring", "teal", "hills", "anchor", "flowers", "Spring"],
+    ["p-lake", "Mountain lake", "navy", "ph-mtn-lake", "anchor", "none", "Photos"], ["p-beach", "Beach sunset", "sunset", "ph-bch-sunset", "anchor", "none", "Photos"],
+    ["p-forest", "Misty forest", "forest", "ph-lnd-mist", "anchor", "none", "Photos"], ["p-city", "City at night", "midnight", "ph-cty-bridge", "star", "none", "Photos"],
+    ["p-fox", "Fox in the snow", "ocean", "ph-ani-fox", "anchor", "snow", "Photos"],
 ];
 const presetOn = (L, p) => L.theme === p[2] && L.bg === p[3] && (L.mark || "anchor") === p[4] && (L.fx || "none") === p[5];
 export const presetLook = (p, fxn) => ({ theme: p[2], bg: p[3], mark: p[4], fx: p[5], fxn: fxn || 2 });
 const XMAS = new Set(["evergreen", "cranberry", "winter"]);
 export const defaultLook = () => ({ theme: "navy", bg: "anchor", mark: "anchor", fx: "none", fxn: 2 });
-export function cleanLook(o) { const d = defaultLook(); if (!o || typeof o !== "object") return d; if (LOOK_THEMES.some((t) => t[0] === o.theme)) d.theme = o.theme; if (LOOK_BGS.some((b) => b[0] === o.bg)) d.bg = o.bg; if (MARKS.some((m) => m[0] === o.mark)) d.mark = o.mark; if (EFFECTS.some((e) => e[0] === o.fx)) d.fx = o.fx; if ([1, 2, 3].includes(+o.fxn)) d.fxn = +o.fxn; return d; }
+export function cleanLook(o) { const d = defaultLook(); if (!o || typeof o !== "object") return d; if (LOOK_THEMES.some((t) => t[0] === o.theme)) d.theme = o.theme; if (LOOK_BGS.some((b) => b[0] === o.bg) || isPhoto(o.bg)) d.bg = o.bg; if (MARKS.some((m) => m[0] === o.mark)) d.mark = o.mark; if (EFFECTS.some((e) => e[0] === o.fx)) d.fx = o.fx; if ([1, 2, 3].includes(+o.fxn)) d.fxn = +o.fxn; return d; }
 export const themeCols = (id) => (LOOK_THEMES.find((x) => x[0] === id) || LOOK_THEMES[0])[2];
 export const gradOf = (id) => { const t = LOOK_THEMES.find((x) => x[0] === id) || LOOK_THEMES[0]; return "linear-gradient(135deg," + t[2][0] + " 0%," + t[2][1] + " 55%," + t[2][2] + " 100%)"; };
 let lookApplied = "", seal = "brand/logo.svg";
@@ -403,6 +418,30 @@ export function presetTile(api, p, after) {
     b.appendChild(pv); b.appendChild(el("span", "lnm", p[1]));
     b.onclick = () => { S.look = presetLook(p, S.look.fxn); api.push(); if (after) after(); };
     return b;
+}
+/** The photo backgrounds: a row of group chips, then that group's tiles. pick(id) sets the background; after() redraws. */
+let photoGroup = "";
+/** Which group of photos is showing (so a redraw check can see a chip change). */
+export const photoGroupNow = () => photoGroup;
+export function photoPicker(el, look, pick, after) {
+    const cur = LOOK_PHOTOS.find((x) => x[0] === look.bg);
+    if (!photoGroup) photoGroup = cur ? cur[2] : LOOK_PHOTO_GROUPS[0];
+    const box = el("div", "lookphotos");
+    const chips = el("div", "lookpg"); chips.setAttribute("role", "group"); chips.setAttribute("aria-label", "Kind of photo");
+    LOOK_PHOTO_GROUPS.forEach((g) => {
+        const c = el("button", "lookpgc" + (g === photoGroup ? " on" : ""), g); c.type = "button"; c.setAttribute("aria-pressed", String(g === photoGroup));
+        c.onclick = () => { photoGroup = g; if (after) after(); }; chips.appendChild(c);
+    });
+    box.appendChild(chips);
+    const grid = el("div", "lookbgs"); grid.setAttribute("role", "group"); grid.setAttribute("aria-label", photoGroup + " photos");
+    LOOK_PHOTOS.filter((x) => x[2] === photoGroup).forEach(([id, name, , who]) => {
+        const on = look.bg === id, b = el("button", "lookbg" + (on ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(on)); b.title = name + ". Photo: " + who + " on Unsplash";
+        const pv = el("span", "lpv"); pv.style.background = gradOf(look.theme); pv.appendChild(el("span", "stagebg pv-" + id)); b.appendChild(pv); b.appendChild(el("span", "lnm", name)); b.appendChild(el("span", "lwho", who));
+        b.onclick = () => pick(id); grid.appendChild(b);
+    });
+    box.appendChild(grid);
+    box.appendChild(el("p", "lookcred", "Photos from Unsplash, free to use. The name under each one is the photographer."));
+    return box;
 }
 /** Swatches for the colour scheme and tiles for the background. compact: the Remote's rail. */
 export function lookPicker(api, compact) {
@@ -443,6 +482,8 @@ export function lookPicker(api, compact) {
         b.onclick = () => { S.look = Object.assign({}, S.look, { bg: id }); api.push(); refreshSheet(); }; bg.appendChild(b);
     });
     box.appendChild(bg);
+    box.appendChild(el("p", "lookh", "Photos"));
+    box.appendChild(photoPicker(el, S.look, (id) => { S.look = Object.assign({}, S.look, { bg: id }); api.push(); refreshSheet(); }, () => refreshSheet()));
     box.appendChild(el("p", "lookh", "Effects"));   // falling shapes behind the lesson
     const fx = el("div", "lookfxs"); fx.setAttribute("role", "group"); fx.setAttribute("aria-label", "Board effect");
     const curFx = S.look.fx || "none";
