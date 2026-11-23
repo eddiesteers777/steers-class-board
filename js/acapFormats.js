@@ -181,3 +181,35 @@ export function spiralSet(o) {
 export function spiralTitle(now, day = new Date()) {
     return "Spiral · " + now.join(", ") + " + review · " + day.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
+
+/* ---------- bellringers for the week (Plan the Week) ---------- */
+/**
+ * Each school day's bellringers, spiralled: `nowEach` on this week's standard(s) and the rest on review standards,
+ * rotating so each review standard comes back during the week. Days keep what is already picked and only fill up to `per`.
+ * No problem twice in the week. o = { cls, bank, now: [codes], review: [codes], days: [{ school, bell: [{ id }] }], per = 4, nowEach = 2 }
+ * Returns, for each day, the bank problems to add ([] for a day off or a full day).
+ */
+export function bellWeek(o) {
+    const per = o.per || 4, nowEach = o.nowEach == null ? 2 : o.nowEach, inCls = (x) => x.cls === o.cls || (x.for || []).includes(o.cls);
+    const used = new Set(); (o.days || []).forEach((d) => ((d && d.bell) || []).forEach((b) => used.add(b.id)));
+    const near = (want) => (a, b) => Math.abs(a.lvl - want) - Math.abs(b.lvl - want) || String(a.id).localeCompare(String(b.id), undefined, { numeric: true });
+    const pools = new Map();
+    const poolOf = (code, want) => { if (!pools.has(code)) pools.set(code, (o.bank || []).filter((x) => x.std === code && inCls(x) && x.q && x.a && !/\[\[/.test(x.q)).sort(near(want))); return pools.get(code); };
+    const take = (code, want) => { const l = poolOf(code, want); const i = l.findIndex((x) => !used.has(x.id)); if (i < 0) return null; const x = l[i]; used.add(x.id); return x; };
+    const now = (o.now || []).filter(Boolean), review = (o.review || []).filter((c) => c && !now.includes(c));
+    let rn = 0, nn = 0;
+    return (o.days || []).map((d, i) => {
+        if (!d || d.school === false) return [];
+        const have = ((d && d.bell) || []).length, out = [];
+        const needNow = Math.max(0, Math.min(nowEach, per - have) - ((d.bell || []).filter((b) => now.includes(b.std)).length));
+        for (let k = 0; k < needNow && now.length; k++) { let x = null; for (let t = 0; t < now.length && !x; t++) x = take(now[(nn + t) % now.length], 2); nn++; if (x) out.push(x); }
+        while (have + out.length < per) {
+            let x = null;
+            for (let t = 0; t < review.length && !x; t++) x = take(review[(rn + t) % review.length], 1.5);
+            if (x) rn++;
+            for (let t = 0; t < now.length && !x; t++) x = take(now[(nn + t) % now.length], 2);   // nothing left to review: this week's standard
+            if (!x) break; out.push(x);
+        }
+        return out;
+    });
+}

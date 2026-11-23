@@ -67,3 +67,16 @@ const order = ["8.1", "8.2", "8.3", "8.4", "8.5", "8.6"];
 const pick = F.spiralCodes({ order, marks: { "8.1": "taught", "8.2": "taught", "8.3": "taught", "8.5": "teaching" }, need: new Map([["8.3", 2], ["8.1", 1]]) });
 assert.deepEqual(pick.now, ["8.5"]); assert.deepEqual(pick.earlier, ["8.3", "8.1", "8.2"]);
 console.log("formats tests: passed");
+
+// Bellringers for the week: 2 new + 2 review each school day, picks kept, nothing twice, days off skipped.
+{
+    const days = [{ school: true }, { school: true, bell: [{ id: "8.11-01", std: "8.11" }] }, { school: false }, { school: true }, { school: true }];
+    const add = F.bellWeek({ cls: "8th", bank: banks["8th"], now: ["8.11"], review: ["8.4", "8.2"], days });
+    assert.deepEqual(add.map((d) => d.length), [4, 3, 0, 4, 4]);
+    assert.deepEqual(add[0].map((x) => x.std), ["8.11", "8.11", "8.4", "8.2"]);
+    assert.equal(add[1].filter((x) => x.std === "8.11").length, 1, "a picked 8.11 counts toward the 2 new");
+    const ids = add.flat().map((x) => x.id).concat(["8.11-01"]); assert.equal(new Set(ids).size, ids.length);
+    const none = F.bellWeek({ cls: "8th", bank: banks["8th"], now: ["8.11"], review: [], days: [{ school: true }] });
+    assert.deepEqual(none[0].map((x) => x.std), ["8.11", "8.11", "8.11", "8.11"], "no review standards: all on this week");
+}
+console.log("bellringer tests: passed");
