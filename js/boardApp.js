@@ -135,11 +135,13 @@ let mode = "remote", signedIn = false, sig = "", writeState = null;
 /* The Board Builder (studio.html) runs the Remote with a builder rail: stickers can be moved there, panels snap to a
    grid while they are dragged, and the panel last touched is outlined. studio = its hooks (js/studio.js), or null. */
 let studio = null, pickedPanel = "", stickerBusy = false;
+let tvView = false;   // this page is a linked screen (tv.html): it shows the board, read only, and never writes
 let presence = null, shown = { by: "", at: 0 };   // Live status check-ins (js/presence.js): which screens are on, and which change each one shows
 
 function writer(path) {
     let busy = false, next = null;
     const w = function (d) {
+        if (tvView) return;   // a linked screen only follows
         d.by = PAGE; d.at = Date.now();
         if (path === "board/state") { seen(d); quickSave(d); }   // this tab shows its own change at once
         if (path === "board/state" && tabs) { try { tabs.postMessage(d); } catch (e) { /* the server copy still gets there */ } }
@@ -161,6 +163,7 @@ function setStatus(t) {
     const pill = $("connPill"); if (pill) { pill.hidden = st === "ok" || !synced; pill.textContent = st === "bad" ? "Offline \u00b7 showing the saved lesson \u00b7 reconnecting\u2026" : "Connecting\u2026"; }
 }
 function push() {
+    if (tvView) return;   // a linked screen never changes the board
     S.stamp = localIso(); dayBoard(); render();
     // Until the saved state has arrived, only the teacher's own taps are saved: a timer or the bell timeline acting on this
     // device's older copy must not overwrite a newer board.
@@ -1892,6 +1895,25 @@ window.addEventListener("error", (e) => setStatus("Error: " + (e.message || "scr
 window.addEventListener("unhandledrejection", (e) => setStatus("Error: " + ((e.reason && (e.reason.code || e.reason.message)) || "request failed")));
 
 let serverAt = 0;   // last time the server answered for board/state (a live snapshot or a direct read)
+/* A linked screen (tv.html): the board's own controls are hidden and nothing on it takes a tap, since it only follows.
+   One frosted Full screen button in the corner, gone in full screen and faded while the mouse is still (body.idle). */
+function tvChrome() {
+    const st = el("style"); st.id = "tvCss";
+    st.textContent = "body.tvview #exit,body.tvview .bnav,body.tvview .bpanels,body.tvview .wbrail,body.tvview .cbar,body.tvview .rail,body.tvview .flowbar,body.tvview .swipetip{display:none!important}"
+        + "body.tvview #wrap{pointer-events:none}body.tvview.idle{cursor:none}"
+        + ".tvfs{position:fixed;right:14px;bottom:14px;z-index:60;height:44px;padding:0 16px;border-radius:999px;font:600 15px/1 var(--ui,system-ui),sans-serif;color:#F4F8FF;cursor:pointer;"
+        + "background:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.06));background-color:rgba(12,28,66,.42);-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);"
+        + "border:1px solid rgba(255,255,255,.26);box-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 14px 40px rgba(2,8,26,.45);opacity:.7;transition:opacity .3s}"
+        + ".tvfs:hover,.tvfs:focus-visible{opacity:1}body.idle .tvfs{opacity:.1}";
+    document.head.appendChild(st);
+    if (!document.fullscreenEnabled) return;
+    const b = el("button", "tvfs", "Full screen"); b.type = "button"; b.id = "tvFull";
+    const go = () => { try { const p = document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* the TV's browser said no */ } };
+    b.onclick = go; document.addEventListener("dblclick", go);
+    const show = () => { b.hidden = !!document.fullscreenElement; };
+    document.addEventListener("fullscreenchange", show); show();
+    document.body.appendChild(b);
+}
 const HEAL_KEY = "anchorboard-healed", HEAL_WAIT = 3500;
 export async function startApp(opts) {
     mode = (opts && opts.mode) || "remote";
@@ -1900,7 +1922,7 @@ export async function startApp(opts) {
     setFloatDefault((k, T) => { const p = toolApi.defaultPos(k); let n = 0; while (n < 8 && Object.keys(T.pos).some((o) => o !== k && Math.abs(T.pos[o].x - p.x) < 4 && Math.abs(T.pos[o].y - p.y) < 4)) { p.x = Math.min(80, p.x + 5); p.y = Math.min(70, p.y + 6); n++; } return p; });
     if (opts && Array.isArray(opts.weeks) && opts.weeks.length) WEEKS = opts.weeks;
     if (opts && Array.isArray(opts.periods) && opts.periods.length) PERIODS = opts.periods;
-    const storeP = (opts && opts.store) ? Promise.resolve(opts.store) : import("./boardStore.js?v=58");   // loads while the page sets up and draws
+    const storeP = (opts && opts.store) ? Promise.resolve(opts.store) : import("./boardStore.js?v=59");   // loads while the page sets up and draws
     const guest = mode === "sub";
     mountGames({ S, header, store: () => store, writer, now, beep: () => snd.cue("done"), unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     mountLive({ S, header, store: () => store, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
@@ -1963,9 +1985,9 @@ export async function startApp(opts) {
         const pb = el("button", "bpanels"); pb.id = "panelBtn"; pb.type = "button"; pb.innerHTML = pIcon("layout") + "<span>Panels</span>"; pb.onclick = () => openSheet(toolApi); document.body.appendChild(pb);
     }
     keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
-    document.addEventListener("keydown", (e) => { if (e.target && (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.target.isContentEditable)) return; if (e.altKey || e.ctrlKey || e.metaKey) return; if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); step(1); } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); step(-1); } else if (e.key === "m" || e.key === "M") { S.sound.music = !S.sound.music; push(); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
+    document.addEventListener("keydown", (e) => { if (tvView) return; if (e.target && (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.target.isContentEditable)) return; if (e.altKey || e.ctrlKey || e.metaKey) return; if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); step(1); } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); step(-1); } else if (e.key === "m" || e.key === "M") { S.sound.music = !S.sound.music; push(); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
     let seatWas = "";
-    setInterval(() => { if (!synced) return; if (S.screen === "seats") { const h = seatHiNow(); if (h !== seatWas) { seatWas = h; render(); } } tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); tickLive(); tickNotes(); soundTick(); quickTick(); if (!guest && stateIn) { planTick(planApi); if (planFold) planFold.tick(); } }, 250);
+    setInterval(() => { if (!synced) return; if (S.screen === "seats") { const h = seatHiNow(); if (h !== seatWas) { seatWas = h; render(); } } tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); tickLive(); tickNotes(); soundTick(); quickTick(); if (!guest && !tvView && stateIn) { planTick(planApi); if (planFold) planFold.tick(); } }, 250);
     { const p = el("div", "connpill"); p.id = "connPill"; p.setAttribute("role", "status"); p.hidden = true; document.body.appendChild(p); }
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && synced) { tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); soundTick(); } });   // a tab back in view shows the right time at once
     document.body.classList.add("syncing");
@@ -2012,14 +2034,20 @@ export async function startApp(opts) {
     const t0 = performance.now(), ms = () => Math.round(performance.now() - t0) + " ms";
     const mark = guest ? () => {} : trail;
     mark("board-load", mode + ", page " + Math.round(t0) + " ms" + (quick ? ", drawn from this device's copy" : ""));
-    const user = await store.ready();
+    const user = await store.ready({ screen: mode === "board" });   // a linked TV (tv.html) opens board.html
     mark("board-auth", ms());
     if (!user) { location.replace("login.html"); return; }
+    if (user.unlinked) { location.replace("tv.html"); return; }   // a guest device with no teacher's board linked: show the code screen
+    if (user.screen) {   // a linked screen (tv.html): read only, no controls, back to the code screen if the teacher stops it
+        tvView = true; document.body.classList.add("tvview", "board");
+        store.watchLink((on) => { if (!on) store.unlinkHere(); });
+        tvChrome();
+    }
     if (!guest && !(opts && opts.store)) quickUid = user.uid;
     if (quickQ && quickQ.uid !== user.uid) { try { localStorage.removeItem(QUICK_KEY); } catch (e) { /* fine */ } location.reload(); return; }   // another account's copy: start clean
-    if (!guest && user.uid) { try { localStorage.setItem("anchor:subTeacher", user.uid); } catch (e) { /* storage off: the sub link needs ?t= */ } }   // so the guest sub page on this computer can show this teacher's approved weeks
+    if (!guest && !tvView && user.uid) { try { localStorage.setItem("anchor:subTeacher", user.uid); } catch (e) { /* storage off: the sub link needs ?t= */ } }   // so the guest sub page on this computer can show this teacher's approved weeks
     if (!guest) import("./callout.js?v=2").then((m) => m.mountCallout({ store, cue: (n) => snd.cue(n) })).catch(() => {});   // "Called on" banner from the phone's Class Tracker
-    signedIn = true; inkKey = ""; slStart(); $("who").textContent = guest ? ((opts && opts.who) || "Guest teacher view, no sign-in") : (user.name ? "Signed in as " + user.name : "Signed in");
+    signedIn = true; inkKey = ""; slStart(); $("who").textContent = tvView ? "Linked screen" : guest ? ((opts && opts.who) || "Guest teacher view, no sign-in") : (user.name ? "Signed in as " + user.name : "Signed in");
     if (!guest && "BroadcastChannel" in window) {
         try {
             tabs = new BroadcastChannel("anchorboard-" + user.uid);
@@ -2030,7 +2058,7 @@ export async function startApp(opts) {
         } catch (e) { tabs = null; }
     }
     writeState = writer("board/state");
-    if (!guest && !(opts && opts.store)) {   // Live status: check in every 20 s, and answer the Remote's "Check now"
+    if (!guest && !tvView && !(opts && opts.store)) {   // Live status: check in every 20 s, and answer the Remote's "Check now"
         import("./presence.js?v=2").then((m) => {
             presence = m.startPresence({ uid: user.uid, page: PAGE, mode, now,
                 snap: () => ({ screen: S.screen, screenName: screenName(S.screen), period: S.period, day: DK[S.day] || "", week: S.week,
@@ -2103,6 +2131,7 @@ export async function startApp(opts) {
         if (earlyTap) { earlyTap = false; first = false; stateIn = true; arrived(); push(); return; }   // a tap made before sign-in finished wins over the copy it was made on
         if (snap.exists) { applyState(snap.data); seen(snap.data); quickSave(snap.data); }
         stateIn = true; arrived();
+        if (first && tvView) first = false;   // a linked screen shows the board exactly as it is
         if (first) {
             first = false;
             const q = new URLSearchParams(location.search), c = q.get("class"), dy = q.get("day"), di = DK.map((k) => k.toLowerCase()).indexOf((dy || "").toLowerCase());

@@ -36,6 +36,16 @@
           "source": "/fact",
           "destination": "/fact.html",
           "type": 301
+        },
+        {
+          "source": "/tv",
+          "destination": "/tv.html",
+          "type": 301
+        },
+        {
+          "source": "/link",
+          "destination": "/link.html",
+          "type": 301
         }
       ]
     },

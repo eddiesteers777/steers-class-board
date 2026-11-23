@@ -1,0 +1,107 @@
+/* ==========================================
+   Anchor Board — other screens (2026-11-23): tv.html (the code page a TV shows) and link.html (where the
+   teacher types or scans it). Same finish as the Spotlight tab: navy gradient, the rings, frosted glass.
+   link.html follows the Site colours (js/scheme.js sets --s-* through css/skin.css values, with navy fallbacks).
+========================================== */
+:root{--hi:var(--s-hi,#173F86);--mid:var(--s-mid,#0B2559);--out:var(--s-out,#081B45);--sky:var(--s-sky,#7FAEDD);--light:var(--s-light,#B9D3EE);
+  --amber:#F2B33D;--ink:#F4F8FF;--soft:rgba(244,248,255,.74);
+  --glass:linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,.05));--line:rgba(255,255,255,.24);--hl:rgba(255,255,255,.38);
+  --shadow:0 18px 50px rgba(2,8,26,.45),0 2px 8px rgba(2,8,26,.22);
+  --ui:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--disp:"Bricolage Grotesque",var(--ui)}
+html[data-scheme="royal"]{--s-hi:#2E3AA8;--s-mid:#1C2470;--s-out:#0F1440;--s-sky:#8C98F0;--s-light:#C5CBF7}
+html[data-scheme="ocean"]{--s-hi:#11607C;--s-mid:#0A3D5A;--s-out:#06243A;--s-sky:#6FC0DA;--s-light:#B5E0EE}
+html[data-scheme="teal"]{--s-hi:#0F6B6B;--s-mid:#0A4747;--s-out:#052A2A;--s-sky:#6CC7C1;--s-light:#B3E3E0}
+html[data-scheme="forest"]{--s-hi:#1F5C47;--s-mid:#123B2E;--s-out:#0A251C;--s-sky:#7CC4A2;--s-light:#BCE2CF}
+html[data-scheme="plum"]{--s-hi:#4B2E75;--s-mid:#2D1B4B;--s-out:#1A0F2E;--s-sky:#B79BE6;--s-light:#DACBF3}
+html[data-scheme="berry"]{--s-hi:#7A2257;--s-mid:#4B1438;--s-out:#2A0A1F;--s-sky:#E39BC8;--s-light:#F2CDE3}
+html[data-scheme="crimson"]{--s-hi:#6E2533;--s-mid:#42161F;--s-out:#260B12;--s-sky:#E59AA3;--s-light:#F3CCD1}
+html[data-scheme="slate"]{--s-hi:#3B4659;--s-mid:#242C3B;--s-out:#141A24;--s-sky:#9AA8BF;--s-light:#CBD3E0}
+
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{min-height:100vh;background:radial-gradient(120% 90% at 20% 0%,var(--hi) 0%,var(--mid) 48%,var(--out) 100%) fixed;background-color:var(--out);
+  color:var(--ink);font:400 16px/1.5 var(--ui);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:var(--light)}
+b{font-weight:650}
+
+/* the rings behind everything, like the logo */
+.scrbg{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.scrbg i{position:absolute;border-radius:50%;border:2px solid rgba(127,174,221,.16)}
+.scrbg i:nth-child(1){width:110vmax;height:110vmax;right:-55vmax;top:-40vmax}
+.scrbg i:nth-child(2){width:78vmax;height:78vmax;right:-39vmax;top:-24vmax;border-color:rgba(185,211,238,.12)}
+.scrbg i:nth-child(3){width:46vmax;height:46vmax;right:-23vmax;top:-8vmax;border-color:rgba(242,179,61,.14)}
+
+.glass,.tvcard,.lkcard,.lkbar{background:var(--glass);background-color:rgba(12,28,66,.38);-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);
+  border:1px solid var(--line);box-shadow:inset 0 1px 0 var(--hl),var(--shadow)}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){.glass,.tvcard,.lkcard,.lkbar{background:rgba(12,28,66,.9)}}
+
+/* ---------- tv.html: read across a room ---------- */
+.tvmain{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.2vh;padding:4vh 4vw;text-align:center}
+.tvmark{width:clamp(64px,9vh,110px);height:clamp(64px,9vh,110px)}
+.tvmark svg{width:100%;height:100%;filter:drop-shadow(0 10px 30px rgba(2,8,26,.5))}
+.tvh{font:750 clamp(28px,5vh,60px)/1.05 var(--disp);letter-spacing:-.02em;margin:0}
+.tvnote{font-size:clamp(16px,2.4vh,26px);color:var(--soft);margin:0;max-width:40em}
+.tvnote:empty{display:none}
+.tvcard{display:grid;grid-template-columns:1fr auto;gap:4vw;align-items:center;text-align:left;border-radius:28px;padding:4vh 4vw;max-width:min(1180px,94vw)}
+.tvlbl{margin:0;font:600 clamp(14px,2vh,22px)/1 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--sky)}
+.tvcode{margin:.25em 0 .35em;font:800 clamp(56px,15vh,180px)/1 var(--disp);letter-spacing:.08em;color:#fff;white-space:nowrap;
+  text-shadow:0 6px 30px rgba(2,8,26,.45)}
+.tvsteps{margin:0;padding-left:1.2em;font-size:clamp(16px,2.6vh,28px);line-height:1.45}
+.tvsteps b{color:var(--amber)}
+.tvsmall{margin:1.4vh 0 0;font-size:clamp(13px,1.8vh,19px);color:var(--soft)}
+.tvqr{width:clamp(160px,34vh,380px);aspect-ratio:1;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 0 0 8px rgba(255,255,255,.12),var(--shadow)}
+.tvqr svg{display:block;width:100%;height:100%}
+.tvfull{position:fixed;right:18px;bottom:18px;z-index:2;height:44px;padding:0 18px;border-radius:999px;font:600 15px/1 var(--ui);color:var(--ink);cursor:pointer;
+  background:var(--glass);background-color:rgba(12,28,66,.42);border:1px solid var(--line);box-shadow:inset 0 1px 0 var(--hl),var(--shadow);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+.tvfull:hover,.tvfull:focus-visible{background-color:rgba(40,70,140,.6);outline:none}
+@media (max-width:760px),(max-aspect-ratio:1/1){
+  .tvcard{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .tvsteps{text-align:left}
+  .tvcode{font-size:clamp(48px,14vw,120px)}
+}
+
+/* ---------- link.html: the teacher's phone or Chromebook ---------- */
+.lkbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;border-width:0 0 1px;border-radius:0}
+.lkbrand{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none;font:700 18px/1 var(--disp)}
+.lkbrand img{width:34px;height:34px;border-radius:9px}
+.lkback{color:var(--light);font-weight:600;text-decoration:none;font-size:15px}
+.lkback:hover{text-decoration:underline}
+.lkmain{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:28px 16px 60px;display:flex;flex-direction:column;gap:16px}
+.lkh{font:750 clamp(26px,5vw,40px)/1.08 var(--disp);letter-spacing:-.02em;margin:0}
+.lklead{margin:0 0 4px;color:var(--soft);font-size:17px}
+.lkcard{border-radius:20px;padding:20px}
+.lkcard h2{display:flex;align-items:center;gap:10px;margin:0 0 6px;font:700 20px/1.2 var(--disp)}
+.lkcard p{margin:0 0 12px;color:var(--soft)}
+.lkcard p b{color:var(--ink)}
+.lknum{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--amber);color:#1A1200;font:800 15px/1 var(--ui);flex:none}
+.lkform{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:12px;align-items:end}
+.lkform label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:var(--light);letter-spacing:.02em}
+.lkform input{height:48px;border-radius:12px;border:1px solid var(--line);background:rgba(4,12,34,.45);color:#fff;padding:0 14px;font:600 18px/1 var(--ui);min-width:0;width:100%}
+#codeIn{font:800 24px/1 var(--disp);letter-spacing:.14em;text-transform:uppercase}
+.lkform input:focus{outline:2px solid var(--amber);outline-offset:1px}
+.lkbtn{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 20px;border-radius:12px;border:1px solid rgba(255,255,255,.28);cursor:pointer;
+  background:linear-gradient(180deg,#F7C55E,#E9A42A);color:#1A1200;font:700 16px/1 var(--ui);text-decoration:none;white-space:nowrap;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 8px 22px rgba(233,164,42,.28)}
+.lkbtn:hover{filter:brightness(1.05)}
+.lkbtn:disabled{opacity:.55;cursor:default;filter:none}
+.lkbtn.ghost{background:rgba(255,255,255,.1);color:var(--ink);box-shadow:inset 0 1px 0 var(--hl)}
+.lkbtn.ghost:hover:not(:disabled){background:rgba(255,255,255,.18)}
+.lkbtn.small{height:38px;padding:0 14px;font-size:14px}
+.lkmsg{margin:12px 0 0!important;min-height:1.4em;font-weight:600}
+.lkmsg[data-s="ok"]{color:#8FE3B4}
+.lkmsg[data-s="bad"]{color:#FFB4A8}
+.lklist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.lklist li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(4,12,34,.32);border:1px solid rgba(255,255,255,.12)}
+.lklist li div{display:flex;flex-direction:column;min-width:0}
+.lklist li b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lklist small{color:var(--soft)}
+.lkmore summary{cursor:pointer;font:700 17px/1.3 var(--disp)}
+.lkmore[open] summary{margin-bottom:10px}
+.lkmore ul{margin:0 0 12px;padding-left:1.2em;color:var(--soft)}
+.lkmore li{margin:4px 0}
+.lkmore li b{color:var(--ink)}
+@media (max-width:640px){
+  .lkform{grid-template-columns:minmax(0,1fr)}
+  .lkbtn{width:100%}
+  .lklist .lkbtn{width:auto}
+}

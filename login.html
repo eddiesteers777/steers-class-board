@@ -32,7 +32,7 @@
         import { showLoader } from "./js/anchorLoader.js?v=2";
         wireSignIn(document.getElementById("loginBtnPage"), document.getElementById("loginNote"));
         // Already signed in (another tab, or a sign-in that just finished): go straight to the home screen.
-        waitForUser().then((u) => { if (u) { showLoader("Opening Anchor Board…"); location.replace("index.html"); } }).catch(() => {});
+        waitForUser().then((u) => { if (u && !u.isAnonymous) { showLoader("Opening Anchor Board…"); location.replace("index.html"); } }).catch(() => {});
     </script>
 </body>
 </html>

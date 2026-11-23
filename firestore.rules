@@ -17,6 +17,35 @@ service cloud.firestore {
       allow read, write: if teacher() && request.auth.uid == uid;
     }
 
+    // Other screens (tv.html, link.html): a TV, Chromebook or computer the teacher linked shows the board, read only.
+    // The screen signs in as an anonymous guest and shows a short code; the teacher types or scans it on their own
+    // signed-in device, which writes teacher/{uid}/tv/{screen's uid}. While that document is there, that one screen
+    // can READ what the board shows (never grades, student work, plans or anything else) and can never write.
+    // Deleting the document ("Stop showing" on link.html) cuts the screen off at once.
+    function screenOf(uid) { return signedIn() && exists(/databases/$(database)/documents/teacher/$(uid)/tv/$(request.auth.uid)); }
+    match /teacher/{uid}/tv/{me} {
+      allow get: if signedIn() && request.auth.uid == me;   // the screen checks it is still linked
+    }
+    match /teacher/{uid}/{col}/{rest=**} {
+      allow read: if col in ['board', 'ink', 'rosters', 'seats', 'settings', 'walk', 'games', 'slides', 'slideimg', 'weekfiles', 'bgimg']
+        && screenOf(uid);
+    }
+
+    // Linking codes for other screens. pair/{code} is made by the screen (its own uid in tv), read by anyone signed in
+    // who has the code, and claimed ONCE by a teacher within 30 minutes (adds owner). The screen deletes it once linked.
+    match /pair/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn() && code.matches('^[A-HJ-NP-Z2-9]{6}$')
+        && request.resource.data.keys().hasOnly(['tv', 'at'])
+        && request.resource.data.tv == request.auth.uid && request.resource.data.at == request.time;
+      allow update: if teacher() && !('owner' in resource.data)
+        && request.time < resource.data.at + duration.value(30, 'm')
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['owner'])
+        && request.resource.data.owner == request.auth.uid;
+      allow delete: if signedIn() && (resource.data.tv == request.auth.uid || resource.data.get('owner', '') == request.auth.uid);
+    }
+
     // Student games (Vault Raid). A room is found by its 6-digit code.
     //   rooms/{code}            status, title, the name list and the clock. Any guest with the code can read it.
     //   rooms/{code}/p/{who}    a student's own entry. Only that student writes it, while the game is open.
@@ -35,7 +64,7 @@ service cloud.firestore {
       allow delete: if teacher() && resource.data.owner == request.auth.uid;
 
       match /p/{who} {
-        allow get: if signedIn() && (request.auth.uid == who || owner());
+        allow get: if signedIn() && (request.auth.uid == who || owner() || screenOf(room().owner));   // a linked screen shows the work pad the board shows
         allow list, delete: if owner();
         allow create, update: if signedIn() && request.auth.uid == who
           && room().status in ['lobby', 'play']
