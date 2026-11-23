@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Other screens | Anchor Board</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <script src="js/scheme.js?v=2"></script>
+    <link rel="stylesheet" href="css/screens.css?v=1">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="linkpage">
+    <div class="scrbg" aria-hidden="true"><i></i><i></i><i></i></div>
+    <header class="lkbar">
+        <a class="lkbrand" href="index.html"><img src="brand/logo.svg" alt=""><b>Anchor Board</b></a>
+        <a class="lkback" href="remote.html">Back to the Remote</a>
+    </header>
+    <main class="lkmain">
+        <h1 class="lkh">Show the board on another screen</h1>
+        <p class="lklead">Any TV, Chromebook or computer with a web browser can show your board. It follows your Remote live and can't change anything.</p>
+
+        <section class="lkcard" id="signin" hidden>
+            <h2>Sign in on this device first</h2>
+            <p>Linking a screen needs your teacher account. Sign in, then scan the code on the TV again.</p>
+            <a class="lkbtn" href="login.html">Sign in</a>
+        </section>
+
+        <section class="lkcard" id="codeCard" hidden>
+            <h2><span class="lknum">1</span>Link a screen with its code</h2>
+            <p>On the TV or computer, open <b id="tvUrl">anchorboard.web.app/tv</b>. It shows a code and a QR. Scan the QR with this phone, or type the code here.</p>
+            <form class="lkform" id="form" autocomplete="off">
+                <label><span>Code on the screen</span><input id="codeIn" inputmode="text" autocapitalize="characters" spellcheck="false" maxlength="7" placeholder="ABC 234" aria-describedby="msg"></label>
+                <label><span>Name this screen</span><input id="nameIn" maxlength="40" value="Classroom TV"></label>
+                <button class="lkbtn" id="go" type="submit">Show my board there</button>
+            </form>
+            <p class="lkmsg" id="msg" role="status"></p>
+        </section>
+
+        <section class="lkcard" id="castCard" hidden>
+            <h2><span class="lknum">2</span>Or cast to a Chromecast or Google TV</h2>
+            <p id="castWhy">From Chrome on a Chromebook or computer, on the same Wi-Fi as the TV. Pick the TV, and it links on its own.</p>
+            <button class="lkbtn ghost" id="castBtn" type="button" disabled>Looking for TVs…</button>
+            <p class="lkmsg" id="castMsg" role="status"></p>
+        </section>
+
+        <section class="lkcard" id="listCard" hidden>
+            <h2>Linked screens</h2>
+            <ul class="lklist" id="list"></ul>
+        </section>
+
+        <details class="lkcard lkmore">
+            <summary>AirPlay, Miracast and screen mirroring</summary>
+            <p>A website can't start AirPlay (Apple TV) or Miracast (many smart TVs and Windows) by itself. For those, open the board on this device and use the device's own mirroring:</p>
+            <ul>
+                <li><b>iPhone or iPad:</b> open Control Center, tap Screen Mirroring, pick the Apple TV.</li>
+                <li><b>Windows laptop:</b> press Windows key + K and pick the TV.</li>
+                <li><b>Chromebook or Chrome:</b> the Chrome menu, then Cast, then Cast tab.</li>
+            </ul>
+            <p>The code above is usually better: the TV runs the board itself, so your phone stays free.</p>
+        </details>
+    </main>
+    <script type="module" src="js/link.js?v=1"></script>
+</body>
+</html>

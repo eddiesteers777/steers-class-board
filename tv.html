@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Show the board here | Anchor Board</title>
+    <meta name="robots" content="noindex">
+    <meta name="description" content="Link this TV or computer to a teacher's Anchor Board. It shows the board and follows the Remote.">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <link rel="stylesheet" href="css/screens.css?v=1">
+    <meta name="theme-color" content="#081B45">
+</head>
+<body class="tvpage">
+    <div class="scrbg" aria-hidden="true"><i></i><i></i><i></i></div>
+    <main class="tvmain">
+        <div class="tvmark" id="mark"></div>
+        <h1 class="tvh">Show the board here</h1>
+        <p class="tvnote" id="note" role="status">Getting a code…</p>
+        <section class="tvcard" id="card" hidden>
+            <div class="tvcodebox">
+                <p class="tvlbl">Your code</p>
+                <p class="tvcode" id="code" aria-live="polite"></p>
+                <ul class="tvsteps">
+                    <li>On your phone, scan the QR code.</li>
+                    <li>Or on any device, open <b id="linkUrl">anchorboard.web.app/link</b> and type the code.</li>
+                </ul>
+                <p class="tvsmall">The Remote, the Board Builder and the phone stay in charge. This screen only shows the board.</p>
+            </div>
+            <div class="tvqr" id="qr"></div>
+        </section>
+        <button class="tvfull" id="full" type="button" hidden>Full screen</button>
+    </main>
+    <noscript><p class="tvnote">This page needs JavaScript turned on.</p></noscript>
+    <script type="module" src="js/tv.js?v=1"></script>
+</body>
+</html>

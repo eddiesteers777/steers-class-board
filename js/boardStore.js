@@ -13,12 +13,39 @@ import { doc, collection, setDoc, getDoc, getDocs, deleteDoc, writeBatch, getDoc
 
 let uid = null;
 
-/** Resolves { uid, name } for the signed-in teacher, or null when signed out. */
-export async function ready() {
+/* Other screens (tv.html, 2026-11-23): a TV or computer the teacher linked signs in as an anonymous guest and keeps
+   the teacher's uid in localStorage (TV_KEY). It reads that teacher's board, read only: every write here is skipped,
+   and the Firestore rules would refuse it anyway. */
+export const TV_KEY = "anchor:tvOwner";
+let screenMe = "";   // this screen's own (guest) uid, when this page is a linked screen
+export const isScreen = () => !!screenMe;
+
+/** Resolves { uid, name } for the signed-in teacher, or null when signed out.
+    A guest (anonymous) sign-in is not a teacher: null, unless the board asks with { screen: true }. Then a linked
+    screen gets { uid: the teacher's, name: "", screen: true } and a guest with no link { unlinked: true }. */
+export async function ready(opts) {
     const user = await waitForUser();
     if (!user) return null;
+    if (user.isAnonymous) {
+        if (!(opts && opts.screen)) return null;
+        let owner = ""; try { owner = localStorage.getItem(TV_KEY) || ""; } catch { /* storage off: not linked */ }
+        if (!/^[\w-]{6,128}$/.test(owner)) return { unlinked: true };
+        uid = owner; screenMe = user.uid;
+        return { uid, name: "", screen: true };
+    }
     uid = user.uid;
     return { uid, name: user.displayName || user.email || "" };
+}
+
+/** On a linked screen: next(true) while the teacher's link to this screen is there, next(false) once it is gone. */
+export function watchLink(next) {
+    if (!screenMe) return () => {};
+    return listen(() => ref(`tv/${screenMe}`), (snap) => { if (!snap.metadata.fromCache) next(snap.exists()); }, (e) => { if (e && e.code === "permission-denied") next(false); });
+}
+/** A linked screen that lost its link forgets it and goes back to the code screen. */
+export function unlinkHere() {
+    try { localStorage.removeItem(TV_KEY); } catch { /* fine */ }
+    location.replace("tv.html?ended=1");
 }
 
 const ref = (path) => doc(db, `teacher/${uid}/${path}`);
@@ -73,6 +100,7 @@ export async function reachable(path, ms = 8000) {
 
 /** Replace the whole document. */
 export function save(path, data) {
+    if (screenMe) return Promise.resolve();   // a linked screen only shows the board
     return setDoc(ref(path), data);
 }
 
@@ -82,6 +110,7 @@ export function save(path, data) {
  * when one of their clocks is wrong. Resolves 0 if it cannot be measured.
  */
 export async function clockSkew() {
+    if (screenMe) return 0;   // a linked screen cannot write; its own clock is close enough
     try {
         let id = sessionStorage.getItem("school-device-id");
         if (!id) { id = Math.random().toString(36).slice(2, 10); sessionStorage.setItem("school-device-id", id); }

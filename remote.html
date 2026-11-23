@@ -16,7 +16,7 @@
     <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin>
-    <link rel="modulepreload" href="js/boardStore.js?v=58">
+    <link rel="modulepreload" href="js/boardStore.js?v=59">
     <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js">
     <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&family=Patrick+Hand&display=swap" media="print" onload="this.media='all'">
@@ -47,7 +47,7 @@
         <span class="live" id="status" role="status">Connecting…</span>
         <span class="recpill" id="recPill" hidden><i></i><b id="recTime">0:00</b><button id="recPillDone" type="button">Done</button></span>
         <button class="btn" id="boardBtn" type="button">Board view</button>
-        <details class="menu acct"><summary>Menu</summary><div class="pop"><a href="index.html">Home</a><a href="studio.html">Board Builder</a><a href="rosters.html">Rosters</a><a href="seats.html">Seating charts</a><button id="signOut" type="button">Sign out</button></div></details>
+        <details class="menu acct"><summary>Menu</summary><div class="pop"><a href="index.html">Home</a><a href="studio.html">Board Builder</a><a href="link.html">Show on another screen</a><a href="rosters.html">Rosters</a><a href="seats.html">Seating charts</a><button id="signOut" type="button">Sign out</button></div></details>
     </header>
     <div class="cbody">
         <nav class="rail" aria-label="Board controls">
@@ -57,6 +57,7 @@
             <details class="menu fold" id="filesMenu"><summary>Files</summary><div class="files" id="files"></div></details>
             <button class="btn tallyopen" id="tallyOpen" type="button" aria-expanded="false" aria-controls="tally">Class tally (private)</button>
             <a class="btn ghost tallyopen tallyfull" href="tracker.html" style="text-decoration:none;display:flex;align-items:center;justify-content:center">Class Tracker</a>
+            <a class="btn ghost tallyopen tallyfull" href="link.html" title="Show the board on a TV, Chromebook or computer: a code, a QR or Cast" style="text-decoration:none;display:flex;align-items:center;justify-content:center">Show on another screen</a>
             <details class="menu fold" id="recMenu"><summary>Record a lesson</summary>
                 <div class="recbox">
                     <label class="reccheck"><input type="checkbox" id="recMic"> Microphone on</label>
@@ -83,7 +84,7 @@
     </aside>
     <button id="exit" type="button">Show controls</button>
     <script type="module">
-        import { startApp } from "./js/boardApp.js?v=139";
+        import { startApp } from "./js/boardApp.js?v=140";
         startApp({ mode: "remote" });
         import("./js/boardStore.js?v=58").then(async (store) => { if (await store.ready()) (await import("./js/tally.js?v=58")).mount({ store, period: () => document.getElementById("periodSel").value || "1st" }); }).catch(() => {});
         import("./js/recorder.js?v=57").then((m) => m.mount());
