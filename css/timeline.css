@@ -118,3 +118,24 @@ body.tp-has .tl-main{padding-bottom:96px}
   .tp-num input{width:46px}
   .tp-name span{display:none}
 }
+
+/* Phase 3: builds on + floor skills */
+.tl-links{display:flex;flex-direction:column;gap:4px;margin-top:6px;font-size:.76rem;color:var(--c-mute)}
+.tl-links .pl-chip{align-self:flex-start}
+.tl-needs b,.tl-floor b{color:var(--c-ink);font-weight:700;margin-right:2px}
+.tl-floor{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.tl-fchip{min-height:28px;padding:0 9px;border-radius:999px;border:1px solid #E2C27A;background:var(--k-warn-bg,#FFF6E0);color:var(--k-warn-ink,#5A4200);font:inherit;font-size:.74rem;font-weight:600;cursor:pointer}
+.tl-fchip:hover{border-color:#C9A04A}
+.tl-nneeds{margin:4px 0 0;font-size:.82rem;color:var(--c-mute)}
+.tp-links{border:1px solid var(--c-line);border-radius:14px;padding:10px 12px;display:grid;gap:8px}
+.tp-lrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tp-lrow > b{min-width:92px;font-size:.86rem}
+.tp-need{min-height:32px;padding:0 10px;border-radius:999px;border:1.5px solid var(--c-line);background:var(--c-surface);font:inherit;font-size:.8rem;font-weight:700;color:var(--k-mute,#1F4FB0);cursor:pointer}
+.tp-need.ok{border-color:#1F9D61;color:#0F6B40}
+.tp-need:disabled{cursor:default;color:var(--c-mute)}
+.tp-edit{margin-left:auto;min-height:32px;padding:0 10px;border:0;background:none;font:inherit;font-size:.8rem;font-weight:700;color:var(--k-mute,#1F4FB0);text-decoration:underline;cursor:pointer}
+.tp-fedit{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:2px 10px;padding:6px 2px}
+.tp-fedit label{display:flex;align-items:center;gap:6px;min-height:34px;font-size:.84rem}
+.tp-fedit .tp-btns,.tp-fedit .tp-note{grid-column:1/-1}
+.tp-fname{font-family:var(--display);font-size:1.3rem;font-weight:800}
+.st-code.tp-fcode{background:var(--k-warn-bg,#FFF1CC);color:var(--k-warn-ink,#5A4200);font-size:.85rem}

@@ -1,0 +1,63 @@
+/* ==========================================
+   Anchor Board — what each standard builds on, for the Standards Timeline (v1, Nov 23, 2026: Anchor's draft for Eddie to review).
+   needs: earlier Alabama standards (codes from data/standards.js only) a student should have before this one.
+   floor: foundational ladder steps (js/foundBank.js "F:" codes, below grade level) to give students who are not ready yet.
+   These are teaching judgments, not district wording: nothing here changes data/standards.js. A teacher can change
+   the floor skills per year on the Timeline (saved to teacher/{uid}/standards/floors). Alg I standards have no links yet.
+========================================== */
+export const LINKS = {
+    // ---------- 7th ----------
+    "7.1": { needs: [], floor: ["F:div", "F:fracMul"] },
+    "7.2": { needs: ["7.1"], floor: ["F:fracEq", "F:div"] },
+    "7.3": { needs: ["7.2"], floor: ["F:pct", "F:dec"] },
+    "7.4": { needs: [], floor: ["F:intAdd", "F:intSub", "F:fracAdd", "F:dec"] },
+    "7.5": { needs: ["7.4"], floor: ["F:intMul", "F:fracMul"] },
+    "7.6": { needs: ["7.4"], floor: ["F:intAdd", "F:ops"] },
+    "7.7": { needs: ["7.6"], floor: ["F:ops"] },
+    "7.8": { needs: ["7.4", "7.5"], floor: ["F:dec", "F:fracAdd"] },
+    "7.9": { needs: ["7.6", "7.8"], floor: ["F:eq1", "F:eq2"] },
+    "7.10": { needs: ["7.3"], floor: ["F:pct"] },
+    "7.11": { needs: ["7.10"], floor: ["F:whole", "F:div"] },
+    "7.12": { needs: ["7.11"], floor: ["F:div"] },
+    "7.13": { needs: [], floor: ["F:fracEq", "F:dec"] },
+    "7.14": { needs: ["7.13"], floor: ["F:fracEq"] },
+    "7.15": { needs: ["7.14"], floor: ["F:fracEq", "F:pct"] },
+    "7.16": { needs: ["7.14"], floor: ["F:fracMul"] },
+    "7.17": { needs: ["7.1", "7.2"], floor: ["F:mul", "F:fracMul"] },
+    "7.18": { needs: [], floor: [] },
+    "7.19": { needs: [], floor: [] },
+    "7.20": { needs: ["7.4"], floor: ["F:mul", "F:dec"] },
+    "7.21": { needs: ["7.9"], floor: ["F:eq2"] },
+    "7.22": { needs: ["7.4"], floor: ["F:mul", "F:dec"] },
+    // ---------- 8th (8th Accelerated uses the same 8.x links) ----------
+    "8.1": { needs: ["7.4"], floor: ["F:fracEq", "F:dec"] },
+    "8.2": { needs: ["8.1"], floor: ["F:mul"] },
+    "8.3": { needs: ["7.4"], floor: ["F:mul", "F:intMul"] },
+    "8.4": { needs: ["8.1"], floor: ["F:mul"] },
+    "8.5": { needs: ["8.3"], floor: ["F:mul"] },
+    "8.6": { needs: ["8.3", "8.5"], floor: ["F:dec", "F:mul"] },
+    "8.11": { needs: ["7.6", "7.9"], floor: ["F:eq2", "F:intAdd"] },
+    "8.25": { needs: ["7.6", "7.21", "8.11"], floor: ["F:eq2"] },
+    "8.26": { needs: ["8.4"], floor: ["F:mul"] },
+    "8.27": { needs: ["8.26"], floor: ["F:intSub", "F:mul"] },
+    "8.28": { needs: ["8.4", "8.26"], floor: ["F:mul"] },
+    "8.13": { needs: ["7.2"], floor: [] },
+    "8.14": { needs: ["7.6", "8.13"], floor: ["F:ops", "F:intMul"] },
+    "8.15": { needs: ["8.14"], floor: ["F:intCmp"] },
+    "8.16": { needs: ["7.2", "8.14"], floor: ["F:div"] },
+    "8.17": { needs: ["8.13"], floor: [] },
+    "8.7": { needs: ["7.2"], floor: ["F:div"] },
+    "8.8": { needs: ["7.1", "8.7"], floor: ["F:div"] },
+    "8.9": { needs: ["8.8", "8.16"], floor: ["F:intSub", "F:div"] },
+    "8.10": { needs: ["8.7", "8.9"], floor: ["F:div"] },
+    "8.12": { needs: ["8.9", "8.11"], floor: ["F:eq2"] },
+    "8.22": { needs: [], floor: [] },
+    "8.23": { needs: ["8.22"], floor: ["F:intAdd", "F:intCmp"] },
+    "8.24": { needs: ["7.17", "8.23"], floor: ["F:mul"] },
+    "8.29": { needs: ["7.20", "7.22"], floor: ["F:fracMul"] },
+    "8.30": { needs: ["8.4", "8.29"], floor: ["F:mul", "F:dec"] },
+    "8.18": { needs: ["8.17"], floor: [] },
+    "8.19": { needs: ["8.9", "8.18"], floor: [] },
+    "8.20": { needs: ["8.14", "8.19"], floor: [] },
+    "8.21": { needs: ["7.3"], floor: ["F:pct", "F:div"] },
+};
