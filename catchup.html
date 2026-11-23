@@ -29,10 +29,10 @@
         import { WEEKS as PUBLISHED, PERIODS } from "./data/weeks.js?v=61";
         import * as store from "./js/boardStore.js?v=58";
         import { watchPrivateWeeks } from "./js/weeksLive.js?v=58";
-        import { mountCatchup } from "./js/catchupPage.js?v=2";
+        import { mountCatchup } from "./js/catchupPage.js?v=3";
         import { printPapers } from "./js/weekPack.js?v=1";
         import { loadStdBank } from "./js/stdBank.js?v=2";
-        import { copyVersion, poolFor } from "./js/acapAssign.js?v=3";
+        import { copyVersion, poolFor } from "./js/acapAssign.js?v=4";
         import { localIso } from "./js/attendanceCore.js?v=1";
         const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
         const q = new URLSearchParams(location.search), per = (q.get("p") || "").slice(0, 20), key = (q.get("k") || "").replace(/[^a-z0-9-]/g, "").slice(0, 40);
