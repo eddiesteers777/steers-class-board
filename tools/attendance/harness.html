@@ -1,0 +1,14 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Who's out harness</title>
+<link rel="stylesheet" href="../../css/console.css"><link rel="stylesheet" href="../../css/attendance.css"><link rel="stylesheet" href="../../css/skin.css"></head>
+<body class="console"><div class="cbody"><nav class="rail" aria-label="Board controls"><p class="railh">Screens</p><div class="seg scr" id="screens"></div></nav></div>
+<script type="module">
+import { mountAttendance, syncAttendance } from "../../js/attendanceRemote.js";
+const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+const saved = []; window.__saved = saved; window.__pushes = 0;
+const ROSTERS = { "1st": ["Ava Rivera", "Ava Tran", "", "Ben Kim", "Cara Lopez", "Dev Patel"], "2nd": ["Eli Stone", "Fay Wu"] };
+const S = { period: "1st", tools: { absent: { day: "", periods: {} } } }, subs = new Set(); let doc = null;
+const store = { rooms: { uid: () => "t1", save: async (path, data, merge) => { saved.push({ path, data, merge }); } },
+  watch(path, next) { setTimeout(() => next({ exists: !!doc, data: doc, pending: false }), 0); return () => {}; }, save: async () => {} };
+const api = { el, S, push: () => { window.__pushes++; }, mode: () => "remote", signedIn: () => true, store: () => store, rosters: () => ROSTERS, periods: () => [["1st", "8th"], ["2nd", "8th"]], today: () => "2026-11-24" };
+mountAttendance(api, document.getElementById("screens")); syncAttendance(); window.__S = S; window.__sync = syncAttendance; window.__ready = true;
+</script></body></html>
