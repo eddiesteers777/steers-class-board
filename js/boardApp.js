@@ -28,6 +28,7 @@ import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } fr
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 import { notesFrames } from "./notesFrames.js?v=1";
 import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=6";
+import { mountAttendance, syncAttendance } from "./attendanceRemote.js?v=1";
 import { cleanChart, cleanPeriod, cleanView, seatCount, drawRoom } from "./seats.js?v=7";
 import { DAILY as SL_DAILY, INDEX as SL_INDEX, MAX_DAILY as SL_MAX_DAILY, cleanDeck, cleanIndex, showList, revealSteps, indexHas, liveContext, lessonDate, textOf } from "./slides.js?v=1";
 import { renderSlide, fitSlide, imageLoader, thumb } from "./slideView.js?v=1";
@@ -879,7 +880,7 @@ function skeleton() {
 }
 function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
-    slWatch(); syncGames(); syncLive(); syncNotes(); buildControls(); soundSync(); applyLook(S.look); renderLookFold(); renderEditLink(); drawStickers(); deckNotes();
+    slWatch(); syncGames(); syncLive(); syncNotes(); syncAttendance(); buildControls(); soundSync(); applyLook(S.look); renderLookFold(); renderEditLink(); drawStickers(); deckNotes();
     if (studio && studio.render) studio.render();
     const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : "", S.screen === "seats" ? seatSig() : "", S.screen === "steps" ? stepsSig() : "", S.screen === "deck" ? JSON.stringify([SL.ver, S.slide, S.sstep, slPen, S.look.mark, inkBase()]) : "", S.screen === "canvas" ? JSON.stringify([inkBase(), pageNow(), pageCount(), spotDraw, (spotDeck() || { s: [] }).s.map((x) => x.sl || "").join(","), (spotDeck() || { n: 0 }).n, SL.ver]) : ""]);
     renderDock(); drawGamePanel(); drawLivePanel(); drawNotesPanel(); refreshSettings();
@@ -1963,6 +1964,7 @@ export async function startApp(opts) {
     document.addEventListener("pointerdown", unlockSound); document.addEventListener("keydown", unlockSound);
     soundPanel();
     phoneHeadReady = true; phoneHeader();
+    if (!guest && !studio && !tvView && $("screens")) mountAttendance({ el, S, push: () => push(), mode: () => mode, signedIn: () => signedIn, store: () => store, rosters: () => ROSTERS, periods: () => PERIODS, today: () => localIso() }, $("screens"));   // Who's out (Remote only, Phase 2)
     if (!guest) planFold = mountPlanFold(planApi, $("planAnchor") || $("soundMenu") || $("toolsMenu"));
     $("flowNext").onclick = () => step(1); $("flowBack").onclick = () => step(-1);
     {   // Phone: swipe the board picture left for Next, right for Back (the picture shows the result at once)
