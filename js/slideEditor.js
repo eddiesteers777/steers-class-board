@@ -49,6 +49,7 @@ const IC = {
     reveal: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>', arrange: '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>',
     lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', unlock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/>',
     dup: '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/>', trash: '<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
+    spot: '<path d="M12 3v2M5.6 5.6 7 7M3 12h2M18.4 5.6 17 7M21 12h-2"/><path d="M8 16a4 4 0 1 1 8 0"/><path d="M5 20h14"/>',
     present: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m10 8 4 2-4 2z"/>', board: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="m10 8.5 4 2-4 2z"/>',
     plan: '<path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 9h8M8 13h8M8 17h5"/>', copyto: '<rect x="3" y="7" width="12" height="12" rx="2"/><path d="M9 3h10a2 2 0 0 1 2 2v10"/><path d="M13 13l6-6M14 7h5v5"/>',
     al: '<path d="M4 6h16M4 12h10M4 18h13"/>', ac: '<path d="M4 6h16M7 12h10M5.5 18h13"/>', ar: '<path d="M4 6h16M10 12h10M7 18h13"/>', aj: '<path d="M4 6h16M4 12h16M4 18h16"/>',
@@ -174,15 +175,18 @@ function watchDeck(key) {
         if (data && data.by === PAGE && !first) { status(); return; }
         d.deck = cleanDeck(data, key === DAILY ? MAX_DAILY : MAX_SLIDES); if (data && data.nod) d.deck.nod = true;
         if (cur.key === key && !S0()) { sel = []; editing = ""; }
-        if (!S0()) { pickFirst(); if (active) draw(); return; }
+        if (!S0() || (wantSlide && d.deck.slides.some((x) => x.id === wantSlide))) { pickFirst(); if (active) draw(); return; }
         sel = sel.filter((id) => byId(id));
         if (active) softDraw();
     }, () => { d.ready = true; d.err = d.err || "load"; status(); });
     setTimeout(() => { if (active) softDraw(); }, 6100);
 }
 function unwatch(key) { const d = decks[key]; if (!d || !d.unsub) return; d.unsub(); d.unsub = null; d.ready = false; d.fresh = false; }
+let wantSlide = "";   // Spotlight > Edit this slide: open on that slide once its deck has arrived
 function pickFirst() {
     const own = deckOf(lessonKey()), daily = deckOf(DAILY);
+    if (wantSlide) { const inOwn = own && own.slides.some((x) => x.id === wantSlide), inDaily = daily && daily.slides.some((x) => x.id === wantSlide);
+        if (inOwn || inDaily) { cur = { key: inOwn ? lessonKey() : DAILY, id: wantSlide }; wantSlide = ""; return; } }
     if (own && own.slides.length) cur = { key: lessonKey(), id: own.slides[0].id };
     else if (daily && daily.slides.length) cur = { key: DAILY, id: daily.slides[0].id };
     else cur = { key: lessonKey(), id: "" };
@@ -250,6 +254,7 @@ function drawFilm() {
     row.appendChild(btn("sfadd", icon("plus") + "<span>New slide</span>", () => addSlide(lk, LAYOUTS.find((x) => x[0] === "blank")[2]()), "Add a blank slide"));
     row.appendChild(btn("sfadd lay", icon("layout"), (e, b) => openPop(b, (p) => layoutMenu(p, lk)), "Add a slide from a layout"));
     ol.appendChild(row);
+    spotRow(f);
     f.scrollTop = keep;
     const on = f.querySelector(".sfi.on"); if (on && (on.offsetTop < f.scrollTop || on.offsetTop + on.offsetHeight > f.scrollTop + f.clientHeight)) on.scrollIntoView({ block: "nearest" });
 }
@@ -1055,6 +1060,36 @@ function showOnBoard() {
     let i = list.findIndex((s) => s.id === cur.id); if (i < 0) i = 0;
     flush().then(() => { A.showSlide(lesson.week, lesson.cls, lesson.day, i); toast("On the board now: slide " + (i + 1) + " of " + list.length + "."); });
 }
+/** Present this slide in Spotlight: the board moves to this lesson, the slide becomes a Spotlight screen (or the one that
+    already shows it opens), and the Spotlight tab opens on it, ready for panels and drawing. */
+function toSpotlight() {
+    if (editing) finishEdit();
+    const list = showList(deckOf(DAILY), deckOf(lessonKey()));
+    if (!list.length) return toast("Add a slide first.");
+    const s = list.find((x) => x.id === cur.id) || list[0];
+    flush().then(() => {
+        if (!A.goLesson(lesson.week, lesson.cls, lesson.day)) return toast("That lesson is not on the board's list of weeks.");
+        A.goMode("spot");
+        // the board's copy of this lesson's slides arrives a moment after the lesson changes
+        const tryOpen = (n) => { if (A.spot.openSlide(s.id)) return; if (n < 20) setTimeout(() => tryOpen(n + 1), 150); };
+        tryOpen(0);
+    });
+}
+/** The film strip's Spotlight row: this lesson's Spotlight screens, when the board is on this lesson. */
+function spotRow(f) {
+    if (!A.spotScreens || !A.isLesson(lesson.week, lesson.cls, lesson.day)) return;
+    const list = A.spotScreens(); if (!list.length) return;
+    const h = el("div", "sfh sfspot"); h.appendChild(el("b", null, "In Spotlight")); h.appendChild(el("small", null, list.length + (list.length === 1 ? " screen" : " screens") + " · panels and drawing on top")); f.appendChild(h);
+    const row = el("div", "sfspots");
+    list.forEach((x) => {
+        const sl = x.sl ? showList(deckOf(DAILY), deckOf(lessonKey())).find((y) => y.id === x.sl) : null;
+        const b = btn("sfsp" + (x.on ? " on" : ""), "", () => { A.goMode("spot"); setTimeout(() => A.spot.go(x.i), 60); }, "Open Spotlight screen " + (x.i + 1));
+        const pv = el("span", "sfspv"); if (sl) pv.appendChild(thumb(sl, viewOpts(), 120)); else pv.style.background = gradOf((x.look && x.look.theme) || "navy");
+        b.append(pv, el("span", "sfspn", (x.i + 1) + (sl ? " · Slide" : " · Screen") + (x.panels ? " · " + x.panels + (x.panels === 1 ? " panel" : " panels") : "")));
+        row.appendChild(b);
+    });
+    f.appendChild(row);
+}
 function startPresent() {
     if (editing) finishEdit();
     const list = showList(deckOf(DAILY), deckOf(lessonKey())); if (!list.length) return toast("Add a slide first.");
@@ -1200,6 +1235,7 @@ function build() {
     acts.appendChild(btn("btn ghost sla", icon("plan") + "<span>From my plan</span>", (e, b) => openPop(b, planMenu, "wide"), "Start from my plan"));
     const cp = btn("btn ghost sla slq", icon("copyto") + "<span>Copy to…</span>", (e, b) => openPop(b, copyMenu), "Copy slides to another day or class"); cp.id = "slCopy"; acts.appendChild(cp);
     acts.appendChild(btn("btn ghost sla slq", icon("present") + "<span>Present</span>", () => startPresent(), "Show the slides full screen on this computer"));
+    if (A.goMode) acts.appendChild(btn("btn ghost sla slq", icon("spot") + "<span>Spotlight</span>", () => toSpotlight(), "Present this slide in Spotlight: panels and drawing on top of it"));
     acts.appendChild(btn("btn sla", icon("board") + "<span>Show on board</span>", () => showOnBoard(), "Send this slide to the board now"));
     b1.append(wf, cf, days, sv, acts);
     ws.onchange = () => setLesson(ws.value, lesson.cls, lesson.day); cs.onchange = () => setLesson(lesson.week, cs.value, lesson.day);
@@ -1237,7 +1273,8 @@ export function openEditor(api, host, at) {
         A.store().watch("slides/" + INDEX, (snap) => { if (snap.pending) return; if (!idxDirty) idx = cleanIndex(snap.exists ? snap.data : null); if (!snap.fromCache) idxFresh = true; if (active) drawDays(); }, () => {});
     }
     const S = A.S, w = (at && at.week) || lesson.week || S.week, c = (at && at.cls) || lesson.cls || S.cls, d = at && at.day != null ? at.day : (lesson.week ? lesson.day : S.day);
-    wantAt = at && at.week && !weeks().some((x) => x.id === at.week) ? at : null;   // a private week that has not loaded yet: open it when it does
+    wantAt = at && at.week && !weeks().some((x) => x.id === at.week) ? at : null;
+    wantSlide = at && typeof at.slide === "string" ? at.slide : "";   // a private week that has not loaded yet: open it when it does
     setLesson(w, c, d);
 }
 /** The board's weeks changed (private weeks arrive after the page loads): list them, and open one that was asked for. */

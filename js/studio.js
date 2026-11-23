@@ -63,7 +63,7 @@ function setMode(m, at) {
         const app = $("slideApp"); if (app) app.hidden = true; wantSlides = null; if (editor) editor.closeEditor();
         if (/^#slides/.test(location.hash)) { try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* the address is a convenience */ } }
         if (!A.synced()) { wantSpot = true; return; }   // open on the saved board, once it has arrived
-        import("./spotlight.js?v=5").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
+        import("./spotlight.js?v=6").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
             .catch(() => { setMode("board"); note("saveNote", "Spotlight did not load. Check the connection and reload the page."); });
         return;
     }
@@ -71,7 +71,7 @@ function setMode(m, at) {
     if (mode === "slides") {
         app.hidden = false;
         if (!A.synced()) { wantSlides = at || {}; return; }   // open on the lesson the board is on, once that has arrived
-        import("./slideEditor.js?v=5").then((mod) => { editor = mod; if (mode === "slides") mod.openEditor(A, app, at && at.week ? at : null); })
+        import("./slideEditor.js?v=6").then((mod) => { editor = mod; if (mode === "slides") mod.openEditor(A, app, at && at.week ? at : null); })
             .catch(() => { app.textContent = "The slide editor did not load. Check the connection and reload the page."; });
     } else {
         app.hidden = true; wantSlides = null;
@@ -85,6 +85,8 @@ function setMode(m, at) {
 export const studio = {
     ready(api) {
         A = api;
+        // The three tabs work as one: Slides and Spotlight can send the teacher to each other (setMode("spot"), setMode("slides", lesson)).
+        A.goMode = (m, at) => setMode(m, at);
         document.querySelectorAll("#modeSwitch button").forEach((b) => { b.onclick = () => setMode(b.dataset.mode); });
         { const at = lessonFromHash(); let m = "board"; try { m = sessionStorage.getItem("anchorboard-studio-mode") || "board"; } catch (e) { /* board */ }
             if (at) setMode("slides", at); else if (m === "slides" || m === "spot") setMode(m); }
@@ -184,7 +186,7 @@ function refresh() {
         look: JSON.stringify([S.look, lookTab, photoGroupNow()]),
         panels: JSON.stringify([T.on, T.min, T.pos, T.scenes.map((x) => x.id), S.screen, A.guest()]),
         stickers: JSON.stringify([S.stickers.length, stkTab, wordColor]),
-        lesson: JSON.stringify([S.week, S.cls, S.day, S.screen, T.scenes, T.dayb, T.on, T.min, S.look, S.stickers.map((x) => x.id), (A.day() || {}).lt, ((A.day() || {}).agenda || []).join("|"), A.guest()]),
+        lesson: JSON.stringify([S.week, S.cls, S.day, S.screen, A.spot.slides().map((x) => x.id), A.spot.slidesReady(), A.spotScreens().map((x) => x.sl), T.scenes, T.dayb, T.on, T.min, S.look, S.stickers.map((x) => x.id), (A.day() || {}).lt, ((A.day() || {}).agenda || []).join("|"), A.guest()]),
     }[step];
     if (sigs[step] === sig) return; sigs[step] = sig;
     const sc = $("sscroll"), top = sc.scrollTop;
@@ -463,6 +465,21 @@ const LINKS = [["seats.html", "Seating charts", "Desks and names for the Seating
     ["assign.html", "Assignments", "Practice students do on their Chromebooks"], ["bank.html", "Question Bank", "Checked problems by standard"],
     ["plan.html", "Plan the Week", "Next week's plan, sent to Claude"], ["review.html", "Week Review", "Check and approve a week"],
     ["library.html", "Library", "Every week by class and unit"], ["index.html", "Bell times", "On Home, for the period clock and the timeline"]];
+/** One lesson, three ways to show it: the slides, the Spotlight screens, and how they connect. Each opens its tab. */
+function presentCard() {
+    const sl = A.spot.slides(), sc = A.spotScreens(), linked = sc.filter((x) => x.sl).length;
+    const box = el("div", "lpres"); box.appendChild(el("p", "lpresh", "Present this lesson"));
+    const row = el("div", "lpresrow");
+    const tile = (cls, t, sub, fn, label) => { const b = el("button", "lprt " + cls); b.type = "button"; b.title = label; b.setAttribute("aria-label", label); b.append(el("b", null, t), el("small", null, sub)); b.onclick = fn; row.appendChild(b); return b; };
+    tile("lsl", "Slides", !A.spot.slidesReady() ? "Getting them…" : sl.length ? sl.length + (sl.length === 1 ? " slide" : " slides") : "None yet: make some", () => A.goMode("slides"), "Open this lesson's slides");
+    tile("lsp", "Spotlight", sc.length ? sc.length + (sc.length === 1 ? " screen" : " screens") + (linked ? ", " + linked + " from slides" : "") : "Full screen, panels and drawing", () => A.goMode("spot"), "Open Spotlight for this lesson");
+    box.appendChild(row);
+    if (sl.length && linked < sl.length) {
+        const b = el("button", "btn ghost lprall", "Bring all " + sl.length + " slides into Spotlight"); b.type = "button";
+        b.onclick = () => { A.spot.addSlides(sl.map((x) => x.id), "first"); A.goMode("spot"); }; box.appendChild(b);
+    }
+    return box;
+}
 function drawLesson() {
     const S = A.S, T = S.tools, d = A.day(), l = A.lesson(), w = A.week();
     {   // the day's lesson
@@ -487,6 +504,7 @@ function drawLesson() {
             const pw = el("a", "btn ghost", "Plan the week"); pw.href = "plan.html"; act.appendChild(pw);
         }
         card.appendChild(act); f.appendChild(card);
+        f.appendChild(presentCard());
         top.replaceChildren(f);
     }
     {   // which board each day of the week opens with, and the saved boards

@@ -161,3 +161,30 @@ body.spotdraw #stage .spotink canvas{cursor:crosshair}
     .sptbg{width:52px}
     .spt{width:58px}
 }
+
+/* ---------- Screens and slides (the count in the screens pill opens it) ---------- */
+.spot .spcount{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 10px;border:0;border-radius:12px;background:transparent;color:inherit;cursor:pointer}
+.spot .spcount:hover,.spot .spcount.on{background:rgba(255,255,255,.12)}
+.spot .spcount b{font:inherit}
+.spslb{display:grid;place-items:center;width:20px;height:20px;border-radius:6px;background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00}
+.spslb svg{width:13px;height:13px}
+.spstiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:6px 0 12px}
+.spstile{position:relative;display:flex;flex-direction:column;gap:5px;padding:6px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:inherit;font:inherit;text-align:left;cursor:pointer;transition:background .15s,border-color .15s,transform .15s}
+.spstile:hover{background:rgba(255,255,255,.13);transform:translateY(-1px)}
+.spstile.on{border-color:#F2B33D;box-shadow:0 0 0 2px rgba(242,179,61,.45)}
+.spstile.slide.in{opacity:.62}
+.spspv{position:relative;display:block;aspect-ratio:16/9;border-radius:9px;overflow:hidden;background-size:cover;background-position:center}
+.spspv{background-color:#0a1838}
+.spspv .slthumb{position:absolute;left:0;top:0;overflow:hidden;transform-origin:0 0}
+.spspn{position:absolute;right:5px;bottom:5px;padding:2px 7px;border-radius:999px;background:rgba(5,12,31,.7);font-size:11px;font-weight:700}
+.spsnum{position:absolute;left:11px;top:11px;z-index:1;min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:999px;display:grid;place-items:center;background:rgba(5,12,31,.72);font-size:11.5px;font-weight:800}
+.spsnm{font-size:12.5px;font-weight:700;padding:0 3px 2px;color:var(--g-soft,rgba(226,236,255,.8))}
+.spslh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+.spslh .lookh{margin:0}
+.spchip.small{height:32px;font-size:13px}
+.spchip svg{width:16px;height:16px;flex:none}
+.spchip{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.spnote{font-size:13.5px;line-height:1.45;color:var(--g-soft,rgba(226,236,255,.8));margin:6px 0 10px}
+/* a slide screen: the slide fills the board under the panels and ink */
+.spotx .spotslide{position:absolute;inset:0}
+.spotgone{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;padding:12px 18px;border-radius:14px;background:rgba(5,12,31,.55);color:#fff;font-size:1.1em}

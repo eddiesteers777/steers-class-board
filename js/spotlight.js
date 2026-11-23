@@ -15,7 +15,7 @@
    Frosted glass: translucent layers with a backdrop blur, a light top edge and a soft shadow.
 ========================================== */
 import { PANEL_LIST, LESSON_PANELS, TOOL_LIST } from "./boardTools.js?v=62";
-import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker, photoGroupNow } from "./panels.js?v=15";
+import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker, photoGroupNow, gradOf } from "./panels.js?v=15";
 import { wbIcon } from "./wbIcons.js?v=1";
 
 let A = null, host = null, onBack = null, tucked = false, sheet = "", picked = "", built = false, lastSig = "";
@@ -32,6 +32,9 @@ const IC = {
     down: '<path d="M6 9l6 6 6-6"/>', up: '<path d="M6 15l6-6 6 6"/>',
     prev: '<path d="M15 18l-6-6 6-6"/>', next: '<path d="M9 18l6-6-6-6"/>', plus: '<path d="M12 5v14M5 12h14"/>',
     trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>',
+    slides: '<rect x="3" y="5" width="13" height="10" rx="2"/><path d="M7 19h13a1 1 0 0 0 1-1V9"/>',
+    grid: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+    edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
     spot: '<path d="M12 3v2M5.6 5.6 7 7M3 12h2M18.4 5.6 17 7M21 12h-2"/><path d="M8 16a4 4 0 1 1 8 0"/><path d="M5 20h14"/>',
 };
 function button(cls, html, label, fn) {
@@ -94,7 +97,8 @@ function build() {
 
     // bottom right: the screens
     const scr = el("div", "spg spscr"); scr.id = "spScr"; scr.setAttribute("role", "group"); scr.setAttribute("aria-label", "Screens");
-    scr.append(button("spb sparrow", svg(IC.prev, 2.2), "Back a screen", () => go(-1)), el("span", "spcount"), button("spb sparrow", svg(IC.next, 2.2), "Next screen", () => go(1)),
+    // the count opens every screen of the lesson, with the lesson's slides ready to bring in
+    scr.append(button("spb sparrow", svg(IC.prev, 2.2), "Back a screen", () => go(-1)), button("spb spcount", "", "All screens and slides", () => openSheet(sheet === "screens" ? "" : "screens")), button("spb sparrow", svg(IC.next, 2.2), "Next screen", () => go(1)),
         el("i", "spsep"), button("spb spadd", svg(IC.plus, 2.2) + "<span>Screen</span>", "Add a screen after this one", () => { if (A.spot.add()) flash("New screen"); }),
         button("spb spdel", svg(IC.trash), "Remove this screen", removeScreen));
     host.appendChild(scr);
@@ -201,7 +205,7 @@ function keys(e) {
 function paintFull() { const b = host && host.querySelector(".spfull"); if (!b) return; const f = isFull(); b.innerHTML = svg(f ? IC.unfull : IC.full); b.title = f ? "Leave full screen" : "Full screen"; b.setAttribute("aria-label", b.title); b.setAttribute("aria-pressed", String(f)); setTimeout(() => A && A.fit(), 80); }
 function paint() {
     const S = A.S, T = S.tools, drawing = A.spot.draw(), p = A.spot.pages();
-    const sig = JSON.stringify([S.screen, T.on, T.min, Object.keys(T.pos), drawing, tucked, sheet, picked, p, photoGroupNow(), A.spot.tool(), A.spot.pen(), A.spot.size(), S.look, Date.now() - delArm < 3000, picked && T.pos[picked] ? T.pos[picked].s : 0]);
+    const sig = JSON.stringify([S.screen, T.on, T.min, Object.keys(T.pos), drawing, tucked, sheet, picked, p, photoGroupNow(), sheet === "screens" ? A.spot.slides().map((x) => x.id).join(",") + A.spot.slidesReady() + JSON.stringify(A.S.wb.spot) : "", A.spot.slideIdOf(p.n), A.spot.tool(), A.spot.pen(), A.spot.size(), S.look, Date.now() - delArm < 3000, picked && T.pos[picked] ? T.pos[picked].s : 0]);
     if (sig === lastSig) return; lastSig = sig;
     host.classList.toggle("tucked", tucked); document.body.classList.toggle("spotdraw", drawing);
     // a photo background runs edge to edge behind the board, with no frame around it
@@ -218,7 +222,9 @@ function paint() {
     { const b = host.querySelector(".sptbg"); b.setAttribute("aria-pressed", String(sheet === "look")); b.classList.toggle("on", sheet === "look"); }
     { const t = host.querySelector(".sptuck"); t.innerHTML = svg(tucked ? IC.up : IC.down, 2.2); t.title = tucked ? "Show the whole toolbar" : "Make the toolbar small"; t.setAttribute("aria-label", t.title); t.setAttribute("aria-expanded", String(!tucked)); }
     // screens
-    { const c = host.querySelector(".spcount"); c.textContent = (p.n + 1) + " / " + p.count;
+    { const c = host.querySelector(".spcount"), isSl = !!A.spot.slideIdOf(p.n);
+        c.innerHTML = (isSl ? '<i class="spslb">' + svg(IC.slides) + "</i>" : "") + "<b>" + (p.n + 1) + " / " + p.count + "</b>"; c.setAttribute("aria-pressed", String(sheet === "screens"));
+        c.classList.toggle("on", sheet === "screens"); c.title = isSl ? "This screen shows a slide. Tap to see every screen and slide." : "All screens and slides";
         const ar = host.querySelectorAll(".sparrow"); ar[0].disabled = p.n <= 0; ar[1].disabled = p.n >= p.count - 1;
         host.querySelector(".spadd").disabled = p.count >= p.max;
         const del = host.querySelector(".spdel"); del.hidden = p.count < 2; del.classList.toggle("armed", Date.now() - delArm < 3000); }
@@ -259,13 +265,14 @@ function paintPen(drawing) {
 }
 let clearArm = 0;
 function paintSheet() {
-    const sh = $("spSheet"), want = tucked ? "" : sheet === "panel" && picked && A.S.tools.on[picked] ? "panel:" + picked : sheet === "look" ? "look" : "";
+    const sh = $("spSheet"), want = tucked ? "" : sheet === "panel" && picked && A.S.tools.on[picked] ? "panel:" + picked : sheet === "look" ? "look" : sheet === "screens" ? "screens" : "";
     if (!want) { sh.hidden = true; sh.dataset.k = ""; sh.textContent = ""; return; }
     sh.hidden = false;
     // The look picker redraws itself on each tap (it is built fresh), the panel card when its size changes.
     const was = sh.querySelector(".spshbody"), keepTop = was && sh.dataset.k === want ? was.scrollTop : 0;
     sh.textContent = ""; sh.dataset.k = want;
     const head = el("div", "spsh");
+    if (want === "screens") { screensSheet(sh, head, keepTop); return; }
     if (want === "look") {
         const ic = el("span", "spshi"); ic.innerHTML = svg(IC.bg); head.append(ic, el("b", null, "Background"));
         head.appendChild(button("spb spclose", svg(IC.x, 2.2), "Close", () => openSheet("")));
@@ -293,3 +300,52 @@ function paintSheet() {
         sh.appendChild(act);
     }
 }
+
+/* ---------- Screens and slides: the lesson's whole running order in one place ----------
+   Every Spotlight screen as a tile (tap to go there), then the lesson's slides from the Slides tab. A slide brought in
+   becomes a screen that shows that slide, with panels and drawing on top; edits made in Slides show up here. */
+function screensSheet(sh, head, keepTop) {
+    const S = A.S, p = A.spot.pages(), d = S.wb.spot[[S.week, S.period, "d" + S.day].join("_")], list = A.spot.slides();
+    const ic = el("span", "spshi"); ic.innerHTML = svg(IC.grid); head.append(ic, el("b", null, "Screens and slides"));
+    head.appendChild(button("spb spclose", svg(IC.x, 2.2), "Close", () => openSheet(""))); sh.appendChild(head);
+    sh.className = "spg spsheet wide spscreens";
+    const box = el("div", "spshbody"); sh.appendChild(box);
+    // 1. this lesson's screens, in order
+    box.appendChild(el("p", "lookh", "This lesson in Spotlight"));
+    const grid = el("div", "spstiles"); box.appendChild(grid);
+    const screens = d ? d.s : [];
+    screens.forEach((sc, i) => {
+        const sl = A.spot.slideOf(i), b = button("spstile" + (i === p.n ? " on" : ""), "", (i + 1) + (sl ? ". Slide" : ". Screen"), () => { A.spot.go(i); });
+        const pv = el("span", "spspv"); if (sl) pv.appendChild(A.spot.thumb(sl, 150)); else { pv.style.background = gradOf((sc.look && sc.look.theme) || S.look.theme); const ph = sc.look && /^ph-/.test(sc.look.bg || "") ? sc.look.bg.slice(3) : ""; if (ph) pv.style.backgroundImage = 'url("photos/sm/' + ph + '.webp")'; }
+        const n = Object.keys(sc.on || {}).length; if (n) pv.appendChild(el("span", "spspn", n + (n === 1 ? " panel" : " panels")));
+        b.append(el("span", "spsnum", String(i + 1)), pv, el("span", "spsnm", sl ? "Slide" + (sl.daily ? " (every day)" : "") : sc.sl ? "Deleted slide" : "Screen"));
+        grid.appendChild(b);
+    });
+    const row = el("div", "spchips");
+    row.appendChild(button("spchip wide", svg(IC.plus, 2.2) + "<span>Blank screen</span>", "Add a blank screen after this one", () => { if (A.spot.add()) flash("New screen"); }));
+    if (A.spot.slideIdOf(p.n) && A.goMode) row.appendChild(button("spchip wide", svg(IC.edit) + "<span>Edit this slide</span>", "Open this slide in the Slides tab", () => editSlide(A.spot.slideIdOf(p.n))));
+    box.appendChild(row);
+    // 2. the lesson's slides
+    const have = new Set(screens.map((x) => x.sl).filter(Boolean)), left = list.filter((x) => !have.has(x.id));
+    const h = el("div", "spslh"); h.appendChild(el("p", "lookh", "Slides for " + (A.dayName ? A.dayName() : "this lesson")));
+    if (left.length > 1 && p.count < p.max) h.appendChild(button("spchip small", "Bring in all " + left.length, "Add every slide as a screen", () => { const n = A.spot.addSlides(left.map((x) => x.id), "first"); flash(n ? n + " slides are now screens" : "No room for more screens"); }));
+    box.appendChild(h);
+    if (!A.spot.slidesReady()) box.appendChild(el("p", "spnote", "Getting your slides…"));
+    else if (!list.length) {
+        box.appendChild(el("p", "spnote", "No slides for this lesson yet. Make them in the Slides tab and they show up here, ready to present with panels and drawing."));
+        if (A.goMode) box.appendChild(button("spchip wide", svg(IC.slides) + "<span>Make slides</span>", "Open the Slides tab", () => A.goMode("slides")));
+    } else {
+        const g2 = el("div", "spstiles"); box.appendChild(g2);
+        list.forEach((x, i) => {
+            const inn = have.has(x.id), b = button("spstile slide" + (inn ? " in" : ""), "", inn ? "Go to this slide" : "Bring this slide in after this screen", () => { if (A.spot.openSlide(x.id)) flash(inn ? "Slide " + (i + 1) : "Slide " + (i + 1) + " added"); else flash("No room for more screens"); });
+            const pv = el("span", "spspv"); pv.appendChild(A.spot.thumb(x.s, 150));
+            b.append(el("span", "spsnum", String(i + 1)), pv, el("span", "spsnm", inn ? "In Spotlight" : x.daily ? "Every day" : "Tap to bring in"));
+            g2.appendChild(b);
+        });
+    }
+    if (keepTop) box.scrollTop = keepTop;
+    // the thumbs are drawn 150 wide: stretch each one to its tile
+    requestAnimationFrame(() => box.querySelectorAll(".spspv .slthumb").forEach((t) => { const w = t.parentElement.clientWidth; if (w) t.style.transform = "scale(" + (w / 150) + ")"; }));
+}
+/** Over to the Slides tab, on this lesson, with that slide open. */
+function editSlide(id) { if (A.goMode) A.goMode("slides", { week: A.S.week, cls: A.S.cls, day: A.S.day, slide: id }); }

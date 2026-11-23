@@ -217,3 +217,15 @@ body.studio .musicbtn{display:none}
 .swarn{margin:0;font-size:.8rem;line-height:1.4;color:#7A4200;background:#FFEBC2;border-radius:10px;padding:7px 10px}
 body.studio.stkstep:not(.board) .stk.under .stkf{opacity:.5}
 @media (max-width:860px){.spick{position:sticky;bottom:0;z-index:6;max-height:46vh;box-shadow:0 -10px 24px rgba(14,27,58,.14)}}
+
+/* ---------- Present this lesson: Slides and Spotlight from the Board tab (js/studio.js presentCard) ---------- */
+.lpres{margin-top:14px;padding:14px;border-radius:16px;background:linear-gradient(135deg,#0B2559,#081B45);color:#F4F8FF;box-shadow:0 10px 26px rgba(8,27,69,.25)}
+.lpresh{margin:0 0 10px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(226,236,255,.75)}
+.lpresrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lprt{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:inherit;font:inherit;text-align:left;cursor:pointer;transition:background .15s,transform .15s}
+.lprt:hover{background:rgba(255,255,255,.16);transform:translateY(-1px)}
+.lprt b{font-size:16px}
+.lprt small{font-size:12.5px;color:rgba(226,236,255,.75)}
+.lprt.lsp b::before{content:"";display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:50%;background:#F2B33D;vertical-align:middle}
+.lprt.lsl b::before{content:"";display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:2px;background:#8CC8FF;vertical-align:middle}
+.lpres .lprall{margin-top:10px;width:100%;background:transparent;color:#FFD271;border-color:rgba(255,210,113,.45)}

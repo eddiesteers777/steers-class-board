@@ -95,13 +95,16 @@ function defaultWb() { return { card: { x: 0.06, y: 0.05, w: 1, hide: false }, p
 /* Spotlight (the Board Builder's full-screen tab, js/spotlight.js): the look's own background, ink on top and panels over it.
    Each lesson keeps a short run of Spotlight screens in wb.spot["<week>_<class>_d<day>"] = { n: the screen showing, s: one saved
    panel layout per screen }. Each screen's drawing is its own ink doc, like a whiteboard page. */
-const MAX_SPOT = 12, MAX_SPOT_LESSONS = 8;
+const MAX_SPOT = 30, MAX_SPOT_LESSONS = 8;   // 30: room for a whole slide deck brought in as screens
 const spotId = () => "s" + Date.now().toString(36).slice(-6) + Math.random().toString(36).slice(2, 6);   // names the screen's ink doc
 const blankSpot = () => cleanScene({ id: spotId(), n: "Spotlight", screen: "canvas" });
+/** A screen can show one of the lesson's slides under its panels and ink: sl is that slide's id (it follows edits made in Slides). */
+const SL_ID = /^[\w-]{1,40}$/;
+function withSl(sc, sl) { if (typeof sl === "string" && SL_ID.test(sl)) sc.sl = sl; return sc; }
 function cleanSpot(o) {
     const out = {}; if (!o || typeof o !== "object") return out;
     Object.keys(o).filter((k) => /^[\w.-]{1,40}_[\w.-]{1,20}_d[0-4]$/.test(k)).slice(-MAX_SPOT_LESSONS).forEach((k) => {
-        const v = o[k] || {}, s = Array.isArray(v.s) ? v.s.slice(0, MAX_SPOT).map((x) => (x && typeof x === "object" ? cleanScene(Object.assign({}, x, { id: /^s[a-z0-9]{1,14}$/.test(x.id) ? x.id : spotId(), n: "Spotlight", screen: "canvas" })) : blankSpot())) : [];
+        const v = o[k] || {}, s = Array.isArray(v.s) ? v.s.slice(0, MAX_SPOT).map((x) => (x && typeof x === "object" ? withSl(cleanScene(Object.assign({}, x, { id: /^s[a-z0-9]{1,14}$/.test(x.id) ? x.id : spotId(), n: "Spotlight", screen: "canvas" })), x.sl) : blankSpot())) : [];
         if (!s.length) return;
         out[k] = { n: Math.max(0, Math.min(s.length - 1, Math.floor(+v.n || 0))), s };
     });
@@ -337,6 +340,16 @@ function studioApi() {
             dayBoard();   // that lesson's own board first, so its panels and look come along; the slide still wins the screen
             S.screen = "deck"; S.slide = Math.max(0, n || 0); S.sstep = 0; S.show = false; slWatch(); push(); return true;
         },
+        /** Put a lesson on the board without changing the screen (Slides > Present in Spotlight). */
+        goLesson: (w, c, i) => {
+            const wk = WEEKS.find((x) => x.id === w); if (!wk || !wk.classes[c]) return false;
+            if (S.week === w && S.cls === c && S.day === i) return true;
+            S.week = w; if (S.cls !== c) { S.cls = c; const p = PERIODS.find((x) => x[1] === c); if (p) S.period = p[0]; }
+            S.day = i; resetPos(); dayBoard(); slWatch(); push(); return true;
+        },
+        isLesson: (w, c, i) => S.week === w && S.cls === c && S.day === i,
+        /** The Spotlight screens of the lesson on the board: what each one shows, for the Slides side. */
+        spotScreens: () => { const d = spotDeck(); return d ? d.s.map((x, i) => ({ i, sl: x.sl || "", look: x.look || S.look, panels: Object.keys(x.on || {}).length, on: i === d.n })) : []; },
         weeks: () => WEEKS.map((w) => [w.id, w.monday || ""]),
         editHref: () => { const w = W(), q = new URLSearchParams({ day: (DK[S.day] || "Mon").toLowerCase() }); if (w.monday) q.set("monday", w.monday); if (S.cls) q.set("class", S.cls); return "lesson.html?" + q; },
         // Outline the panel in place: never rebuild the layer here, since this runs on the pointerdown that may start a drag.
@@ -854,7 +867,7 @@ function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
     slWatch(); syncGames(); syncLive(); syncNotes(); buildControls(); soundSync(); applyLook(S.look); renderLookFold(); renderEditLink(); drawStickers(); deckNotes();
     if (studio && studio.render) studio.render();
-    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : "", S.screen === "seats" ? seatSig() : "", S.screen === "steps" ? stepsSig() : "", S.screen === "deck" ? JSON.stringify([SL.ver, S.slide, S.sstep, slPen, S.look.mark, inkBase()]) : "", S.screen === "canvas" ? JSON.stringify([inkBase(), pageNow(), pageCount(), spotDraw]) : ""]);
+    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : "", S.screen === "seats" ? seatSig() : "", S.screen === "steps" ? stepsSig() : "", S.screen === "deck" ? JSON.stringify([SL.ver, S.slide, S.sstep, slPen, S.look.mark, inkBase()]) : "", S.screen === "canvas" ? JSON.stringify([inkBase(), pageNow(), pageCount(), spotDraw, (spotDeck() || { s: [] }).s.map((x) => x.sl || "").join(","), (spotDeck() || { n: 0 }).n, SL.ver]) : ""]);
     renderDock(); drawGamePanel(); drawLivePanel(); drawNotesPanel(); refreshSettings();
     if (sheetOpen()) refreshSheet();
     if (ns === sig) { if (S.screen === "steps") stepsSync(); renderLayer(); tick(); tickTools(toolApi); placeCard(); return; }
@@ -1474,7 +1487,21 @@ const spotNowId = () => { const d = spotDeck(); return d && d.s[d.n] ? d.s[d.n].
 function spotSnap(id) {
     const T = S.tools, on = {}, min = {}, pos = {};
     Object.keys(T.on).forEach((k) => { on[k] = true; if (T.min[k]) min[k] = true; if (T.pos[k]) pos[k] = T.pos[k]; });
-    return cleanScene({ id: id || spotId(), n: "Spotlight", screen: "canvas", on, min, pos, order: T.order.slice(), work: T.on.work ? T.work : "", look: S.look, stk: S.stickers || [] });
+    const was = id && spotDeck() ? spotDeck().s.find((x) => x.id === id) : null;
+    return withSl(cleanScene({ id: id || spotId(), n: "Spotlight", screen: "canvas", on, min, pos, order: T.order.slice(), work: T.on.work ? T.work : "", look: S.look, stk: S.stickers || [] }), was && was.sl);
+}
+/** The slide a Spotlight screen shows, or null (a plain screen, or a slide since deleted in Slides). */
+function spotSlide(sc) { if (!sc || !sc.sl) return null; return slList().find((x) => x.id === sc.sl) || null; }
+/** New screens that show slides, right after screen d.n. Slides already in Spotlight are skipped. Returns how many were added. */
+function spotAddSlides(ids, go) {
+    const d = spotEnsure(); d.s[d.n] = spotSnap(d.s[d.n].id);
+    const have = new Set(d.s.map((x) => x.sl).filter(Boolean)); let at = d.n + 1, n = 0;
+    ids.filter((id) => SL_ID.test(id) && !have.has(id)).forEach((id) => {
+        if (d.s.length >= MAX_SPOT) return;
+        const sc = withSl(blankSpot(), id); sc.look = JSON.parse(JSON.stringify(S.look)); d.s.splice(at++, 0, sc); n++;
+    });
+    if (go !== undefined && go >= 0) { d.n = Math.min(go, d.s.length - 1); applyScene(S, d.s[d.n], Object.assign({}, toolApi, { push: () => {} })); }
+    S.screen = "canvas"; push(); return n;
 }
 /** The lesson's Spotlight screens, made the first time with what the board shows now as screen 1. */
 function spotEnsure() {
@@ -1510,12 +1537,30 @@ const spotApi = {
     undo: () => undo(), math: () => { if (pad) pad.openMenu(); },
     clear() { snap(); strokes = []; padItems = []; if (pad) pad.clear(); redraw(); saveInk(); },
     hasInk: () => strokes.length > 0 || padItems.length > 0,
+    // Slides in Spotlight: the lesson's slides (they arrive after sign-in), and screens that show them
+    slides: () => slList().map((x) => ({ id: x.id, daily: !!x.daily, s: x })),
+    slidesReady: () => !slOn || slLoaded(),
+    slideOf: (i) => { const d = spotDeck(); return d && d.s[i] ? spotSlide(d.s[i]) : null; },
+    slideIdOf: (i) => { const d = spotDeck(); return (d && d.s[i] && d.s[i].sl) || ""; },
+    thumb: (slide, w) => thumb(slide, { live: slLive(), img: slImg().src, logo: lookSeal() }, w || 220),
+    /** Bring slides in as screens after this one. go: "first" opens the first one added. */
+    addSlides(ids, go) { const d = spotEnsure(), before = d.n; const n = spotAddSlides(ids, go === "first" ? before + 1 : undefined); return n; },
+    /** Open the screen that shows this slide, adding it after this screen when it is not in Spotlight yet. */
+    openSlide(id) { const d = spotEnsure(), i = d.s.findIndex((x) => x.sl === id); if (i >= 0) { spotGo(i); return true; } return spotAddSlides([id], d.n + 1) > 0; },
+    /** A screen keeps its panels and drawing but stops showing its slide (or starts showing one). */
+    setSlide(id) { const d = spotEnsure(), sc = d.s[d.n]; if (id && SL_ID.test(id)) sc.sl = id; else delete sc.sl; push(); },
 };
 /* A removed screen's drawing is emptied (each screen's ink doc is named by the screen's id, so the others never move). */
 function spotClearInk(id) { if (!store || !signedIn) return; writer("ink/" + [S.week, S.period, "d" + S.day, "spot", id].join("_"))({ strokes: [], items: [], paper: "", at: Date.now() }); }
 function drawSpot(st) {
     spotEnsure(); fixPen();
-    const box = el("div", "spotx"), cv = makeCv(); cv.classList.add("spotink");
+    const box = el("div", "spotx"), dd = spotDeck(), sc = dd && dd.s[dd.n], sl = spotSlide(sc);
+    if (sl) {   // a slide screen: the slide fills the board, everything showing, with the panels and ink over it
+        const host = el("div", "deckhost spotslide"); box.appendChild(host); box.classList.add("hasslide");
+        const r = renderSlide(sl, { step: revealSteps(sl), fresh: 0, live: slLive(), img: slImg().src, logo: lookSeal(), scale: (st.clientWidth || 1280) / 1600 });
+        r.setAttribute("role", "img"); r.setAttribute("aria-label", "Slide"); host.appendChild(r); fitSlide(host, r);
+    } else if (sc && sc.sl && slLoaded()) { const g = el("p", "spotgone", "This slide was deleted in Slides. The screen keeps its panels and drawing."); box.appendChild(g); }
+    const cv = makeCv(); cv.classList.add("spotink");
     if (studio && !spotDraw) cv.classList.add("drawoff");
     box.appendChild(cv);
     const d = spotDeck(); if (d && d.s.length > 1) { const c = el("p", "spotcount", (d.n + 1) + " / " + d.s.length); box.appendChild(c); }
