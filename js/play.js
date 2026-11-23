@@ -384,13 +384,14 @@ setInterval(() => {
    (3³), scientific notation (8 × 10⁵) or one box per number (6 and 7). The Remote says which one
    fits the question (V.answerKind); a student can still switch to a plain box. */
 const KINDS = [["", "Number"], ["frac", "Fraction"], ["mixed", "Mixed number"]];
-const SPECIAL = { sol: ["Choose", "✓"], mc: ["Choose", "✓"], pow: ["Exponent", "xⁿ"], sci: ["Sci. notation", "×10ⁿ"], list: ["Boxes", "□ □"] };
+const SPECIAL = { sol: ["Choose", "✓"], mc: ["Choose", "✓"], ms: ["Select all", "✓✓"], ord: ["Order", "1 2 3"], pow: ["Exponent", "xⁿ"], sci: ["Sci. notation", "×10ⁿ"], list: ["Boxes", "□ □"] };
 const SOLS = ["One solution", "No solution", "Infinitely many solutions"];
 function answerBox(kind, options) {
-    if (kind === "mc" && !(Array.isArray(options) && options.length >= 2)) kind = "";   // multiple choice needs its choices
+    if ((kind === "mc" || kind === "ms" || kind === "ord") && !(Array.isArray(options) && options.length >= 2)) kind = "";   // multiple choice needs its choices
+    const many = kind === "ms" || kind === "ord", tapped = [];   // ACAP formats (js/acapFormats.js): select all, or tap the steps in order
     const ineq = kind === "ineq"; if (ineq || (kind && !SPECIAL[kind] && !/^list[2-4]$/.test(kind) && !KINDS.some((k) => k[0] === kind))) kind = "";   // an inequality (or a shape this page doesn't know) goes in the plain box
     const lm = /^list([2-4])$/.exec(kind || ""), sk = lm ? "list" : SPECIAL[kind] ? kind : "", count = lm ? +lm[1] : 0;
-    const kinds = sk === "mc" ? [["mc", "Choose"]] : (sk ? [[sk, SPECIAL[sk][0]]] : []).concat(KINDS);   // multiple choice: tap a choice, no other box
+    const kinds = sk === "mc" || many ? [[sk, SPECIAL[sk][0]]] : (sk ? [[sk, SPECIAL[sk][0]]] : []).concat(KINDS);   // multiple choice: tap a choice, no other box
     const wrap = el("div", "pabox"); let mode = kinds.some((k) => k[0] === kind || k[0] === sk) ? (sk || kind) : "", neg = false, choice = "";
     const tabs = el("div", "patabs"); tabs.setAttribute("role", "radiogroup"); tabs.setAttribute("aria-label", "Answer type");
     const field = el("div", "pafield");
@@ -425,17 +426,26 @@ function answerBox(kind, options) {
     const listEl = el("span", "palist"); boxes.forEach((b, i) => { if (i) listEl.append(el("span", "pajoin", i === count - 1 ? (count > 2 ? ", and" : "and") : ",")); listEl.append(b); });
     boxes.forEach((b, i) => { b.onkeydown = (e) => { if ((e.key === "," || e.key === " " || (e.key === "Enter" && b.value)) && boxes[i + 1] && !boxes[i + 1].value) { e.preventDefault(); boxes[i + 1].focus(); } }; });
     base.onkeydown = (e) => { if ((e.key === "^" || (e.key === "Enter" && base.value && !exp.value))) { e.preventDefault(); exp.focus(); } };
-    const choiceEl = el("div", "pachoices" + (sk === "mc" ? " mc" : "")); choiceEl.setAttribute("role", "radiogroup"); choiceEl.setAttribute("aria-label", sk === "mc" ? "Answer choices" : "How many solutions?");
-    (sk === "mc" ? options : SOLS).forEach((label, k) => {
-        const c = btn("pachoice", sk === "mc" ? null : label, () => { choice = label; [...choiceEl.children].forEach((x) => { const on = x === c; x.classList.toggle("on", on); x.setAttribute("aria-checked", String(on)); }); });
-        if (sk === "mc") { c.append(el("b", "pachl", "ABCDE"[k]), mathEl("span", "pacht", label)); c.setAttribute("aria-label", "ABCDE"[k] + ": " + label); }
-        c.setAttribute("role", "radio"); c.setAttribute("aria-checked", "false"); choiceEl.append(c);
+    const listy = sk === "mc" || many;
+    const choiceEl = el("div", "pachoices" + (listy ? " mc" : "") + (many ? " " + sk : "")); choiceEl.setAttribute("role", many ? "group" : "radiogroup"); choiceEl.setAttribute("aria-label", sk === "ms" ? "Tap every true one" : sk === "ord" ? "Tap the steps, first to last" : sk === "mc" ? "Answer choices" : "How many solutions?");
+    // Order: each tapped step shows its place (1, 2, 3…); tap a step again to take it back out.
+    const marks = () => [...choiceEl.children].forEach((x, i) => { const at = tapped.indexOf(i), on = at >= 0; x.classList.toggle("on", on); x.setAttribute(sk === "ord" ? "aria-pressed" : "aria-checked", String(on)); const b = x.querySelector(".pachl"); if (b) b.textContent = sk === "ord" && on ? String(at + 1) : "ABCDE"[i]; });
+    (listy ? options : SOLS).forEach((label, k) => {
+        const c = btn("pachoice", listy ? null : label, () => {
+            if (many) { const at = tapped.indexOf(k); if (at >= 0) tapped.splice(at, 1); else tapped.push(k); marks(); return; }
+            choice = label; [...choiceEl.children].forEach((x) => { const on = x === c; x.classList.toggle("on", on); x.setAttribute("aria-checked", String(on)); });
+        });
+        if (listy) { c.append(el("b", "pachl", "ABCDE"[k]), mathEl("span", "pacht", label)); c.setAttribute("aria-label", "ABCDE"[k] + ": " + label); }
+        if (sk === "ms") c.setAttribute("role", "checkbox"); else if (sk === "ord") c.setAttribute("aria-pressed", "false"); else c.setAttribute("role", "radio");
+        if (sk !== "ord") c.setAttribute("aria-checked", "false"); choiceEl.append(c);
     });
-    const first = () => mode === "" ? text : mode === "mixed" ? whole : mode === "frac" ? top : mode === "list" ? boxes[0] : mode === "sol" || mode === "mc" ? choiceEl.firstChild : base;
+    const help = many ? el("p", "pamany", sk === "ms" ? "Tap every one that is true. Tap again to undo." : "Tap the steps in order: first step first. Tap again to undo.") : null;
+    const first = () => mode === "" ? text : mode === "mixed" ? whole : mode === "frac" ? top : mode === "list" ? boxes[0] : mode === "sol" || mode === "mc" || mode === "ms" || mode === "ord" ? choiceEl.firstChild : base;
     function show() {
-        field.textContent = ""; field.classList.toggle("choices", mode === "sol" || mode === "mc");
+        field.textContent = ""; field.classList.toggle("choices", mode === "sol" || mode === "mc" || many);
         if (mode === "") { field.append(text); if (syms.childNodes.length) field.append(syms); }
         else if (mode === "sol" || mode === "mc") field.append(choiceEl);
+        else if (mode === "ms" || mode === "ord") field.append(help);   // the choices go under the question (wide), see box.wide
         else if (mode === "pow" || mode === "sci") field.append(powEl);
         else if (mode === "list") field.append(listEl);
         else { field.append(sign); if (mode === "mixed") field.append(whole); field.append(frac); }
@@ -449,14 +459,15 @@ function answerBox(kind, options) {
         else { const f = el("span", "frac"); f.append(el("span", null, "a"), el("span", null, "b")); if (k === "mixed") b.append(el("b", null, "1")); b.append(f); }
         b.append(el("small", null, n.replace(" number", ""))); tabs.append(b);
     });
-    if (sk === "mc") tabs.hidden = true;   // only one way to answer
+    if (sk === "mc" || many) tabs.hidden = true;   // only one way to answer
     wrap.append(tabs, field); show();
     return {
         el: wrap,
+        wide: many ? choiceEl : null,
         focus() { first().focus(); },
         /** Put an answer read from the work pad into the box: into the fraction or exponent boxes when it fits them, otherwise the plain box. */
         fill(t) {
-            t = String(t || "").trim(); if (!t) return;
+            t = String(t || "").trim(); if (!t || many) return;
             let m;
             if ((mode === "frac" || mode === "mixed") && (m = /^(-?)(?:(\d+) )?(\d+)\/(\d+)$/.exec(t))) { if (neg !== !!m[1]) sign.click(); whole.value = m[2] || ""; top.value = m[3]; bot.value = m[4]; if (m[2] && mode === "frac") { mode = "mixed"; show(); } return; }
             if (mode === "pow" && (m = /^(-?[\da-z.]+)\^(-?\d+)$/i.exec(t))) { base.value = m[1]; exp.value = m[2]; return; }
@@ -467,6 +478,8 @@ function answerBox(kind, options) {
         read() {
             if (mode === "") return { t: text.value.trim() };
             if (mode === "sol" || mode === "mc") return choice ? { t: choice } : { err: "Tap one of the choices." };
+            if (mode === "ms") return tapped.length ? { t: tapped.slice().sort((a, b) => a - b).map((i) => "ABCDE"[i]).join(", ") } : { err: "Tap every one that is true." };
+            if (mode === "ord") return tapped.length === options.length ? { t: tapped.map((i) => "ABCDE"[i]).join(", ") } : { err: "Tap every step, first to last (" + tapped.length + " of " + options.length + " so far)." };
             if (mode === "pow" || mode === "sci") {
                 const x = base.value.trim(), e = exp.value.trim();
                 if (!x || !e) return { err: mode === "pow" ? "Fill in the base and the exponent." : "Fill in the number and the power of 10." };
@@ -1030,6 +1043,7 @@ function questionView(card) {
     if (sf) left.append(stepStrip(sf));
     const right = el("div", "pqright");
     const f = el("form", "pform ans"), box = answerBox(q.f || "", q.ch); ST.box = box;
+    if (box.wide) left.append(box.wide);   // select all / order the steps: long choices read better full width under the question
     const go = el("button", "pbtn go", "Submit"); go.type = "submit";
     // Two misses in a row: a short wait before the next answer, to look over the work.
     const cool = () => Math.ceil(((+m.cd || 0) - Date.now()) / 1000);

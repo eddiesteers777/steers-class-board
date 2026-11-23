@@ -552,3 +552,9 @@ body.qmode .pmain{flex:1;min-height:0;padding:0 10px 10px}
 .wrswatch.locked{opacity:.4;cursor:default;position:relative}
 .wrswatch.locked::after{content:"🔒";position:absolute;font-size:14px}
 @media (max-width:640px){.wrstudio{grid-template-columns:1fr}.wrstage{position:relative;top:0}.wrtiles{grid-template-columns:repeat(3,1fr)}}
+/* ACAP formats (js/acapFormats.js): select all (square boxes) and order the steps (tapped steps show 1, 2, 3) */
+.pamany{margin:0 0 6px;font-size:.92rem;font-weight:700;color:var(--mute)}
+.pachoices.ms .pachl{border-radius:7px}
+.pachoices.ord .pachoice.on .pachl{background:var(--blue);border-color:var(--blue);color:#fff}
+.pqleft .pachoices.mc{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:4px}
+.pqleft .pachoices.mc .pachoice{min-height:44px;font-size:1rem}

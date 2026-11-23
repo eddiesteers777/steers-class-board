@@ -14,6 +14,7 @@ import * as AA from "./acapAssign.js?v=3";
 import * as K from "./checks.js?v=1";
 import * as FB from "./foundBank.js?v=1";
 import * as FT from "./foundational.js?v=1";
+import * as AF from "./acapFormats.js?v=1";
 import { matchRoster } from "./progress.js?v=4";
 import { perKey } from "./profileCore.js?v=2";
 import { shortNames } from "./vaultCore.js?v=75";
@@ -38,7 +39,7 @@ export async function mountProgress() {
 
     const S = { period: [sharedPeriod(""), remember("period")].find((p) => p && PERIODS.some((x) => x[0] === p)) || "1st", view: remember("view") || "today", game: "", sort: "need", std: "" };
     if (!CLS[S.period]) S.period = PER[0][0];
-    const D = { rosters: {}, marks: {}, index: null, imports: new Map(), results: [], pindex: null, details: new Map(), tally: new Map(), prof: new Map(), asg: [], bank: null, flu: [], found: new Map() };
+    const D = { rosters: {}, marks: {}, index: null, imports: new Map(), results: [], pindex: null, details: new Map(), tally: new Map(), prof: new Map(), asg: [], bank: null, flu: [], found: new Map(), sets: [] };
 
     // ---------- controls ----------
     PERIODS.forEach(([k, label]) => { const b = el("button", null, k + " period"); b.type = "button"; b.dataset.k = k; b.title = label; b.onclick = () => { S.period = k; S.game = ""; S.std = ""; remember("period", k); saveSharedPeriod(k); draw(); }; $("periodTabs").appendChild(b); });
@@ -69,6 +70,7 @@ export async function mountProgress() {
     }, () => { D.pindex = []; soon(); });
     // ACAP readiness: game profiles (cracked locks) per period, and the Assignments list (one extra credit a week).
     store.watch("flu/index", (s) => { if (s.pending) return; D.flu = ((s.exists && s.data && s.data.list) || []).filter((x) => x && x.id); soon(); }, () => {});
+    store.watch("games/index", (s) => { if (s.pending) return; D.sets = ((s.exists && s.data && s.data.sets) || []).filter((x) => x && x.id); soon(); }, () => {});
     store.watch("asg/index", (s) => { if (s.pending) return; D.asg = ((s.exists && s.data && s.data.list) || []).filter((x) => x && x.id); soon(); }, () => {});
     // Foundational track placements (Eddie places students by hand), one document per period.
     const watchFound = (per) => { if (D.found.has(per)) return; D.found.set(per, null); store.watch("found/" + perKey(per), (s) => { if (s.pending) return; D.found.set(per, s.exists ? s.data : false); soon(); }, () => D.found.set(per, false)); };
@@ -335,8 +337,15 @@ export async function mountProgress() {
         const lastFlu = (D.flu || []).filter((f) => f.mode === "check").sort((a, b) => (b.at || 0) - (a.at || 0))[0];
         const f = el("section", "rdCheck"); f.append(el("b", null, "Fluency (Fact Blitz)"), el("p", null, "Monthly speed check, same 2-minute format every time so the trend means something. Each student's first, latest and change are on the Fact Blitz page."), el("small", null, "Last speed check: " + (lastFlu ? fmtAgo(lastFlu.at) + " · next due " + fmtDay(new Date(lastFlu.at + 30 * 864e5).toISOString().slice(0, 10)) : "never")));
         const fa = el("a", "btn ghost", "Open Fact Blitz"); fa.href = "fluency.html"; f.appendChild(fa); grid.appendChild(f);
+        // The Vault Raid spiral: 70% this week, 30% earlier standards, about 1 in 4 of this week's questions in an ACAP format.
+        const lastSp = D.sets.filter((x) => x.sp && x.cls === M.cls).sort((a, b) => (b.at || 0) - (a.at || 0))[0];
+        const v = el("section", "rdCheck"); v.append(el("b", null, "Vault Raid spiral"), el("p", null, "A question set for Vault Raid: 70% this week's standard, 30% earlier ones the class is weakest on, with ACAP formats mixed in (which is NOT true, select all, order the steps, show your work)."), el("small", null, "Last made: " + (lastSp ? fmtAgo(lastSp.at) : "never")));
+        const vb = el("button", "btn" + (SP && SP.cls === M.cls ? "" : " ghost"), "Build it"); vb.type = "button"; vb.setAttribute("aria-label", "Build a Vault Raid spiral set");
+        vb.onclick = () => { const ctx = { cls: M.cls, order: M.order, marks: Object.fromEntries(Object.entries(D.marks[M.cls] || {}).map(([c, m]) => [c, (m && m.s) || ""])), need }; const pick = AF.spiralCodes(ctx); SP = { cls: M.cls, ctx, now: pick.now.slice(0, 1), earlier: pick.earlier, periods: perOfCls.slice(), msg: "" }; draw(); };
+        v.appendChild(vb); grid.appendChild(v);
         out.appendChild(grid);
         if (CK && CK.cls === M.cls) out.appendChild(checkBuilder(M, perOfCls));
+        if (SP && SP.cls === M.cls) out.appendChild(spiralBuilder(M, perOfCls));
     }
     function checkBuilder(M, perOfCls) {
         const k = K.KINDS[CK.kind], box = el("section", "rdBuild");
@@ -389,6 +398,58 @@ export async function mountProgress() {
         };
         const cancel = el("button", "btn ghost", "Close"); cancel.type = "button"; cancel.onclick = () => { CK = null; draw(); };
         if (CK.slots.length) row.append(go); row.append(cancel); box.append(row, msg);
+        return box;
+    }
+
+    // ---------- the Vault Raid spiral set ----------
+    let SP = null;   // { cls, ctx, now: [code], earlier: [codes], periods, msg, saved }
+    const FMT_WORD = { not: "Which is NOT true", ms: "Select all", ord: "Order the steps", sw: "Show your work" };
+    function spiralBuilder(M, perOfCls) {
+        const box = el("section", "rdBuild rdSpiral");
+        box.append(el("h3", null, "Vault Raid spiral for " + ((STANDARDS[M.cls] || {}).label || M.cls)));
+        box.appendChild(el("p", "pgProfile", "This week's standard comes from the one marked Teaching on the Standards page. The review standards are the class's weakest standards taught before it. Swap any of them."));
+        const opts = (sel, cur, blank) => { if (blank) { const o = el("option", null, "None"); o.value = ""; sel.appendChild(o); } M.order.forEach((code) => { const o = el("option", null, code + " · " + short((M.std(code) || {}).text || "", 70)); o.value = code; sel.appendChild(o); }); sel.value = cur || ""; };
+        const wk = el("label", "field rdWeek"), ws = el("select"); opts(ws, SP.now[0]);
+        ws.onchange = () => { const pick = AF.spiralCodes(Object.assign({}, SP.ctx, { focus: [ws.value] })); SP.now = [ws.value]; SP.earlier = pick.earlier; SP.msg = ""; SP.saved = null; draw(); };
+        wk.append(el("span", null, "This week's standard (70%)"), ws); box.appendChild(wk);
+        const rv = el("div", "rdPers"); rv.appendChild(el("span", null, "Review (30%)"));
+        [0, 1, 2].forEach((i) => { const sel = el("select"); sel.setAttribute("aria-label", "Review standard " + (i + 1)); opts(sel, SP.earlier[i], true); sel.onchange = () => { const e = SP.earlier.slice(); e[i] = sel.value; SP.earlier = e.filter(Boolean); SP.msg = ""; SP.saved = null; draw(); }; rv.appendChild(sel); });
+        box.appendChild(rv);
+        const prev = el("div", "rdSpPrev"); prev.appendChild(el("p", "pgProfile", "Loading the question bank…")); box.appendChild(prev);
+        const made = () => AF.spiralSet({ cls: M.cls, now: SP.now, earlier: SP.earlier.filter((c) => !SP.now.includes(c)), bank: D.bank, n: 20, seed: SP.now.join() + "|" + new Date().toDateString(), title: AF.spiralTitle(SP.now), per: SP.periods });
+        bank().then(() => {
+            if (!prev.isConnected) return;
+            const r = made(); prev.textContent = "";
+            const f = r.counts.fmt, fm = Object.keys(f).filter((k) => f[k]).map((k) => f[k] + " " + FMT_WORD[k]).join(", ");
+            prev.appendChild(el("p", "pgProfile", (r.counts.now + r.counts.old) + " questions: " + r.counts.now + " on this week's standard, " + r.counts.old + " review." + (fm ? " ACAP formats: " + fm + "." : " No ACAP formats fit these problems.")));
+            if (r.short.length) prev.appendChild(el("p", "pgProfile", "The bank has only a few problems for " + r.short.join(", ") + ", so the set is short. Vault Raid repeats questions in a mixed order, and you can add your own in the Question Maker."));
+            const ol = el("ol", "rdSpList");
+            r.doc.cats.forEach((c) => c.clues.forEach((q) => { const li = el("li"); li.append(el("span", "rdRole", c.n + (q.fm ? " · " + FMT_WORD[q.fm] : "")), el("span", null, short(String(q.q).replace(/\s+/g, " "), 110))); ol.appendChild(li); }));
+            prev.appendChild(ol);
+        });
+        const pers = el("div", "rdPers"); pers.appendChild(el("span", null, "Show it for"));
+        perOfCls.forEach((p) => { const l = el("label", "asChk sm"), c = el("input"); c.type = "checkbox"; c.checked = SP.periods.includes(p); c.onchange = () => { SP.periods = perOfCls.filter((q) => (q === p ? c.checked : SP.periods.includes(q))); }; l.append(c, document.createTextNode(" " + p)); pers.appendChild(l); });
+        box.appendChild(pers);
+        box.appendChild(el("p", "pgProfile", "Saving makes an ordinary Vault Raid question set. Nothing goes to students until you start Vault Raid on the Remote and pick it. Saved results land in Readiness per standard."));
+        const row = el("div", "rdBtns"), msg = el("p", "rdMsg", SP.msg || ""); msg.setAttribute("role", "status");
+        const go = el("button", "btn go", "Save the Vault Raid set"); go.type = "button";
+        go.onclick = async () => {
+            go.disabled = true; msg.textContent = "Saving…";
+            try {
+                await bank(); const r = made(), n = r.doc.cats.reduce((t, c) => t + c.clues.length, 0);
+                if (n < 3) throw Object.assign(new Error("few"), { code: "the bank has too few problems for these standards" });
+                const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6), at = Date.now();
+                await store.save("games/s_" + id, Object.assign({ id, at }, r.doc));
+                const meta = { id, title: r.doc.title, cats: r.doc.cats.length, clues: n, final: false, per: SP.periods.slice(), maker: 1, sp: 1, cls: M.cls, at };
+                D.sets = D.sets.filter((x) => x.id !== id).concat([meta]);
+                await store.save("games/index", { sets: D.sets, at });
+                SP.saved = id; SP.msg = "Saved: " + r.doc.title + " (" + n + " questions). Start it on the Remote: Student Game, Vault Raid, then pick it from the question sets."; draw();
+            } catch (e) { SP.msg = "Not saved (" + ((e && e.code) || "connection") + "). Try again."; draw(); }
+        };
+        const cancel = el("button", "btn ghost", "Close"); cancel.type = "button"; cancel.onclick = () => { SP = null; draw(); };
+        if (!SP.saved) row.append(go);
+        else { const a = el("a", "btn ghost", "Open it in the Question Maker"); a.href = "maker.html?set=" + encodeURIComponent(SP.saved); row.append(a); }
+        row.append(cancel); box.append(row, msg);
         return box;
     }
 

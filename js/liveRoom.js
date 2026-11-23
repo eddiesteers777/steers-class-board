@@ -20,6 +20,7 @@
    and scores keep flowing as long as either one is open.
 ========================================== */
 import * as V from "./vaultCore.js?v=75";
+import * as F from "./acapFormats.js?v=1";
 import * as PC from "./profileCore.js?v=2";
 import * as Buddy from "./buddy.js?v=2";
 import { loadKids, credit as creditProfiles } from "./profiles.js?v=2";
@@ -584,7 +585,7 @@ function exitView(id) {
     const ex = H.exit, mine = ex.res[id] || [], i = mine.length;
     if (i >= ex.qis.length) return { done: 1, of: ex.qis.length };
     const q = H.qs[ex.qis[i]];
-    return { i, of: ex.qis.length, q: { n: exitN(i), c: "Exit ticket", t: q.q, f: V.formOf(q), ch: q.ch || null } };
+    return { i, of: ex.qis.length, q: { n: exitN(i), c: "Exit ticket", t: q.q, f: F.formOf(q), ch: q.ch || null } };
 }
 function finishExit() {
     const ex = H && H.exit; if (!ex || ex.done) return;
@@ -797,7 +798,7 @@ function view(id, order) {
         av: p.av, lk: p.lk || "", pu: p.pu || "", dbl: p.dbl || 0, blk: p.blk || 0, ins: p.ins || 0, fw: (+p.sh || 0) > Date.now() && p.code ? +p.sh : 0, bonus: +H.bonus || 0,
         lock: +H.lock || 0, sab: H.opts.sab !== false ? 1 : 0, sbc: +p.sbc || 0, fog: +p.fog || 0, jam: +p.jam || 0, tax: taxOn(p) ? 1 : 0, mb: p.mb ? 1 : 0, sbr: p.sbr || null, sbh: p.sbh || null, so: p.so || null,
         dj: +p.dj || 0, djon: H.opts.dj !== false ? 1 : 0, djlock: H.opts.djlock ? 1 : 0, song: H.dj ? { k: H.dj.k, nm: H.dj.nm || "", at: +H.dj.at || 0 } : null, djg: p.djg || null,
-        vs: p.vs || 0, top: p.top, cb: (p.cbv = comebackRank(rank, order) ? 1 : 0), code: p.code, need: rd || ex ? false : !p.code, exit: ex ? exitView(id) : null, cd: +p.cd || 0, q: ex ? null : rd ? (rd.res[id] ? null : { n: redoN(), c: rq.c, t: rq.q, f: V.formOf(rq), ch: rq.ch || null }) : q ? { n: p.qn, c: q.c, t: q.q, f: V.formOf(q), ch: q.ch || null } : null, redo: rd ? 1 : 0, best: p.best, cr: p.cr, fb: p.fb, hk: p.hk, hit: p.hit,
+        vs: p.vs || 0, top: p.top, cb: (p.cbv = comebackRank(rank, order) ? 1 : 0), code: p.code, need: rd || ex ? false : !p.code, exit: ex ? exitView(id) : null, cd: +p.cd || 0, q: ex ? null : rd ? (rd.res[id] ? null : { n: redoN(), c: rq.c, t: rq.q, f: F.formOf(rq), ch: rq.ch || null }) : q ? { n: p.qn, c: q.c, t: q.q, f: F.formOf(q), ch: q.ch || null } : null, redo: rd ? 1 : 0, best: p.best, cr: p.cr, fb: p.fb, hk: p.hk, hit: p.hit,
         targets: order.filter((x) => x.id !== id).map((x) => ({ id: x.id, nm: x.nm, av: x.av, lk: x.lk || "", vs: x.vs || 0, c: x.c, sh: shielded(x) ? 1 : 0, g: p.g[x.id] || [], sbs: (+x.sbs || 0) > Date.now() ? 1 : 0, spy: (p.spy || {})[x.id] ? V.spyShow(x.code, p.spy[x.id]) : "" })),
         res: H.status === "done" ? results(p) : null,
         // profile: their own level, XP, banked coins and next lock (never anyone else's), what they can wear, and the comeback tools
@@ -831,7 +832,7 @@ async function openRoom() {
     if (FB) fbOff();   // Vault Raid takes the board
     try {
         const set = await A.store().rooms.get("teacher/" + A.store().rooms.uid() + "/games/s_" + meta.id);
-        const qs = []; ((set && set.cats) || []).forEach((c) => (c.clues || []).forEach((k) => { if (k && k.q && k.a) qs.push(V.gameQuestion(k, c.n)); }));
+        const qs = []; ((set && set.cats) || []).forEach((c) => (c.clues || []).forEach((k) => { if (k && k.q && k.a) qs.push(Object.assign(V.gameQuestion(k, c.n), F.fmOf(k))); }));   // fm: an ACAP format (js/acapFormats.js)
         if (set && set.final && set.final.q && set.final.a) qs.push(V.gameQuestion(set.final, set.final.c || "Final"));
         if (qs.length < 3) throw new Error("That set needs at least 3 questions.");
         const roster = (A.rosters()[A.S.period] || []).filter(Boolean), names = choice.names === "roster" ? V.shortNames(roster) : [];
