@@ -3,7 +3,7 @@
    The controls are px (they sit over the page); the stage keeps its own em sizes. */
 .spot{--g-fill:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.06));--g-line:rgba(255,255,255,.24);--g-hi:rgba(255,255,255,.42);
     --g-shadow:0 18px 50px rgba(2,8,26,.5),0 2px 8px rgba(2,8,26,.25);--g-ink:#F4F8FF;--g-soft:rgba(226,236,255,.72);--g-on:linear-gradient(180deg,rgba(140,200,255,.5),rgba(86,150,230,.32));
-    position:fixed;inset:0;z-index:40;pointer-events:none;font-family:var(--ui);color:var(--g-ink)}
+    position:fixed;inset:0;z-index:40;pointer-events:none;font-family:var(--ui);color:var(--g-ink);--m:18px;--bar:66px;--top:52px}
 .spot[hidden]{display:none}
 .spot>*{pointer-events:auto}
 
@@ -34,12 +34,19 @@ body.spotmode .toolshelf{filter:drop-shadow(0 12px 30px rgba(0,0,0,.35))}
 .spsep.thin{margin:10px 2px;opacity:.6}
 
 /* top left: back + full screen */
-.sptop{left:18px;top:16px;display:flex;align-items:center;gap:2px;padding:5px}
+.sptop{left:var(--m);top:var(--m);height:var(--top);box-sizing:border-box;display:flex;align-items:center;gap:2px;padding:0 5px}
+/* top right: Show on board */
+.splive{right:var(--m);top:var(--m);height:var(--top);box-sizing:border-box;display:flex;align-items:center;padding:0 5px}
+.splivebtn{gap:9px;padding:0 16px 0 13px;font-size:14px}
+.splivebtn i{width:9px;height:9px;border-radius:50%;background:rgba(226,236,255,.5);flex:none;transition:background .2s,box-shadow .2s}
+.splivebtn.onair i{background:#7CE0B0;box-shadow:0 0 0 3px rgba(124,224,176,.25),0 0 10px #7CE0B0}
+.splivebtn:not(.onair){background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 6px 16px rgba(242,179,61,.35)}
+.splivebtn:not(.onair) i{background:#2A1C00}
 .spback{padding:0 14px 0 8px}
 .spback span{font-size:14px}
 
 /* bottom left: screens */
-.spscr{left:18px;bottom:18px;display:flex;align-items:center;gap:2px;padding:5px;transition:transform .3s cubic-bezier(.2,.9,.25,1.2),opacity .25s}
+.spscr{right:var(--m);bottom:var(--m);height:var(--bar);box-sizing:border-box;display:flex;align-items:center;gap:2px;padding:0 8px;transition:transform .3s cubic-bezier(.2,.9,.25,1.2),opacity .25s}
 .spscr:hover{transform:translateY(-2px)}
 .spcount{min-width:52px;text-align:center;font-family:var(--display,inherit);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;letter-spacing:.02em}
 .spot .spadd{background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00;padding:0 13px 0 9px;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 6px 16px rgba(242,179,61,.35)}
@@ -48,7 +55,7 @@ body.spotmode .toolshelf{filter:drop-shadow(0 12px 30px rgba(0,0,0,.35))}
 .spdel.armed{background:rgba(229,72,77,.85);color:#fff}
 
 /* the toolbar */
-.spdock{left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:4px;padding:6px;max-width:calc(100vw - 600px);border-radius:24px;
+.spdock{left:50%;bottom:var(--m);height:var(--bar);box-sizing:border-box;transform:translateX(-50%);display:flex;align-items:center;gap:4px;padding:0 6px;max-width:calc(100vw - 640px);border-radius:24px;
     transition:max-width .35s cubic-bezier(.2,.8,.2,1),padding .25s}
 .spmodes{display:flex;gap:2px;padding:3px;border-radius:17px;background:rgba(0,8,30,.32);box-shadow:inset 0 1px 3px rgba(0,0,0,.35)}
 .spm{display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 14px;border:0;border-radius:14px;background:transparent;font-weight:700;font-size:14px;color:var(--g-soft);transition:background .2s,color .2s,box-shadow .2s}
@@ -75,15 +82,14 @@ body.spotmode .toolshelf{filter:drop-shadow(0 12px 30px rgba(0,0,0,.35))}
 .sptuck{width:40px;padding:0;color:var(--g-soft)}
 
 /* tucked: Click, Draw, and the button to bring the toolbar back */
-.spot.tucked .spdock{max-width:220px;padding:5px}
+.spot.tucked .spdock{max-width:240px}
 .spot.tucked .spfulltools,.spot.tucked .spdock>.spsep{display:none}
 .spot.tucked .spm{padding:0 12px}
 .spot.tucked .spsheet{display:none}
 
 /* the pen row, over the toolbar while drawing */
-.sppen{left:50%;bottom:92px;transform:translateX(-50%);display:flex;align-items:center;gap:3px;padding:5px 7px;border-radius:18px;animation:spUp .28s cubic-bezier(.2,.9,.25,1.15)}
+.sppen{left:50%;bottom:calc(var(--m) + var(--bar) + 10px);transform:translateX(-50%);display:flex;align-items:center;gap:3px;padding:5px 7px;border-radius:18px;animation:spUp .28s cubic-bezier(.2,.9,.25,1.15)}
 .sppen[hidden]{display:none}
-.spot.tucked .sppen{bottom:76px}
 .sptool{width:40px;padding:0;color:var(--g-soft)}
 .sptool[aria-pressed="true"]{background:var(--g-on);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
 .sptool.amber{background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00}
@@ -99,7 +105,7 @@ body.spotmode .toolshelf{filter:drop-shadow(0 12px 30px rgba(0,0,0,.35))}
 .spsize[aria-pressed="true"]{background:var(--g-on)}
 
 /* the sheet: Background, or the panel that was tapped */
-.spsheet{left:50%;bottom:92px;transform:translateX(-50%);width:min(420px,calc(100vw - 32px));padding:12px 14px 14px;border-radius:22px;animation:spUp .3s cubic-bezier(.2,.9,.25,1.15)}
+.spsheet{left:50%;bottom:calc(var(--m) + var(--bar) + 10px);transform:translateX(-50%);width:min(420px,calc(100vw - 32px));padding:12px 14px 14px;border-radius:22px;animation:spUp .3s cubic-bezier(.2,.9,.25,1.15)}
 .spsheet.wide{width:min(560px,calc(100vw - 32px))}
 .spsheet[hidden]{display:none}
 .spsh{display:flex;align-items:center;gap:10px;margin-bottom:10px}
@@ -119,7 +125,7 @@ body.spotmode .toolshelf{filter:drop-shadow(0 12px 30px rgba(0,0,0,.35))}
 .spchip.danger{color:#FFB3B6;border-color:rgba(255,120,125,.35)}
 .spchip.danger:hover{background:rgba(229,72,77,.25)}
 
-.sptoast{position:absolute;left:50%;top:18px;transform:translate(-50%,-14px);margin:0;padding:9px 18px;border-radius:999px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;
+.sptoast{position:absolute;left:50%;top:var(--m);transform:translate(-50%,-14px);margin:0;padding:9px 18px;border-radius:999px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;
     background:rgba(12,28,66,.6);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--g-line);box-shadow:var(--g-shadow);transition:opacity .25s,transform .3s cubic-bezier(.2,.9,.25,1.2)}
 .sptoast.on{opacity:1;transform:translate(-50%,0)}
 @keyframes spUp{from{opacity:0;transform:translate(-50%,12px) scale(.97)}}
@@ -127,26 +133,21 @@ body.spotmode .toolshelf{filter:drop-shadow(0 12px 30px rgba(0,0,0,.35))}
 /* drawing: a pen cursor over the board, and the panels let the ink through until Click is back */
 body.spotdraw #stage .spotink canvas{cursor:crosshair}
 
-/* narrower screens: the screens pill sits over the toolbar's left end */
+/* narrower screens: the toolbar takes the full width, and the screens pill sits just above its right end */
 @media (max-width:1300px){
-    .spdock{max-width:calc(100vw - 36px)}
-    .spscr{bottom:92px}
-    .spot.tucked .spscr{bottom:18px}
-    .spot.tucked .spdock{left:auto;right:18px;transform:none}
-    .sppen,.spsheet{bottom:92px}
-    body.spotdraw .spscr{bottom:150px}
+    .spdock{max-width:calc(100vw - 2 * var(--m))}
+    .spscr{bottom:calc(var(--m) + var(--bar) + 10px)}
+    body.spotdraw .spscr{bottom:calc(var(--m) + var(--bar) + 76px)}
+    .spot.tucked .spscr{bottom:var(--m)}
+    .spot.tucked .spdock{left:var(--m);transform:none}
 }
 /* small screens */
 @media (max-width:900px){
-    .spdock{max-width:calc(100vw - 24px);bottom:72px}
-    .spscr{bottom:14px;left:12px}
-    .sptop{left:12px;top:12px}
-    .spback span{display:none}
-    .sppen{bottom:142px;max-width:calc(100vw - 24px);overflow-x:auto}
-    .spsheet{bottom:142px}
+    .spot{--m:12px;--top:46px}
+    .spback span,.splivebtn span{display:none}
+    .splivebtn{padding:0 12px}
+    .sppen{max-width:calc(100vw - 24px);overflow-x:auto}
     .spm span,.sptbg span{display:none}
     .sptbg{width:52px}
     .spt{width:58px}
-    .spot.tucked .spdock{bottom:72px}
-    .spot.tucked .sppen{bottom:128px}
 }

@@ -161,3 +161,56 @@ body.board .setup.pnote{display:none}
 .palert.last{background:#E5484D;color:#fff}
 @keyframes palPulse{50%{box-shadow:0 0 0 .35em rgba(242,179,61,.45),0 .5em 1.6em rgba(0,0,0,.35)}}
 @media (prefers-reduced-motion:reduce){.palert{transition:opacity .2s}.palert.show{animation:none}}
+
+/* ---------- title bar menus: Settings and More (js/boardApp.js panelHead) ---------- */
+.card h3 .pbtn.on{opacity:1;background:rgba(127,174,221,.28)}
+.card.docked{position:relative;overflow:visible}
+.pmenu{position:absolute;z-index:30;right:.4em;top:2.5em;min-width:12.5em;max-width:17em;padding:.45em;border-radius:.8em;font-size:.62em;color:#F4F8FF;text-align:left;
+    background:rgba(12,28,66,.82);-webkit-backdrop-filter:blur(18px) saturate(170%);backdrop-filter:blur(18px) saturate(170%);
+    border:.08em solid rgba(255,255,255,.22);box-shadow:inset 0 .08em 0 rgba(255,255,255,.35),0 1.2em 2.8em rgba(2,8,26,.5);animation:pmIn .18s cubic-bezier(.2,.9,.25,1.2)}
+@keyframes pmIn{from{opacity:0;transform:translateY(-.4em) scale(.97)}}
+.pmenu .pmh{margin:.35em .5em .3em;font-size:.82em;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(226,236,255,.7)}
+.pmenu .pmi{display:flex;align-items:center;gap:.6em;width:100%;padding:.55em .65em;border:0;border-radius:.55em;background:transparent;color:inherit;font:inherit;font-weight:600;font-size:1em;cursor:pointer;text-align:left}
+.pmenu .pmi svg{width:1.2em;height:1.2em;flex:none;opacity:.85}
+.pmenu .pmi:hover{background:rgba(255,255,255,.12)}
+.pmenu .pmi.on{background:rgba(140,200,255,.25)}
+.pmenu .pmsizes{display:flex;gap:.3em;padding:0 .3em .3em}
+.pmenu .pmsizes button{flex:1;padding:.45em 0;border:.08em solid rgba(255,255,255,.22);border-radius:.55em;background:rgba(255,255,255,.07);color:inherit;font:inherit;font-weight:700;cursor:pointer}
+.pmenu .pmsizes button.on{background:linear-gradient(180deg,rgba(140,200,255,.55),rgba(86,150,230,.35));border-color:rgba(160,210,255,.6)}
+.pmenu .pmrange{width:calc(100% - 1em);margin:.2em .5em .4em;accent-color:#F2B33D}
+.pmenu .pmnote{margin:.3em .55em .35em;font-size:.86em;line-height:1.35;color:rgba(226,236,255,.72)}
+body.board.idle .pmenu{opacity:1}
+/* Center stage: front and center, with a glow */
+.float.staged{box-shadow:0 0 0 .2em rgba(242,179,61,.75),0 1.6em 4em rgba(2,8,26,.6)!important}
+
+/* ---------- Voice level: the room's microphone ---------- */
+.vmeter{margin-top:.5em;display:flex;flex-direction:column;gap:.35em}
+.vmbar{position:relative;height:.7em;border-radius:1em;background:rgba(11,37,89,.12);overflow:visible}
+.vmfill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:1em;background:linear-gradient(90deg,#2FB46B,#F2B33D 70%,#E5484D);transition:width .08s linear}
+.vmlim{position:absolute;top:-.25em;bottom:-.25em;width:.16em;margin-left:-.08em;border-radius:.1em;background:#0B2559}
+.vmeter:not(.on) .vmbar{opacity:.45}
+.vmrow{display:flex;align-items:center;gap:.5em}
+.vmbtn{flex:none;padding:.3em .8em;border-radius:2em;border:.1em solid #0B2559;background:#fff;color:#0B2559;font:inherit;font-size:.72em;font-weight:700;cursor:pointer}
+.vmbtn[aria-pressed="true"]{background:#0B2559;color:#fff}
+.vmstat{font-size:.7em;font-weight:600;color:var(--mute,#55627F)}
+.vmeter.loud .vmstat{color:#C62828;font-weight:800}
+.card.tooloud{animation:tooLoud 1s ease-in-out infinite}
+@keyframes tooLoud{50%{box-shadow:0 0 0 .3em rgba(229,72,77,.6),0 .5em 1.6em rgba(0,0,0,.35)}}
+
+/* ---------- Webcam ---------- */
+.float.tool-cam{width:22em}
+.cambox{display:flex;flex-direction:column;gap:.45em}
+.camscreen{position:relative;aspect-ratio:16/9;border-radius:.6em;overflow:hidden;background:#0A1838}
+.camvid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.camvid.mirror{transform:scaleX(-1)}
+.cambox.on .camvid{display:block}
+.camoff{position:absolute;inset:0;display:grid;place-items:center;color:rgba(244,248,255,.75)}
+.cambox.on .camoff{display:none}
+.camofft{margin:0;font-size:.8em;font-weight:600}
+.camrec{position:absolute;left:.5em;top:.5em;width:.7em;height:.7em;border-radius:50%;background:#E5484D;box-shadow:0 0 .6em #E5484D;display:none;animation:recBlink 1s steps(2) infinite}
+.cambox.rec .camrec{display:block}
+@keyframes recBlink{50%{opacity:.25}}
+.camctl .camrecb.recing{background:#E5484D;color:#fff;border-color:#E5484D}
+.camctl .camrecb[hidden]{display:none}
+.camnote{margin:0;font-size:.62em;color:var(--mute,#55627F);min-height:1em}
+@media (prefers-reduced-motion:reduce){.pmenu,.card.tooloud,.camrec{animation:none}}

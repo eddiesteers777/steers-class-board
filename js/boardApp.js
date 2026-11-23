@@ -12,12 +12,13 @@ import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=60";
-import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf } from "./panels.js?v=11";
+import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=61";
+import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf } from "./panels.js?v=12";
 import { cleanStickers, renderStickers } from "./stickers.js?v=1";
 import * as snd from "./sound.js?v=60";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
+import { micSens, setMicSens, camMirror, setCamMirror, senseIdle } from "./roomSense.js?v=1";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=62";
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=89";
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=11";
@@ -232,7 +233,7 @@ const toolApi = { S, el, push, quiet, now, card, rosters: () => ROSTERS, cue: (n
     agendaKey: () => [S.week, S.period, S.day].join("|"), noteKind: () => { if (S.screen !== "notes") return ""; const fr = notesFrames(D()); const f = fr[Math.min(S.note, fr.length - 1)]; return (f && f.kind) || ""; }, freeView, timerGo: () => timerGo("free"), timerReset: () => { S.timers.free = Object.assign(blankTimer(), { dur: S.timers.free.dur || 300 }); push(); },
     timerSet: (sec) => { S.timers.free = Object.assign(blankTimer(), { dur: sec }); } };
 function toolSig() { const t = Object.assign({}, S.tools); delete t.text; t.goal = Object.assign({}, t.goal); delete t.goal.text; const f = S.timers.free; return JSON.stringify([t, S.period, Object.keys(ROSTERS).map((k) => k + ROSTERS[k].length), f.running, f.dur, f.t0, f.elapsed, S.week, S.cls, S.day, !!BELLS, S.tools.on.agenda ? [S.screen, S.screen === "notes" ? S.note : 0] : 0]); }
-const panelOk = (k) => !(mode === "sub" && (k === "pick" || k === "groups"));
+const panelOk = (k) => !(mode === "sub" && (k === "pick" || k === "groups" || (k === "cam" && !studio)));   // a sub never gets the camera (the Board Builder demo does)
 function screenOk(id) { if (!screenOrder().includes(id)) return false; if (id === "notes") return notesFrames(D()).length > 0; if (id === "speed") return isSpeedDay(); return true; }
 /* The free Timer, shared by the Timer screen and the Timer panel. */
 function freeView() {
@@ -1217,7 +1218,7 @@ function blanked(text, reveal) {
 }
 
 /* ---------- floating tools (shown over every screen) ---------- */
-const DEFAULT_POS = { pick: [34, 30], groups: [10, 24],  traffic: [2, 23], work: [10, 55], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40], goal: [60, 30], ptimer: [66, 18], target: [24, 8], agenda: [4, 18], period: [66, 6] };
+const DEFAULT_POS = { cam: [56, 34], pick: [34, 30], groups: [10, 24],  traffic: [2, 23], work: [10, 55], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40], goal: [60, 30], ptimer: [66, 18], target: [24, 8], agenda: [4, 18], period: [66, 6] };
 let topZ = 1;
 let layerSig = "", dragging = false;
 function posOf(k) { const p = S.tools.pos[k]; if (p) return p; const d = DEFAULT_POS[k] || [10, 30]; return { x: d[0], y: d[1], s: 1 }; }
@@ -1267,6 +1268,66 @@ function drawStickers() {
         onChange: (list) => { S.stickers = cleanStickers(list); push(); }, busy: (b) => { stickerBusy = b; } } : null);
 }
 /* One small icon button in a panel's title bar. */
+/* Each panel's title bar: Settings (size, and the panel's own options), More (Center stage, make it small, shelf or float)
+   and a trash can. The open menu is kept here, so it stays open when the panel is drawn again. */
+let pmenu = { k: "", kind: "" };
+const centered = {};   // panels on Center stage on this device -> where each one was before
+const SIZES_P = [[0.75, "S"], [1, "M"], [1.35, "L"], [1.8, "XL"]];
+function panelHead(k, w, docked, canDock) {
+    const T = S.tools, tail = el("span", "hbtns");
+    const open = (kind) => { pmenu = pmenu.k === k && pmenu.kind === kind ? { k: "", kind: "" } : { k, kind }; layerSig = ""; renderLayer(); };
+    const g = hbtn("gear", "Settings for " + labelOf(k), () => open("set"), pmenu.k === k && pmenu.kind === "set" ? "on" : "");
+    const m = hbtn("more", "More for " + labelOf(k), () => open("more"), pmenu.k === k && pmenu.kind === "more" ? "on" : "");
+    const x = hbtn("trash", "Take " + labelOf(k) + " off the board", () => { delete centered[k]; pmenu = { k: "", kind: "" }; panelOff(T, k); push(); });
+    tail.append(g, m, x);
+    if (pmenu.k === k) w.appendChild(panelMenu(k, docked, canDock));
+    return tail;
+}
+function panelMenu(k, docked, canDock) {
+    const T = S.tools, box = el("div", "pmenu"); box.setAttribute("role", "menu");
+    box.addEventListener("pointerdown", (e) => e.stopPropagation());
+    const close = () => { pmenu = { k: "", kind: "" }; };
+    const item = (ic, t, fn, on) => { const b = el("button", "pmi" + (on ? " on" : "")); b.type = "button"; b.setAttribute("role", "menuitem"); b.innerHTML = pIcon(ic) + "<span>" + t + "</span>"; b.onclick = (e) => { e.stopPropagation(); fn(); }; box.appendChild(b); return b; };
+    if (pmenu.kind === "set") {
+        box.appendChild(el("p", "pmh", "Size"));
+        const row = el("div", "pmsizes"), cur = T.pos[k] ? T.pos[k].s || 1 : 1;
+        SIZES_P.forEach(([sz, n]) => { const b = el("button", T.pos[k] && Math.abs(cur - sz) < 0.05 ? "on" : "", n); b.type = "button"; b.title = "Size " + n;
+            b.onclick = (e) => { e.stopPropagation(); const q = Object.assign({}, T.pos[k] || toolApi.defaultPos(k)); q.s = sz; q.x = Math.min(q.x, 95); q.y = Math.min(q.y, 92); T.pos[k] = q; delete T.min[k]; delete centered[k]; push(); }; row.appendChild(b); });
+        box.appendChild(row);
+        if (k === "work") {
+            box.appendChild(el("p", "pmh", "Microphone sensitivity"));
+            const r = el("input", "pmrange"); r.type = "range"; r.min = "0.5"; r.max = "2"; r.step = "0.1"; r.value = String(micSens()); r.setAttribute("aria-label", "Microphone sensitivity");
+            r.oninput = () => setMicSens(+r.value); box.appendChild(r);
+            box.appendChild(el("p", "pmnote", "Higher picks up quieter voices. The meter only listens on the device where you tap Listen."));
+        } else if (k === "cam") {
+            item("cam", camMirror() ? "Mirror: on" : "Mirror: off", () => { setCamMirror(!camMirror()); layerSig = ""; renderLayer(); }, camMirror());
+            box.appendChild(el("p", "pmnote", "Videos save to this device's Downloads. Nothing is uploaded."));
+        } else box.appendChild(el("p", "pmnote", "Drag a corner of the panel to size it any way you like."));
+    } else {
+        if (centered[k]) item("stage", "Back to its spot", () => { const was = centered[k]; delete centered[k]; T.pos[k] = was; close(); push(); });
+        else item("stage", "Center stage", () => { close(); centerStage(k); });
+        item("min", "Make it small", () => { close(); delete centered[k]; T.min[k] = true; push(); });
+        if (docked) item("float", "Float over the lesson", () => { close(); T.pos[k] = toolApi.defaultPos(k); push(); });
+        else if (canDock && k !== "groups") item("dock", "Put it on the side", () => { close(); delete centered[k]; delete T.pos[k]; panelOn(T, k, { dock: true }); push(); });
+        item("trash", "Take it off", () => { close(); delete centered[k]; panelOff(T, k); push(); });
+    }
+    return box;
+}
+/** Center stage: the panel comes front and center and big, over everything else. More > Back to its spot undoes it. */
+function centerStage(k) {
+    const T = S.tools, layer = $("toolLayer"), was = Object.assign({}, T.pos[k] || toolApi.defaultPos(k));
+    if (!T.pos[k]) { T.pos[k] = was; layerSig = ""; renderLayer(); }
+    const w = layer && layer.querySelector('.float[data-panel="' + k + '"]'), LW = layer ? layer.clientWidth : 0, LH = layer ? layer.clientHeight : 0;
+    let s1 = was.s || 1, wp = 30, hp = 40;
+    if (w && LW && LH) { wp = w.offsetWidth / LW * 100 / s1; hp = w.offsetHeight / LH * 100 / s1; }
+    const sz = Math.max(1, Math.min(3, 62 / wp, 86 / hp));
+    centered[k] = was; delete T.min[k];
+    T.pos[k] = { x: Math.round(Math.max(0, (100 - wp * sz) / 2) * 10) / 10, y: Math.round(Math.max(0, Math.min(92, (100 - hp * sz) / 2)) * 10) / 10, s: Math.round(sz * 100) / 100 };
+    push();
+    const w2 = layer && layer.querySelector('.float[data-panel="' + k + '"]'); if (w2) w2.style.zIndex = String(++topZ);
+}
+// A tap anywhere else closes the menu. Only the menu goes: the panels are not redrawn under the finger, so the tap still lands.
+document.addEventListener("pointerdown", (e) => { if (pmenu.k && !(e.target.closest && e.target.closest(".pmenu,.hbtns"))) { pmenu = { k: "", kind: "" }; document.querySelectorAll(".pmenu").forEach((m) => m.remove()); document.querySelectorAll(".hbtns .pbtn.on").forEach((b) => b.classList.remove("on")); } });
 function hbtn(ic, label, fn, cls) { const b = el("button", "close pbtn" + (cls ? " " + cls : "")); b.type = "button"; b.innerHTML = pIcon(ic); b.title = label; b.setAttribute("aria-label", label); b.onclick = (e) => { e.stopPropagation(); fn(); }; return b; }
 const inside = (r, e) => e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
 /** Where a panel dropped on the shelf goes: before the first docked panel whose middle is below the pointer. */
@@ -1280,9 +1341,7 @@ function renderLayer() {
     const T = S.tools, minimize = (k) => { T.min[k] = true; push(); }, now2 = {};
     docked.forEach((k) => {   // on the shelf: beside the lesson, never over it
         const w = buildPanel(k, toolApi), h = w.querySelector("h3"); w.classList.add("docked"); w.dataset.panel = k; now2[k] = "dock";
-        const tail = el("span", "hbtns");
-        tail.append(hbtn("min", "Minimize " + labelOf(k), () => minimize(k)), hbtn("float", "Float over the lesson", () => { T.pos[k] = toolApi.defaultPos(k); push(); }, "pop"), hbtn("x", "Close " + labelOf(k), () => { panelOff(T, k); push(); }));
-        h.appendChild(tail); if (placed[k] !== "dock") w.classList.add("enter"); shelf.appendChild(w);
+        h.appendChild(panelHead(k, w, true, canDock)); if (placed[k] !== "dock") w.classList.add("enter"); shelf.appendChild(w);
         // Drag a shelf panel up or down to reorder it, or out onto the lesson to float it there.
         h.addEventListener("pointerdown", (e) => {
             if (e.button || e.target.closest("button")) return; e.preventDefault();
@@ -1322,11 +1381,9 @@ function renderLayer() {
         const w = buildPanel(k, toolApi), p = posOf(k); w.classList.add("float"); w.dataset.panel = k; now2[k] = "float"; if (placed[k] !== "float") w.classList.add("enter");
         if (studio && pickedPanel === k) w.classList.add("picked");
         w.style.left = p.x + "%"; w.style.top = p.y + "%"; w.style.fontSize = p.s + "em";
-        const h = w.querySelector("h3"), tail = el("span", "hbtns");
-        tail.appendChild(hbtn("min", "Minimize " + labelOf(k), () => minimize(k)));
-        if (canDock && k !== "groups") tail.appendChild(hbtn("dock", "Put it back on the shelf", () => { delete T.pos[k]; panelOn(T, k, { dock: true }); push(); }, "pop"));
-        tail.appendChild(hbtn("x", "Close " + labelOf(k), () => { panelOff(T, k); push(); }));
-        h.appendChild(tail);
+        const h = w.querySelector("h3");
+        h.appendChild(panelHead(k, w, false, canDock));
+        if (centered[k]) w.classList.add("staged");
         const grips = ["nw", "ne", "sw", "se"].map((c) => { const g = el("span", "grip g-" + c); g.dataset.c = c; g.setAttribute("aria-hidden", "true"); w.appendChild(g); return g; });
         const start = (e, kind) => {
             if (e.target.closest && e.target.closest("button")) return; e.preventDefault(); dragging = true; w.classList.add("moving");
@@ -1365,6 +1422,7 @@ function renderLayer() {
         layer.appendChild(w);
     });
     placed = now2;
+    senseIdle(T.on);   // a Webcam or Voice level panel taken off lets go of the camera or microphone
     if (typing) { const t = $(typingId); if (t) { t.focus(); try { t.setSelectionRange(caret, caret); } catch (e) { /* ok */ } } }
     tickTools(toolApi); tickPanels(toolApi);
     if ((shelfEm() + "|" + narrowWrap()) !== shelfApplied) fit();   // the shelf appeared, went away or changed width
