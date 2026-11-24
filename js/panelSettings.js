@@ -7,9 +7,9 @@
    Everything writes to the shared board state, so the projector follows.
 ========================================== */
 
-import { WORK, PALERT_MINS, MATH_LIST, CALC_LIST } from "./boardTools.js?v=79";
-import { PANEL_COLORS, PANEL_FINISHES, PANEL_CORNERS, PANEL_PRESETS, MIN_SOLID, MATCH_BOARD, cleanSty, applySty, swatchBg, styToSave, styShown } from "./panelStyle.js?v=2";
-import { themeCols } from "./panels.js?v=42";
+import { WORK, PALERT_MINS, MATH_LIST, CALC_LIST } from "./boardTools.js?v=80";
+import { PANEL_COLORS, PANEL_FINISHES, PANEL_CORNERS, PANEL_PRESETS, MIN_SOLID, MATCH_BOARD, cleanSty, applySty, swatchBg, styToSave, styShown } from "./panelStyle.js?v=3";
+import { themeCols } from "./panels.js?v=43";
 import { micSens, setMicSens, micState, micStart, micStop, camMirror, setCamMirror, camState, camStart, camStop, recStart, recStop } from "./roomSense.js?v=1";
 
 let open = "", api = null, box = null, sigWas = "", focusTo = "", paintedFor = "";
