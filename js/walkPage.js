@@ -6,7 +6,7 @@
    The math lines are never typed in by hand: they come from js/walk.js, which checks every line before showing it.
 ========================================== */
 import { STANDARDS } from "../data/standards.js?v=58";
-import { inClass, LEVELS } from "./stdBank.js?v=2";
+import { inClass, LEVELS } from "./stdBank.js?v=3";
 import { loadWalkItems, walkOf, withEdits, cleanOk, cleanEdits } from "./walkBank.js?v=1";
 import { createStepPlayer, drawDT } from "./stepPlayer.js?v=1";
 import { keyDT } from "./walk.js?v=1";

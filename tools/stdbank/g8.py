@@ -352,3 +352,7 @@ add(item("8.30", "A can is 12 cm tall with a radius of 4 cm. How much does it ho
 add(item("8.30", "A cylinder has volume 72π and radius 3. Find its height.", "8", 3))
 add(item("8.30", "A cone-shaped cup has radius 2 in and height 6 in. A cylinder cup has radius 2 in and height 6 in. How many cone cups fill the cylinder cup?", "3", 1))
 add(item("8.30", "An ice cream cone (radius 1 in, height 5 in) has a half sphere of ice cream (radius 1 in) on top. Find the total volume in terms of π.", "{7/3}π in³", 3, also=["7/3π", "2{1/3}π"]))
+
+# ---------------- more problems (checked Gemini drafts, Nov 2026): added last so earlier ids stay put ----------------
+from more import more
+out.extend(more("g8"))
