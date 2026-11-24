@@ -667,10 +667,10 @@ export function lookPicker(api, compact) {
         LOOK_PRESETS.forEach((p) => pr.appendChild(presetTile(api, p, () => refreshSheet())));
         box.appendChild(pr);
         // The Remote's rail keeps just the Quick looks; every color, background, effect, logo and sticker is in the Board Builder.
-        const more = el("a", "lookmore", compact ? "More looks and stickers in the Board Builder" : "Open the Board Builder: every look, panels and stickers in one place");
+        const more = el("a", "lookmore", "More looks and stickers in the Board Builder");
         more.href = "studio.html"; if (api.guest && api.guest()) more.hidden = true;
         if (compact) { box.appendChild(more); return box; }
-        box.appendChild(more); box.appendChild(el("p", "lookh", "Colors"));
+        box.appendChild(el("p", "lookh", "Colors"));   // Eddie, 2026-11-24: no Board Builder link in the full Background panel
     }
     LOOK_THEMES.forEach(([id, name]) => {
         const b = el("button", "lookth" + (XMAS.has(id) ? " xmas" : "") + (S.look.theme === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(S.look.theme === id)); b.title = name;

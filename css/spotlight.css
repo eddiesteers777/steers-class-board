@@ -60,7 +60,7 @@ body.spotmode .toolshelf{filter:drop-shadow(0 12px 30px rgba(0,0,0,.35))}
 .spdel.armed{background:rgba(229,72,77,.85);color:#fff}
 
 /* the toolbar */
-.spdock{left:50%;bottom:var(--m);height:var(--bar);box-sizing:border-box;transform:translateX(-50%);display:flex;align-items:center;gap:4px;padding:0 6px;max-width:calc(100vw - 640px);border-radius:24px;
+.spdock{left:50%;bottom:var(--m);height:var(--bar);box-sizing:border-box;transform:translateX(-50%);display:flex;align-items:center;gap:4px;padding:0 6px;max-width:calc(100vw - 2 * (var(--m) + var(--scrw,320px) + 14px));border-radius:24px;
     transition:max-width .35s cubic-bezier(.2,.8,.2,1),padding .25s}
 .spmodes{display:flex;gap:2px;padding:3px;border-radius:17px;background:rgba(0,8,30,.32);box-shadow:inset 0 1px 3px rgba(0,0,0,.35)}
 .spm{display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 14px;border:0;border-radius:14px;background:transparent;font-weight:700;font-size:14px;color:var(--g-soft);transition:background .2s,color .2s,box-shadow .2s}
@@ -142,6 +142,9 @@ body.spotmode .toolshelf{filter:drop-shadow(0 12px 30px rgba(0,0,0,.35))}
     background:rgba(12,28,66,.6);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--g-line);box-shadow:var(--g-shadow);transition:opacity .25s,transform .3s cubic-bezier(.2,.9,.25,1.2)}
 .sptoast.on{opacity:1;transform:translate(-50%,0)}
 @keyframes spUp{from{opacity:0;transform:translate(-50%,12px) scale(.97)}}
+
+/* Tap for sound: top middle in Spotlight, clear of the screens pill in the bottom right corner */
+body.spotmode .sndtap{top:var(--m,18px);left:50%;right:auto;bottom:auto;transform:translateX(-50%);z-index:41}
 
 /* drawing: a pen cursor over the board, and the panels let the ink through until Click is back */
 body.spotdraw #stage .spotink canvas{cursor:crosshair}
