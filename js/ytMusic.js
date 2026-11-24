@@ -151,6 +151,7 @@ export function mountYt(A) {
     let key = "", keyOff = null, results = [], searching = false, searchMsg = "", setup = false, lastQ = "";
     // the library: what is saved, which tab and folder show, and the save form (edit) or folder form (fedit) when open
     let lib = { f: [], s: [] }, libOff = null, libMsg = "", tab = "", fold = null, foldPer = "", edit = null, fedit = null;
+    const subs = [];   // others that show the music's state (Spotlight's Music button)
     try { tab = localStorage.getItem(TAB_KEY) || ""; } catch (e) { /* default */ }
 
     /* --- the pill --- */
@@ -223,7 +224,12 @@ export function mountYt(A) {
         if (slot) { pill.classList.add("inbar"); if (pill.nextSibling !== slot) slot.before(pill); }
         else { pill.classList.remove("inbar"); if (pill.parentNode !== document.body) document.body.appendChild(pill); }
         panel.classList.toggle("onboard", isBoard());
+        // Spotlight (the Board Builder's full-screen tab) opens the panel from its toolbar, so it pops up above that
+        const spot = isSpot(); panel.classList.toggle("onspot", spot);
+        const t = spot ? "Minimize" : "Minimize to the top";
+        if (hMin.title !== t) { hMin.title = t; hMin.setAttribute("aria-label", t); hMin.innerHTML = svg(spot ? IC.open : IC.min); }
     }
+    function isSpot() { return document.body.classList.contains("spotmode"); }
     function setOpen(v) {
         open = !!v; try { localStorage.setItem(OPEN_KEY, open ? "1" : "0"); } catch (e) { /* this visit only */ }
         draw();
@@ -547,18 +553,31 @@ export function mountYt(A) {
         const add = el("button", "ytaddv"); add.type = "button"; add.innerHTML = svg(IC.plus) + "<span>Add a video by link</span>"; add.onclick = () => openEdit({});
         savedBox.appendChild(add);
     }
+    /* The one-time setup, step by step. The key is free; it lets this panel search YouTube itself. */
+    function keySteps() {
+        const box = el("div", "ytsteps");
+        box.appendChild(el("p", "ytkeyn", "A free key from Google lets this panel search YouTube by itself. It takes about five minutes, once."));
+        const ol = el("ol");
+        const step = (html) => { const li = el("li"); li.innerHTML = html; ol.appendChild(li); };
+        const ln = (href, text) => '<a href="' + href + '" target="_blank" rel="noopener">' + text + "</a>";
+        step(ln("https://console.cloud.google.com/apis/library/youtube.googleapis.com", "Open YouTube Data API v3") + " in Google Cloud (make a project if it asks) and press <b>Enable</b>.");
+        step("Go to " + ln("https://console.cloud.google.com/apis/credentials", "Credentials") + ", press <b>Create credentials</b>, then <b>API key</b>.");
+        step("Open the new key. Under <b>Website restrictions</b> add <code>https://anchorboard.web.app/*</code>. Under <b>API restrictions</b> pick <b>YouTube Data API v3</b>. Save.");
+        step("Copy the key and paste it below.");
+        box.appendChild(ol);
+        return box;
+    }
     function drawKeyBox() {
         if (keyBox.contains(document.activeElement) && document.activeElement.tagName === "INPUT") return;   // don't wipe a key being typed
         keyBox.innerHTML = "";
         if (A.guest || !(A.store && A.store())) { keyBox.hidden = true; return; }
         keyBox.hidden = false;
         const t = el("button", "ytkeyt"); t.type = "button"; t.innerHTML = svg(IC.key) + "<span></span>";
-        t.querySelector("span").textContent = key ? "Search key saved" : "Turn on search in this panel";
+        t.querySelector("span").textContent = key ? "Search key saved" : "Turn on search here (one time)";
         t.setAttribute("aria-expanded", String(setup)); t.onclick = () => { setup = !setup; drawKeyBox(); };
         keyBox.appendChild(t);
         if (!setup) return;
-        const p = el("p", "ytkeyn", key ? "Search uses your YouTube key, saved in your account (never on the site or in its code). Paste a new one to replace it, or clear it."
-            : "Search needs a free YouTube Data API key from Google Cloud, restricted to anchorboard.web.app. Paste it once; it is saved in your account only.");
+        const p = key ? el("p", "ytkeyn", "Search uses your YouTube key, saved in your account (never on the site or in its code). Paste a new one to replace it, or clear it.") : keySteps();
         const f = el("form", "ytkeyf"); const ki = el("input"); ki.type = "password"; ki.placeholder = key ? "New key" : "Paste your key"; ki.autocomplete = "off"; ki.setAttribute("aria-label", "YouTube search key");
         const ks = el("button", "ytchip on", "Save"); ks.type = "submit";
         f.append(ki, ks);
@@ -570,6 +589,8 @@ export function mountYt(A) {
     function draw() {
         const so = A.S.sound, y = so.yt, on = so.src === "yt" && !!y, playing = on && so.music;
         const here = A.playsHere();
+        place();
+        subs.forEach((f) => { try { f({ open: open && !A.readOnly(), playing, name: on ? nameOf(y) : "" }); } catch (e) { /* theirs */ } });
         // pill
         pill.hidden = A.readOnly();
         pill.classList.toggle("playing", playing); pill.classList.toggle("isopen", open);
@@ -623,9 +644,17 @@ export function mountYt(A) {
         else if (searchMsg === "nokey") {
             msg.textContent = "";
             const w = el("div", "ytnokey");
-            w.appendChild(el("p", null, "Search here needs a one-time YouTube key. For now, find it on YouTube, then copy its link and paste it above."));
-            const a = el("a", "ytchip on"); a.href = "https://www.youtube.com/results?search_query=" + encodeURIComponent(lastQ || "instrumental music for studying"); a.target = "_blank"; a.rel = "noopener";
-            a.innerHTML = svg(IC.ext) + "<span>Search on YouTube</span>"; w.appendChild(a);
+            const canKey = !A.guest && !!(A.store && A.store());   // a signed-in account can keep a key; a guest board can't
+            w.appendChild(el("p", null, canKey ? "To search right here, turn on search once with a free YouTube key. Until then, a pasted link still plays."
+                : "Search here needs the teacher's YouTube key. For now, find it on YouTube, then copy its link and paste it above."));
+            if (canKey) {
+                const k = el("button", "ytchip on"); k.type = "button"; k.innerHTML = svg(IC.key) + "<span>Turn on search here</span>";
+                k.onclick = () => { setup = true; searchMsg = ""; draw(); requestAnimationFrame(() => keyBox.scrollIntoView({ block: "nearest", behavior: "smooth" })); };
+                w.appendChild(k);
+            }
+            const a = el("a", canKey ? "ytlink" : "ytchip on"); a.href = "https://www.youtube.com/results?search_query=" + encodeURIComponent(lastQ || "instrumental music for studying"); a.target = "_blank"; a.rel = "noopener";
+            if (canKey) a.textContent = "Or search on YouTube in a new tab"; else a.innerHTML = svg(IC.ext) + "<span>Search on YouTube</span>";
+            w.appendChild(a);
             list.appendChild(w);
         } else msg.textContent = searchMsg;
         results.forEach((r) => list.appendChild(row(r, same(r, y))));
@@ -648,5 +677,7 @@ export function mountYt(A) {
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && open && panel.contains(document.activeElement)) setOpen(false); });
 
     draw();
-    return { sync, unlock, duck, wantsTap, open: () => setOpen(true), isOpen: () => open, draw };
+    return { sync, unlock, duck, wantsTap, open: () => setOpen(true), close: () => setOpen(false), toggle: () => setOpen(!open), isOpen: () => open, draw,
+        /** fn({ open, playing, name }) runs each time the music or the panel changes. */
+        listen: (fn) => { subs.push(fn); draw(); } };
 }

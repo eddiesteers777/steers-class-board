@@ -17,7 +17,7 @@ import { setPhotoStore } from "./myPhotos.js?v=1";
 import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=16";
 import { cleanStickers, renderStickers } from "./stickers.js?v=1";
 import * as snd from "./sound.js?v=62";
-import { mountYt, cleanYt, cleanRecent } from "./ytMusic.js?v=2";
+import { mountYt, cleanYt, cleanRecent } from "./ytMusic.js?v=3";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { senseIdle } from "./roomSense.js?v=1";
@@ -338,6 +338,7 @@ function studioApi() {
     return { S, el, push, toolApi, planApi, rich, screens: () => SCREENS.filter((x) => screenOrder().includes(x[0])), screenOk, panelOk,
         day: () => D(), lesson: () => L(), week: () => W(), classLabel: () => { const l = L(); return (l && l.label) || S.cls; }, dayName: () => FULL[S.day] || "",
         synced: () => synced, guest: () => mode === "sub", rosters: () => ROSTERS, bells: () => BELLS,
+        music: () => yt,   // the YouTube music panel (js/ytMusic.js): Spotlight opens it from its toolbar
         lessonKey: () => lessonKeyNow(), dayNames: () => FULL.slice(), goDay: (i) => { S.day = i; resetPos(); push(); },
         // Slides (js/slideEditor.js): the store, every week (published and private), a day's notes frames, and "Show on board"
         store: () => store, allWeeks: () => WEEKS, framesFor: (w, c, i) => { const wk = WEEKS.find((x) => x.id === w), l = wk && wk.classes[c], d = l && l.days && l.days[i]; return d ? notesFrames(d) : []; },

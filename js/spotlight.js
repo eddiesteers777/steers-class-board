@@ -18,7 +18,7 @@ import { PANEL_LIST, LESSON_PANELS, TOOL_LIST } from "./boardTools.js?v=63";
 import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker, photoGroupNow, gradOf } from "./panels.js?v=16";
 import { wbIcon } from "./wbIcons.js?v=1";
 
-let A = null, host = null, onBack = null, tucked = false, sheet = "", picked = "", built = false, lastSig = "";
+let A = null, host = null, onBack = null, tucked = false, sheet = "", picked = "", built = false, lastSig = "", musicHooked = false;
 const PREF = "anchorboard-spot-tucked";
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -36,6 +36,7 @@ const IC = {
     grid: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
     edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
     spot: '<path d="M12 3v2M5.6 5.6 7 7M3 12h2M18.4 5.6 17 7M21 12h-2"/><path d="M8 16a4 4 0 1 1 8 0"/><path d="M5 20h14"/>',
+    music: '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
 };
 function button(cls, html, label, fn) {
     const b = el("button", cls); b.type = "button"; b.innerHTML = html; if (label) { b.title = label; b.setAttribute("aria-label", label); }
@@ -58,6 +59,7 @@ export function openSpot(api, hostEl, back) {
     host.hidden = false; document.body.classList.add("spotmode");
     A.spot.open(); A.spot.draw(false);
     window.addEventListener("keydown", keys, true);
+    hookMusic(); { const m = A.music && A.music(); if (m) m.draw(); }   // the music panel moves above the toolbar
     document.addEventListener("fullscreenchange", paintFull);
     lastSig = ""; paint();
     setTimeout(() => { A.fit(); A.redraw(); }, 0);
@@ -70,6 +72,7 @@ export function closeSpot() {
     window.removeEventListener("keydown", keys, true);
     document.removeEventListener("fullscreenchange", paintFull);
     if (isFull()) toggleFull();
+    { const m = A.music && A.music(); if (m) m.draw(); }   // the music panel goes back under the top bar
     setTimeout(() => { A.fit(); A.redraw(); }, 0);
 }
 /** The board changed (here or on another device): bring the buttons up to date. Never rebuilds a button under a finger. */
@@ -121,6 +124,11 @@ function build() {
     const bgb = button("spt sptbg", svg(IC.bg) + "<span>Background</span>", "Background, colors and effects", () => openSheet(sheet === "look" ? "" : "look")); bgb.dataset.k = "look"; full.appendChild(bgb);
     // Eddie, 2026-11-23: saved slides right from the toolbar (they come in as screens: js/boardApp.js spotApi)
     const slb = button("spt sptsl", svg(IC.slides) + "<span>Slides</span>", "Bring in your saved slides", () => openSheet(sheet === "slides" ? "" : "slides")); slb.dataset.k = "slides"; full.appendChild(slb);
+    // Eddie, 2026-11-24: YouTube music from the toolbar. The same panel, player and library as the board and the top bar
+    // (js/ytMusic.js), so the music never restarts when the teacher switches tabs.
+    if (A.music && A.music()) {
+        const mub = button("spt sptmu", svg(IC.music) + "<i class=\"spmudot\"></i><span>Music</span>", "YouTube music: search, play and your saved videos", () => music("toggle")); full.appendChild(mub);
+    }
     full.appendChild(el("i", "spsep"));
     const rack = el("div", "sprack");
     [LESSON_PANELS, TOOL_LIST].forEach((list, li) => {
@@ -198,7 +206,22 @@ function removeScreen() {
     if (Date.now() - delArm > 3000) { delArm = Date.now(); flash("Tap the trash again to remove this screen"); lastSig = ""; paint(); setTimeout(() => { lastSig = ""; paint(); }, 3100); return; }
     delArm = 0; A.spot.remove(); flash("Screen removed");
 }
-function openSheet(which) { sheet = which; if (which !== "panel") picked = ""; lastSig = ""; paint(); }
+function openSheet(which) { sheet = which; if (which !== "panel") picked = ""; if (which) music("close"); lastSig = ""; paint(); }
+/* The music panel and Spotlight's own sheets pop up in the same place, so one closes the other. */
+function music(what) {
+    const m = A && A.music && A.music(); if (!m) return;
+    if (what === "close") { if (m.isOpen()) m.close(); return; }
+    if (!m.isOpen() && sheet) { sheet = ""; picked = ""; lastSig = ""; paint(); }
+    m.toggle();
+}
+function hookMusic() {
+    const m = A.music && A.music(); if (!m || musicHooked) return; musicHooked = true;
+    m.listen((st) => {
+        const b = host && host.querySelector(".sptmu"); if (!b) return;
+        const on = st.open && !host.hidden; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("on", on); b.classList.toggle("playing", !!st.playing);
+        b.title = st.playing && st.name ? "Playing: " + st.name + ". Tap for the music panel." : "YouTube music: search, play and your saved videos"; b.setAttribute("aria-label", b.title);
+    });
+}
 let toastT = 0;
 function flash(t) { const n = $("spToast"); if (!n) return; n.textContent = t; n.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => n.classList.remove("on"), 1800); }
 function keys(e) {

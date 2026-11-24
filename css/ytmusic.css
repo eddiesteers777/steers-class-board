@@ -51,6 +51,10 @@ body.board .ytpill.inbar{display:none}
 .ytpanel:not(.onboard){top:72px;left:auto;right:16px;transform:none;animation-name:ytinr;background-color:rgba(var(--s-rgb,12,28,66),.84)}
 @keyframes ytin{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}
 @keyframes ytinr{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+/* Spotlight: the toolbar's Music button opens it, so it pops up above the toolbar like Spotlight's own sheets */
+.ytpanel.onspot{top:auto;left:50%;right:auto;bottom:94px;transform:translateX(-50%);max-height:calc(100vh - 120px);animation-name:ytup;background-color:rgba(12,28,66,.62)}
+@keyframes ytup{from{opacity:0;transform:translate(-50%,12px) scale(.97)}to{opacity:1;transform:translate(-50%,0)}}
+@media (max-width:900px){.ytpanel.onspot{bottom:88px;max-height:calc(100vh - 104px)}}
 @media (prefers-reduced-motion:reduce){.ytpanel{animation:none}}
 @media (max-width:700px){.ytpanel:not(.onboard){top:8px;right:8px;width:calc(100vw - 16px);max-height:calc(100vh - 16px)}}
 
@@ -168,6 +172,12 @@ body.board .ytpill.inbar{display:none}
 .ytedact .ytlink{margin-left:auto;align-self:center}
 .ytpanel input:focus-visible{outline:2px solid #8CC8FF;outline-offset:1px}
 
+/* the key, step by step */
+.ytsteps{display:flex;flex-direction:column;gap:6px}
+.ytsteps ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:7px;font-size:13px;line-height:1.5;color:var(--yt-ink)}
+.ytsteps li::marker{color:#8CC8FF;font-weight:700}
+.ytsteps a{color:#A9D6FF;font-weight:600}
+.ytsteps code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;padding:1px 5px;border-radius:6px;background:rgba(0,8,30,.4);user-select:all;white-space:nowrap}
 /* the search key, once */
 .ytkey{display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px solid rgba(255,255,255,.12)}
 .ytkeyt{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 6px;border:0;background:transparent;color:var(--yt-soft);font-size:13px;font-weight:600}
