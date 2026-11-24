@@ -15,13 +15,26 @@
    When the choice can't be read (offline, first load), the Calera weeks show and
    nothing is saved, so a bad connection never moves an account.
 
+   Fixed Nov 23 (Eddie's account was saved as "starter", "new account", at 1:37 PM while his rosters and Week 5
+   existed, and Plan, his classes and the Calera weeks disappeared):
+     - "starter" is NEVER inferred and saved. Only an explicit choice saves it (choosePack, or ?pack=starter).
+       Real data found on the server saves "calera" (existing account); finding nothing is inconclusive:
+       the Calera weeks show and nothing is saved.
+     - A saved "starter" that was inferred (how: "new account", from before this fix) is not trusted: it is
+       checked again like an unsaved choice.
+     - Every check reads the server (getDocFromServer); a device copy can never answer "missing".
+     - A remembered "starter" on this device is checked with the server before a page uses it.
+     - What happened is logged to the sign-in trail (?signincheck): cached / decided / fallback and each check.
+
    ?pack=starter or ?pack=calera on any signed-in page sets it by hand (for testing).
 ========================================== */
 import { db } from "./firebase.js";
 import { waitForUser } from "./auth.js";
-import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { doc, getDoc, getDocFromServer, getDocsFromServer, collection, query, limit, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { trail } from "./signInTrail.js";
+import { PACKS, EVIDENCE_DOCS, EVIDENCE_COLLECTIONS, trusted, inferPack } from "./packRules.js?v=1";
+export { PACKS, EVIDENCE_DOCS, EVIDENCE_COLLECTIONS, trusted, inferPack };
 
-export const PACKS = ["calera", "starter"];
 const FALLBACK = "calera";
 const cacheKey = (uid) => "focal-pack:" + uid;
 
@@ -39,44 +52,86 @@ function asked() {
     try { const v = new URLSearchParams(location.search).get("pack"); return PACKS.includes(v) ? v : null; } catch { return null; }
 }
 
-/** Decide (and save) the pack for a signed-in teacher. Throws when Firestore can't be reached. */
+const SHORT = { "rosters/all": "rosters", "board/state": "board", "weekfiles/index": "wfindex", "settings/bells": "bells", "data/index": "data", "weekfiles/*": "weekfiles*", "plans/*": "plans*" };
+let INFO = { pack: null, source: "", why: "", checks: null, confirmed: false };
+/** What decided this page's pack: { pack, source: cached|decided|fallback|asked, why, checks, confirmed }. */
+export const packInfo = () => Object.assign({}, INFO);
+const log = (source, pack, why, checks) => {
+    INFO = { pack, source, why, checks: checks || null, confirmed: source === "decided" || source === "asked" };
+    // Two short lines (the sign-in trail keeps 80 characters a line): the decision and why, then each check (+ found, - not)
+    trail("pack " + source + ": " + pack, why);
+    if (checks) trail("pack checks", Object.keys(checks).map((k) => (SHORT[k] || k) + (checks[k] ? "+" : "-")).join(" "));
+};
+
+/** Read the saved choice and every evidence check from the server. Throws when the server can't be reached. */
+async function readServer(uid, always) {
+    const snap = await getDocFromServer(doc(db, `teacher/${uid}/settings/pack`));
+    const saved = snap.exists() ? snap.data() : null;
+    if (trusted(saved) && !always) return { saved, found: null };   // a trusted choice needs no evidence (Home's restore check asks for it anyway)
+    const found = {};
+    await Promise.all([
+        ...EVIDENCE_DOCS.map((p) => getDocFromServer(doc(db, `teacher/${uid}/${p}`)).then((s) => { found[p] = s.exists(); })),
+        ...EVIDENCE_COLLECTIONS.map((c) => getDocsFromServer(query(collection(db, `teacher/${uid}/${c}`), limit(1))).then((q) => { found[c + "/*"] = !q.empty; })),
+    ]);
+    return { saved, found };
+}
+
+/** Decide (and, only on real evidence, save) the pack for a signed-in teacher. Throws when Firestore can't be reached. */
 async function decide(uid) {
     const ref = doc(db, `teacher/${uid}/settings/pack`);
     const want = asked();
     if (want) {
         await setDoc(ref, { pack: want, how: "set by hand", at: serverTimestamp() });
+        log("asked", want, "?pack=" + want);
         return want;
     }
-    const snap = await getDoc(ref);
-    const saved = snap.exists() && snap.data() && snap.data().pack;
-    if (PACKS.includes(saved)) return saved;
-    // No choice saved yet: an account with data from before this change is an existing account.
-    const had = await Promise.all(["board/state", "weekfiles/index", "rosters/all"].map((p) =>
-        getDoc(doc(db, `teacher/${uid}/${p}`)).then((s) => s.exists())));
-    const pack = had.some(Boolean) ? "calera" : "starter";
-    await setDoc(ref, { pack, how: pack === "calera" ? "existing account" : "new account", at: serverTimestamp() });
+    const { saved, found } = await readServer(uid);
+    const r = inferPack(saved, found);
+    if (r.save) await setDoc(ref, { pack: "calera", how: "existing account", at: serverTimestamp() });
+    log("decided", r.pack, r.why, found);
+    return r.pack;
+}
+
+/** An explicit choice from the teacher (setup.html "Start with my own classes", Home "Restore my Calera classes"). */
+export async function choosePack(pack, how) {
+    if (!PACKS.includes(pack)) throw new Error("unknown pack");
+    const user = await waitForUser();
+    if (!user || user.isAnonymous) throw new Error("signed out");
+    await setDoc(doc(db, `teacher/${user.uid}/settings/pack`), { pack, how: String(how || "chosen").slice(0, 40), at: serverTimestamp() });
+    remember(user.uid, pack);
+    trail("pack chosen: " + pack, how || "chosen");
     return pack;
 }
 
+/** For Home: true when this account has real Calera work on the server (rosters, week files, plans...). */
+export async function hasRealWork() {
+    const user = await waitForUser(); if (!user || user.isAnonymous) return false;
+    try { const { found } = await readServer(user.uid, true); return !!found && Object.values(found).some(Boolean); }
+    catch { return false; }
+}
+
 let pending = null;
-/** Resolves "calera" or "starter" for whoever is on this page. Never rejects. */
+/** Resolves "calera" or "starter" for whoever is on this page. Never rejects. "starter" only after the server confirms an explicit choice. */
 export function myPack() {
     if (pending) return pending;
     pending = (async () => {
         let user = null;
-        try { user = await withTimeout(waitForUser(), 6000); } catch { return FALLBACK; }
-        if (!user || user.isAnonymous) return FALLBACK;
+        try { user = await withTimeout(waitForUser(), 6000); } catch { log("fallback", FALLBACK, "sign-in not restored in 6 s"); return FALLBACK; }
+        if (!user || user.isAnonymous) { log("fallback", FALLBACK, user ? "guest or linked screen" : "signed out"); return FALLBACK; }
         const known = asked() ? null : cached(user.uid);
-        if (known) {
-            // Fast path: use the remembered choice now and refresh it quietly for next time.
+        if (known === "calera") {
+            // Fast path: use the remembered Calera choice now and refresh it quietly for next time.
+            log("cached", known, "remembered on this device");
             decide(user.uid).then((p) => remember(user.uid, p)).catch(() => {});
             return known;
         }
+        // Nothing remembered, or a remembered "starter": the server decides before the page uses it.
         try {
             const p = await withTimeout(decide(user.uid), 5000);
             remember(user.uid, p);
             return p;
-        } catch {
+        } catch (e) {
+            log("fallback", FALLBACK, "server not reached (" + ((e && e.message) || "error") + "); nothing saved");
             return FALLBACK;
         }
     })();

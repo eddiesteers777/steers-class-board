@@ -53,6 +53,11 @@ const ACCOUNT_LOCAL_STORAGE_PREFIXES = [
     "school-week:"
 ];
 
+// Which lessons an account sees, and a new teacher's setup (js/contentPack.js). Cleared on sign-out and account switch
+// so a stale "starter" can never carry into another session (Nov 23). Kept out of hasLegacyAccountState(): their
+// presence alone must not trigger the clear-and-reload that an account switch does.
+const ACCOUNT_CACHE_PREFIXES = ["focal-pack:", "focal-setup:"];
+
 const ACCOUNT_SESSION_STORAGE_KEYS = [
     "school-role-reloaded",
     "school-signincheck",
@@ -107,6 +112,14 @@ export function clearAccountSensitiveBrowserState() {
     }
     for (const key of ACCOUNT_SESSION_STORAGE_KEYS) {
         try { sessionStorage.removeItem(key); } catch { /* storage unavailable */ }
+    }
+    for (const prefix of ACCOUNT_CACHE_PREFIXES) {
+        try {
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key?.startsWith(prefix)) localStorage.removeItem(key);
+            }
+        } catch { /* storage unavailable */ }
     }
     clearLinkedPlaybook();
     clearLinked75();

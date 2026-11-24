@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="css/console.css?v=64">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
     <link rel="stylesheet" href="css/home.css?v=61">
-    <link rel="stylesheet" href="css/absences.css?v=2">
+    <link rel="stylesheet" href="css/absences.css?v=3">
     <link rel="stylesheet" href="css/footer.css?v=2">
     <link rel="stylesheet" href="css/skin.css?v=2">
     <meta name="theme-color" content="#081B45">
@@ -146,9 +146,11 @@
         </div>
     </footer>
     <script type="module">
-        import { WEEKS as PUBLISHED, PERIODS, PACK, SETUP } from "./data/weeks.js?v=61";
-        // A new teacher who hasn't been through setup yet goes there first (setup.html).
-        if (PACK !== "calera" && SETUP && !SETUP.done) location.replace("setup.html");
+        import { WEEKS as PUBLISHED, PERIODS, PACK, SETUP } from "./data/weeks.js?v=62";
+        import { packInfo, choosePack, hasRealWork } from "./js/contentPack.js?v=3";
+        import { toLoginIfSignedOut } from "./js/signedOut.js?v=1";
+        // A new teacher who hasn't been through setup yet goes there first (setup.html): only on a starter choice the server confirmed.
+        if (PACK !== "calera" && SETUP && !SETUP.done && packInfo().confirmed) location.replace("setup.html");
         if (PACK === "calera") { const sl = document.getElementById("setupLink"); if (sl) sl.hidden = true, sl.style.display = "none"; }
         import { watchPrivateWeeks } from "./js/weeksLive.js?v=58";
         import { closeoutItems, closeoutSummary, closeoutDue } from "./js/closeout.js?v=3";
@@ -424,8 +426,19 @@
         glance(); setInterval(glance, 300000);
         $("signOut").onclick = async () => { try { await store.signOut(); } finally { location.replace("login.html"); } };
         const user = await store.ready();
-        if (!user) location.replace("login.html");
+        if (!user) toLoginIfSignedOut();
         else {
+            // Starter, but this account has real Calera work (rosters, week files, plans): offer it back instead of the sample.
+            // A brand-new teacher on the Calera weeks (nothing found, nothing saved) can choose their own classes on purpose.
+            {
+                const card = (title, text, label, go) => { const c = document.createElement("section"); c.className = "pack-card"; c.setAttribute("role", "region"); c.setAttribute("aria-label", title);
+                    c.innerHTML = '<h2></h2><p></p><button type="button" class="btn go"></button><span class="pack-note" role="status"></span>'; c.querySelector("h2").textContent = title; c.querySelector("p").textContent = text;
+                    const b = c.querySelector("button"); b.textContent = label; b.onclick = async () => { b.disabled = true; try { await go(); } catch (e) { b.disabled = false; c.querySelector(".pack-note").textContent = "That did not save (" + ((e && e.message) || "connection") + "). Try again."; } };
+                    document.querySelector("main").prepend(c); };
+                const info = packInfo();
+                if (PACK === "starter") hasRealWork().then((real) => { if (real) card("Restore my Calera classes", "This account has your rosters and saved weeks, but it is showing the sample class. Restore your Calera classes, Plan and weeks.", "Restore my Calera classes", async () => { await choosePack("calera", "restored from Home"); location.reload(); }); });
+                else if (info.source === "decided" && /no data found/.test(info.why)) card("New to Anchor Board?", "These are sample Calera lessons. Start with your own classes instead (you can set them up next).", "Start with my own classes", async () => { await choosePack("starter", "chosen on Home"); location.replace("setup.html"); });
+            }
             $("who").textContent = "Signed in as " + (user.name || "teacher");
             if (PACK === "calera") mountWeekFlow(store, $("weekflow"), PUBLISHED, todayIso);
             if (PACK === "calera") import("./js/absenceHome.js?v=3").then((m) => { ABS = m.mountAbsences({ store, host: $("absent"), el, periods: PERIODS, today: todayIso, weeks: WEEKS, classLabel: (c) => ((WEEKS[WEEKS.length - 1] || { classes: {} }).classes[c] || {}).label || c }); }).catch(() => {});   // absences by period (Phase 2B); a failure here never blocks Home
