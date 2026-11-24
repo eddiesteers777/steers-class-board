@@ -5,20 +5,20 @@
    Live notes check-in that can carry a tool. This file is the plain logic both sides share, with no page or database.
 
      What can be sent   a Find panel's problem (with its key, its other accepted answers and its bank id for Show Steps),
-                        any of the eleven math tools on its own (students explore it, nothing to submit),
+                        any of the math tools on its own (students explore it, nothing to submit),
                         or a problem with a tool beside it.
      Answer groups      every answer students sent, grouped when they mean the same thing (V.sameAnswer), with how many
                         sent each. The right one first, then the rest, most common first.
      Follow-ups         after a check-in: try again for only the students who didn't get it, or Show Steps for them.
 ========================================== */
-import { MT_KEYS, cleanMt } from "./manipCore.js?v=9";
+import { MT_KEYS, cleanMt } from "./manipCore.js?v=11";
 
 /** The tools a teacher can send, in the order the picker lists them. */
 export const SEND_TOOLS = [
     ["calc", "Basic calculator"], ["sci", "Scientific calculator"], ["graph", "Graphing calculator"],
     ["balance", "Equation balance"], ["counters", "Integer counters"], ["line", "Line explorer"], ["xform", "Transformations"],
     ["pyth", "Pythagorean squares"], ["angle", "Angle explorer"], ["fn", "Function machine"], ["area", "Expression area model"],
-    ["nl", "Rational number line"], ["chance", "Chance lab"],
+    ["nl", "Rational number line"], ["sys", "Systems graph"], ["chance", "Chance lab"],
 ];
 export const TOOL_NAMES = Object.fromEntries(SEND_TOOLS);
 export const isTool = (k) => typeof k === "string" && MT_KEYS.includes(k) && !!TOOL_NAMES[k];
@@ -37,6 +37,7 @@ export function toolStart(k, T) {
     if (k === "fn") { clean.ins = []; clean.g = ""; clean.sh = false; }   // their own inputs, and their own call on "function or not?"
     if (k === "area") clean.rv = [false, false];   // each student reveals the parts themselves
     if (k === "nl") clean.rv = false;
+    if (k === "sys") { clean.rv = false; clean.tp = null; }   // each student tests their own points
     const s = JSON.stringify(clean);
     return s.length <= TS_MAX ? s : "";
 }

@@ -20,7 +20,7 @@ import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browser
 import { initializeFirestore, doc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import * as V from "./vaultCore.js?v=75";
 import { createStudentPad } from "./studentPad.js?v=1";
-import * as PC from "./pushCore.js?v=1";
+import * as PC from "./pushCore.js?v=2";
 
 const app = initializeApp(firebaseConfig, "play");
 // iPhone and iPad Safari can stall Firestore's streaming connection with no error (see js/play.js).
@@ -251,7 +251,7 @@ function checkView(card, ci) {
 let manip = null, TOOL = null;
 function cssOnce(href) { if (document.querySelector('link[href="' + href + '"]')) return; const l = document.createElement("link"); l.rel = "stylesheet"; l.href = href; document.head.append(l); }
 function loadManip() {
-    if (!manip) { cssOnce("css/manip.css?v=9"); manip = import("./manipPanels.js?v=9").catch((e) => { manip = null; throw e; }); }
+    if (!manip) { cssOnce("css/manip.css?v=11"); manip = import("./manipPanels.js?v=11").catch((e) => { manip = null; throw e; }); }
     return manip;
 }
 /** Put tool k in host. The same check-in keeps the same tool (so a half-typed calculation survives a redraw). */

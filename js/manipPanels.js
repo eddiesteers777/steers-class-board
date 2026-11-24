@@ -11,14 +11,14 @@
    between redraws of the board's panels, so a redraw never drops a drag, a half-typed equation or a spin in flight.
    A drag only moves things on this screen; the shared state is written once, when the finger lifts.
 ========================================== */
-import * as M from "./manipCore.js?v=10";
+import * as M from "./manipCore.js?v=11";
 import { makeCalc } from "./calcPanel.js?v=1";
 import { makeGraph } from "./graphPanel.js?v=1";
 import { makeAngle } from "./anglePanel.js?v=1";
 import { makeFn } from "./fnPanel.js?v=1";
 import { makeArea } from "./areaPanel.js?v=1";
 import { makeNl } from "./nlPanel.js?v=1";
-import { makeSys } from "./sysPanel.js?v=1";
+import { makeSys } from "./sysPanel.js?v=2";
 
 let api = null;
 const panels = new Map();
