@@ -14,7 +14,7 @@
 ========================================== */
 import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MAX_SCENES, MAX_DAYB } from "./boardTools.js?v=64";
 import { SCENES, sceneActive, applyScene, saveScene, panelOn, panelOff, panelToggle, PANEL_INFO, labelOf, icon, LOOK_THEMES, LOOK_BGS, LOOK_PHOTOS, bgName, LOOK_PRESETS,
-    presetTile, photoPicker, photoGroupNow, gradOf, themeCols, MARKS, EFFECTS, FX_AMOUNTS } from "./panels.js?v=17";
+    presetTile, photoPicker, photoGroupNow, gradOf, themeCols, MARKS, EFFECTS, FX_AMOUNTS } from "./panels.js?v=18";
 import { markUrl } from "./marks.js?v=1";
 import { addStepAndEdit } from "./bellPlan.js?v=6";
 import { effectSample } from "./effects.js?v=3";
@@ -63,7 +63,7 @@ function setMode(m, at) {
         const app = $("slideApp"); if (app) app.hidden = true; wantSlides = null; if (editor) editor.closeEditor();
         if (/^#slides/.test(location.hash)) { try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* the address is a convenience */ } }
         if (!A.synced()) { wantSpot = true; return; }   // open on the saved board, once it has arrived
-        import("./spotlight.js?v=10").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
+        import("./spotlight.js?v=11").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
             .catch(() => { setMode("board"); note("saveNote", "Spotlight did not load. Check the connection and reload the page."); });
         return;
     }
