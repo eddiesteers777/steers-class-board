@@ -48,40 +48,48 @@ export function mountAbsences(opts) {
         const bits = []; if (R.outToday) bits.push(R.outToday + " out today"); if (R.warned) bits.push(R.warned + (R.warned === 1 ? " needs" : " need") + " a look");
         head.appendChild(el("span", "abs-sum", bits.join(" · "))); host.appendChild(head);
         if (!R.periods.length) { host.appendChild(el("p", "abs-none", "Nobody marked out in the last two weeks. At the start of class, tap who is out on the Remote (Who’s out).")); const a = el("a", "btn ghost", "Open Remote"); a.href = "remote.html"; host.appendChild(a); return; }
-        // Compact (Eddie, Nov 24: "shrink it down so that it doesn't take up too much space"): one small row per student,
-        // the catch-up link on the name line, at most 3 missed days each, and only the first SHOW students until "Show all".
-        const SHOW = 4; let n = 0; const extra = [];
+        // Collapsed by default (Eddie, Nov 24: "by default condensed ... just shows the student's name and then a brief
+        // description to the right of what they've missed, the specific date, and you can expand that card"). Each student
+        // is one row: name, a few tags, and the missed dates on the right. Tapping the row opens what they missed and what to assign.
+        const SHOW = 6; let n = 0; const extra = [];
+        const md = (k) => { const d = new Date(k + "T12:00:00"); return d.toLocaleDateString("en-US", { weekday: "short" }) + " " + (d.getMonth() + 1) + "/" + d.getDate(); };   // "Tue 11/17"
         R.periods.forEach((P) => {
-            const sec = el("section", "abs-per"), names = D.rost[P.per] || [], grid = el("div", "abs-grid");
+            const sec = el("section", "abs-per"), names = D.rost[P.per] || [], list = el("div", "abs-list");
             sec.appendChild(el("h3", null, P.per + " period" + (P.cls ? " · " + (opts.classLabel ? opts.classLabel(P.cls) : P.cls) : "")));
             P.students.forEach((S) => {
-                const row = el("article", "abs-kid" + (S.warnings.length ? " warn" : "")), top = el("div", "abs-top");
-                top.appendChild(el("b", null, AC.displayName(S.nm, names.length ? names : P.students.map((x) => x.nm))));
-                if (S.today) top.appendChild(el("span", "abs-tag out", "Out today"));
-                if (S.allDone) top.appendChild(el("span", "abs-tag ok", "All caught up"));
-                S.warnings.forEach((w) => { const t = el("span", "abs-tag w-" + w.k, WARN_WORD[w.k] || "Look"); t.title = w.text; top.appendChild(t); });
-                { const a = el("a", "abs-go" + (S.allDone ? "" : " due"), S.allDone ? "Open catch-up" : "Catch-up"); a.href = "catchup.html?p=" + encodeURIComponent(P.per) + "&k=" + encodeURIComponent(S.key); a.title = S.allDone ? "Open catch-up" : "Catch-up: worksheet and assign"; top.appendChild(a); }
+                const row = el("details", "abs-kid" + (S.warnings.length ? " warn" : "") + (S.allDone ? " done" : "")), top = el("summary", "abs-top");
+                const who = el("span", "abs-who"); who.appendChild(el("b", null, AC.displayName(S.nm, names.length ? names : P.students.map((x) => x.nm))));
+                if (S.today) who.appendChild(el("span", "abs-tag out", "Out today"));
+                if (S.allDone) who.appendChild(el("span", "abs-tag ok", "All caught up"));
+                S.warnings.forEach((w) => { const t = el("span", "abs-tag w-" + w.k, WARN_WORD[w.k] || "Look"); t.title = w.text; who.appendChild(t); });
+                top.appendChild(who);
+                const ds = S.days.map((d) => md(d.day)), graded = S.days.reduce((c, d) => c + d.items.filter((i) => i.graded).length, 0);
+                const brief = "Missed " + ds.slice(0, 3).join(", ") + (ds.length > 3 ? " +" + (ds.length - 3) + " more" : "") + (graded ? " · " + graded + " graded" : "");
+                top.appendChild(el("span", "abs-brief", brief));
+                const chev = el("span", "abs-chev"); chev.setAttribute("aria-hidden", "true"); top.appendChild(chev);
                 row.appendChild(top);
-                if (S.warnings.length) row.appendChild(el("p", "abs-warn", S.warnings.map((w) => w.text).join(" · ")));
-                S.days.slice(0, 3).forEach((d) => {
+                const body = el("div", "abs-body");
+                if (S.warnings.length) body.appendChild(el("p", "abs-warn", S.warnings.map((w) => w.text).join(" · ")));
+                S.days.slice(0, 5).forEach((d) => {
                     const line = el("div", "abs-day" + (d.mark && d.mark.st === "done" ? " done" : "")), lp = el("p", "abs-line", d.line); line.appendChild(lp);
                     if (d.mark) lp.appendChild(el("span", "abs-tag " + (d.mark.st === "done" ? "ok" : "out") + " abs-st", STATUS_WORD[d.mark.st] + (d.mark.via ? " (" + ROUTES[d.mark.via].name + ")" : "")));
-                    // Only graded work gets a chip: that is what must not become a zero. Practice is already named in the line.
-                    d.items.filter((i) => i.graded).forEach((i) => { lp.appendChild(document.createTextNode(" ")); lp.appendChild(el("span", "abs-chip graded", i.t + " · " + (i.catName ? "graded, " + i.catName : "graded"))); });
-                    row.appendChild(line);
+                    if (d.items.length) { const chips = el("p", "abs-chips"); d.items.forEach((i) => chips.appendChild(el("span", "abs-chip " + (i.graded ? "graded" : "practice"), i.t + " · " + (i.graded ? (i.catName ? "graded, " + i.catName : "graded") : "practice")))); line.appendChild(chips); }
+                    body.appendChild(line);
                 });
-                if (S.days.length > 3) row.appendChild(el("p", "abs-more", "and " + (S.days.length - 3) + " earlier day" + (S.days.length - 3 === 1 ? "" : "s")));
+                if (S.days.length > 5) body.appendChild(el("p", "abs-more", "and " + (S.days.length - 5) + " earlier day" + (S.days.length - 5 === 1 ? "" : "s")));
+                { const a = el("a", "abs-go" + (S.allDone ? "" : " due"), S.allDone ? "Open catch-up" : "Assign catch-up work"); a.href = "catchup.html?p=" + encodeURIComponent(P.per) + "&k=" + encodeURIComponent(S.key); body.appendChild(a); }
+                row.appendChild(body);
                 if (++n > SHOW) { row.hidden = true; extra.push(row); }
-                grid.appendChild(row);
+                list.appendChild(row);
             });
-            sec.appendChild(grid);
+            sec.appendChild(list);
             host.appendChild(sec);
         });
         host.querySelectorAll(".abs-per").forEach((sec) => { if (![...sec.querySelectorAll(".abs-kid")].some((k) => !k.hidden)) { sec.hidden = true; extra.push(sec); } });
         if (extra.length) {
-            const more = n - SHOW, b = el("button", "abs-all", "Show all " + n); b.type = "button"; b.setAttribute("aria-expanded", "false");
+            const b = el("button", "abs-all", "Show all " + n); b.type = "button"; b.setAttribute("aria-expanded", "false");
             b.onclick = () => { const open = b.getAttribute("aria-expanded") !== "true"; extra.forEach((x) => { x.hidden = !open; }); b.setAttribute("aria-expanded", String(open)); b.textContent = open ? "Show fewer" : "Show all " + n; };
-            b.title = more + " more not shown"; head.appendChild(b);
+            head.appendChild(b);
         }
     }
     draw();
