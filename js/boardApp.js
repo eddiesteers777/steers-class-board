@@ -15,19 +15,19 @@ import { trail } from "./signInTrail.js";
 import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST } from "./boardTools.js?v=77";
 import { FIND_KEYS } from "./findCore.js?v=1";
 import { setPhotoStore } from "./myPhotos.js?v=1";
-import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, isOn, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=37";
+import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, isOn, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=38";
 import { cleanStickers, renderStickers } from "./stickers.js?v=1";
 import * as snd from "./sound.js?v=62";
 import { mountYt, cleanYt, cleanRecent } from "./ytMusic.js?v=3";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { senseIdle } from "./roomSense.js?v=1";
-import { openSettings, closeSettings, refreshSettings, psOpen } from "./panelSettings.js?v=23";
+import { openSettings, closeSettings, refreshSettings, psOpen } from "./panelSettings.js?v=24";
 import { applySty } from "./panelStyle.js?v=1";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=63";
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=90";
-import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes, sendPanel, canSend, mountStageLayer } from "./liveNotes.js?v=16";
-import { findItem } from "./findPanel.js?v=11";
+import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes, sendPanel, canSend, mountStageLayer } from "./liveNotes.js?v=17";
+import { findItem } from "./findPanel.js?v=12";
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 import { notesFrames } from "./notesFrames.js?v=1";
 import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=6";
@@ -963,7 +963,7 @@ function render() {
    Only walkthroughs the teacher has checked (walk.html, or "Looks right" here on the Remote) are ever shown on the board. */
 let walkMods = null, WALKITEMS = null, WALKOK = {}, WALKED = {}, walkIn = false, stepPlayer = null, stepFor = "", stepReady = false;
 function stepsLoad() {
-    if (!walkMods) walkMods = Promise.all([import("./walkBank.js?v=11"), import("./stepPlayer.js?v=5"), import("./walk.js?v=11")]).then(async ([wb, sp, wk]) => { WALKITEMS = await wb.loadWalkItems(); return { wb, sp, wk }; });
+    if (!walkMods) walkMods = Promise.all([import("./walkBank.js?v=12"), import("./stepPlayer.js?v=5"), import("./walk.js?v=12")]).then(async ([wb, sp, wk]) => { WALKITEMS = await wb.loadWalkItems(); return { wb, sp, wk }; });
     return walkMods;
 }
 /* Show Steps on a slide (Board Builder > Slides > Show Steps): the same player, inside the slide, one step per Next.
@@ -2193,8 +2193,8 @@ export async function startApp(opts) {
     }); }
     store.watch("rosters/all", (snap) => { const p = (snap.exists && snap.data && snap.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); renderLayer(); }, () => {});
     if (!guest) {
-        store.watch("walk/ok", (snap) => { if (snap.pending) return; import("./walkBank.js?v=11").then((wb) => { WALKOK = wb.cleanOk(snap.exists ? snap.data : null); walkIn = true; if (synced && ["steps", "deck", "canvas"].includes(S.screen)) render(); if (synced && FIND_KEYS.some((k) => S.tools.on[k])) { layerSig = ""; renderLayer(); } }); }, () => { walkIn = true; });
-        store.watch("walk/edits", (snap) => { if (snap.pending) return; import("./walkBank.js?v=11").then((wb) => { WALKED = wb.cleanEdits(snap.exists ? snap.data : null); if (synced && ["steps", "deck", "canvas"].includes(S.screen)) { sig = ""; render(); } }); }, () => {});
+        store.watch("walk/ok", (snap) => { if (snap.pending) return; import("./walkBank.js?v=12").then((wb) => { WALKOK = wb.cleanOk(snap.exists ? snap.data : null); walkIn = true; if (synced && ["steps", "deck", "canvas"].includes(S.screen)) render(); if (synced && FIND_KEYS.some((k) => S.tools.on[k])) { layerSig = ""; renderLayer(); } }); }, () => { walkIn = true; });
+        store.watch("walk/edits", (snap) => { if (snap.pending) return; import("./walkBank.js?v=12").then((wb) => { WALKED = wb.cleanEdits(snap.exists ? snap.data : null); if (synced && ["steps", "deck", "canvas"].includes(S.screen)) { sig = ""; render(); } }); }, () => {});
     } else walkIn = true;
     if (!guest) store.watch("seats/chart", (snap) => { if (snap.pending) return; SEATS = cleanChart(snap.exists ? snap.data : null); seatsIn = true; if (synced && S.screen === "seats") render(); }, () => { seatsIn = true; });
     else seatsIn = true;
