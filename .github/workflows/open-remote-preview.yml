@@ -1,0 +1,29 @@
+name: Open Remote button preview pictures (temporary, branch only)
+# Before and after pictures of the Absences card's Open Remote button. Remove before merging.
+on:
+  push:
+    branches: [claude/open-remote-button]
+permissions:
+  contents: write
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install playwright@1.49.1 && npx playwright install --with-deps chromium
+      - run: |
+          mkdir before && git archive origin/main | tar -x -C before
+          python3 -m http.server 5000 &
+          sleep 2
+          PLAYWRIGHT=$PWD/node_modules/playwright/index.js node tools/attendance/remote-btn-shots.mjs shots
+      - name: Put the pictures on a throwaway branch (preview/open-remote-button)
+        if: always()
+        run: |
+          cd shots
+          git init -q -b preview && git config user.name "preview" && git config user.email "preview@users.noreply.github.com"
+          git add -A && git commit -qm "Open Remote preview pictures" && git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" preview:preview/open-remote-button
