@@ -17,6 +17,7 @@
 import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MATH_LIST } from "./boardTools.js?v=65";
 import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker, photoGroupNow, gradOf } from "./panels.js?v=23";
 import { wbIcon } from "./wbIcons.js?v=1";
+import { FIND_KEYS } from "./findCore.js?v=1";
 
 let A = null, host = null, onBack = null, tucked = false, sheet = "", picked = "", built = false, lastSig = "", musicHooked = false;
 const PREF = "anchorboard-spot-tucked";
@@ -152,6 +153,15 @@ const shortName = (k, label) => SHORT[k] || label;
 /* ---------- doing things ---------- */
 function togglePanel(k) {
     const T = A.S.tools;
+    if (k === "find") {   // one button for every Find panel (up to four): off takes them all off, on brings them all back
+        const open = FIND_KEYS.filter((x) => T.on[x]);
+        if (open.some((x) => !T.min[x] && T.pos[x])) { open.forEach((x) => panelOff(T, x)); if (FIND_KEYS.includes(picked)) { picked = ""; sheet = ""; } A.push(); return; }
+        if (open.length && !(open.length === 1 && open[0] === "find")) {
+            open.forEach((x) => { delete T.min[x]; if (!T.pos[x]) T.pos[x] = A.defaultPos(x); }); A.push();
+            open.forEach((x) => { const w = document.querySelector('#toolLayer [data-panel="' + x + '"]'); if (w) { w.classList.remove("sppop"); void w.offsetWidth; w.classList.add("sppop"); } });
+            return;
+        }
+    }
     if (T.on[k] && !T.min[k] && T.pos[k]) { panelOff(T, k); if (picked === k) { picked = ""; sheet = ""; } A.push(); return; }
     // on, small or on the side: bring it onto the screen, floating, right away
     if (T.on[k]) { delete T.min[k]; if (!T.pos[k]) T.pos[k] = A.defaultPos(k); }
@@ -252,7 +262,8 @@ function paint() {
     host.querySelectorAll(".spm").forEach((b) => { const on = (b.dataset.m === "draw") === drawing; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("on", on); });
     host.querySelectorAll(".sprack .spt").forEach((b) => {
         const k = b.dataset.k, ok = A.panelOk(k); b.hidden = !ok;
-        const st = !T.on[k] ? "off" : T.min[k] ? "min" : "on"; b.dataset.st = st; b.setAttribute("aria-pressed", String(st !== "off"));
+        const fk = k === "find" ? FIND_KEYS.filter((x) => T.on[x]) : null;   // the Find button stands for every Find panel
+        const st = fk ? (!fk.length ? "off" : fk.every((x) => T.min[x]) ? "min" : "on") : !T.on[k] ? "off" : T.min[k] ? "min" : "on"; b.dataset.st = st; b.setAttribute("aria-pressed", String(st !== "off"));
         b.title = (st === "off" ? "Add " : st === "min" ? "Bring back " : "Take off ") + labelOf(k).toLowerCase();
     });
     { const b = host.querySelector(".sptbg"); b.setAttribute("aria-pressed", String(sheet === "look")); b.classList.toggle("on", sheet === "look"); }
