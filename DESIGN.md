@@ -59,6 +59,12 @@ simpler, one less thing.
     its own: the lesson row (‹ week ›, class when there is more than one, Mon–Fri, saved, Teach this slide, ⋯) sits in
     the Board Builder header (`#slBarSlot`), with the tools under it. The ⋯ holds Start from my plan, Copy to another day
     or class, and Put it on the board, stay here. A slide that has a Spotlight screen gets an "In Spotlight" badge.
+  - **Panels, bank problems and Show Steps on a slide (Nov 24, Eddie: "finish slides").** A slide can carry panels
+    (`pn`: timer seconds, target, agenda); Spotlight opens them once when it reaches that slide's screen (`pa` on the
+    screen remembers it), so one closed in class stays closed. Bank > Practice problems makes one slide per picked
+    standards-bank problem with its answer on Next. Bank > Show Steps puts a walkthrough (`k:"wk"`) on a slide; it
+    counts as (steps - 1) Next presses, and the board only plays it once the teacher has checked it (adding it from
+    Slides with "Looks right, add it" checks it). Spotlight's Next shows a slide's on-Next pieces before the next screen.
   - **Screens list (Nov 21, Eddie: "get rid of some of those tabs"; Slides is the main one).** Slides comes first as
     a card ("6 slides for Monday", "Slide 2 of 6 on the board"). Tapping it puts the slides on the board and opens a
     list of that day's slides as small pictures (every-day ones tagged); tapping one shows it. Then the screens used
