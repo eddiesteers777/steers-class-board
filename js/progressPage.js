@@ -34,7 +34,7 @@ export async function mountProgress() {
     const demo = new URLSearchParams(location.search).has("demo");
     const store = await import(demo ? "./localStore.js?v=57" : "./boardStore.js?v=58");
     // This teacher's periods and the class each one is (Mr. Steers' five, or a new teacher's own from Setup).
-    const PER = demo ? DEMO_PERIODS : (await import("../data/weeks.js?v=61")).PERIODS;
+    const PER = demo ? DEMO_PERIODS : (await import("../data/weeks.js?v=62")).PERIODS;
     const CLS = Object.fromEntries(PER), PERIODS = PER.map(([p, c]) => [p, (STANDARDS[c] && STANDARDS[c].label) || c]);
     const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
 

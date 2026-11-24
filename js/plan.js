@@ -8,7 +8,8 @@
    ?demo keeps everything on this device. ?week=week6 opens a given week.
 ========================================== */
 import { STANDARDS } from "../data/standards.js?v=58";
-import { WEEKS as PUBLISHED } from "../data/weeks.js?v=61";
+import { WEEKS as PUBLISHED } from "../data/weeks.js?v=62";
+import { toLoginIfSignedOut } from "./signedOut.js?v=1";
 import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, eventsOn, nineWeeksOf, daysLeftInNineWeeks, short, parse } from "./schoolCal.js?v=58";
 import { nextUp } from "./standardsNext.js?v=58";
 import { watchPrivateWeeks, weekIdFor } from "./weeksLive.js?v=58";
@@ -459,7 +460,7 @@ $("shared").oninput = () => { if (plan) { plan.shared = $("shared").value; touch
 window.addEventListener("beforeunload", (e) => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 
 const user = await store.ready();
-if (!user) location.replace("login.html");
+if (!user) toLoginIfSignedOut();   // "Still signing in…" and one more check before login (Nov 23)
 else {
     $("who").textContent = demo ? "This device only, nothing is saved" : (user.name ? "Signed in as " + user.name : "Signed in");
     status(demo ? "This device only" : "Loading…", demo ? "ok" : "wait");

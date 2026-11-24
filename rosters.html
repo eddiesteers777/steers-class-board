@@ -52,7 +52,7 @@
     </main>
     <script type="module">
         import * as store from "./js/boardStore.js?v=58";
-        import { PERIODS } from "./data/weeks.js?v=61";
+        import { PERIODS } from "./data/weeks.js?v=62";
         import { parseCsv, rowsToRosters, shortNames } from "./js/rosterImport.js?v=1";
         const KEYS = PERIODS.map((p) => p[0]), $ = (id) => document.getElementById(id), boxes = {};
         const status = (t) => { const s = $("status"); s.textContent = t; s.dataset.state = /^(Live|Saved|Filled)/.test(t) ? "ok" : (/Could not|No period/.test(t) ? "bad" : "wait"); };
