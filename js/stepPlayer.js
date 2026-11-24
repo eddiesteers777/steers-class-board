@@ -272,7 +272,8 @@ const pics = {
     },
     slice(p) {
         // a solid drawn in 3D, the flat cut through it in amber, and the flat shape the cut leaves, drawn beside it
-        const W = 640, H = 300, P = (x, y, z) => [x + 0.5 * y, -z - 0.32 * y];
+        // round solids are seen tipped toward you, so their circles stay level ellipses; the flat-faced solids are drawn on a slant
+        const W = 640, H = 300, P = ["sphere", "cylinder", "cone"].includes(p.solid) ? (x, y, z) => [x, -0.947 * z - 0.32 * y] : (x, y, z) => [x + 0.5 * y, -z - 0.32 * y];
         const ring = (r, z, cx = 0, cy = 0, n = 48) => Array.from({ length: n }, (_, i) => [cx + r * Math.cos((2 * Math.PI * i) / n), cy + r * Math.sin((2 * Math.PI * i) / n), z]);
         const S = p.solid, cut = p.cut, solid = [], dash = [];   // polylines of 3D points
         let face = null;
@@ -293,7 +294,7 @@ const pics = {
             else if (cut === "off") { const y0 = -d / 4, zt = h * (1 - Math.abs(y0) / (d / 2)), k = 1 - zt / h; face = [[-w / 2, y0, 0], [w / 2, y0, 0], [(w / 2) * k, y0, zt], [(-w / 2) * k, y0, zt]]; }
         };
         const round = (r, h, top) => {
-            const b = ring(r, 0); solid.push(b.filter((q) => q[1] <= 0.01)); dash.push(b.filter((q) => q[1] >= -0.01));
+            const b = ring(r, 0); solid.push([...b.slice(24), b[0]]); dash.push(b.slice(0, 25));   // front half solid, back half dashed
             if (top) { const t = ring(r, h); solid.push([...t, t[0]], [[-r, 0, 0], [-r, 0, h]], [[r, 0, 0], [r, 0, h]]); }
             else solid.push([[-r, 0, 0], [0, 0, h], [r, 0, 0]]);
             if (cut === "flat") face = top ? ring(r, h * 0.5) : ring(r * 0.5, h * 0.5);
@@ -303,7 +304,7 @@ const pics = {
         if (S === "prism") box(3.2, 2, 2.2); else if (S === "cube") box(2.4, 2.4, 2.4);
         else if (S === "sqpyr") pyr(2.6, 2.6, 2.8); else if (S === "rectpyr") pyr(3.2, 2.2, 2.8);
         else if (S === "cylinder") round(1.2, 2.6, true); else if (S === "cone") round(1.3, 2.8, false);
-        else if (S === "sphere") { const e = ring(1.5, 0); solid.push([...e, e[0]].filter((q) => q[1] <= 0.01)); dash.push(e.filter((q) => q[1] >= -0.01)); face = ring(1.2, 0.9); }
+        else if (S === "sphere") { const e = ring(1.5, 0); solid.push([...e.slice(24), e[0]]); dash.push(e.slice(0, 25)); face = ring(1.2, 0.9); }
         const all = [...solid, ...dash, face || []].flat().map((q) => P(...q));
         if (S === "sphere") all.push([-1.5, -1.5], [1.5, 1.5]);
         const xs = all.map((q) => q[0]), ys = all.map((q) => q[1]), x0 = Math.min(...xs), y0 = Math.min(...ys);
@@ -345,9 +346,10 @@ const pics = {
         const X = (v) => L + ((v - xr[0]) / (xr[1] - xr[0])) * (R - L), Y = (v) => B - ((v - yr[0]) / (yr[1] - yr[0])) * (B - Tp);
         const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, class: "sp-pic", width: W, role: "img", "aria-label": p.label || "A graph" });
         svg.appendChild(sv("path", { d: `M${L} ${Tp}L${L} ${B}L${R} ${B}`, fill: "none", stroke: PEN.ink, "stroke-width": 3 }));
-        (p.xt || []).forEach((v) => { svg.appendChild(sv("line", { x1: X(v), y1: B, x2: X(v), y2: B + 8, stroke: PEN.ink, "stroke-width": 2 })); const t = sv("text", { x: X(v), y: B + 30, "text-anchor": "middle", "font-size": 20 }); t.textContent = String(v).replace("-", MINUS); svg.appendChild(t); });
-        (p.yt || []).forEach((v) => { svg.appendChild(sv("line", { x1: L - 8, y1: Y(v), x2: L, y2: Y(v), stroke: PEN.ink, "stroke-width": 2 })); const t = sv("text", { x: L - 14, y: Y(v) + 7, "text-anchor": "end", "font-size": 20 }); t.textContent = String(v).replace("-", MINUS); svg.appendChild(t); });
-        if (p.xl) { const t = sv("text", { x: (L + R) / 2, y: H - 2, "text-anchor": "middle", "font-size": 20 }); t.textContent = p.xl; svg.appendChild(t); }
+        (p.xt || []).forEach((v) => { svg.appendChild(sv("line", { x1: X(v), y1: B, x2: X(v), y2: B + 8, stroke: PEN.ink, "stroke-width": 2 })); const t = sv("text", { x: X(v), y: B + 30, "text-anchor": "middle", "font-size": 25 }); t.textContent = String(v).replace("-", MINUS); svg.appendChild(t); });
+        (p.yt || []).forEach((v) => { svg.appendChild(sv("line", { x1: L - 8, y1: Y(v), x2: L, y2: Y(v), stroke: PEN.ink, "stroke-width": 2 })); const t = sv("text", { x: L - 14, y: Y(v) + 7, "text-anchor": "end", "font-size": 25 }); t.textContent = String(v).replace("-", MINUS); svg.appendChild(t); });
+        if (p.xl) { const t = sv("text", { x: (L + R) / 2, y: H - 2, "text-anchor": "middle", "font-size": 25 }); t.textContent = p.xl; svg.appendChild(t); }
+        if (p.yl) { const t = sv("text", { x: 0, y: 0, "text-anchor": "middle", "font-size": 25, transform: `translate(${p.yt && p.yt.length ? 16 : 40} ${(Tp + B) / 2}) rotate(-90)` }); t.textContent = p.yl; svg.appendChild(t); }
         const marks = [];
         if (p.line) {
             const pts = p.line;
