@@ -967,12 +967,32 @@ function build(W, item) {
     const q = String(item.q || ""), setup = item.walk || null;
     let m;
     // a word problem whose setup is stored with it (tools/stdbank → data/stdbank/walk.js)
-    if (setup && setup.eq) return solveSetup(W, item, setup.eq, { story: setup.story, why0: setup.why, then: setup.then, var: setup.var, end: setup.end });
+    if (setup && setup.eq) return solveSetup(W, item, setup.eq, { story: setup.story, why0: setup.why, then: setup.then, var: setup.var, end: setup.end, whole: setup.whole });
     if (setup && setup.quad) return quadSetup(W, item, Object.assign({ why0: setup.why }, setup));
     if (setup && setup.grow) return growSetup(W, item, Object.assign({ why0: setup.why }, setup));
     if (setup && setup.expr) return evalSetup(W, item, setup.expr, { story: setup.story, why0: setup.why });
     if (setup && setup.simp) return simpStory(W, item, Object.assign({ why0: setup.why }, setup));
     if (setup && setup.write) return writeStory(W, item, Object.assign({ why0: setup.why }, setup));
+    if (setup && setup.line) return lineSetup(W, item, Object.assign({ why0: setup.why }, setup.line, { story: setup.story }));
+    if (setup && setup.prop) return propSetup(W, item, Object.assign({ why0: setup.why }, setup.prop, { story: setup.story }));
+    if (setup && setup.rates) return ratesSetup(W, item, Object.assign({ why0: setup.why }, setup.rates, { story: setup.story }));
+    if (setup && setup.cmp) return cmpSetup(W, item, Object.assign({ why0: setup.why }, setup.cmp, { story: setup.story }));
+    // lines through two points, proportional tables, linear or not
+    const P2 = (s) => pairsIn(s).map((p) => p.map(qIn));
+    const XY = (xs, ys) => { const a = xs.split(/\s*,\s*/), b = ys.split(/\s*,\s*/); return a.length === b.length ? a.map((x, i) => [x, b[i]]) : null; };
+    if ((m = q.match(/^Write the function for the line through (\(.+?\)) and (\(.+?\))\.$/))) return lineSetup(W, item, { pts: P2(m[1] + m[2]), ask: "eq" });
+    if ((m = q.match(/^A linear function passes through the points (\(.+?\)) and (\(.+?\))\. Write the equation of the function in y = mx \+ b form\.$/))) return lineSetup(W, item, { pts: P2(m[1] + m[2]), ask: "eq" });
+    if ((m = q.match(/^A (?:line goes through|table of a linear function contains the points) (\(.+?\)) and (\(.+?\))\. What is the rate of change\?$/))) return lineSetup(W, item, { pts: P2(m[1] + m[2]), ask: "m" });
+    if ((m = q.match(/^A table of a linear function gives (\(.+?\)) and (\(.+?\))\. What is the initial value \(y-intercept\) of this function\?$/))) return lineSetup(W, item, { pts: P2(m[1] + m[2]), ask: "b" });
+    if ((m = q.match(/^A table shows x: (.+?) and y: (.+?)\. Write the function\.$/)) && XY(m[1], m[2])) return lineSetup(W, item, { pts: XY(m[1], m[2]), ask: "eq" });
+    if ((m = q.match(/^Is this table proportional\? x: (.+?) and y: (.+)$/)) && XY(m[1], m[2])) return propSetup(W, item, { pts: XY(m[1], m[2]), ask: "yes" });
+    if ((m = q.match(/^A table shows the \(x, y\) pairs (.+?)\. Does this table represent a proportional relationship\?$/))) return propSetup(W, item, { pts: pairsIn(m[1]), ask: "yes" });
+    if ((m = q.match(/^The points (.+?) are on a line through the origin\. What is the constant of proportionality\?$/))) return propSetup(W, item, { pts: pairsIn(m[1]), ask: "k" });
+    if ((m = q.match(/^A table shows x: (.+?) and y: (.+?)\. Find the constant of proportionality \(y per x\)\.$/)) && XY(m[1], m[2])) return propSetup(W, item, { pts: XY(m[1], m[2]), ask: "k" });
+    if (/^Which set of \(x, y\) pairs represents a proportional relationship\?$/.test(q)) return propSetup(W, item, { ask: "sets" });
+    if ((m = q.match(/^Which equation is proportional\? (A\. .+)$/))) return propSetup(W, item, { ask: "eqs", choices: m[1].split(/\s+(?=[A-D]\. )/).map((x) => ({ label: x[0], x: x.slice(3).trim() })) });
+    if ((m = q.match(/^Table: x (.+?) and y (.+?)\. Linear or non-linear\?$/)) && XY(m[1], m[2])) return linTableSetup(W, item, XY(m[1], m[2]));
+    if ((m = q.match(/^Examine the table: (.+?)\. Is this function linear or non-linear\? Explain\.$/))) return linTableSetup(W, item, m[1].split(/\s*;\s*/).map((s) => (s.match(/x = ([^,]+), y = (.+)/) || []).slice(1)));
     // is it a function?
     const rel = relParse(q);
     if (rel) return relSetup(W, item, rel);
@@ -987,7 +1007,8 @@ function build(W, item) {
     const fn = funcParse(q);
     if (fn && fn.at != null) return funcSetup(W, item, fn);
     if (fn && fn.out != null) return solveSetup(W, item, fn.rule.replace(new RegExp(fn.v, "g"), fn.solveFor) + " = " + fn.out, { intro: { title: "Write the equation", why: fn.label + " = " + fn.out + " means the output is " + fn.out + ". Set the rule equal to " + fn.out + " and solve for " + fn.solveFor + ".", rows: [{ t: "line", cells: [R([fn.name + "(" + fn.v + ")"]), "=", exprDT(tidyParens(parseExpr(W, fn.rule)))] }] } });
-    if ((m = q.match(/^Solve(?: and [^:]*)?:\s*(.+)$/))) return solveSetup(W, item, m[1], {});
+    if ((m = q.match(/^Solve(?: for [a-z])?(?: and [^:]*)?:\s*(.+)$/))) return solveSetup(W, item, m[1], {});
+    if ((m = q.match(/^Solve (.+?) and describe the graph of its solution set on a number line\.$/))) return solveSetup(W, item, m[1], {});
     if ((m = q.match(/^How many solutions does (.+) have\?$/))) return solveSetup(W, item, m[1], { count: true });
     if ((m = q.match(/^A complex fraction has (.+?) on top and (.+?) on the bottom\. Simplify it\.$/))) return evalSetup(W, item, { k: "cf", a: parseExpr(W, m[1]), b: parseExpr(W, m[2]), id: key(W) }, { cf: true });
     if ((m = q.match(/^Use the distributive property to find: (\d+) × (\d+)\{(\d+)\/(\d+)\}$/))) return distribNumber(W, item, +m[1], +m[2], +m[3], +m[4]);
@@ -1085,6 +1106,20 @@ function solveSetup(W, item, eqText, o) {
         else { const got = item.a.split(",").map((p) => qOf(p.split("=")[1].replace(/[°\s]/g, ""))); if (got.length !== vals.length || got.some((g, i) => !g || !g.eq(vals[i].val))) throw new Error("key"); }
     } else if (o.count) {
         if (!(key && ((key.kind === "eq" && res.kind === "eq" && res.val.eq(key.v)) || key.kind === res.kind))) throw new Error("key");
+    } else if (o.whole && res.kind === "rel" && (res.rel === "≤" || res.rel === "<")) {
+        // "at most how many": the answer is the largest whole number that works
+        const fl = new Q(Math.floor(res.val.toNumber())), w = res.rel === "<" && res.val.int ? res.val.sub(ONE) : fl;
+        const st = W.dec && terminates(res.val) ? "dec" : "mixed", vT = numText(res.val, st);
+        if (!res.val.int && st === "mixed") {
+            // 203/13 on its own means little: say it as a mixed number, on the graph too
+            const fT = numText(res.val, "frac");
+            W.steps.forEach((s) => { if (s.move === "check" || s.move === "graph") s.why = s.why.split(fT).join(vT); s.seq.forEach((x) => { if (x.a === "row" && x.row.t === "pic" && x.row.pic.kind === "ineq" && x.row.pic.atT === fT) x.row.pic.atT = vT; }); });
+        }
+        W.steps.push({ move: "then", title: "Answer the question", why: (!res.val.int && st === "mixed" ? numText(res.val, "frac") + " = " + vT + ". " : "") + res.v + " has to be a whole number of " + o.whole + ". The largest whole number with " + res.v + " " + res.rel + " " + vT + " is " + w.n + ".",
+            seq: [{ a: "row", row: { t: "line", cells: [R(["Most " + o.whole + " = " + w.n]), null, null], chain: true, sem: { truth: relTrue(w, res.rel, res.val) && !relTrue(w.add(ONE), res.rel, res.val) } } }] });
+        const a = String(item.a).replace(/(\d),(\d{3})/g, "$1$2"), head = a.split(";")[0];
+        if (!new RegExp("(^|[^\\d.])" + w.n + "([^\\d.]|$)").test(a.split(";").pop())) throw new Error("key");
+        if (/[<>≤≥]/.test(head) && head.replace(/\s/g, "") !== eqText.replace(/\s/g, "").replace(/(\d),(\d{3})/g, "$1$2")) throw new Error("key");
     } else matchKey(res, key, item);
     if (o.pic && o.pic.kind === "triangle" && res.kind === "eq") {
         // the picture shows the real angles once x is known
@@ -1844,6 +1879,242 @@ function choiceSimpSetup(W, item, text, choices, which) {
     const got = hits[0].c.label || hits[0].c.x;
     if (String(item.a).trim() !== got) throw new Error("key");
     answerStep(W, item.a, which === "same" ? "Only " + got + " is the same as " + simpleT + "." : "Every other choice simplifies to " + simpleT + ". " + got + " doesn't.");
+    return true;
+}
+
+/* ---------- lines and proportions: rate of change from two points, the starting value, the function, k = y ÷ x ---------- */
+const nDT = (W, q) => numDT(q, W.dec && terminates(q) ? "dec" : "frac");
+const nTx = (W, q) => dtText(nDT(W, q));
+const pDT = (W, q) => (q.sign < 0 ? R(["(", nDT(W, q), ")"]) : nDT(W, q));
+const pTx = (W, q) => dtText(pDT(W, q));
+const ptDT = (W, p) => R(["(", nDT(W, p[0]), ", ", nDT(W, p[1]), ")"]);
+const ptTx = (W, p) => dtText(ptDT(W, p));
+const rowT = (items, truth, o) => Object.assign({ t: "line", cells: [R(items), null, null], sem: { truth: !!truth }, chain: true }, o || {});
+const qIn = (t) => (t instanceof Q ? t : qOf(String(t)));
+/** m·v + b written out: "4x + 3", "−20x + 500", or "500 − 20x" with bFirst */
+function mbDT(W, m, b, v, bFirst) {
+    const mv = (mm) => (mm.eq(ONE) ? [v] : mm.eq(ONE.neg()) ? [MINUS + v] : [nDT(W, mm), v]);
+    if (m.zero) return R([nDT(W, b)]);
+    if (b.zero) return R(mv(m));
+    if (bFirst) return R([nDT(W, b), m.sign < 0 ? " " + MINUS + " " : " + ", ...mv(m.abs())]);
+    return R([...mv(m), b.sign < 0 ? " " + MINUS + " " : " + ", nDT(W, b.abs())]);
+}
+/** "m(x) + b = y ✓" with the numbers in, for a check row */
+const plugDT = (W, m, b, x, y) => R([pDT(W, m), "(", nDT(W, x), ")", b.zero ? "" : b.sign < 0 ? " " + MINUS + " " : " + ", b.zero ? "" : nDT(W, b.abs()), " = ", nDT(W, y), " ✓"]);
+/** "y = 4x + 3", "C(g) = 25g + 250": the key has to be the same line */
+function keyLine(W, a, fy, v, m, b) {
+    const k = String(a).replace(/(\d),(\d{3})/g, "$1$2").replace(/§/g, "").match(/^\s*(.+?)\s*=\s*(.+?)\s*$/);
+    if (!k || k[1].replace(/\s/g, "") !== fy.replace(/\s/g, "")) throw new Error("key");
+    const at = (x) => valueOf(parseExpr(W, k[2], { [v]: x }));
+    if (!at(ZERO).eq(b) || !at(ONE).eq(m.add(b)) || !at(new Q(7)).eq(m.mul(new Q(7)).add(b))) throw new Error("key");
+}
+const keyNum = (a) => { const k = readKey(a); return k && (k.kind === "num" || k.kind === "eq") ? k.v : null; };
+const hasNum = (a, q) => new RegExp("(^|[^\\d.])" + numText(q.abs(), "dec").replace(".", "\\.") + "(0?)([^\\d.]|$)").test(String(a).replace(/(\d),(\d{3})/g, "$1$2"));
+function storyRow(item, marks) { return { a: "row", row: { t: "pic", pic: { kind: "story", text: item.q, marks: marks || [] } } }; }
+
+/** A linear function from two points (or from its rate and start): the rate of change, the starting value, the function, and what the question asks. */
+function lineSetup(W, item, o) {
+    W.kind = "rel"; W.cols = 3;
+    const v = o.v || "x", fy = o.fy || "y";
+    const pts = (o.pts || []).map((p) => p.map(qIn));
+    if (pts.some((p) => p.some((t) => !t))) return null;
+    W.dec = !!o.dec || (o.pts || []).some((p) => p.some((t) => /\./.test(String(t)))) || /\./.test(String(o.m)) || /\./.test(String(o.b));
+    let m = o.m != null ? qIn(o.m) : null, b = o.b != null ? qIn(o.b) : null;
+    const ask = o.ask || "eq";
+    if (o.story) W.steps.push({ move: "story", title: "Read the story", why: o.why0 || "Find the numbers in the story and what each one means.", seq: [storyRow(item, o.story)] });
+    if (pts.length >= 2) {
+        W.steps.push({ move: "start", title: o.story ? "Write the points" : "The points", why: o.ptsWhy || (o.story ? "Each pair is (" + v + ", " + fy + ")." : "Use two points on the line. Each one is (" + v + ", " + fy + ")."),
+            seq: [{ a: "row", row: rowT(pts.flatMap((p, i) => (i ? [" and ", ptDT(W, p)] : [ptDT(W, p)])), true) }] });
+    }
+    if (m == null) {
+        if (pts.length < 2) return null;
+        const [[x1, y1], [x2, y2]] = pts;
+        if (x1.eq(x2)) return null;
+        const dy = y2.sub(y1), dx = x2.sub(x1); m = dy.div(dx);
+        W.steps.push({ move: "slope", title: "Find the rate of change", why: o.mWhy || ("Rate of change = the change in " + fy + " ÷ the change in " + v + ". " + fy + " goes from " + nTx(W, y1) + " to " + nTx(W, y2) + ", a change of " + nTx(W, dy) + ". " + v + " goes from " + nTx(W, x1) + " to " + nTx(W, x2) + ", a change of " + nTx(W, dx) + "."),
+            seq: [{ a: "row", row: rowT(["m = ", F(nTx(W, y2) + " − " + pTx(W, y1), nTx(W, x2) + " − " + pTx(W, x1)), " = ", ...(dx.eq(ONE) ? [] : [F(nTx(W, dy), nTx(W, dx)), " = "]), nDT(W, m)], m.mul(dx).eq(dy)) }] });
+    } else if (o.mWhy) W.steps.push({ move: "slope", title: "The rate of change", why: o.mWhy, seq: [{ a: "row", row: rowT(["m = ", nDT(W, m)], true) }] });
+    if (ask === "m") {
+        if (o.check !== false && pts.length > 2) W.steps.push({ move: "check", title: "Check", why: "Each step to the next point gives the same rate.", seq: pts.slice(1).map((p, i) => ({ a: "row", row: rowT([F(nTx(W, p[1]) + " − " + pTx(W, pts[i][1]), nTx(W, p[0]) + " − " + pTx(W, pts[i][0])), " = ", nDT(W, m), " ✓"], p[1].sub(pts[i][1]).eq(m.mul(p[0].sub(pts[i][0]))), { c: "w-check" }) })) });
+        const k = keyNum(item.a); if (!k || !k.eq(m)) throw new Error("key");
+        answerStep(W, item.a, o.end || ""); return true;
+    }
+    if (ask === "at") {
+        const [x2, y2] = pts[pts.length - 1], x3 = qIn(o.at), y3 = y2.add(m.mul(x3.sub(x2))), dx = x3.sub(x2);
+        W.steps.push({ move: "at", title: "Find " + (o.atName || fy), why: "From " + v + " = " + nTx(W, x2) + " to " + v + " = " + nTx(W, x3) + " is " + nTx(W, dx) + " more. Each 1 more adds " + nTx(W, m) + ", so add " + nTx(W, m) + " × " + nTx(W, dx) + ".",
+            seq: [{ a: "row", row: rowT([(o.atName || fy) + " = ", nDT(W, y2), " + ", nDT(W, m), "(", nDT(W, dx), ") = ", nDT(W, y3)], true) }] });
+        const k = readKey(item.a); if (!k || k.kind !== "eq" || !k.v.eq(y3)) throw new Error("key");
+        answerStep(W, item.a, o.end || ""); return true;
+    }
+    if (b == null) {
+        const p0 = pts.find((p) => p[0].zero);
+        if (p0) {
+            b = p0[1];
+            W.steps.push({ move: "start0", title: "Find the starting value", why: o.bWhy || ("The starting value b is " + fy + " when " + v + " = 0. The point " + ptTx(W, p0) + " says it's " + nTx(W, b) + "."), seq: [{ a: "row", row: rowT(["b = ", nDT(W, b)], true) }] });
+        } else {
+            const [x1, y1] = pts[0], mx = m.mul(x1); b = y1.sub(mx);
+            W.steps.push({ move: "start0", title: "Find the starting value", why: o.bWhy || ("Put m = " + nTx(W, m) + " and the point " + ptTx(W, pts[0]) + " into " + fy + " = m" + v + " + b. " + pTx(W, m) + " × " + pTx(W, x1) + " = " + nTx(W, mx) + ", so b = " + nTx(W, y1) + " − " + pTx(W, mx) + " = " + nTx(W, b) + "."),
+                seq: [{ a: "row", row: rowT([nDT(W, y1), " = ", pDT(W, m), "(", nDT(W, x1), ") + b"], true) }, { a: "row", row: rowT([nDT(W, y1), " = ", nDT(W, mx), " + b"], true) },
+                    { a: "row", row: rowT(["b = ", nDT(W, y1), " − ", pDT(W, mx), " = ", nDT(W, b)], y1.sub(mx).eq(b)) }] });
+        }
+    } else if (o.bWhy) W.steps.push({ move: "start0", title: "The starting value", why: o.bWhy, seq: [{ a: "row", row: rowT(["b = ", nDT(W, b)], true) }] });
+    if (ask === "b") {
+        const k = keyNum(item.a); if (!k || !k.eq(b)) throw new Error("key");
+        if (pts.length >= 2 && !pts.some((p) => p[0].zero)) W.steps.push({ move: "check", title: "Check", why: "Use the other point: " + pTx(W, m) + " × " + pTx(W, pts[1][0]) + " + " + pTx(W, b) + " should be " + nTx(W, pts[1][1]) + ".", seq: [{ a: "row", row: rowT([plugDT(W, m, b, pts[1][0], pts[1][1])], m.mul(pts[1][0]).add(b).eq(pts[1][1]), { c: "w-check" }) }] });
+        answerStep(W, item.a, o.end || ""); return true;
+    }
+    if (ask === "mb") {
+        if (!hasNum(item.a, m) || !hasNum(item.a, b)) throw new Error("key");
+        answerStep(W, item.a, o.end || ""); return true;
+    }
+    W.steps.push({ move: "write", title: "Write the function", why: o.eqWhy || (fy + " = m" + v + " + b, with m = " + nTx(W, m) + " and b = " + nTx(W, b) + "."), seq: [{ a: "row", row: rowT([fy + " = ", mbDT(W, m, b, v, o.bFirst)], true) }] });
+    const others = pts.filter((p) => !p[0].zero).slice(-2);
+    if (others.length) W.steps.push({ move: "check", title: "Check", why: "Put " + (others.length > 1 ? "the points" : "the point") + " in. " + (others.length > 1 ? "Each one comes out right." : "It comes out right."),
+        seq: others.map((p) => ({ a: "row", row: rowT([plugDT(W, m, b, p[0], p[1])], m.mul(p[0]).add(b).eq(p[1]), { c: "w-check" }) })) });
+    if (ask === "zero") {
+        const z = b.div(m).neg();
+        W.steps.push({ move: "zero", title: o.zeroTitle || "Set " + fy + " to 0", why: o.zeroWhy || ("Set the function equal to 0 and solve for " + v + "."),
+            seq: [{ a: "row", row: rowT(["0 = ", mbDT(W, m, b, v)], true) }, { a: "row", row: rowT([nDT(W, m.neg()), v, " = ", nDT(W, b)], true) },
+                { a: "row", row: rowT([v + " = ", nDT(W, b), " ÷ ", nDT(W, m.neg()), " = ", numDT(z, "mixed")], m.mul(z).add(b).zero) }] });
+        const k = keyNum(item.a); if (!k || !k.eq(z)) throw new Error("key");
+        answerStep(W, item.a, o.end || ""); return true;
+    }
+    keyLine(W, item.a, fy, v, m, b);
+    answerStep(W, item.a, o.end || "");
+    return true;
+}
+
+/** Proportional or not: y ÷ x for every point. k is the constant of proportionality. */
+function propSetup(W, item, o) {
+    W.kind = "rel"; W.cols = 3;
+    const v = o.v || "x", fy = o.fy || "y", ask = o.ask || "k";
+    W.dec = !!o.dec || (o.pts || []).some((p) => p.some((t) => /\./.test(String(t))));
+    if (o.story) W.steps.push({ move: "story", title: "Read the story", why: o.why0 || "Find the numbers in the story and what each one means.", seq: [storyRow(item, o.story)] });
+    const yesNo = (yes) => { const s = String(item.a).trim(); if (!(yes ? /^Yes\b/ : /^No\b/).test(s)) throw new Error("key"); };
+    if (ask === "sets") {
+        const sets = (item.choices || []).map((c) => ({ c: String(c), pts: pairsIn(String(c)).map((p) => p.map(qIn)) }));
+        if (!sets.length || sets.some((s) => s.pts.length < 2)) return null;
+        const prop = (s) => s.pts.every((p) => !p[0].zero && p[1].div(p[0]).eq(s.pts[0][1].div(s.pts[0][0])));
+        const good = sets.filter(prop);
+        if (good.length !== 1 || good[0].c !== String(item.a)) throw new Error("key");
+        W.steps.push({ move: "start", title: "Divide y by x in each set", why: "Proportional means y ÷ x is the same for every pair. Only one set does that.",
+            seq: sets.flatMap((s) => [{ a: "row", row: rowT(["{" + s.c + "}"], true) }, { a: "row", row: rowT(s.pts.some((p) => p[0].zero) ? ["(0, " + nTx(W, s.pts.find((p) => p[0].zero)[1]) + ") is not (0, 0) ✗"] : ["y ÷ x: ", ...s.pts.flatMap((p, i) => [i ? ", " : "", nDT(W, p[1].div(p[0]))]), prop(s) ? " ✓" : " ✗"], true, prop(s) ? { c: "w-check" } : undefined) }]) });
+        answerStep(W, item.a, "In that set y is always " + nTx(W, good[0].pts[0][1].div(good[0].pts[0][0])) + " times x."); return true;
+    }
+    if (ask === "eqs") {
+        const cs = o.choices.map((c) => { const side = oneSide(W, c.x.split("=")[1]); const f = side ? formOf(side) : null; return Object.assign({}, c, { f }); });
+        if (cs.some((c) => !c.f)) return null;
+        const ok = cs.filter((c) => c.f.b.zero && !c.f.a.zero);
+        if (ok.length !== 1 || String(item.a).trim() !== ok[0].label) throw new Error("key");
+        W.steps.push({ move: "start", title: "Look for y = kx", why: "A proportional equation is y = kx: y is a number times x, with nothing added or taken away. Adding or taking away a number moves the line off (0, 0).",
+            seq: cs.map((c) => ({ a: "row", row: rowT([c.label + ". " + c.x + (c.f.b.zero ? ": y = kx with k = " + nTx(W, c.f.a) + " ✓" : ": " + (c.f.b.sign < 0 ? MINUS + " " : "+ ") + nTx(W, c.f.b.abs()) + " is added on ✗")], true, c.f.b.zero ? { c: "w-check" } : undefined) })) });
+        answerStep(W, item.a, ""); return true;
+    }
+    if (ask === "fromEq") {
+        const k = qIn(o.k);
+        W.steps.push({ move: "start", title: "Read k from the equation", why: o.kWhy || ("In y = kx, k is the number multiplied by x. Here " + o.eq + ", so k = " + nTx(W, k) + ". It is also the unit rate: " + fy + " for 1 " + (o.unit || v) + "."), seq: [{ a: "row", row: rowT([o.eq], true) }, { a: "row", row: rowT(["k = ", nDT(W, k)], true) }] });
+        const kk = keyNum(item.a); if (!kk || !kk.eq(k)) throw new Error("key");
+        answerStep(W, item.a, ""); return true;
+    }
+    const pts = o.pts.map((p) => p.map(qIn));
+    if (pts.some((p) => p.some((t) => !t) || p[0].zero)) return null;
+    if (!o.story) W.steps.push({ move: "start", title: "The points", why: o.ptsWhy || "Each pair is (" + v + ", " + fy + ").", seq: [{ a: "row", row: rowT(pts.flatMap((p, i) => (i ? [", ", ptDT(W, p)] : [ptDT(W, p)])), true) }] });
+    else if (o.ptsWhy) W.steps.push({ move: "start", title: "Write the pair", why: o.ptsWhy, seq: [{ a: "row", row: rowT(pts.flatMap((p, i) => (i ? [", ", ptDT(W, p)] : [ptDT(W, p)])), true) }] });
+    const ks = pts.map((p) => p[1].div(p[0])), same = ks.every((k) => k.eq(ks[0])), k = ks[0];
+    W.steps.push({ move: "ratio", title: pts.length > 1 ? "Divide y by x for each pair" : "Divide " + fy + " by " + v, why: o.kWhy || (pts.length > 1 ? "In a proportional relationship " + fy + " ÷ " + v + " is the same for every pair. That number is the constant of proportionality, k." + (same ? "" : " Here the answers are not all the same.") : fy + " ÷ " + v + " gives the constant of proportionality, k: how much " + fy + " for 1 " + (o.unit || v) + "."),
+        seq: pts.map((p, i) => ({ a: "row", row: rowT([nDT(W, p[1]), " ÷ ", pDT(W, p[0]), " = ", nDT(W, ks[i])], p[1].eq(ks[i].mul(p[0]))) })) });
+    if (ask === "yes") {
+        yesNo(same);
+        if (same) W.steps.push({ move: "k", title: "The same every time", why: "Every pair gives " + nTx(W, k) + ", so y = " + nTx(W, k) + "x. It is proportional.", seq: [{ a: "row", row: rowT(["k = ", nDT(W, k), " ✓"], true, { c: "w-check" }) }] });
+        answerStep(W, item.a, same ? "" : "The quotients are not the same, so it is not proportional."); return true;
+    }
+    if (!same) throw new Error("not proportional");
+    if (ask === "k") {
+        const kk = keyNum(item.a); if (!kk || !kk.eq(k)) throw new Error("key");
+        answerStep(W, item.a, o.end || ""); return true;
+    }
+    if (ask === "unit") {
+        W.steps.push({ move: "unit", title: "The point at " + v + " = 1", why: o.unitWhy || ("At " + v + " = 1, " + fy + " = k = " + nTx(W, k) + "."), seq: [{ a: "row", row: rowT(["(1, ", nDT(W, k), ")"], true) }] });
+        if (String(item.a).replace(/\s/g, "").indexOf("(1," + nTx(W, k).replace(/\s/g, "") + ")") !== 0) throw new Error("key");
+        answerStep(W, item.a, o.end || ""); return true;
+    }
+    W.steps.push({ move: "write", title: "Write the equation", why: o.eqWhy || (fy + " = k" + v + " with k = " + nTx(W, k) + "."), seq: [{ a: "row", row: rowT([fy + " = ", mbDT(W, k, ZERO, v)], true) }] });
+    keyLine(W, item.a, fy, v, k, ZERO);
+    answerStep(W, item.a, o.end || "");
+    return true;
+}
+
+/** Linear or not, from a table: equal steps in x, so compare the changes in y. */
+function linTableSetup(W, item, pts0) {
+    W.kind = "rel"; W.cols = 3;
+    const pts = pts0.map((p) => p.map(qIn));
+    if (pts.length < 3 || pts.some((p) => p.some((t) => !t))) return null;
+    const dx = pts[1][0].sub(pts[0][0]);
+    if (pts.some((p, i) => i && !p[0].sub(pts[i - 1][0]).eq(dx))) return null;
+    const ds = pts.slice(1).map((p, i) => p[1].sub(pts[i][1])), lin = ds.every((d) => d.eq(ds[0]));
+    W.steps.push({ move: "start", title: "The table", why: "x goes up by " + nTx(W, dx) + " each time. A linear function changes y by the same amount for each equal step in x.", seq: [{ a: "row", row: rowT(pts.flatMap((p, i) => (i ? [", ", ptDT(W, p)] : [ptDT(W, p)])), true) }] });
+    W.steps.push({ move: "diff", title: "Find each change in y", why: "Subtract each y from the next one.", seq: pts.slice(1).map((p, i) => ({ a: "row", row: rowT([nDT(W, p[1]), " − ", pDT(W, pts[i][1]), " = ", nDT(W, ds[i])], true) })) });
+    W.steps.push({ move: "decide", title: lin ? "The same every time" : "Not the same", why: lin ? "y changes by " + nTx(W, ds[0]) + " every time, so it is linear." : "y changes by " + ds.map((d) => (d.sign < 0 ? "" : "+") + nTx(W, d)).join(", ") + ". The changes are not the same, so it is non-linear.",
+        seq: [{ a: "row", row: rowT([ds.map((d) => (d.sign < 0 ? "" : "+") + nTx(W, d)).join(", ") + (lin ? ": the same ✓" : ": not the same")], true, lin ? { c: "w-check" } : undefined) }] });
+    if (!(lin ? /^Linear\b/ : /^Non-linear\b/).test(String(item.a).trim())) throw new Error("key");
+    answerStep(W, item.a, "");
+    return true;
+}
+
+/** Two unit rates, each one amount ÷ another: work out both, then pick the lower (or higher), and the difference when asked. */
+function ratesSetup(W, item, o) {
+    W.kind = "rel"; W.cols = 3; W.dec = true;
+    if (o.story) W.steps.push({ move: "story", title: "Read the story", why: o.why0 || "Find each amount and what it is per.", seq: [storyRow(item, o.story)] });
+    const rs = o.rates.map((r) => { const a = qIn(r.top), b = qIn(r.bot), v = a.div(b); return Object.assign({}, r, { a, b, v }); });
+    if (rs.some((r) => !terminates(r.v))) return null;
+    rs.forEach((r) => {
+        const aD = numDT(r.a, /\./.test(r.top) ? "dec" : "mixed"), bD = numDT(r.b, /\./.test(r.bot) ? "dec" : "mixed"), flip = !r.b.int && !/\./.test(r.bot);
+        const mid = flip ? [/\./.test(r.top) || r.a.int ? aD : F(String(r.a.n), String(r.a.d)), " × ", F(String(r.b.d), String(r.b.n)), " = "] : [];
+        W.steps.push({ move: "rate", title: r.label + ": divide", why: o.rateWhy || (r.label + ": " + (o.per || "amount ÷ count") + "." + (flip ? (r.b.n > r.b.d ? " " + dtText(bD) + " = " + r.b.n + "/" + r.b.d + "." : "") + " Dividing by " + r.b.n + "/" + r.b.d + " is the same as multiplying by its flip, " + r.b.d + "/" + r.b.n + "." : "") + " " + dtText(aD) + " ÷ " + dtText(bD) + " = " + nTx(W, r.v) + "."),
+            seq: [{ a: "row", row: rowT([aD, " ÷ ", bD, " = ", ...mid, nDT(W, r.v)], r.v.mul(r.b).eq(r.a)) }] });
+    });
+    const sorted = rs.slice().sort((x, y) => x.v.cmp(y.v)), win = o.pick === "high" ? sorted[sorted.length - 1] : sorted[0], other = win === sorted[0] ? sorted[sorted.length - 1] : sorted[0];
+    if (win.v.eq(other.v)) return null;
+    const d = win.v.sub(other.v).abs();
+    W.steps.push({ move: "cmp", title: "Compare", why: nTx(W, win.v) + " is " + (o.pick === "high" ? "more" : "less") + " than " + nTx(W, other.v) + ", so " + win.label + " is " + (o.word || (o.pick === "high" ? "higher" : "lower")) + "." + (o.diff ? " The difference is " + nTx(W, sorted[sorted.length - 1].v) + " − " + nTx(W, sorted[0].v) + " = " + nTx(W, d) + "." : ""),
+        seq: [{ a: "row", row: rowT([win.label + " ✓" + (o.diff ? ", by " : ""), ...(o.diff ? [nDT(W, d)] : [])], true, { c: "w-check" }) }] });
+    const s = String(item.a).trim();
+    if (o.diffOnly) { const k = keyNum(s); if (!k || !k.eq(d)) throw new Error("key"); }
+    else if (s.indexOf(win.label) !== 0 || (o.diff && !hasNum(s, d))) throw new Error("key");
+    answerStep(W, item.a, o.end || "");
+    return true;
+}
+
+/** Compare two linear functions: work out each rate of change and starting value, then pick. */
+function cmpSetup(W, item, o) {
+    W.kind = "rel"; W.cols = 3;
+    W.dec = (o.fns || []).some((f) => /\./.test(JSON.stringify(f)));
+    if (o.story) W.steps.push({ move: "story", title: "Read the story", why: o.why0 || "Find what each one starts at and how much it changes each time.", seq: [storyRow(item, o.story)] });
+    const fns = o.fns.map((f) => {
+        const fo = { label: f.label, v: f.v || "x" };
+        if (f.pts) {
+            const pts = f.pts.map((p) => p.map(qIn)), [[x1, y1], [x2, y2]] = pts, m = y2.sub(y1).div(x2.sub(x1)), b = y1.sub(m.mul(x1));
+            const rows = [rowT(["m = ", F(nTx(W, y2) + " − " + pTx(W, y1), nTx(W, x2) + " − " + pTx(W, x1)), " = ", F(nTx(W, y2.sub(y1)), nTx(W, x2.sub(x1))), " = ", nDT(W, m)], m.mul(x2.sub(x1)).eq(y2.sub(y1)))];
+            if (o.ask !== "m" && o.ask !== "steep") rows.push(x1.zero ? rowT(["b = ", nDT(W, b)], true) : rowT(["b = ", nDT(W, y1), " − ", pDT(W, m), "(", nDT(W, x1), ") = ", nDT(W, b)], true));
+            return Object.assign(fo, { m, b, title: f.label + ": use the points", why: f.label + " goes through " + pts.map((p) => ptTx(W, p)).join(" and ") + ". Rate of change = change in y ÷ change in x." + (o.ask !== "m" && o.ask !== "steep" ? (x1.zero ? " At x = 0 it is " + nTx(W, b) + ", so b = " + nTx(W, b) + "." : " Then b = y − mx for one point.") : ""), rows });
+        }
+        const m = qIn(f.m), b = qIn(f.b);
+        return Object.assign(fo, { m, b, title: f.label + ": read it", why: f.why || (f.eq ? f.label + " is " + f.eq + ". The number times x is the rate of change, and the number added on is the starting value." : f.label + " has m = " + nTx(W, m) + " and b = " + nTx(W, b) + "."), rows: [...(f.eq ? [rowT([f.eq], true)] : []), rowT(["m = ", nDT(W, m)], true), ...(o.ask === "m" || o.ask === "steep" ? [] : [rowT(["b = ", nDT(W, b)], true)])] });
+    });
+    fns.forEach((f) => W.steps.push({ move: "fn", title: f.title, why: f.why, seq: f.rows.map((row) => ({ a: "row", row })) }));
+    const [A, B] = fns, s = String(item.a).trim();
+    let win, why;
+    if (o.ask === "m") { const c = A.m.cmp(B.m); if (!c) return null; win = c > 0 ? A : B; why = nTx(W, win.m) + " is more than " + nTx(W, (win === A ? B : A).m) + ", so " + win.label + " changes faster."; }
+    else if (o.ask === "b") { const c = A.b.cmp(B.b); if (!c) return null; win = c > 0 ? A : B; why = nTx(W, win.b) + " is more than " + nTx(W, (win === A ? B : A).b) + ", so " + win.label + " starts higher."; }
+    else if (o.ask === "steep") { const c = A.m.abs().cmp(B.m.abs()); if (!c) return null; win = c > 0 ? A : B; why = "Steeper means the rate of change is farther from 0. " + nTx(W, win.m) + " is farther from 0 than " + nTx(W, (win === A ? B : A).m) + "."; }
+    else if (o.ask === "both") {
+        if (!A.m.eq(B.m) || A.b.eq(B.b) || !hasNum(s, A.m) || !hasNum(s, A.b) || !hasNum(s, B.b) || !/same slope/.test(s)) throw new Error("key");
+        W.steps.push({ move: "cmp", title: "Compare", why: "Both have rate of change " + nTx(W, A.m) + ". The starting values are " + nTx(W, A.b) + " and " + nTx(W, B.b) + ", so the lines are parallel.", seq: [{ a: "row", row: rowT(["m: " + nTx(W, A.m) + " and " + nTx(W, B.m) + ", the same"], true) }, { a: "row", row: rowT(["b: " + nTx(W, A.b) + " and " + nTx(W, B.b) + ", different"], true) }] });
+        answerStep(W, item.a, ""); return true;
+    }
+    if (s.indexOf(win.label) !== 0) throw new Error("key");
+    W.steps.push({ move: "cmp", title: "Compare", why, seq: [{ a: "row", row: rowT([win.label + " ✓"], true, { c: "w-check" }) }] });
+    answerStep(W, item.a, o.end || "");
     return true;
 }
 

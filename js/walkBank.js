@@ -6,14 +6,14 @@
    teacher/{uid}/walk/ok and teacher/{uid}/walk/edits.
 ========================================== */
 import { loadStdBank } from "./stdBank.js?v=4";
-import { walkFor } from "./walk.js?v=7";
+import { walkFor } from "./walk.js?v=8";
 
 let cache = null;
 const built = new Map();
 /** Every bank problem, with its word-problem setup attached when it has one. */
 export function loadWalkItems() {
     if (cache) return cache;
-    cache = Promise.all([loadStdBank(), import("../data/stdbank/walk.js?v=5").then((m) => m.default, () => ({}))])
+    cache = Promise.all([loadStdBank(), import("../data/stdbank/walk.js?v=6").then((m) => m.default, () => ({}))])
         .then(([items, setups]) => items.map((x) => (setups[x.id] ? Object.assign({}, x, { walk: setups[x.id] }) : x)));
     return cache;
 }

@@ -319,4 +319,124 @@ WALKS = {
         "eq": "|L − 24| > 0.15", "var": "the rod's length",
         "why": "How far L is from 24 is |L − 24|. A rejected rod is more than 0.15 cm away, so |L − 24| > 0.15.",
         "story": [["a length of 24 cm", "24"], ["more than 0.15 cm", "0.15"]]},
+    # Batch 1: 7.9, equations and inequalities from stories
+    "A bowling alley charges §4.50 for shoe rental plus §3.75 per game. If Jordan spends §19.50 total, how many games did Jordan bowl?": {
+        "eq": "4.50 + 3.75g = 19.50", "var": "the number of games",
+        "why": "What Jordan spends = the shoe rental + §3.75 for each game, g.",
+        "story": [["§4.50 for shoe rental", "4.50"], ["§3.75 per game", "3.75g"], ["§19.50 total", "19.50"]]},
+    "A rectangle has a perimeter of 54 cm. Its width is 9 cm and its length is (x + 5) cm. What is the value of x?": {
+        "eq": "2(9) + 2(x + 5) = 54", "var": "the number in the length",
+        "why": "Perimeter = 2 widths + 2 lengths. The width is 9 and the length is x + 5.",
+        "story": [["perimeter of 54 cm", "54"], ["width is 9 cm", "2(9)"], ["(x + 5) cm", "2(x + 5)"]]},
+    "Kira has §85 to spend on school supplies. She buys a §22 backpack and some notebooks that cost §4.50 each. What is the maximum number of notebooks she can buy?": {
+        "eq": "22 + 4.50n ≤ 85", "var": "the number of notebooks", "whole": "notebooks",
+        "why": "The backpack plus §4.50 for each notebook, n, can be at most §85, so use ≤.",
+        "story": [["§85 to spend", "85"], ["§22 backpack", "22"], ["§4.50 each", "4.50n"]]},
+    "A freight elevator has a maximum weight limit of 1,200 pounds. The operator weighs 185 pounds, and each crate weighs 65 pounds. Which inequality and interpretation are correct for the number of crates c?": {
+        "eq": "65c + 185 ≤ 1200", "var": "the number of crates", "whole": "crates",
+        "why": "The crates weigh 65c, plus the operator. The total can be at most 1,200 pounds, so use ≤.",
+        "story": [["maximum weight limit of 1,200 pounds", "1200"], ["185 pounds", "185"], ["each crate weighs 65 pounds", "65c"]]},
+    # Batch 1: 7.1, unit rates with fractions
+    "Maria walks {1/2} mile in {1/4} hour. How many miles does she walk per hour?": {
+        "expr": "{1/2} ÷ {1/4}", "why": "Miles per hour means miles ÷ hours.", "story": [["{1/2} mile", "{1/2}"], ["{1/4} hour", "{1/4}"]]},
+    "A recipe uses {3/4} cup of sugar for every {1/2} cup of flour. How many cups of sugar per 1 cup of flour?": {
+        "expr": "{3/4} ÷ {1/2}", "why": "Sugar per cup of flour means cups of sugar ÷ cups of flour.", "story": [["{3/4} cup of sugar", "{3/4}"], ["{1/2} cup of flour", "{1/2}"]]},
+    "Jamal mows {2/3} of a lawn in {1/6} hour. How many lawns can he mow per hour?": {
+        "expr": "{2/3} ÷ {1/6}", "why": "Lawns per hour means lawns ÷ hours.", "story": [["{2/3} of a lawn", "{2/3}"], ["{1/6} hour", "{1/6}"]]},
+    "A car goes 150 miles on 6 gallons of gas. What is the unit rate in miles per gallon?": {
+        "expr": "150 ÷ 6", "why": "Miles per gallon means miles ÷ gallons.", "story": [["150 miles", "150"], ["6 gallons", "6"]]},
+    "A 12-ounce bag of chips costs §3.00. What is the price per ounce?": {
+        "expr": "3.00 ÷ 12", "why": "Price per ounce means the price ÷ the ounces.", "story": [["12-ounce", "12"], ["§3.00", "3.00"]]},
+    "A painter covers {3/5} of a wall in {3/4} hour. What fraction of the wall does she paint per hour?": {
+        "expr": "{3/5} ÷ {3/4}", "why": "Wall per hour means the part of the wall ÷ hours.", "story": [["{3/5} of a wall", "{3/5}"], ["{3/4} hour", "{3/4}"]]},
+    "A snail crawls {1/8} foot in {1/3} minute. How many feet does it crawl per minute?": {
+        "expr": "{1/8} ÷ {1/3}", "why": "Feet per minute means feet ÷ minutes.", "story": [["{1/8} foot", "{1/8}"], ["{1/3} minute", "{1/3}"]]},
+    "A garden of {5/6} square yard needs {1/3} bag of soil. How many square yards does 1 bag cover?": {
+        "expr": "{5/6} ÷ {1/3}", "why": "Square yards per bag means square yards ÷ bags.", "story": [["{5/6} square yard", "{5/6}"], ["{1/3} bag", "{1/3}"]]},
+    "Kai runs 2{1/2} miles in {1/3} hour. What is his speed in miles per hour?": {
+        "expr": "2{1/2} ÷ {1/3}", "why": "Miles per hour means miles ÷ hours.", "story": [["2{1/2} miles", "2{1/2}"], ["{1/3} hour", "{1/3}"]]},
+    "A snail crawls {3/4} meter in {1/2} hour. What is its speed in meters per hour?": {
+        "expr": "{3/4} ÷ {1/2}", "why": "Meters per hour means meters ÷ hours.", "story": [["{3/4} meter", "{3/4}"], ["{1/2} hour", "{1/2}"]]},
+    "A baker uses {2/3} cup of oats for {1/6} of a batch of granola. How many cups of oats are needed for 1 full batch?": {
+        "expr": "{2/3} ÷ {1/6}", "why": "Cups per batch means cups ÷ batches.", "story": [["{2/3} cup of oats", "{2/3}"], ["{1/6} of a batch", "{1/6}"]]},
+    "A printer prints {1/2} of a poster in {1/8} minute. At this rate, how many posters does it print per minute?": {
+        "expr": "{1/2} ÷ {1/8}", "why": "Posters per minute means posters ÷ minutes.", "story": [["{1/2} of a poster", "{1/2}"], ["{1/8} minute", "{1/8}"]]},
+    "A gardener spreads {3/5} bag of mulch over {3/10} of a flower bed. How many bags of mulch are needed to cover the entire flower bed?": {
+        "expr": "{3/5} ÷ {3/10}", "why": "Bags per whole bed means bags ÷ the part of the bed.", "story": [["{3/5} bag of mulch", "{3/5}"], ["{3/10} of a flower bed", "{3/10}"]]},
+    "A tile installer covers 4{1/2} square feet of wall in {3/4} hour. What is the installer's rate in square feet per hour?": {
+        "expr": "4{1/2} ÷ {3/4}", "why": "Square feet per hour means square feet ÷ hours.", "story": [["4{1/2} square feet", "4{1/2}"], ["{3/4} hour", "{3/4}"]]},
+    "A cyclist rides 5{1/4} miles in {3/8} hour. What is the cyclist's unit rate in miles per hour?": {
+        "expr": "5{1/4} ÷ {3/8}", "why": "Miles per hour means miles ÷ hours.", "story": [["5{1/4} miles", "5{1/4}"], ["{3/8} hour", "{3/8}"]]},
+    "A mural artist paints a rectangular section measuring 2{1/2} feet by 3{1/5} feet in {2/3} hour. At this rate, how many square feet does the artist paint per hour?": {
+        "expr": "(2{1/2} × 3{1/5}) ÷ {2/3}", "why": "First the area: length × width. Then square feet per hour means square feet ÷ hours.", "story": [["2{1/2} feet", "2{1/2}"], ["3{1/5} feet", "3{1/5}"], ["{2/3} hour", "{2/3}"]]},
+    "Pump X fills 1{3/4} gallons in {5/6} minute. Pump Y fills 2{1/4} gallons in 1{1/8} minutes. How many more gallons per minute does the faster pump fill?": {
+        "why": "Each pump's rate is gallons ÷ minutes.", "story": [["1{3/4} gallons in {5/6} minute", "1{3/4} ÷ {5/6}"], ["2{1/4} gallons in 1{1/8} minutes", "2{1/4} ÷ 1{1/8}"]],
+        "rates": {"per": "gallons ÷ minutes", "pick": "high", "word": "faster", "diff": True, "diffOnly": True, "rates": [{"label": "Pump X", "top": "1{3/4}", "bot": "{5/6}"}, {"label": "Pump Y", "top": "2{1/4}", "bot": "1{1/8}"}]}},
+    # Batch 1: 7.2, proportional relationships
+    "Tickets cost §8 each. Write an equation for the total cost c of t tickets.": {
+        "write": "c = 8t", "var": "the number of tickets", "why": "Each ticket costs §8, so t tickets cost 8 times t.", "story": [["§8 each", "8t"]]},
+    "y = 4.5x. What is the unit rate?": {"prop": {"ask": "fromEq", "eq": "y = 4.5x", "k": "4.5"}},
+    "The equation y = 6.5x represents the cost y in dollars for x pounds of peaches. What is the constant of proportionality?": {"prop": {"ask": "fromEq", "eq": "y = 6.5x", "k": "6.5", "unit": "pound"}},
+    "A proportional graph of earnings (y) for hours worked (x) passes through (6, 81). How much is earned per hour?": {
+        "prop": {"pts": [["6", "81"]], "ask": "k", "unit": "hour", "dec": True}},
+    "A machine bottles 54 liters of juice in 12 minutes at a constant rate. Which equation relates the liters of juice y to the time in minutes x?": {
+        "why": "54 liters in 12 minutes is the point (12, 54): x is minutes, y is liters.", "story": [["54 liters", "54"], ["12 minutes", "12"]],
+        "prop": {"pts": [["12", "54"]], "ask": "eq", "unit": "minute", "dec": True}},
+    "A recipe uses {3/4} cup of cocoa powder for every 2{1/2} cups of flour. Which equation relates cups of cocoa powder c to cups of flour f?": {
+        "why": "{3/4} cup of cocoa goes with 2{1/2} cups of flour, the pair (2{1/2}, {3/4}): f first, then c.", "story": [["{3/4} cup of cocoa powder", "{3/4}"], ["2{1/2} cups of flour", "2{1/2}"]],
+        "prop": {"pts": [["2{1/2}", "{3/4}"]], "ask": "eq", "v": "f", "fy": "c", "unit": "cup of flour", "dec": True}},
+    "On a graph of a proportional relationship between cups of blue paint (x) and cups of yellow paint (y), the point (4, 6) is plotted. Which point must also lie on the graph, and what does it represent?": {
+        "prop": {"pts": [["4", "6"]], "ask": "unit", "unit": "cup of blue paint", "dec": True, "unitWhy": "At x = 1 cup of blue paint, y = k = 1.5 cups of yellow paint. That's the unit rate."}},
+    # Batch 1: 8.16, linear functions from stories and points
+    "A pool has 500 gallons and drains 20 gallons a minute. Write a function for the gallons left.": {
+        "why": "The pool starts at 500 gallons and loses 20 each minute.", "story": [["500 gallons", "500"], ["drains 20 gallons a minute", "−20"]],
+        "line": {"m": "−20", "b": "500", "bFirst": True, "mWhy": "It drains 20 gallons each minute, so the rate of change is −20.", "bWhy": "It starts with 500 gallons, so b = 500.", "eqWhy": "Gallons left = the 500 it starts with, minus 20 for each minute x."}},
+    "A candle is 12 in tall and burns 1.5 in per hour. Write a function for its height h after t hours.": {
+        "why": "The candle starts at 12 inches and gets 1.5 inches shorter each hour.", "story": [["12 in tall", "12"], ["burns 1.5 in per hour", "−1.5"]],
+        "line": {"m": "−1.5", "b": "12", "v": "t", "fy": "h", "bFirst": True, "mWhy": "It burns 1.5 inches each hour, so the rate of change is −1.5.", "bWhy": "It starts 12 inches tall, so b = 12.", "eqWhy": "Height = the 12 inches it starts with, minus 1.5 for each hour t."}},
+    "A phone costs §40 a month plus §100 for the phone. What are the rate of change and initial value?": {
+        "why": "The cost goes up §40 every month. The §100 is paid once, at the start.", "story": [["§40 a month", "40"], ["§100 for the phone", "100"]],
+        "line": {"m": "40", "b": "100", "ask": "mb", "mWhy": "§40 each month is the rate of change.", "bWhy": "§100 at the start, before any months, is the initial value."}},
+    "A savings account starts with §50 and increases by §20 each week. What is the initial value and rate of change of this linear function?": {
+        "why": "The account starts at §50 and goes up §20 every week.", "story": [["starts with §50", "50"], ["§20 each week", "20"]],
+        "line": {"m": "20", "b": "50", "ask": "mb", "mWhy": "§20 each week is the rate of change.", "bWhy": "§50 at the start is the initial value."}},
+    "Write a linear function y = mx + b for a line with a rate of change of 4 and an initial value of −6.": {
+        "why": "The rate of change is m and the initial value is b.", "story": [["rate of change of 4", "4"], ["initial value of −6", "−6"]],
+        "line": {"m": "4", "b": "−6", "mWhy": "The rate of change is m, so m = 4.", "bWhy": "The initial value is b, so b = −6."}},
+    "A pool is being drained at a constant rate. After 2 hours, there are 8,500 gallons left. After 6 hours, there are 5,500 gallons left. Find and interpret the rate of change.": {
+        "why": "Each time and amount is a point (hours, gallons).", "story": [["After 2 hours", "2"], ["8,500 gallons", "8500"], ["After 6 hours", "6"], ["5,500 gallons", "5500"]],
+        "line": {"pts": [["2", "8500"], ["6", "5500"]], "ask": "m", "end": "It's negative, so the pool loses 750 gallons each hour."}},
+    "A banquet hall charges a flat rental fee plus a fixed price per guest. For 20 guests, the total cost is §750. For 50 guests, the total cost is §1,500. Construct the linear function C(g) for g guests.": {
+        "why": "Each number of guests and cost is a point (guests, cost).", "story": [["20 guests", "20"], ["§750", "750"], ["50 guests", "50"], ["§1,500", "1500"]],
+        "line": {"pts": [["20", "750"], ["50", "1500"]], "v": "g", "fy": "C(g)"}},
+    "An airplane descends at a steady rate. At 4 minutes into its descent, its altitude is 26,000 feet. At 10 minutes, its altitude is 17,000 feet. How many minutes after starting its descent will the airplane land (altitude = 0 feet)?": {
+        "why": "Each time and altitude is a point (minutes, feet).", "story": [["4 minutes", "4"], ["26,000 feet", "26000"], ["10 minutes", "10"], ["17,000 feet", "17000"]],
+        "line": {"pts": [["4", "26000"], ["10", "17000"]], "ask": "zero", "v": "t", "zeroTitle": "Find when the altitude is 0", "zeroWhy": "Landing means altitude 0. Set the function equal to 0, add 1500t to both sides, then divide by 1,500."}},
+    # Batch 1: 8.15, comparing functions
+    "Function A: y = 3x + 2. Function B goes through (0, 5) and (2, 9). Which has the greater rate of change?": {
+        "cmp": {"ask": "m", "fns": [{"label": "Function A", "eq": "y = 3x + 2", "m": "3", "b": "2"}, {"label": "Function B", "pts": [["0", "5"], ["2", "9"]]}]}},
+    "Function A: y = 3x + 2. Function B goes through (0, 5) and (2, 9). Which has the greater y-intercept?": {
+        "cmp": {"ask": "b", "fns": [{"label": "Function A", "eq": "y = 3x + 2", "m": "3", "b": "2"}, {"label": "Function B", "pts": [["0", "5"], ["2", "9"]]}]}},
+    "Ana saves §10 a week starting with §25. Ben's savings are y = 12x. Who saves faster each week?": {
+        "why": "Saving faster means more money each week: the bigger rate of change.", "story": [["§10 a week", "10"], ["starting with §25", "25"], ["y = 12x", "12"]],
+        "cmp": {"ask": "m", "fns": [{"label": "Ana", "m": "10", "b": "25", "why": "Ana adds §10 each week, so m = 10. She starts with §25."}, {"label": "Ben", "eq": "y = 12x", "m": "12", "b": "0"}]}},
+    "Function A is y = 3x + 4. Function B has a slope of 5 and a y-intercept of 2. Which function has the greater y-intercept?": {
+        "cmp": {"ask": "b", "fns": [{"label": "Function A", "eq": "y = 3x + 4", "m": "3", "b": "4"}, {"label": "Function B", "m": "5", "b": "2", "why": "Function B's slope is 5 and its y-intercept is 2."}]}},
+    "Linear Function 1 is y = −2x + 8. Linear Function 2 is shown in a table: (0, 6), (2, 0), (4, −6). Which function has a steeper negative slope?": {
+        "cmp": {"ask": "steep", "fns": [{"label": "Linear Function 1", "eq": "y = −2x + 8", "m": "−2", "b": "8"}, {"label": "Linear Function 2", "pts": [["0", "6"], ["2", "0"]]}]}},
+    "Function P is represented by y = 4x − 3. Function Q is a linear function passing through (1, 3) and (3, 11). Compare their slopes and y-intercepts.": {
+        "cmp": {"ask": "both", "fns": [{"label": "Function P", "eq": "y = 4x − 3", "m": "4", "b": "−3"}, {"label": "Function Q", "pts": [["1", "3"], ["3", "11"]]}]}},
+    "A table shows the points (2, 10), (5, 19), and (9, k). What value of k makes this a linear function, and why would any other value of k make it non-linear?": {
+        "line": {"pts": [["2", "10"], ["5", "19"]], "ask": "at", "at": "9", "atName": "k", "end": "Any other k would change the rate of change, so the points would not be on one line."}},
+    "Function A is y = 0.5x + 6. Function B is described verbally: 'Start at 10 and decrease by 1.5 for every unit increase in x.' At what x-value do both functions produce the same output?": {
+        "eq": "0.5x + 6 = 10 − 1.5x", "var": "the input",
+        "why": "Function B starts at 10 and goes down 1.5 each time, so it is y = 10 − 1.5x. The same output means the two rules are equal.",
+        "story": [["y = 0.5x + 6", "0.5x + 6"], ["Start at 10", "10"], ["decrease by 1.5", "1.5x"]]},
+    # Batch 1: 7.1, which is the better buy
+    "Store A sells 8 pencils for §2.00. Store B sells 12 pencils for §2.76. Which store has the lower price per pencil?": {
+        "why": "Price per pencil means the price ÷ the number of pencils.", "story": [["8 pencils for §2.00", "2.00 ÷ 8"], ["12 pencils for §2.76", "2.76 ÷ 12"]],
+        "rates": {"per": "price ÷ pencils", "rates": [{"label": "Store A", "top": "2.00", "bot": "8"}, {"label": "Store B", "top": "2.76", "bot": "12"}]}},
+    "Brand A sells {2/3} pound of almonds for §4.80. Brand B sells {3/4} pound of almonds for §5.70. Which brand has the lower unit price per pound, and by how much?": {
+        "why": "Price per pound means the price ÷ the pounds.", "story": [["{2/3} pound of almonds for §4.80", "4.80 ÷ {2/3}"], ["{3/4} pound of almonds for §5.70", "5.70 ÷ {3/4}"]],
+        "rates": {"per": "price ÷ pounds", "diff": True, "rates": [{"label": "Brand A", "top": "4.80", "bot": "{2/3}"}, {"label": "Brand B", "top": "5.70", "bot": "{3/4}"}]}},
 }
