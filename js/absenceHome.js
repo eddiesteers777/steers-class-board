@@ -51,11 +51,15 @@ export function mountAbsences(opts) {
         // Collapsed by default (Eddie, Nov 24: "by default condensed ... just shows the student's name and then a brief
         // description to the right of what they've missed, the specific date, and you can expand that card"). Each student
         // is one row: name, a few tags, and the missed dates on the right. Tapping the row opens what they missed and what to assign.
-        const SHOW = 6; let n = 0; const extra = [];
         const md = (k) => { const d = new Date(k + "T12:00:00"); return d.toLocaleDateString("en-US", { weekday: "short" }) + " " + (d.getMonth() + 1) + "/" + d.getDate(); };   // "Tue 11/17"
         R.periods.forEach((P) => {
-            const sec = el("section", "abs-per"), names = D.rost[P.per] || [], list = el("div", "abs-list");
-            sec.appendChild(el("h3", null, P.per + " period" + (P.cls ? " · " + (opts.classLabel ? opts.classLabel(P.cls) : P.cls) : "")));
+            // Each period is its own collapsed row too (Eddie, Nov 24): "1st period · 8th Grade   3 absent · 1 needs a look".
+            const sec = el("details", "abs-per"), names = D.rost[P.per] || [], list = el("div", "abs-list"), ps = el("summary", "abs-phead");
+            ps.appendChild(el("h3", null, P.per + " period" + (P.cls ? " · " + (opts.classLabel ? opts.classLabel(P.cls) : P.cls) : "")));
+            const warnN = P.students.filter((x) => x.warnings.length).length, outN = P.students.filter((x) => x.today).length;
+            const pc = el("span", "abs-pcount", P.students.length + " absent"); if (outN) pc.appendChild(el("span", "abs-tag out", outN + " out today")); if (warnN) pc.appendChild(el("span", "abs-tag w-look", warnN + (warnN === 1 ? " needs" : " need") + " a look"));
+            ps.appendChild(pc); { const c = el("span", "abs-chev"); c.setAttribute("aria-hidden", "true"); ps.appendChild(c); }
+            sec.appendChild(ps);
             P.students.forEach((S) => {
                 const row = el("details", "abs-kid" + (S.warnings.length ? " warn" : "") + (S.allDone ? " done" : "")), top = el("summary", "abs-top");
                 const who = el("span", "abs-who"); who.appendChild(el("b", null, AC.displayName(S.nm, names.length ? names : P.students.map((x) => x.nm))));
@@ -79,18 +83,11 @@ export function mountAbsences(opts) {
                 if (S.days.length > 5) body.appendChild(el("p", "abs-more", "and " + (S.days.length - 5) + " earlier day" + (S.days.length - 5 === 1 ? "" : "s")));
                 { const a = el("a", "abs-go" + (S.allDone ? "" : " due"), S.allDone ? "Open catch-up" : "Assign catch-up work"); a.href = "catchup.html?p=" + encodeURIComponent(P.per) + "&k=" + encodeURIComponent(S.key); body.appendChild(a); }
                 row.appendChild(body);
-                if (++n > SHOW) { row.hidden = true; extra.push(row); }
                 list.appendChild(row);
             });
             sec.appendChild(list);
             host.appendChild(sec);
         });
-        host.querySelectorAll(".abs-per").forEach((sec) => { if (![...sec.querySelectorAll(".abs-kid")].some((k) => !k.hidden)) { sec.hidden = true; extra.push(sec); } });
-        if (extra.length) {
-            const b = el("button", "abs-all", "Show all " + n); b.type = "button"; b.setAttribute("aria-expanded", "false");
-            b.onclick = () => { const open = b.getAttribute("aria-expanded") !== "true"; extra.forEach((x) => { x.hidden = !open; }); b.setAttribute("aria-expanded", String(open)); b.textContent = open ? "Show fewer" : "Show all " + n; };
-            head.appendChild(b);
-        }
     }
     draw();
     return { setWeeks: (w) => { D.weeks = w; soon(); }, refresh: soon };

@@ -17,7 +17,10 @@ for (const [w, h, tag] of [[390, 900, "phone"], [1280, 900, "desktop"]]) {
     assert.match(txt, /Speed Dating Activity · graded, Class Work/); assert.match(txt, /Guided Notes Day 1 · practice/);
     assert.match(txt, /Missed Wednesday — Fact Blitz: Integer facts, Guided Notes Day 2/); assert.match(txt, /Fact Blitz: Integer facts · practice/);
     // collapsed by default: one row per student with the missed dates; a tap opens the details
-    assert.equal(await p.$$eval("details.abs-kid[open]", (d) => d.length), 0);
+    assert.equal(await p.$$eval("details.abs-kid[open], details.abs-per[open]", (d) => d.length), 0);   // periods and students start closed
+    assert.match(await p.textContent('.abs-per:has(h3:text-is("1st period · 8th Grade")) .abs-pcount'), /^3 absent1 out today1 needs a look$/);
+    assert.ok(!(await p.isVisible('.abs-kid:has(b:text-is("Ben")) summary')));
+    await p.click('.abs-per:has(h3:text-is("1st period · 8th Grade")) > summary');
     assert.match(await p.textContent('.abs-kid:has(b:text-is("Ben")) .abs-brief'), /^Missed Thu 11\/19, Tue 11\/17 · 2 graded$/);
     assert.ok(!(await p.isVisible('.abs-kid:has(b:text-is("Ben")) .abs-body')));
     await p.click('.abs-kid:has(b:text-is("Ben")) summary'); assert.ok(await p.isVisible('.abs-kid:has(b:text-is("Ben")) a.abs-go')); await p.click('.abs-kid:has(b:text-is("Ben")) summary');
