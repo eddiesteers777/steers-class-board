@@ -9,8 +9,8 @@ import * as AC from "./attendanceCore.js?v=1";
 import * as K from "./absenceCore.js?v=2";
 import { shortNames } from "./vaultCore.js?v=75";
 import { kidKey, perKey } from "./profileCore.js?v=2";
-import { placementOf } from "./foundational.js?v=1";
-import { nameOf } from "./foundBank.js?v=1";
+import { placementOf } from "./foundational.js?v=2";
+import { nameOf } from "./foundBank.js?v=2";
 import { marksOf, STATUS_WORD, ROUTES } from "./catchupCore.js?v=2";
 
 const WARN_WORD = { days: "Out often", test: "Test", work: "Graded work", behind: "Foundational" };
