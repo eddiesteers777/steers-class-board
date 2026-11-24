@@ -10,7 +10,7 @@
 ========================================== */
 import { mountStudentsNav, sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=5";
 import { shrink, rotate, buildPdf, mb, pdfPages } from "./studentWork.js?v=58";
-import { SCHOOL_YEAR, isSchoolDay } from "./schoolCal.js?v=58";
+import { SCHOOL_YEAR, isSchoolDay } from "./schoolCal.js?v=59";
 import { weekIdFor } from "./weeksLive.js?v=58";
 import * as W from "./workCore.js?v=1";
 

@@ -19,7 +19,7 @@ import { waitForUser } from "./auth.js";
 import { doc, collection, getDoc, getDocs, setDoc, query, where, documentId, Timestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import * as Drive from "./drive.js?v=2";
 import { buildPdf } from "./studentWork.js?v=58";
-import { SCHOOL_YEAR, isSchoolDay } from "./schoolCal.js?v=58";
+import { SCHOOL_YEAR, isSchoolDay } from "./schoolCal.js?v=59";
 import * as W from "./workCore.js?v=1";
 import * as G from "./gradeCore.js?v=4";
 import { shortNames } from "./vaultCore.js?v=75";

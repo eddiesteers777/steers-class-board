@@ -6,7 +6,7 @@
    ?demo keeps everything on this device only. ?cls=7th&q=slope opens straight to a search.
 ========================================== */
 import { STANDARDS } from "../data/standards.js?v=58";
-import { today, short, daysLeftInNineWeeks, nineWeeksOf } from "./schoolCal.js?v=57";
+import { today, short, daysLeftInNineWeeks, nineWeeksOf } from "./schoolCal.js?v=59";
 import { nextUp } from "./standardsNext.js?v=57";
 
 const demo = new URLSearchParams(location.search).has("demo");

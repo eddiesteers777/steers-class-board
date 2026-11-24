@@ -10,7 +10,7 @@
 import { STANDARDS } from "../data/standards.js?v=58";
 import { WEEKS as PUBLISHED } from "../data/weeks.js?v=62";
 import { toLoginIfSignedOut } from "./signedOut.js?v=1";
-import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, eventsOn, nineWeeksOf, daysLeftInNineWeeks, short, parse } from "./schoolCal.js?v=58";
+import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, eventsOn, nineWeeksOf, daysLeftInNineWeeks, short, parse } from "./schoolCal.js?v=59";
 import { timelineNext, lanesFor } from "./timelineCore.js?v=3";
 import { watchPrivateWeeks, weekIdFor } from "./weeksLive.js?v=58";
 import { watchEvidence, classEvidence, evidenceForBrief, weekStandards } from "./planEvidence.js?v=3";

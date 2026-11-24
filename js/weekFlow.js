@@ -8,7 +8,7 @@
      closeout/<id>         papers printed (printed) and Thrillshare posts (done)
    The week shown is this school week until it is approved, then the next school week.
 ========================================== */
-import { SCHOOL_YEAR, addDays, mondayOf, isSchoolDay, nineWeeksOf } from "./schoolCal.js?v=58";
+import { SCHOOL_YEAR, addDays, mondayOf, isSchoolDay, nineWeeksOf } from "./schoolCal.js?v=59";
 import { weekIdFor } from "./weeksLive.js?v=58";
 import { allPapers } from "./weekPapers.js?v=1";
 import { plannedDecks } from "./weekSlides.js?v=1";

@@ -9,7 +9,7 @@ import { shortNames } from "./vaultCore.js?v=75";
 import * as PC from "./profileCore.js?v=2";
 import * as F from "./factCore.js?v=1";
 import * as TC from "./trackCore.js?v=2";
-import { SCHOOL_YEAR, SCHOOL_DAYS } from "./schoolCal.js?v=58";
+import { SCHOOL_YEAR, SCHOOL_DAYS } from "./schoolCal.js?v=59";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }

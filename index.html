@@ -124,8 +124,8 @@
             <p class="count2" id="aheadNote" role="status"></p>
           </div>
           <h3 class="bellh">Your classes and your data</h3>
-          <p class="sub">Change your classes and periods, see everything your account has saved, or delete it all.</p>
-          <div class="rowx"><a class="btn ghost" href="setup.html" id="setupLink" style="text-decoration:none">Your classes</a><a class="btn ghost" href="account.html" style="text-decoration:none">Your data and backup</a></div>
+          <p class="sub">Change your classes, periods and school year, see everything your account has saved, or delete it all.</p>
+          <div class="rowx"><a class="btn ghost" href="setup.html" id="setupLink" style="text-decoration:none">Your classes</a><a class="btn ghost" href="setup.html#year" id="yearLink" style="text-decoration:none">School year</a><a class="btn ghost" href="account.html" style="text-decoration:none">Your data and backup</a></div>
         </dialog>
     </main>
     <!-- Eddie, Nov 24: no footer on Home. It stays in the page source, hidden, so the page still links Privacy and Terms
@@ -165,7 +165,7 @@
         if (PACK !== "calera") document.querySelectorAll(["plan", "review", "bank", "planner", "builder", "standards"].map((p) => 'a[href="' + p + '.html"]').join(",")).forEach((a) => { a.hidden = true; a.style.display = "none"; });
         import * as store from "./js/boardStore.js?v=58";
         import { LIBRARY } from "./data/library.js?v=57";
-        import { SCHOOL_YEAR, SCHOOL_DAYS, today as todayFn, addDays, mondayOf, eventsOn, isSchoolDay as schoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, short } from "./js/schoolCal.js?v=57";
+        import { SCHOOL_YEAR, SCHOOL_DAYS, today as todayFn, addDays, mondayOf, eventsOn, isSchoolDay as schoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, short, CAL_SOURCE, TERM_NAME } from "./js/schoolCal.js?v=59";
         const DAYKEYS = ["mon", "tue", "wed", "thu", "fri"], $ = (id) => document.getElementById(id);
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
         const iso = (d) => d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
@@ -173,7 +173,8 @@
         // Which day the Today card is about (js/homeDay.js): the school calendar decides, so a break or holiday says so
         // and points at the next school day. A new teacher (starter) has no school calendar here, so weekdays count.
         const offOn = (d) => { const e = eventsOn(d).find((x) => x.kind === "off" || x.kind === "work"); return e ? { text: e.text, start: e.start, end: e.end } : null; };
-        const dayOpts = () => PACK === "calera" ? { today: todayIso, weeks: WEEKS, inSchool: schoolDay, offOn, byCalendar: true } : { today: todayIso, weeks: WEEKS, inSchool: isWeekday };
+        // A new teacher who saved their own school year (setup.html) gets the calendar too; before that, every weekday counts.
+        const dayOpts = () => PACK === "calera" || CAL_SOURCE === "saved" ? { today: todayIso, weeks: WEEKS, inSchool: schoolDay, offOn, byCalendar: true } : { today: todayIso, weeks: WEEKS, inSchool: isWeekday };
         let HD = homeDay(dayOpts()), week = HD.week, di = HD.di;
         const isSchoolDay = HD.school;
         const pickWeek = () => { HD = homeDay(dayOpts()); week = HD.week; di = HD.di; };
@@ -376,7 +377,7 @@
             const n = dayNumber(t), q = nineWeeksOf(t);
             if (n) tile("Day " + n, "of " + SCHOOL_DAYS.length + " school days", "accent");
             else { const ev = eventsOn(t).find((e) => e.kind === "off" || e.kind === "work"); tile(ev ? ev.text : "No school today", "next school day " + (SCHOOL_DAYS.find((d) => d > t) ? short(SCHOOL_DAYS.find((d) => d > t)) : "after the summer"), "accent"); }
-            if (q) tile(daysLeftInNineWeeks(t) + " days", "left in the " + ORD[q.n] + " nine weeks (ends " + short(q.end, { month: "short", day: "numeric" }) + ")");
+            if (q) tile(daysLeftInNineWeeks(t) + " days", "left in the " + ORD[q.n] + " " + TERM_NAME + " (ends " + short(q.end, { month: "short", day: "numeric" }) + ")");
             const nb = nextBreak(t);
             if (nb) tile(nb.ev.text, (nb.ev.start === nb.ev.end ? short(nb.ev.start, { weekday: "short", month: "short", day: "numeric" }) : short(nb.ev.start, { month: "short", day: "numeric" }) + " to " + short(nb.ev.end, { month: "short", day: "numeric" })) + " · " + nb.days + " school day" + (nb.days === 1 ? "" : "s") + " until then");
             // This week, per class: unit or focus from the Planner, else the Library label; teaching marks from Standards.

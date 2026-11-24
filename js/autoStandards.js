@@ -10,7 +10,7 @@
    Marks look like hand marks, plus by: "Anchor": { s: "taught", d: "2026-12-03", by: "Anchor" }.
 ========================================== */
 import { STANDARDS } from "../data/standards.js?v=58";
-import { addDays } from "./schoolCal.js?v=58";
+import { addDays } from "./schoolCal.js?v=59";
 
 const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 const RANK = { "": 0, teaching: 1, taught: 2, reteach: 2 };

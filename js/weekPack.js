@@ -12,7 +12,7 @@
    the printed papers keep real stacked fractions.
 ========================================== */
 import * as Drive from "./drive.js?v=2";
-import { nineWeeksOf } from "./schoolCal.js?v=58";
+import { nineWeeksOf } from "./schoolCal.js?v=59";
 import { TAG } from "./weekPapers.js?v=1";
 
 const ORD = ["", "1st", "2nd", "3rd", "4th"];

@@ -56,7 +56,7 @@ const ACCOUNT_LOCAL_STORAGE_PREFIXES = [
 // Which lessons an account sees, and a new teacher's setup (js/contentPack.js). Cleared on sign-out and account switch
 // so a stale "starter" can never carry into another session (Nov 23). Kept out of hasLegacyAccountState(): their
 // presence alone must not trigger the clear-and-reload that an account switch does.
-const ACCOUNT_CACHE_PREFIXES = ["focal-pack:", "focal-setup:"];
+const ACCOUNT_CACHE_PREFIXES = ["focal-pack:", "focal-setup:", "anchor-cal:"];
 
 const ACCOUNT_SESSION_STORAGE_KEYS = [
     "school-role-reloaded",

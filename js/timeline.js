@@ -8,7 +8,7 @@
    ?demo keeps everything on this device only. ?cls=7th opens a class.
 ========================================== */
 import { STANDARDS } from "../data/standards.js?v=58";
-import { SCHOOL_YEAR, today, short, daysLeftInNineWeeks, nineWeeksOf } from "./schoolCal.js?v=57";
+import { SCHOOL_YEAR, today, short, daysLeftInNineWeeks, nineWeeksOf } from "./schoolCal.js?v=59";
 import * as T from "./timelineCore.js?v=3";
 import { drawMap } from "./timelineMap.js?v=2";
 import { mount as mountPick, bankNow } from "./timelinePick.js?v=4";
