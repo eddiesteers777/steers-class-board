@@ -24,10 +24,10 @@ export function signInFailureMessage(error) {
         return "Couldn't reach Google. Check your connection and try again.";
     }
     if (code === "auth/unauthorized-domain") {
-        return "Sign-in isn't set up for this web address yet. Open Calera Math from steers-class-board.firebaseapp.com and try again.";
+        return "Sign-in isn't set up for this web address yet. Open Anchor Board from steers-class-board.firebaseapp.com and try again.";
     }
     if (code === "auth/timeout") {
-        return "Google didn't answer. In the Home Screen app, open the Calera Math site in Safari and sign in there.";
+        return "Google didn't answer. In the Home Screen app, open Anchor Board in Safari and sign in there.";
     }
     if (code === "auth/too-many-requests") {
         return "Too many sign-in attempts. Wait a minute, then try again.";

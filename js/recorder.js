@@ -10,6 +10,9 @@
    - Nothing is uploaded or stored by the site. The file goes to Downloads.
    - Chrome always asks which tab to share. That prompt cannot be skipped.
 ========================================== */
+import { myName, surname } from "./teacherName.js?v=1";
+let ME = "";   // the teacher's name, for the file name ("Steers - 1st - …" on the Calera account)
+myName().then((n) => { ME = n; }).catch(() => {});
 const $ = (id) => document.getElementById(id);
 let rec = null, chunks = [], streams = [], startedAt = 0, ticker = 0, mime = "", cropped = false, painter = null;
 
@@ -50,7 +53,7 @@ function fileName(ext) {
     const per = clean(($("periodSel") && $("periodSel").selectedOptions[0] && $("periodSel").selectedOptions[0].textContent) || "");
     const title = clean((document.querySelector("#stage .ttl h1") || {}).textContent), sub = clean((document.querySelector("#stage .ttl p") || {}).textContent);
     const d = new Date(), day = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
-    return ["Steers", per, title, sub, day].filter(Boolean).join(" - ").slice(0, 120) + "." + ext;
+    return [surname(ME) || "Lesson", per, title, sub, day].filter(Boolean).join(" - ").slice(0, 120) + "." + ext;
 }
 function setUi(on) {
     document.body.classList.toggle("recording", on);

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anchor Board | Sign in</title>
-    <meta name="description" content="Anchor Board: the class board, remote and planner for Mr. Steers' math classes. Teacher-only.">
+    <meta name="description" content="Anchor Board: the class board, remote and planner for teachers. Teacher-only.">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
@@ -32,7 +32,9 @@
       <div class="si-card">
         <span class="si-logo cbrand"><img src="brand/logo.svg" alt="Anchor Board logo"></span>
         <h1>Anchor Board</h1>
-        <p class="who">Mr. Steers · Math</p>
+        <p class="who" id="who">For teachers</p>
+        <script>/* The name this device last signed in as (js/teacherName.js): "Mr. Steers · Math" on the Calera account. */
+            try { const w = JSON.parse(localStorage.getItem("anchor-who") || "null"); if (w && w.name) document.getElementById("who").textContent = w.name + (w.subject ? " · " + w.subject : ""); } catch (e) { /* storage unavailable */ }</script>
         <div class="line" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
         <p>The class board, remote and planner. Teacher-only: students never sign in.</p>
         <div class="acts">

@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anchor Board | Home</title>
-    <meta name="description" content="Math class library for Mr. Steers: Week 5, November 16–20, 2026. Teacher-only.">
+    <meta name="description" content="Anchor Board: the class board, remote and planner for teachers. Teacher-only.">
     <link rel="canonical" href="https://anchorboard.web.app/">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Anchor Board">
     <meta property="og:title" content="Anchor Board | Home">
-    <meta property="og:description" content="Math class library for Mr. Steers: Week 5, November 16–20, 2026. Teacher-only.">
+    <meta property="og:description" content="Anchor Board: the class board, remote and planner for teachers. Teacher-only.">
     <meta property="og:url" content="https://anchorboard.web.app/">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
@@ -150,6 +150,7 @@
     <script type="module">
         import { WEEKS as PUBLISHED, PERIODS, PACK, SETUP } from "./data/weeks.js?v=63";
         import { packInfo, choosePack, hasRealWork } from "./js/contentPack.js?v=4";
+        import("./js/teacherName.js?v=1").then((m) => m.myWho()).catch(() => {});   // remembers "Mr. Steers · Math" (or a new teacher's name) for the sign-in page
         import { toLoginIfSignedOut } from "./js/signedOut.js?v=1";
         // A new teacher who hasn't been through setup yet goes there first (setup.html): only on a starter choice the server confirmed.
         if (PACK !== "calera" && SETUP && !SETUP.done && packInfo().confirmed) location.replace("setup.html");
