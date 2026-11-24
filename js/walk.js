@@ -731,7 +731,9 @@ export function readKey(a) {
     if (/^undefined/i.test(s)) return { kind: "undef" };
     let m = s.match(/^one solution\s*\(\s*[a-z]\s*=\s*([^)]+)\)/i);
     if (m) { const v = qOf(m[1]); return v ? { kind: "eq", v, one: true } : null; }
-    if (/, so /.test(s)) s = s.split(/, so /).pop();
+    m = s.match(/^(?:[^;]*;\s*)?([a-zA-Z])\s*([<≤])\s*([−-]?[\d.]+)(?:\s*[a-z]+)?\s+or\s+\1\s*([>≥])\s*([−-]?[\d.]+)(?:\s*[a-z]+)?$/);
+    if (m) { const lo = qOf(m[3]), hi = qOf(m[5]); return lo && hi ? { kind: "or", lo, hi, rlo: m[2], rhi: m[4] } : null; }
+    if (/, so /.test(s)) { const ps = s.split(/, so /); s = /^[a-z]\s*[<>≤≥]/.test(ps[0]) ? ps[0] : ps.pop(); }
     s = s.replace(/\s*\(.*\)\s*$/, "").trim();
     m = s.match(/^(\S+)\s*([<≤])\s*([a-z])\s*([<≤])\s*(\S+)$/);
     if (m) { const lo = qOf(m[1]), hi = qOf(m[5]); return lo && hi ? { kind: "and", lo, hi, rlo: m[2], rhi: m[4] } : null; }
@@ -777,6 +779,7 @@ function solve(W, line0, opts) {
     if (!opts.started) W.steps.push({ move: "start", title: opts.title || "The problem", why: opts.why0 || (line.r.some((r) => r !== "=") ? "Solve it like an equation. Watch for multiplying or dividing by a negative." : "Goal: get " + v + " alone. Undo what is done to " + v + ", the same way on both sides."), seq: [{ a: "row", row: lineRow(W, line, line.abs ? { sem: null } : null) }] });
     if (line.abs) {
         const r = line.r[0], b = formOf(line.s[1]);
+        if (r === ">" || r === "≥") return absOr(W, line, v);
         if (!(r === "<" || r === "≤") || !b.a.zero || b.b.sign <= 0) throw new Error("absolute value kind");
         const lo = [{ c: b.b.neg(), v: null, g: null, k: key(W) }], hi = [{ c: b.b, v: null, g: null, k: key(W) }];
         const mid = line.s[0].map((t) => dup(W, t));
@@ -855,10 +858,10 @@ function answerStep(W, keyText, extra) {
 /** The answer key, written with stacked fractions and $ for §. */
 export function keyDT(s) {
     s = String(s).replace(/§/g, "$");
-    const out = []; const re = /(\d+)\{(\d+)\/(\d+)\}|\{([^{}/]+)\/([^{}/]+)\}/g; let last = 0, m;
+    const out = []; const re = /(\d+)\{(\d+)\/(\d+)\}|\{([^{}/]+)\/([^{}/]+)\}|\^\{?([a-z0-9]+)\}?/g; let last = 0, m;
     while ((m = re.exec(s))) {
         if (m.index > last) out.push(s.slice(last, m.index));
-        out.push(m[1] ? R([m[1], F(m[2], m[3])]) : F(m[4], m[5]));
+        out.push(m[6] ? { sup: m[6] } : m[1] ? R([m[1], F(m[2], m[3])]) : F(m[4], m[5]));
         last = re.lastIndex;
     }
     if (last < s.length) out.push(s.slice(last));
@@ -952,6 +955,7 @@ function matchKey(res, key, item) {
         if (key.kind === "none" || key.kind === "all") return res.kind === key.kind;
         if (key.kind === "eq") return res.kind === "eq" && res.val.eq(key.v);
         if (key.kind === "rel") return res.kind === "rel" && res.rel === key.rel && res.val.eq(key.v);
+        if (key.kind === "or") return res.kind === "or" && res.lo.eq(key.lo) && res.hi.eq(key.hi) && res.rlo === key.rlo && res.rhi === key.rhi;
         if (key.kind === "and") return res.kind === "and" && res.lo.eq(key.lo) && res.hi.eq(key.hi) && res.rlo === key.rlo && res.rhi === key.rhi;
         if (key.kind === "num") return (res.kind === "eq" && res.val.eq(key.v)) || (res.kind === "num" && res.val.eq(key.v));
         return false;
@@ -963,7 +967,9 @@ function build(W, item) {
     const q = String(item.q || ""), setup = item.walk || null;
     let m;
     // a word problem whose setup is stored with it (tools/stdbank → data/stdbank/walk.js)
-    if (setup && setup.eq) return solveSetup(W, item, setup.eq, { story: setup.story, why0: setup.why, then: setup.then, var: setup.var });
+    if (setup && setup.eq) return solveSetup(W, item, setup.eq, { story: setup.story, why0: setup.why, then: setup.then, var: setup.var, end: setup.end });
+    if (setup && setup.quad) return quadSetup(W, item, Object.assign({ why0: setup.why }, setup));
+    if (setup && setup.grow) return growSetup(W, item, Object.assign({ why0: setup.why }, setup));
     if (setup && setup.expr) return evalSetup(W, item, setup.expr, { story: setup.story, why0: setup.why });
     if (setup && setup.simp) return simpStory(W, item, Object.assign({ why0: setup.why }, setup));
     if (setup && setup.write) return writeStory(W, item, Object.assign({ why0: setup.why }, setup));
@@ -1024,6 +1030,9 @@ function build(W, item) {
     // expressions with a variable: distribute and combine like terms, or factor out the GCF
     if ((m = q.match(/^(?:Simplify|Expand|Expand the expression|Expand and simplify|Combine like terms to simplify|Subtract the linear expressions):\s*(.+)$/)) && /[a-z]/i.test(m[1].replace(/\{[^}]*\}/g, ""))) return simpSetup(W, item, m[1]);
     if ((m = q.match(/^Factor(?: the expression using the greatest common factor)?:\s*(.+)$/))) return factorSetup(W, item, m[1]);
+    if ((m = q.match(/^Factor (\S+) out of the expression (.+)\.$/))) return factorOutSetup(W, item, m[1], m[2]);
+    if ((m = q.match(/^Which expression is NOT equivalent to (.+)\?$/)) && item.choices) return choiceSimpSetup(W, item, m[1], item.choices.map((x) => ({ x: String(x) })), "not");
+    if ((m = q.match(/^Which is the same as (.+?)\?\s+(A\. .+)$/))) return choiceSimpSetup(W, item, m[1], m[2].split(/\s+(?=[A-D]\. )/).map((x) => ({ label: x[0], x: x.slice(3).trim() })), "same");
     if ((m = q.match(/^(?:Find|Simplify|Evaluate):\s*(.+)$/))) return evalSetup(W, item, m[1], {});
     return null;
 }
@@ -1049,7 +1058,7 @@ function solveSetup(W, item, eqText, o) {
         const terms = line.s.flatMap((sd) => sd.flatMap((t) => (t.g ? [t, ...t.g] : [t])));
         const pairs = (o.story || []).map((mk, i) => { const t = terms.find((x) => norm(termText(x, true)) === norm(mk[1]) || norm(termText(x, true)).replace(/^-/, "") === norm(mk[1]).replace(/^-/, "")); return t ? ["s" + i, t.k] : null; }).filter(Boolean);
         const noun = line.r.every((r) => r === "=") ? "equation" : "inequality";
-        W.steps.push({ move: "setup", title: "Write the " + noun, why: o.story ? "Each number from the story goes into the " + noun + "." + (v ? " " + v + " is " + (o.var || "the unknown") + "." : "") : o.fact + " Write that as an equation.", seq: [{ a: "row", row: lineRow(W, line) }, ...(pairs.length ? [{ a: "fly", pairs, story: true }] : [])] });
+        W.steps.push({ move: "setup", title: "Write the " + noun, why: o.story ? "Each number from the story goes into the " + noun + "." + (v ? " " + v + " is " + (o.var || "the unknown") + "." : "") : o.fact + " Write that as an equation.", seq: [{ a: "row", row: lineRow(W, line, line.abs ? { sem: null } : null) }, ...(pairs.length ? [{ a: "fly", pairs, story: true }] : [])] });
         started = true;
     }
     const key = readKey(item.a);
@@ -1058,6 +1067,7 @@ function solveSetup(W, item, eqText, o) {
     // replace the verifier's first line with the line we really started from
     W.steps.forEach((st) => st.seq.forEach((x) => { if (x.a === "row" && x.row.sem && x.row.sem.s && x.row.c === "w-check") x.row.sem.then = true; }));
     if (res.kind === "eq" || res.kind === "rel" || res.kind === "and") checkStep(W, eqText, res, line);
+    else if (res.kind === "or") orCheck(W, res);
     if (o.then && res.kind === "eq") {
         const vals = o.then.map((t) => {
             const e = parseExpr(W, t.expr, { [res.v]: res.val }), val = valueOf(e);
@@ -1085,7 +1095,7 @@ function solveSetup(W, item, eqText, o) {
         const vals = (o.pic.exprs || o.pic.labels.map((l) => l.replace(/[°()]/g, "").replace(/^[AB] = /, ""))).map((ex) => valueOf(parseExpr(W, ex.replace(/°/g, ""), { [res.v]: res.val })).toNumber());
         W.steps.forEach((st) => st.seq.forEach((x) => { if (x.a === "row" && x.row.t === "pic" && x.row.pic.kind === "wedges") x.row.pic.solved = vals; }));
     }
-    answerStep(W, item.a, o.count ? (res.kind === "eq" ? "One number works, so there is exactly one solution." : "") : res.kind === "none" ? "No number makes it true." : res.kind === "all" ? "Every number makes it true." : "");
+    answerStep(W, item.a, o.end ? o.end : o.count ? (res.kind === "eq" ? "One number works, so there is exactly one solution." : "") : res.kind === "none" ? "No number makes it true." : res.kind === "all" ? "Every number makes it true." : "");
     return true;
 }
 function evalSetup(W, item, exprText0, o) {
@@ -1631,6 +1641,212 @@ function piLineSetup(W, item, a, b) {
     return true;
 }
 
+/* ---------- Week 6: absolute value "or", quadratics by factoring, doubling, factoring out a number, which choice ---------- */
+const nT = (q) => numText(q, q.int ? undefined : "dec");
+/** "x + 2", "2t − 3", "L − 24" for a·v + c. */
+const linT = (a, c, v) => (a.eq(ONE) ? "" : a.eq(ONE.neg()) ? MINUS : nT(a)) + v + (c.zero ? "" : (c.sign < 0 ? " " + MINUS + " " : " + ") + nT(c.abs()));
+/** |a·v + c| r B with r ">" or "≥": two inequalities joined by "or". Steps go on W; returns { kind: "or", … }. */
+function absOr(W, line, v) {
+    const r = line.r[0], rl = r === ">" ? "<" : "≤", f = formOf(line.s[0]), B = formOf(line.s[1]).b;
+    if (!formOf(line.s[1]).a.zero || B.sign <= 0 || f.a.sign <= 0) throw new Error("absolute value kind");
+    const inT = linT(f.a, f.b, v);
+    const holds = (t) => { const x = f.a.mul(t).add(f.b); return relTrue(x.abs(), r, B); };
+    const lo = B.neg().sub(f.b).div(f.a), hi = B.sub(f.b).div(f.a);
+    const pts = [lo, hi]; [lo, hi].forEach((p) => pts.push(p.sub(new Q(1, 100)), p.add(new Q(1, 100)))); pts.push(lo.add(hi).div(new Q(2)), lo.sub(ONE), hi.add(ONE));
+    const same = (test) => pts.every((t) => test(t) === holds(t));
+    const orRow = (L, R1, R2, test) => chainRow([L, rl, R1, "or", L, r, R2], same(test));
+    const far = r === ">" ? "more than " + nT(B) + " away from 0" : nT(B) + " or more away from 0";
+    W.steps.push({ move: "abs", title: "Split into two inequalities", why: "|" + inT + "| " + r + " " + nT(B) + " means " + inT + " is " + far + ": " + (r === ">" ? "less than " + nT(B.neg()) + " or greater than " + nT(B) : "at most " + nT(B.neg()) + " or at least " + nT(B)) + ". Write both, joined by \"or\".",
+        seq: [{ a: "row", row: orRow(inT, nT(B.neg()), nT(B), (t) => relTrue(f.a.mul(t).add(f.b), rl, B.neg()) || relTrue(f.a.mul(t).add(f.b), r, B)) }] });
+    if (!f.b.zero) {
+        const L2 = linT(f.a, ZERO, v), r1 = B.neg().sub(f.b), r2 = B.sub(f.b);
+        W.steps.push({ move: "both", title: (f.b.sign > 0 ? "Subtract " : "Add ") + nT(f.b.abs()) + " in each part", why: "Undo the " + (f.b.sign > 0 ? "+ " : MINUS + " ") + nT(f.b.abs()) + " the same way in both inequalities: " + nT(B.neg()) + (f.b.sign > 0 ? " − " : " + ") + nT(f.b.abs()) + " = " + nT(r1) + " and " + nT(B) + (f.b.sign > 0 ? " − " : " + ") + nT(f.b.abs()) + " = " + nT(r2) + ".",
+            seq: [{ a: "row", row: orRow(L2, nT(r1), nT(r2), (t) => relTrue(f.a.mul(t), rl, r1) || relTrue(f.a.mul(t), r, r2)) }] });
+    }
+    if (!f.a.one) W.steps.push({ move: "divide", title: "Divide by " + nT(f.a), why: "Divide each part by " + nT(f.a) + ". It's positive, so the signs stay the same.", seq: [{ a: "row", row: orRow(v, nT(lo), nT(hi), (t) => relTrue(t, rl, lo) || relTrue(t, r, hi)) }] });
+    return { kind: "or", v, lo, hi, rlo: rl, rhi: r, inner: f, B, r };
+}
+function orCheck(W, res) {
+    const { v, lo, hi, inner: f, B, r } = res;
+    const rows = [lo.sub(ONE), lo.add(hi).div(new Q(2)), hi.add(ONE)].map((t, i) => {
+        const x = f.a.mul(t).add(f.b), ok = relTrue(x.abs(), r, B), rel = ok ? r : (r === ">" ? "≤" : "<");
+        const subT = (f.a.one ? nT(t) : nT(f.a) + "(" + nT(t) + ")") + (f.b.zero ? "" : (f.b.sign < 0 ? " − " : " + ") + nT(f.b.abs()));
+        return { t: "line", cells: [R(["|" + subT + "| = " + nT(x.abs()) + " " + rel + " " + nT(B) + (ok ? " ✓" : " ✗")]), null, null], sem: { truth: ok === (i !== 1) }, chain: true, c: ok ? "w-check" : undefined, _t: t };
+    });
+    const why = "Try a number from each part, and one from the gap between them. " + nT(rows[0]._t) + " and " + nT(rows[2]._t) + " work. " + nT(rows[1]._t) + " is in the gap, and it doesn't.";
+    rows.forEach((row) => delete row._t);
+    W.steps.push({ move: "check", title: "Check", why, seq: rows.map((row) => ({ a: "row", row })) });
+    const unit = [1, 0.5, 0.25, 0.1, 0.05, 0.01].find((u) => [lo, hi].every((q) => Math.abs(q.toNumber() / u - Math.round(q.toNumber() / u)) < 1e-9) && (hi.toNumber() - lo.toNumber()) / u >= 2) || 1;
+    const circle = (c) => (c ? "a closed circle (the number is included)" : "an open circle (the number is not included)");
+    W.steps.push({ move: "graph", title: "Graph it", why: "Put " + circle(res.rlo === "≤") + " at " + nT(lo) + " and shade left. Put " + circle(res.rhi === "≥") + " at " + nT(hi) + " and shade right.",
+        seq: [{ a: "row", row: { t: "pic", pic: { kind: "ineq", out: true, lo: lo.toNumber(), hi: hi.toNumber(), loT: nT(lo), hiT: nT(hi), cl: res.rlo === "≤", ch: res.rhi === "≥", unit } } }] });
+}
+
+/** Integer polynomial a·v² + b·v + c as text. */
+function polyT(cs, v) {
+    const out = []; const pw = ["²", "", ""];
+    cs.forEach((c, i) => {
+        if (!c) return;
+        const a = Math.abs(c), body = (i < 2 && a === 1 ? "" : String(a)) + (i < 2 ? v + pw[i] : "");
+        out.push(out.length ? (c < 0 ? " − " : " + ") + body : (c < 0 ? MINUS : "") + body);
+    });
+    return out.join("") || "0";
+}
+/** a·v² + b·v + c = 0 as (p·v + q)(r·v + s) with p, r > 0; null if it doesn't factor over the integers. */
+function factorQuad(a, b, c) {
+    for (let p = 1; p <= a; p++) {
+        if (a % p) continue;
+        const r = a / p;
+        for (let q = -Math.abs(c) || 0; q <= Math.abs(c); q++) {
+            if (c === 0 ? q !== 0 : (q === 0 || c % q)) continue;
+            const s = c === 0 ? 0 : c / q;
+            if (p * s + q * r === b) return { p, q, r, s };
+        }
+        if (c === 0 && b % p === 0) return { p, q: 0, r, s: b / p };
+    }
+    return null;
+}
+const facT = (p, q, v) => "(" + (p === 1 ? "" : p) + v + (q ? (q < 0 ? " − " : " + ") + Math.abs(q) : "") + ")";
+/** "w(w + 3) = 40" or "−16t² + 96t + 40 = 148": expand, get 0 on one side, factor, zero product, keep what fits, check. */
+function quadSetup(W, item, o) {
+    W.kind = "rel"; W.cols = 3;
+    let m, v, cs, rhs, start = o.quad, expanded = null;
+    if ((m = start.match(/^([a-z])\(\1 \+ (\d+)\) = (\d+)$/))) { v = m[1]; cs = [1, +m[2], 0]; rhs = +m[3]; expanded = polyT(cs, v) + " = " + rhs; }
+    else if ((m = start.match(/^([−-]?\d*)([a-z])² ([+−-]) (\d+)\2 ([+−-]) (\d+) = (\d+)$/))) {
+        v = m[2]; const sg = (x) => (x === "+" ? 1 : -1);
+        cs = [m[1] === "" ? 1 : m[1] === "−" || m[1] === "-" ? -1 : +m[1].replace("−", "-"), sg(m[3]) * +m[4], sg(m[5]) * +m[6]]; rhs = +m[7];
+    } else return null;
+    const P = (t) => new Q(cs[0]).mul(t).mul(t).add(new Q(cs[1]).mul(t)).add(new Q(cs[2]));   // left side's value
+    W.steps.push({ move: "story", title: "Read the story", why: o.why0 || "Find the numbers in the story and what each one means.", seq: [{ a: "row", row: { t: "pic", pic: { kind: "story", text: item.q, marks: o.story || [] } } }] });
+    W.steps.push({ move: "setup", title: "Write the equation", why: o.why1 || ("Each piece of the story goes into the equation. " + v + " is " + (o.var || "the unknown") + "."), seq: [{ a: "row", row: chainRow([start], true) }] });
+    if (expanded) W.steps.push({ move: "expand", title: "Multiply it out", why: v + " × " + v + " = " + v + "², and " + v + " × " + cs[1] + " = " + cs[1] + v + ".", seq: [{ a: "row", row: chainRow([expanded], true) }] });
+    const std = [cs[0], cs[1], cs[2] - rhs];
+    W.steps.push({ move: "zero", title: "Get 0 on one side", why: "To factor, one side has to be 0. Subtract " + rhs + " from both sides" + (cs[2] ? ": " + cs[2] + " − " + rhs + " = " + std[2] + "." : "."), seq: [{ a: "row", row: chainRow([polyT(std, v), "=", "0"], true) }] });
+    let red = std.slice();
+    const g = gcd(gcd(std[0], std[1]), std[2]) * (std[0] < 0 ? -1 : 1);
+    if (g !== 1) {
+        red = std.map((x) => x / g);
+        W.steps.push({ move: "divide", title: "Divide every term by " + (g < 0 ? MINUS + Math.abs(g) : g), why: "Every number divides by " + (g < 0 ? MINUS + Math.abs(g) : g) + ". That makes the numbers smaller" + (g < 0 ? " and the " + v + "² term positive" : "") + ", and 0 ÷ " + (g < 0 ? "(" + MINUS + Math.abs(g) + ")" : g) + " is still 0.",
+            seq: [{ a: "row", row: chainRow([polyT(red, v), "=", "0"], true) }] });
+    }
+    let fq = factorQuad(red[0], red[1], red[2]); if (!fq) return null;
+    if (new Q(-fq.q, fq.p).cmp(new Q(-fq.s, fq.r)) > 0) fq = { p: fq.r, q: fq.s, r: fq.p, s: fq.q };   // the smaller answer first
+    const { p, q, r, s } = fq;
+    const expOK = p * r === red[0] && p * s + q * r === red[1] && q * s === red[2];
+    const sgn = (x) => (x < 0 ? "(" + MINUS + Math.abs(x) + ")" : String(x));
+    const why = red[0] === 1 ? "Find two numbers that multiply to " + sgn(red[2]).replace(/[()]/g, "") + " and add to " + sgn(red[1]).replace(/[()]/g, "") + ": " + sgn(q) + " × " + sgn(s) + " = " + red[2] + " and " + sgn(q) + " + " + sgn(s) + " = " + red[1] + "."
+        : "Try " + facT(p, q, v) + facT(r, s, v) + ": " + (p === 1 ? "" : p) + v + " × " + (r === 1 ? "" : r) + v + " = " + red[0] + v + "², " + sgn(q) + " × " + sgn(s) + " = " + red[2] + ", and the middle terms add to " + (p * s + q * r) + v + ".";
+    W.steps.push({ move: "factor", title: "Factor", why: why.replace(/-/g, MINUS), seq: [{ a: "row", row: chainRow([facT(p, q, v) + facT(r, s, v), "=", "0"], expOK) }] });
+    const roots = [new Q(-q, p), new Q(-s, r)];
+    const zeroOK = roots.every((t) => P(t).eq(new Q(rhs)));
+    W.steps.push({ move: "zp", title: "Set each factor to 0", why: "Two numbers multiply to 0 only if one of them is 0. So one factor or the other is 0.", seq: [{ a: "row", row: chainRow([facT(p, q, v).slice(1, -1), "=", "0", "or", facT(r, s, v).slice(1, -1), "=", "0"], zeroOK) }] });
+    W.steps.push({ move: "both", title: "Solve each one", why: roots.map((t, i) => { const pp = i ? r : p, qq = i ? s : q; return (qq < 0 ? "Add " + Math.abs(qq) : "Subtract " + qq) + (pp === 1 ? "" : ", then divide by " + pp) + ": " + v + " = " + nT(t) + "."; }).join(" "),
+        seq: [{ a: "row", row: chainRow([v, "=", nT(roots[0]), "or", v, "=", nT(roots[1])], zeroOK) }] });
+    let keep = roots;
+    if (o.keep === "positive") {
+        keep = roots.filter((t) => t.sign > 0);
+        if (keep.length !== 1) return null;
+        W.steps.push({ move: "pick", title: "Keep the one that fits", why: o.keepWhy || ("A length can't be negative, so " + v + " = " + nT(keep[0]) + "."), seq: [{ a: "row", row: chainRow([v, "=", nT(keep[0])], true, { c: "w-check" }) }] });
+    } else if (o.keepWhy) {
+        keep = roots.slice().sort((x, y) => x.cmp(y));
+        W.steps.push({ move: "pick", title: "What each one means", why: o.keepWhy, seq: keep.map((t, i) => ({ a: "row", row: { t: "line", cells: [R([v + " = " + nT(t) + ((o.labels || [])[i] ? ": " + o.labels[i] : "")]), null, null], chain: true } })) });
+    }
+    const chk = keep.map((t) => {
+        const val = P(t), tt = t.int ? nT(t) : "(" + nT(t) + ")";
+        const lhs = expanded ? v + "(" + v + " + " + cs[1] + ")" : polyT(cs, v);
+        const subd = lhs.replace(new RegExp(v + "²", "g"), "(" + nT(t) + ")²").replace(new RegExp("(\\d)" + v, "g"), "$1" + (t.int && t.sign >= 0 ? "(" + nT(t) + ")" : tt)).replace(new RegExp(v, "g"), nT(t));
+        return { a: "row", row: { t: "line", cells: [R([subd + " = " + nT(val) + (val.eq(new Q(rhs)) ? " ✓" : "")]), null, null], sem: { truth: val.eq(new Q(rhs)) }, chain: true, c: "w-check" } };
+    });
+    W.steps.push({ move: "check", title: "Check", why: "Put " + keep.map(nT).join(" and ") + " back into the first equation. " + (keep.length > 1 ? "Both give " : "It gives ") + rhs + " ✓.", seq: chk });
+    // the key: every kept answer is in it, and the other one isn't
+    const a = String(item.a), has = (t) => new RegExp("(^|[^\\d.])" + nT(t).replace(MINUS, "[−-]").replace(".", "\\.") + "([^\\d.]|$)").test(a);
+    if (!keep.every(has) || roots.some((t) => !keep.includes(t) && t.sign < 0 && has(t) && !has(t.abs()))) throw new Error("key");
+    if (o.keep === "positive" && roots.some((t) => t.sign < 0 && new RegExp("[−-]" + nT(t.abs()) + "([^\\d.]|$)").test(a))) throw new Error("key");
+    const eqPart = a.split(/[;,]/)[0];
+    if (/=/.test(eqPart) && new RegExp(v + "\\(").test(eqPart) && eqPart.replace(/\s/g, "") !== start.replace(/\s/g, "")) throw new Error("key");
+    answerStep(W, item.a, o.end || "");
+    return true;
+}
+const supDT = (s) => { const out = []; const re = /\^\{?([a-z0-9]+)\}?/g; let last = 0, m; while ((m = re.exec(s))) { out.push(s.slice(last, m.index), { sup: m[1] }); last = re.lastIndex; } out.push(s.slice(last)); return R(out); };
+/** "200 · 2^t = 3200": divide by the start, then count the doublings. */
+function growSetup(W, item, o) {
+    W.kind = "rel"; W.cols = 3;
+    const m = o.grow.match(/^(\d+) · (\d+)\^([a-z]) = (\d+)$/); if (!m) return null;
+    const a = +m[1], b = +m[2], v = m[3], T = +m[4];
+    if (T % a) return null;
+    const goal = T / a; let n = 0, x = 1; const rows = [];
+    while (x < goal && n < 12) { n++; x *= b; rows.push({ t: "line", cells: [R([String(b), { sup: String(n) }, " = " + x]), null, null], sem: { truth: Math.pow(b, n) === x }, chain: true }); }
+    if (x !== goal) return null;
+    W.steps.push({ move: "story", title: "Read the story", why: o.why0 || "Find the numbers in the story and what each one means.", seq: [{ a: "row", row: { t: "pic", pic: { kind: "story", text: item.q, marks: o.story || [] } } }] });
+    W.steps.push({ move: "setup", title: "Write the equation", why: o.why1 || ("Each piece of the story goes into the equation. " + v + " is " + (o.var || "the unknown") + "."), seq: [{ a: "row", row: { t: "line", cells: [supDT(a + " · " + b + "^" + v + " = " + T), null, null], chain: true } }] });
+    W.steps.push({ move: "divide", title: "Divide both sides by " + a, why: "Undo the " + a + " · by dividing both sides by " + a + ": " + T + " ÷ " + a + " = " + goal + ".", seq: [{ a: "row", row: { t: "line", cells: [supDT(b + "^" + v + " = " + goal), null, null], sem: { truth: T / a === goal }, chain: true } }] });
+    W.steps.push({ move: "power", title: "Count the " + (b === 2 ? "doublings" : "times you multiply by " + b), why: "Multiply by " + b + " until you reach " + goal + ". It takes " + n + " times, so " + v + " = " + n + ".", seq: rows.map((row) => ({ a: "row", row })) });
+    W.steps.push({ move: "pick", title: v + " = " + n, why: b + " to the power " + n + " is " + goal + ", so " + v + " = " + n + ".", seq: [{ a: "row", row: chainRow([v, "=", String(n)], true, { c: "w-check" }) }] });
+    W.steps.push({ move: "check", title: "Check", why: "Put " + n + " back in: " + a + " · " + goal + " = " + T + " ✓.", seq: [{ a: "row", row: { t: "line", cells: [R([a + " · " + b, { sup: String(n) }, " = " + a + " · " + goal + " = " + a * goal + " ✓"]), null, null], sem: { truth: a * Math.pow(b, n) === T }, chain: true, c: "w-check" } }] });
+    const s = String(item.a).replace(/(\d),(\d{3})/g, "$1$2");
+    if (!new RegExp(v + " = " + n + "([^\\d.]|$)").test(s) || (/=/.test(s.split(",")[0]) && s.split(",")[0].replace(/\s/g, "").replace(/\^\{?([a-z])\}?/, "^$1") !== o.grow.replace(/\s/g, ""))) throw new Error("key");
+    answerStep(W, item.a, o.end || "");
+    return true;
+}
+
+/** "Factor −{3/4} out of −{3/4}x + {3/2}": divide each term by the number, put it in front, check. */
+function factorOutSetup(W, item, gText, text) {
+    W.kind = "simp";
+    const side = oneSide(W, text), gs = oneSide(W, "x + " + gText);
+    if (!side || side.some((t) => t.g) || !gs || gs.length !== 2) return null;
+    const G = gs[1].c, f0 = formOf(side), v = varOf({ s: [side] });
+    const inner = side.map((t) => ({ c: t.c.div(G), v: t.v, g: null, over: false, dec: t.dec && !t.c.div(G).int, k: key(W) }));
+    const grp = { c: G, v: null, g: inner, over: false, dec: false, k: key(W) };
+    const gT = numText(G, "frac"), gP = G.sign < 0 ? "(" + gT + ")" : gT;
+    W.steps.push({ move: "start", title: "The problem", why: "Factoring " + gT + " out means writing it as " + gT + " times parentheses. To find what goes inside, divide each term by " + gT + ".",
+        seq: [{ a: "row", row: { t: "line", cells: [sideDT(side), null, null], sem: { f: f0 } } }] });
+    const parts = side.map((t, i) => {
+        const cT = numText(t.c, "frac"), out = termText(inner[i], true);
+        if (t.v && t.c.eq(G)) return termText(t, true) + " ÷ " + gP + " = " + out;
+        return cT + " ÷ " + gP + " = " + cT + " × " + numText(G.inv(), "frac").replace(/^−/, "(" + MINUS) + (G.sign < 0 ? ")" : "") + " = " + out + (t.v ? "" : "");
+    });
+    W.steps.push({ move: "factor", title: "Divide each term by " + gT, why: parts.join(", and ") + ". Write " + gT + " in front and the answers in the parentheses.",
+        seq: [{ a: "row", row: { t: "line", cells: [null, "=", termDT(grp, true)], sem: { f: formOf([grp]) } } }] });
+    const back = inner.map((t) => ({ c: t.c.mul(G), v: t.v, g: null, over: false, dec: false, k: key(W) }));
+    W.steps.push({ move: "check", title: "Check", why: "Distribute " + gT + " back in. You get the problem back ✓.",
+        seq: [{ a: "row", row: { t: "line", cells: [termDT(Object.assign({}, grp, { k: key(W) }), true), "=", R([sideDT(back), " ✓"])], sem: { truth: formOf(back).a.eq(f0.a) && formOf(back).b.eq(f0.b) }, c: "w-check" } }] });
+    const k = oneSide(W, item.a);
+    if (!k || k.length !== 1 || !k[0].g || !k[0].c.eq(G)) throw new Error("key");
+    const fk = formOf(k[0].g), fi = formOf(inner);
+    if (!fk.a.eq(fi.a) || !fk.b.eq(fi.b)) throw new Error("key");
+    answerStep(W, item.a, "");
+    return true;
+}
+/** a·v + b written as one expression. */
+const formSideT = (f, v) => sideText([{ c: f.a, v, g: null, k: "fa", dec: !f.a.int }, { c: f.b, v: null, g: null, k: "fb", dec: !f.b.int }].filter((t) => !t.c.zero));
+/** Simplify an expression, then hold each choice up to it. which: "same" (find the one equal) or "not" (find the one that isn't). */
+function choiceSimpSetup(W, item, text, choices, which) {
+    W.kind = "simp";
+    const side = oneSide(W, text); if (!side) return null;
+    const v = varOf({ s: [side] }), hasG = side.some((t) => t.g);
+    if (!hasG && !needsCombine(side)) return null;
+    W.steps.push({ move: "start", title: "The problem", why: "Simplify it first. Then compare each choice with the simple form.", seq: [{ a: "row", row: { t: "line", cells: [sideDT(side), null, null], sem: { f: formOf(side) } } }] });
+    let line = { s: [side], r: [] };
+    if (hasG) line = stepDistribute(W, line);
+    if (needsCombine(line.s[0])) line = stepCombine(W, line);
+    chainRows(W, 1);
+    const fl = formOf(line.s[0]), simpleT = formSideT(fl, v);
+    const res = choices.map((c) => {
+        const cs = oneSide(W, c.x); if (!cs) throw new Error("choice");
+        const fc = formOf(cs), same = fc.a.eq(fl.a) && fc.b.eq(fl.b);
+        const work = cs.some((t) => t.g) || needsCombine(cs) ? (cs.some((t) => t.g) ? "Distribute: " : "Combine like terms: ") + c.x + " becomes " + formSideT(fc, v) + ". " : "";
+        W.steps.push({ move: "choice", title: (c.label ? c.label + ". " : "") + (same ? "Same" : "Not the same"), why: work + (same ? "That matches " + simpleT + "." : formSideT(fc, v) + " is not " + simpleT + "."),
+            seq: [{ a: "row", row: { t: "line", cells: [R([(c.label ? c.label + ". " : "") + c.x + " " + (same ? "=" : "≠") + " " + simpleT + (same === (which === "same") ? " ✓" : "")]), null, null], sem: { truth: true }, chain: true, c: same === (which === "same") ? "w-check" : undefined } }] });
+        return { c, same };
+    });
+    const hits = res.filter((r) => r.same === (which === "same"));
+    if (hits.length !== 1) throw new Error("key");
+    const got = hits[0].c.label || hits[0].c.x;
+    if (String(item.a).trim() !== got) throw new Error("key");
+    answerStep(W, item.a, which === "same" ? "Only " + got + " is the same as " + simpleT + "." : "Every other choice simplifies to " + simpleT + ". " + got + " doesn't.");
+    return true;
+}
+
 /* ---------- relations: is it a function? ---------- */
 const MINUS_RE = /[−-]/g;
 const sameNum = (a, b) => { const x = qOf(String(a)), y = qOf(String(b)); return x && y ? x.eq(y) : String(a).replace(MINUS_RE, "-").trim() === String(b).replace(MINUS_RE, "-").trim(); };
@@ -1812,6 +2028,14 @@ function simpStory(W, item, o) {
     if (needsCombine(line.s[0])) line = stepCombine(W, line);
     chainRows(W, 2);
     const fl = formOf(line.s[0]);
+    if (o.wrap) {
+        const Wq = new Q(o.wrap), grp = { c: Wq, v: null, g: line.s[0].map((t) => dup(W, t)), over: false, dec: false, k: key(W) };
+        W.steps.push({ move: "wrap", title: "Times " + o.wrap, why: o.wrapWhy || "Multiply the sum by " + o.wrap + ".", seq: [{ a: "row", row: { t: "line", cells: [termDT(grp, true), null, null], sem: { truth: formOf([grp]).a.eq(fl.a.mul(Wq)) && formOf([grp]).b.eq(fl.b.mul(Wq)) }, chain: true, c: "w-check" } }] });
+        const k = oneSide(W, item.a);
+        if (!k || k.length !== 1 || !k[0].g || !k[0].c.eq(Wq) || !formOf(k[0].g).a.eq(fl.a) || !formOf(k[0].g).b.eq(fl.b)) throw new Error("key");
+        answerStep(W, item.a, o.end || "");
+        return true;
+    }
     const forms = keyForms(item.a).map((p) => oneSide(W, p));
     if (!forms.length || forms.some((k) => !k || varOf({ s: [k] }) !== v)) throw new Error("key");
     const isEnd = (k) => !k.some((t) => t.g) && !needsCombine(k) && formOf(k).a.eq(fl.a) && formOf(k).b.eq(fl.b);
@@ -1826,17 +2050,19 @@ function writeStory(W, item, o) {
     if (norm(o.write) !== norm(item.a)) throw new Error("key");
     const isLine = /[=<>≤≥]/.test(o.write);
     let row, side;
-    if (isLine) { W.kind = "solve"; const line = parseLine(W, o.write); if (!line) return null; W.cols = line.s.length === 3 ? 5 : 3; row = lineRow(W, line); side = line.s.flat(); }
+    if (/\^/.test(o.write)) { W.kind = "rel"; row = { t: "line", cells: [supDT(o.write), null, null], chain: true }; side = []; }
+    else if (isLine) { W.kind = "solve"; const line = parseLine(W, o.write); if (!line) return null; W.cols = line.s.length === 3 ? 5 : 3; row = lineRow(W, line); side = line.s.flat(); }
     else { W.kind = "simp"; side = oneSide(W, o.write); if (!side) return null; row = { t: "line", cells: [sideDT(side), null, null], sem: { f: formOf(side) } }; }
     W.steps.push({ move: "story", title: "Read the story", why: o.why0 || "Find the numbers in the story and what each one means.", seq: [{ a: "row", row: { t: "pic", pic: { kind: "story", text: item.q, marks: o.story || [] } } }] });
     const pairs = storyPairs(side, o.story);
     const noun = !isLine ? "expression" : /[<>≤≥]/.test(o.write) ? "inequality" : "equation";
-    W.steps.push({ move: "setup", title: "Write the " + noun, why: o.why1 || ("Each piece of the story becomes a piece of the " + noun + ". " + (o.var ? varOf(isLine ? parseLine(W, o.write) : { s: [side] }) + " is " + o.var + "." : "")),
+    const wv = /\^/.test(o.write) ? (o.write.match(/\^\{?([a-z])/) || [])[1] : varOf(isLine ? parseLine(W, o.write) : { s: [side] });
+    W.steps.push({ move: "setup", title: "Write the " + noun, why: o.why1 || ("Each piece of the story becomes a piece of the " + noun + ". " + (o.var ? wv + " is " + o.var + "." : "")),
         seq: [{ a: "row", row }, ...(pairs.length ? [{ a: "fly", pairs, story: true }] : [])] });
     answerStep(W, item.a, o.end || "");
     return true;
 }
 
 /** Words for a move, for chips and the list. */
-export const MOVE_NAMES = { distribute: "Distribute", combine: "Combine like terms", both: "Both sides", divide: "Divide", reciprocal: "Reciprocal", flip: "Flip the sign", swap: "Put x first", clear: "Clear fractions", kcc: "Add the opposite", kcf: "Keep, change, flip", lcd: "Common denominator", cancel: "Cancel", numline: "Number line", story: "Story to equation", fact: "Angle fact", graph: "Graph", check: "Check", sub: "Plug in", gcf: "Find the GCF", factor: "Factor", pairs: "Inputs and outputs", longdiv: "Long division", stop: "It stops", percent: "Write it as a percent", shift: "Move the decimal point", repsub: "Subtract the copies", root: "Square roots", half: "Halfway point", tenths: "Try tenths", count: "Count", order: "Order", round: "Round", repeat: "Repeated input", verdict: "Decide", choice: "Check the choices", abs: "Absolute value", power: "Exponent", cfrac: "Complex fraction" };
+export const MOVE_NAMES = { distribute: "Distribute", combine: "Combine like terms", both: "Both sides", divide: "Divide", reciprocal: "Reciprocal", flip: "Flip the sign", swap: "Put x first", clear: "Clear fractions", kcc: "Add the opposite", kcf: "Keep, change, flip", lcd: "Common denominator", cancel: "Cancel", numline: "Number line", story: "Story to equation", fact: "Angle fact", graph: "Graph", check: "Check", sub: "Plug in", gcf: "Find the GCF", factor: "Factor", pairs: "Inputs and outputs", longdiv: "Long division", stop: "It stops", percent: "Write it as a percent", shift: "Move the decimal point", repsub: "Subtract the copies", root: "Square roots", half: "Halfway point", tenths: "Try tenths", count: "Count", order: "Order", round: "Round", repeat: "Repeated input", verdict: "Decide", choice: "Check the choices", abs: "Absolute value", power: "Exponent", cfrac: "Complex fraction", expand: "Multiply it out", zero: "Get 0 on one side", zp: "Set each factor to 0", pick: "Keep what fits", wrap: "Multiply the sum" };
 export { parseLine as _parseLine, parseExpr as _parseExpr, valueOf as _valueOf, sameAnswers as _sameAnswers, semOf as _semOf };

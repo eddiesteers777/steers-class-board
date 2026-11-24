@@ -84,29 +84,32 @@ const pics = {
         } };
     },
     ineq(p) {
-        const W = 640, H = 120, pad = 34, y = 60;
+        const W = 640, H = 120, pad = 34, y = 60, u = p.unit || 1;
         const c = p.at != null ? p.at : (p.lo + p.hi) / 2;
-        const span = p.at != null ? 5 : Math.max(5, Math.ceil((p.hi - p.lo) / 2) + 3);
-        const lo = Math.floor(c) - span, hi = Math.ceil(c) + span, n = hi - lo, X = (v) => pad + ((v - lo) / n) * (W - 2 * pad);
+        const span = p.at != null ? 5 : Math.max(5, Math.ceil((p.hi - p.lo) / 2 / u) + 3);
+        const lo = (Math.floor(c / u) - span) * u, hi = (Math.ceil(c / u) + span) * u, n = Math.round((hi - lo) / u), X = (v) => pad + ((v - lo) / (hi - lo)) * (W - 2 * pad);
         const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, class: "sp-pic", width: W, role: "img", "aria-label": "Graph of the answer on a number line" });
         const id = "ah" + ++uid; arrowHead(svg, id, PEN.ink); const id2 = "ah" + ++uid; arrowHead(svg, id2, PEN.blue);
         svg.appendChild(sv("line", { x1: pad - 20, y1: y, x2: W - pad + 20, y2: y, stroke: PEN.ink, "stroke-width": 3, "marker-start": `url(#${id})`, "marker-end": `url(#${id})` }));
-        const every = n > 16 ? 2 : 1;
-        for (let v = lo; v <= hi; v++) {
+        const every = n > 16 || (u < 1 && n > 8) ? 2 : 1;
+        const labeled = (v) => { const i = Math.round(v / u); return Math.abs(i * u - v) < 1e-9 && i % every === 0; };
+        for (let i = 0; i <= n; i++) {
+            const v = +(lo + i * u).toFixed(6);
             svg.appendChild(sv("line", { x1: X(v), y1: y - 8, x2: X(v), y2: y + 8, stroke: PEN.ink, "stroke-width": 1.6 }));
-            if (v % every === 0) { const t = sv("text", { x: X(v), y: y + 32, "text-anchor": "middle", "font-size": 18 }); t.textContent = v < 0 ? MINUS + Math.abs(v) : String(v); svg.appendChild(t); }
+            if (labeled(v)) { const t = sv("text", { x: X(v), y: y + 32, "text-anchor": "middle", "font-size": 18 }); t.textContent = v < 0 ? MINUS + Math.abs(v) : String(v); svg.appendChild(t); }
         }
         const dots = [], rays = [];
         const dot = (v, closed, label) => {
             const g = sv("g");
             g.appendChild(sv("circle", { cx: X(v), cy: y, r: 11, fill: closed ? PEN.blue : PEN.board, stroke: PEN.blue, "stroke-width": 4 }));
-            if (!Number.isInteger(v)) { const t = sv("text", { x: X(v), y: y - 22, "text-anchor": "middle", "font-size": 18, "font-weight": 700, fill: PEN.blue }); t.textContent = label; g.appendChild(t); }
+            if (u === 1 ? !Number.isInteger(v) : !labeled(v)) { const t = sv("text", { x: X(v), y: y - 22, "text-anchor": "middle", "font-size": 18, "font-weight": 700, fill: PEN.blue }); t.textContent = label; g.appendChild(t); }
             dots.push(g); return g;
         };
+        const rayTo = (from, dir) => { const ray = sv("line", { x1: X(from) + dir * 12, y1: y, x2: dir > 0 ? W - pad + 8 : pad - 8, y2: y, stroke: PEN.blue, "stroke-width": 7, "stroke-linecap": "round", "marker-end": `url(#${id2})` }); rays.push(ray); svg.appendChild(ray); };
         if (p.at != null) {
-            const end = p.dir > 0 ? W - pad + 8 : pad - 8;
-            const ray = sv("line", { x1: X(p.at) + p.dir * 12, y1: y, x2: end, y2: y, stroke: PEN.blue, "stroke-width": 7, "stroke-linecap": "round", "marker-end": `url(#${id2})` });
-            rays.push(ray); svg.appendChild(ray); svg.appendChild(dot(p.at, p.closed, p.atT));
+            rayTo(p.at, p.dir); svg.appendChild(dot(p.at, p.closed, p.atT));
+        } else if (p.out) {
+            rayTo(p.lo, -1); rayTo(p.hi, 1); svg.appendChild(dot(p.lo, p.cl, p.loT)); svg.appendChild(dot(p.hi, p.ch, p.hiT));
         } else {
             const ray = sv("line", { x1: X(p.lo) + 12, y1: y, x2: X(p.hi) - 12, y2: y, stroke: PEN.blue, "stroke-width": 7, "stroke-linecap": "round" });
             rays.push(ray); svg.appendChild(ray); svg.appendChild(dot(p.lo, p.cl, p.loT)); svg.appendChild(dot(p.hi, p.ch, p.hiT));
