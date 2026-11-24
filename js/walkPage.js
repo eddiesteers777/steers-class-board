@@ -7,9 +7,9 @@
 ========================================== */
 import { STANDARDS } from "../data/standards.js?v=58";
 import { inClass, LEVELS } from "./stdBank.js?v=4";
-import { loadWalkItems, walkOf, withEdits, cleanOk, cleanEdits } from "./walkBank.js?v=8";
+import { loadWalkItems, walkOf, withEdits, cleanOk, cleanEdits } from "./walkBank.js?v=9";
 import { createStepPlayer, drawDT } from "./stepPlayer.js?v=5";
-import { keyDT } from "./walk.js?v=8";
+import { keyDT } from "./walk.js?v=9";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");

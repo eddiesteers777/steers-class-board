@@ -439,4 +439,142 @@ WALKS = {
     "Brand A sells {2/3} pound of almonds for §4.80. Brand B sells {3/4} pound of almonds for §5.70. Which brand has the lower unit price per pound, and by how much?": {
         "why": "Price per pound means the price ÷ the pounds.", "story": [["{2/3} pound of almonds for §4.80", "4.80 ÷ {2/3}"], ["{3/4} pound of almonds for §5.70", "5.70 ÷ {3/4}"]],
         "rates": {"per": "price ÷ pounds", "diff": True, "rates": [{"label": "Brand A", "top": "4.80", "bot": "{2/3}"}, {"label": "Brand B", "top": "5.70", "bot": "{3/4}"}]}},
+    # Batch 2: 8.7 to 8.10, proportional or not, slope, comparing
+    "A taxi charges §3 plus §2 a mile. Is the cost proportional to the miles?": {
+        "why": "The cost starts at §3 before any miles, then goes up §2 each mile.", "story": [["§3", "3"], ["§2 a mile", "2"]],
+        "line": {"m": "2", "b": "3", "ask": "prop", "mWhy": "§2 each mile is the rate of change.", "bWhy": "At 0 miles you still pay §3, so b = 3."}},
+    "Apples cost §1.50 a pound with no other fees. Is the cost proportional to the pounds?": {
+        "why": "The cost goes up §1.50 each pound, and with no other fees, 0 pounds cost §0.", "story": [["§1.50 a pound", "1.5"], ["no other fees", "0"]],
+        "line": {"m": "1.50", "b": "0", "ask": "prop", "mWhy": "§1.50 each pound is the rate of change.", "bWhy": "No other fees, so 0 pounds cost §0: b = 0."}},
+    "A car travels 180 miles in 3 hours at a constant rate. What is the slope of the distance-time graph? What does it mean?": {
+        "why": "180 miles in 3 hours is the point (3, 180): hours across, miles up.", "story": [["180 miles", "180"], ["3 hours", "3"]],
+        "prop": {"pts": [["3", "180"]], "ask": "k", "unit": "hour", "kWhy": "The graph starts at (0, 0), so the slope is miles ÷ hours.", "end": "The slope is the speed: 60 miles each hour."}},
+    "A proportional graph of earnings shows (8, 96) for 8 hours. Write the equation.": {
+        "prop": {"pts": [["8", "96"]], "ask": "eq", "unit": "hour"}},
+    "A cyclist rides at a constant speed. The graph of distance in miles (y) versus time in hours (x) passes through the origin and the point (3, 45). Write the equation that represents this relationship and interpret the slope.": {
+        "prop": {"pts": [["3", "45"]], "ask": "eq", "unit": "hour", "end": "The slope 15 means the cyclist rides 15 miles each hour."}},
+    "Two workers: Ana's graph is y = 14x; Ben earns §45 in 3 hours. Who earns more per hour?": {
+        "why": "Per hour is the rate of change: dollars ÷ hours.", "story": [["y = 14x", "14"], ["§45 in 3 hours", "45 ÷ 3"]],
+        "cmp": {"ask": "m", "fns": [{"label": "Ana", "eq": "y = 14x", "m": "14", "b": "0"}, {"label": "Ben", "pts": [["0", "0"], ["3", "45"]]}]}},
+    "Line A represents y = 3x and Line B represents y = {5/2}x. If both are graphed on the same coordinate plane, which line is steeper and why?": {
+        "cmp": {"ask": "steep", "fns": [{"label": "Line A", "eq": "y = 3x", "m": "3", "b": "0"}, {"label": "Line B", "eq": "y = 5/2x", "m": "{5/2}", "b": "0", "why": "Line B is y = 5/2 x, so its slope is 5/2 = 2.5."}]}},
+    "A plumber charges §50 to come out plus §40 an hour. Write the cost as y = mx + b.": {
+        "why": "§50 once, at the start, then §40 for each hour.", "story": [["§50 to come out", "50"], ["§40 an hour", "40"]],
+        "line": {"m": "40", "b": "50", "mWhy": "§40 each hour is the slope, m = 40.", "bWhy": "§50 before any hours is the y-intercept, b = 50."}},
+    "A taxi charges a §3 initial fee plus §2 per mile. Which equation models the total cost y for x miles?": {
+        "why": "§3 once, at the start, then §2 for each mile.", "story": [["§3 initial fee", "3"], ["§2 per mile", "2"]],
+        "line": {"m": "2", "b": "3", "mWhy": "§2 each mile is the slope, m = 2.", "bWhy": "§3 before any miles is the y-intercept, b = 3."}},
+    "On a non-vertical line, right triangle ABC is drawn with vertical leg 6 and horizontal leg 4. Another right triangle DEF is drawn on the same line with horizontal leg 10. What is the length of the vertical leg of triangle DEF?": {
+        "why": "Both triangles sit on the same line, so they are similar: vertical ÷ horizontal is the slope, the same for both.", "story": [["vertical leg 6", "6"], ["horizontal leg 4", "4"], ["horizontal leg 10", "10"]],
+        "prop": {"pts": [["4", "6"]], "ask": "atx", "x": "10", "v": "run", "fy": "rise", "kWhy": "Slope = rise ÷ run = 6 ÷ 4. The second triangle has the same slope."}},
+    "Line A goes through (0, 2) and (1, 5). Line B goes through (0, −1) and (2, 5). Do they have the same slope? Do they have the same y-intercept?": {
+        "cmp": {"ask": "both", "fns": [{"label": "Line A", "pts": [["0", "2"], ["1", "5"]]}, {"label": "Line B", "pts": [["0", "−1"], ["2", "5"]]}]}},
+    "Line 1 passes through (0, 2) and (3, 8). Line 2 passes through (0, −4) and (3, 2). How do the graphs of Line 1 and Line 2 compare?": {
+        "cmp": {"ask": "both", "bNums": False, "fns": [{"label": "Line 1", "pts": [["0", "2"], ["3", "8"]]}, {"label": "Line 2", "pts": [["0", "−4"], ["3", "2"]]}]}},
+    "Set A contains points (1, 5) and (4, 14). Set B contains points (−2, −10) and (2, 2). Do the lines through Set A and Set B have the same slope? What are their y-intercepts?": {
+        "cmp": {"ask": "both", "fns": [{"label": "Set A", "pts": [["1", "5"], ["4", "14"]]}, {"label": "Set B", "pts": [["−2", "−10"], ["2", "2"]]}]}},
+    "Plan A: y = 8x. Plan B costs §20 plus §5 per month. Which costs less for 4 months?": {
+        "why": "Plan B starts at §20 and adds §5 a month, so it is y = 5x + 20.", "story": [["y = 8x", "8x"], ["§20 plus §5 per month", "5x + 20"], ["4 months", "4"]],
+        "cmp": {"ask": "atLow", "at": "4", "atWhat": "4 months", "fns": [{"label": "Plan A", "eq": "y = 8x", "m": "8", "b": "0"}, {"label": "Plan B", "eq": "y = 5x + 20", "m": "5", "b": "20"}]}},
+    "Plan A: y = 8x. Plan B: y = 5x + 20. After how many months do they cost the same?": {
+        "eq": "8x = 5x + 20", "var": "the number of months", "why": "The same cost means Plan A's cost equals Plan B's cost.", "story": [["y = 8x", "8x"], ["y = 5x + 20", "5x + 20"]]},
+    "Car A: y = 55x (miles in x hours). Car B travels 240 miles in 4 hours. Which car is faster?": {
+        "why": "Faster means more miles each hour: the bigger rate of change.", "story": [["y = 55x", "55"], ["240 miles in 4 hours", "240 ÷ 4"]],
+        "cmp": {"ask": "m", "fns": [{"label": "Car A", "eq": "y = 55x", "m": "55", "b": "0"}, {"label": "Car B", "pts": [["0", "0"], ["4", "240"]]}]}},
+    "Gym A: §30 a month. Gym B: §60 to join plus §20 a month. Which costs less for 12 months?": {
+        "why": "Gym A is 30x. Gym B starts at §60 and adds §20 a month: 20x + 60.", "story": [["§30 a month", "30x"], ["§60 to join plus §20 a month", "20x + 60"], ["12 months", "12"]],
+        "cmp": {"ask": "atLow", "at": "12", "atWhat": "12 months", "fns": [{"label": "Gym A", "m": "30", "b": "0", "why": "Gym A costs §30 each month and nothing to join: m = 30, b = 0."}, {"label": "Gym B", "m": "20", "b": "60", "why": "Gym B costs §20 each month plus §60 to join: m = 20, b = 60."}]}},
+    "Which has the greater rate of change: y = 2.5x + 4 or a line through (0, 0) and (2, 6)?": {
+        "cmp": {"ask": "m", "fns": [{"label": "y = 2.5x + 4", "eq": "y = 2.5x + 4", "m": "2.5", "b": "4"}, {"label": "The line through (0, 0) and (2, 6)", "pts": [["0", "0"], ["2", "6"]]}]}},
+    "Phone plan A: §0.10 per text. Plan B: §5 a month plus §0.05 per text. Which costs less for 200 texts?": {
+        "why": "Plan A is 0.10 for each text. Plan B is §5 plus 0.05 for each text.", "story": [["§0.10 per text", "0.10x"], ["§5 a month plus §0.05 per text", "0.05x + 5"], ["200 texts", "200"]],
+        "cmp": {"ask": "atLow", "at": "200", "atWhat": "200 texts", "fns": [{"label": "Plan A", "m": "0.10", "b": "0", "why": "Plan A: §0.10 each text, nothing else. m = 0.1, b = 0."}, {"label": "Plan B", "m": "0.05", "b": "5", "why": "Plan B: §0.05 each text plus §5. m = 0.05, b = 5."}]}},
+    "Plan A is modeled by y = 12x. Plan B is modeled by y = 8x + 20. Which plan costs less for x = 3?": {
+        "cmp": {"ask": "atLow", "at": "3", "fns": [{"label": "Plan A", "eq": "y = 12x", "m": "12", "b": "0"}, {"label": "Plan B", "eq": "y = 8x + 20", "m": "8", "b": "20"}]}},
+    "Function 1 is y = 5x + 1. Function 2 is shown in a table: (0, 0), (2, 12), (4, 24). Which function has a greater rate of change?": {
+        "cmp": {"ask": "m", "fns": [{"label": "Function 1", "eq": "y = 5x + 1", "m": "5", "b": "1"}, {"label": "Function 2", "pts": [["0", "0"], ["2", "12"]]}]}},
+    "Store A sells notebooks for §2.50 each with no membership fee. Store B charges a §10 membership fee and sells notebooks for §1.50 each. For what number of notebooks is the total cost the same at both stores?": {
+        "eq": "2.50n = 10 + 1.50n", "var": "the number of notebooks", "why": "Store A costs 2.50n. Store B costs §10 plus 1.50n. The same cost means they are equal.",
+        "story": [["§2.50 each", "2.50n"], ["§10 membership fee", "10"], ["§1.50 each", "1.50n"]]},
+    "Runner 1's distance is given by d = 7t (d in meters, t in seconds). Runner 2 starts 12 meters ahead of the starting line and runs at 5 meters per second. Who is farther from the starting line after 8 seconds, and by how much?": {
+        "why": "Runner 2 starts at 12 and adds 5 each second: d = 5t + 12.", "story": [["d = 7t", "7t"], ["12 meters ahead", "12"], ["5 meters per second", "5t"], ["8 seconds", "8"]],
+        "cmp": {"ask": "atHigh", "at": "8", "atWhat": "8 seconds", "word": "is farther", "diff": True, "fns": [{"label": "Runner 1", "eq": "d = 7t", "m": "7", "b": "0"}, {"label": "Runner 2", "m": "5", "b": "12", "why": "Runner 2 adds 5 meters each second and starts at 12: m = 5, b = 12."}]}},
+    "Account 1 starts with §0 and adds §45 per week. Account 2 starts with §180 and adds §30 per week. For which number of weeks w does Account 1 have more money than Account 2?": {
+        "eq": "45w > 180 + 30w", "var": "the number of weeks", "why": "Account 1 has 45w. Account 2 has 180 + 30w. More money means Account 1's amount is greater, so use >.",
+        "story": [["adds §45 per week", "45w"], ["starts with §180", "180"], ["adds §30 per week", "30w"]]},
+    # Batch 2: 8.12, systems from stories
+    "Adult tickets are §8 and child tickets are §5. 20 tickets cost §130. How many adult tickets were sold?": {
+        "why": "Let a be adult tickets and c child tickets. There are 20 tickets, so a + c = 20, which means c = 20 − a. The money: 8a + 5c = 130.",
+        "story": [["Adult tickets are §8", "8a"], ["child tickets are §5", "5c"], ["20 tickets", "a + c = 20"], ["§130", "130"]],
+        "sys": {"eqs": ["c = 20 − a", "8a + 5c = 130"], "ask": "a"}},
+    "At a school bake sale, 25 items (cookies and brownies) were sold for a total of §40. Cookies cost §1 each and brownies cost §2 each. Using the system c + b = 25 and c + 2b = 40, how many brownies were sold?": {
+        "why": "c + b = 25 means c = 25 − b. Put that into c + 2b = 40.",
+        "story": [["c + b = 25", "c = 25 − b"], ["c + 2b = 40", "c + 2b = 40"]],
+        "sys": {"eqs": ["c = 25 − b", "c + 2b = 40"], "ask": "b"}},
+    "Two water tanks are being filled at constant rates starting from empty. On a graph of gallons (y) versus minutes (x), Tank 1's line passes through (4, 18) and Tank 2's line passes through (6, 30). After 10 minutes, how much more water is in Tank 2 than in Tank 1?": {
+        "why": "Both start from empty, so both lines go through (0, 0).", "story": [["starting from empty", "(0, 0)"], ["(4, 18)", "(4, 18)"], ["(6, 30)", "(6, 30)"], ["10 minutes", "10"]],
+        "cmp": {"ask": "atHigh", "at": "10", "atWhat": "10 minutes", "word": "has more", "diff": True, "diffOnly": True, "fns": [{"label": "Tank 1", "pts": [["0", "0"], ["4", "18"]]}, {"label": "Tank 2", "pts": [["0", "0"], ["6", "30"]]}]}},
+    "A recipe uses 2.5 cups of flour for every 4 dozen cookies. If you graph dozens of cookies on the x-axis and cups of flour on the y-axis, what is the slope of the line, and what does the point (10, 6.25) represent?": {
+        "why": "2.5 cups for 4 dozen is the point (4, 2.5): dozens across, cups up.", "story": [["2.5 cups of flour", "2.5"], ["4 dozen cookies", "4"]],
+        "prop": {"pts": [["4", "2.5"]], "ask": "k", "unit": "dozen", "kWhy": "The line starts at (0, 0), so the slope is cups ÷ dozens.", "end": "The point (10, 6.25) means 10 dozen cookies take 6.25 cups of flour."}},
+    "A candle is 14 inches tall when lit and burns at a steady rate of 1.5 inches per hour. Write the linear equation for its height h after t hours, and find how tall the candle is after 6 hours.": {
+        "why": "The candle starts at 14 inches and gets 1.5 inches shorter each hour, so the rate is negative.", "story": [["14 inches tall when lit", "14"], ["1.5 inches per hour", "−1.5"], ["6 hours", "6"]],
+        "line": {"m": "−1.5", "b": "14", "v": "t", "fy": "h", "at": "6", "atName": "h", "mWhy": "It burns down 1.5 inches each hour, so m = −1.5.", "bWhy": "When it is lit, at t = 0, it is 14 inches, so b = 14."}},
+    "Drone A starts on the ground and climbs at 4 meters per second. Drone B starts on a 15-meter roof and climbs at 2.5 meters per second. After how many seconds will both drones be at the same altitude, and what will that altitude be?": {
+        "eq": "4t = 15 + 2.5t", "var": "the number of seconds", "why": "Drone A is at 4t meters. Drone B is at 15 + 2.5t meters. The same altitude means they are equal.",
+        "story": [["starts on the ground", "0"], ["4 meters per second", "4t"], ["15-meter roof", "15"], ["2.5 meters per second", "2.5t"]],
+        "then": [{"label": "Altitude", "expr": "4t"}]},
+    "Car Rental 1 is proportional: 3 days cost §135. Car Rental 2 is shown in a table: 2 days cost §110, 4 days cost §180, 6 days cost §250. How much money do you save by choosing the cheaper option for a 5-day rental?": {
+        "why": "Rental 1 is proportional, so it goes through (0, 0). Use two rows of the table for Rental 2.", "story": [["3 days cost §135", "(3, 135)"], ["2 days cost §110", "(2, 110)"], ["4 days cost §180", "(4, 180)"], ["5-day rental", "5"]],
+        "cmp": {"ask": "atLow", "at": "5", "atWhat": "5 days", "diff": True, "diffOnly": True, "fns": [{"label": "Rental 1", "pts": [["0", "0"], ["3", "135"]]}, {"label": "Rental 2", "pts": [["2", "110"], ["4", "180"]]}]}},
+    "Store A: §10 plus §4 a shirt. Store B: §6 a shirt. When do they cost the same? How many shirts and what cost?": {
+        "eq": "10 + 4n = 6n", "var": "the number of shirts", "why": "Store A costs 10 + 4n. Store B costs 6n. The same cost means they are equal.",
+        "story": [["§10", "10"], ["§4 a shirt", "4n"], ["§6 a shirt", "6n"]],
+        "then": [{"label": "Cost", "expr": "6n"}]},
+    "A student says the point (3, 7) is the solution to the system y = 2x + 1 and y = 3x − 3. Is the student correct? Explain why or why not.": {
+        "sys": {"eqs": ["y = 2x + 1", "y = 3x − 3"], "ask": "pt", "pt": "(3, 7)"}},
+    # Batch 2: 7.17, 7.20, 7.22 (scale, circles, area and volume)
+    'On a map, 1 inch = 20 miles. Two towns are 3.5 inches apart. How far apart are they?': {'expr': '3.5 × 20', 'formula': '1 inch = 20 miles', 'fWhy': 'Each inch on the map stands for 20 miles, so multiply the inches by 20.', 'fTitle': 'Use the scale'},
+    'A scale drawing uses 1 cm : 4 m. A room is 6 cm long on the drawing. How long is the real room?': {'expr': '6 × 4', 'formula': '1 cm = 4 m', 'fWhy': 'Each centimeter on the drawing stands for 4 meters, so multiply by 4.', 'fTitle': 'Use the scale'},
+    'A real car is 15 feet long. A model uses 1 inch : 2 feet. How long is the model?': {'expr': '15 ÷ 2', 'formula': '1 inch = 2 feet', 'fWhy': 'Going from real to model, divide: every 2 real feet make 1 inch on the model.', 'fTitle': 'Use the scale'},
+    'A blueprint scale is {1/4} inch : 1 foot. A wall is 3 inches on the blueprint. How long is the real wall?': {'expr': '3 × 4', 'formula': ['{1/4} inch = 1 foot', '1 inch = 4 feet'], 'fWhy': 'Four quarter inches make 1 inch, so 1 inch stands for 4 feet. Multiply the blueprint inches by 4.', 'fTitle': 'Use the scale'},
+    'A rectangle on a drawing is 2 cm by 3 cm. The scale is 1 cm : 5 m. What is the real area?': {'expr': '(2 × 5) × (3 × 5)', 'formula': ['1 cm = 5 m', 'Area = length × width'], 'fWhy': 'Change each side to real meters first (times 5), then multiply length × width.', 'fTitle': 'Use the scale'},
+    'A drawing has a scale of 1 in : 6 ft. You redraw it at 1 in : 3 ft. A 4-inch line becomes how long?': {'expr': '4 × 6 ÷ 3', 'formula': ['1 in = 6 ft', '1 in = 3 ft'], 'fWhy': 'Find the real length first: 4 inches × 6 = 24 feet. Then on the new drawing every 3 feet is 1 inch, so divide by 3.', 'fTitle': 'Use the scale'},
+    'What is the scale factor from a 5 cm drawing to a 20 cm drawing?': {'expr': '20 ÷ 5', 'formula': 'Scale factor = new ÷ old', 'fWhy': 'The scale factor is what you multiply the old size by to get the new size, so divide new by old.', 'fTitle': 'Use the scale factor'},
+    'On a scale drawing, the scale is 1 inch = 8 feet. A wall measures 4.5 inches on the drawing. What is the actual length of the wall?': {'expr': '4.5 × 8', 'formula': '1 inch = 8 feet', 'fWhy': 'Each inch on the drawing stands for 8 feet, so multiply by 8.', 'fTitle': 'Use the scale'},
+    'A map uses the scale 1 cm = 15 km. If two cities are 90 km apart, how far apart are they on the map?': {'expr': '90 ÷ 15', 'formula': '1 cm = 15 km', 'fWhy': 'Going from real to map, divide: every 15 km make 1 cm on the map.', 'fTitle': 'Use the scale'},
+    'A square garden has a side length of 3 cm on a scale drawing with a scale of 1 cm = 4 m. What is the actual side length of the garden?': {'expr': '3 × 4', 'formula': '1 cm = 4 m', 'fWhy': 'Each centimeter on the drawing stands for 4 meters, so multiply by 4.', 'fTitle': 'Use the scale'},
+    'On a blueprint with a scale of 1 inch = 4 feet, a rectangular bedroom measures 3.5 inches by 5 inches. What is the actual area of the bedroom?': {'expr': '(3.5 × 4) × (5 × 4)', 'formula': ['1 inch = 4 feet', 'Area = length × width'], 'fWhy': 'Change each side to real feet first (times 4), then multiply length × width.', 'fTitle': 'Use the scale'},
+    'A triangular flower bed has a base of 4 inches and a height of 3 inches on a scale drawing where 1 inch = 6 feet. What is the actual area of the flower bed?': {'expr': '{1/2} × 24 × 18', 'parts': [{'title': 'Real base', 'expr': '4 × 6', 'is': 24}, {'title': 'Real height', 'expr': '3 × 6', 'is': 18}], 'formula': ['1 inch = 6 feet', 'A = {1/2}bh'], 'fWhy': 'Change the base and height to real feet first (times 6), then use the triangle formula.', 'fTitle': 'Use the scale'},
+    'A living room has an area of 15 square centimeters on a floor plan with a scale of 1 cm = 3 m. What is the actual area of the living room?': {'expr': '15 × 3 × 3', 'formula': ['1 cm = 3 m', '1 cm² = 3 m × 3 m = 9 m²'], 'fWhy': 'Area grows in two directions. Each square centimeter on the plan is 3 m by 3 m in real life, which is 9 square meters.', 'fTitle': 'Use the scale'},
+    'A circle has a radius of 6 cm. What is its diameter?': {'expr': '2 × 6', 'formula': 'd = 2r', 'fWhy': 'The diameter goes all the way across, so it is two radii.', 'fTitle': 'Use the fact'},
+    'Find the circumference of a circle with diameter 10 in. Use 3.14.': {'expr': '3.14 × 10', 'formula': 'C = πd', 'fWhy': 'Circumference = π × diameter. Use 3.14 for π.'},
+    'Find the area of a circle with radius 5 ft. Use 3.14.': {'expr': '3.14 × 5 × 5', 'formula': 'A = πr^{2}', 'fWhy': 'Area = π × radius × radius. Use 3.14 for π.'},
+    "A circle's circumference is 18.84 cm. Find its radius. Use 3.14.": {'expr': '18.84 ÷ 3.14 ÷ 2', 'formula': ['C = 2πr', 'r = C ÷ π ÷ 2'], 'fWhy': 'C = 2 × π × r, so undo it: divide by π to get the diameter, then by 2 to get the radius.'},
+    'A bike wheel has a 26-inch diameter. How far does it roll in one turn? Use 3.14.': {'expr': '3.14 × 26', 'formula': 'C = πd', 'fWhy': "One turn rolls the wheel's whole edge along the ground: the circumference, π × diameter."},
+    'A circle has a diameter of 14 cm. Using 3.14 for π, what is its circumference?': {'expr': '3.14 × 14', 'formula': 'C = πd', 'fWhy': 'Circumference = π × diameter.'},
+    'A circle has a radius of 4 meters. Using 3.14 for π, what is its area?': {'expr': '3.14 × 4 × 4', 'formula': 'A = πr^{2}', 'fWhy': 'Area = π × radius × radius.'},
+    'A circular rug has a diameter of 12 feet. Using 3.14 for π, what is the area of the rug?': {'expr': '3.14 × 6 × 6', 'formula': ['r = 12 ÷ 2 = 6', 'A = πr^{2}'], 'fWhy': 'The area formula uses the radius, half the diameter: 12 ÷ 2 = 6 feet.'},
+    'A bicycle wheel has a circumference of 62.8 inches. Using 3.14 for π, what is the radius of the wheel?': {'expr': '62.8 ÷ 3.14 ÷ 2', 'formula': ['C = 2πr', 'r = C ÷ π ÷ 2'], 'fWhy': 'C = 2 × π × r, so undo it: divide by π to get the diameter, then by 2 to get the radius.'},
+    'A circular pond with a radius of 7 meters is surrounded by a gravel path that is 3 meters wide, forming a larger circle of radius 10 meters. Using 3.14 for π, what is the area of the gravel path alone?': {'expr': '314 − 153.86', 'parts': [{'title': 'The big circle', 'expr': '3.14 × 100', 'is': 314, 'why': '10 × 10 = 100, then times 3.14.'}, {'title': 'The pond', 'expr': '3.14 × 49', 'is': '153.86', 'why': '7 × 7 = 49, then times 3.14.'}], 'formula': ['A = πr^{2}', 'Path = big circle − pond'], 'fWhy': 'The path is the big circle with the pond taken out, so find both areas and subtract.'},
+    'A semicircle has a diameter of 16 cm. Using 3.14 for π, what is the total perimeter of the semicircle (including the straight diameter edge)?': {'expr': '25.12 + 16', 'parts': [{'title': 'Half the curve', 'expr': '3.14 × 16 ÷ 2', 'is': '25.12'}], 'formula': ['C = πd', 'Half the curve + the diameter'], 'fWhy': "The curved part is half a circle's circumference. Then add the straight edge, the diameter."},
+    'Find the area of a triangle with base 10 cm and height 7 cm.': {'expr': '{1/2} × 10 × 7', 'formula': 'A = {1/2}bh', 'fWhy': 'A triangle is half of a rectangle with the same base and height.'},
+    'Find the area of a trapezoid with bases 6 and 10 and height 4.': {'expr': '{1/2} × (6 + 10) × 4', 'formula': 'A = {1/2}(b_{1} + b_{2})h', 'fWhy': 'Add the two bases, multiply by the height, then take half.'},
+    'Find the volume of a rectangular prism 5 in by 3 in by 4 in.': {'expr': '5 × 3 × 4', 'formula': 'V = lwh', 'fWhy': 'Volume = length × width × height.'},
+    'Find the surface area of a cube with edges of 3 ft.': {'expr': '6 × 3 × 3', 'formula': 'SA = 6s^{2}', 'fWhy': 'A cube has 6 faces, and each one is a square s × s.'},
+    'Find the surface area of a rectangular prism 2 m by 3 m by 4 m.': {'expr': '2 × (6 + 8 + 12)', 'parts': [{'title': 'Find each face', 'expr': '2 × 3', 'is': 6, 'why': 'lw = 2 × 3, lh = 2 × 4 and wh = 3 × 4.'}, {'title': 'Find each face', 'expr': '2 × 4', 'is': 8}, {'title': 'Find each face', 'expr': '3 × 4', 'is': 12}], 'formula': 'SA = 2(lw + lh + wh)', 'fWhy': 'A prism has 3 pairs of matching faces. Find one face of each pair, add them, then double.'},
+    'A box is 2.5 ft by 2 ft by 1.5 ft. What is its volume?': {'expr': '2.5 × 2 × 1.5', 'formula': 'V = lwh', 'fWhy': 'Volume = length × width × height.'},
+    'A rectangle 8 m by 5 m has a 2 m by 2 m square cut out. What is the remaining area?': {'expr': '40 − 4', 'parts': [{'title': 'The whole rectangle', 'expr': '8 × 5', 'is': 40}, {'title': 'The square cut out', 'expr': '2 × 2', 'is': 4}], 'formula': 'Area left = rectangle − square', 'fWhy': 'Find the whole rectangle, then take away the square that was cut out.', 'fTitle': 'Plan it'},
+    'A triangular prism has a base triangle with base 6 and height 4 and a length of 10. What is its volume?': {'expr': '{1/2} × 6 × 4 × 10', 'formula': ['V = Bh', 'B = {1/2}bh'], 'fWhy': 'Volume of a prism = area of the base × its length. The base here is a triangle.'},
+    'A room is 12 ft by 10 ft with walls 8 ft tall. How much wall area is there to paint (no windows or doors)?': {'expr': '2 × 96 + 2 × 80', 'parts': [{'title': 'One long wall', 'expr': '12 × 8', 'is': 96}, {'title': 'One short wall', 'expr': '10 × 8', 'is': 80}], 'formula': '2 long + 2 short', 'fWhy': "Four walls: two are 12 ft by 8 ft and two are 10 ft by 8 ft. The floor and ceiling don't count.", 'fTitle': 'Plan it'},
+    'Find the area of a regular hexagon split into 6 triangles, each with base 4 and height 3.5.': {'expr': '6 × {1/2} × 4 × 3.5', 'formula': ['A = 6 triangles', 'Each = {1/2}bh'], 'fWhy': 'Find one triangle, then 6 of them.'},
+    'What is the area of a triangle with a base of 14 cm and a height of 9 cm?': {'expr': '{1/2} × 14 × 9', 'formula': 'A = {1/2}bh', 'fWhy': 'A triangle is half of a rectangle with the same base and height.'},
+    'What is the volume of a right rectangular prism with a length of 8 inches, a width of 5 inches, and a height of 4 inches?': {'expr': '8 × 5 × 4', 'formula': 'V = lwh', 'fWhy': 'Volume = length × width × height.'},
+    'What is the surface area of a cube with an edge length of 5 cm?': {'expr': '6 × 5 × 5', 'formula': 'SA = 6s^{2}', 'fWhy': 'A cube has 6 faces, and each one is a square s × s.'},
+    'Find the surface area of a right rectangular prism with a length of 6 feet, a width of 4 feet, and a height of 3 feet.': {'expr': '2 × (24 + 18 + 12)', 'parts': [{'title': 'Find each face', 'expr': '6 × 4', 'is': 24, 'why': 'lw = 6 × 4, lh = 6 × 3 and wh = 4 × 3.'}, {'title': 'Find each face', 'expr': '6 × 3', 'is': 18}, {'title': 'Find each face', 'expr': '4 × 3', 'is': 12}], 'formula': 'SA = 2(lw + lh + wh)', 'fWhy': 'A prism has 3 pairs of matching faces. Find one face of each pair, add them, then double.'},
+    'A trapezoid has parallel bases measuring 10 meters and 16 meters, and a height of 7 meters. What is its area?': {'expr': '{1/2} × (10 + 16) × 7', 'formula': 'A = {1/2}(b_{1} + b_{2})h', 'fWhy': 'Add the two bases, multiply by the height, then take half.'},
+    'A right rectangular prism has a volume of 216 cubic cm, a length of 9 cm, and a width of 4 cm. What is its height?': {'expr': '216 ÷ (9 × 4)', 'formula': ['V = lwh', 'h = V ÷ (lw)'], 'fWhy': 'V = l × w × h, so undo it: divide the volume by length × width.'},
+    'An L-shaped patio is made by joining a 12-foot by 5-foot rectangle and a 6-foot by 4-foot rectangle with no overlap. What is the total area of the patio?': {'expr': '60 + 24', 'parts': [{'title': 'Rectangle 1', 'expr': '12 × 5', 'is': 60}, {'title': 'Rectangle 2', 'expr': '6 × 4', 'is': 24}], 'formula': 'Area = rectangle 1 + rectangle 2', 'fWhy': "Find each rectangle's area, then add them.", 'fTitle': 'Plan it'},
+    'A closed gift box is a right rectangular prism measuring 10 inches long, 6 inches wide, and 4 inches tall. If wrapping paper costs §0.05 per square inch, how much does it cost to cover the exact surface area of the box?': {'expr': '0.05 × 248', 'parts': [{'title': 'Add the three faces', 'expr': '60 + 40 + 24', 'is': 124, 'why': 'The faces are 10 × 6 = 60, 10 × 4 = 40 and 6 × 4 = 24.'}, {'title': 'Double it', 'expr': '2 × 124', 'is': 248, 'why': 'Each face has a match on the other side.'}], 'formula': ['SA = 2(lw + lh + wh)', 'Cost = §0.05 × SA'], 'fWhy': 'Find the surface area, then each square inch costs §0.05.'},
+    'A rectangular fish tank is 20 inches long, 10 inches wide, and 12 inches tall. It is filled with water to a height of 9 inches. How many cubic inches of empty space remain at the top of the tank?': {'expr': '20 × 10 × (12 − 9)', 'formula': ['Empty height = 12 − 9', 'V = lwh'], 'fWhy': 'The empty part is a box on top: same length and width, and 12 − 9 inches tall.'},
 }
