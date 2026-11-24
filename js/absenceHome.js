@@ -45,10 +45,10 @@ export function mountAbsences(opts) {
         host.removeAttribute("aria-busy");
         const R = dash();
         host.hidden = false;
-        const head = el("div", "abs-head"), h = el("h2", null, "Absences"), ico = el("span", "abs-ico"); ico.setAttribute("aria-hidden", "true"); ico.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M16 11h6"/></svg>'; head.appendChild(ico); head.appendChild(h);
+        const head = el("div", "abs-head"), h = el("h2", null, "Absences"), ico = el("span", "abs-ico"); ico.setAttribute("aria-hidden", "true"); ico.innerHTML = '<svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16.5" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M10 13.5l4 4M14 13.5l-4 4"/></svg>'; head.appendChild(ico); head.appendChild(h);
         const bits = []; if (R.outToday) bits.push(R.outToday + " out today"); if (R.warned) bits.push(R.warned + (R.warned === 1 ? " needs" : " need") + " a look");
         head.appendChild(el("span", "abs-sum", bits.join(" · "))); host.appendChild(head);
-        if (!R.periods.length) { host.appendChild(el("p", "abs-none", "Nobody marked out in the last two weeks. At the start of class, tap who is out on the Remote (Who’s out).")); const a = el("a", "btn ghost", "Open Remote"); a.href = "remote.html"; host.appendChild(a); return; }
+        if (!R.periods.length) { host.appendChild(el("p", "abs-none", "Nobody marked out in the last two weeks. At the start of class, tap who is out on the Remote (Who’s out).")); const a = el("a", "abs-remote"); a.href = "remote.html"; a.innerHTML = '<svg class="abs-rico" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><circle cx="12" cy="8" r="2"/><path d="M10.5 13.5h3M10.5 17h3"/></svg><span>Open Remote</span><svg class="abs-rgo" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>'; host.appendChild(a); return; }   // a real button (Eddie, Nov 24: "convert that open remote to an actual premium button")
         // Collapsed by default (Eddie, Nov 24: "by default condensed ... just shows the student's name and then a brief
         // description to the right of what they've missed, the specific date, and you can expand that card"). Each student
         // is one row: name, a few tags, and the missed dates on the right. Tapping the row opens what they missed and what to assign.
