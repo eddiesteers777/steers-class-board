@@ -85,4 +85,76 @@ WALKS = {
         "eq": "60 − 4d < 20", "var": "the number of days",
         "why": "You start with §60 and lose §4 each day, so after d days you have 60 − 4d. That has to be less than §20.",
         "story": [["§60", "60"], ["§4 a day", "−4d"], ["less than §20", "20"]]},
+
+    # 7th Grade, 7.7: write the expression from the story, then simplify it
+    "A price p goes up 10%. Write the new price as one term.": {
+        "simp": "p + 0.1p", "var": "the old price",
+        "why": "Going up 10% means the old price plus 10% of it. 10% is 0.1, so 10% of p is 0.1p.",
+        "story": [["A price p", "p"], ["goes up 10%", "0.1p"]],
+        "end": "1.1p means the new price is 110% of the old price."},
+    "A shirt that costs p dollars is 20% off. Write an expression for the sale price with one term.": {
+        "simp": "p − 0.2p", "var": "the price before the sale",
+        "why": "20% off means the price minus 20% of it. 20% is 0.2, so 20% of p is 0.2p.",
+        "story": [["costs p dollars", "p"], ["20% off", "0.2p"]],
+        "end": "0.8p means you pay 80% of the price."},
+    "The cost of x hats at §12 each plus x scarves at §8 each. Write the cost as one term.": {
+        "simp": "12x + 8x", "var": "the number of hats, and also of scarves",
+        "why": "x hats at §12 each cost 12x. x scarves at §8 each cost 8x. Add them.",
+        "story": [["x hats at §12 each", "12x"], ["x scarves at §8 each", "8x"]],
+        "end": "Each hat and scarf together cost §20, so x of each cost 20x."},
+    "An item with regular price p is discounted by 15%. Which two expressions both represent the sale price?": {
+        "simp": "p − 0.15p", "var": "the regular price",
+        "why": "Discounted by 15% means the price minus 15% of it. 15% is 0.15, so 15% of p is 0.15p.",
+        "story": [["regular price p", "p"], ["discounted by 15%", "0.15p"]],
+        "end": "p − 0.15p and 0.85p are the same sale price, written two ways."},
+    "A store adds a 7% sales tax to a purchase of d dollars. Which expression is equivalent to d + 0.07d?": {
+        "simp": "d + 0.07d", "var": "the purchase before tax",
+        "why": "The tax adds 7% of d. 7% is 0.07, so the total is d + 0.07d.",
+        "story": [["purchase of d dollars", "d"], ["7% sales tax", "0.07d"]],
+        "end": "1.07d means the total is 107% of the purchase."},
+    "A square has side length s. If each side is increased by 2 inches, which two expressions represent the new perimeter?": {
+        "simp": "4(s + 2)", "var": "the old side length",
+        "why": "Each new side is s + 2. A square has 4 equal sides, so the perimeter is 4 times (s + 2).",
+        "story": [["increased by 2 inches", "2"], ["A square", "4(s + 2)"]],
+        "end": "4(s + 2) and 4s + 8 are the same perimeter, written two ways."},
+    "A rectangle has length L and width 4. Write two equivalent expressions for its perimeter.": {
+        "simp": "2(L + 4)", "var": "the length",
+        "why": "Perimeter is the length plus the width, twice: 2(L + 4).",
+        "story": [["length L", "L"], ["width 4", "4"]],
+        "end": "2L + 8 and 2(L + 4) are the same perimeter, written two ways."},
+    "A bookstore marks up wholesale book prices w by 30%, then offers a 10% loyalty discount on the marked-up price. Which simplified expression represents the final price, and what single percent change from w does it represent?": {
+        "simp": "0.9(1.3w)", "var": "the wholesale price",
+        "why": "A 30% markup makes the price w + 0.3w = 1.3w. A 10% discount leaves 90% of that price, so multiply by 0.9.",
+        "story": [["marks up wholesale book prices w by 30%", "1.3w"], ["10% loyalty discount", "0.9(1.3w)"]],
+        "end": "1.17w is 117% of w, so it's a 17% increase overall."},
+    "A town's population p decreased by 8% last year and then decreased by 8% again this year. A student writes 0.84p for the new population. Which expression is actually correct, and why?": {
+        "simp": "0.92(0.92p)", "var": "the starting population",
+        "why": "Each 8% decrease leaves 92% of what was there. After last year the population is 0.92p. This year's 8% comes off 0.92p, not p, so multiply by 0.92 again.",
+        "story": [["decreased by 8% last year", "0.92p"], ["decreased by 8% again this year", "0.92(0.92p)"]],
+        "end": "0.8464p is about 84.6% of p. The student took 8% off the original p twice."},
+    "Write an expression: 5 more than twice a number n.": {
+        "write": "2n + 5", "var": "the number",
+        "why": "Twice a number n is 2n. 5 more than that means add 5.",
+        "story": [["twice a number n", "2n"], ["5 more", "5"]]},
+    "A pool has 500 gallons and drains 25 gallons each minute. Write an expression for the gallons left after m minutes.": {
+        "write": "500 − 25m", "var": "the number of minutes",
+        "why": "It starts at 500 gallons. Each minute takes away 25 gallons, so m minutes take away 25m.",
+        "story": [["500 gallons", "500"], ["25 gallons each minute", "25m"]]},
+    "Four friends split a bill b and each adds a §3 tip. Write an expression for what each pays.": {
+        "write": "{b/4} + 3", "var": "the bill",
+        "why": "Four friends split the bill, so each pays b ÷ 4. Then each adds §3.",
+        "story": [["split a bill b", "{b/4}"], ["§3 tip", "3"]]},
+    # Algebra I, AlgI.11
+    "Your test scores are 82 and 91. What score x on the 3rd test gives an average of at least 88?": {
+        "eq": "82 + 91 + x ≥ 264", "var": "the 3rd test score",
+        "why": "An average of at least 88 over 3 tests means the 3 scores add up to at least 3 × 88 = 264.",
+        "story": [["82", "82"], ["91", "91"], ["average of at least 88", "264"]]},
+    "Elena has §45 and saves §12 per week to buy a bicycle that costs §165. Which equation can be used to find w, the number of weeks it will take her to save enough money?": {
+        "write": "45 + 12w = 165", "var": "the number of weeks",
+        "why": "She starts with §45 and adds §12 each week, so after w weeks she has 45 + 12w. That has to reach §165.",
+        "story": [["has §45", "45"], ["§12 per week", "12w"], ["costs §165", "165"]]},
+    "A delivery truck can carry at most 2,500 pounds. It already holds a 700-pound crate, and the driver wants to load boxes that weigh 60 pounds each. Which inequality represents the number of boxes, b, the driver can load?": {
+        "write": "700 + 60b ≤ 2500", "var": "the number of boxes",
+        "why": "The load is the 700-pound crate plus 60 pounds for each box, 60b. At most 2,500 means it can equal 2,500 or be less: ≤.",
+        "story": [["700-pound crate", "700"], ["60 pounds each", "60b"], ["at most 2,500 pounds", "2500"]]},
 }

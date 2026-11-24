@@ -303,7 +303,8 @@ function combineSide(W, sd, why, hl, fly) {
         hl.push({ ks: list.map((t) => t.k), tone });
         const sum = list.map((t, i) => (i ? signedText(t).replace(/^([+−])/, " $1 ") : termText(t, true))).join("");
         const n = { c, v: list[0].v, g: null, over: list.some((t) => t.over) && !list.some((t) => !t.over && !t.c.int), dec: list.some((t) => t.dec), k: key(W) };
-        why.push(sum + " = " + (c.zero ? "0" : termText(n, true)));
+        const one = list.find((t) => t.v && t.c.one && !t.g);
+        why.push(sum + " = " + (c.zero ? "0" : termText(n, true)) + (one && list.some((t) => !t.c.int) ? " (" + one.v + " is 1" + one.v + ")" : ""));
         if (!c.zero) { out.push(n); fly.push([list.map((t) => t.k), n.k]); }
     };
     // keep the order the kinds first appear in: x terms, then numbers, unless the number came first
@@ -905,6 +906,7 @@ function angleSetup(q) {
     }
     if ((m = q.match(new RegExp("^Two parallel lines are cut by a transversal\\. One of the acute angles formed measures (\\d+)" + D + "\\. What is the measure of any obtuse angle formed by these lines\\?$")))) return T(m[1] + " + x = 180", "An acute angle and the obtuse angle next to it sit on a straight line, so they add up to 180°.", { kind: "lines", pair: "linear", labels: [m[1] + "°", "x°"] });
     if ((m = q.match(new RegExp("Angle (\\d+) and Angle (\\d+) are corresponding angles\\. If Angle \\1 measures (\\d+)" + D + ", what is the measure of Angle \\2\\?$")))) return T("x = " + m[3], "Corresponding angles are equal when the lines are parallel.", { kind: "lines", pair: "corresponding", labels: [m[3] + "°", "x°"] });
+    if ((m = q.match(new RegExp("One pair of corresponding angles measures \\((.+?)\\)" + D + " and \\((.+?)\\)" + D + "\\. What must x equal for \\S+ and \\S+ to be parallel, and what is the measure of those angles\\?$")))) return T(m[1] + " = " + m[2], "For the lines to be parallel, corresponding angles have to be equal.", { kind: "lines", pair: "corresponding", labels: ["(" + m[1] + ")°", "(" + m[2] + ")°"] }, [{ label: "Each angle", expr: m[1], unit: "°" }]);
     if ((m = q.match(new RegExp("Two (alternate exterior|alternate interior|corresponding) angles measure \\((.+?)\\)" + D + " and \\((.+?)\\)" + D + "\\. (?:Solve for|Find) x\\.$", "i")))) return T(m[2] + " = " + m[3], m[1][0].toUpperCase() + m[1].slice(1) + " angles are equal when the lines are parallel.", { kind: "lines", pair: m[1].toLowerCase().replace(" ", "-"), labels: ["(" + m[2] + ")°", "(" + m[3] + ")°"] });
     if ((m = q.match(new RegExp("Two same-side \\(consecutive\\) interior angles measure \\((.+?)\\)" + D + " and \\((.+?)\\)" + D + "\\. Find the measure of the (smaller|larger) angle\\.$")))) {
         const ex = [m[1], m[2]], vals = anglesAt(ex, 180);
@@ -963,6 +965,15 @@ function build(W, item) {
     // a word problem whose setup is stored with it (tools/stdbank → data/stdbank/walk.js)
     if (setup && setup.eq) return solveSetup(W, item, setup.eq, { story: setup.story, why0: setup.why, then: setup.then, var: setup.var });
     if (setup && setup.expr) return evalSetup(W, item, setup.expr, { story: setup.story, why0: setup.why });
+    if (setup && setup.simp) return simpStory(W, item, Object.assign({ why0: setup.why }, setup));
+    if (setup && setup.write) return writeStory(W, item, Object.assign({ why0: setup.why }, setup));
+    // is it a function?
+    const rel = relParse(q);
+    if (rel) return relSetup(W, item, rel);
+    if (/^Which set of ordered pairs represents a function\?$/.test(q)) return relChoiceSetup(W, item);
+    if (/^Which set of three angle measures can form a triangle\?$/.test(q)) return triChoiceSetup(W, item);
+    if ((m = q.match(/^A relation contains the points (.+)\. Which value of ([a-z]) would make the relation NOT a function\?$/))) return relUnknownSetup(W, item, pairsIn(m[1]), m[2]);
+    if ((m = q.match(/^Given the relation \{(.+)\}, what must the value of ([a-z]) be for this relation to be a function\?$/))) return relSolveSetup(W, item, pairsIn(m[1]), m[2]);
     // angles
     const ang = angleSetup(q);
     if (ang) return solveSetup(W, item, ang.eq, { fact: ang.fact, pic: ang.pic, then: ang.then, thenWhy: ang.then && ang.then.why });
@@ -1003,7 +1014,8 @@ function solveSetup(W, item, eqText, o) {
         const norm = (t) => String(t).replace(/[\s()]/g, "").replace(/[\u2212-]/g, "-");
         const terms = line.s.flatMap((sd) => sd.flatMap((t) => (t.g ? [t, ...t.g] : [t])));
         const pairs = (o.story || []).map((mk, i) => { const t = terms.find((x) => norm(termText(x, true)) === norm(mk[1]) || norm(termText(x, true)).replace(/^-/, "") === norm(mk[1]).replace(/^-/, "")); return t ? ["s" + i, t.k] : null; }).filter(Boolean);
-        W.steps.push({ move: "setup", title: "Write the equation", why: o.story ? "Each number from the story goes into the equation." + (v ? " " + v + " is " + (o.var || "the unknown") + "." : "") : o.fact + " Write that as an equation.", seq: [{ a: "row", row: lineRow(W, line) }, ...(pairs.length ? [{ a: "fly", pairs, story: true }] : [])] });
+        const noun = line.r.every((r) => r === "=") ? "equation" : "inequality";
+        W.steps.push({ move: "setup", title: "Write the " + noun, why: o.story ? "Each number from the story goes into the " + noun + "." + (v ? " " + v + " is " + (o.var || "the unknown") + "." : "") : o.fact + " Write that as an equation.", seq: [{ a: "row", row: lineRow(W, line) }, ...(pairs.length ? [{ a: "fly", pairs, story: true }] : [])] });
         started = true;
     }
     const key = readKey(item.a);
@@ -1021,7 +1033,10 @@ function solveSetup(W, item, eqText, o) {
         const low1 = (l) => l[0].toLowerCase() + l.slice(1);
         W.steps.push({ move: "then", title: "Answer the question", why: res.v + " = " + numText(res.val) + " is not the end. " + (o.thenWhy ? o.thenWhy(vals.map((x) => numText(x.val))) : "The question asks for " + o.then.map((t) => low1(t.label)).join(" and ") + "."),
             seq: vals.map(({ t, e, val }) => ({ a: "row", row: { t: "line", cells: [R([t.label, " = ", exprDT(tidyParens(e)), " = ", numDT(val), t.unit || ""]), null, null], sem: { truth: true } } })) });   // one piece, written from the left, so a long line above never pushes it off the board
-        if (best) matchKey({ kind: "num", val: best.val }, readKey(item.a), item);
+        const kb = readKey(item.a);
+        if (best && kb && kb.kind === "eq" && kb.rest) {
+            if (!res.val.eq(kb.v) || !new RegExp("(^|[^\\d.])" + numText(best.val).replace(".", "\\.") + "([^\\d.]|$)").test(kb.rest)) throw new Error("key");
+        } else if (best) matchKey({ kind: "num", val: best.val }, kb, item);
         else if (!/=/.test(item.a)) throw new Error("key");
         else { const got = item.a.split(",").map((p) => qOf(p.split("=")[1].replace(/[°\s]/g, ""))); if (got.length !== vals.length || got.some((g, i) => !g || !g.eq(vals[i].val))) throw new Error("key"); }
     } else if (o.count) {
@@ -1092,6 +1107,7 @@ function funcParse(q) {
     if ((m = q.match(/^The function ([A-Z])\(([a-z])\) = (.+?) represents [^.]+\. Find \1\(([^)]+)\) and state what it means\.$/))) return F(m[1], m[2], m[3], { at: m[4], means: true });
     if ((m = q.match(/^y = (.+?)\. Find y when x = (\S+)\.$/))) return F("y", "x", m[1], { at: m[2] });
     if ((m = q.match(/^Evaluate the function y = (.+?) when x = (\S+)\.$/))) return F("y", "x", m[1], { at: m[2] });
+    if ((m = q.match(/^A function rule is: '(Multiply the input by (\d+), then (add|subtract) (\d+))\.' What is the output when the input is (\S+)\?$/))) return F("y", "x", m[2] + "x " + (m[3] === "add" ? "+" : "−") + " " + m[4], { at: m[5], words: m[1] });
     if ((m = q.match(/^([a-zA-Z])\(([a-z])\) = (.+?)\. Find \2 when \1\(\2\) = (\S+)\.$/))) return F(m[1], m[2], m[3], { out: m[4], solveFor: m[2] });
     if ((m = q.match(/^If ([a-zA-Z])\(([a-z])\) = (.+?) and \1\(([a-z])\) = (\S+), what is the value of \4\?$/))) return Object.assign(F(m[1], m[2], m[3], { out: m[5], solveFor: m[4] }), { label: m[1] + "(" + m[4] + ")" });
     return null;
@@ -1102,7 +1118,7 @@ function funcSetup(W, item, fn) {
     const rule = parseExpr(W, fn.rule);
     if (!rule) return null;
     const atT = numText(at), labelAt = fn.name === "y" ? "y" : fn.name + "(" + atT + ")";
-    W.steps.push({ move: "start", title: "The problem", why: fn.name === "y" ? "The rule tells you how to get y from x. Here x is " + atT + "." : fn.label + " is the rule. " + labelAt + " means: put " + atT + " in for " + fn.v + ".",
+    W.steps.push({ move: "start", title: "The problem", why: fn.words ? "Call the input x. \u201c" + fn.words + "\u201d is " + exprText(tidyParens(rule)) + ". Here the input is " + atT + "." : fn.name === "y" ? "The rule tells you how to get y from x. Here x is " + atT + "." : fn.label + " is the rule. " + labelAt + " means: put " + atT + " in for " + fn.v + ".",
         seq: [{ a: "row", row: { t: "line", cells: [R([fn.label]), "=", exprDT(tidyParens(rule))] } }] });
     const sub = tidyParens(parseExpr(W, fn.rule, { [fn.v]: at }));
     const vs = [], ns = [];
@@ -1114,7 +1130,7 @@ function funcSetup(W, item, fn) {
     const out = evaluate(W, sub, { noStart: true });
     const v = valueOf(out), key0 = readKey(item.a);
     if (!key0 || key0.kind !== "num" || !v.eq(key0.v)) throw new Error("key");
-    answerStep(W, item.a, "So " + labelAt + " = " + numText(v, key0.dec || key0.money ? "dec" : "frac") + "." + (fn.means ? " Put it back in the story to say what it means." : ""));
+    answerStep(W, item.a, (fn.words ? "So the output is " : "So " + labelAt + " = ") + "" + numText(v, key0.dec || key0.money ? "dec" : "frac") + "." + (fn.means ? " Put it back in the story to say what it means." : ""));
     return true;
 }
 
@@ -1186,6 +1202,212 @@ function factorSetup(W, item, text) {
     return true;
 }
 
+/* ---------- relations: is it a function? ---------- */
+const MINUS_RE = /[−-]/g;
+const sameNum = (a, b) => { const x = qOf(String(a)), y = qOf(String(b)); return x && y ? x.eq(y) : String(a).replace(MINUS_RE, "-").trim() === String(b).replace(MINUS_RE, "-").trim(); };
+function pairsIn(text) {
+    const out = [], re = /\(\s*([^(),]+?)\s*,\s*([^(),]+?)\s*\)/g; let m;
+    while ((m = re.exec(text))) out.push([m[1], m[2]]);
+    return out;
+}
+function listIn(text) { return text.split(/\s*,\s*/).map((x) => x.trim()).filter(Boolean); }
+/** The input → output pairs a "Is it a function?" problem gives, with how they were given. null when it is not one. */
+function relParse(q) {
+    let m;
+    if (!/a function(?: of x)?\??(?: Explain\.)?$/.test(q) || /^Which|what must|Which value/.test(q)) return null;
+    if ((m = q.match(/^Is (.+?) \(for example (\(.+\))\) a function of x\?$/))) return { from: "example", rule: m[1], pairs: pairsIn(m[2]) };
+    if ((m = q.match(/\{(\(.+\))\}/))) return { from: "set", pairs: pairsIn(m[1]) };
+    if ((m = q.match(/x: ([^a-z]+?) and (?:outputs )?y: ([^a-z]+?)\. /))) {
+        const xs = listIn(m[1]), ys = listIn(m[2]);
+        return xs.length === ys.length && xs.length > 1 ? { from: "table", pairs: xs.map((x, i) => [x, ys[i]]) } : null;
+    }
+    if ((m = q.match(/sends (.+?)\. Is it/))) {
+        const pairs = m[1].split(/\s*,\s*/).map((p) => p.split(/\s*→\s*/));
+        return pairs.every((p) => p.length === 2) ? { from: "map", pairs } : null;
+    }
+    return null;
+}
+/** Which inputs come up more than once, and whether they keep the same output. */
+function repeats(pairs) {
+    const by = new Map();
+    pairs.forEach(([x, y], i) => { const k = [...by.keys()].find((z) => sameNum(z, x)); if (k == null) by.set(x, [i]); else by.get(k).push(i); });
+    const out = [];
+    by.forEach((idx, x) => { if (idx.length > 1) out.push({ x, idx, ys: idx.map((i) => pairs[i][1]), clash: idx.some((i) => !sameNum(pairs[i][1], pairs[idx[0]][1])) }); });
+    return out;
+}
+const listWords = (xs, or) => (xs.length < 2 ? xs.join("") : xs.slice(0, -1).join(", ") + (or ? " or " : " and ") + xs[xs.length - 1]);
+const tidyNum = (s) => String(s).replace(/-/g, MINUS);
+function pairRows(W, pairs) {
+    return pairs.map(([x, y]) => {
+        const kx = key(W), ky = key(W);
+        return { kx, ky, row: { t: "line", cells: [R([tidyNum(x)], { k: kx }), "→", R([tidyNum(y)], { k: ky })] } };
+    });
+}
+function relSetup(W, item, rel) {
+    W.kind = "rel"; W.cols = 3;
+    const keyYes = /^yes\b/i.test(String(item.a)), keyNo = /^no\b/i.test(String(item.a));
+    if (!keyYes && !keyNo) return null;
+    const rows = pairRows(W, rel.pairs), rep = repeats(rel.pairs), clash = rep.filter((r) => r.clash);
+    const ok = !clash.length;
+    if (ok !== keyYes) throw new Error("key");
+    // a key that names the input that breaks the rule must name the one we found
+    const named = String(item.a).match(/(?:input|x =)\s*([−-]?\d+(?:\.\d+)?)/);
+    if (named && !clash.some((r) => sameNum(r.x, named[1]))) throw new Error("key");
+    const how = rel.from === "set" || rel.from === "example" ? "In each pair (x, y), x is the input and y is the output." : rel.from === "table" ? "Each x is an input, and the y under it is its output." : "Each arrow goes from an input to its output.";
+    W.steps.push({ move: "pairs", title: "Inputs and outputs", why: "A function gives each input exactly one output. " + how + " Write them one per line.", seq: rows.map((r) => ({ a: "row", row: r.row })) });
+    const outsSeen = new Map();
+    rel.pairs.forEach(([, y], i) => { const k = [...outsSeen.keys()].find((z) => sameNum(z, y)); if (k == null) outsSeen.set(y, [i]); else outsSeen.get(k).push(i); });
+    const outRep = [...outsSeen.entries()].filter(([, idx]) => idx.length > 1);
+    const seq = [], why = [];
+    if (clash.length) {
+        clash.forEach((r) => { seq.push({ a: "hl", ks: r.idx.map((i) => rows[i].kx), tone: "x" }); seq.push({ a: "hl", ks: r.idx.map((i) => rows[i].ky), tone: "n" }); });
+        why.push(clash.map((r) => "Input " + tidyNum(r.x) + " shows up " + (r.idx.length === 2 ? "twice" : r.idx.length + " times") + ", with outputs " + listWords(r.ys.map(tidyNum)) + ".").join(" ") + " One input with two outputs breaks the rule.");
+    } else {
+        rep.forEach((r) => seq.push({ a: "hl", ks: r.idx.map((i) => rows[i].kx), tone: "x" }));
+        why.push(rep.length ? rep.map((r) => "Input " + tidyNum(r.x) + " shows up more than once, but it goes to " + tidyNum(r.ys[0]) + " every time.").join(" ") + " That's still one output."
+            : "Each input shows up only once: " + listWords(rel.pairs.map((p) => tidyNum(p[0]))) + ". So each input has one output.");
+        if (outRep.length) {
+            outRep.forEach(([, idx]) => seq.push({ a: "hl", ks: idx.map((i) => rows[i].ky), tone: "n" }));
+            why.push("Outputs can repeat: " + outRep.map(([y, idx]) => tidyNum(y) + " comes out " + (idx.length === 2 ? "twice" : idx.length + " times")).join(" and ") + ", and that's fine.");
+        }
+    }
+    W.steps.push({ move: "repeat", title: "Look for a repeated input", why: why.join(" "), seq });
+    W.steps.push({ move: "verdict", title: ok ? "It's a function" : "Not a function", why: ok ? "Every input has exactly one output." : "At least one input has two outputs.", seq: [{ a: "row", row: { t: "pic", pic: { kind: "verdict", ok, text: ok ? "Function" : "Not a function" } } }] });
+    answerStep(W, item.a, ok ? "Yes, it's a function." : "No, it's not a function.");
+    return true;
+}
+/** "Which set of ordered pairs represents a function?": check each choice. */
+function relChoiceSetup(W, item) {
+    W.kind = "rel"; W.cols = 3;
+    const ch = (item.choices || []).map((c) => ({ c, pairs: pairsIn(c) }));
+    if (ch.length < 2 || ch.some((x) => x.pairs.length < 2 || !/^\{.*\}$/.test(x.c))) return null;
+    W.steps.push({ move: "pairs", title: "The rule", why: "A function gives each input exactly one output. In each pair (x, y), x is the input. Check each set for an input that shows up twice with different outputs.", seq: [{ a: "row", row: { t: "pic", pic: { kind: "fact", text: "Each input has exactly one output." } } }] });
+    let good = [];
+    ch.forEach((x, ci) => {
+        const ks = x.pairs.map(() => key(W)), rk = key(W);
+        const items = ["{"];
+        x.pairs.forEach(([a, b], i) => { if (i) items.push(", "); items.push("(", R([tidyNum(a)], { k: ks[i] }), ", " + tidyNum(b) + ")"); });
+        items.push("}");
+        const clash = repeats(x.pairs).filter((r) => r.clash);
+        const seq = [{ a: "row", row: { t: "line", cells: [R(items, { k: rk }), null, null] } }];
+        if (clash.length) { clash.forEach((r) => seq.push({ a: "hl", ks: r.idx.map((i) => ks[i]), tone: "x" })); seq.push({ a: "strike", ks: [rk] }); }
+        else { seq[0].row.c = "w-check"; seq[0].row.cells[0].r.push(" ✓"); seq.push({ a: "box", ks: [rk] }); good.push(x.c); }
+        W.steps.push({ move: "choice", title: clash.length ? "Not this one" : "This one works", why: clash.length ? clash.map((r) => "Input " + tidyNum(r.x) + " goes to " + listWords(r.ys.map(tidyNum)) + ".").join(" ") + " Two outputs for one input." : "No input shows up twice, so each input has one output.", seq });
+        void ci;
+    });
+    if (good.length !== 1 || String(item.a).trim() !== good[0]) throw new Error("key");
+    answerStep(W, item.a, "Only this set gives each input one output.");
+    return true;
+}
+/** "(2, 6), (4, 10), (k, 14), and (8, 18). Which value of k would make the relation NOT a function?" */
+function relUnknownSetup(W, item, pairs, v) {
+    W.kind = "rel"; W.cols = 3;
+    const ui = pairs.findIndex((p) => p[0] === v); if (ui < 0) return null;
+    const others = pairs.filter((_, i) => i !== ui);
+    if (others.some((p) => !qOf(p[0]) || !qOf(p[1]))) return null;
+    const rows = pairRows(W, pairs);
+    const outY = pairs[ui][1];
+    W.steps.push({ move: "pairs", title: "Inputs and outputs", why: "A function gives each input exactly one output. In each pair, the first number is the input.", seq: rows.map((r) => ({ a: "row", row: r.row })) });
+    const used = others.filter((p) => !sameNum(p[1], outY)).map((p) => p[0]);
+    W.steps.push({ move: "repeat", title: "What would break it", why: "It stops being a function when an input repeats with a different output. Only (" + v + ", " + tidyNum(outY) + ") can change, so " + v + " would have to be an input that's already there: " + listWords(used.map(tidyNum), true) + ".",
+        seq: [{ a: "hl", ks: rows.filter((_, i) => i !== ui && used.includes(pairs[i][0])).map((r) => r.kx), tone: "x" }, { a: "hl", ks: [rows[ui].kx], tone: "n" }] });
+    const ch = (item.choices || []).filter((c) => qOf(c));
+    if (ch.length < 2) return null;
+    const hit = ch.filter((c) => used.some((u) => sameNum(u, c)));
+    if (hit.length !== 1 || !sameNum(hit[0], item.a)) throw new Error("key");
+    const k0 = hit[0], other = others.find((p) => sameNum(p[0], k0));
+    const kx = key(W), ky = key(W);
+    W.steps.push({ move: "choice", title: "Check the choices", why: listWords(ch.filter((c) => c !== k0).map(tidyNum)) + " would be new inputs, so it stays a function. " + tidyNum(k0) + " is already an input with output " + tidyNum(other[1]) + ". Then " + tidyNum(k0) + " would go to both " + tidyNum(other[1]) + " and " + tidyNum(outY) + ".",
+        seq: [{ a: "row", row: { t: "line", cells: [R([tidyNum(k0)], { k: kx }), "→", R([tidyNum(other[1]) + " and " + tidyNum(outY)], { k: ky })] } }, { a: "hl", ks: [ky], tone: "n" }, { a: "row", row: { t: "pic", pic: { kind: "verdict", ok: false, text: "Not a function when " + v + " = " + tidyNum(k0) } } }] });
+    answerStep(W, item.a, v + " = " + tidyNum(k0) + " gives input " + tidyNum(k0) + " two outputs.");
+    return true;
+}
+/** "{(−1, 3), (0, 5), (2, 9), (2, 3a − 3)}, what must the value of a be for this relation to be a function?" */
+function relSolveSetup(W, item, pairs, v) {
+    const rep = repeats(pairs).filter((r) => r.idx.length === 2);
+    if (rep.length !== 1) return null;
+    const [i1, i2] = rep[0].idx, ys = [pairs[i1][1], pairs[i2][1]];
+    const ex = ys.find((y) => new RegExp("(?<![a-z])" + v + "(?![a-z])").test(y)), num = ys.find((y) => y !== ex);
+    if (!ex || !num || !qOf(num)) return null;
+    const rows = pairRows(W, pairs);
+    const r = solveSetup(W, item, ex + " = " + num, { intro: { title: "Set the outputs equal", why: "A function gives each input one output. Input " + tidyNum(rep[0].x) + " shows up twice, with outputs " + tidyNum(num) + " and " + tidyNum(ex) + ". So they must be the same: " + tidyNum(ex) + " = " + tidyNum(num) + ".", rows: rows.map((x) => x.row) } });
+    // light up the repeated input once its rows are written
+    const st = W.steps.find((s) => s.move === "setup");
+    if (st) st.seq.splice(rows.length, 0, { a: "hl", ks: [rows[i1].kx, rows[i2].kx], tone: "x" }, { a: "hl", ks: [rows[i1].ky, rows[i2].ky], tone: "n" });
+    return r;
+}
+
+/** "Which set of three angle measures can form a triangle?": add each set and keep the one that makes 180°. */
+function triChoiceSetup(W, item) {
+    W.kind = "rel"; W.cols = 3;
+    const ch = (item.choices || []).map((c) => ({ c, ns: c.split(/\s*,\s*/).map((x) => qOf(x.replace(/°/g, ""))) }));
+    if (ch.length < 2 || ch.some((x) => x.ns.length !== 3 || x.ns.some((n) => !n))) return null;
+    W.steps.push({ move: "fact", title: "Use the angle fact", why: "The three angles of a triangle always add up to 180°. Add each set and see which one makes 180°.", seq: [{ a: "row", row: { t: "pic", pic: { kind: "fact", text: "The angles of a triangle add up to 180°." } } }] });
+    const good = [];
+    ch.forEach((x) => {
+        const sum = x.ns.reduce((a, b) => a.add(b), ZERO), ok = sum.eq(180), rk = key(W), vk = key(W);
+        const seq = [{ a: "row", row: { t: "line", cells: [R([x.ns.map((n) => numText(n)).join(" + ")], { k: rk }), "=", R([numText(sum) + "°" + (ok ? " ✓" : "")], { k: vk })], sem: { truth: true }, c: ok ? "w-check" : undefined } }];
+        seq.push(ok ? { a: "box", ks: [vk] } : { a: "strike", ks: [rk] });
+        if (ok) good.push(x.c);
+        W.steps.push({ move: "choice", title: ok ? "This one works" : "Not this one", why: x.ns.map((n) => numText(n)).join(" + ") + " = " + numText(sum) + (ok ? ". That's exactly 180°." : ", not 180°."), seq });
+    });
+    if (good.length !== 1 || String(item.a).trim() !== good[0]) throw new Error("key");
+    answerStep(W, item.a, "Only this set adds up to 180°.");
+    return true;
+}
+
+/* ---------- word problems: write the expression or equation, then simplify ---------- */
+const flatTerms = (side) => side.flatMap((t) => (t.g ? [t, ...t.g] : [t]));
+const normT = (t) => String(t).replace(/[\s()]/g, "").replace(MINUS_RE, "-");
+function storyPairs(side, marks) {
+    const terms = flatTerms(side);
+    return (marks || []).map((mk, i) => { const t = terms.find((x) => normT(termText(x, true)) === normT(mk[1]) || normT(termText(x, true)).replace(/^-/, "") === normT(mk[1]).replace(/^-/, "")); return t ? ["s" + i, t.k] : null; }).filter(Boolean);
+}
+/** The part of an answer key that is the expression: "1.17w, which represents …" → ["1.17w"], "p − 0.15p and 0.85p" → both. */
+function keyForms(a) {
+    const s = String(a).split(/;|,\s+(?=which|because|so|meaning)\b/)[0].trim();
+    return s.split(/\s+and\s+/);
+}
+function simpStory(W, item, o) {
+    W.kind = "simp";
+    const side = oneSide(W, o.simp); if (!side) return null;
+    const v = varOf({ s: [side] }), hasG = side.some((t) => t.g);
+    if (!hasG && !needsCombine(side)) return null;
+    const f0 = formOf(side);
+    W.steps.push({ move: "story", title: "Read the story", why: o.why0 || "Find the numbers in the story and what each one means.", seq: [{ a: "row", row: { t: "pic", pic: { kind: "story", text: item.q, marks: o.story || [] } } }] });
+    const pairs = storyPairs(side, o.story);
+    W.steps.push({ move: "setup", title: "Write the expression", why: o.write || ("Each piece of the story becomes a piece of the expression. " + v + " is " + (o.var || "the unknown") + "."),
+        seq: [{ a: "row", row: { t: "line", cells: [sideDT(side), null, null], sem: { f: f0 } } }, ...(pairs.length ? [{ a: "fly", pairs, story: true }] : [])] });
+    let line = { s: [side], r: [] };
+    if (hasG) line = stepDistribute(W, line);
+    if (needsCombine(line.s[0])) line = stepCombine(W, line);
+    chainRows(W, 2);
+    const fl = formOf(line.s[0]);
+    const forms = keyForms(item.a).map((p) => oneSide(W, p));
+    if (!forms.length || forms.some((k) => !k || varOf({ s: [k] }) !== v)) throw new Error("key");
+    const isEnd = (k) => !k.some((t) => t.g) && !needsCombine(k) && formOf(k).a.eq(fl.a) && formOf(k).b.eq(fl.b);
+    const isStart = (k) => formOf(k).a.eq(f0.a) && formOf(k).b.eq(f0.b);
+    if (!forms.some(isEnd) || !forms.every((k) => isEnd(k) || isStart(k))) throw new Error("key");
+    answerStep(W, item.a, o.end || (forms.length > 1 ? "Both lines are the same expression, written two ways." : "One term of each kind: that's as simple as it gets."));
+    return true;
+}
+/** A story that only asks for the equation or expression: write it from the story, and it must be the key. */
+function writeStory(W, item, o) {
+    const norm = (s) => String(s).replace(/§/g, "").replace(/(\d),(\d{3})/g, "$1$2").replace(/\s/g, "").replace(MINUS_RE, "-");
+    if (norm(o.write) !== norm(item.a)) throw new Error("key");
+    const isLine = /[=<>≤≥]/.test(o.write);
+    let row, side;
+    if (isLine) { W.kind = "solve"; const line = parseLine(W, o.write); if (!line) return null; W.cols = line.s.length === 3 ? 5 : 3; row = lineRow(W, line); side = line.s.flat(); }
+    else { W.kind = "simp"; side = oneSide(W, o.write); if (!side) return null; row = { t: "line", cells: [sideDT(side), null, null], sem: { f: formOf(side) } }; }
+    W.steps.push({ move: "story", title: "Read the story", why: o.why0 || "Find the numbers in the story and what each one means.", seq: [{ a: "row", row: { t: "pic", pic: { kind: "story", text: item.q, marks: o.story || [] } } }] });
+    const pairs = storyPairs(side, o.story);
+    const noun = !isLine ? "expression" : /[<>≤≥]/.test(o.write) ? "inequality" : "equation";
+    W.steps.push({ move: "setup", title: "Write the " + noun, why: o.why1 || ("Each piece of the story becomes a piece of the " + noun + ". " + (o.var ? varOf(isLine ? parseLine(W, o.write) : { s: [side] }) + " is " + o.var + "." : "")),
+        seq: [{ a: "row", row }, ...(pairs.length ? [{ a: "fly", pairs, story: true }] : [])] });
+    answerStep(W, item.a, o.end || "");
+    return true;
+}
+
 /** Words for a move, for chips and the list. */
-export const MOVE_NAMES = { distribute: "Distribute", combine: "Combine like terms", both: "Both sides", divide: "Divide", reciprocal: "Reciprocal", flip: "Flip the sign", swap: "Put x first", clear: "Clear fractions", kcc: "Add the opposite", kcf: "Keep, change, flip", lcd: "Common denominator", cancel: "Cancel", numline: "Number line", story: "Story to equation", fact: "Angle fact", graph: "Graph", check: "Check", sub: "Plug in", gcf: "Find the GCF", factor: "Factor", abs: "Absolute value", power: "Exponent", cfrac: "Complex fraction" };
+export const MOVE_NAMES = { distribute: "Distribute", combine: "Combine like terms", both: "Both sides", divide: "Divide", reciprocal: "Reciprocal", flip: "Flip the sign", swap: "Put x first", clear: "Clear fractions", kcc: "Add the opposite", kcf: "Keep, change, flip", lcd: "Common denominator", cancel: "Cancel", numline: "Number line", story: "Story to equation", fact: "Angle fact", graph: "Graph", check: "Check", sub: "Plug in", gcf: "Find the GCF", factor: "Factor", pairs: "Inputs and outputs", repeat: "Repeated input", verdict: "Decide", choice: "Check the choices", abs: "Absolute value", power: "Exponent", cfrac: "Complex fraction" };
 export { parseLine as _parseLine, parseExpr as _parseExpr, valueOf as _valueOf, sameAnswers as _sameAnswers, semOf as _semOf };
