@@ -390,3 +390,36 @@ dialog.spick::backdrop{background:rgba(8,27,69,.45)}
   .sfpick .sfpkx .ic{width:14px;height:14px}
   .sfpk{left:4px}
 }
+
+/* The lesson row shrinks by the room it has, not by the window (Nov 24, Eddie: "Teach this slide" ran under "Menu" at 1366
+   with three classes, since the class picker adds 150px). Steps: shorter Teach and names, then an icon-only Teach, then
+   tighter days and names. */
+#slBarSlot{container:slbar / inline-size}
+/* last resort at any size: the Mon-Fri buttons scroll inside their own strip, so the row never runs under Menu */
+.slrow .sldays{flex:0 1 auto;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+.slrow .sldays::-webkit-scrollbar{display:none}
+.slrow .slday{flex:none}
+@container slbar (max-width:1040px){
+  .slsave[data-state="ok"],.slsave[data-state="wait"]{font-size:0;gap:0;padding:6px}   /* the dot says it; "not saved" keeps its words */
+  .slrow .slteach i{display:none}
+  .slcls select{max-width:124px}
+  .slwkt{max-width:124px}
+  .slday small{display:none}
+  .slday{min-width:46px}
+}
+@container slbar (max-width:760px){
+  .slrow .slteach span{display:none}
+  .slrow .slteach{padding:0 12px}
+  .slsave[data-state="ok"]{font-size:0;gap:0;padding:6px}
+}
+@container slbar (max-width:700px){
+  .slcls select{max-width:100px;padding-right:24px}
+  .slwkt{max-width:100px}
+  .slwkt small{display:none}
+  .slday{min-width:40px;padding:3px 5px}
+}
+@container slbar (max-width:620px){
+  .slcls select{max-width:84px;font-size:.8rem;padding:6px 20px 6px 7px;background-position:right 5px center}
+  .slday{min-width:34px;padding:3px 4px}
+  .slwka{width:26px}
+}
