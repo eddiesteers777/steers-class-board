@@ -411,7 +411,7 @@ export function createStepPlayer(host, walk, opts) {
         mv.innerHTML = ""; mv.appendChild(document.createTextNode(i < 0 ? "Walkthrough" : s.title));
         count.textContent = "Step " + (i + 1) + " of " + N;
         [...dots.children].forEach((d, j) => { d.className = j < i ? "done" : j === i ? "now" : ""; });
-        why.textContent = i < 0 ? "" : s.why;
+        why.textContent = i < 0 ? "" : String(s.why).replace(/§/g, "$");
         bBack.disabled = i <= 0; bNext.disabled = i >= N - 1;
         bPlay.innerHTML = (playing ? ICON.pause : ICON.play) + '<span class="lbl">' + (playing ? "Pause" : i >= N - 1 ? "Play again" : "Play") + "</span>";
         bPlay.setAttribute("aria-label", playing ? "Pause" : "Play");

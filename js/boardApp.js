@@ -962,7 +962,7 @@ function render() {
    Only walkthroughs the teacher has checked (walk.html, or "Looks right" here on the Remote) are ever shown on the board. */
 let walkMods = null, WALKITEMS = null, WALKOK = {}, WALKED = {}, walkIn = false, stepPlayer = null, stepFor = "", stepReady = false;
 function stepsLoad() {
-    if (!walkMods) walkMods = Promise.all([import("./walkBank.js?v=5"), import("./stepPlayer.js?v=3"), import("./walk.js?v=5")]).then(async ([wb, sp, wk]) => { WALKITEMS = await wb.loadWalkItems(); return { wb, sp, wk }; });
+    if (!walkMods) walkMods = Promise.all([import("./walkBank.js?v=5"), import("./stepPlayer.js?v=4"), import("./walk.js?v=5")]).then(async ([wb, sp, wk]) => { WALKITEMS = await wb.loadWalkItems(); return { wb, sp, wk }; });
     return walkMods;
 }
 /* Show Steps on a slide (Board Builder > Slides > Show Steps): the same player, inside the slide, one step per Next.
