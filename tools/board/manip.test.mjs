@@ -267,6 +267,29 @@ t("tape diagram", () => {
     assert.deepEqual(c, { m: "ratio", p: { n: 10, k: 20, u: 1, ask: "part" }, r: { a: 4, b: 4, u: 25, c: 3, ask: "total" }, s: 2 });
 });
 
+t("volume shapes", () => {
+    const V = M.volDefault();
+    assert.equal(M.volQ(V), "A cylinder has a radius of 3 cm and a height of 5 cm. What is its volume?");
+    assert.deepEqual(M.volSteps(V), ["The base is a circle: B = πr² = π × 3² = 9π.", "V = Bh = 9π × 5 = 45π."]);
+    assert.equal(M.volA(V), "45π cm³ ≈ 141.3 cm³"); assert.equal(M.volChip(V), "Cylinder, V = ?");
+    V.s = 2; assert.equal(M.volChip(V), "45π cm³ ≈ 141.3 cm³");
+    assert.equal(M.volShape(V, "cone"), true); assert.equal(V.s, 0); assert.equal(M.volN(V), 3);
+    assert.equal(M.volSteps(V)[2], "A cone holds 1/3 of that: V = 45π ÷ 3 = 15π.");
+    V.r = 2; assert.equal(M.volText(V), "(20/3)π"); V.pi = "dec"; assert.equal(M.volSteps(V)[2], "A cone holds 1/3 of that: V = 62.8 ÷ 3 ≈ 20.93.");
+    assert.equal(M.volAsk(V, "h"), true); assert.equal(M.volQ(V), "A cone has a radius of 2 cm and a volume of 20.93 cm³. What is its height? Use 3.14 for π.");
+    assert.equal(M.volSteps(V)[2], "h = 62.79 ÷ 12.56 ≈ 5."); assert.equal(M.volA(V), "h = 5 cm");
+    assert.equal(M.volAsk(V, "r"), false, "a cone works back to its height, not its radius");
+    M.volShape(V, "sph"); assert.equal(V.ask, "v"); V.r = 3; V.pi = "pi";
+    assert.equal(M.volText(V), "36π"); assert.equal(M.volSet(V, "h", 1), false, "a sphere has no height to set");
+    M.volAsk(V, "r"); V.pi = "dec"; assert.deepEqual(M.volSteps(V), ["V = 4/3 πr³, so r³ = V × 3 ÷ 4 ÷ 3.14 = 113.04 × 3 ÷ 4 ÷ 3.14 = 27.", "r = ∛27 = 3, because 3 × 3 × 3 = 27."]);
+    assert.equal(M.volSet(V, "r", 99), true); assert.equal(V.r, 12);
+    let seed = 11; const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+    for (let i = 0; i < 90; i++) { V.sh = ["cyl", "cone", "sph"][i % 3]; M.volNew(V, rnd); assert.equal(V.s, 0);
+        assert.ok(V.r >= 1 && V.r <= 12 && V.h >= 1 && V.h <= 20); assert.ok((V.sh === "sph" ? ["v", "r"] : ["v", "h"]).includes(V.ask)); }
+    const c = M.cleanMt({ vol: { sh: "sph", r: 40, h: -3, ask: "h", pi: "x", cmp: "yes", u: 9, s: 9 } }).vol;
+    assert.deepEqual(c, { sh: "sph", r: 12, h: 1, ask: "v", pi: "pi", cmp: false, u: 3, s: 2 });
+});
+
 t("saved state is cleaned", () => {
     assert.deepEqual(M.cleanMt(null), {}); assert.deepEqual(M.cleanMt({ evil: { a: 1 } }), {});
     const c = M.cleanMt({ balance: { e: [2, 2, 2, 9], s: [1, 2, 3, 4] }, chance: { m: "dice", d2: true, t: [1, "x", -4], last: 99, rot: "NaN" }, line: { a: [99, -99], b: [99, -99] },

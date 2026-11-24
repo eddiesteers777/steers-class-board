@@ -14,6 +14,7 @@
      sys       Systems graph        two lines; where they cross, parallel or the same line; check a point in both (8.12, Alg I.10)
      scat      Scatter plot         data on real axes; the trend, outliers, the class's own trend line and a prediction (8.SP)
      tape      Tape diagram         percent of a whole, and ratios as equal units; solved one step at a time (7.RP)
+     vol       Volume shapes        cylinder, cone and sphere; volume or a missing size, in π or 3.14; a cone is 1/3 of a cylinder (8.G.9)
      fn        Function machine     inputs go in, the rule makes outputs; mystery rules, and "function or not?" (8.13, 8.14)
      calc      Basic calculator     + − × ÷ and percent, with the order of operations
      sci       Scientific calculator powers, roots, trig, logs, Ans and fraction answers
@@ -24,7 +25,7 @@
 ========================================== */
 import { gcDefault, cleanGc, fmt } from "./graphCalc.js?v=1";
 
-export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "angle", "fn", "area", "nl", "sys", "scat", "tape", "calc", "sci", "graph"];
+export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "angle", "fn", "area", "nl", "sys", "scat", "tape", "vol", "calc", "sci", "graph"];
 export const isMt = (k) => MT_KEYS.includes(k);
 
 const int = (v, d) => { const n = Math.round(+v); return Number.isFinite(n) ? n : d; };
@@ -862,8 +863,88 @@ function cleanTape(o) {
     return out;
 }
 
-const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, angle: angDefault, fn: fnDefault, area: exDefault, nl: nlDefault, sys: sysDefault, scat: () => scDefault(), tape: tpDefault, calc: calcDefault, sci: sciDefault, graph: gcDefault };
-const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, angle: cleanAng, fn: cleanFn, area: cleanEx, nl: cleanNl, sys: cleanSys, scat: cleanSc, tape: cleanTape, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
+/* ---------- Volume shapes ---------- */
+/* A cylinder, cone or sphere with its radius and height. Find the volume, or work back to the height (cylinder, cone)
+   or the radius (sphere). Answers in terms of π, or with 3.14 for π. Solved in steps the class reveals one at a time.
+   Compare puts the matching cylinder beside a cone (1/3 full) or a sphere (2/3 full). */
+export const VL_SH = { cyl: "cylinder", cone: "cone", sph: "sphere" };
+export const VL_UNITS = ["cm", "in", "ft", "m"];
+export const volDefault = () => ({ sh: "cyl", r: 3, h: 5, ask: "v", pi: "pi", cmp: false, u: 0, s: 0 });
+const VL_ASK = { cyl: ["v", "h"], cone: ["v", "h"], sph: ["v", "r"] };
+const r2 = (x) => Math.round(x * 100) / 100;
+const dec = (x) => String(r2(x));
+/** n/d as text, reduced: "15", "20/3". */
+function vlFr(n, d) { const g = gcd(n, d); n /= g; d /= g; return d === 1 ? String(n) : n + "/" + d; }
+/** The volume of the shape: π × n/d, and the parts the steps use. */
+export function volOf(V) {
+    const r = V.r, h = V.sh === "sph" ? 2 * r : V.h, B = r * r;
+    const [n, d] = V.sh === "cyl" ? [B * h, 1] : V.sh === "cone" ? [B * h, 3] : [4 * r * r * r, 3];
+    return { r, h, B, cyl: B * h, n, d, val: (Math.PI * n) / d, dec: r2((3.14 * n) / d) };
+}
+/** A multiple of π as text: "45π", "(20/3)π", "π". */
+export function piText(n, d = 1) { const f = vlFr(n, d); return f === "1" ? "π" : f.includes("/") ? "(" + f + ")π" : f + "π"; }
+const unit3 = (V) => " " + VL_UNITS[V.u] + "³";
+/** The volume as the class writes it, in the mode chosen. */
+export function volText(V) { const v = volOf(V); return V.pi === "pi" ? piText(v.n, v.d) : dec((3.14 * v.n) / v.d); }
+export function volQ(V) {
+    const v = volOf(V), u = VL_UNITS[V.u], nm = VL_SH[V.sh], tail = V.pi === "pi" ? "" : " Use 3.14 for π.";
+    if (V.ask === "v") return (V.sh === "sph" ? "A sphere has a radius of " + v.r + " " + u + "." : "A " + nm + " has a radius of " + v.r + " " + u + " and a height of " + v.h + " " + u + ".") + " What is its volume?" + tail;
+    if (V.ask === "h") return "A " + nm + " has a radius of " + v.r + " " + u + " and a volume of " + volText(V) + unit3(V) + ". What is its height?" + tail;
+    return "A sphere has a volume of " + volText(V) + unit3(V) + ". What is its radius?" + tail;
+}
+export function volA(V) {
+    const v = volOf(V), u = VL_UNITS[V.u];
+    if (V.ask === "h") return "h = " + v.h + " " + u;
+    if (V.ask === "r") return "r = " + v.r + " " + u;
+    return V.pi === "pi" ? piText(v.n, v.d) + unit3(V) + " ≈ " + dec((3.14 * v.n) / v.d) + unit3(V) : dec((3.14 * v.n) / v.d) + unit3(V);
+}
+/** "=" when the numbers come out exact, "≈" when the result is rounded. */
+const eqOr = (raw, shown) => (Math.abs(raw - shown) < 1e-6 ? " = " : " ≈ ");
+/** The steps, as sentences. Two or three, depending on the shape and the question. */
+export function volSteps(V) {
+    const v = volOf(V), P = V.pi === "pi", r = v.r, r3 = r * r * r;
+    const Bd = r2(3.14 * v.B), B = P ? piText(v.B) : String(Bd), Vt = volText(V), Vraw = (3.14 * v.n) / v.d;
+    const base = "The base is a circle: B = πr² = " + (P ? "π × " + r + "²" : "3.14 × " + r + "²") + " = " + B + ".";
+    if (V.sh === "sph") {
+        if (V.ask === "v") return ["Cube the radius: r³ = " + r + "³ = " + r3 + ".", "V = 4/3 πr³ = 4/3 × " + (P ? "π" : "3.14") + " × " + r3 + (P ? " = " : eqOr(Vraw, +Vt)) + Vt + "."];
+        const rr = P ? r3 : (+Vt * 3) / 4 / 3.14;
+        return ["V = 4/3 πr³, so r³ = " + (P ? "V ÷ (4/3)π = " + Vt + " ÷ (4/3)π" : "V × 3 ÷ 4 ÷ 3.14 = " + Vt + " × 3 ÷ 4 ÷ 3.14") + eqOr(rr, r3) + r3 + ".", "r = ∛" + r3 + " = " + r + ", because " + r + " × " + r + " × " + r + " = " + r3 + "."];
+    }
+    const cylD = r2(Bd * v.h), cyl = P ? piText(v.cyl) : String(cylD);
+    if (V.ask === "v") {
+        if (V.sh === "cyl") return [base, "V = Bh = " + B + " × " + v.h + " = " + cyl + "."];
+        return [base, "A cylinder with the same base and height holds Bh = " + B + " × " + v.h + " = " + cyl + ".", "A cone holds 1/3 of that: V = " + cyl + " ÷ 3" + (P ? " = " : eqOr(cylD / 3, +Vt)) + Vt + "."];
+    }
+    if (V.sh === "cyl") return [base, "V = Bh, so h = V ÷ B = " + Vt + " ÷ " + B + (P ? " = " : eqOr(+Vt / Bd, v.h)) + v.h + "."];
+    const three = P ? piText(v.cyl) : dec(3 * +Vt);
+    return [base, "A cone is 1/3 of the cylinder with the same base and height, so that cylinder holds 3 × " + Vt + " = " + three + ".", "h = " + three + " ÷ " + B + (P ? " = " : eqOr(+three / Bd, v.h)) + v.h + "."];
+}
+/** A new problem of the same shape. Mostly whole multiples of π. */
+export function volNew(V, rnd = Math.random) {
+    const pick = (a) => a[Math.floor(rnd() * a.length)], ri = (a, b) => a + Math.floor(rnd() * (b - a + 1));
+    V.ask = pick(VL_ASK[V.sh]); V.u = ri(0, VL_UNITS.length - 1); V.s = 0;
+    if (V.sh === "sph") { V.r = rnd() < 0.7 ? pick([3, 3, 6]) : ri(1, 5); return; }
+    V.r = ri(1, 8); V.h = ri(2, 12);
+    if (V.sh === "cone" && rnd() < 0.85) while ((V.r * V.r * V.h) % 3) V.h = ri(2, 12);
+}
+export function volSet(V, key, d) {
+    const lim = key === "r" ? [1, 12] : key === "h" ? [1, 20] : null; if (!lim || (key === "h" && V.sh === "sph")) return false;
+    const n = clamp(V[key] + d, lim[0], lim[1]); if (n === V[key]) return false; V[key] = n; V.s = 0; return true;
+}
+export function volShape(V, sh) { if (!VL_SH[sh] || V.sh === sh) return false; V.sh = sh; if (!VL_ASK[sh].includes(V.ask)) V.ask = "v"; V.s = 0; return true; }
+export function volAsk(V, ask) { if (!VL_ASK[V.sh].includes(ask) || V.ask === ask) return false; V.ask = ask; V.s = 0; return true; }
+export const volN = (V) => volSteps(V).length;
+export function volChip(V) { if (V.s >= volN(V)) return volA(V); return { cyl: "Cylinder", cone: "Cone", sph: "Sphere" }[V.sh] + ", " + (V.ask === "v" ? "V" : V.ask) + " = ?"; }
+function cleanVol(o) {
+    const D = volDefault(); if (!o || typeof o !== "object") return D;
+    const sh = VL_SH[o.sh] ? o.sh : D.sh;
+    const out = { sh, r: cint(o.r, 1, 12, D.r), h: cint(o.h, 1, 20, D.h), ask: VL_ASK[sh].includes(o.ask) ? o.ask : "v", pi: o.pi === "dec" ? "dec" : "pi", cmp: o.cmp === true, u: cint(o.u, 0, VL_UNITS.length - 1, 0), s: 0 };
+    out.s = cint(o.s, 0, volN(out), 0);
+    return out;
+}
+
+const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, angle: angDefault, fn: fnDefault, area: exDefault, nl: nlDefault, sys: sysDefault, scat: () => scDefault(), tape: tpDefault, vol: volDefault, calc: calcDefault, sci: sciDefault, graph: gcDefault };
+const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, angle: cleanAng, fn: cleanFn, area: cleanEx, nl: cleanNl, sys: cleanSys, scat: cleanSc, tape: cleanTape, vol: cleanVol, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
 export const mtDefault = (k) => DEFAULTS[k]();
 /** tools.mt as saved: only panels that were used are kept, each cleaned. */
 export function cleanMt(o) { const out = {}; if (!o || typeof o !== "object") return out; MT_KEYS.forEach((k) => { if (o[k] && typeof o[k] === "object") out[k] = CLEAN[k](o[k]); }); return out; }
@@ -885,6 +966,7 @@ export function mtChip(k, T) {
     if (k === "sys") return { v: s.hide && !s.rv ? "Where do they cross?" : sysAns(s), tone: s.hide && !s.rv ? "" : "green" };
     if (k === "scat") return { v: scChip(s) };
     if (k === "tape") return { v: tpChip(s), tone: s.s >= 2 ? "green" : "" };
+    if (k === "vol") return { v: volChip(s), tone: s.s >= volN(s) ? "green" : "" };
     if (k === "fn") return { v: s.m === "test" ? "Function or not?" : s.hide ? "Mystery rule" : "y = " + fnRule(s) };
     if (k === "counters") { const v = ctValue(s); return { v: (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) }; }
     return { v: "" };

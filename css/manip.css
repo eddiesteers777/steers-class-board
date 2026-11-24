@@ -667,3 +667,30 @@ body.board.idle .gc-top,body.board.idle .gc-zoom{opacity:.35;transition:opacity 
 .tp-ans.ok{font-size:.95em;font-weight:800;color:var(--mt-green);opacity:1}
 .tp-nums{gap:.4em .8em}
 .tp-nums .mt-step[hidden],.tp-asks .mt-b[hidden]{display:none}
+
+/* ---------- Volume shapes ---------- */
+.tool-mt.tool-vol{--vla:#4C8DF0;--vlw:#5BB8F5}
+.card.psty.plight.tool-vol{--vla:#1D5FB8;--vlw:#2B88C9}
+.mt-vol{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+.vl-q{font-size:.95em;line-height:1.3;text-align:left;padding:.2em 0 .1em}
+.vl-svg{max-width:30em}
+.vl-body{fill:color-mix(in srgb,var(--vla) 32%,transparent);stroke:none}
+.vl-top{fill:color-mix(in srgb,var(--vla) 50%,transparent);stroke:var(--vla);stroke-width:2}
+.vl-ball{fill:color-mix(in srgb,var(--vla) 34%,transparent)}
+.vl-edge{fill:none;stroke:var(--vla);stroke-width:2;stroke-linejoin:round}
+.vl-eq{fill:none;stroke:var(--vla);stroke-width:1.4;opacity:.8}
+.vl-hid{fill:none;stroke:currentColor;stroke-opacity:.5;stroke-width:1.4;stroke-dasharray:5 4}
+.vl-base{fill:color-mix(in srgb,var(--mt-amber) 55%,transparent);stroke:var(--mt-amber);stroke-width:2}
+.vl-r{stroke:currentColor;stroke-width:2;stroke-opacity:.85}.vl-r.on{stroke:var(--mt-amber);stroke-width:3;stroke-opacity:1}
+.vl-dot{fill:currentColor}
+.vl-dim{fill:none;stroke:currentColor;stroke-opacity:.6;stroke-width:1.4}
+.vl-lab{font-size:13px;font-weight:800}.vl-lab.ok{fill:var(--mt-green)!important}
+.vl-bl{font-size:13px;font-weight:800;fill:var(--mt-amber)!important}
+.vl-small{font-size:11px;font-weight:700;opacity:.75}
+.vl-water{fill:color-mix(in srgb,var(--vlw) 55%,transparent)}
+.vl-surf{fill:color-mix(in srgb,var(--vlw) 75%,transparent);stroke:var(--vlw);stroke-width:1.4}
+.vl-ghost{fill:none;stroke:currentColor;stroke-opacity:.7;stroke-width:1.6;stroke-dasharray:6 4}
+.vl-tick{stroke:currentColor;stroke-opacity:.6;stroke-width:1.4}
+.vl-pour{fill:none;stroke:var(--mt-amber);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.vl-fact{margin:.2em 0 0;font-size:.7em;line-height:1.35;opacity:.85}.vl-fact[hidden]{display:none}
+.vl-asks .mt-b[hidden],.mt-vol .mt-step[hidden],.mt-vol .mt-b[hidden]{display:none}

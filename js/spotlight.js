@@ -14,8 +14,8 @@
    Each Spotlight screen keeps its own panels, look and drawing (boardApp.js spotApi; state in wb.spot).
    Frosted glass: translucent layers with a backdrop blur, a light top edge and a soft shadow.
 ========================================== */
-import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MATH_LIST, CALC_LIST } from "./boardTools.js?v=77";
-import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker, photoGroupNow, gradOf } from "./panels.js?v=38";
+import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MATH_LIST, CALC_LIST } from "./boardTools.js?v=78";
+import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker, photoGroupNow, gradOf } from "./panels.js?v=39";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { FIND_KEYS } from "./findCore.js?v=1";
 
