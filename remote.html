@@ -36,6 +36,7 @@
     <link rel="stylesheet" href="css/bellplan.css?v=7">
     <link rel="stylesheet" href="css/ytmusic.css?v=3">
     <link rel="stylesheet" href="css/find.css?v=1">
+    <link rel="stylesheet" href="css/manip.css?v=1">
     <link rel="stylesheet" href="css/livestatus.css?v=2">
     <meta name="theme-color" content="#081B45">
     <link rel="stylesheet" href="css/phone.css?v=9">
@@ -87,7 +88,7 @@
     </aside>
     <button id="exit" type="button">Show controls</button>
     <script type="module">
-        import { startApp } from "./js/boardApp.js?v=155";
+        import { startApp } from "./js/boardApp.js?v=156";
         startApp({ mode: "remote" });
         import("./js/boardStore.js?v=58").then(async (store) => { if (await store.ready()) (await import("./js/tally.js?v=58")).mount({ store, period: () => document.getElementById("periodSel").value || "1st" }); }).catch(() => {});
         import("./js/recorder.js?v=58").then((m) => m.mount());

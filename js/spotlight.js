@@ -14,8 +14,8 @@
    Each Spotlight screen keeps its own panels, look and drawing (boardApp.js spotApi; state in wb.spot).
    Frosted glass: translucent layers with a backdrop blur, a light top edge and a soft shadow.
 ========================================== */
-import { PANEL_LIST, LESSON_PANELS, TOOL_LIST } from "./boardTools.js?v=64";
-import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker, photoGroupNow, gradOf } from "./panels.js?v=21";
+import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MATH_LIST } from "./boardTools.js?v=65";
+import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker, photoGroupNow, gradOf } from "./panels.js?v=22";
 import { wbIcon } from "./wbIcons.js?v=1";
 
 let A = null, host = null, onBack = null, tucked = false, sheet = "", picked = "", built = false, lastSig = "", musicHooked = false;
@@ -131,7 +131,7 @@ function build() {
     }
     full.appendChild(el("i", "spsep"));
     const rack = el("div", "sprack");
-    [LESSON_PANELS, TOOL_LIST].forEach((list, li) => {
+    [LESSON_PANELS, TOOL_LIST, MATH_LIST].forEach((list, li) => {
         if (li) rack.appendChild(el("i", "spsep thin"));
         list.filter(([k]) => k !== "slide").forEach(([k, label]) => {
             const b = button("spt", icon(k) + "<span>" + shortName(k, label) + "</span>", (PANEL_INFO[k] || label), () => togglePanel(k));

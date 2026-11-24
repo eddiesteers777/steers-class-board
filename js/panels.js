@@ -7,7 +7,7 @@
    set the screen and the panels in one tap. All of it lives in S.tools
    inside the shared board state, so the board and the Remote always match.
 ========================================== */
-import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=64";
+import { buildWidget, PANEL_LIST, LESSON_PANELS, MATH_LIST, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=65";
 import { meterEl, setVoice, camBody, tooLoud } from "./roomSense.js?v=1";
 import { MARKS, markUrl } from "./marks.js?v=1";
 import { EFFECTS, FX_AMOUNTS, applyEffect, effectSample } from "./effects.js?v=3";
@@ -15,9 +15,11 @@ import { isMine, mineList, mineSrc, onMine, addMine, removeMine, MY_MAX } from "
 import { cleanStickers } from "./stickers.js?v=1";
 import { findBody, findChip, findTitle } from "./findPanel.js?v=5";
 import { isFind, FIND_KEYS } from "./findCore.js?v=1";
+import { mtBody } from "./manipPanels.js?v=1";
+import { isMt, mtChip } from "./manipCore.js?v=1";
 export { MARKS, EFFECTS, FX_AMOUNTS };
 
-const LESSON = new Set(LESSON_PANELS.map((x) => x[0]));
+const LESSON = new Set(LESSON_PANELS.map((x) => x[0])), MATH = new Set(MATH_LIST.map((x) => x[0]));
 export const labelOf = (k) => (PANEL_LIST.find((x) => x[0] === k) || [k, k])[1];
 
 /* Small 24×24 stroke icons (currentColor). */
@@ -41,6 +43,12 @@ const IC = {
     find: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M8 10.5h5M10.5 8v5"/>',
     cam: '<rect x="2.5" y="6" width="13.5" height="12" rx="2.5"/><path d="M16 10.5l5.5-3v9l-5.5-3z"/>',
     gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+    balance: '<path d="M12 4v16M8 20h8M4 8h16"/><path d="M4 8l-2.5 6h5zM20 8l-2.5 6h5z"/><path d="M1.5 14a2.5 1.6 0 0 0 5 0M17.5 14a2.5 1.6 0 0 0 5 0"/>',
+    chance: '<circle cx="12" cy="13" r="8.5"/><path d="M12 13V4.5M12 13l6.5 5M12 13l-7.5 3.5"/><path d="M10 2h4l-2 3z"/>',
+    line: '<path d="M3 21h18M3 21V3"/><path d="M5 18L20 5"/><circle cx="8" cy="15.5" r="1.6"/><circle cx="16.5" cy="8" r="1.6"/>',
+    xform: '<path d="M3 12h18M12 3v18"/><path d="M5 9l3-5 3 5zM13 15l3 5 3-5z"/>',
+    pyth: '<path d="M6 18V9l8 9z"/><rect x="6" y="18" width="8" height="4" rx=".5"/><path d="M6 9H2v9h4"/><path d="M6 9l4.5-4 8 9-4.5 4"/>',
+    counters: '<circle cx="7" cy="8" r="4"/><circle cx="17" cy="16" r="4"/><path d="M5.5 8h3M7 6.5v3M15.5 16h3"/>',
     more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
     trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
     lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
@@ -63,6 +71,9 @@ export const PANEL_INFO = {
     cam: "The camera, live, and recording to this device",
     slide: "One of this lesson's slides, as a panel you can move and size",
     find: "Search the problem bank by standard or topic and put one on the board",
+    balance: "x and unit tiles on a scale that tips until both sides match", chance: "Spinner, coin and dice, with a tally beside the expected results",
+    line: "Drag two points: slope triangle and y = mx + b", xform: "Slide, flip, turn and dilate a shape on the grid", pyth: "A right triangle with a square on each side",
+    counters: "Two-colour counters and zero pairs",
 };
 
 /* ---------- layouts ---------- */
@@ -163,6 +174,7 @@ function slidePanel(api) {
 }
 export function buildPanel(k, api) {
     if (k === "slide") return slidePanel(api);
+    if (MATH.has(k)) { const c = api.card(labelOf(k), "tool panel tool-mt tool-" + k); c.i.appendChild(mtBody(api, k)); return c.c; }
     if (isFind(k)) { const c = api.card(findTitle(k, api.S.tools) || labelOf(k), "tool panel tool-find"); c.i.appendChild(findBody(api, k)); return c.c; }
     if (k === "cam") { const c = api.card(labelOf(k), "tool tool-cam"); c.i.appendChild(camBody(api.el)); return c.c; }
     if (k === "work") {   // the voice level, and the room's microphone against it (js/roomSense.js, this device only)
@@ -263,6 +275,7 @@ export function chipValue(k, api) {
     if (k === "work") { const w = WORK.find((x) => x[0] === T.work) || WORK[0]; return tooLoud() ? { v: "Too loud!", tone: "red" } : { v: w[1], tone: "v-" + w[0] }; }
     if (k === "cam") return { v: "Camera" };
     if (isFind(k)) return findChip(k, T);
+    if (isMt(k)) return mtChip(k, T);
     if (k === "slide") { const l = api.slideList ? api.slideList() : [], i = Math.max(0, l.findIndex((x) => x.id === T.slp)); return { v: l.length ? "Slide " + (i + 1) + " of " + l.length : "No slides" }; }
     if (k === "text") return { v: (T.text || "No message").slice(0, 28) + ((T.text || "").length > 28 ? "…" : "") };
     if (k === "dice") { const vals = T.dice.vals.slice(0, T.dice.n); return { v: vals.join(" · ") + (vals.length > 1 ? " = " + vals.reduce((a, x) => a + x, 0) : "") }; }
@@ -364,7 +377,7 @@ function refreshSheetNow() {
     sv.onsubmit = (e) => { e.preventDefault(); const n = inp.value.trim(); if (!n) { inp.focus(); return; } saveScene(S, n); inp.value = ""; api.push(); refreshSheet(); };
     sv.append(inp, sb); box.appendChild(sv);
 
-    [["Lesson", LESSON_PANELS], ["Classroom", PANEL_LIST.filter((p) => !LESSON.has(p[0]) && !/^find\d/.test(p[0]))]].forEach(([title, list]) => {
+    [["Lesson", LESSON_PANELS], ["Classroom", PANEL_LIST.filter((p) => !LESSON.has(p[0]) && !MATH.has(p[0]) && !/^find\d/.test(p[0]))], ["Math tools", MATH_LIST]].forEach(([title, list]) => {
         box.appendChild(el("p", "psec", title));
         const g = el("div", "pgrid");
         list.filter(([k]) => api.panelOk(k)).forEach(([k, label]) => {
