@@ -15,8 +15,8 @@ const STUDENTS = [
     ["data.html", "Class Data", "Scores and imports"],
     ["work.html", "Student Work", "Scanned papers, filed by week and student"],
 ];
-/* Plan: the weekly planning pages, in the order a week moves through them. All but the Library
-   are Calera-only (js/caleraOnly.js), so a starter account sees no Plan row at all. */
+/* Plan: the weekly planning pages, in the order a week moves through them. All but the Library and
+   Standards are Calera-only (js/caleraOnly.js). */
 const PLAN = [
     ["plan.html", "Plan the Week", "Send next week to Claude"],
     ["review.html", "Week Review", "Check and approve a week"],
@@ -27,7 +27,7 @@ const PLAN = [
     ["bank.html", "Question Bank", "Every checked question"],
     ["library.html", "Library", "Every week by class and unit"],
 ];
-const CALERA_ONLY = ["plan.html", "review.html", "builder.html", "planner.html", "standards.html", "timeline.html", "bank.html"];
+const CALERA_ONLY = ["plan.html", "review.html", "builder.html", "planner.html", "timeline.html", "bank.html"];
 const SECTIONS = { students: ["Students", STUDENTS], plan: ["Plan", PLAN] };
 const CSS = `
 .stuNav{display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:1080px;margin:18px auto -6px;padding:0 18px}
@@ -68,12 +68,15 @@ export function mountSectionNav(section, here) {
 
 export function mountStudentsNav(here) { mountSectionNav("students", here); }
 
-/** The Plan row. On the Library (the one Plan page a starter account can open), a starter
-   account has nothing else to go to in Plan, so the row is taken away once the pack is known. */
+/** The Plan row. A starter account can open the Library and Standards (Nov 24), so on those pages it keeps
+   just those two tabs once the pack is known. The other Plan pages already send a starter account home. */
 export function mountPlanNav(here) {
     const nav = mountSectionNav("plan", here);
-    if (!nav || !CALERA_ONLY.every((p) => p !== here)) return;   // the Calera-only pages already send a starter account home
-    import("../data/weeks.js?v=62").then(({ PACK }) => { if (PACK !== "calera") nav.remove(); }).catch(() => {});
+    if (!nav || CALERA_ONLY.includes(here)) return;
+    import("../data/weeks.js?v=63").then(({ PACK }) => {
+        if (PACK === "calera") return;
+        nav.querySelectorAll("a").forEach((a) => { if (CALERA_ONLY.includes(a.getAttribute("href").split("?")[0])) a.remove(); });
+    }).catch(() => {});
 }
 
 /** The period shared by the Students tabs. Falls back to the page's own saved choice. */

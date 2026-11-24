@@ -91,7 +91,7 @@
         import { summary, deleteEverything } from "./js/accountData.js?v=5";
         import { logout } from "./js/auth.js";
         import * as Drive from "./js/drive.js?v=2";
-        import { PERIODS } from "./data/weeks.js?v=62";
+        import { PERIODS } from "./data/weeks.js?v=63";
         const $ = (id) => document.getElementById(id);
         const status = (t, ok) => { const s = $("status"); s.textContent = t; s.dataset.state = ok ? "ok" : (/Could not/.test(t) ? "bad" : "wait"); };
 

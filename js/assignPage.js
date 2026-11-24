@@ -33,7 +33,7 @@ export async function mountAssign() {
     const demo = new URLSearchParams(location.search).has("demo");
     const store = await import(demo ? "./localStore.js?v=57" : "./boardStore.js?v=58");
     const rooms = demo ? demoRooms() : store.rooms;
-    const PER = demo ? [["1st", "8th"], ["2nd", "8th"], ["5th", "7th"], ["6th", "8th-acc"]] : (await import("../data/weeks.js?v=62")).PERIODS;
+    const PER = demo ? [["1st", "8th"], ["2nd", "8th"], ["5th", "7th"], ["6th", "8th-acc"]] : (await import("../data/weeks.js?v=63")).PERIODS;
     const CLS = Object.fromEntries(PER), classes = [...new Set(PER.map((p) => p[1]))].filter((c) => STANDARDS[c]);
     const clsLabel = (c) => (STANDARDS[c] && STANDARDS[c].label) || c;
     const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };

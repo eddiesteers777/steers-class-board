@@ -6,7 +6,7 @@
    Nothing here is student-visible, and nothing goes on the board.
    ?demo: made-up students in this tab only (js/gradesDemo.js), nothing is saved.
 ========================================== */
-import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=5";
+import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=6";
 import * as G from "./gradeCore.js?v=4";
 import { shortNames } from "./vaultCore.js?v=75";
 import { buildProgress, BAND_WORD } from "./progress.js?v=4";
@@ -27,7 +27,7 @@ const TERMS = SCHOOL_YEAR.nineWeeks;
 export async function mountGrades() {
     const demo = new URLSearchParams(location.search).has("demo");
     const store = await import(demo ? "./localStore.js?v=57" : "./boardStore.js?v=58");
-    const PER = demo ? [["1st", "8th"], ["2nd", "8th"], ["5th", "7th"], ["6th", "8th-acc"]] : (await import("../data/weeks.js?v=62")).PERIODS;
+    const PER = demo ? [["1st", "8th"], ["2nd", "8th"], ["5th", "7th"], ["6th", "8th-acc"]] : (await import("../data/weeks.js?v=63")).PERIODS;
     const CLS = Object.fromEntries(PER);
     const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
 

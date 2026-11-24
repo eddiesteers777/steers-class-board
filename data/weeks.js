@@ -16,7 +16,7 @@ import week3 from "./week3.js?v=58";
 import week4 from "./week4.js?v=58";
 import week5 from "./week5.js?v=58";
 import demoWeek from "./demo-week.js?v=1";
-import { myPack, mySetup } from "../js/contentPack.js?v=3";
+import { myPack, mySetup } from "../js/contentPack.js?v=4";
 
 // Mr. Steers' Calera weeks. Only his account (and the guest sub page) sees them; see js/contentPack.js.
 export const CALERA_WEEKS = [q1w0, q1w1, q1w2, q1w3, q1w4, q1w5, q1w6, q1w7, q1w8, week0, week1, week2, week3, week4, week5];
