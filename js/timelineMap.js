@@ -156,7 +156,7 @@ function summary(m, o) {
         const b = el("div", "tm-sumnext");
         b.appendChild(el("p", "tm-sumk", "Next stop"));
         b.appendChild(el("p", "tm-sumt", next.name));
-        b.appendChild(el("p", "tm-summ", ["Stop " + next.n, ORD[next.lane] + " nine weeks", next.label].filter(Boolean).join(" · ")));
+        b.appendChild(el("p", "tm-summ", ["Stop " + next.n, ORD[next.lane] + " nine weeks", next.label + (next.label && next.cont ? " (continued)" : "")].filter(Boolean).join(" · ")));
         s.appendChild(b);
     }
     const c = el("div", "tm-sumyear");
