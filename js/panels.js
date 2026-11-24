@@ -565,29 +565,52 @@ export function presetTile(api, p, after) {
     b.onclick = () => { S.look = presetLook(p, S.look.fxn); api.push(); if (after) after(); };
     return b;
 }
-/** The photo backgrounds: chips for each group (in sections), then that group's tiles. pick(id) sets the background;
+/** The photo backgrounds. One bar names the group on show (its picture, name and count) with Change; Change opens a tidy grid of
+    every group as picture tiles, and picking one folds the grid away and shows that group's photos. pick(id) sets the background;
     after() redraws. "day" shows the photo-of-the-day choices, "mine" the teacher's own pictures. */
-let photoGroup = "", mineMsg = "", pickerAfter = null;
+let photoGroup = "", photoBrowse = false, mineMsg = "", pickerAfter = null;
 onMine(() => { if (pickerAfter) pickerAfter(); });
-/** What the photo picker shows (so a redraw check can see a chip change or a new picture). */
-export const photoGroupNow = () => photoGroup + "|" + mineMsg + "|" + mineList().map((x) => x.id).join(",");
+/** What the photo picker shows (so a redraw check can see a group change, the grid opening or a new picture). */
+export const photoGroupNow = () => photoGroup + "|" + (photoBrowse ? "b" : "") + "|" + mineMsg + "|" + mineList().map((x) => x.id).join(",");
 const groupOf = (bg) => { if (/^pd-/.test(bg)) return "day"; if (isMine(bg)) return "mine"; const f = LOOK_PHOTOS.find((x) => x[0] === bg); return f ? f[2] : "day"; };
+/** A group's name, a short line under it, and its picture (a class for .stagebg, or the teacher's own picture). */
+function groupCard(k) {
+    if (k === "day") return { name: "Photo of the day", sub: "A new one every day", pv: "pd-all" };
+    if (k === "mine") { const m = mineList(); return { name: "My pictures", sub: m.length ? m.length + " of " + MY_MAX : "Add your own", pv: "", img: m.length ? m[0].t : "" }; }
+    const list = LOOK_PHOTOS.filter((x) => x[2] === k);
+    return { name: PHOTO_GROUP.get(k) || k, sub: list.length + " photos", pv: list.length ? list[0][0] : "pd-" + k };   // one photo stands for the group
+}
+function groupThumb(el, c, cls) {
+    const pv = el("span", "lpv " + cls), sb = el("span", "stagebg" + (c.pv ? " pv-" + c.pv : ""));
+    if (c.img) Object.assign(sb.style, { backgroundImage: 'url("' + c.img + '")', backgroundSize: "cover", backgroundPosition: "center", opacity: "1" }); else if (!c.pv) pv.classList.add("lookpnone");
+    pv.appendChild(sb); return pv;
+}
 export function photoPicker(el, look, pick, after, opts) {
     const o = opts || {};
     pickerAfter = after || null;
     if (!photoGroup) photoGroup = groupOf(look.bg);
     const box = el("div", "lookphotos");
-    const chip = (key, name, row, extra) => {
-        const c = el("button", "lookpgc" + (extra ? " " + extra : "") + (key === photoGroup ? " on" : ""), name); c.type = "button"; c.setAttribute("aria-pressed", String(key === photoGroup));
-        c.onclick = () => { photoGroup = key; mineMsg = ""; if (after) after(); }; row.appendChild(c);
-    };
-    const top = el("div", "lookpg"); top.setAttribute("role", "group"); top.setAttribute("aria-label", "Photo choices");
-    chip("day", "\u2605 Photo of the day", top, "special"); if (!o.guest) chip("mine", "My pictures", top, "special");
-    box.appendChild(top);
-    PHOTO_SECTIONS.forEach(([sec, groups]) => {
-        const row = el("div", "lookpg"); row.setAttribute("role", "group"); row.setAttribute("aria-label", sec);
-        row.appendChild(el("span", "lookpgh", sec)); groups.forEach(([k, n]) => chip(k, n, row)); box.appendChild(row);
-    });
+    // The bar: what is on show now, and Change / Done for the grid of groups
+    const c = groupCard(photoGroup), bar = el("button", "lookpcur" + (photoBrowse ? " open" : "")); bar.type = "button";
+    bar.setAttribute("aria-expanded", String(photoBrowse)); bar.title = photoBrowse ? "Close the list of photo groups" : "Pick another group of photos";
+    const tx = el("span", "lookptx"); tx.append(el("b", null, c.name), el("small", null, c.sub));
+    const chg = el("span", "lookpchg", photoBrowse ? "Done" : "Change");
+    bar.append(groupThumb(el, c, "lookpth"), tx, chg);
+    bar.onclick = () => { photoBrowse = !photoBrowse; mineMsg = ""; if (after) after(); };
+    box.appendChild(bar);
+    if (photoBrowse) {   // every group as a picture tile, all the same size
+        const cats = el("div", "lookcats"); cats.setAttribute("role", "group"); cats.setAttribute("aria-label", "Photo groups");
+        const keys = ["day"].concat(o.guest ? [] : ["mine"], PHOTO_SECTIONS.flatMap((s) => s[1].map((g) => g[0])));
+        keys.forEach((k) => {
+            const g = groupCard(k), on = k === photoGroup, b = el("button", "lookcat" + (on ? " on" : "") + (k === "day" || k === "mine" ? " special" : ""));
+            b.type = "button"; b.setAttribute("aria-pressed", String(on)); b.title = g.name + ", " + g.sub.toLowerCase();
+            b.append(groupThumb(el, g, "lookcpv"), el("span", "lookcnm", g.name));
+            b.onclick = () => { photoGroup = k; photoBrowse = false; mineMsg = ""; if (after) after(); };
+            cats.appendChild(b);
+        });
+        box.appendChild(cats);
+        return box;
+    }
     const grid = el("div", "lookbgs"); grid.setAttribute("role", "group");
     const tile = (id, name, sub, title, fill) => {
         const on = look.bg === id, b = el("button", "lookbg" + (on ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(on)); if (title) b.title = title;
@@ -597,7 +620,6 @@ export function photoPicker(el, look, pick, after, opts) {
     };
     if (photoGroup === "day") {
         grid.setAttribute("aria-label", "Photo of the day");
-        box.appendChild(el("p", "lookcred", "The board shows a different photo each day, the same one on every screen, and turns over at midnight."));
         tile("pd-all", "Photo of the day", "From all " + LOOK_PHOTOS.length + " photos");
         PHOTO_SECTIONS.forEach(([, groups]) => groups.forEach(([k, n]) => tile("pd-" + k, n, LOOK_PHOTOS.filter((x) => x[2] === k).length + " photos, one a day")));
     } else if (photoGroup === "mine") {
@@ -630,6 +652,7 @@ export function photoPicker(el, look, pick, after, opts) {
         LOOK_PHOTOS.filter((x) => x[2] === photoGroup).forEach(([id, name, , who]) => tile(id, name, who, name + ". Photo: " + who + " on Unsplash"));
     }
     box.appendChild(grid);
+    if (photoGroup === "day") box.appendChild(el("p", "lookcred", "A different photo each day, the same one on every screen. It turns over at midnight."));
     if (photoGroup !== "mine") box.appendChild(el("p", "lookcred", "Photos from Unsplash, free to use. The name under each one is the photographer."));
     return box;
 }

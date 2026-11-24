@@ -14,7 +14,7 @@
 ========================================== */
 import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MATH_LIST, CALC_LIST, MAX_SCENES, MAX_DAYB } from "./boardTools.js?v=78";
 import { SCENES, sceneActive, applyScene, saveScene, panelOn, panelOff, panelToggle, PANEL_INFO, labelOf, icon, LOOK_THEMES, LOOK_BGS, LOOK_PHOTOS, bgName, LOOK_PRESETS,
-    presetTile, photoPicker, photoGroupNow, gradOf, themeCols, MARKS, EFFECTS, FX_AMOUNTS } from "./panels.js?v=40";
+    presetTile, photoPicker, photoGroupNow, gradOf, themeCols, MARKS, EFFECTS, FX_AMOUNTS } from "./panels.js?v=41";
 import { markUrl } from "./marks.js?v=1";
 import { addStepAndEdit } from "./bellPlan.js?v=6";
 import { effectSample } from "./effects.js?v=3";
@@ -63,7 +63,7 @@ function setMode(m, at) {
         const app = $("slideApp"); if (app) app.hidden = true; wantSlides = null; if (editor) editor.closeEditor();
         if (/^#slides/.test(location.hash)) { try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* the address is a convenience */ } }
         if (!A.synced()) { wantSpot = true; return; }   // open on the saved board, once it has arrived
-        import("./spotlight.js?v=34").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
+        import("./spotlight.js?v=35").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
             .catch(() => { setMode("board"); note("saveNote", "Spotlight did not load. Check the connection and reload the page."); });
         return;
     }
@@ -71,7 +71,7 @@ function setMode(m, at) {
     if (mode === "slides") {
         app.hidden = false;
         if (!A.synced()) { wantSlides = at || {}; return; }   // open on the lesson the board is on, once that has arrived
-        import("./slideEditor.js?v=35").then((mod) => { editor = mod; if (mode === "slides") mod.openEditor(A, app, at && at.week ? at : null); })
+        import("./slideEditor.js?v=36").then((mod) => { editor = mod; if (mode === "slides") mod.openEditor(A, app, at && at.week ? at : null); })
             .catch(() => { app.textContent = "The slide editor did not load. Check the connection and reload the page."; });
     } else {
         app.hidden = true; wantSlides = null;
@@ -95,6 +95,7 @@ export const studio = {
         drawSteps(); showStep(step);
         $("saveForm").onsubmit = (e) => { e.preventDefault(); saveBoard(); };
         $("undoBtn").onclick = () => undo();
+        saveFold();
         document.addEventListener("keydown", (e) => {
             if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === "z" || e.key === "Z") && !/INPUT|SELECT|TEXTAREA/.test((e.target && e.target.tagName) || "")) { e.preventDefault(); undo(); }
         });
@@ -349,7 +350,7 @@ function addSticker(t, v) {
     const spot = freeSpot(st); if (spot) { st.x = spot.x; st.y = spot.y; }
     S.stickers = S.stickers.concat([st]); pick = { kind: "sticker", id: st.id }; pushNow();
 }
-function note(id, t) { const n = $(id); if (n) n.textContent = t; }
+function note(id, t) { const n = $(id); if (n) n.textContent = t; if (t && id === "saveNote" && !saveIsOpen) setSaveOpen(true, false); }   // a message under Save opens it
 function drawStickers() {
     const p = $("pane-stickers"), S = A.S, f = document.createDocumentFragment();
     f.appendChild(head("Add stickers", "Tap one to put it on the board, in an open spot. Drag it to move it, the round handle on its corner to size it and the one on top to turn it."));
@@ -559,6 +560,19 @@ function drawLesson() {
 }
 
 /* ---------- Save this board ---------- */
+/** Save this board folds down to one line (name and Undo). It starts folded and remembers how the teacher left it on this device. */
+const FOLD_KEY = "ab.studio.saveOpen";
+let saveIsOpen = false;
+function setSaveOpen(on, keep) {
+    const tog = $("saveTog"), body = $("saveBody"); if (!tog || !body) return;
+    saveIsOpen = on; body.hidden = !on; tog.setAttribute("aria-expanded", String(on)); $("saveForm").classList.toggle("folded", !on);
+    if (keep) try { localStorage.setItem(FOLD_KEY, on ? "1" : "0"); } catch (e) { /* not kept: fine */ }
+}
+function saveFold() {
+    let open = false; try { open = localStorage.getItem(FOLD_KEY) === "1"; } catch (e) { /* private window: start folded */ }
+    setSaveOpen(open, false);
+    if ($("saveTog")) $("saveTog").onclick = () => { setSaveOpen(!saveIsOpen, true); if (saveIsOpen) $("saveName").focus(); };
+}
 function saveBoard() {
     const S = A.S, T = S.tools, inp = $("saveName"), n = inp.value.trim();
     if (!n) { inp.focus(); note("saveNote", "Give the board a name first."); return; }
