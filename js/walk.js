@@ -2154,6 +2154,59 @@ function ratesSetup(W, item, o) {
 }
 
 /** A system of two equations: put one into the other (substitution), solve, find the other letter, check both. */
+/** Elimination: no letter is alone, so line up ax + by = c twice, scale one equation if needed, then add or subtract. */
+function elimSys(W, item, eqs, o, tidy) {
+    const N = (s) => (s === "" || s === "+" ? 1 : s === "−" || s === "-" ? -1 : +s.replace("−", "-"));
+    const lin = (e) => { const m = tidy(e).replace(/\s+/g, "").match(/^([−-]?[\d.]*)x([+−-][\d.]*)y=([−-]?[\d.]+)$/); return m ? { a: N(m[1]), b: N(m[2]), c: N(m[3]), e: tidy(e) } : null; };
+    let [A, B] = eqs.map(lin); if (!A || !B) return null;
+    W.cols = 3; W.dec = eqs.some((e) => /\d\.\d/.test(e));
+    W.steps.push({ move: "start", title: "The system", why: o.sysWhy || "Two equations, two letters, and neither letter is alone. Line them up so one letter can cancel.", seq: eqs.map((e) => ({ a: "row", row: { t: "line", cells: [R([tidy(e)]), null, null], chain: true } })) });
+    let v = A.a === -B.a ? "x" : A.b === -B.b ? "y" : A.a === B.a ? "x" : A.b === B.b ? "y" : null;
+    if (!v) {
+        let k = 0, which = null;
+        for (const [vv, p, q] of [["y", A.b, B.b], ["x", A.a, B.a]]) {
+            if (Number.isInteger(p / q)) { v = vv; k = Math.abs(p / q); which = "B"; break; }
+            if (Number.isInteger(q / p)) { v = vv; k = Math.abs(q / p); which = "A"; break; }
+        }
+        if (!v) return null;
+        const S = which === "A" ? A : B, NS = { a: S.a * k, b: S.b * k, c: S.c * k };
+        const T = (n, l, first) => (n === 0 ? "" : (first ? (n < 0 ? "−" : "") : n < 0 ? " − " : " + ") + (Math.abs(n) === 1 ? "" : String(Math.abs(n))) + l);
+        NS.e = T(NS.a, "x", true) + T(NS.b, "y", false) + " = " + (NS.c < 0 ? "−" : "") + Math.abs(NS.c);
+        W.steps.push({ move: "both", title: "Multiply by " + k, why: "Multiply every term of " + S.e + " by " + k + " so the " + v + " terms are the same size.", seq: [{ a: "row", row: { t: "line", cells: [R([k + "(" + S.e + ")"]), null, null], chain: true } }, { a: "row", row: { t: "line", cells: [R([NS.e]), null, null], chain: true } }] });
+        if (which === "A") A = NS; else B = NS;
+    }
+    const pa = v === "x" ? A.a : A.b, pb = v === "x" ? B.a : B.b, add = pa === -pb, sg = add ? 1 : -1;
+    const ra = (v === "x" ? A.b : A.a) + sg * (v === "x" ? B.b : B.a), rc = A.c + sg * B.c, o2 = v === "x" ? "y" : "x";
+    if (!ra) return null;
+    const oneText = (ra === 1 ? "" : ra === -1 ? "−" : String(ra).replace("-", "−")) + o2 + " = " + String(rc).replace("-", "−");
+    const line = parseLine(W, oneText); if (!line) return null;
+    W.steps.push({ move: "combine", title: add ? "Add the equations" : "Subtract the equations", why: add ? "The " + v + " terms are opposites, so adding the two equations cancels " + v + ". Add the " + o2 + " terms, then add the numbers." : "The " + v + " terms are the same, so taking the second equation away from the first cancels " + v + ". Subtract the " + o2 + " terms, then subtract the numbers.", seq: [{ a: "row", row: lineRow(W, line) }] });
+    const res = solve(W, line, { started: true });
+    if (res.kind !== "eq") return null;
+    const val = res.val, first = tidy(eqs[0]);
+    const vt = numText(val), back = first.replace(new RegExp("(\\d)" + o2 + "(?![a-z])", "g"), "$1(" + vt + ")").replace(new RegExp("(?<![a-z])" + o2 + "(?![a-z])", "g"), val.sign < 0 ? "(" + vt + ")" : vt);
+    const l2 = parseLine(W, back); if (!l2) return null;
+    W.steps.push({ move: "sub", title: "Find " + v, why: "Put " + o2 + " = " + numText(val) + " into " + first + ". Now only " + v + " is left.", seq: [{ a: "row", row: lineRow(W, l2) }] });
+    const from = W.steps.length - 1, r2 = solve(W, l2, { started: true });
+    if (r2.kind !== "eq") return null;
+    W.steps.slice(from).forEach((st) => st.seq.forEach((x) => { if (x.a === "row" && x.row.sem && x.row.sem.s) x.row.sem.then = true; }));
+    return sysFinish(W, item, eqs, o, tidy, { [o2]: val, [v]: r2.val });
+}
+function sysFinish(W, item, eqs, o, tidy, vals) {
+    W.steps.push({ move: "check", title: "Check", why: "Put " + Object.keys(vals).sort().map((k) => k + " = " + numText(vals[k])).join(" and ") + " into both of the first equations. Both come out true.",
+        seq: eqs.map((e) => { const sides = tidy(e).split(/\s*=\s*/), [L, Rr] = sides.map((s) => parseExpr(W, s, vals)); const ok = valueOf(L).eq(valueOf(Rr)); const sd = (s, n) => (/^[a-z]$/.test(s.trim()) ? numDT(valueOf(n)) : exprDT(tidyParens(n))); return { a: "row", row: { t: "line", cells: [sd(sides[0], L), "=", R([sd(sides[1], Rr), " ✓"])], sem: { truth: ok }, c: "w-check" } }; }) });
+    const ask = o.ask || "pair";
+    if (ask === "pair") {
+        const k = pairsIn(String(item.a))[0];
+        const xv = vals.x, yv = vals.y;
+        if (!k || !qIn(k[0]).eq(xv) || !qIn(k[1]).eq(yv)) throw new Error("key");
+        answerStep(W, item.a, "The solution is the point (" + numText(xv) + ", " + numText(yv) + "), where the two lines cross.");
+    } else {
+        const k = keyNum(item.a); if (!k || !k.eq(vals[ask])) throw new Error("key");
+        answerStep(W, item.a, o.end || "");
+    }
+    return true;
+}
 function systemSetup(W, item, eqs, o) {
     o = o || {};
     W.kind = "solve";
@@ -2182,7 +2235,7 @@ function systemSetup(W, item, eqs, o) {
     const divd = [];
     E.forEach((e, i) => { const m = e.match(/^(\d+)([a-z]) = (.+)$/); if (m) { const line = parseLine(W, m[3] + " = 0"); if (!line) return; const k = new Q(+m[1]); const side = line.s[0].map((t) => Object.assign({}, t, { c: t.c.div(k) })); if (side.some((t) => t.g || !t.c.int && !terminates(t.c))) return; const nx = m[2] + " = " + sideText(side); divd.push({ i, from: e, to: nx, k: m[1] }); E[i] = nx; } });
     const solved = E.map((e) => e.match(/^([a-z]) = (.+)$/)).map((m, i) => (m ? { i, v: m[1], e: m[2] } : null)).filter(Boolean);
-    if (!solved.length) return null;
+    if (!solved.length) return elimSys(W, item, eqs, o, tidy);
     let one;
     if (solved.length === 2 && solved[0].v === solved[1].v) one = solved[0].e + " = " + solved[1].e;
     else { const s = solved[0], other = E[1 - s.i]; one = other.replace(new RegExp("(?<![a-z])" + s.v + "(?![a-z])", "g"), "(" + s.e + ")"); }
@@ -2206,19 +2259,7 @@ function systemSetup(W, item, eqs, o) {
     const v1 = res.v, x = res.val, y = valueOf(parseExpr(W, solved[0].e, { [v1]: x })), vals = { [v1]: x, [sv]: y };
     W.steps.push({ move: "then", title: "Find " + sv, why: "Put " + v1 + " = " + numText(x) + " into " + sv + " = " + solved[0].e + ".",
         seq: [{ a: "row", row: { t: "line", cells: [R([sv + " = " + exprText(tidyParens(parseExpr(W, solved[0].e, { [v1]: x }))) + " = " + numText(y)]), null, null], chain: true, sem: { truth: true } } }] });
-    W.steps.push({ move: "check", title: "Check", why: "Put " + v1 + " = " + numText(x) + " and " + sv + " = " + numText(y) + " into both of the first equations. Both come out true.",
-        seq: eqs.map((e) => { const sides = tidy(e).split(/\s*=\s*/), [L, Rr] = sides.map((s) => parseExpr(W, s, vals)); const ok = valueOf(L).eq(valueOf(Rr)); const sd = (s, n) => (/^[a-z]$/.test(s.trim()) ? numDT(valueOf(n)) : exprDT(tidyParens(n))); return { a: "row", row: { t: "line", cells: [sd(sides[0], L), "=", R([sd(sides[1], Rr), " ✓"])], sem: { truth: ok }, c: "w-check" } }; }) });
-    const ask = o.ask || "pair";
-    if (ask === "pair") {
-        const k = pairsIn(String(item.a))[0];
-        const xv = vals.x || x, yv = vals.y || y;
-        if (!k || !qIn(k[0]).eq(xv) || !qIn(k[1]).eq(yv)) throw new Error("key");
-        answerStep(W, item.a, "The solution is the point (" + numText(xv) + ", " + numText(yv) + "), where the two lines cross.");
-    } else {
-        const k = keyNum(item.a); if (!k || !k.eq(vals[ask])) throw new Error("key");
-        answerStep(W, item.a, o.end || "");
-    }
-    return true;
+    return sysFinish(W, item, eqs, o, tidy, vals);
 }
 
 /** Compare two linear functions: work out each rate of change and starting value, then pick. */

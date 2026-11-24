@@ -86,7 +86,7 @@ def main(path):
                     if len(parts) != 2 or simplify(ex(parts[0]) - ex(parts[1])) != 0:
                         bad += 1; print("THEN WRONG", w["id"], text)
                     continue
-                if re.fullmatch(r"\s*(?:[A-Za-z]\([^)]*\)|y)\s*", cells[0]) and cells[1].strip() == "=":
+                if re.fullmatch(r"\s*(?:[A-Za-z]\([^)]*\)|y)\s*", cells[0]) and cells[1].strip() == "=" and not isinstance(first, dict):   # not "y = 2" mid-way through a system
                     if re.search(r"[a-z]", cells[2].replace("Rational", "")):
                         continue                                     # the rule itself, f(x) = 3x - 4
                     first = simplify(ex(cells[2])); continue         # f(5) = 3(5) - 4: the value to keep
