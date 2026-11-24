@@ -13,6 +13,12 @@
      S.sound.yt   { id, list, t (title), ch (channel), e (last error) }
      S.sound.ytr  the last picks (up to 8), S.sound.ytl  loop a single video (default on)
 
+   The library (Eddie, same day: "save that specific YouTube video link so you can easily click it… start it for a
+   specific class… categorize it… link it as something I would remember it by"): a video saved with the teacher's own
+   name for it (never the link), in a folder they make, optionally marked for class periods. It lives in the teacher's
+   account at teacher/{uid}/music/library ({ f: [{ k, n }], s: [{ k, id, list, n, f, p: [periods] }] }); the sub and
+   demo pages keep it in the tab only. The Saved tab opens on "this class" when the period has saves.
+
    Search uses the YouTube Data API with a key the teacher saves once in their own account
    (teacher/{uid}/keys/youtube, a folder linked screens cannot read). The key is never in this public repo.
    Without a key, a pasted link or video ID still plays, and the search opens YouTube in a new tab.
@@ -22,14 +28,15 @@
 const KEY_PATH = "keys/youtube";
 const OPEN_KEY = "anchorboard-yt-open";
 const RECENT_MAX = 8;
+const LIB_PATH = "music/library", TAB_KEY = "anchorboard-yt-tab", LIB_MAX = 150, FOLD_MAX = 30;
 const QUICK = [["Lo-fi", "lofi instrumental beats for studying"], ["Piano", "calm piano instrumental music"], ["Jazz", "smooth jazz instrumental"],
     ["Classical", "classical music for studying"], ["Acoustic", "acoustic guitar instrumental"], ["Video game", "video game music instrumental for studying"]];
 const ERRORS = {
     "2": "That link doesn't point to a video. Check it and try again.",
     "5": "This video can't play in this browser. Pick another.",
     "100": "That video was removed or made private. Pick another.",
-    "101": "The video's owner doesn't allow it to play on other sites. Pick another.",
-    "150": "The video's owner doesn't allow it to play on other sites. Pick another.",
+    "101": "YouTube won't play this one here. Its owner may not allow it on other sites. Pick another.",
+    "150": "YouTube won't play this one here. Its owner may not allow it on other sites. Pick another.",
     "load": "YouTube didn't load on the device playing music. The school network may block it there."
 };
 
@@ -64,6 +71,26 @@ export function cleanYt(o) {
     return out;
 }
 export function cleanRecent(a) { return (Array.isArray(a) ? a : []).map(cleanYt).filter(Boolean).map((x) => { delete x.e; return x; }).slice(0, RECENT_MAX); }
+const LKEY_RE = /^[a-z0-9]{4,12}$/;
+const tidy = (x, n) => (typeof x === "string" ? x.replace(/\s+/g, " ").trim().slice(0, n) : "");
+/** The saved library, cleaned: folders { k, n } and saves { k, id, list, n (the teacher's name for it), f (folder key), p (periods) }. */
+export function cleanLib(o) {
+    const f = [], fk = new Set(), s = [], sk = new Set();
+    (o && Array.isArray(o.f) ? o.f : []).forEach((x) => {
+        const k = x && typeof x.k === "string" && LKEY_RE.test(x.k) ? x.k : "", n = tidy(x && x.n, 40);
+        if (k && n && !fk.has(k) && f.length < FOLD_MAX) { fk.add(k); f.push({ k, n }); }
+    });
+    (o && Array.isArray(o.s) ? o.s : []).forEach((x) => {
+        const y = cleanYt(x); if (!y) return;
+        const k = typeof x.k === "string" && LKEY_RE.test(x.k) ? x.k : "", n = tidy(x.n, 60);
+        if (!k || !n || sk.has(k) || s.length >= LIB_MAX) return;
+        sk.add(k);
+        const p = [...new Set((Array.isArray(x.p) ? x.p : []).filter((v) => typeof v === "string" && v && v.length <= 12))].slice(0, 12);
+        s.push({ k, id: y.id, list: y.list, n, f: fk.has(x.f) ? x.f : "", p });
+    });
+    return { f, s };
+}
+const newKey = () => Math.random().toString(36).slice(2, 10).padEnd(6, "0");
 const same = (a, b) => !!a && !!b && a.id === b.id && a.list === b.list;
 const thumbOf = (y) => (y && y.id ? "https://i.ytimg.com/vi/" + y.id + "/mqdefault.jpg" : "");
 const nameOf = (y) => (y && y.t) || (y && y.list && !y.id ? "YouTube playlist" : "YouTube video");
@@ -83,7 +110,12 @@ const IC = {
     search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
     vol: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/>',
     ext: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
-    key: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3"/>'
+    key: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3"/>',
+    mark: '<path d="M6 3.5h12v17l-6-4.2-6 4.2z"/>',
+    marked: '<path d="M6 3.5h12v17l-6-4.2-6 4.2z" fill="currentColor"/>',
+    edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    folder: '<path d="M3.5 7a2 2 0 0 1 2-2h4l2 2.2h7a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/>'
 };
 function btn(cls, icon, label, text) {
     const b = el("button", cls); b.type = "button"; b.innerHTML = (icon ? svg(IC[icon]) : "") + (text ? "<span></span>" : "");
@@ -117,6 +149,9 @@ export function mountYt(A) {
     let open = false; try { open = localStorage.getItem(OPEN_KEY) === "1"; } catch (e) { /* closed */ }
     let player = null, playerP = null, loaded = null, loadedAt = 0, state = -1, blocked = false, duckT = 0, ducked = false;
     let key = "", keyOff = null, results = [], searching = false, searchMsg = "", setup = false, lastQ = "";
+    // the library: what is saved, which tab and folder show, and the save form (edit) or folder form (fedit) when open
+    let lib = { f: [], s: [] }, libOff = null, libMsg = "", tab = "", fold = null, foldPer = "", edit = null, fedit = null;
+    try { tab = localStorage.getItem(TAB_KEY) || ""; } catch (e) { /* default */ }
 
     /* --- the pill --- */
     const pill = el("div", "ytpill"); pill.id = "ytPill";
@@ -148,7 +183,9 @@ export function mountYt(A) {
     const vol = el("label", "ytvol"); vol.innerHTML = svg(IC.vol);
     const vr = el("input"); vr.type = "range"; vr.min = "0"; vr.max = "100"; vr.step = "5"; vr.setAttribute("aria-label", "Music volume"); vol.appendChild(vr);
     vr.oninput = () => { A.S.sound.mv = +vr.value / 100; volume(); A.quiet(); if (A.refresh) A.refresh(); };
-    ctl.append(bPlay, bLoop, vol);
+    const bSave = btn("ytb ytsave", "mark", "Save this video to your library", "Save");
+    bSave.onclick = () => { const y = A.S.sound.yt; if (y) openEdit(savedOf(y) || { id: y.id, list: y.list, n: y.t && y.t !== nameOf(null) ? y.t : "" }); };
+    ctl.append(bPlay, bLoop, bSave, vol);
     const note = el("p", "ytnote"); note.setAttribute("role", "status");
     now.append(vid, meta, ctl, note);
 
@@ -164,7 +201,13 @@ export function mountYt(A) {
     const list = el("div", "ytlist");
     const recentH = el("p", "ytsec", "Recent"); const recent = el("div", "ytlist ytrecent");
     const keyBox = el("div", "ytkey");
-    panel.append(head, now, find, quick, msg, list, recentH, recent, keyBox);
+    const tabs = el("div", "yttabs"); tabs.setAttribute("role", "tablist");
+    const tSaved = el("button", "yttab"), tFind = el("button", "yttab", "Find");
+    [tSaved, tFind].forEach((b, i) => { b.type = "button"; b.setAttribute("role", "tab"); b.onclick = () => setTab(i ? "find" : "saved"); });
+    tabs.append(tSaved, tFind);
+    const savedBox = el("div", "ytsaved"), editBox = el("form", "ytedit");
+    editBox.onsubmit = (e) => { e.preventDefault(); commitEdit(); };
+    panel.append(head, now, tabs, editBox, savedBox, find, quick, msg, list, recentH, recent, keyBox);
 
     const host = el("div", "ythost"); host.id = "ytHost"; host.setAttribute("aria-hidden", "true");
     const frame = el("div"); frame.id = "ytFrame"; host.appendChild(frame);
@@ -184,7 +227,7 @@ export function mountYt(A) {
     function setOpen(v) {
         open = !!v; try { localStorage.setItem(OPEN_KEY, open ? "1" : "0"); } catch (e) { /* this visit only */ }
         draw();
-        if (open) { if (!key && !keyOff) watchKey(); setTimeout(() => { if (document.activeElement === document.body && !A.S.sound.yt) fi.focus(); }, 60); }
+        if (open) { if (!key && !keyOff) watchKey(); watchLib(); setTimeout(() => { if (document.activeElement === document.body && !A.S.sound.yt) fi.focus(); }, 60); }
     }
 
     /* --- picking and playing --- */
@@ -241,6 +284,83 @@ export function mountYt(A) {
         const k = String(v || "").trim();
         if (k && !/^[A-Za-z0-9_-]{30,60}$/.test(k)) return false;
         try { await st.save(KEY_PATH, { key: k, at: new Date().toISOString() }); key = k; return true; } catch (e) { return false; }
+    }
+
+    /* --- the library --- */
+    function watchLib() {
+        const st = A.store && A.store();
+        if (libOff || !st || !st.watch) return;
+        try {
+            libOff = st.watch(LIB_PATH, (snap) => { if (snap.pending) return; lib = cleanLib(snap.exists ? snap.data : null); draw(); }, () => { libMsg = "Your saved videos didn't load. Check the wifi."; draw(); }) || true;
+        } catch (e) { libOff = null; }
+    }
+    const libOn = () => !!(A.store && A.store());
+    function saveLib(next) {
+        lib = cleanLib(next); draw();
+        const st = A.store && A.store(); if (!st) return;
+        Promise.resolve(st.save(LIB_PATH, { f: lib.f, s: lib.s, at: new Date().toISOString() })).then(() => { if (libMsg) { libMsg = ""; draw(); } })
+            .catch(() => { libMsg = "That change didn't save. Check the wifi and try again."; draw(); });
+    }
+    /** The folder showing: the one tapped, else this period's saves when it has any, else all. */
+    function effFold() {
+        if (A.S.period !== foldPer) { foldPer = A.S.period; fold = null; }   // a new period starts on its own music
+        if (fold === "class" || fold === "") return fold;
+        if (fold && lib.f.some((x) => x.k === fold)) return fold;
+        return lib.s.some((x) => x.p.includes(A.S.period)) ? "class" : "";
+    }
+    const savedOf = (y) => (y ? lib.s.find((x) => same(x, y)) || null : null);
+    const foldName = (k) => ((lib.f.find((x) => x.k === k) || {}).n || "");
+    const periods = () => (A.periods ? A.periods() : []);
+    function setTab(t) { tab = t; edit = null; fedit = null; try { localStorage.setItem(TAB_KEY, t); } catch (e) { /* this visit */ } draw(); if (t === "find") setTimeout(() => fi.focus(), 30); }
+    function curTab() { return tab === "find" || tab === "saved" ? tab : (lib.s.length ? "saved" : "find"); }
+    function playSaved(x) { pick({ id: x.id, list: x.list, t: x.n }); }
+    /** Open the save form: for a saved video (x.k), a new video (x.id or x.list), or an empty one with a link box. */
+    function openEdit(x) {
+        const ef = effFold();
+        edit = { k: x.k || "", id: x.id || "", list: x.list || "", n: x.n || "", f: x.f != null ? x.f : (ef && ef !== "class" ? ef : ""),
+            p: x.p ? x.p.slice() : (ef === "class" ? [A.S.period] : []), link: !(x.id || x.list), nf: "", msg: "" };
+        fedit = null; draw();
+        setTimeout(() => { const i = editBox.querySelector(edit && edit.link ? "input[name=link]" : "input[name=name]"); if (i) i.focus(); }, 40);
+    }
+    function commitEdit() {
+        if (!edit) return;
+        const e = edit;
+        if (e.link) { const y = parseYt(editBox.querySelector("input[name=link]").value); if (!y) { e.msg = "Paste a YouTube link first."; draw(); return; } e.id = y.id; e.list = y.list; }
+        e.n = tidy(editBox.querySelector("input[name=name]").value, 60);
+        if (!e.n) { e.msg = "Give it a name you'll remember."; draw(); return; }
+        const next = { f: lib.f.slice(), s: lib.s.slice() };
+        let f = e.f;
+        if (f === "+new") {
+            const nf = tidy(e.nf, 40);
+            if (!nf) { e.msg = "Name the new folder, or pick another."; draw(); return; }
+            const had = next.f.find((x) => x.n.toLowerCase() === nf.toLowerCase());
+            if (had) f = had.k; else { if (next.f.length >= FOLD_MAX) { e.msg = "That's the most folders. Delete one first."; draw(); return; } f = newKey(); next.f.push({ k: f, n: nf }); }
+        }
+        const dup = next.s.find((x) => same(x, e) && x.k !== e.k);
+        const k = e.k || (dup && dup.k) || newKey();
+        const item = { k, id: e.id, list: e.list, n: e.n, f, p: e.p.filter((v) => periods().includes(v)) };
+        next.s = next.s.filter((x) => x.k !== k);
+        if (!e.k && next.s.length >= LIB_MAX) { e.msg = "Your library is full. Remove a video first."; draw(); return; }
+        if (e.k) { const i = lib.s.findIndex((x) => x.k === k); next.s.splice(Math.max(0, Math.min(i, next.s.length)), 0, item); } else next.s.unshift(item);
+        // the video on now takes its new name everywhere (the pill, Recent)
+        const so = A.S.sound;
+        if (so.yt && same(so.yt, item) && so.yt.t !== item.n) { so.yt.t = item.n; so.ytr = cleanRecent((so.ytr || []).map((r) => (same(r, item) ? Object.assign({}, r, { t: item.n }) : r))); A.quiet(); }
+        edit = null; if (curTab() !== "saved") tab = "saved";
+        fold = f || null;
+        saveLib(next);
+    }
+    function removeSaved(k) { edit = null; saveLib({ f: lib.f, s: lib.s.filter((x) => x.k !== k) }); }
+    function commitFolder(name) {
+        const n = tidy(name, 40); if (!n) { fedit = null; draw(); return; }
+        const next = { f: lib.f.map((x) => Object.assign({}, x)), s: lib.s };
+        if (fedit === "+new") { if (next.f.length >= FOLD_MAX) { libMsg = "That's the most folders. Delete one first."; fedit = null; draw(); return; } const k = newKey(); next.f.push({ k, n }); fold = k; }
+        else { const x = next.f.find((y) => y.k === fedit); if (x) x.n = n; }
+        fedit = null; saveLib(next);
+    }
+    function removeFolder(k) {
+        // its videos stay, with no folder
+        fold = null; fedit = null;
+        saveLib({ f: lib.f.filter((x) => x.k !== k), s: lib.s.map((x) => (x.f === k ? Object.assign({}, x, { f: "" }) : x)) });
     }
 
     /* --- the player --- */
@@ -334,11 +454,98 @@ export function mountYt(A) {
     function wantsTap() { const so = A.S.sound; return A.playsHere() && so.music && so.src === "yt" && !!so.yt && (blocked || (!!player && !!loaded && [-1, 5].includes(state) && Date.now() - loadedAt > 3000)); }
 
     /* --- drawing --- */
-    function row(y, on) {
+    function row(y, on, opt) {
+        const o = opt || {};
         const b = el("button", "ytrow" + (on ? " on" : "")); b.type = "button";
         const im = el("span", "ytrth"); if (y.id) { const i = el("img"); i.src = thumbOf(y); i.alt = ""; i.loading = "lazy"; im.appendChild(i); } else im.innerHTML = svg(IC.note);
-        const tx = el("span", "ytrtx"); tx.append(el("b", null, nameOf(y)), el("small", null, y.ch || (y.list ? "Playlist" : "")));
-        b.append(im, tx); b.onclick = () => pick(y); return b;
+        const tx = el("span", "ytrtx"); tx.append(el("b", null, o.name || nameOf(y)), el("small", null, o.sub != null ? o.sub : (y.ch || (y.list && !y.id ? "Playlist" : ""))));
+        b.append(im, tx); b.onclick = o.play || (() => pick(y));
+        if (!libOn()) return b;
+        // a small button beside the row: save it (or change it, once saved)
+        const w = el("div", "ytrw"), had = o.saved || savedOf(y);
+        const m = btn("ytrm" + (had ? " on" : ""), o.saved ? "edit" : (had ? "marked" : "mark"), o.saved ? "Rename, move or remove " + o.name : had ? "Saved as " + had.n : "Save to your library");
+        m.onclick = () => openEdit(had || { id: y.id, list: y.list, n: y.t || "" });
+        w.append(b, m); return w;
+    }
+    function chip(label, on, fn, cls) { const b = el("button", "ytchip" + (on ? " on" : "") + (cls ? " " + cls : ""), label); b.type = "button"; b.setAttribute("aria-pressed", String(!!on)); b.onclick = fn; return b; }
+    function drawEdit() {
+        editBox.hidden = !edit;
+        if (!edit) { editBox.innerHTML = ""; return; }
+        if (editBox.contains(document.activeElement) && document.activeElement.tagName === "INPUT" && editBox.dataset.k === (edit.k || "new") && !edit.redraw) return;   // don't wipe what is being typed
+        edit.redraw = false;
+        const e = edit; editBox.dataset.k = e.k || "new"; editBox.innerHTML = "";
+        editBox.appendChild(el("p", "ytsec", e.k ? "Change saved video" : "Save to your library"));
+        const field = (label, name, value, ph, max) => {
+            const l = el("label", "ytfld"); l.appendChild(el("span", null, label));
+            const i = el("input"); i.name = name; i.value = value; i.placeholder = ph; i.maxLength = max; i.autocomplete = "off";
+            i.oninput = () => { if (name === "name") e.n = i.value; if (name === "nf") e.nf = i.value; if (name === "link") e.lv = i.value; };
+            l.appendChild(i); editBox.appendChild(l); return i;
+        };
+        if (e.link) field("YouTube link", "link", e.lv || "", "Paste the video's link", 400);
+        else if (e.id) { const pv = el("div", "ytedpv"); const i = el("img"); i.src = thumbOf(e); i.alt = ""; pv.appendChild(i); editBox.appendChild(pv); }
+        field("Name", "name", e.n, "What you'll call it, like Test day piano", 60);
+        editBox.appendChild(el("p", "ytlab", "Folder"));
+        const fr = el("div", "ytquick");
+        fr.appendChild(chip("None", !e.f, () => { e.f = ""; e.redraw = true; draw(); }));
+        lib.f.forEach((x) => fr.appendChild(chip(x.n, e.f === x.k, () => { e.f = x.k; e.redraw = true; draw(); })));
+        fr.appendChild(chip("+ New folder", e.f === "+new", () => { e.f = "+new"; e.redraw = true; draw(); setTimeout(() => { const i = editBox.querySelector("input[name=nf]"); if (i) i.focus(); }, 30); }));
+        editBox.appendChild(fr);
+        if (e.f === "+new") field("New folder", "nf", e.nf, "Like Calm, Hype or Test day", 40);
+        const ps = periods();
+        if (ps.length) {
+            editBox.appendChild(el("p", "ytlab", "Show it first for these classes (optional)"));
+            const pr = el("div", "ytquick");
+            ps.forEach((pd) => pr.appendChild(chip(pd, e.p.includes(pd), () => { e.p = e.p.includes(pd) ? e.p.filter((v) => v !== pd) : e.p.concat(pd); e.redraw = true; draw(); })));
+            editBox.appendChild(pr);
+        }
+        if (e.msg) { const m = el("p", "ytnote bad", e.msg); m.setAttribute("role", "status"); editBox.appendChild(m); }
+        const act = el("div", "ytedact");
+        const ok = el("button", "ytchip on", e.k ? "Save changes" : "Save"); ok.type = "submit";
+        const no = chip("Cancel", false, () => { edit = null; draw(); });
+        act.append(ok, no);
+        if (e.k) { const rm = el("button", "ytlink bad", "Remove from library"); rm.type = "button"; rm.onclick = () => removeSaved(e.k); act.appendChild(rm); }
+        editBox.appendChild(act);
+    }
+    function drawSaved(show) {
+        savedBox.hidden = !show;
+        if (!show) return;
+        if (fedit && savedBox.contains(document.activeElement) && document.activeElement.tagName === "INPUT") return;   // naming a folder
+        savedBox.innerHTML = "";
+        const ef = effFold(), per = A.S.period;
+        const inClass = lib.s.filter((x) => x.p.includes(per));
+        // folder chips: all, this class, each folder, a new folder
+        const fr = el("div", "ytquick ytfolds"); fr.setAttribute("role", "group"); fr.setAttribute("aria-label", "Folders");
+        const counted = (c, n, icon) => { c.textContent = ""; if (icon) c.insertAdjacentHTML("beforeend", svg(icon)); c.append(el("span", null, c.dataset.l), el("small", null, String(n))); c.setAttribute("aria-label", c.dataset.l + ", " + n); return c; };
+        const fc = (label, on, fn, n, cls, icon) => { const c = chip(label, on, fn, cls); c.dataset.l = label; return counted(c, n, icon); };
+        fr.appendChild(fc("All", ef === "", () => { fold = ""; draw(); }, lib.s.length));
+        if (inClass.length) fr.appendChild(fc(per + " period", ef === "class", () => { fold = "class"; draw(); }, inClass.length, "ytper"));
+        lib.f.forEach((x) => fr.appendChild(fc(x.n, ef === x.k, () => { fold = x.k; draw(); }, lib.s.filter((y) => y.f === x.k).length, "", IC.folder)));
+        fr.appendChild(chip("+ Folder", fedit === "+new", () => { fedit = "+new"; draw(); setTimeout(() => { const i = savedBox.querySelector("input"); if (i) i.focus(); }, 30); }, "ytadd"));
+        savedBox.appendChild(fr);
+        if (fedit) {
+            const f = el("form", "ytfoldf"); const i = el("input"); i.placeholder = "Folder name, like Calm or Test day"; i.maxLength = 40; i.value = fedit === "+new" ? "" : foldName(fedit); i.setAttribute("aria-label", "Folder name");
+            const ok = el("button", "ytchip on", fedit === "+new" ? "Add" : "Rename"); ok.type = "submit";
+            f.append(i, ok, chip("Cancel", false, () => { fedit = null; draw(); }));
+            f.onsubmit = (ev) => { ev.preventDefault(); commitFolder(i.value); };
+            savedBox.appendChild(f);
+        } else if (ef && ef !== "class") {
+            const t = el("div", "ytftools");
+            const rn = el("button", "ytlink", "Rename folder"); rn.type = "button"; rn.onclick = () => { fedit = ef; draw(); setTimeout(() => { const i = savedBox.querySelector("input"); if (i) { i.focus(); i.select(); } }, 30); };
+            const rm = el("button", "ytlink bad", "Delete folder"); rm.type = "button"; rm.title = "Its videos stay in All"; rm.onclick = () => removeFolder(ef);
+            t.append(rn, rm); savedBox.appendChild(t);
+        }
+        if (libMsg) { const m = el("p", "ytnote bad", libMsg); m.setAttribute("role", "status"); savedBox.appendChild(m); }
+        const shown = ef === "class" ? inClass : ef ? lib.s.filter((x) => x.f === ef) : lib.s;
+        const ls = el("div", "ytlist ytlib");
+        const y = A.S.sound.yt;
+        shown.forEach((x) => {
+            const sub = [ef === x.f ? "" : foldName(x.f), x.p.length ? x.p.join(", ") + (x.p.length === 1 ? " period" : " periods") : ""].filter(Boolean).join(" \u00b7 ");
+            ls.appendChild(row(x, same(x, y) && A.S.sound.src === "yt", { name: x.n, sub, saved: x, play: () => playSaved(x) }));
+        });
+        if (!shown.length) ls.appendChild(el("p", "ytempty", lib.s.length ? "Nothing in this folder yet. Save a video and pick this folder." : "Nothing saved yet. Paste a link below, or play a video and tap Save, then give it a name you'll remember."));
+        savedBox.appendChild(ls);
+        const add = el("button", "ytaddv"); add.type = "button"; add.innerHTML = svg(IC.plus) + "<span>Add a video by link</span>"; add.onclick = () => openEdit({});
+        savedBox.appendChild(add);
     }
     function drawKeyBox() {
         if (keyBox.contains(document.activeElement) && document.activeElement.tagName === "INPUT") return;   // don't wipe a key being typed
@@ -378,11 +585,16 @@ export function mountYt(A) {
         thumb.hidden = !(y && y.id); if (y && y.id && thumb.getAttribute("src") !== thumbOf(y)) thumb.src = thumbOf(y);
         vEmpty.hidden = !!y;
         mT.textContent = y ? nameOf(y) : "Pick a video below";
-        mC.textContent = y ? (y.ch || (y.list ? "Playlist" : "")) : "Search or paste a YouTube link. It plays in the background, even with this panel tucked away.";
+        mC.textContent = y ? (y.ch || (y.list && !y.id ? "Playlist" : "")) : "Search or paste a YouTube link. It plays in the background, even with this panel tucked away.";
         bPlay.disabled = !y;
         bPlay.innerHTML = svg(playing ? IC.pause : IC.play); bPlay.setAttribute("aria-label", playing ? "Pause" : "Play"); bPlay.title = playing ? "Pause" : "Play";
         bPlay.classList.toggle("on", playing);
         bLoop.setAttribute("aria-pressed", String(so.ytl !== false)); bLoop.hidden = !!(y && y.list && !y.id);
+        if (libOn()) watchLib();
+        const sv = savedOf(y);
+        bSave.hidden = !y || !libOn();
+        bSave.innerHTML = svg(sv ? IC.marked : IC.mark) + "<span></span>"; bSave.querySelector("span").textContent = sv ? "Saved" : "Save";
+        bSave.classList.toggle("on", !!sv); bSave.title = sv ? "Saved as " + sv.n + ". Tap to change it." : "Save this video to your library"; bSave.setAttribute("aria-label", bSave.title);
         if (document.activeElement !== vr) vr.value = String(Math.round(so.mv * 100));
         let n = "";
         if (y && y.e) n = ERRORS[y.e] || "That video can't play here. Pick another.";
@@ -396,6 +608,14 @@ export function mountYt(A) {
         const showFrame = here && !!player && !!y && !!loaded;
         host.classList.toggle("show", showFrame); vid.classList.toggle("live", showFrame); if (!showFrame) host.style.cssText = "";
         if (showFrame) requestAnimationFrame(posFrame);
+        // tabs: Saved (the library) and Find (search, paste, recent, key)
+        const t = libOn() ? curTab() : "find";
+        tabs.hidden = !libOn() || !!edit;
+        tSaved.textContent = "Saved" + (lib.s.length ? " " + lib.s.length : ""); tSaved.setAttribute("aria-selected", String(t === "saved")); tFind.setAttribute("aria-selected", String(t === "find"));
+        drawEdit();
+        drawSaved(t === "saved" && !edit);
+        const fshow = t === "find" && !edit;
+        [find, quick, msg, list, recentH, recent, keyBox].forEach((x) => { x.classList.toggle("ytoff", !fshow); });
         // search
         list.innerHTML = "";
         msg.className = "ytmsg";

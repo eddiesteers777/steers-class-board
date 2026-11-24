@@ -17,7 +17,7 @@ import { setPhotoStore } from "./myPhotos.js?v=1";
 import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=16";
 import { cleanStickers, renderStickers } from "./stickers.js?v=1";
 import * as snd from "./sound.js?v=62";
-import { mountYt, cleanYt, cleanRecent } from "./ytMusic.js?v=1";
+import { mountYt, cleanYt, cleanRecent } from "./ytMusic.js?v=2";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { senseIdle } from "./roomSense.js?v=1";
@@ -1975,6 +1975,7 @@ export async function startApp(opts) {
     document.addEventListener("pointerdown", unlockSound); document.addEventListener("keydown", unlockSound);
     soundPanel();
     yt = mountYt({ S, push, quiet, guest, store: () => store, playsHere, readOnly: () => tvView, slot: () => $("boardBtn"),
+        periods: () => PERIODS.filter((p) => W().classes[p[1]]).map((p) => p[0]),
         unlock: () => snd.unlock(), refresh: () => soundControls() });
     snd.onDuck((secs) => yt.duck(secs));
     document.addEventListener("pointerdown", () => yt.unlock()); document.addEventListener("keydown", () => yt.unlock());

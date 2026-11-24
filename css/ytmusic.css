@@ -121,6 +121,53 @@ body.board .ytpill.inbar{display:none}
 .ytrtx b{font-size:13.5px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ytrtx small{font-size:12px;color:var(--yt-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
+/* Save, the tabs and the library */
+.ytoff{display:none!important}
+.ytsave{color:var(--yt-soft)}
+.ytsave svg{width:17px;height:17px}
+.ytsave.on{color:#fff;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.yttabs{display:flex;gap:4px;padding:4px;border-radius:14px;background:rgba(0,8,30,.32);box-shadow:inset 0 1px 3px rgba(0,0,0,.3)}
+.yttab{flex:1;height:36px;border:0;border-radius:11px;background:transparent;color:var(--yt-soft);font-weight:700;font-size:14px;transition:background .18s,color .18s}
+.yttab:hover{color:#fff}
+.yttab[aria-selected="true"]{background:rgba(255,255,255,.16);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 2px 8px rgba(0,8,30,.25)}
+.ytsaved,.ytedit{display:flex;flex-direction:column;gap:10px}
+.ytsaved[hidden],.ytedit[hidden]{display:none!important}
+.ytfolds .ytchip span{white-space:nowrap}
+.ytchip.ytper{border-color:color-mix(in srgb,#F2B33D 55%,transparent);background:rgba(242,179,61,.16)}
+.ytchip.ytper.on{background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00}
+.ytchip.ytadd{border-style:dashed;color:var(--yt-soft)}
+.ytftools{display:flex;gap:16px;margin-top:-4px}
+.ytlink.bad{color:#FFC2C4}
+.ytfoldf{display:flex;gap:6px;flex-wrap:wrap}
+.ytfoldf input,.ytfld input{flex:1;min-width:0;height:40px;padding:0 12px;border:1px solid rgba(255,255,255,.18);border-radius:11px;background:rgba(0,8,30,.32);color:var(--yt-ink);font:500 16px var(--ui,system-ui),sans-serif}
+.ytfoldf input{min-width:160px}
+.ytfld input{flex:none;width:100%}
+.ytchip small{font-size:11.5px;font-weight:700;opacity:.7;margin-left:-1px}
+.ytfoldf input::placeholder,.ytfld input::placeholder{color:rgba(226,236,255,.5)}
+.ytfoldf .ytchip{height:40px}
+.ytrw{display:flex;align-items:center;gap:2px}
+.ytrw .ytrow{flex:1;min-width:0}
+.ytrm{flex:none;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border:0;border-radius:11px;background:transparent;color:var(--yt-soft);opacity:.75;transition:background .18s,opacity .18s}
+.ytrm:hover,.ytrw:hover .ytrm{opacity:1;background:rgba(255,255,255,.1)}
+.ytrm.on{color:#fff;opacity:1}
+.ytrm svg{width:17px;height:17px}
+.ytlib .ytrtx b{font-size:14.5px;font-weight:700}
+.ytempty{margin:0;padding:14px;border-radius:14px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);font-size:13.5px;line-height:1.5;color:var(--yt-soft)}
+.ytaddv{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;border:1px dashed rgba(255,255,255,.28);border-radius:12px;background:transparent;font-weight:600;font-size:13.5px}
+.ytaddv:hover{background:rgba(255,255,255,.1)}
+.ytaddv svg{width:16px;height:16px}
+.ytedit{padding:12px;border-radius:16px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.ytedit .ytsec{margin:0 0 -2px}
+.ytfld{display:flex;flex-direction:column;gap:5px}
+.ytfld span,.ytlab{margin:0;font-size:12.5px;font-weight:700;color:var(--yt-soft)}
+.ytlab{margin-bottom:-4px}
+.ytedpv{width:120px;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:rgba(0,8,30,.45)}
+.ytedpv img{width:100%;height:100%;object-fit:cover;display:block}
+.ytedact{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px}
+.ytedact .ytchip{height:38px;padding:0 16px}
+.ytedact .ytlink{margin-left:auto;align-self:center}
+.ytpanel input:focus-visible{outline:2px solid #8CC8FF;outline-offset:1px}
+
 /* the search key, once */
 .ytkey{display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px solid rgba(255,255,255,.12)}
 .ytkeyt{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 6px;border:0;background:transparent;color:var(--yt-soft);font-size:13px;font-weight:600}

@@ -1,6 +1,6 @@
 // YouTube music links and saved shape (js/ytMusic.js). Run: node tools/board/ytmusic.test.mjs
 import assert from "node:assert/strict";
-import { parseYt, cleanYt, cleanRecent } from "../../js/ytMusic.js";
+import { parseYt, cleanYt, cleanRecent, cleanLib } from "../../js/ytMusic.js";
 
 const ID = "dQw4w9WgXcQ", LIST = "PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG";
 let n = 0; const t = (name, fn) => { try { fn(); n++; } catch (e) { console.error("FAIL", name); throw e; } };
@@ -29,4 +29,16 @@ t("recent: at most 8, no errors kept", () => {
     assert.equal(r.length, 8); assert.ok(r.every((x) => !("e" in x)));
 });
 t("recent from junk", () => assert.deepEqual(cleanRecent("nope"), []));
+
+t("library keeps names, folders and classes", () => {
+    const l = cleanLib({ f: [{ k: "calm01", n: " Calm  music " }], s: [{ k: "abcd12", id: ID, n: "Test day piano", f: "calm01", p: ["1st", "3rd", "1st"], t: "x", ch: "y" }] });
+    assert.deepEqual(l, { f: [{ k: "calm01", n: "Calm music" }], s: [{ k: "abcd12", id: ID, list: "", n: "Test day piano", f: "calm01", p: ["1st", "3rd"] }] });
+});
+t("library drops saves with no name, bad keys or links, and repeats", () => {
+    const l = cleanLib({ s: [{ k: "abcd12", id: ID, n: "" }, { k: "BAD!", id: ID, n: "x" }, { k: "abcd13", id: "nope", n: "x" }, { k: "abcd14", id: ID, n: "One" }, { k: "abcd14", id: ID, n: "Two" }] });
+    assert.equal(l.s.length, 1); assert.equal(l.s[0].n, "One");
+});
+t("library: a missing folder means no folder", () => assert.equal(cleanLib({ f: [], s: [{ k: "abcd12", id: ID, n: "A", f: "gone01" }] }).s[0].f, ""));
+t("library trims long names", () => assert.equal(cleanLib({ s: [{ k: "abcd12", id: ID, n: "a".repeat(200) }] }).s[0].n.length, 60));
+t("library from junk", () => { assert.deepEqual(cleanLib(null), { f: [], s: [] }); assert.deepEqual(cleanLib({ f: "x", s: 3 }), { f: [], s: [] }); });
 console.log("ytmusic: " + n + " checks passed");
