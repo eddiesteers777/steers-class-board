@@ -9,7 +9,7 @@ import { STANDARDS } from "../data/standards.js?v=58";
 import { loadStdBank, LEVELS } from "./stdBank.js?v=3";
 import * as C from "./assignCore.js?v=7";
 import { mathText } from "./vaultCore.js?v=75";
-import * as Tr from "./timelineTray.js?v=3";
+import * as Tr from "./timelineTray.js?v=4";
 import * as K from "./timelineLinks.js?v=2";
 import { isFoundational, stepOf } from "./foundBank.js?v=2";
 
@@ -35,7 +35,7 @@ export function mount(opt) {
     const S = { code: "", lvl: 2, i: 0, show: false, lv: Tr.LEVEL_DEFAULT.slice(), open: false, trays: {}, edit: false };
     const cls = () => opt.cls();
     const tray = () => (S.trays[cls()] = S.trays[cls()] || load(cls()));
-    const setTray = (t) => { S.trays[cls()] = Tr.clean(t); store(cls(), S.trays[cls()]); drawTray(); opt.onChange(); };
+    const setTray = (t) => { S.vmsg = ""; S.trays[cls()] = Tr.clean(t); store(cls(), S.trays[cls()]); drawTray(); opt.onChange(); };
     const std = (code) => {
         if (isFoundational(code)) { const st = stepOf(code); return st ? { code, floor: true, name: st.name, text: st.name + ". A below-grade-level skill from the foundational ladder, for students who are not ready for the grade-level work yet.", helps: st.helps || [] } : null; }
         return (STANDARDS[cls()] || { standards: [] }).standards.find((s) => s.code === code);
@@ -155,7 +155,20 @@ export function mount(opt) {
             try { localStorage.setItem(Tr.HANDOFF_KEY, JSON.stringify(h)); } catch (e) { /* storage off: the builder opens empty */ }
             location.href = "assign.html?from=timeline" + (opt.demo ? "&demo" : "");
         });
-        top.append(go); bar.append(top);
+        const vr = btn("btn ghost sm tp-vr", "Vault Raid set", async () => {
+            if (!bank || !opt.saveVault) return;
+            const r = Tr.vaultSet(t, bank, cls(), { seed: t.items.map((x) => x.code).join() + "|" + new Date().toDateString() });
+            if (r.n < 3) { S.vmsg = "Not enough problems at these levels for a game. Add a level or another standard."; S.open = true; drawTray(); return; }
+            vr.disabled = true; S.vmsg = "Saving…"; S.open = true; drawTray();
+            try {
+                await opt.saveVault(r.doc, r.n);
+                S.vmsg = "Saved “" + r.doc.title + "” (" + r.n + " questions in " + r.doc.cats.length + " categories)." + (r.left.length ? " Vault Raid fits 6 standards, so " + r.left.join(", ") + (r.left.length === 1 ? " was" : " were") + " left out." : "") + " Start it on the Remote: Student Game, Vault Raid, then pick it from the question sets.";
+            } catch (e) { S.vmsg = "Not saved (" + ((e && e.code) || "connection") + "). Try again."; }
+            drawTray();
+        });
+        vr.title = "Make a Vault Raid question set from this tray: each standard gets its own categories, at its levels";
+        top.append(vr, go); bar.append(top);
+        if (S.vmsg) { const m = el("p", "tp-vmsg", S.vmsg); m.setAttribute("role", "status"); bar.append(m); }
         if (!S.open) return;
         const ul = el("ol", "tp-list");
         t.items.forEach((x, idx) => {
