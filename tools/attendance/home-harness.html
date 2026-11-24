@@ -1,8 +1,14 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Absences card harness</title>
-<link rel="stylesheet" href="../../css/board.css"><link rel="stylesheet" href="../../css/console.css"><link rel="stylesheet" href="../../css/home.css"><link rel="stylesheet" href="../../css/absences.css"><link rel="stylesheet" href="../../css/skin.css"></head>
-<body><main><section class="abs" id="absent" aria-label="Absences" hidden></section></main>
+<script src="../../js/scheme.js"></script><script>{ const q = new URLSearchParams(location.search); if (q.get("scheme") || q.get("mode")) { document.documentElement.setAttribute("data-scheme", q.get("scheme") || "navy"); document.documentElement.setAttribute("data-mode", q.get("mode") || "light"); } }</script>
+<link rel="stylesheet" href="../../css/board.css"><link rel="stylesheet" href="../../css/console.css"><link rel="stylesheet" href="../../css/theme-rings.css"><link rel="stylesheet" href="../../css/home.css"><link rel="stylesheet" href="../../css/absences.css"><link rel="stylesheet" href="../../css/skin.css"></head>
+<body class="console page hm-home"><main>
+<section class="nowcard" aria-labelledby="nowTitle"><div class="nowmain"><p class="nowwhen" id="nowWhen"></p><h1 id="nowTitle">Today</h1><p class="nowlt" id="nowLT"></p></div>
+<div class="nowgo"><a class="btn go big" id="nowStart" href="#">Start</a><a class="btn ghost onnavy" href="#">Timer</a><a class="btn ghost onnavy" href="#">Whiteboard</a></div></section>
+<section class="abs" id="absent" aria-label="Absences" hidden></section></main>
 <script type="module">
 import { mountAbsences } from "../../js/absenceHome.js";
+import { homeDay, longDay, span } from "../../js/homeDay.js";
+import { isSchoolDay, eventsOn } from "../../js/schoolCal.js";
 const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
 const day = (n, ag) => ({ name: n, agenda: ag });
 const weeks = [{ id: "week5", monday: "2026-11-16", classes: { "8th": { label: "8th Grade", assessment: { type: "test", day: 3, name: "Test" }, days: [day("Monday", ["Guided Notes Day 1"]), day("Tuesday", ["Speed Dating Activity", "Guided Notes Day 1"]), day("Wednesday", ["Fact Blitz", "Guided Notes Day 2"]), day("Thursday", ["Test"]), day("Friday", ["Vault Raid"])] }, "7th": { label: "7th Grade", days: [day("Monday", ["Guided Notes"]), day("Tuesday", []), day("Wednesday", []), day("Thursday", []), day("Friday", [])] } } },
@@ -16,15 +22,22 @@ if (!EMPTY) {
   put("attendance/2026-11-19", { out: { "1st": { "ben-k": { n: "Ben K.", at: 1 } } } });
   put("attendance/2026-11-23", { out: { "1st": { "cara-l": { n: "Cara L.", at: 1 } }, "5th": { "dev-p": { n: "Dev P.", at: 1 } } } });
 }
+if (q.has("many")) { put("attendance/2026-11-20", { out: { "2nd": { "eli-m": { n: "Eli M.", at: 1 }, "fay-n": { n: "Fay N.", at: 1 } } } }); }
 put("gb/setup", { cats: [{ id: "hw", name: "Homework" }, { id: "cw", name: "Class Work" }, { id: "qt", name: "Quizzes & Tests" }] });
 put("gb/items", { list: [{ id: "g1", title: "Speed Dating", date: "2026-11-17", cat: "cw", periods: ["1st", "2nd"] }] });
 put("data/index", { imports: [{ id: "f1", period: "1st", date: "2026-11-18", source: "Fact Blitz", title: "Fact Blitz: Integer facts" }] });
-put("rosters/all", { periods: { "1st": ["Ava Rivera", "Ben Kim", "Cara Lopez"], "5th": ["Dev Patel"] } });
+put("rosters/all", { periods: { "1st": ["Ava Rivera", "Ben Kim", "Cara Lopez"], "2nd": ["Eli Moss", "Fay Nolan"], "5th": ["Dev Patel"] } });
 put("catchup/1st", { kids: { "ben-k": { nm: "Ben K.", d: { "2026-11-19": { st: "assigned", via: "magma", at: 1 } } }, "ava-r": { nm: "Ava R.", d: { "2026-11-17": { st: "done", via: "deltamath", at: 1 } } } } });
 put("found/5th", { kids: { "dev-p": { nm: "Dev P.", start: "F:intAdd", at: 1 } } });
 put("profiles/1st", { kids: { "ben-k": { t: { "s-8-5": { a: 6, h: "100101" } } } } });
 const store = { watch(path, next) { setTimeout(() => next({ exists: docs.has(path), data: docs.get(path), pending: false }), 0); return () => {}; } };
 weeks[0].classes["8th"].days[1].notes = { standard: "8.5 Solve linear equations" };
 window.__m = mountAbsences({ store, host: document.getElementById("absent"), el, periods: [["1st", "8th"], ["2nd", "8th"], ["5th", "7th"]], today: "2026-11-23", weeks, classLabel: (c) => c === "8th" ? "8th Grade" : "7th Grade" });
+{ const T = q.get("today") || "2026-11-23", offOn = (d) => { const e = eventsOn(d).find((x) => x.kind === "off" || x.kind === "work"); return e ? { text: e.text, start: e.start, end: e.end } : null; };
+  const HD = homeDay({ today: T, weeks: weeks.filter((w) => q.has("planned") || w.id !== "week6").map((w) => w.id === "week6" ? Object.assign({}, w, { monday: "2026-11-30" }) : w), inSchool: isSchoolDay, offOn, byCalendar: true });
+  if (!HD.school) { const back = longDay(HD.planDay); document.getElementById("nowWhen").textContent = HD.off ? HD.off.text + " · " + span(HD.off.start, HD.off.end) : "No school today";
+    document.getElementById("nowTitle").textContent = "Back " + back; document.getElementById("nowLT").textContent = HD.planned ? "That day's plan is below." : back + " isn't planned yet.";
+    document.getElementById("nowStart").textContent = HD.planned ? "Open Remote" : "Plan the Week"; }
+  window.__hd = HD; }
 window.__ready = true;
 </script></body></html>

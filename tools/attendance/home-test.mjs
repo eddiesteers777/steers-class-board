@@ -7,8 +7,8 @@ const browser = await chromium.launch(), logs = [];
 for (const [w, h, tag] of [[390, 900, "phone"], [1280, 900, "desktop"]]) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h } }), p = await ctx.newPage();
     p.on("console", (m) => { if (m.type() === "error") logs.push(tag + ": " + m.text()); }); p.on("pageerror", (e) => logs.push(tag + " PAGEERROR: " + e.message));
-    await p.goto(BASE); await p.waitForSelector(".abs-kid", { timeout: 8000 });
-    await p.waitForSelector('.abs-warn:has-text("8.5")', { timeout: 8000 }); await p.waitForSelector('.abs-warn:has-text("foundational")', { timeout: 8000 });   // the "was behind" check waits for the game profile to load
+    await p.goto(BASE); await p.waitForSelector(".abs-kid", { timeout: 8000, state: "attached" });
+    await p.waitForSelector('.abs-warn:has-text("8.5")', { timeout: 8000, state: "attached" }); await p.waitForSelector('.abs-warn:has-text("foundational")', { timeout: 8000, state: "attached" });   // the "was behind" check waits for the game profile to load
     const txt = await p.textContent("#absent");
     assert.match(txt, /2 out today/); assert.match(txt, /2 need a look/);
     assert.match(txt, /1st period · 8th Grade/); assert.match(txt, /5th period · 7th Grade/);
@@ -16,11 +16,19 @@ for (const [w, h, tag] of [[390, 900, "phone"], [1280, 900, "desktop"]]) {
     assert.match(txt, /Missed Thursday — Test \(make-up needed\)/);
     assert.match(txt, /Speed Dating Activity · graded, Class Work/); assert.match(txt, /Guided Notes Day 1 · practice/);
     assert.match(txt, /Missed Wednesday — Fact Blitz: Integer facts, Guided Notes Day 2/); assert.match(txt, /Fact Blitz: Integer facts · practice/);
+    // collapsed by default: one row per student with the missed dates; a tap opens the details
+    assert.equal(await p.$$eval("details.abs-kid[open], details.abs-per[open]", (d) => d.length), 0);   // periods and students start closed
+    assert.match(await p.textContent('.abs-per:has(h3:text-is("1st period · 8th Grade")) .abs-pcount'), /^3 absent1 out today1 needs a look$/);
+    assert.ok(!(await p.isVisible('.abs-kid:has(b:text-is("Ben")) summary')));
+    await p.click('.abs-per:has(h3:text-is("1st period · 8th Grade")) > summary');
+    assert.match(await p.textContent('.abs-kid:has(b:text-is("Ben")) .abs-brief'), /^Missed Thu 11\/19, Tue 11\/17 · 2 graded$/);
+    assert.ok(!(await p.isVisible('.abs-kid:has(b:text-is("Ben")) .abs-body')));
+    await p.click('.abs-kid:has(b:text-is("Ben")) summary'); assert.ok(await p.isVisible('.abs-kid:has(b:text-is("Ben")) a.abs-go')); await p.click('.abs-kid:has(b:text-is("Ben")) summary');
     assert.match(txt, /Missed Monday — Guided Notes Day 3/);
     assert.match(txt, /Out often/); assert.match(txt, /Missed 8\.5, which was still being worked on/);
     const names = await p.$$eval(".abs-top b", (b) => b.map((x) => x.textContent)); assert.deepEqual(names, ["Ben", "Cara", "Ava", "Dev"]);
     assert.match(txt, /On the foundational track \(Add integers\)/);
-    await p.waitForSelector('.abs-st', { timeout: 8000 }); const t2 = await p.textContent("#absent");
+    await p.waitForSelector('.abs-st', { timeout: 8000, state: "attached" }); const t2 = await p.textContent("#absent");
     assert.match(t2, /Missed Thursday — Test \(make-up needed\)Catch-up assigned \(Magma Math\)/);   // assigned is not done: the test warning stays
     assert.match(t2, /Missed a test \(Thursday\): make-up needed/);
     assert.match(t2, /All caught up/);                                                            // Ava's only missed day is done
