@@ -316,3 +316,7 @@ add(item("7.22", "A triangular prism has a base triangle with base 6 and height 
 add(item("7.22", "A cube has a volume of 64 in³. What is the length of one edge?", "4 in", 2, also=["4"]))
 add(item("7.22", "A room is 12 ft by 10 ft with walls 8 ft tall. How much wall area is there to paint (no windows or doors)?", str(2 * (12 * 8) + 2 * (10 * 8)) + " ft²", 3, also=[str(2 * (12 * 8) + 2 * (10 * 8))]))
 add(item("7.22", "Find the area of a regular hexagon split into 6 triangles, each with base 4 and height 3.5.", dec(6 * F(1, 2) * 4 * F("3.5")), 3))
+
+# ---------------- more problems (checked Gemini drafts, Nov 2026): added last so earlier ids stay put ----------------
+from more import more
+out.extend(more("g7"))

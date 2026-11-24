@@ -16,7 +16,7 @@ import { watchPrivateWeeks, weekIdFor } from "./weeksLive.js?v=58";
 import { watchEvidence, classEvidence, evidenceForBrief, weekStandards } from "./planEvidence.js?v=3";
 import { openBankPicker, bankFor } from "./bankPick.js?v=2";
 import { rich } from "./weekSheets.js?v=60";
-import { loadStdBank } from "./stdBank.js?v=2";
+import { loadStdBank } from "./stdBank.js?v=3";
 import { bellWeek } from "./acapFormats.js?v=2";
 const bellMsg = {};   // the last "Fill every day" result, per class
 

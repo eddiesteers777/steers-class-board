@@ -392,3 +392,7 @@ A(41, "Of 50 students in band, 20 also play a sport. What is P(sport | band)?", 
 A(41, "In P(A | B), which group do you divide by?", "The outcomes in B", 1, also=["B"])
 A(41, "Two coins are flipped. Given at least one is heads, what is the probability both are heads?", "{1/3}", 3)
 A(41, "Of 120 people at a game, 75 wore team colors. 45 of those cheered loudly. What fraction of people in team colors cheered loudly?", num(F(45, 75)), 2, also=["0.6", "60%"])
+
+# ---------------- more problems (checked Gemini drafts, Nov 2026): added last so earlier ids stay put ----------------
+from more import more
+out.extend(more("alg1"))

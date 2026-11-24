@@ -9,7 +9,7 @@ import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { extract, norm, KINDS, saveBankWeek } from "./bank.js?v=2";
 import { rich } from "./weekSheets.js?v=60";
 import { STANDARDS } from "../data/standards.js?v=58";
-import { loadStdBank, inClass, coverage, LEVELS, WEEK_ID, WEEK_LABEL, KIND } from "./stdBank.js?v=2";
+import { loadStdBank, inClass, coverage, LEVELS, WEEK_ID, WEEK_LABEL, KIND } from "./stdBank.js?v=3";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
