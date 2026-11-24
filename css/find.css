@@ -1,0 +1,133 @@
+/* Anchor Board — the Find panel ("Find a problem", js/findPanel.js). Load after panels.css and ytmusic.css.
+   The same frosted glass as the YouTube music panel (css/ytmusic.css): a translucent navy fill, a backdrop blur, a bright
+   hairline on top and a soft deep shadow. A panel styled from its gear (.psty, js/panelStyle.js) keeps its own colours;
+   everything inside is drawn from currentColor, so it reads on a light or a dark panel alike.
+   Inside the stage everything is in em, like the rest of the stage, so it grows with the board for the back row. */
+
+/* ---------- the glass ---------- */
+:is(#stage,body) .card.tool-find:not(.psty){--fp-acc:var(--s-acc,#3F7FE0);color:#F4F8FF;
+  background:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.06));background-color:rgba(12,28,66,.86);
+  -webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);
+  border:.06em solid rgba(255,255,255,.26);box-shadow:inset 0 .06em 0 rgba(255,255,255,.42),0 1.1em 3em rgba(2,8,26,.5),0 .12em .5em rgba(2,8,26,.25)}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){:is(#stage,body) .card.tool-find:not(.psty){background:rgba(12,28,66,.96)}}
+:is(#stage,body) .card.tool-find:not(.psty) h3{color:#F4F8FF}
+:is(#stage,body) .card.tool-find:not(.psty) h3::before{background-image:var(--ring-mark,var(--ring-mark-light))}
+:is(#stage,body) .card.tool-find:not(.psty) h3 :is(.close,.pbtn){color:#F4F8FF}
+:is(#stage,body) .card.tool-find:not(.psty) h3 .pbtn:hover{background:rgba(255,255,255,.14)}
+.card.tool-find{--fp-acc:rgb(var(--pacc,63 127 224));--fp-line:color-mix(in srgb,currentColor 18%,transparent);--fp-fill:color-mix(in srgb,currentColor 8%,transparent);
+  --fp-fill2:color-mix(in srgb,currentColor 14%,transparent);--fp-soft:color-mix(in srgb,currentColor 70%,transparent)}
+.float.tool-find{width:21em}
+.toolshelf .tool-find .fp-list{max-height:13em}
+.tool-find .in{padding:.45em .8em .75em!important;gap:0;align-items:stretch!important;justify-content:flex-start!important;text-align:left!important;min-width:0}
+
+/* ---------- inside ---------- */
+.fp{display:flex;flex-direction:column;min-height:0;min-width:0;width:100%;text-align:left;font-family:var(--ui,system-ui),sans-serif;-webkit-tap-highlight-color:transparent}
+.fp *{box-sizing:border-box}
+.fp button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+.fp button:focus-visible,.fp input:focus-visible{outline:.14em solid #8CC8FF;outline-offset:.1em}
+.fp svg{width:1em;height:1em;flex:none}
+.fp [hidden]{display:none!important}
+.fp[data-view="search"] .fp-show,.fp[data-view="show"] .fp-search{display:none}
+.fp-search,.fp-show{display:flex;flex-direction:column;min-height:0;min-width:0;animation:fpIn .24s cubic-bezier(.2,.8,.2,1)}
+@keyframes fpIn{from{opacity:0;transform:translateY(.3em)}}
+
+/* the search box */
+.fp-bar{display:flex;align-items:center;gap:.45em;height:2.3em;padding:0 .35em 0 .7em;border-radius:1.15em;background:var(--fp-fill2);
+  border:.06em solid var(--fp-line);transition:border-color .24s,box-shadow .24s,background .24s;cursor:text}
+.fp-bar:focus-within{border-color:var(--fp-acc);box-shadow:0 0 0 .18em color-mix(in srgb,var(--fp-acc) 30%,transparent);background:var(--fp-fill)}
+.fp-bar>svg{opacity:.7;font-size:.95em}
+.fp-in{flex:1;min-width:0;height:100%;border:0;background:transparent;color:inherit;font:inherit;font-size:.82em;outline:none!important}
+.fp-in::placeholder{color:currentColor;opacity:.55}
+.fp-in::-webkit-search-cancel-button{display:none}
+.fp-clear{display:grid;place-items:center;width:1.6em;height:1.6em;border:0;border-radius:50%;background:var(--fp-fill2);font-size:.85em}
+.fp-clear:hover{background:var(--fp-line)}
+
+/* course chips */
+.fp-courses{display:flex;gap:.3em;margin:.5em 0 .1em;flex-wrap:wrap}
+.fp-chip{border:.06em solid var(--fp-line);background:transparent;border-radius:1em;padding:.22em .75em;font-size:.66em!important;font-weight:600;transition:background .2s,border-color .2s,color .2s}
+.fp-chip:hover{background:var(--fp-fill)}
+.fp-chip[aria-pressed="true"]{background:var(--fp-acc);border-color:var(--fp-acc);color:#fff}
+
+/* a standard's head, and topics to pick */
+.fp-sugg{min-width:0}
+.fp-sugg:not(:empty){margin-top:.45em}
+.fp-stdhead{display:flex;align-items:baseline;gap:.45em;font-size:.74em;padding:.1em .1em .3em}
+.fp-stdhead b{flex:1;min-width:0;font-weight:700;line-height:1.25}
+.fp-n{font-size:.85em;opacity:.65;white-space:nowrap;font-variant-numeric:tabular-nums}
+.fp-topics,.fp-recent{display:flex;gap:.3em;overflow-x:auto;padding:.1em 0 .35em;scrollbar-width:none}
+.fp-topics::-webkit-scrollbar,.fp-recent::-webkit-scrollbar{display:none}
+.fp-topic,.fp-rec{display:inline-flex;align-items:center;gap:.4em;flex:none;max-width:16em;border:.06em solid var(--fp-line);background:var(--fp-fill);border-radius:.6em;
+  padding:.3em .55em;font-size:.66em!important;text-align:left;transition:background .2s,border-color .2s}
+.fp-topic:hover,.fp-rec:hover{background:var(--fp-fill2);border-color:color-mix(in srgb,var(--fp-acc) 60%,transparent)}
+.fp-topic span:last-child,.fp-rect{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fp-label{margin:.35em .15em .25em;font-size:.6em;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.65}
+
+/* the list */
+.fp-list{display:flex;flex-direction:column;gap:.22em;margin-top:.3em;max-height:11.5em;overflow-y:auto;overscroll-behavior:contain;padding:.05em .1em .1em 0;
+  scrollbar-width:thin;scrollbar-color:var(--fp-line) transparent;scroll-padding:.3em}
+.fp-code{display:inline-block;flex:none;padding:.08em .45em;border-radius:.4em;background:color-mix(in srgb,var(--fp-acc) 26%,transparent);
+  color:inherit;font-weight:800;font-size:.92em;letter-spacing:.01em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fp-row{display:flex;align-items:center;gap:.55em;width:100%;min-height:3em;border:.06em solid transparent;background:var(--fp-fill);border-radius:.7em;padding:.45em .55em;
+  text-align:left;transition:background .18s,border-color .18s,transform .18s}
+.fp-row.sel{background:var(--fp-fill2);border-color:color-mix(in srgb,var(--fp-acc) 70%,transparent)}
+.fp-row:active{transform:scale(.99)}
+.fp-side{flex:none;font-size:.68em;align-self:flex-start;padding-top:.15em}
+.fp-rb{flex:1;min-width:0;display:flex;flex-direction:column;gap:.15em}
+.fp-rtop{display:flex;align-items:center;gap:.4em;font-size:.58em;min-width:0}
+.fp-rtopic{flex:1;min-width:0;opacity:.7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.fp-lvl{flex:none;padding:.05em .5em;border-radius:1em;font-weight:700;border:.08em solid currentColor}
+.fp-lvl.l1{color:#5FD3A2}.fp-lvl.l2{color:#8CC8FF}.fp-lvl.l3{color:#F2B33D}
+.card.psty.plight .fp-lvl.l1{color:#1E7A52}.card.psty.plight .fp-lvl.l2{color:#1D5FB8}.card.psty.plight .fp-lvl.l3{color:#A06200}
+.fp-walk{display:inline-flex;align-items:center;gap:.25em;flex:none;padding:.05em .5em;border-radius:1em;background:rgba(242,179,61,.22);color:#F2B33D;font-weight:700}
+.card.psty.plight .fp-walk{color:#8A5300}
+.fp-walk svg{width:.85em;height:.85em;fill:currentColor;stroke:none}
+.fp-rq{font-size:.74em;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fp-fig{margin-left:.4em;font-size:.82em;opacity:.6;font-style:italic}
+.fp-go{flex:none;display:grid;place-items:center;width:1.7em;height:1.7em;border-radius:50%;opacity:0;transform:translateX(-.2em);transition:opacity .2s,transform .2s;font-size:.8em;
+  background:var(--fp-acc);color:#fff}
+.fp-row.sel .fp-go,.fp-row:hover .fp-go{opacity:1;transform:none}
+.fp-std{display:flex;align-items:center;gap:.5em;width:100%;border:0;background:transparent;border-radius:.55em;padding:.35em .45em;text-align:left;font-size:.7em!important;transition:background .18s}
+.fp-std:hover{background:var(--fp-fill)}
+.fp-stdt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fp-more{align-self:center;margin:.3em 0;border:.06em solid var(--fp-line);background:transparent;border-radius:1em;padding:.3em 1em;font-size:.66em!important;font-weight:600}
+.fp-more:hover{background:var(--fp-fill)}
+.fp-empty{padding:.9em .4em;text-align:center;font-size:.72em;line-height:1.4;opacity:.85;display:flex;flex-direction:column;align-items:center;gap:.6em}
+.fp-empty p{margin:0}
+.fp-empty .fp-chip{font-size:.9em!important;padding:.3em .9em}
+.fp-foot{margin:.45em .15em 0;font-size:.58em;opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* while the bank loads: a quiet shimmer where the rows will be */
+.fp-skel{height:3em;border-radius:.7em;background:linear-gradient(90deg,var(--fp-fill) 0%,var(--fp-fill2) 50%,var(--fp-fill) 100%);background-size:200% 100%;animation:fpShim 1.2s linear infinite}
+@keyframes fpShim{to{background-position:-200% 0}}
+
+/* ---------- the problem, big, for the class ---------- */
+.fp-q{font-size:1.32em;line-height:1.35;font-weight:600;padding:.2em .1em .1em;overflow-wrap:anywhere}
+.fp-q img,.fp-q svg{max-width:100%;height:auto}
+.fp-wait{font-size:.6em;opacity:.7;margin:0}
+.fp-hints{margin:.45em 0 0;padding:0 0 0 1.3em;font-size:.86em;line-height:1.4;display:flex;flex-direction:column;gap:.2em}
+.fp-hints li{padding-left:.15em}
+.fp-hints li::marker{font-weight:800;color:var(--fp-acc)}
+.fp-hints li.new{animation:fpIn .26s cubic-bezier(.2,.8,.2,1)}
+.fp-ans{display:flex;align-items:baseline;gap:.6em;flex-wrap:wrap;margin-top:.55em;padding:.45em .7em;border-radius:.7em;background:rgba(95,211,162,.16);border:.06em solid rgba(95,211,162,.5);
+  animation:fpIn .26s cubic-bezier(.2,.8,.2,1)}
+.fp-alab{font-size:.62em;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5FD3A2}
+.card.psty.plight .fp-alab{color:#1E7A52}
+.fp-aval{font-size:1.12em;font-weight:700}
+.fp-acts{display:flex;flex-wrap:wrap;gap:.3em;margin-top:.7em}
+.fp-act{display:inline-flex;align-items:center;gap:.35em;min-height:2.1em;border:.06em solid var(--fp-line);background:var(--fp-fill);border-radius:1.05em;padding:.25em .75em;font-size:.66em!important;font-weight:600;
+  transition:background .2s,border-color .2s}
+.fp-act:hover{background:var(--fp-fill2)}
+.fp-act small{font-size:.82em;opacity:.65;font-variant-numeric:tabular-nums}
+.fp-act.on{background:rgba(95,211,162,.22);border-color:rgba(95,211,162,.6)}
+.fp-act.amber{background:#F2B33D;border-color:#F2B33D;color:#1B1405}
+.fp-act.amber svg{fill:currentColor;stroke:none}
+.fp-act.amber:hover{background:#FFC55A}
+
+/* On the projected board the teacher's buttons stay, quietly, and fade out with the rest of the controls when nobody
+   touches it, so the panel reads as an anchor chart. A tap brings them back. */
+body.board .fp-acts{opacity:.7}
+body.board .tool-find:hover .fp-acts,body.board .fp-acts:focus-within{opacity:1}
+body.board.idle .fp[data-view="show"] .fp-acts{opacity:0;pointer-events:none;max-height:0;margin-top:0;overflow:hidden}
+.fp-acts{max-height:8em;transition:opacity .25s,max-height .26s cubic-bezier(.2,.8,.2,1),margin-top .26s}
+
+@media (pointer:coarse){.fp-go{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.fp-search,.fp-show,.fp-hints li.new,.fp-ans{animation:none}.fp-skel{animation:none}.fp-row,.fp-go{transition:none}}

@@ -12,16 +12,17 @@ import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=63";
+import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=64";
+import { FIND_KEYS } from "./findCore.js?v=1";
 import { setPhotoStore } from "./myPhotos.js?v=1";
-import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=16";
+import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, isOn, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=17";
 import { cleanStickers, renderStickers } from "./stickers.js?v=1";
 import * as snd from "./sound.js?v=62";
 import { mountYt, cleanYt, cleanRecent } from "./ytMusic.js?v=3";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { senseIdle } from "./roomSense.js?v=1";
-import { openSettings, closeSettings, refreshSettings, psOpen } from "./panelSettings.js?v=2";
+import { openSettings, closeSettings, refreshSettings, psOpen } from "./panelSettings.js?v=3";
 import { applySty } from "./panelStyle.js?v=1";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=63";
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=90";
@@ -29,7 +30,7 @@ import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } fr
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 import { notesFrames } from "./notesFrames.js?v=1";
 import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=6";
-import { mountAttendance, syncAttendance } from "./attendanceRemote.js?v=1";
+import { mountAttendance, syncAttendance } from "./attendanceRemote.js?v=2";
 import { cleanChart, cleanPeriod, cleanView, seatCount, drawRoom } from "./seats.js?v=7";
 import { DAILY as SL_DAILY, INDEX as SL_INDEX, MAX_DAILY as SL_MAX_DAILY, cleanDeck, cleanIndex, showList, revealSteps, indexHas, liveContext, lessonDate, textOf } from "./slides.js?v=2";
 import { renderSlide, fitSlide, imageLoader, thumb } from "./slideView.js?v=2";
@@ -245,6 +246,12 @@ const toolApi = { S, el, push, quiet, now, card, rosters: () => ROSTERS, cue: (n
     timerSet: (sec) => { S.timers.free = Object.assign(blankTimer(), { dur: sec }); },
     // the Slide panel (js/panels.js slidePanel): this lesson's slides, drawn to fit the panel
     slideList: () => slList(), slidesReady: () => !slOn || slLoaded(),
+    // the Find panel (js/findPanel.js): Show Steps for a bank problem that has a worked example. The board itself only
+    // plays one the teacher has checked; the Remote and the Board Builder can open any, and check it there.
+    find: { mode: () => mode + (studio ? "+studio" : ""), stepsOk: (id) => !!WALKOK[id],
+        canSteps: (id) => mode !== "sub" && (!!WALKOK[id] || mode === "remote" || !!studio),
+        showSteps: (id) => { S.walk = { id, step: 0 }; S.screen = "steps"; S.show = false; push(); },
+        open: (k, from) => { if (!FIND_KEYS.includes(k)) return; const p = findSpot(from); panelOn(S.tools, k); if (p) S.tools.pos[k] = p; push(); } },   // "New panel": the next Find panel, beside the one it came from
     slideInto: (host, sl) => { host.textContent = ""; const r = renderSlide(sl, { step: revealSteps(sl), fresh: 0, live: slLive(), img: slImg().src, logo: lookSeal(), scale: (host.clientWidth || 640) / 1600 }); r.setAttribute("role", "img"); r.setAttribute("aria-label", "Slide"); host.appendChild(r); fitSlide(host, r); } };
 function toolSig() { const t = Object.assign({}, S.tools); delete t.text; t.goal = Object.assign({}, t.goal); delete t.goal.text; const f = S.timers.free; return JSON.stringify([t, S.period, Object.keys(ROSTERS).map((k) => k + ROSTERS[k].length), f.running, f.dur, f.t0, f.elapsed, S.week, S.cls, S.day, !!BELLS, S.tools.on.agenda ? [S.screen, S.screen === "notes" ? S.note : 0] : 0]); }
 const panelOk = (k) => !(mode === "sub" && (k === "pick" || k === "groups" || (k === "cam" && !studio)));   // a sub never gets the camera (the Board Builder demo does)
@@ -1277,9 +1284,23 @@ function blanked(text, reveal) {
 }
 
 /* ---------- floating tools (shown over every screen) ---------- */
-const DEFAULT_POS = { slide: [2, 2], cam: [56, 34], pick: [34, 30], groups: [10, 24],  traffic: [2, 23], work: [10, 55], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40], goal: [60, 30], ptimer: [66, 18], target: [24, 8], agenda: [4, 18], period: [66, 6] };
+const DEFAULT_POS = { find: [44, 4], find2: [4, 30], find3: [36, 30], find4: [68, 30], slide: [2, 2], cam: [56, 34], pick: [34, 30], groups: [10, 24],  traffic: [2, 23], work: [10, 55], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40], goal: [60, 30], ptimer: [66, 18], target: [24, 8], agenda: [4, 18], period: [66, 6] };
 let topZ = 1;
 let layerSig = "", dragging = false;
+/** Where a new Find panel goes: beside the Find panel it was opened from (right, left, then below), clear of the other
+    Find panels, so a row of them reads like anchor charts. Null when there's no room: the usual open spot then. */
+function findSpot(from) {
+    const stage = $("stage"), sr = stage && stage.getBoundingClientRect(), src = from && document.querySelector('#toolLayer .float[data-panel="' + from + '"]');
+    if (!sr || !sr.width || !src) return null;
+    const pct = (b) => ({ l: (b.left - sr.left) / sr.width * 100, t: (b.top - sr.top) / sr.height * 100, w: b.width / sr.width * 100, h: b.height / sr.height * 100 });
+    const a = pct(src.getBoundingClientRect()), gap = 1.2;
+    const others = FIND_KEYS.map((x) => S.tools.on[x] && !S.tools.min[x] && document.querySelector('#toolLayer .float[data-panel="' + x + '"]')).filter(Boolean).map((e) => pct(e.getBoundingClientRect()));
+    const free = (x, y) => x >= 0 && y >= 0 && x + a.w <= 100 && y + a.h <= 100 && !others.some((o) => x < o.l + o.w + gap / 2 && x + a.w + gap / 2 > o.l && y < o.t + o.h + gap / 2 && y + a.h + gap / 2 > o.t);
+    const tries = [[a.l + a.w + gap, a.t], [a.l - a.w - gap, a.t], [a.l, a.t + a.h + gap], [a.l, a.t - a.h - gap]];
+    for (let y = 2; y <= 96; y += 4) for (let x = 2; x <= 96; x += 4) tries.push([x, y]);
+    const hit = tries.find(([x, y]) => free(x, y)); if (!hit) return null;
+    return { x: Math.round(hit[0] * 10) / 10, y: Math.round(hit[1] * 10) / 10, s: posOf(from).s || 1 };
+}
 function posOf(k) { const p = S.tools.pos[k]; if (p) return p; const d = DEFAULT_POS[k] || [10, 30]; return { x: d[0], y: d[1], s: 1 }; }
 /* The Remote's rail: every panel as a switch. */
 function renderDock() {
@@ -1289,7 +1310,7 @@ function renderDock() {
     const keys = LESSON_PANELS.concat(TOOL_LIST).filter(([k]) => panelOk(k)).map(([k]) => k).join(",") + "|" + mode + "|" + studio;
     if (dock.dataset.keys === keys && dock.firstChild) {
         dock.querySelectorAll("button.psw").forEach((b) => {
-            const k = b.dataset.k, on = !!T.on[k], small = on && !!T.min[k];
+            const k = b.dataset.k, on = isOn(T, k), small = on && (k === "find" ? FIND_KEYS.filter((x) => T.on[x]).every((x) => T.min[x]) : !!T.min[k]);
             if (b.getAttribute("aria-pressed") !== String(on)) b.setAttribute("aria-pressed", String(on));
             const d = b.querySelector(".dmin"); if (small && !d) b.insertBefore(el("small", "dmin", "small"), b.querySelector(".swk")); else if (!small && d) d.remove();
             b.title = small ? "Show it again" : "";
@@ -1304,8 +1325,8 @@ function renderDock() {
         dock.appendChild(el("p", "dockh", h));
         list.filter(([k]) => panelOk(k)).forEach(([k, label]) => {
             // An on/off slider for each panel (Eddie, 2026-11-20: "toggle on and off sliders").
-            const b = el("button", "psw"); b.type = "button"; b.dataset.k = k; b.setAttribute("aria-pressed", String(!!T.on[k])); b.appendChild(el("span", "pswl", label));
-            if (T.on[k] && T.min[k]) { b.appendChild(el("small", "dmin", "small")); b.title = "Show it again"; }
+            const b = el("button", "psw"); b.type = "button"; b.dataset.k = k; b.setAttribute("aria-pressed", String(isOn(T, k))); b.appendChild(el("span", "pswl", label));
+            if (isOn(T, k) && (k === "find" ? FIND_KEYS.filter((x) => T.on[x]).every((x) => T.min[x]) : T.min[k])) { b.appendChild(el("small", "dmin", "small")); b.title = "Show it again"; }
             b.appendChild(el("i", "swk"));
             b.onclick = () => { panelToggle(T, k); push(); }; dock.appendChild(b);
         });
@@ -1432,7 +1453,7 @@ let placed = {};   // where each panel was last drawn, so only a panel that just
 function renderLayer() {
     const layer = $("toolLayer"); if (!layer || dragging) return;
     const ns = toolSig(); if (ns === layerSig) return; layerSig = ns;
-    const typingId = document.activeElement && ["toolMsgIn", "toolGoalIn"].includes(document.activeElement.id) ? document.activeElement.id : "", typing = !!typingId, caret = typing ? document.activeElement.selectionStart : 0;
+    const typingId = document.activeElement && (["toolMsgIn", "toolGoalIn"].includes(document.activeElement.id) || /^findIn/.test(document.activeElement.id)) ? document.activeElement.id : "", typing = !!typingId, caret = typing ? document.activeElement.selectionStart : 0;
     layer.textContent = ""; const shelf = shelfEl(), docked = shelfKeys(), chips = chipKeys(), canDock = !narrowWrap(), stage = $("stage"); shelf.textContent = "";
     const T = S.tools, minimize = (k) => { T.min[k] = true; push(); }, now2 = {};
     docked.forEach((k) => {   // on the shelf: beside the lesson, never over it
@@ -2168,7 +2189,7 @@ export async function startApp(opts) {
     }); }
     store.watch("rosters/all", (snap) => { const p = (snap.exists && snap.data && snap.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); renderLayer(); }, () => {});
     if (!guest) {
-        store.watch("walk/ok", (snap) => { if (snap.pending) return; import("./walkBank.js?v=2").then((wb) => { WALKOK = wb.cleanOk(snap.exists ? snap.data : null); walkIn = true; if (synced && ["steps", "deck", "canvas"].includes(S.screen)) render(); }); }, () => { walkIn = true; });
+        store.watch("walk/ok", (snap) => { if (snap.pending) return; import("./walkBank.js?v=2").then((wb) => { WALKOK = wb.cleanOk(snap.exists ? snap.data : null); walkIn = true; if (synced && ["steps", "deck", "canvas"].includes(S.screen)) render(); if (synced && FIND_KEYS.some((k) => S.tools.on[k])) { layerSig = ""; renderLayer(); } }); }, () => { walkIn = true; });
         store.watch("walk/edits", (snap) => { if (snap.pending) return; import("./walkBank.js?v=2").then((wb) => { WALKED = wb.cleanEdits(snap.exists ? snap.data : null); if (synced && ["steps", "deck", "canvas"].includes(S.screen)) { sig = ""; render(); } }); }, () => {});
     } else walkIn = true;
     if (!guest) store.watch("seats/chart", (snap) => { if (snap.pending) return; SEATS = cleanChart(snap.exists ? snap.data : null); seatsIn = true; if (synced && S.screen === "seats") render(); }, () => { seatsIn = true; });

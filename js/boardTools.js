@@ -8,11 +8,14 @@
 
 import { cleanStickers } from "./stickers.js?v=1";
 import { cleanSty } from "./panelStyle.js?v=1";
+import { cleanFinds } from "./findCore.js?v=1";
 
-export const TOOL_LIST = [["traffic", "Traffic light"], ["work", "Voice level"], ["clock", "Clock"], ["stopwatch", "Stopwatch"], ["text", "Message"], ["dice", "Dice"], ["score", "Scoreboard"], ["goal", "Class goal"], ["pick", "Name picker"], ["groups", "Group maker"], ["cam", "Webcam"], ["slide", "Slide"]];
+export const TOOL_LIST = [["traffic", "Traffic light"], ["work", "Voice level"], ["clock", "Clock"], ["stopwatch", "Stopwatch"], ["text", "Message"], ["dice", "Dice"], ["score", "Scoreboard"], ["goal", "Class goal"], ["pick", "Name picker"], ["groups", "Group maker"], ["cam", "Webcam"], ["slide", "Slide"], ["find", "Find a problem"]];
 /* Lesson panels (js/panels.js builds them) sit in the same panel system as the tools. */
 export const LESSON_PANELS = [["ptimer", "Timer"], ["target", "Learning target"], ["agenda", "Agenda"], ["period", "Period clock"]];
-export const PANEL_LIST = LESSON_PANELS.concat(TOOL_LIST);
+/* More Find panels: they come from a Find panel's "New panel" button, never from the switches, so they are not in TOOL_LIST. */
+export const FIND_MORE = [["find2", "Find a problem 2"], ["find3", "Find a problem 3"], ["find4", "Find a problem 4"]];
+export const PANEL_LIST = LESSON_PANELS.concat(TOOL_LIST, FIND_MORE);
 export const PERIOD_KEYS = ["1st", "2nd", "4th", "5th", "6th"];
 export const MAX_SCENES = 12;   // saved layouts and boards (was 6 before the Board Builder, Nov 21)
 export const MAX_DAYB = 60;     // day boards kept (about 4 weeks of 3 classes); the oldest go first
@@ -32,7 +35,8 @@ export function defaultTools() {
         sw: { running: false, t0: 0, elapsed: 0 },
         pick: { period: "", cur: -1, used: [] }, groups: { period: "", size: 3, order: [] }, absent: { day: "", periods: {} },
         palert: { on: true, at: [5, 1], sound: true },   // Period clock alerts: minutes before the end of class (0 = the bell)
-        pin: {}, lock: {}, zo: [], sty: {}, slp: "" };   // panels shown on every screen, panels locked in place, the stacking order (back to front), each panel's own style (js/panelStyle.js)
+        pin: {}, lock: {}, zo: [], sty: {}, slp: "",
+        find: {} };   // the Find panel: which bank problem is up, and whether its answer and hints show (js/findPanel.js)   // panels shown on every screen, panels locked in place, the stacking order (back to front), each panel's own style (js/panelStyle.js)
 }
 export const PALERT_MINS = [15, 10, 5, 2, 1, 0];
 export function mergeTools(d) {
@@ -68,6 +72,7 @@ export function mergeTools(d) {
     if (d.pick) t.pick = { period: PERIOD_KEYS.includes(d.pick.period) ? d.pick.period : "", cur: Number.isInteger(d.pick.cur) ? d.pick.cur : -1, used: idx(d.pick.used) };
     if (d.groups) t.groups = { period: PERIOD_KEYS.includes(d.groups.period) ? d.groups.period : "", size: Math.min(6, Math.max(2, +d.groups.size || 3)), order: idx(d.groups.order) };
     if (d.absent && typeof d.absent.day === "string" && d.absent.periods) { t.absent.day = d.absent.day.slice(0, 10); PERIOD_KEYS.forEach((k) => { if (Array.isArray(d.absent.periods[k])) t.absent.periods[k] = idx(d.absent.periods[k]); }); }
+    t.find = cleanFinds(d.find);
     if (d.sw) t.sw = { running: !!d.sw.running, t0: +d.sw.t0 || 0, elapsed: +d.sw.elapsed || 0 };
     return t;
 }

@@ -7,12 +7,14 @@
    set the screen and the panels in one tap. All of it lives in S.tools
    inside the shared board state, so the board and the Remote always match.
 ========================================== */
-import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=63";
+import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=64";
 import { meterEl, setVoice, camBody, tooLoud } from "./roomSense.js?v=1";
 import { MARKS, markUrl } from "./marks.js?v=1";
 import { EFFECTS, FX_AMOUNTS, applyEffect, effectSample } from "./effects.js?v=3";
 import { isMine, mineList, mineSrc, onMine, addMine, removeMine, MY_MAX } from "./myPhotos.js?v=1";
 import { cleanStickers } from "./stickers.js?v=1";
+import { findBody, findChip, findTitle } from "./findPanel.js?v=1";
+import { isFind, FIND_KEYS } from "./findCore.js?v=1";
 export { MARKS, EFFECTS, FX_AMOUNTS };
 
 const LESSON = new Set(LESSON_PANELS.map((x) => x[0]));
@@ -36,6 +38,7 @@ const IC = {
     groups: '<circle cx="8" cy="9" r="3"/><circle cx="16.5" cy="9" r="3"/><path d="M2.5 19a5.5 5.5 0 0111 0M11 19a5.5 5.5 0 0111 0"/>',
     layout: '<rect x="3" y="4" width="12" height="16" rx="2"/><rect x="17" y="4" width="4" height="7" rx="1.5"/><rect x="17" y="13" width="4" height="7" rx="1.5"/>',
     slide: '<rect x="3" y="5" width="13" height="10" rx="2"/><path d="M7 19h13a1 1 0 0 0 1-1V9"/>',
+    find: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M8 10.5h5M10.5 8v5"/>',
     cam: '<rect x="2.5" y="6" width="13.5" height="12" rx="2.5"/><path d="M16 10.5l5.5-3v9l-5.5-3z"/>',
     gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
     more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
@@ -51,7 +54,7 @@ const IC = {
     min: '<path d="M6 12h12"/>', float: '<path d="M14 4h6v6M20 4l-8 8"/><path d="M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/>',
     dock: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>',
 };
-export const icon = (k) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (IC[k] || IC.layout) + "</svg>";
+export const icon = (k) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (IC[k] || (/^find\d$/.test(k) ? IC.find : IC.layout)) + "</svg>";
 
 export const PANEL_INFO = {
     ptimer: "A countdown the whole room can see", target: "Today's learning target", agenda: "Today's plan, and where we are in it", period: "The time, and when class ends",
@@ -59,6 +62,7 @@ export const PANEL_INFO = {
     dice: "Roll one to three dice", score: "Points for teams or periods", goal: "Class points toward a reward", pick: "A random name, no repeats", groups: "Random groups from the roster",
     cam: "The camera, live, and recording to this device",
     slide: "One of this lesson's slides, as a panel you can move and size",
+    find: "Search the problem bank by standard or topic and put one on the board",
 };
 
 /* ---------- layouts ---------- */
@@ -126,7 +130,17 @@ export function panelOn(T, k, opts) {
     if (fresh && !(opts && opts.dock) && floatAt && !T.pos[k]) { const p = floatAt(k, T); if (p) T.pos[k] = p; }
 }
 export function panelOff(T, k) { delete T.on[k]; delete T.min[k]; delete T.pos[k]; T.order = T.order.filter((x) => x !== k); }
-export function panelToggle(T, k) { if (T.on[k] && !T.min[k]) panelOff(T, k); else panelOn(T, k); }
+export function panelToggle(T, k) {
+    if (k === "find") {   // one switch for every Find panel: off turns them all off, on shows them all again (or opens the first)
+        const open = FIND_KEYS.filter((x) => T.on[x]);
+        if (!open.length) panelOn(T, "find"); else if (open.some((x) => !T.min[x])) open.forEach((x) => panelOff(T, x)); else open.forEach((x) => panelOn(T, x));
+        return;
+    }
+    if (T.on[k] && !T.min[k]) panelOff(T, k); else panelOn(T, k);
+}
+/** Is panel k on? The Find switch is on while any Find panel is. */
+export const isOn = (T, k) => (k === "find" ? FIND_KEYS.some((x) => T.on[x]) : !!T.on[k]);
+const allMin = (T, k) => (k === "find" ? FIND_KEYS.filter((x) => T.on[x]).every((x) => T.min[x]) : !!T.min[k]);
 /** Shelf order: the saved order first, then any other panels in list order. */
 export function ordered(T, keys) { const o = T.order; return keys.slice().sort((a, b) => { const ia = o.indexOf(a), ib = o.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); }); }
 
@@ -149,6 +163,7 @@ function slidePanel(api) {
 }
 export function buildPanel(k, api) {
     if (k === "slide") return slidePanel(api);
+    if (isFind(k)) { const c = api.card(findTitle(k, api.S.tools) || labelOf(k), "tool panel tool-find"); c.i.appendChild(findBody(api, k)); return c.c; }
     if (k === "cam") { const c = api.card(labelOf(k), "tool tool-cam"); c.i.appendChild(camBody(api.el)); return c.c; }
     if (k === "work") {   // the voice level, and the room's microphone against it (js/roomSense.js, this device only)
         const w = buildWidget(k, api); setVoice(api.S.tools.work); const inn = w.querySelector(".in") || w; inn.appendChild(meterEl(api.el)); return w;
@@ -247,6 +262,7 @@ export function chipValue(k, api) {
     if (k === "traffic") return { v: { red: "Stop", yellow: "Slow down", green: "Go" }[T.traffic], tone: T.traffic === "yellow" ? "amber" : T.traffic };
     if (k === "work") { const w = WORK.find((x) => x[0] === T.work) || WORK[0]; return tooLoud() ? { v: "Too loud!", tone: "red" } : { v: w[1], tone: "v-" + w[0] }; }
     if (k === "cam") return { v: "Camera" };
+    if (isFind(k)) return findChip(k, T);
     if (k === "slide") { const l = api.slideList ? api.slideList() : [], i = Math.max(0, l.findIndex((x) => x.id === T.slp)); return { v: l.length ? "Slide " + (i + 1) + " of " + l.length : "No slides" }; }
     if (k === "text") return { v: (T.text || "No message").slice(0, 28) + ((T.text || "").length > 28 ? "…" : "") };
     if (k === "dice") { const vals = T.dice.vals.slice(0, T.dice.n); return { v: vals.join(" · ") + (vals.length > 1 ? " = " + vals.reduce((a, x) => a + x, 0) : "") }; }
@@ -348,11 +364,11 @@ function refreshSheetNow() {
     sv.onsubmit = (e) => { e.preventDefault(); const n = inp.value.trim(); if (!n) { inp.focus(); return; } saveScene(S, n); inp.value = ""; api.push(); refreshSheet(); };
     sv.append(inp, sb); box.appendChild(sv);
 
-    [["Lesson", LESSON_PANELS], ["Classroom", PANEL_LIST.filter((p) => !LESSON.has(p[0]))]].forEach(([title, list]) => {
+    [["Lesson", LESSON_PANELS], ["Classroom", PANEL_LIST.filter((p) => !LESSON.has(p[0]) && !/^find\d/.test(p[0]))]].forEach(([title, list]) => {
         box.appendChild(el("p", "psec", title));
         const g = el("div", "pgrid");
         list.filter(([k]) => api.panelOk(k)).forEach(([k, label]) => {
-            const st = !T.on[k] ? "off" : T.min[k] ? "min" : T.pos[k] ? "float" : "on";
+            const st = !isOn(T, k) ? "off" : allMin(T, k) ? "min" : T.pos[k] ? "float" : "on";
             const b = el("button", "ptile " + st); b.type = "button"; b.setAttribute("aria-pressed", String(st !== "off"));
             const ic = el("span", "pti"); ic.innerHTML = icon(k); b.appendChild(ic);
             const tx = el("span", "ptt"); tx.appendChild(el("b", null, label)); tx.appendChild(el("span", null, PANEL_INFO[k] || "")); b.appendChild(tx);
