@@ -9,9 +9,9 @@ import { STANDARDS } from "../data/standards.js?v=58";
 import { loadStdBank, LEVELS } from "./stdBank.js?v=3";
 import * as C from "./assignCore.js?v=7";
 import { mathText } from "./vaultCore.js?v=75";
-import * as Tr from "./timelineTray.js?v=2";
-import * as K from "./timelineLinks.js?v=1";
-import { isFoundational, stepOf } from "./foundBank.js?v=1";
+import * as Tr from "./timelineTray.js?v=3";
+import * as K from "./timelineLinks.js?v=2";
+import { isFoundational, stepOf } from "./foundBank.js?v=2";
 
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "button"; if (fn) b.onclick = fn; return b; };

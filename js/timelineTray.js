@@ -7,7 +7,7 @@
 ========================================== */
 import * as C from "./assignCore.js?v=7";
 import { inClass } from "./stdBank.js?v=3";
-import { isFoundational, problemsFor, nameOf } from "./foundBank.js?v=1";
+import { isFoundational, problemsFor, nameOf } from "./foundBank.js?v=2";
 
 export const FLOOR_N = 12;   // problems drawn from a floor (foundational) skill, made from numbers in js/foundBank.js
 

@@ -5,8 +5,8 @@
    Tested by tools/timeline/links.test.mjs.
 ========================================== */
 import { STANDARDS } from "../data/standards.js?v=58";
-import { LINKS } from "../data/stdLinks.js?v=1";
-import { LADDER, stepOf } from "./foundBank.js?v=1";
+import { LINKS } from "../data/stdLinks.js?v=2";
+import { LADDER, stepOf } from "./foundBank.js?v=2";
 
 const known = new Set(Object.values(STANDARDS).flatMap((c) => c.standards.map((s) => s.code)));
 const ladder = new Set(LADDER.map((x) => x.id));
