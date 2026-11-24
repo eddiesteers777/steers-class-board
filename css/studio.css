@@ -186,6 +186,15 @@ body.studio.stkstep:not(.board) .stickerlayer{z-index:4}
 .sbstep:hover{text-decoration:underline}
 @media (max-width:600px){#openBoard{display:none}}
 .sfhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sftog{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:4px 10px 4px 4px;margin-left:-4px;border:0;border-radius:10px;background:none;color:var(--c-ink);font:inherit;cursor:pointer}
+.sftog:hover{background:var(--c-bg)}
+.sftog:focus-visible{outline:3px solid var(--amber);outline-offset:1px}
+.sfchev{width:18px;height:18px;flex:none;color:var(--c-mute);transition:transform .2s}
+.sftog[aria-expanded="false"] .sfchev{transform:rotate(-90deg)}
+.sfbody{display:flex;flex-direction:column;gap:6px}
+.sfbody[hidden]{display:none}
+.sfoot.folded{padding-top:8px;padding-bottom:8px}
+@media (prefers-reduced-motion:reduce){.sfchev{transition:none}}
 .sundo{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 12px;font-size:.85rem}
 .sundo svg{width:16px;height:16px}
 .slook .lookbg .lpv .stagebg,.sbpv .stagebg{filter:brightness(1.7) saturate(1.2)}

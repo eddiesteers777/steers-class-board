@@ -9,7 +9,7 @@
 
 import { WORK, PALERT_MINS } from "./boardTools.js?v=78";
 import { PANEL_COLORS, PANEL_FINISHES, PANEL_CORNERS, PANEL_PRESETS, MIN_SOLID, cleanSty, applySty, swatchBg } from "./panelStyle.js?v=1";
-import { themeCols } from "./panels.js?v=40";
+import { themeCols } from "./panels.js?v=41";
 import { micSens, setMicSens, micState, micStart, micStop, camMirror, setCamMirror, camState, camStart, camStop, recStart, recStop } from "./roomSense.js?v=1";
 
 let open = "", api = null, box = null, sigWas = "", focusTo = "", paintedFor = "";

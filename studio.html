@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="css/buddy.css?v=2">
     <link rel="stylesheet" href="css/wb.css?v=7">
     <link rel="stylesheet" href="css/panels.css?v=7">
-    <link rel="stylesheet" href="css/look.css?v=8">
+    <link rel="stylesheet" href="css/look.css?v=9">
     <link rel="stylesheet" href="css/slides.css?v=2">
     <link rel="stylesheet" href="css/seats.css?v=6">
     <link rel="stylesheet" href="css/bellplan.css?v=7">
@@ -27,7 +27,7 @@
     <link rel="stylesheet" href="css/manip.css?v=14">
     <link rel="stylesheet" href="css/livestatus.css?v=2">
     <link rel="stylesheet" href="css/phone.css?v=9">
-    <link rel="stylesheet" href="css/studio.css?v=3">
+    <link rel="stylesheet" href="css/studio.css?v=4">
     <link rel="stylesheet" href="css/slidedit.css?v=6">
     <link rel="stylesheet" href="css/spotlight.css?v=6">
     <link rel="stylesheet" href="css/skin.css?v=2">
@@ -71,13 +71,15 @@
                 </section>
             </div>
             <div class="spick" id="pickHost" hidden></div>
-            <form class="sfoot" id="saveForm">
-                <div class="sfhead"><label class="sfl" for="saveName">Save this board</label><button class="btn ghost sundo" id="undoBtn" type="button" disabled>
+            <form class="sfoot folded" id="saveForm">
+                <div class="sfhead"><button class="sftog" id="saveTog" type="button" aria-expanded="false" aria-controls="saveBody" title="Show or hide Save this board"><span class="sfl">Save this board</span><svg class="sfchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button><button class="btn ghost sundo" id="undoBtn" type="button" disabled>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>Undo</button></div>
+                <div class="sfbody" id="saveBody" hidden>
                 <div class="sfday" title="When this lesson comes up, the board switches to the board you save"><label><input type="checkbox" id="saveDay"> <span id="saveDayLabel">This day's board for</span></label>
                     <select id="saveDayFor" aria-label="Which classes"><option value="one">this class</option><option value="all">all my classes</option></select></div>
-                <div class="sfrow"><input id="saveName" type="text" maxlength="24" placeholder="Name it, like: Monday notes" autocomplete="off"><button class="btn sgo" type="submit">Save</button></div>
+                <div class="sfrow"><input id="saveName" type="text" maxlength="24" placeholder="Name it, like: Monday notes" autocomplete="off" aria-label="Name for this board"><button class="btn sgo" type="submit">Save</button></div>
                 <p class="sfnote" id="saveNote" role="status"></p>
+                </div>
             </form>
         </aside>
         <main class="deck">
@@ -92,8 +94,8 @@
     <div class="spot" id="spotApp" hidden></div>
     <button id="exit" type="button">Show controls</button>
     <script type="module">
-        import { startApp } from "./js/boardApp.js?v=174";
-        import { studio } from "./js/studio.js?v=39";
+        import { startApp } from "./js/boardApp.js?v=175";
+        import { studio } from "./js/studio.js?v=40";
         const q = new URLSearchParams(location.search);
         if (q.has("demo")) {
             // ?demo: the made-up sample week on this device only, nothing saved (for trying it and for tests).
