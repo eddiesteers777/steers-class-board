@@ -990,6 +990,35 @@ function build(W, item) {
     if ((m = q.match(/^Write ([−-]?)\{(\d+)\/(\d+)\} as a decimal\.( Does it terminate or repeat\?)?$/))) return decSetup(W, item, m[1], +m[2], +m[3], !!m[4]);
     if ((m = q.match(/^What is the decimal form of ([−-]?)\{(\d+)\/(\d+)\}\?$/))) return decSetup(W, item, m[1], +m[2], +m[3], false);
     if ((m = q.match(/^Does ([−-]?)\{(\d+)\/(\d+)\} terminate or repeat as a decimal\?$/))) return decSetup(W, item, m[1], +m[2], +m[3], true);
+    // 8.1: rational or irrational, decimals and fractions
+    if ((m = q.match(/^Does the decimal for ([−-]?)\{(\d+)\/(\d+)\} terminate or repeat\?$/))) return decSetup(W, item, m[1], +m[2], +m[3], true);
+    if ((m = q.match(/^Write the rational number ([−-]?)\{(\d+)\/(\d+)\} as a decimal\.$/))) return decSetup(W, item, m[1], +m[2], +m[3], false);
+    if ((m = q.match(/^Is (\S+) rational or irrational\?$/))) return ratOneSetup(W, item, m[1]);
+    if ((m = q.match(/^Which number is irrational\? (A\. .+)$/))) return ratChoiceSetup(W, item, m[1].split(/\s+(?=[A-D]\. )/).map((x) => ({ label: x[0], x: x.slice(3).trim() })), (r) => r.c.label);
+    if (/^Which of the following numbers is irrational\?$/.test(q)) return ratChoiceSetup(W, item, (item.choices || []).map((c) => ({ x: String(c) })), (r) => r.c.x);
+    if ((m = q.match(/^Consider the set of numbers: \{(.+?)\}\. How many of these numbers are rational\?$/))) return ratCountSetup(W, item, m[1].split(/\s*,\s*/));
+    if (/^Which fraction produces a repeating decimal expansion\?$/.test(q)) return repChoiceSetup(W, item);
+    if ((m = q.match(/^Write (\d*\.\d+(?:…|\.\.\.)) \((\d+ repeating)\) as a fraction(?: in simplest form)?\.$/))) return repFracSetup(W, item, m[1], m[2]);
+    if ((m = q.match(/^Express the sum of (\d*\.\d+(?:…|\.\.\.)) and (\d*\.\d+(?:…|\.\.\.))(?: \((where only the \d+ repeats)\))? as a single fraction in simplest form\.$/))) return repSumSetup(W, item, m[1], "", m[2], m[3] || "");
+    if ((m = q.match(/^Which fraction is equivalent to the repeating decimal (\d*\.\d+(?:…|\.\.\.))\?$/))) return repFracSetup(W, item, m[1], "");
+    if ((m = q.match(/^Convert the repeating decimal (\d*\.\d+(?:…|\.\.\.))(?: \((where only the \d+ repeats)\))? into a fraction in simplest form\.$/))) return repFracSetup(W, item, m[1], m[2] || "");
+    // 8.2: square roots and π
+    if ((m = q.match(/^√(\d+) is between which two whole numbers\?$/)) || (m = q.match(/^Between which two consecutive whole numbers does √(\d+) lie\?$/))) return sqBetweenSetup(W, item, "", +m[1]);
+    if ((m = q.match(/^Between which two consecutive whole numbers is ([−-]?)√(\d+)\?$/))) return sqBetweenSetup(W, item, m[1], +m[2]);
+    if ((m = q.match(/^Is √(\d+) closer to (\d+) or (\d+)\?$/)) && +m[3] === +m[2] + 1 && Math.floor(Math.sqrt(+m[1])) === +m[2]) return sqNearestSetup(W, item, +m[1]);
+    if ((m = q.match(/^Which whole number is closest to √(\d+)\?$/))) return sqNearestSetup(W, item, +m[1]);
+    if ((m = q.match(/^Estimate (?:the value of )?√(\d+) to the nearest tenth\.$/))) return sqTenthSetup(W, item, +m[1], "round");
+    if ((m = q.match(/^A square garden has an area of (\d+) square feet\. Between which two tenths of a foot does the side length of the garden fall\?$/))) {
+        W.steps.push({ move: "story", title: "The side is √" + m[1], why: "A square's area is side × side. The side times itself is " + m[1] + ", so the side is √" + m[1] + " feet.", seq: [{ a: "row", row: { t: "pic", pic: { kind: "story", text: item.q, marks: [["area of " + m[1] + " square feet", m[1]]] } } }] });
+        return sqTenthSetup(W, item, +m[1], "between");
+    }
+    if ((m = q.match(/^Find an integer n such that ([\d.]+) < √n < ([\d.]+)\.$/))) return sqFindSetup(W, item, m[1], m[2]);
+    if ((m = q.match(/^Which is greater: (\S+) or (\S+)\?$/))) return sqGreaterSetup(W, item, m[1], m[2]);
+    if ((m = q.match(/^Which symbol makes the statement true\? \((√\d+)\) ___ (\S+)$/))) return sqSymbolSetup(W, item, m[1], m[2]);
+    if ((m = q.match(/^Which number is closest to (\S+) on a number line\?$/))) return sqClosestSetup(W, item, m[1]);
+    if ((m = q.match(/^Order (?:the following numbers )?from least to greatest: (.+?)\.?$/)) && /√|π/.test(m[1])) return sqOrderSetup(W, item, m[1].split(/\s*,\s*/));
+    if (/^Estimate π² to the nearest whole number\.$/.test(q)) return piSqSetup(W, item);
+    if ((m = q.match(/^Point P on a number line represents the value \((\d+)π\) \+ (\d+)\. Which statement best describes the location of Point P\?$/))) return piLineSetup(W, item, +m[1], +m[2]);
     if ((m = q.match(/^Convert ([−-]?)\{(\d+)\/(\d+)\} to a decimal using long division and classify it\.$/))) return decSetup(W, item, m[1], +m[2], +m[3], true);
     if (/[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(String(item.a))) return null;   // exponent rules: the answer is a power, not a number
     // expressions with a variable: distribute and combine like terms, or factor out the GCF
@@ -1301,6 +1330,307 @@ function decSetup(W, item, sgn, n, d, classify) {
     return true;
 }
 
+/* ---------- 8.1 and 8.2: rational or irrational, repeating decimals to fractions, square roots ---------- */
+const isq = (n) => { const r = Math.round(Math.sqrt(n)); return r * r === n ? r : null; };
+const dtx = (q) => numText(q, q.int ? undefined : "dec");
+const chainRow = (parts, truth, o) => Object.assign({ t: "line", cells: [R([parts.join(" ")]), null, null], sem: { truth: !!truth }, chain: true }, o || {});
+const noteRow = (left, right, o) => Object.assign({ t: "line", cells: [R([left]), "→", R([right])] }, o || {});
+/** "5² = 25 < 30 < 36 = 6²": the perfect squares on each side of n (n > 0, not a perfect square). */
+function bracketRow(n) {
+    const a = Math.floor(Math.sqrt(n));
+    return { a, row: chainRow([a + "²", "=", String(a * a), "<", String(n), "<", String((a + 1) * (a + 1)), "=", (a + 1) + "²"], a * a < n && n < (a + 1) * (a + 1)) };
+}
+/** One number, read for "rational or irrational". */
+function realRead(text0) {
+    const t = String(text0).trim().replace(/\.\.\.$/, "…");
+    let m;
+    if (t === "π") return { rat: false, title: "π", why: "π = 3.14159… Its digits go on forever and never fall into a repeating pattern, so π is irrational. (3.14 and 22/7 are only close to π.)", rows: [noteRow("π = 3.14159…", "never repeats")] };
+    if ((m = t.match(/^([−-]?)√(\d+)$/))) {
+        const n = +m[2], r = isq(n), sg = m[1] ? MINUS : "";
+        if (r != null) return { rat: true, title: "Is " + n + " a perfect square?", why: n + " is a perfect square: " + r + " × " + r + " = " + n + ". So " + sg + "√" + n + " = " + sg + r + ", an integer. Integers are rational.", rows: [chainRow([sg + "√" + n, "=", sg + r], true)] };
+        const b = bracketRow(n);
+        return { rat: false, title: "Is " + n + " a perfect square?", why: n + " is not a perfect square. It falls between " + b.a + "² = " + b.a * b.a + " and " + (b.a + 1) + "² = " + (b.a + 1) * (b.a + 1) + ". The square root of a whole number that isn't a perfect square is irrational: its decimal never ends and never repeats.", rows: [b.row] };
+    }
+    if ((m = t.match(/^([−-]?\d*\.\d+)…$/))) return { rat: true, title: t, why: t + " repeats, and every repeating decimal can be written as a fraction, so it is rational.", rows: [noteRow(t, "repeats")] };
+    if ((m = t.match(/^([−-]?)\{(\d+)\/(\d+)\}$/))) { const sg = m[1] ? MINUS : ""; return { rat: true, title: sg + m[2] + "/" + m[3], why: sg + m[2] + "/" + m[3] + " is already a fraction of two integers, so it is rational.", rows: [] }; }
+    if ((m = t.match(/^([−-]?)(\d+)\.(\d+)$/))) {
+        const sg = m[1] ? MINUS : "", top = String(+(m[2] + m[3])), bot = String(10 ** m[3].length);
+        return { rat: true, title: t, why: t + " stops, so it is a fraction over " + bot + ": " + t + " = " + sg + top + "/" + bot + ". A fraction of two integers is rational.", rows: [{ t: "line", cells: [R([t.replace(/^-/, MINUS)]), "=", R([sg, F(top, bot)])], sem: { truth: qOf(t).eq(new Q((sg ? -1 : 1) * +top, +bot)) }, chain: true }] };
+    }
+    if ((m = t.match(/^([−-]?)(\d+)$/))) { const sg = m[1] ? MINUS : ""; return { rat: true, title: sg + m[2], why: sg + m[2] + " is an integer. It can be written " + sg + m[2] + "/1, so it is rational.", rows: [{ t: "line", cells: [R([sg + m[2]]), "=", R([sg, F(m[2], "1")])], sem: { truth: true }, chain: true }] }; }
+    return null;
+}
+const dispX = (t) => { const m = String(t).match(/^([−-]?)\{(\d+)\/(\d+)\}$/); return m ? R([m[1] ? MINUS : "", F(m[2], m[3])]) : String(t).replace(/^-/, MINUS); };
+const verdict = (x, rd, pick) => ({ a: "row", row: noteRow(dispX(x), (rd.rat ? "Rational" : "Irrational") + (pick ? " ✓" : ""), pick ? { c: "w-check" } : undefined) });
+function ratOneSetup(W, item, x) {
+    W.kind = "rel"; W.cols = 3;
+    const rd = realRead(x); if (!rd) return null;
+    if (!new RegExp("^" + (rd.rat ? "Rational" : "Irrational") + "\\b").test(String(item.a).trim())) throw new Error("key");
+    W.steps.push({ move: "start", title: rd.title, why: rd.why, seq: rd.rows.map((row) => ({ a: "row", row })) });
+    W.steps.push({ move: "verdict", title: rd.rat ? "Rational" : "Irrational", why: rd.rat ? "It can be written as a fraction of two integers." : "It can't be written as a fraction of two integers.", seq: [verdict(x, rd)] });
+    answerStep(W, item.a);
+    return true;
+}
+/** "Which number is irrational?": read every choice; exactly one may be irrational. */
+function ratChoiceSetup(W, item, list, keyOf) {
+    W.kind = "rel"; W.cols = 3;
+    const rds = list.map((c) => ({ c, rd: realRead(c.x) }));
+    if (rds.some((x) => !x.rd)) return null;
+    const irr = rds.filter((x) => !x.rd.rat);
+    if (irr.length !== 1 || keyOf(irr[0]) !== String(item.a).trim()) throw new Error("key");
+    W.steps.push({ move: "fact", title: "Rational or irrational?", why: "Rational means it can be written as a fraction of two integers: integers, fractions, and decimals that stop or repeat. Check each choice.", seq: [{ a: "row", row: { t: "pic", pic: { kind: "fact", text: "Rational = a fraction of two integers." } } }] });
+    rds.forEach(({ c, rd }) => W.steps.push({ move: "choice", title: (c.label ? c.label + ". " : "") + c.x.replace(/\{(\d+)\/(\d+)\}/, "$1/$2"), why: rd.why, seq: [...rd.rows.map((row) => ({ a: "row", row })), verdict(c.x, rd, !rd.rat)] }));
+    answerStep(W, item.a, "Only " + irr[0].c.x.replace(/\{(\d+)\/(\d+)\}/, "$1/$2") + " is irrational.");
+    return true;
+}
+function ratCountSetup(W, item, xs) {
+    W.kind = "rel"; W.cols = 3;
+    const rds = xs.map((x) => ({ x, rd: realRead(x) }));
+    if (rds.some((x) => !x.rd)) return null;
+    const rat = rds.filter((x) => x.rd.rat);
+    if (String(rat.length) !== String(item.a).trim()) throw new Error("key");
+    W.steps.push({ move: "fact", title: "Rational or irrational?", why: "Rational means it can be written as a fraction of two integers. Check each number in the set.", seq: [{ a: "row", row: { t: "pic", pic: { kind: "fact", text: "Rational = a fraction of two integers." } } }] });
+    rds.forEach(({ x, rd }) => W.steps.push({ move: "choice", title: x, why: rd.why, seq: [...rd.rows.map((row) => ({ a: "row", row })), verdict(x, rd, rd.rat)] }));
+    W.steps.push({ move: "count", title: "Count them", why: rat.length + " of the " + xs.length + " numbers are rational: " + rat.map((x) => x.x).join(", ") + ".", seq: [{ a: "row", row: noteRow(rat.map((x) => x.x).join(", "), rat.length + " rational") }] });
+    answerStep(W, item.a);
+    return true;
+}
+/** Bottoms with only 2s and 5s stop; "Which fraction produces a repeating decimal?" */
+const primeList = (n) => { const out = []; for (let p = 2; n > 1; p++) while (n % p === 0) { out.push(p); n /= p; } return out; };
+function repChoiceSetup(W, item) {
+    W.kind = "rel"; W.cols = 3;
+    const ch = (item.choices || []).map((c) => { const m = String(c).match(/^\{(\d+)\/(\d+)\}$/); return m ? { c, n: +m[1], d: +m[2] } : null; });
+    if (ch.length < 2 || ch.some((x) => !x)) return null;
+    W.steps.push({ move: "fact", title: "Look at the bottom", why: "In simplest form, a fraction's decimal stops only when the bottom's prime factors are all 2s and 5s. Any other prime factor makes it repeat.", seq: [{ a: "row", row: { t: "pic", pic: { kind: "fact", text: "Bottom made of only 2s and 5s → it stops." } } }] });
+    const reps = [];
+    ch.forEach((x) => {
+        const q = new Q(x.n, x.d); if (q.d !== x.d) throw new Error("key");     // must already be in simplest form
+        const ps = primeList(x.d), other = ps.filter((p) => p !== 2 && p !== 5), rep = other.length > 0;
+        if (rep !== (longDiv(x.n, x.d).from >= 0)) throw new Error("key");
+        if (rep) reps.push(x.c);
+        W.steps.push({ move: "choice", title: x.n + "/" + x.d, why: x.d + " = " + ps.join(" × ") + ". " + (rep ? "It has a " + other[0] + ", so " + x.n + "/" + x.d + " repeats." : "Only 2s and 5s, so " + x.n + "/" + x.d + " stops."),
+            seq: [{ a: "row", row: noteRow(R([F(String(x.n), String(x.d))]), x.d + " = " + ps.join(" × ") + (rep ? "  repeats ✓" : "  stops"), rep ? { c: "w-check" } : undefined) }] });
+    });
+    if (reps.length !== 1 || reps[0] !== String(item.a).trim()) throw new Error("key");
+    answerStep(W, item.a, "Only this bottom has a prime factor other than 2 and 5.");
+    return true;
+}
+
+/** "0.1666… (6 repeating)" → { whole, fixed, block } */
+function repParse(dec, note) {
+    const m = String(dec).replace(/\.\.\.$/, "…").match(/^(\d+)\.(\d+)…$/);
+    if (!m) return null;
+    const whole = m[1], ds = m[2];
+    let block = null;
+    const bm = String(note || "").match(/\(?(?:where only the |only )?(\d+) (?:repeating|repeats)\)?/);
+    if (bm) block = bm[1];
+    let fixed;
+    if (block) {
+        // the digits before the block are the ones that don't repeat
+        let s = 0; while (s < ds.length && !(ds.slice(s).startsWith(block) && (block.repeat(Math.ceil((ds.length - s) / block.length) + 1)).startsWith(ds.slice(s)))) s++;
+        if (s >= ds.length) return null;
+        fixed = ds.slice(0, s);
+    } else {
+        let best = null;
+        for (let s = 0; s < ds.length && !best; s++) for (let p = 1; p <= 3 && !best; p++) { const tail = ds.slice(s); if (tail.length >= 2 * p && block == null && tail === tail.slice(0, p).repeat(Math.ceil(tail.length / p)).slice(0, tail.length)) best = { s, p }; }
+        if (!best) return null;
+        fixed = ds.slice(0, best.s); block = ds.slice(best.s, best.s + best.p);
+    }
+    const v = new Q(+(whole + fixed + block) - +(whole + fixed), 10 ** (fixed.length + block.length) - 10 ** fixed.length);
+    return { whole, fixed, block, v };
+}
+const repShow = (whole, digits, block) => whole + "." + digits + block.repeat(block.length === 1 ? 3 : 2) + "…";
+/** Steps that turn a repeating decimal into a fraction: x = …, 10x = …, subtract, divide. Returns the fraction. */
+function repSteps(W, P, v = "x", noStart) {
+    const { whole, fixed, block } = P, m = fixed.length, k = block.length;
+    const lo = 10 ** m, hi = 10 ** (m + k);
+    const shiftTo = (p) => { const all = whole + fixed + block.repeat(6); const s = all.slice(0, whole.length + p), rest = all.slice(whole.length + p); return { text: String(+s) + "." + rest.slice(0, Math.max(3, k * 2)) + "…", int: +s }; };
+    const x0 = repShow(whole, fixed, block);
+    if (!noStart) W.steps.push({ move: "start", title: "Call it " + v, why: "Let " + v + " be the repeating decimal. The goal is two copies of it with the same repeating tail, so the tail cancels when you subtract.", seq: [{ a: "row", row: { t: "line", cells: [R([v]), "=", R([x0])], sem: { truth: true } } }] });
+    const A = shiftTo(m), B = shiftTo(m + k);
+    if (m > 0) W.steps.push({ move: "shift", title: "Multiply by " + lo, why: "Only the " + block + " repeats. Multiply by " + lo + " to move the decimal point past the " + fixed + " that doesn't repeat.", seq: [{ a: "row", row: { t: "line", cells: [R([lo + v]), "=", R([A.text])], sem: { truth: true } } }] });
+    W.steps.push({ move: "shift", title: "Multiply by " + hi, why: "Multiply by " + hi + " to move the decimal point " + (m > 0 ? "past one more full " : "past one full ") + block + ". The tail after the point is the same as " + (m > 0 ? "in " + lo + v : "in " + v) + ".", seq: [{ a: "row", row: { t: "line", cells: [R([hi + v]), "=", R([B.text])], sem: { truth: true } } }] });
+    const lhs = m > 0 ? lo + v : v, aInt = m > 0 ? A.int : +whole, dv = hi - lo, top = B.int - aInt;
+    W.steps.push({ move: "repsub", title: "Subtract", why: hi + v + " − " + lhs + " = " + dv + v + ". On the right the repeating tails match, so they cancel: " + B.int + " − " + aInt + " = " + top + ".", seq: [{ a: "row", row: { t: "line", cells: [R([hi + v + " − " + lhs]), "=", R([B.text + " − " + (m > 0 ? A.text : x0)])], sem: { truth: true } } }, { a: "row", row: { t: "line", cells: [R([dv + v]), "=", R([String(top)])], sem: { truth: new Q(top, dv).eq(P.v) } } }] });
+    W.steps.push({ move: "divide", title: "Divide by " + dv, why: "Divide both sides by " + dv + " to get " + v + " alone.", seq: [{ a: "row", row: { t: "line", cells: [R([v]), "=", R([F(String(top), String(dv))])], sem: { truth: new Q(top, dv).eq(P.v) } } }] });
+    const q = new Q(top, dv);
+    if (q.d !== dv) {
+        const g = dv / q.d;
+        W.steps.push({ move: "simplify", title: "Simplify", why: "Divide the top and the bottom by " + g + ": " + top + " ÷ " + g + " = " + q.n + " and " + dv + " ÷ " + g + " = " + q.d + ".", seq: [{ a: "row", row: { t: "line", cells: [R([v]), "=", R([F(String(q.n), String(q.d))])], sem: { truth: q.eq(P.v) } } }] });
+    }
+    return q;
+}
+function repSumSetup(W, item, d1, n1, d2, n2) {
+    W.kind = "rel"; W.cols = 3;
+    const P1 = repParse(d1, n1), P2 = repParse(d2, n2); if (!P1 || !P2) return null;
+    const sum = P1.v.add(P2.v), key = qOf(String(item.a).trim()); if (!key || !key.eq(sum)) throw new Error("key");
+    const a = repSteps(W, P1, "x"), b = repSteps(W, P2, "y");
+    const L = a.d * b.d / gcdN(a.d, b.d), a2 = a.n * (L / a.d), b2 = b.n * (L / b.d), s = new Q(a2 + b2, L);
+    const frac = (n, d) => F(String(n), String(d));
+    W.steps.push({ move: "lcd", title: "Add the fractions", why: "Now add " + a.n + "/" + a.d + " + " + b.n + "/" + b.d + ". Use " + L + " for both bottoms: " + a.n + "/" + a.d + " = " + a2 + "/" + L + " and " + b.n + "/" + b.d + " = " + b2 + "/" + L + ".", seq: [{ a: "row", row: { t: "line", cells: [R([frac(a.n, a.d), " + ", frac(b.n, b.d)]), "=", R([frac(a2, L), " + ", frac(b2, L)])], sem: { truth: true }, chain: true } }] });
+    W.steps.push({ move: "addtops", title: "Add the tops", why: "Same bottom, so add the tops: " + a2 + " + " + b2 + " = " + (a2 + b2) + "." + (s.d !== L ? " Then simplify to " + s.n + "/" + s.d + "." : ""), seq: [{ a: "row", row: { t: "line", cells: [null, "=", R([frac(a2 + b2, L)])], sem: { truth: true }, chain: true } }, ...(s.d !== L ? [{ a: "row", row: { t: "line", cells: [null, "=", R([frac(s.n, s.d)])], sem: { truth: s.eq(sum) }, chain: true } }] : [])] });
+    answerStep(W, item.a);
+    return true;
+}
+const gcdN = (a, b) => (b ? gcdN(b, a % b) : Math.abs(a));
+function repFracSetup(W, item, dec, note) {
+    W.kind = "rel"; W.cols = 3;
+    const P = repParse(dec, note); if (!P) return null;
+    const key = qOf(String(item.a).trim()); if (!key || !key.eq(P.v)) throw new Error("key");
+    const q = repSteps(W, P);
+    if (!q.eq(key)) throw new Error("key");
+    answerStep(W, item.a);
+    return true;
+}
+
+/* ---- square roots ---- */
+function sqBetweenSetup(W, item, sgn, n) {
+    W.kind = "rel"; W.cols = 3;
+    if (isq(n) != null) return null;
+    const b = bracketRow(n), a = b.a, neg = !!sgn;
+    const want = neg ? [-(a + 1), -a] : [a, a + 1];
+    const km = String(item.a).replace(/−/g, "-").match(/^(-?\d+) and (-?\d+)$/);
+    if (!km || +km[1] !== want[0] || +km[2] !== want[1]) throw new Error("key");
+    W.steps.push({ move: "start", title: "Find the perfect squares around " + n, why: n + " is between the perfect squares " + a * a + " and " + (a + 1) * (a + 1) + ".", seq: [{ a: "row", row: b.row }] });
+    W.steps.push({ move: "root", title: "Take the square roots", why: "Square roots keep the same order: √" + a * a + " = " + a + " and √" + (a + 1) * (a + 1) + " = " + (a + 1) + ", so √" + n + " is between " + a + " and " + (a + 1) + ".", seq: [{ a: "row", row: chainRow([String(a), "<", "√" + n, "<", String(a + 1)], a * a < n && n < (a + 1) * (a + 1)) }] });
+    if (neg) W.steps.push({ move: "flip", title: "Take the opposite", why: "The minus sign flips everything to the other side of 0, so the order flips too: −√" + n + " is between −" + (a + 1) + " and −" + a + ".", seq: [{ a: "row", row: chainRow([MINUS + (a + 1), "<", MINUS + "√" + n, "<", MINUS + a], true) }] });
+    answerStep(W, item.a);
+    return true;
+}
+/** The nearest whole number: compare with the halfway point's square. */
+function sqNearestSetup(W, item, n) {
+    W.kind = "rel"; W.cols = 3;
+    if (isq(n) != null) return null;
+    const b = bracketRow(n), a = b.a, mid = new Q(2 * a + 1, 2), mid2 = mid.mul(mid), up = new Q(n).cmp(mid2) > 0, ans = up ? a + 1 : a;
+    if (readKey(item.a) == null || !readKey(item.a).v || !readKey(item.a).v.eq(ans)) throw new Error("key");
+    if ((Math.abs(Math.sqrt(n) - ans) < Math.abs(Math.sqrt(n) - (up ? a : a + 1))) !== true) throw new Error("key");
+    W.steps.push({ move: "start", title: "Find the perfect squares around " + n, why: "√" + n + " is between " + a + " and " + (a + 1) + ".", seq: [{ a: "row", row: b.row }] });
+    W.steps.push({ move: "half", title: "Check the halfway point", why: "Halfway between " + a + " and " + (a + 1) + " is " + dtx(mid) + ", and " + dtx(mid) + "² = " + dtx(mid2) + ". " + n + " is " + (up ? "more" : "less") + ", so √" + n + " is " + (up ? "past" : "before") + " the halfway point, closer to " + ans + ".",
+        seq: [{ a: "row", row: chainRow(up ? [dtx(mid) + "²", "=", dtx(mid2), "<", String(n)] : [String(n), "<", dtx(mid2), "=", dtx(mid) + "²"], true) }] });
+    answerStep(W, item.a);
+    return true;
+}
+/** Tenths: square tenths until n is caught between two of them. */
+function tenthsRows(n, a) {
+    let t = new Q(a * 10, 10);
+    for (let i = 0; i < 10; i++) { const u = t.add(new Q(1, 10)); if (u.mul(u).cmp(n) > 0) return { lo: t, hi: u }; t = u; }
+    return null;
+}
+function sqTenthSetup(W, item, n, mode) {
+    W.kind = "rel"; W.cols = 3;
+    if (isq(n) != null) return null;
+    const b = bracketRow(n), a = b.a, T = tenthsRows(n, a); if (!T) return null;
+    const lo2 = T.lo.mul(T.lo), hi2 = T.hi.mul(T.hi);
+    W.steps.push({ move: "start", title: "Find the perfect squares around " + n, why: "√" + n + " is between " + a + " and " + (a + 1) + ".", seq: [{ a: "row", row: b.row }] });
+    W.steps.push({ move: "tenths", title: "Try tenths", why: "Square tenths between " + a + " and " + (a + 1) + " until " + n + " is caught: " + dtx(T.lo) + "² = " + dtx(lo2) + " and " + dtx(T.hi) + "² = " + dtx(hi2) + ". So √" + n + " is between " + dtx(T.lo) + " and " + dtx(T.hi) + ".",
+        seq: [{ a: "row", row: chainRow([dtx(T.lo) + "²", "=", dtx(lo2), "<", String(n), "<", dtx(hi2), "=", dtx(T.hi) + "²"], lo2.cmp(n) < 0 && hi2.cmp(n) > 0) }] });
+    if (mode === "between") {
+        const km = String(item.a).match(/^([\d.]+)(?: \w+)? and ([\d.]+)/);
+        if (!km || !qOf(km[1]).eq(T.lo) || !qOf(km[2]).eq(T.hi)) throw new Error("key");
+    } else {
+        const mid = T.lo.add(T.hi).div(2), mid2 = mid.mul(mid), up = new Q(n).cmp(mid2) > 0, ans = up ? T.hi : T.lo;
+        const k = readKey(item.a); if (!k || !k.v || !k.v.eq(ans)) throw new Error("key");
+        W.steps.push({ move: "half", title: "Round to the nearest tenth", why: "Halfway is " + dtx(mid) + ", and " + dtx(mid) + "² = " + dtx(mid2) + ". " + n + " is " + (up ? "more" : "less") + ", so √" + n + " rounds " + (up ? "up to " : "down to ") + dtx(ans) + ".",
+            seq: [{ a: "row", row: chainRow(up ? [dtx(mid) + "²", "=", dtx(mid2), "<", String(n)] : [String(n), "<", dtx(mid2), "=", dtx(mid) + "²"], true) }] });
+    }
+    answerStep(W, item.a);
+    return true;
+}
+/** "Find an integer n such that 4.2 < √n < 4.3." */
+function sqFindSetup(W, item, lo, hi) {
+    W.kind = "rel"; W.cols = 3;
+    const L = qOf(lo), H = qOf(hi); if (!L || !H) return null;
+    const L2 = L.mul(L), H2 = H.mul(H), ns = []; for (let n = Math.ceil(L2.n / L2.d); n * H2.d < H2.n; n++) if (L2.cmp(n) < 0) ns.push(n);
+    if (ns.length !== 1 || String(ns[0]) !== String(item.a).trim()) throw new Error("key");
+    W.steps.push({ move: "start", title: "Square every part", why: "All three parts are positive, so squaring keeps the order: " + lo + "² = " + dtx(L2) + " and " + hi + "² = " + dtx(H2) + ".", seq: [{ a: "row", row: chainRow([dtx(L2), "<", "n", "<", dtx(H2)], true) }] });
+    W.steps.push({ move: "verdict", title: "Find the integer", why: "The only integer between " + dtx(L2) + " and " + dtx(H2) + " is " + ns[0] + ".", seq: [{ a: "row", row: chainRow([dtx(L2), "<", String(ns[0]), "<", dtx(H2)], true, { c: "w-check" }) }] });
+    answerStep(W, item.a);
+    return true;
+}
+/** A positive number's square, for comparing: √n → n, π → about 9.87, a decimal or fraction → exact. */
+function sqOf(x) {
+    let m; const t = String(x).trim();
+    if ((m = t.match(/^√(\d+)$/))) return { v: new Q(+m[1]), approx: Math.sqrt(+m[1]), row: ["(" + t + ")²", "=", m[1]], why: "(√" + m[1] + ")² = " + m[1] };
+    if (t === "π") return { v: new Q(987, 100), approx: Math.PI, row: ["π²", "≈", "9.87"], why: "π² ≈ 3.14² ≈ 9.87", pi: true };
+    if ((m = t.match(/^\{(\d+)\/(\d+)\}$/))) { const q = new Q(+m[1], +m[2]), s = q.mul(q); return { v: s, approx: +m[1] / +m[2], row: ["(" + m[1] + "/" + m[2] + ")²", "=", dtx(s)], why: "(" + m[1] + "/" + m[2] + ")² = " + numText(s, "frac") + " = " + dtx(s) }; }
+    const q = qOf(t); if (!q || q.sign <= 0) return null; const s = q.mul(q);
+    return { v: s, approx: q.n / q.d, row: [t + "²", "=", dtx(s)], why: t + "² = " + dtx(s) };
+}
+function sqOrderSetup(W, item, xs) {
+    W.kind = "rel"; W.cols = 3;
+    const ss = xs.map((x) => ({ x, s: sqOf(x) })); if (ss.some((x) => !x.s)) return null;
+    const byTrue = ss.slice().sort((p, q) => p.s.approx - q.s.approx), bySq = ss.slice().sort((p, q) => p.s.v.cmp(q.s.v));
+    if (byTrue.some((p, i) => p !== bySq[i]) || new Set(ss.map((p) => p.s.v.n / p.s.v.d)).size !== ss.length) throw new Error("key");
+    const order = bySq.map((p) => p.x.replace(/\{(\d+)\/(\d+)\}/, "{$1/$2}"));
+    if (order.join(", ").replace(/\s/g, "") !== String(item.a).replace(/\s/g, "")) throw new Error("key");
+    W.steps.push({ move: "fact", title: "Square each number", why: "All the numbers are positive, so the one with the bigger square is the bigger number. Squares are easy to compare: no square roots left.", seq: ss.map((p) => ({ a: "row", row: chainRow(p.s.row, true) })) });
+    W.steps.push({ move: "order", title: "Order the squares", why: "From smallest square to biggest: " + bySq.map((p) => dtx(p.s.v)).join(" < ") + ". The numbers go in the same order.", seq: [{ a: "row", row: chainRow([bySq.map((p) => dtx(p.s.v)).join(" < ")], true) }, { a: "row", row: chainRow([order.map((o) => o.replace(/\{(\d+)\/(\d+)\}/, "$1/$2")).join(" < ")], true, { c: "w-check" }) }] });
+    answerStep(W, item.a);
+    return true;
+}
+/** "Which is greater: √50 or 7.2?" and "(√30) ___ 5.2" */
+function sqCompare(x, y) {
+    const a = sqOf(x), b = sqOf(y); if (!a || !b) return null;
+    const c = a.v.cmp(b.v), t = Math.sign(a.approx - b.approx); if (c === 0 || c !== t) return null;
+    return { a, b, c };
+}
+function sqGreaterSetup(W, item, x, y) {
+    W.kind = "rel"; W.cols = 3;
+    const C = sqCompare(x, y); if (!C) return null;
+    const big = C.c > 0 ? x : y;
+    if (String(item.a).trim() !== big) throw new Error("key");
+    W.steps.push({ move: "fact", title: "Square both", why: "Both numbers are positive, so the one with the bigger square is bigger. " + C.a.why + " and " + C.b.why + ".", seq: [{ a: "row", row: chainRow(C.a.row, true) }, { a: "row", row: chainRow(C.b.row, true) }] });
+    W.steps.push({ move: "verdict", title: "Compare", why: dtx(C.c > 0 ? C.a.v : C.b.v) + " is bigger than " + dtx(C.c > 0 ? C.b.v : C.a.v) + ", so " + big + " is greater.", seq: [{ a: "row", row: chainRow([dtx(C.a.v) + (C.c > 0 ? " > " : " < ") + dtx(C.b.v)], true) }, { a: "row", row: chainRow([x + (C.c > 0 ? " > " : " < ") + y], true, { c: "w-check" }) }] });
+    answerStep(W, item.a);
+    return true;
+}
+function sqSymbolSetup(W, item, x, y) {
+    W.kind = "rel"; W.cols = 3;
+    const C = sqCompare(x, y); if (!C) return null;
+    const sym = C.c > 0 ? ">" : "<";
+    if (String(item.a).trim() !== sym) throw new Error("key");
+    W.steps.push({ move: "fact", title: "Square both", why: "Both numbers are positive, so compare their squares. " + C.a.why + " and " + C.b.why + ".", seq: [{ a: "row", row: chainRow(C.a.row, true) }, { a: "row", row: chainRow(C.b.row, true) }] });
+    W.steps.push({ move: "verdict", title: "Compare", why: dtx(C.a.v) + " is " + (C.c > 0 ? "more" : "less") + " than " + dtx(C.b.v) + ", so " + x + " " + sym + " " + y + ".", seq: [{ a: "row", row: chainRow([dtx(C.a.v) + " " + sym + " " + dtx(C.b.v)], true) }, { a: "row", row: chainRow([x + " " + sym + " " + y], true, { c: "w-check" }) }] });
+    answerStep(W, item.a);
+    return true;
+}
+/** "Which number is closest to 6.5 on a number line?": compare squares with 6.5². */
+function sqClosestSetup(W, item, target) {
+    W.kind = "rel"; W.cols = 3;
+    const T = qOf(target); if (!T || T.sign <= 0) return null;
+    const ch = (item.choices || []).map((c) => { const m = String(c).match(/^√(\d+)$/); return m ? { c, n: +m[1] } : null; });
+    if (ch.length < 2 || ch.some((x) => !x)) return null;
+    const T2 = T.mul(T), dist = (x) => new Q(x.n).sub(T2).abs();
+    const best = ch.slice().sort((p, q) => dist(p).cmp(dist(q)));
+    const trueBest = ch.slice().sort((p, q) => Math.abs(Math.sqrt(p.n) - T.n / T.d) - Math.abs(Math.sqrt(q.n) - T.n / T.d));
+    if (best[0] !== trueBest[0] || dist(best[0]).eq(dist(best[1])) || best[0].c !== String(item.a).trim()) throw new Error("key");
+    W.steps.push({ move: "fact", title: "Square " + target, why: "Every choice is a square root, so square " + target + " and look for the number under the root that is closest: " + target + "² = " + dtx(T2) + ".", seq: [{ a: "row", row: chainRow([target + "²", "=", dtx(T2)], true) }] });
+    W.steps.push({ move: "choice", title: "How far is each one?", why: "Compare each number under the root with " + dtx(T2) + ". " + best[0].n + " is only " + dtx(dist(best[0])) + " away.", seq: ch.map((x) => ({ a: "row", row: noteRow(x.c, dtx(dist(x)) + " away" + (x === best[0] ? " ✓" : ""), x === best[0] ? { c: "w-check" } : undefined) })) });
+    answerStep(W, item.a);
+    return true;
+}
+function piSqSetup(W, item) {
+    W.kind = "rel"; W.cols = 3;
+    const p = new Q(314, 100), s = p.mul(p), r = Math.round(s.n / s.d);
+    const k = readKey(item.a); if (!k || !k.v || !k.v.eq(r) || Math.round(Math.PI * Math.PI) !== r) throw new Error("key");
+    W.steps.push({ move: "start", title: "Use π ≈ 3.14", why: "π is about 3.14, close enough to estimate to the nearest whole number.", seq: [{ a: "row", row: chainRow(["π", "≈", "3.14"], true) }] });
+    W.steps.push({ move: "mul", title: "Square it", why: "3.14² = 3.14 × 3.14 = " + dtx(s) + ".", seq: [{ a: "row", row: chainRow(["3.14²", "=", dtx(s)], true) }] });
+    W.steps.push({ move: "round", title: "Round", why: dtx(s) + " is closest to " + r + ".", seq: [{ a: "row", row: chainRow([dtx(s), "≈", String(r)], true, { c: "w-check" }) }] });
+    answerStep(W, item.a);
+    return true;
+}
+function piLineSetup(W, item, a, b) {
+    W.kind = "rel"; W.cols = 3;
+    const p = new Q(314159, 100000), v = p.mul(a).add(b), lo = Math.floor((a * Math.PI + b) * 10), loQ = new Q(lo, 10), hiQ = new Q(lo + 1, 10);
+    if (Math.floor(v.n / v.d * 10) !== lo) return null;
+    const km = String(item.a).match(/between (\d+(?:\.\d+)?) and (\d+(?:\.\d+)?)/); if (!km || !qOf(km[1]).eq(loQ) || !qOf(km[2]).eq(hiQ)) throw new Error("key");
+    W.steps.push({ move: "start", title: "Use π ≈ 3.14159", why: "Use enough decimal places of π to place it to the tenth.", seq: [{ a: "row", row: chainRow(["π", "≈", "3.14159"], true) }] });
+    W.steps.push({ move: "mul", title: "Work it out", why: a + " × 3.14159 = " + dtx(p.mul(a)) + ", then + " + b + " = " + dtx(v) + ".", seq: [{ a: "row", row: chainRow([a + "(3.14159) + " + b, "=", dtx(v)], true) }] });
+    W.steps.push({ move: "verdict", title: "Place it", why: dtx(v) + " is between " + dtx(loQ) + " and " + dtx(hiQ) + ".", seq: [{ a: "row", row: chainRow([dtx(loQ), "<", dtx(v), "<", dtx(hiQ)], loQ.cmp(v) < 0 && v.cmp(hiQ) < 0, { c: "w-check" }) }] });
+    answerStep(W, item.a);
+    return true;
+}
+
 /* ---------- relations: is it a function? ---------- */
 const MINUS_RE = /[−-]/g;
 const sameNum = (a, b) => { const x = qOf(String(a)), y = qOf(String(b)); return x && y ? x.eq(y) : String(a).replace(MINUS_RE, "-").trim() === String(b).replace(MINUS_RE, "-").trim(); };
@@ -1508,5 +1838,5 @@ function writeStory(W, item, o) {
 }
 
 /** Words for a move, for chips and the list. */
-export const MOVE_NAMES = { distribute: "Distribute", combine: "Combine like terms", both: "Both sides", divide: "Divide", reciprocal: "Reciprocal", flip: "Flip the sign", swap: "Put x first", clear: "Clear fractions", kcc: "Add the opposite", kcf: "Keep, change, flip", lcd: "Common denominator", cancel: "Cancel", numline: "Number line", story: "Story to equation", fact: "Angle fact", graph: "Graph", check: "Check", sub: "Plug in", gcf: "Find the GCF", factor: "Factor", pairs: "Inputs and outputs", longdiv: "Long division", stop: "It stops", percent: "Write it as a percent", repeat: "Repeated input", verdict: "Decide", choice: "Check the choices", abs: "Absolute value", power: "Exponent", cfrac: "Complex fraction" };
+export const MOVE_NAMES = { distribute: "Distribute", combine: "Combine like terms", both: "Both sides", divide: "Divide", reciprocal: "Reciprocal", flip: "Flip the sign", swap: "Put x first", clear: "Clear fractions", kcc: "Add the opposite", kcf: "Keep, change, flip", lcd: "Common denominator", cancel: "Cancel", numline: "Number line", story: "Story to equation", fact: "Angle fact", graph: "Graph", check: "Check", sub: "Plug in", gcf: "Find the GCF", factor: "Factor", pairs: "Inputs and outputs", longdiv: "Long division", stop: "It stops", percent: "Write it as a percent", shift: "Move the decimal point", repsub: "Subtract the copies", root: "Square roots", half: "Halfway point", tenths: "Try tenths", count: "Count", order: "Order", round: "Round", repeat: "Repeated input", verdict: "Decide", choice: "Check the choices", abs: "Absolute value", power: "Exponent", cfrac: "Complex fraction" };
 export { parseLine as _parseLine, parseExpr as _parseExpr, valueOf as _valueOf, sameAnswers as _sameAnswers, semOf as _semOf };

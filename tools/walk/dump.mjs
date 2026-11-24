@@ -29,7 +29,7 @@ for (const f of ["g7", "g8", "alg1"]) {
         const w = walkFor(Object.assign({}, it, setups[it.id] ? { walk: setups[it.id] } : {}));
         if (!w.ok) continue;
         const rows = [];
-        w.steps.forEach((s, si) => s.seq.forEach((x) => { if (x.a === "row" && (x.row.t === "line")) rows.push({ step: si + 1, move: s.move, check: x.row.c === "w-check", cells: x.row.cells.map((c) => (c == null ? "" : toPy(c))) }); }));
+        w.steps.forEach((s, si) => s.seq.forEach((x) => { if (x.a === "row" && (x.row.t === "line")) rows.push({ step: si + 1, move: s.move, check: x.row.c === "w-check", chain: !!x.row.chain, cells: x.row.cells.map((c) => (c == null ? "" : toPy(c))) }); }));
         out.push({ id: it.id, q: it.q, a: it.a, rows });
     }
 }

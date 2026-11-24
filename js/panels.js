@@ -13,7 +13,7 @@ import { MARKS, markUrl } from "./marks.js?v=1";
 import { EFFECTS, FX_AMOUNTS, applyEffect, effectSample } from "./effects.js?v=3";
 import { isMine, mineList, mineSrc, onMine, addMine, removeMine, MY_MAX } from "./myPhotos.js?v=1";
 import { cleanStickers } from "./stickers.js?v=1";
-import { findBody, findChip, findTitle } from "./findPanel.js?v=4";
+import { findBody, findChip, findTitle } from "./findPanel.js?v=5";
 import { isFind, FIND_KEYS } from "./findCore.js?v=1";
 export { MARKS, EFFECTS, FX_AMOUNTS };
 
