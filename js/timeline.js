@@ -8,8 +8,8 @@
 import { STANDARDS } from "../data/standards.js?v=58";
 import { SCHOOL_YEAR, today, short, daysLeftInNineWeeks, nineWeeksOf } from "./schoolCal.js?v=57";
 import * as T from "./timelineCore.js?v=2";
-import { mount as mountPick, bankNow } from "./timelinePick.js?v=3";
-import { counts as bankCounts, has as inTray } from "./timelineTray.js?v=3";
+import { mount as mountPick, bankNow } from "./timelinePick.js?v=4";
+import { counts as bankCounts, has as inTray } from "./timelineTray.js?v=4";
 import * as K from "./timelineLinks.js?v=2";
 
 const demo = new URLSearchParams(location.search).has("demo");
@@ -306,7 +306,18 @@ function cancelDrag() { if (!drag) return; drag.hole.remove(); drag.cardEl.hidde
 function escDrag(e) { if (e.key === "Escape") cancelDrag(); }
 
 /* ---------- start ---------- */
-const pick = mountPick({ cls: () => cls, demo, onChange: () => { if (!drag) draw(); }, floors: () => floors, setFloors, marks: (code) => markIn(cls, code), needLabel });
+// Vault Raid sets made from the tray are ordinary question sets (games/s_<id> + games/index), as the Readiness spiral makes them.
+let gameSets = null;
+async function saveVault(doc, n) {
+    if (!gameSets) throw Object.assign(new Error("not loaded"), { code: "your question sets are still loading" });
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6), at = Date.now();
+    await store.save("games/s_" + id, Object.assign({ id, at }, doc));
+    const meta = { id, title: doc.title, cats: doc.cats.length, clues: n, final: false, per: [], maker: 1, tl: 1, cls, at };
+    gameSets = gameSets.filter((x) => x.id !== id).concat([meta]);
+    await store.save("games/index", { sets: gameSets, at });
+    return id;
+}
+const pick = mountPick({ cls: () => cls, demo, onChange: () => { if (!drag) draw(); }, floors: () => floors, setFloors, marks: (code) => markIn(cls, code), needLabel, saveVault });
 
 $("reset").onclick = () => {
     if (!confirmReset()) return;
@@ -340,6 +351,7 @@ else {
         const d = (snap.exists && snap.data) || {}; progress = d && typeof d === "object" ? d : {};
         live(); if (!drag) draw();
     }, (e) => status("Could not load your marks (" + ((e && e.code) || "error") + ")", "bad"));
+    store.watch("games/index", (snap) => { if (snap.pending) return; gameSets = ((snap.exists && snap.data && snap.data.sets) || []).filter((x) => x && x.id); }, () => {});
     store.watch("standards/timeline", (snap) => {
         if (snap.pending || pending.o) return;
         const d = (snap.exists && snap.data) || {}; order = d && typeof d === "object" ? d : {};

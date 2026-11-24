@@ -67,3 +67,43 @@ export function handoff(t, bank, cls, standards, now = Date.now()) {
     const sk = skills(t, bank, cls, standards);
     return { v: 1, from: "timeline", at: now, cls, type: "practice", need: NEED, title: sk.map((x) => (isFoundational(x.std) ? nameOf(x.std) : x.std)).join(", ").slice(0, 70) + " practice", skills: sk };
 }
+
+/* ---------- Vault Raid set from the tray ---------- */
+export const VAULT = { cats: 6, clues: 6, target: 24 };   // Vault Raid shows at most 6 categories of 6 questions (js/games.js LIMITS)
+function seeded(seed) { let a = 0; for (const c of String(seed)) a = (Math.imul(a ^ c.charCodeAt(0), 2654435761) + 1) >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const shuffle = (list, seed) => { const r = seeded(seed), a = list.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+/** "Timeline review · 8.25, 8.26 · Nov 23" */
+export function vaultTitle(t, day = new Date()) {
+    const names = fresh(t).items.map((x) => (isFoundational(x.code) ? nameOf(x.code) : x.code));
+    return ("Timeline review · " + names.slice(0, 4).join(", ") + (names.length > 4 ? " +" + (names.length - 4) : "") + " · " + day.toLocaleDateString("en-US", { month: "short", day: "numeric" })).slice(0, 80);
+}
+/**
+ * A Vault Raid question set from the tray (games/s_<id> shape, without id). Each standard gets its own categories,
+ * questions easiest first, at the tray's levels; Weight sets each standard's share. Only the first 6 standards fit.
+ * Returns { doc, n, left: [codes that did not fit], short: [codes with fewer than 3 problems] }.
+ */
+export function vaultSet(t, bank, cls, o = {}) {
+    const items = fresh(t).items.map((x) => ({ x, pool: poolFor(bank, cls, x.code, x.lv) })).filter((y) => y.pool.length);
+    const use = items.slice(0, VAULT.cats), left = items.slice(VAULT.cats).map((y) => y.x.code);
+    const per = use.length ? Math.min(4, Math.floor(VAULT.cats / use.length)) : 0, wsum = use.reduce((s, y) => s + y.x.w, 0);
+    const cats = [], short = [];
+    use.forEach((y) => {
+        const want = Math.max(3, Math.round((VAULT.target * y.x.w) / wsum)), k = Math.min(y.pool.length, per * VAULT.clues, want);
+        if (y.pool.length < 3) short.push(y.x.code);
+        const pick = shuffle(y.pool, "vr|" + y.x.code + "|" + (o.seed || "")).slice(0, k).sort((a, b) => a.lvl - b.lvl);
+        const name = isFoundational(y.x.code) ? "Floor: " + nameOf(y.x.code) : y.x.code;
+        const chunks = Math.ceil(pick.length / VAULT.clues);
+        for (let c = 0; c < chunks; c++) {
+            const part = pick.slice(Math.round((c * pick.length) / chunks), Math.round(((c + 1) * pick.length) / chunks));
+            cats.push({ n: (chunks > 1 ? name + " (" + (c + 1) + ")" : name).slice(0, 60), clues: part.map((p, i) => {
+                const q = { p: 100 * (i + 1), q: p.q, a: p.a };
+                if (p.al && p.al.length) q.al = p.al.slice(0, 8);
+                if (p.ch && p.ch.length >= 2) q.ch = p.ch.slice(0, 5);
+                if (p.st && p.st.length) q.st = p.st.slice(0, 4);
+                return q;
+            }) });
+        }
+    });
+    const n = cats.reduce((s, c) => s + c.clues.length, 0);
+    return { doc: { title: (o.title || vaultTitle(t)).slice(0, 80), maker: 1, per: (o.per || []).slice(), cats, final: null, tl: { cls, codes: use.map((y) => y.x.code) } }, n, left, short };
+}
