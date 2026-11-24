@@ -440,3 +440,32 @@ body.board.idle .gc-top,body.board.idle .gc-zoom{opacity:.35;transition:opacity 
 .fn-vlt{stroke:var(--mt-red);stroke-width:2;stroke-dasharray:5 4;vector-effect:non-scaling-stroke}
 @media (prefers-reduced-motion:reduce){.fn-svg.go .fn-inb,.fn-svg.go .fn-outb,.fn-svg.go .fn-box,.fn-svg.go .fn-gear>g{animation:none}}
 .fn-a[aria-pressed="true"]:disabled{opacity:1}
+
+/* ================= Expression area model (js/areaPanel.js) ================= */
+.float.tool-area{width:40em}
+.mt-area{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
+.ex-svg{max-width:30em;margin:0 auto;overflow:hidden!important}
+.ex-tile rect{fill:color-mix(in srgb,var(--c) 82%,#fff);stroke:color-mix(in srgb,var(--c) 70%,#000);stroke-width:1.2;vector-effect:non-scaling-stroke}
+.ex-tl{font-weight:800;fill:#fff!important;pointer-events:none;paint-order:stroke;stroke:rgba(0,0,0,.25);stroke-width:2px}
+.ex-tile.odd rect{fill:color-mix(in srgb,#FF9A3C 75%,#fff);stroke:#FF9A3C;stroke-width:2.4;stroke-dasharray:4 3}
+.ex-lab{font-size:15px;font-weight:800}
+.ex-lab.side{font-size:18px;fill:#FFE08A!important}
+.card.psty.plight .ex-lab.side{fill:#A06200!important}
+.ex-lab.side.best{fill:var(--mt-green)!important}
+.ex-br{fill:none;stroke:currentColor;stroke-width:1.6;opacity:.6;vector-effect:non-scaling-stroke}
+.ex-area{font-size:17px;font-weight:800;fill:var(--mt-blue)!important}
+.ex-area.big{font-size:30px;fill:#fff!important;paint-order:stroke;stroke:rgba(0,0,0,.25);stroke-width:3px}
+.ex-area.q{fill:#FFE08A!important}
+.ex-qhit{fill:transparent;cursor:pointer;outline:none}
+.ex-qhit:focus-visible{stroke:#8CC8FF;stroke-width:2;vector-effect:non-scaling-stroke}
+.ex-box{fill:color-mix(in srgb,var(--c) 55%,transparent);stroke:color-mix(in srgb,var(--c) 85%,#fff);stroke-width:2;vector-effect:non-scaling-stroke}
+.ex-frame{fill:none;stroke:color-mix(in srgb,currentColor 50%,transparent);stroke-width:1.6;stroke-dasharray:5 4;vector-effect:non-scaling-stroke}
+.ex-frame.best{stroke:var(--mt-green);stroke-width:2.6;stroke-dasharray:none}
+.ex-head{text-align:left!important;font-size:1.2em!important}
+.ex-sub{margin:0;font-size:.72em;line-height:1.35;opacity:.85;min-height:2.7em}
+.ex-steps{display:flex;flex-wrap:wrap;align-items:center;gap:.35em .7em}
+.ex-step{display:flex;align-items:center;gap:.25em}
+.ex-sb{width:2em;padding:0!important;font-weight:800}
+.ex-sv{min-width:1.8em;text-align:center;font-size:1em}
+.ex-rows{display:flex;flex-wrap:wrap;align-items:center;gap:.3em}
+.ex-r{min-width:2.3em;font-weight:800}

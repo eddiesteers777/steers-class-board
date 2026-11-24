@@ -82,6 +82,23 @@ t("integer counters", () => {
     assert.match(M.ctAdd({ p: 20, n: 0 }, "p"), /holds/);
 });
 
+t("expression area model", () => {
+    assert.equal(M.exFactored(3, 2, 3) + " = " + M.exExpanded(3, 2, 3), "3(2x + 3) = 6x + 9");
+    assert.equal(M.exFactored(-2, 1, -3) + " = " + M.exExpanded(-2, 1, -3), "−2(x − 3) = −2x + 6");
+    assert.equal(M.exLin(-1, 0), "−x"); assert.equal(M.exLin(4, -7), "4x − 7");
+    assert.deepEqual(M.exParts({ a: -3, b: 1, c: -3 }), [-3, 9]);
+    const E = M.exDefault();
+    E.r = 2; let R = M.exRows(E); assert.equal(R.even, false); assert.equal(R.lq, 1); assert.equal(R.lx, 0);
+    E.r = 3; R = M.exRows(E); assert.equal(R.even, true); assert.equal(R.best, true); assert.equal(R.inside, "2x + 3");
+    Object.assign(E, { p: 12, q: 18, r: 2 }); R = M.exRows(E); assert.equal(R.even, true); assert.equal(R.best, false); assert.equal(R.gcf, 6);
+    Object.assign(E, { p: 4, q: -6, r: 2 }); assert.equal(M.exRows(E).inside, "2x − 3");
+    let seed = 11; const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+    for (let i = 0; i < 100; i++) { M.exNewFactor(E, rnd); assert.ok(M.gcd(E.p, E.q) >= 2 && E.p >= 1 && E.p <= M.EX_P && Math.abs(E.q) <= M.EX_Q && E.r === 1, E.p + "," + E.q); }
+    const c = M.cleanMt({ area: { m: "fac", a: 0, b: 99, c: "x", look: "zz", rv: [1], p: 0, q: -50, r: 9 } }).area;
+    assert.deepEqual([c.m, c.a, c.b, c.c, c.look, c.rv, c.p, c.q, c.r], ["fac", 3, M.EX_B, 3, "tiles", [true, false], 6, -M.EX_Q, M.EX_R]);
+    assert.equal(M.mtChip("area", { mt: { area: M.exDefault() } }).v, "3(2x + 3) = 6x + 9");
+});
+
 t("function machine", () => {
     const F = M.fnDefault();
     assert.equal(M.fnRule(F), "2x + 1");

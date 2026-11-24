@@ -9,6 +9,7 @@
      pyth      Pythagorean squares  a right triangle with a square on each side (8.26–8.28)
      counters  Integer counters     two-colour counters and zero pairs (7.4, 7.5)
      angle     Angle explorer       parallel lines cut by a transversal, and a triangle's corners torn onto a line (8.25)
+     area      Expression area model  a(bx + c) as tiles or an area box, expand and factor (7.6, 7.7)
      fn        Function machine     inputs go in, the rule makes outputs; mystery rules, and "function or not?" (8.13, 8.14)
      calc      Basic calculator     + − × ÷ and percent, with the order of operations
      sci       Scientific calculator powers, roots, trig, logs, Ans and fraction answers
@@ -19,7 +20,7 @@
 ========================================== */
 import { gcDefault, cleanGc, fmt } from "./graphCalc.js?v=1";
 
-export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "angle", "fn", "calc", "sci", "graph"];
+export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "angle", "fn", "area", "calc", "sci", "graph"];
 export const isMt = (k) => MT_KEYS.includes(k);
 
 const int = (v, d) => { const n = Math.round(+v); return Number.isFinite(n) ? n : d; };
@@ -360,6 +361,45 @@ function cleanFn(o) {
     return { m: o.m === "test" ? "test" : "mach", a: cint(o.a, -FN_A, FN_A, 2), b: cint(o.b, -FN_B, FN_B, 1), q: !!o.q, hide: !!o.hide, ins, v: FN_VIEWS.includes(o.v) ? o.v : "table", ps, g: o.g === "f" || o.g === "n" ? o.g : "", sh: !!o.sh };
 }
 
+/* ---------- Expression area model ---------- */
+/* Expand: a rows of (bx + c) as algebra tiles, or an area box; the area is abx + ac. Factor: px + q tiles sorted into
+   r equal rows. When r divides both, the tiles make a rectangle r(…); the biggest such r is the greatest common factor. */
+export const EX_A = 6, EX_B = 5, EX_C = 9, EX_P = 12, EX_Q = 18, EX_R = 6;
+export const exDefault = () => ({ m: "exp", a: 3, b: 2, c: 3, look: "tiles", hide: false, rv: [false, false], p: 6, q: 9, r: 1 });
+/** "2x + 3", "−x − 4", "5", "x": a linear expression bx + c. */
+export function exLin(b, c) {
+    const xs = b === 0 ? "" : (b < 0 ? "−" : "") + (Math.abs(b) === 1 ? "" : Math.abs(b)) + "x";
+    if (!xs) return (c < 0 ? "−" : "") + Math.abs(c);
+    return xs + (c ? (c < 0 ? " − " : " + ") + Math.abs(c) : "");
+}
+const exNum = (n) => (n < 0 ? "−" + Math.abs(n) : String(n));
+/** a(bx + c) as written, and as expanded. */
+export const exFactored = (a, b, c) => (a === 1 ? "" : a === -1 ? "−" : exNum(a)) + "(" + exLin(b, c) + ")";
+export const exExpanded = (a, b, c) => exLin(a * b, a * c);
+/** The two parts of the area: a·bx and a·c. */
+export const exParts = (E) => [E.a * E.b, E.a * E.c];
+/** Sorting px + q into r rows: how many of each per row, what is left over, and whether it is the greatest common factor. */
+export function exRows(E) {
+    const P = Math.abs(E.p), Q = Math.abs(E.q), r = E.r, g = gcd(P, Q);
+    const even = P % r === 0 && Q % r === 0;
+    return { even, gcf: g, best: even && r === g, px: Math.floor(P / r), qx: Math.floor(Q / r), lx: P % r, lq: Q % r,
+        inside: even ? exLin(E.p / r, E.q / r) : null };
+}
+/** A new expression to factor, with a common factor from 2 to 4. */
+export function exNewFactor(E, rnd = Math.random) {
+    const pick = (lo, hi) => lo + Math.floor(rnd() * (hi - lo + 1));
+    let p, q, n = 0;
+    do { const g = pick(2, 4); p = g * pick(1, 3); q = g * pick(1, Math.floor(EX_Q / g)) * (rnd() < 0.25 ? -1 : 1); n++; } while (n < 20 && (gcd(p, q) < 2 || (p === E.p && q === E.q) || Math.abs(q) > EX_Q || p > EX_P));
+    Object.assign(E, { p, q, r: 1 });
+}
+function cleanEx(o) {
+    const d = exDefault(); if (!o || typeof o !== "object") return d;
+    const nz = (v, lim, dd) => { const n = cint(v, -lim, lim, dd); return n || dd; };
+    const rv = Array.isArray(o.rv) ? [!!o.rv[0], !!o.rv[1]] : [false, false];
+    return { m: o.m === "fac" ? "fac" : "exp", a: nz(o.a, EX_A, 3), b: nz(o.b, EX_B, 2), c: cint(o.c, -EX_C, EX_C, 3), look: o.look === "box" ? "box" : "tiles", hide: !!o.hide, rv,
+        p: nz(o.p, EX_P, 6), q: nz(o.q, EX_Q, 9), r: cint(o.r, 1, EX_R, 1) };
+}
+
 /* ---------- all six ---------- */
 /* ---------- the calculators: the line being typed, the last answers, and the scientific one's modes ---------- */
 const calcDefault = () => ({ x: "", h: [], a: 0, done: false });
@@ -374,8 +414,8 @@ function cleanCalc(o) {
     return out;
 }
 
-const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, angle: angDefault, fn: fnDefault, calc: calcDefault, sci: sciDefault, graph: gcDefault };
-const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, angle: cleanAng, fn: cleanFn, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
+const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, angle: angDefault, fn: fnDefault, area: exDefault, calc: calcDefault, sci: sciDefault, graph: gcDefault };
+const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, angle: cleanAng, fn: cleanFn, area: cleanEx, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
 export const mtDefault = (k) => DEFAULTS[k]();
 /** tools.mt as saved: only panels that were used are kept, each cleaned. */
 export function cleanMt(o) { const out = {}; if (!o || typeof o !== "object") return out; MT_KEYS.forEach((k) => { if (o[k] && typeof o[k] === "object") out[k] = CLEAN[k](o[k]); }); return out; }
@@ -392,6 +432,7 @@ export function mtChip(k, T) {
     if (k === "calc" || k === "sci") return { v: s.done && num(s.r) != null ? fmt(s.r) : s.x ? s.x.slice(-14) : "0" };
     if (k === "graph") { const n = s.e.filter((x) => x.t.trim()).length; return { v: n === 1 ? s.e.find((x) => x.t.trim()).t.slice(0, 16) : n ? n + " graphs" : "Graph" }; }
     if (k === "angle") { if (s.m === "tri") { const d = triAngles(s.t).deg; return { v: d.join("° + ") + "° = 180°" }; } return { v: (s.np ? "Not parallel, " : "") + s.a + "° and " + (180 - s.a) + "°" }; }
+    if (k === "area") { if (s.m === "fac") { const R = exRows(s); return { v: R.even ? (s.r === 1 ? exLin(s.p, s.q) : s.r + "(" + R.inside + ")") : exLin(s.p, s.q), tone: R.best ? "green" : "" }; } return { v: exFactored(s.a, s.b, s.c) + " = " + (s.hide ? "?" : exExpanded(s.a, s.b, s.c)) }; }
     if (k === "fn") return { v: s.m === "test" ? "Function or not?" : s.hide ? "Mystery rule" : "y = " + fnRule(s) };
     if (k === "counters") { const v = ctValue(s); return { v: (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) }; }
     return { v: "" };
