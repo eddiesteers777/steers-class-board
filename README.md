@@ -132,3 +132,8 @@ Two Claude threads (school account and personal account) push to `main`. Fetch a
 - Hosting skips `*.md`, `*.log`, `*.patch`, `firestore.rules`, `tools/` and `functions/` (see `firebase.json`), so work notes are not public on the site. The repo itself is still public on GitHub.
 - Google Search Console: property for the Pages URL, verified by HTML file, sitemap submitted. Google indexes only the public pages (`/` and `home.html`); every app page carries `noindex` and the classroom content sits behind teacher sign-in, so it is not searchable.
 - SEO files in repo: `robots.txt`, `sitemap.xml`, `favicon.svg` + `icons/icon-192.png` / `icon-512.png` / `icon-maskable-512.png` (navy "S"), canonical + Open Graph tags on `index.html` and `home.html`, WebSite JSON-LD on `home.html`.
+
+## Keys and secrets
+
+- `js/firebaseConfig.js` holds the Firebase web settings, including the Google API key. They are public by design: every Firebase site sends them to the browser. The data is protected by `firestore.rules` and by the key's restrictions in Google Cloud (allowed websites: the anchorboard, steers-class-board and firebaseapp.com addresses; allowed APIs: Identity Toolkit, Token Service, Cloud Firestore). The connector repeats the key in `connector/wrangler.jsonc`.
+- Real secrets are never in this repo: deploy tokens and the connector's Google sign-in secret are GitHub repository secrets, the Anthropic key is a Firebase Functions secret, and each teacher's YouTube search key is saved in their own account.

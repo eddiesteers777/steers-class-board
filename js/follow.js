@@ -9,19 +9,13 @@
    The teacher's Remote checks the answers; this page never sees the answer key or anyone else.
 ========================================== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { firebaseConfig } from "./firebaseConfig.js?v=1";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import * as V from "./vaultCore.js?v=75";
 import { createStudentPad } from "./studentPad.js?v=1";
 
-const app = initializeApp({
-    apiKey: "AIzaSyA8kAei_AJMU66EePYQyI8nlVJeLes5HLY",
-    authDomain: "steers-class-board.firebaseapp.com",
-    projectId: "steers-class-board",
-    storageBucket: "steers-class-board.firebasestorage.app",
-    messagingSenderId: "997357619072",
-    appId: "1:997357619072:web:8e47464df7c4e329fd2365"
-}, "play");
+const app = initializeApp(firebaseConfig, "play");
 // iPhone and iPad Safari can stall Firestore's streaming connection with no error (see js/play.js).
 const appleTouch = /iPhone|iPad|iPod/.test(navigator.userAgent || "") || (/Macintosh/.test(navigator.userAgent || "") && navigator.maxTouchPoints > 1);
 const auth = getAuth(app), db = initializeFirestore(app, appleTouch ? { experimentalForceLongPolling: true } : { experimentalAutoDetectLongPolling: true });

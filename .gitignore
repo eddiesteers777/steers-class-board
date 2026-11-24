@@ -1,8 +1,8 @@
 # Calera Math — Steers Class Board
-# Never commit secrets. Firebase config lives in js/firebase.js as
-# YOUR_* placeholders until the real project is created — even then,
-# keep keys out of git history where possible (use the Firebase
-# console values directly; do not add a .env with real keys here).
+# Never commit secrets. The Firebase web settings in js/firebaseConfig.js are
+# public by design (every Firebase site ships them); they are not secrets.
+# Real secrets live in GitHub repository secrets, Firebase Functions secrets,
+# or the teacher's own account. Never add a .env, key file or service account here.
 .env
 *.env
 *secret*
