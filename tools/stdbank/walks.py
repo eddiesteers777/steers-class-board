@@ -157,4 +157,14 @@ WALKS = {
         "write": "700 + 60b ≤ 2500", "var": "the number of boxes",
         "why": "The load is the 700-pound crate plus 60 pounds for each box, 60b. At most 2,500 means it can equal 2,500 or be less: ≤.",
         "story": [["700-pound crate", "700"], ["60 pounds each", "60b"], ["at most 2,500 pounds", "2500"]]},
+
+    # 7th Grade, 7.4
+    "The temperature at dawn was −4.5 degrees Fahrenheit. By noon, it rose 11.2 degrees, and by midnight it dropped 8.9 degrees. What was the temperature at midnight?": {
+        "expr": "−4.5 + 11.2 − 8.9",
+        "why": "Start at −4.5. Rising 11.2 degrees adds 11.2. Dropping 8.9 degrees subtracts 8.9.",
+        "story": [["−4.5 degrees", "−4.5"], ["rose 11.2 degrees", "11.2"], ["dropped 8.9 degrees", "8.9"]]},
+    "A stock loses §2.40 in value each day for 5 days. Which expression and product correctly model the total change in the stock's value?": {
+        "expr": "5 × (−2.40)",
+        "why": "Losing §2.40 is a change of −2.40. It happens 5 times, so multiply 5 by −2.40.",
+        "story": [["loses §2.40", "−2.40"], ["5 days", "5"]]},
 }

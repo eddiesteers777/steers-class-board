@@ -68,6 +68,12 @@ def main(path):
                     if re.search(r"[a-z]", cells[2].replace("Rational", "")):
                         continue                                     # the rule itself, f(x) = 3x - 4
                     first = simplify(ex(cells[2])); continue         # f(5) = 3(5) - 4: the value to keep
+                if row["check"] and "…" in cells[2]:            # "5/11 = 0.4545…": the digits shown must be the start of the fraction's decimal
+                    v, shown = ex(cells[0]), cells[2].replace("…", "").strip()
+                    places = len(shown.split(".")[1])
+                    if abs(float(v) - float(shown.replace("Rational", ""))) >= 10 ** -places:
+                        bad += 1; print("DECIMAL WRONG", w["id"], text)
+                    continue
                 if row["check"]:
                     sides, rels = cells[0::2], cells[1::2]
                     vals = [ex(s) for s in sides]

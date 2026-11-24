@@ -47,7 +47,7 @@ const changed = () => listeners.forEach((f) => f());
 /** Start reading the bank now (quietly, when the board has a moment), so the first search is instant. */
 export function preloadFind() {
     if (loading) return loading;
-    loading = Promise.all([import("./walkBank.js?v=3"), import("../data/standards.js?v=58")]).then(([wb, sd]) => wb.loadWalkItems().then((items) => {
+    loading = Promise.all([import("./walkBank.js?v=4"), import("../data/standards.js?v=58")]).then(([wb, sd]) => wb.loadWalkItems().then((items) => {
         const walkOf = wb.walkOf;
         ITEMS = items; BYID = new Map(items.map((x) => [x.id, x])); IX = buildIndex(items, sd.STANDARDS); changed();
         // Which problems have a worked example (Show Steps): built in small slices so the board never stutters

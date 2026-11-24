@@ -985,7 +985,12 @@ function build(W, item) {
     if ((m = q.match(/^How many solutions does (.+) have\?$/))) return solveSetup(W, item, m[1], { count: true });
     if ((m = q.match(/^A complex fraction has (.+?) on top and (.+?) on the bottom\. Simplify it\.$/))) return evalSetup(W, item, { k: "cf", a: parseExpr(W, m[1]), b: parseExpr(W, m[2]), id: key(W) }, { cf: true });
     if ((m = q.match(/^Use the distributive property to find: (\d+) × (\d+)\{(\d+)\/(\d+)\}$/))) return distribNumber(W, item, +m[1], +m[2], +m[3], +m[4]);
-    if ((m = q.match(/^Rewrite (.+) as an addition problem\.$/))) return null;
+    if ((m = q.match(/^Rewrite (.+) as an addition problem\.$/)) || (m = q.match(/^Which addition expression is equivalent to (.+)\?$/))) return addOppSetup(W, item, m[1]);
+    if ((m = q.match(/^What is (\S+ ÷ 0)\?$/))) return evalSetup(W, item, m[1], {});
+    if ((m = q.match(/^Write ([−-]?)\{(\d+)\/(\d+)\} as a decimal\.( Does it terminate or repeat\?)?$/))) return decSetup(W, item, m[1], +m[2], +m[3], !!m[4]);
+    if ((m = q.match(/^What is the decimal form of ([−-]?)\{(\d+)\/(\d+)\}\?$/))) return decSetup(W, item, m[1], +m[2], +m[3], false);
+    if ((m = q.match(/^Does ([−-]?)\{(\d+)\/(\d+)\} terminate or repeat as a decimal\?$/))) return decSetup(W, item, m[1], +m[2], +m[3], true);
+    if ((m = q.match(/^Convert ([−-]?)\{(\d+)\/(\d+)\} to a decimal using long division and classify it\.$/))) return decSetup(W, item, m[1], +m[2], +m[3], true);
     if (/[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(String(item.a))) return null;   // exponent rules: the answer is a power, not a number
     // expressions with a variable: distribute and combine like terms, or factor out the GCF
     if ((m = q.match(/^(?:Simplify|Expand|Expand the expression|Expand and simplify|Combine like terms to simplify|Subtract the linear expressions):\s*(.+)$/)) && /[a-z]/i.test(m[1].replace(/\{[^}]*\}/g, ""))) return simpSetup(W, item, m[1]);
@@ -1059,10 +1064,16 @@ function evalSetup(W, item, exprText0, o) {
     const root = typeof exprText0 === "string" ? parseExpr(W, exprText0) : exprText0;
     if (!root) return null;
     if (o.story) W.steps.push({ move: "story", title: "Read the story", why: o.why0 || "Find the numbers in the story and what each one means.", seq: [{ a: "row", row: { t: "pic", pic: { kind: "story", text: item.q, marks: o.story } } }] });
-    const key = readKey(item.a);
+    let key = readKey(item.a);
+    if (typeof exprText0 === "string") {
+        // "|−35.5 − 14.2| = 49.7 meters": the key repeats the expression, then gives the value
+        const nm = (t) => String(t).replace(/[\s()]/g, "").replace(/[\u2212-]/g, "-").replace(/[×·*]/g, "x");
+        const km = String(item.a).match(/^(.+?) = (\S+)(.*)$/);
+        if (km && nm(km[1]) === nm(exprText0)) key = readKey(km[2] + km[3]);
+    }
     if (key && key.kind === "undef") {
         if (!(root.k === "op" && root.op === "/" && isNum(root.b) && numOf(root.b).q.zero)) throw new Error("key");
-        W.steps.push({ move: "start", title: "The problem", why: "Division asks: how many groups of 0 make " + exprText(root.a) + "? No number of zeros ever adds up to it.", seq: [{ a: "row", row: evalRow(W, root, true) }] });
+        W.steps.push({ move: "start", title: "The problem", why: "Division asks: how many groups of 0 make " + exprText(root.a) + "? No number of zeros ever adds up to it.", seq: [{ a: "row", row: { t: "line", cells: [exprDT(root), null, null] } }] });
         answerStep(W, item.a, "You cannot divide by zero, so the answer is undefined.");
         return true;
     }
@@ -1199,6 +1210,81 @@ function factorSetup(W, item, text) {
     const fk = formOf(k[0].g), fi = formOf(inner);
     if (!fk.a.eq(fi.a) || !fk.b.eq(fi.b) || varOf({ s: [k] }) !== v) throw new Error("key");
     answerStep(W, item.a, "The number in front is the GCF, so nothing else can come out.");
+    return true;
+}
+
+/* ---------- subtraction as adding the opposite ---------- */
+function addOppSetup(W, item, text) {
+    W.kind = "eval";
+    const root = tidyParens(parseExpr(W, text));
+    if (!root || root.k !== "op" || root.op !== "-" || !isNum(root.a) || !isNum(root.b)) return null;
+    W.steps.push({ move: "start", title: "The problem", why: "Subtracting a number is the same as adding its opposite.", seq: [{ a: "row", row: evalRow(W, root, true) }] });
+    const r2 = reduce(W, root, root, true);
+    if (!r2 || r2 === root || r2.k !== "op" || r2.op !== "+") return null;
+    const nm = (t) => String(t).replace(/[\s()]/g, "").replace(/[−-]/g, "-");
+    if (nm(exprText(r2)) !== nm(item.a)) throw new Error("key");
+    answerStep(W, item.a, "Same value, now written as an addition problem.");
+    return true;
+}
+
+/* ---------- fractions to decimals by long division ---------- */
+/** The digits of n/d after the point (n < d), and where they start to repeat (-1 when they stop). */
+function longDiv(n, d) {
+    const digits = [], rows = [], seen = new Map();
+    let r = n;
+    while (r !== 0 && !seen.has(r) && digits.length < 12) {
+        seen.set(r, digits.length);
+        const big = r * 10, dg = Math.floor(big / d), rem = big - dg * d;
+        rows.push({ big, dg, rem }); digits.push(dg); r = rem;
+    }
+    return { digits, rows, from: r === 0 ? -1 : seen.has(r) ? seen.get(r) : -2, back: r };
+}
+function decKey(a) {
+    let s = String(a).trim(), kind = null, m;
+    if ((m = s.match(/^(Terminates|Repeats)\b\s*(?:\((.*)\))?$/i))) { kind = /^t/i.test(m[1]) ? "t" : "r"; s = (m[2] || "").trim(); if (!s) return { kind }; }
+    m = s.match(/^([−-]?\d*\.\d+)(…|\.\.\.)?\s*(?:\((.*)\))?$/);
+    if (!m) return null;
+    const note = m[3] || "", bm = note.match(/(?:repeating|with only|with) (\d+)(?: repeating)?/);
+    return { kind: kind || (m[2] || /repeat/i.test(note) ? "r" : "t"), digits: m[1].replace(/−/g, "-"), dots: !!m[2], block: bm ? bm[1] : null };
+}
+function decSetup(W, item, sgn, n, d, classify) {
+    W.kind = "dec"; W.cols = 3;
+    if (!(n > 0 && n < d && d <= 99)) return null;
+    const L = longDiv(n, d);
+    if (L.from === -2) return null;
+    const neg = !!sgn, sg = neg ? MINUS : "";
+    const rep = L.from >= 0, fixed = L.digits.slice(0, rep ? L.from : L.digits.length).join(""), block = rep ? L.digits.slice(L.from).join("") : "";
+    const shown = rep ? "0." + fixed + block + (block.length === 1 ? block + block : block.length === 2 ? block : "") + "…" : "0." + fixed;
+    // check the key before writing anything
+    const k = decKey(item.a); if (!k) throw new Error("key");
+    if ((k.kind === "r") !== rep) throw new Error("key");
+    if (k.digits) {
+        const want = (neg ? "-" : "") + "0." + (rep ? fixed + block.repeat(12) : fixed);
+        const got = k.digits.replace(/^(-?)\./, "$10.");
+        if (rep ? !want.startsWith(got) : qOf(k.digits) == null || !qOf(k.digits).eq(new Q(neg ? -n : n, d))) throw new Error("key");
+    }
+    if (k.block && k.block !== block) throw new Error("key");
+    W.steps.push({ move: "start", title: "The fraction bar means divide", why: (neg ? "Work out " + n + " ÷ " + d + ", then put the minus sign back. " : "") + n + "/" + d + " means " + n + " ÷ " + d + ". " + d + " doesn't go into " + n + ", so start with 0 and a decimal point, then bring down a 0.",
+        seq: [{ a: "row", row: { t: "line", cells: [R([sg, F(String(n), String(d))]), "=", R([sg + n + " ÷ " + d])] } }] });
+    const remK = [];
+    L.rows.forEach((x, i) => {
+        const kd = key(W), kr = key(W); remK.push(kr);
+        const sofar = "0." + L.digits.slice(0, i + 1).join("");
+        const last = i === L.rows.length - 1;
+        let why = "How many " + d + "s fit in " + x.big + "? " + x.dg + ", because " + d + " × " + x.dg + " = " + d * x.dg + ". " + x.big + " − " + d * x.dg + " = " + x.rem + " left over.";
+        const seq = [{ a: "row", row: { t: "line", cells: [R([x.big + " ÷ " + d + " = ", R([String(x.dg)], { k: kd }), " R", R([String(x.rem)], { k: kr })]), "→", R([sg + sofar])] } }, { a: "hl", ks: [kd], tone: "n" }];
+        if (last && !rep) why += " Nothing is left, so the division stops.";
+        if (last && rep) {
+            const firstAt = L.from === 0 ? null : remK[L.from - 1];
+            why += " " + x.rem + " is left over again" + (L.from === 0 ? ", the same " + x.rem + " you started with" : "") + ", so the same division comes next, again and again: " + block + " repeats forever.";
+            seq.push({ a: "hl", ks: firstAt ? [firstAt, kr] : [kr], tone: "x" });
+        }
+        W.steps.push({ move: "longdiv", title: "Bring down a 0: " + x.big + " ÷ " + d, why, seq });
+    });
+    W.steps.push({ move: rep ? "repeat" : "stop", title: rep ? "It repeats" : "It terminates", why: rep ? (block.length === 1 ? "The " + block + " repeats" : "The digits " + block + " repeat") + " forever, so " + sg + n + "/" + d + " is a repeating decimal. Write the dots to show it keeps going." : "The remainder is 0, so the decimal stops. " + sg + n + "/" + d + " is a terminating decimal.",
+        seq: [{ a: "row", row: { t: "line", cells: [R([sg, F(String(n), String(d))]), "=", R([sg + shown])], c: "w-check" } }] });
+    answerStep(W, item.a, classify ? (rep ? "It repeats." : "It terminates.") : "");
+    void k;
     return true;
 }
 
@@ -1409,5 +1495,5 @@ function writeStory(W, item, o) {
 }
 
 /** Words for a move, for chips and the list. */
-export const MOVE_NAMES = { distribute: "Distribute", combine: "Combine like terms", both: "Both sides", divide: "Divide", reciprocal: "Reciprocal", flip: "Flip the sign", swap: "Put x first", clear: "Clear fractions", kcc: "Add the opposite", kcf: "Keep, change, flip", lcd: "Common denominator", cancel: "Cancel", numline: "Number line", story: "Story to equation", fact: "Angle fact", graph: "Graph", check: "Check", sub: "Plug in", gcf: "Find the GCF", factor: "Factor", pairs: "Inputs and outputs", repeat: "Repeated input", verdict: "Decide", choice: "Check the choices", abs: "Absolute value", power: "Exponent", cfrac: "Complex fraction" };
+export const MOVE_NAMES = { distribute: "Distribute", combine: "Combine like terms", both: "Both sides", divide: "Divide", reciprocal: "Reciprocal", flip: "Flip the sign", swap: "Put x first", clear: "Clear fractions", kcc: "Add the opposite", kcf: "Keep, change, flip", lcd: "Common denominator", cancel: "Cancel", numline: "Number line", story: "Story to equation", fact: "Angle fact", graph: "Graph", check: "Check", sub: "Plug in", gcf: "Find the GCF", factor: "Factor", pairs: "Inputs and outputs", longdiv: "Long division", stop: "It stops", repeat: "Repeated input", verdict: "Decide", choice: "Check the choices", abs: "Absolute value", power: "Exponent", cfrac: "Complex fraction" };
 export { parseLine as _parseLine, parseExpr as _parseExpr, valueOf as _valueOf, sameAnswers as _sameAnswers, semOf as _semOf };
