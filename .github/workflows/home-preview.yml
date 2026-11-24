@@ -3,6 +3,8 @@ name: Home preview pictures (temporary, branch only)
 on:
   push:
     branches: [claude/home-date-absences]
+permissions:
+  contents: write
 jobs:
   shots:
     runs-on: ubuntu-latest
@@ -23,3 +25,9 @@ jobs:
         with:
           name: home-preview
           path: shots
+      - name: Put the pictures on a throwaway branch (preview/home-date-absences)
+        if: always()
+        run: |
+          cd shots
+          git init -q -b preview && git config user.name "preview" && git config user.email "preview@users.noreply.github.com"
+          git add -A && git commit -qm "Home preview pictures" && git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" preview:preview/home-date-absences
