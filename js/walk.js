@@ -980,6 +980,7 @@ function build(W, item) {
     if (setup && setup.expr) return evalSetup(W, item, setup.expr, { story: setup.story, why0: setup.why, formula: setup.formula, fWhy: setup.fWhy, fTitle: setup.fTitle, parts: setup.parts });
     if (setup && setup.simp) return simpStory(W, item, Object.assign({ why0: setup.why }, setup));
     if (setup && setup.write) return writeStory(W, item, Object.assign({ why0: setup.why }, setup));
+    if (setup && setup.expo) return expoSetup(W, item, Object.assign({ why0: setup.why }, setup.expo, { story: setup.story }));
     if (setup && setup.line) return lineSetup(W, item, Object.assign({ why0: setup.why }, setup.line, { story: setup.story }));
     if (setup && setup.prop) return propSetup(W, item, Object.assign({ why0: setup.why }, setup.prop, { story: setup.story }));
     if (setup && setup.sys) return systemSetup(W, item, setup.sys.eqs, Object.assign({ why0: setup.why, story: setup.story }, setup.sys));
@@ -1784,18 +1785,19 @@ const facT = (p, q, v) => "(" + (p === 1 ? "" : p) + v + (q ? (q < 0 ? " − " :
 /** "w(w + 3) = 40" or "−16t² + 96t + 40 = 148": expand, get 0 on one side, factor, zero product, keep what fits, check. */
 function quadSetup(W, item, o) {
     W.kind = "rel"; W.cols = 3;
+    const nT = (x) => numText(x, x.int ? undefined : o.frac ? "frac" : "dec");
     let m, v, cs, rhs, start = o.quad, expanded = null;
     if ((m = start.match(/^([a-z])\(\1 \+ (\d+)\) = (\d+)$/))) { v = m[1]; cs = [1, +m[2], 0]; rhs = +m[3]; expanded = polyT(cs, v) + " = " + rhs; }
-    else if ((m = start.match(/^([−-]?\d*)([a-z])² ([+−-]) (\d+)\2 ([+−-]) (\d+) = (\d+)$/))) {
+    else if ((m = start.match(/^([−-]?\d*)([a-z])² ([+−-]) (\d*)\2 ([+−-]) (\d+) = (\d+)$/))) {
         v = m[2]; const sg = (x) => (x === "+" ? 1 : -1);
-        cs = [m[1] === "" ? 1 : m[1] === "−" || m[1] === "-" ? -1 : +m[1].replace("−", "-"), sg(m[3]) * +m[4], sg(m[5]) * +m[6]]; rhs = +m[7];
+        cs = [m[1] === "" ? 1 : m[1] === "−" || m[1] === "-" ? -1 : +m[1].replace("−", "-"), sg(m[3]) * (m[4] === "" ? 1 : +m[4]), sg(m[5]) * +m[6]]; rhs = +m[7];
     } else return null;
     const P = (t) => new Q(cs[0]).mul(t).mul(t).add(new Q(cs[1]).mul(t)).add(new Q(cs[2]));   // left side's value
-    W.steps.push({ move: "story", title: "Read the story", why: o.why0 || "Find the numbers in the story and what each one means.", seq: [{ a: "row", row: { t: "pic", pic: { kind: "story", text: item.q, marks: o.story || [] } } }] });
-    W.steps.push({ move: "setup", title: "Write the equation", why: o.why1 || ("Each piece of the story goes into the equation. " + v + " is " + (o.var || "the unknown") + "."), seq: [{ a: "row", row: chainRow([start], true) }] });
+    if (!o.plain) W.steps.push({ move: "story", title: "Read the story", why: o.why0 || "Find the numbers in the story and what each one means.", seq: [{ a: "row", row: { t: "pic", pic: { kind: "story", text: item.q, marks: o.story || [] } } }] });
+    W.steps.push({ move: "setup", title: o.plain ? o.title1 || "The equation" : "Write the equation", why: o.why1 || ("Each piece of the story goes into the equation. " + v + " is " + (o.var || "the unknown") + "."), seq: [{ a: "row", row: chainRow([start], true) }] });
     if (expanded) W.steps.push({ move: "expand", title: "Multiply it out", why: v + " × " + v + " = " + v + "², and " + v + " × " + cs[1] + " = " + cs[1] + v + ".", seq: [{ a: "row", row: chainRow([expanded], true) }] });
     const std = [cs[0], cs[1], cs[2] - rhs];
-    W.steps.push({ move: "zero", title: "Get 0 on one side", why: "To factor, one side has to be 0. Subtract " + rhs + " from both sides" + (cs[2] ? ": " + cs[2] + " − " + rhs + " = " + std[2] + "." : "."), seq: [{ a: "row", row: chainRow([polyT(std, v), "=", "0"], true) }] });
+    if (rhs) W.steps.push({ move: "zero", title: "Get 0 on one side", why: "To factor, one side has to be 0. Subtract " + rhs + " from both sides" + (cs[2] ? ": " + cs[2] + " − " + rhs + " = " + std[2] + "." : "."), seq: [{ a: "row", row: chainRow([polyT(std, v), "=", "0"], true) }] });
     let red = std.slice();
     const g = gcd(gcd(std[0], std[1]), std[2]) * (std[0] < 0 ? -1 : 1);
     if (g !== 1) {
@@ -1826,14 +1828,14 @@ function quadSetup(W, item, o) {
         W.steps.push({ move: "pick", title: "What each one means", why: o.keepWhy, seq: keep.map((t, i) => ({ a: "row", row: { t: "line", cells: [R([v + " = " + nT(t) + ((o.labels || [])[i] ? ": " + o.labels[i] : "")]), null, null], chain: true } })) });
     }
     const chk = keep.map((t) => {
-        const val = P(t), tt = t.int ? nT(t) : "(" + nT(t) + ")";
+        const val = P(t), tt = t.int && t.sign >= 0 ? nT(t) : "(" + nT(t) + ")";
         const lhs = expanded ? v + "(" + v + " + " + cs[1] + ")" : polyT(cs, v);
-        const subd = lhs.replace(new RegExp(v + "²", "g"), "(" + nT(t) + ")²").replace(new RegExp("(\\d)" + v, "g"), "$1" + (t.int && t.sign >= 0 ? "(" + nT(t) + ")" : tt)).replace(new RegExp(v, "g"), nT(t));
+        const subd = lhs.replace(new RegExp(v + "²", "g"), "(" + nT(t) + ")²").replace(new RegExp("(\\d)" + v, "g"), "$1(" + nT(t) + ")").replace(new RegExp(v, "g"), nT(t));
         return { a: "row", row: { t: "line", cells: [R([subd + " = " + nT(val) + (val.eq(new Q(rhs)) ? " ✓" : "")]), null, null], sem: { truth: val.eq(new Q(rhs)) }, chain: true, c: "w-check" } };
     });
     W.steps.push({ move: "check", title: "Check", why: "Put " + keep.map(nT).join(" and ") + " back into the first equation. " + (keep.length > 1 ? "Both give " : "It gives ") + rhs + " ✓.", seq: chk });
     // the key: every kept answer is in it, and the other one isn't
-    const a = String(item.a), has = (t) => new RegExp("(^|[^\\d.])" + nT(t).replace(MINUS, "[−-]").replace(".", "\\.") + "([^\\d.]|$)").test(a);
+    const a = String(item.a), has = (t) => [nT(t), numText(t, "dec"), numText(t, "frac")].some((s) => new RegExp("(^|[^\\d.])" + s.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&").replace(MINUS, "[−-]") + "([^\\d.]|$)").test(a));
     if (!keep.every(has) || roots.some((t) => !keep.includes(t) && t.sign < 0 && has(t) && !has(t.abs()))) throw new Error("key");
     if (o.keep === "positive" && roots.some((t) => t.sign < 0 && new RegExp("[−-]" + nT(t.abs()) + "([^\\d.]|$)").test(a))) throw new Error("key");
     const eqPart = a.split(/[;,]/)[0];
@@ -1859,6 +1861,62 @@ function growSetup(W, item, o) {
     W.steps.push({ move: "check", title: "Check", why: "Put " + n + " back in: " + a + " · " + goal + " = " + T + " ✓.", seq: [{ a: "row", row: { t: "line", cells: [R([a + " · " + b, { sup: String(n) }, " = " + a + " · " + goal + " = " + a * goal + " ✓"]), null, null], sem: { truth: a * Math.pow(b, n) === T }, chain: true, c: "w-check" } }] });
     const s = String(item.a).replace(/(\d),(\d{3})/g, "$1$2");
     if (!new RegExp(v + " = " + n + "([^\\d.]|$)").test(s) || (/=/.test(s.split(",")[0]) && s.split(",")[0].replace(/\s/g, "").replace(/\^\{?([a-z])\}?/, "^$1") !== o.grow.replace(/\s/g, ""))) throw new Error("key");
+    answerStep(W, item.a, o.end || "");
+    return true;
+}
+
+/** An exponential function y = a(b)^x from two points or from the story: find b, find a, write it, check. */
+function expoSetup(W, item, o) {
+    W.kind = "rel"; W.cols = 3;
+    const v = o.v || "x", fy = o.fy || "y";
+    const pts = (o.pts || []).map((p) => p.map(qIn));
+    if (pts.some((p) => p.some((t) => !t))) return null;
+    W.dec = !!o.dec || (o.pts || []).some((p) => p.some((t) => /\./.test(String(t)))) || /\./.test(String(o.a)) || /\./.test(String(o.b));
+    let a = o.a != null ? qIn(o.a) : null, b = o.b != null ? qIn(o.b) : null;
+    const pw = (x, k) => R([pDT(W, x), { sup: String(k) }]);
+    if (o.story) W.steps.push({ move: "story", title: "Read the story", why: o.why0 || "Find the numbers in the story and what each one means.", seq: [storyRow(item, o.story)] });
+    if (pts.length >= 2) W.steps.push({ move: "start", title: "The points", why: o.ptsWhy || "Each one is (" + v + ", " + fy + ").", seq: ptRows(W, pts, true) });
+    if (b == null) {
+        if (pts.length < 2) return null;
+        const [[x1, y1], [x2, y2]] = pts, dx = x2.sub(x1);
+        if (!dx.int || dx.sign <= 0 || dx.n > 4 || y1.zero) return null;
+        const r = y2.div(y1), k = dx.n;
+        if (k === 1) {
+            b = r;
+            W.steps.push({ move: "ratio", title: "Find the factor", why: o.bWhy || ("Each time " + v + " goes up 1, " + fy + " is multiplied by the same number b. Divide: " + nTx(W, y2) + " ÷ " + nTx(W, y1) + " = " + nTx(W, b) + "."),
+                seq: [{ a: "row", row: rowT(["b = ", nDT(W, y2), " ÷ ", nDT(W, y1), " = ", nDT(W, b)], b.mul(y1).eq(y2)) }] });
+        } else {
+            for (let n = 1; n <= 20 && !b; n++) for (let d = 1; d <= 20 && !b; d++) if (new Q(n, d).pow(k).eq(r)) b = new Q(n, d);
+            if (!b) return null;
+            const times = Array(k).fill(nTx(W, b)).join(" × ");
+            W.steps.push({ move: "ratio", title: "Find the factor", why: o.bWhy || (v + " goes up " + k + ", so " + fy + " is multiplied by b " + k + " times. Divide: " + nTx(W, y2) + " ÷ " + nTx(W, y1) + " = " + nTx(W, r) + ". Then " + times + " = " + nTx(W, r) + ", so b = " + nTx(W, b) + "."),
+                seq: [{ a: "row", row: rowT([R(["b", { sup: String(k) }]), " = ", nDT(W, y2), " ÷ ", nDT(W, y1), " = ", nDT(W, r)], r.mul(y1).eq(y2)) },
+                    { a: "row", row: rowT(["b = ", nDT(W, b)], b.pow(k).eq(r)) }] });
+        }
+    } else W.steps.push({ move: "ratio", title: "The factor", why: o.bWhy || "", seq: [{ a: "row", row: rowT(["b = ", nDT(W, b)], true) }] });
+    if (b.sign <= 0 || b.one) return null;
+    if (a == null) {
+        if (!pts.length) return null;
+        const p0 = pts.find((p) => p[0].zero);
+        if (p0) {
+            a = p0[1];
+            W.steps.push({ move: "start0", title: "Find the starting value", why: o.aWhy || ("The starting value a is " + fy + " when " + v + " = 0. The point " + ptTx(W, p0) + " says it's " + nTx(W, a) + "."), seq: [{ a: "row", row: rowT(["a = ", nDT(W, a)], true) }] });
+        } else {
+            const [x1, y1] = pts[0];
+            if (!x1.int || x1.sign <= 0 || x1.n > 4) return null;
+            const bx = b.pow(x1.n); a = y1.div(bx);
+            W.steps.push({ move: "start0", title: "Find the starting value", why: o.aWhy || (x1.n === 1 ? "Go back one step from " + ptTx(W, pts[0]) + " to " + v + " = 0 by dividing by " + nTx(W, b) + "." : "Go back " + x1.n + " steps from " + ptTx(W, pts[0]) + " to " + v + " = 0 by dividing by " + nTx(W, b) + " each time."),
+                seq: [{ a: "row", row: rowT(["a = ", nDT(W, y1), " ÷ ", ...(x1.n === 1 ? [pDT(W, b)] : [pw(b, x1.n), " = ", nDT(W, y1), " ÷ ", nDT(W, bx)]), " = ", nDT(W, a)], a.mul(bx).eq(y1)) }] });
+        }
+    } else W.steps.push({ move: "start0", title: "The starting value", why: o.aWhy || "", seq: [{ a: "row", row: rowT(["a = ", nDT(W, a)], true) }] });
+    const fn = () => R([nDT(W, a), "(", nDT(W, b), ")", { sup: v }]);
+    W.steps.push({ move: "write", title: "Write the function", why: o.eqWhy || (fy + " = a(b)" + "^" + v + ", with a = " + nTx(W, a) + " and b = " + nTx(W, b) + "."), seq: [{ a: "row", row: rowT([fy + " = ", fn()], true) }] });
+    const others = pts.filter((p) => !p[0].zero && p[0].int && p[0].sign > 0).slice(-2);
+    if (others.length) W.steps.push({ move: "check", title: "Check", why: "Put " + (others.length > 1 ? "the points" : "the point") + " in. " + (others.length > 1 ? "Each one comes out right." : "It comes out right."),
+        seq: others.map((p) => { const y = a.mul(b.pow(p[0].n)); return { a: "row", row: rowT([nDT(W, a), "(", nDT(W, b), ")", { sup: nTx(W, p[0]) }, " = ", nDT(W, y), y.eq(p[1]) ? " ✓" : ""], y.eq(p[1]), { c: "w-check" }) }; }) });
+    // the key: fy = a(b)^v, nothing else
+    const k = String(item.a).split(";")[0].replace(/(\d),(\d{3})/g, "$1$2").replace(/§/g, "").match(/^\s*(.+?)\s*=\s*([\d.]+)\((.+?)\)\^\{?([a-z])\}?\s*$/);
+    if (!k || k[1].replace(/\s/g, "") !== fy.replace(/\s/g, "") || k[4] !== v || !qOf(k[2]) || !qOf(k[2]).eq(a) || !qOf(k[3]) || !qOf(k[3]).eq(b)) throw new Error("key");
     answerStep(W, item.a, o.end || "");
     return true;
 }
@@ -1952,6 +2010,8 @@ const hasNum = (a, q) => new RegExp("(^|[^\\d.])" + numText(q.abs(), "dec").repl
 function storyRow(item, marks) { return { a: "row", row: { t: "pic", pic: { kind: "story", text: item.q, marks: marks || [] } } }; }
 
 /** A linear function from two points (or from its rate and start): the rate of change, the starting value, the function, and what the question asks. */
+/** The points on one row, or two to a row when there are more than two (so a table fits on a phone). */
+const ptRows = (W, pts, two) => (two && pts.length > 2 ? Array.from({ length: Math.ceil(pts.length / 2) }, (_, i) => pts.slice(2 * i, 2 * i + 2)) : [pts]).map((g) => ({ a: "row", row: rowT(g.flatMap((p, i) => (i ? [" and ", ptDT(W, p)] : [ptDT(W, p)])), true) }));
 function lineSetup(W, item, o) {
     W.kind = "rel"; W.cols = 3;
     const v = o.v || "x", fy = o.fy || "y";
@@ -1963,7 +2023,7 @@ function lineSetup(W, item, o) {
     if (o.story) W.steps.push({ move: "story", title: "Read the story", why: o.why0 || "Find the numbers in the story and what each one means.", seq: [storyRow(item, o.story)] });
     if (pts.length >= 2) {
         W.steps.push({ move: "start", title: o.story ? "Write the points" : "The points", why: o.ptsWhy || (o.story ? "Each pair is (" + v + ", " + fy + ")." : "Use two points on the line. Each one is (" + v + ", " + fy + ")."),
-            seq: [{ a: "row", row: rowT(pts.flatMap((p, i) => (i ? [" and ", ptDT(W, p)] : [ptDT(W, p)])), true) }] });
+            seq: ptRows(W, pts, o.rows2) });
     }
     if (m == null) {
         if (pts.length < 2) return null;
