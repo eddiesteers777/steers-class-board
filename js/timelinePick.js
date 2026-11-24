@@ -6,7 +6,7 @@
    Assignments as a practice draft. The tray lives on this device only (it holds problem picks, no student data).
 ========================================== */
 import { STANDARDS } from "../data/standards.js?v=58";
-import { loadStdBank, LEVELS } from "./stdBank.js?v=3";
+import { loadStdBank, LEVELS } from "./stdBank.js?v=4";
 import * as C from "./assignCore.js?v=7";
 import { mathText } from "./vaultCore.js?v=75";
 import * as Tr from "./timelineTray.js?v=4";
