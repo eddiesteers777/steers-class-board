@@ -163,6 +163,26 @@ t("angle explorer", () => {
     assert.deepEqual(c.t, M.angDefault().t);
 });
 
+t("inequality balance", () => {
+    const r = M.parseRel("3x + 7 < 22"); assert.deepEqual([r.e, r.r], [[3, 7, 0, 22], "<"]);
+    assert.equal(M.parseRel("2x - 1 >= x + 4").r, "≥"); assert.equal(M.parseRel("x+1 <= 5").r, "≤"); assert.equal(M.parseRel("2x = 8").r, "=");
+    assert.ok(M.parseRel("3x < 5 < 9").err); assert.ok(M.parseRel("x + 1 < x + 4").err);
+    const B = M.balDefault(); M.balSet(B, r.e, r.r); assert.ok(M.isIneq(B)); assert.equal(M.eqText(B.s, B.r), "3x + 7 < 22");
+    M.balTry(B, 2); assert.deepEqual(M.balTryWeights(B), { L: 13, R: 22, x: 2 }); assert.ok(M.balTrue(B)); assert.ok(M.balTilt(B) > 0, "13 < 22: the right pan is heavier");
+    M.balTry(B, 7); assert.ok(!M.balTrue(B)); assert.ok(M.balTilt(B) < 0); M.balTry(B, 99); assert.equal(B.t, M.BAL_TRY); assert.deepEqual(B.tr, [2, 7, 10]);
+    assert.deepEqual(M.ineqSol(B), { b: 5, r: "<" });
+    assert.equal(M.balBoth(B, "-", 7, "u"), ""); assert.equal(M.balBoth(B, "/", 3, ""), ""); assert.deepEqual(M.balSolved(B), { side: "L", v: 5, r: "<" });
+    const N = M.balDefault(); M.balSet(N, [-2, 3, 0, 11], "<");   // −2x + 3 < 11
+    assert.deepEqual(M.ineqSol(N), { b: -4, r: ">" });
+    M.balBoth(N, "-", 3, "u"); assert.equal(M.balBoth(N, "/-", 2, ""), ""); assert.equal(N.r, ">", "dividing by a negative flips the sign");
+    assert.equal(M.eqText(N.s, N.r), "x > −4"); assert.deepEqual(M.balSolved(N), { side: "L", v: -4, r: ">" });
+    M.balUndo(N); assert.equal(N.r, "<"); assert.equal(M.eqText(N.s, N.r), "−2x < 8");
+    const R = M.balDefault(); M.balSet(R, [0, 4, 1, 1], "≤"); assert.deepEqual(M.balSolved({ ...R, s: [0, 3, 1, 0] }), { side: "R", v: 3, r: "≥" }, "3 ≤ x reads as x ≥ 3");
+    const c = M.cleanMt({ balance: { e: [3, 7, 0, 22], s: [3, 7, 0, 22], r: "<", er: "<", t: "9", tr: [1, "x", 50, 2], sh: 1, h: [{ s: [3, 7, 0, 22], l: "x", r: "!!" }] } }).balance;
+    assert.deepEqual([c.r, c.er, c.t, c.tr, c.sh, c.h[0].r], ["<", "<", 9, [1, 2], true, "="]);
+    assert.equal(M.mtChip("balance", { mt: { balance: Object.assign(M.balDefault(), { er: "<", r: "<", s: [1, 0, 0, 5] }) } }).v, "x < 5");
+});
+
 t("saved state is cleaned", () => {
     assert.deepEqual(M.cleanMt(null), {}); assert.deepEqual(M.cleanMt({ evil: { a: 1 } }), {});
     const c = M.cleanMt({ balance: { e: [2, 2, 2, 9], s: [1, 2, 3, 4] }, chance: { m: "dice", d2: true, t: [1, "x", -4], last: 99, rot: "NaN" }, line: { a: [99, -99], b: [99, -99] },

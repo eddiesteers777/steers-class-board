@@ -7,7 +7,7 @@
    set the screen and the panels in one tap. All of it lives in S.tools
    inside the shared board state, so the board and the Remote always match.
 ========================================== */
-import { buildWidget, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=71";
+import { buildWidget, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=72";
 import { meterEl, setVoice, camBody, tooLoud } from "./roomSense.js?v=1";
 import { MARKS, markUrl } from "./marks.js?v=1";
 import { EFFECTS, FX_AMOUNTS, applyEffect, effectSample } from "./effects.js?v=3";
@@ -15,8 +15,8 @@ import { isMine, mineList, mineSrc, onMine, addMine, removeMine, MY_MAX } from "
 import { cleanStickers } from "./stickers.js?v=1";
 import { findBody, findChip, findTitle } from "./findPanel.js?v=9";
 import { isFind, FIND_KEYS } from "./findCore.js?v=1";
-import { mtBody } from "./manipPanels.js?v=7";
-import { isMt, mtChip } from "./manipCore.js?v=7";
+import { mtBody } from "./manipPanels.js?v=8";
+import { isMt, mtChip } from "./manipCore.js?v=8";
 export { MARKS, EFFECTS, FX_AMOUNTS };
 
 const LESSON = new Set(LESSON_PANELS.map((x) => x[0])), MATH = new Set(MATH_LIST.concat(CALC_LIST).map((x) => x[0]));

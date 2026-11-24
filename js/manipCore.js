@@ -52,14 +52,46 @@ export function parseEq(str) {
     return e;
 }
 export const solveOf = (e) => (e[3] - e[1]) / (e[0] - e[2]);
-export function balDefault() { const e = [3, 7, 0, 22]; return { e, s: e.slice(), h: [] }; }
+/* Inequality mode (Alg I.11): the same pans, with <, >, ≤ or ≥ between them. x is not one hidden number any more, so the
+   class tries values of x and the scale tips for each; dividing both sides by a negative flips the sign and the scale. */
+export const RELS = ["=", "<", ">", "≤", "≥"];
+export const FLIP = { "=": "=", "<": ">", ">": "<", "≤": "≥", "≥": "≤" };
+export const REL_WORDS = { "<": "less than", ">": "greater than", "≤": "less than or equal to", "≥": "greater than or equal to" };
+export const BAL_TRY = 10;   // try x from −10 to 10
+/** "3x + 7 < 22", "2x - 3 >= x + 5" -> { e, r }, or { err }. An "=" gives an equation, as parseEq. */
+export function parseRel(str) {
+    const s = String(str || "").replace(/<=|=</g, "≤").replace(/>=|=>/g, "≥");
+    const m = s.match(/[=<>≤≥]/g);
+    if (!s.trim()) return { err: "Type an equation or inequality, like 3x + 7 < 22." };
+    if (!m || m.length !== 1) return { err: "Use one sign, =, <, >, ≤ or ≥, like 3x + 7 < 22." };
+    const r = m[0], e = parseEq(s.replace(/[<>≤≥]/, "="));
+    if (e.err) return r !== "=" && /every x|No x/.test(e.err) ? { err: "The x's cancel out, so no value of x decides it. Try another." } : e;
+    return { e, r };
+}
+export function balDefault() { const e = [3, 7, 0, 22]; return { e, s: e.slice(), h: [], r: "=", er: "=", t: 0, tr: [], sh: false }; }
+export const isIneq = (B) => !!B.er && B.er !== "=";
+/** The pans' weights for a tried x (inequality mode). */
+export function balTryWeights(B) { const x = B.t || 0, s = B.s; return { L: s[0] * x + s[1], R: s[2] * x + s[3], x }; }
+export const relHolds = (L, r, R) => ({ "=": L === R, "<": L < R, ">": L > R, "≤": L <= R, "≥": L >= R })[r];
+/** Does x = B.t make the inequality on the pans true? */
+export function balTrue(B) { const { L, R } = balTryWeights(B); return relHolds(L, B.r || "=", R); }
+/** Every solution, as x r b: the boundary b and which way the arrow goes. */
+export function ineqSol(B) { const e = B.e, k = e[0] - e[2], b = (e[3] - e[1]) / k; return { b, r: k > 0 ? B.er : FLIP[B.er] }; }
+/** Try a value of x: the scale tips for it, and it is kept on the number line. */
+export function balTry(B, x) { x = clamp(int(x, 0), -BAL_TRY, BAL_TRY); B.t = x; if (!B.tr.includes(x)) B.tr = B.tr.concat(x).slice(-(2 * BAL_TRY + 1)); }
 /** The weights of the two pans for the hidden x. */
 export function balWeights(B) { const xv = solveOf(B.e), s = B.s; return { L: s[0] * xv + s[1], R: s[2] * xv + s[3], xv }; }
-export function balTilt(B) { const { L, R } = balWeights(B), d = R - L; if (Math.abs(d) < 1e-9) return 0; return Math.sign(d) * Math.min(14, 4 + Math.abs(d) * 1.5); }   // degrees; + = right pan down
+export function balTilt(B) { const { L, R } = isIneq(B) ? balTryWeights(B) : balWeights(B), d = R - L; if (Math.abs(d) < 1e-9) return 0; return Math.sign(d) * Math.min(14, 4 + Math.abs(d) * 1.5); }   // degrees; + = right pan down
 export const balanced = (B) => balTilt(B) === 0;
 /** x alone on one side, a number on the other: the answer. */
 export function balSolved(B) {
-    const s = B.s; if (!balanced(B)) return null;
+    const s = B.s;
+    if (isIneq(B)) {   // x alone, whatever the scale does: x < 5 (or 5 > x, read as x < 5)
+        if (s[0] === 1 && s[1] === 0 && s[2] === 0) return { side: "L", v: s[3], r: B.r };
+        if (s[2] === 1 && s[3] === 0 && s[0] === 0) return { side: "R", v: s[1], r: FLIP[B.r] };
+        return null;
+    }
+    if (!balanced(B)) return null;
     if (s[0] === 1 && s[1] === 0 && s[2] === 0) return { side: "L", v: s[3] };
     if (s[2] === 1 && s[3] === 0 && s[0] === 0) return { side: "R", v: s[1] };
     return null;
@@ -71,8 +103,8 @@ export function sideText(x, u) {
     if (u) parts.push(parts.length ? (u < 0 ? "− " : "+ ") + Math.abs(u) : (u < 0 ? "−" : "") + Math.abs(u));
     return parts.length ? parts.join(" ") : "0";
 }
-export const eqText = (s) => sideText(s[0], s[1]) + " = " + sideText(s[2], s[3]);
-const push = (B, s, label) => { if (!okCounts(s)) return "Too many tiles for the pans."; B.h = B.h.concat([{ s: B.s.slice(), l: label }]).slice(-10); B.s = s; return ""; };
+export const eqText = (s, r) => sideText(s[0], s[1]) + " " + (r || "=") + " " + sideText(s[2], s[3]);
+const push = (B, s, label, r) => { if (!okCounts(s)) return "Too many tiles for the pans."; B.h = B.h.concat([{ s: B.s.slice(), l: label, r: B.r || "=" }]).slice(-10); B.s = s; if (r) B.r = r; return ""; };
 /** One tile onto (n > 0) or off (n < 0) one pan. kind "x" or "u". Returns "" or why not. */
 export function balAdd(B, side, kind, n) { const s = B.s.slice(), i = (side === "R" ? 2 : 0) + (kind === "x" ? 0 : 1); s[i] += n; return push(B, s, ""); }
 /** The same to both sides: op "+" or "-" with n tiles of kind, or "/" by n. */
@@ -84,18 +116,25 @@ export function balBoth(B, op, n, kind) {
         if (s.some((v) => v % n)) return "Not every pile splits into " + n + " equal groups.";
         return push(B, s.map((v) => v / n), "÷ " + n);
     }
+    if (op === "/-") {   // divide by −n: every tile turns over, and an inequality's sign flips
+        if (s.some((v) => v % n)) return "Not every pile splits into " + n + " equal groups.";
+        return push(B, s.map((v) => (v ? -v / n : 0)), "÷ (−" + n + ")", FLIP[B.r || "="]);
+    }
     const d = op === "-" ? -n : n, i = kind === "x" ? 0 : 1; s[i] += d; s[i + 2] += d;
     return push(B, s, (op === "-" ? "− " : "+ ") + (kind === "x" ? (n === 1 ? "" : n) + "x" : n));
 }
-export function balUndo(B) { if (!B.h.length) return false; B.s = B.h[B.h.length - 1].s.slice(); B.h = B.h.slice(0, -1); return true; }
-export function balSet(B, e) { B.e = e.slice(); B.s = e.slice(); B.h = []; }
+export function balUndo(B) { if (!B.h.length) return false; const last = B.h[B.h.length - 1]; B.s = last.s.slice(); if (last.r) B.r = last.r; B.h = B.h.slice(0, -1); return true; }
+export function balSet(B, e, r) { B.e = e.slice(); B.s = e.slice(); B.h = []; B.er = B.r = RELS.includes(r) ? r : "="; B.t = 0; B.tr = []; B.sh = false; }
 function cleanBal(o) {
     const d = balDefault(); if (!o || typeof o !== "object") return d;
     const arr = (a) => (Array.isArray(a) && a.length === 4 ? a.map((v, i) => cint(v, -(i % 2 ? BAL_MAX_U : BAL_MAX_X), i % 2 ? BAL_MAX_U : BAL_MAX_X, 0)) : null);
     const e = arr(o.e); if (!e || e[0] === e[2]) return d;
     const s = arr(o.s) || e.slice();
-    const h = Array.isArray(o.h) ? o.h.slice(-10).map((x) => x && arr(x.s) ? { s: arr(x.s), l: typeof x.l === "string" ? x.l.slice(0, 12) : "" } : null).filter(Boolean) : [];
-    return { e, s, h };
+    const rel = (v) => (RELS.includes(v) ? v : "=");
+    const h = Array.isArray(o.h) ? o.h.slice(-10).map((x) => x && arr(x.s) ? { s: arr(x.s), l: typeof x.l === "string" ? x.l.slice(0, 12) : "", r: rel(x.r) } : null).filter(Boolean) : [];
+    const er = rel(o.er), r = er === "=" ? "=" : rel(o.r) === "=" ? er : rel(o.r);
+    const tr = Array.isArray(o.tr) ? [...new Set(o.tr.filter((v) => Number.isInteger(v) && Math.abs(v) <= BAL_TRY))].slice(-(2 * BAL_TRY + 1)) : [];
+    return { e, s, h, r, er, t: cint(o.t, -BAL_TRY, BAL_TRY, 0), tr, sh: !!o.sh };
 }
 
 /* ---------- Chance lab ---------- */
@@ -498,7 +537,7 @@ export function mtOf(T, k) { if (!T.mt || typeof T.mt !== "object") T.mt = {}; i
 /** What a minimized panel's chip says. */
 export function mtChip(k, T) {
     const s = (T.mt || {})[k] || DEFAULTS[k]();
-    if (k === "balance") { const v = balSolved(s); return { v: v ? "x = " + v.v : eqText(s.s), tone: v ? "green" : balanced(s) ? "" : "amber" }; }
+    if (k === "balance") { const v = balSolved(s); if (isIneq(s)) return { v: v ? "x " + v.r + " " + v.v : eqText(s.s, s.r), tone: v ? "green" : "" }; return { v: v ? "x = " + v.v : eqText(s.s), tone: v ? "green" : balanced(s) ? "" : "amber" }; }
     if (k === "chance") { const n = trials(s); return { v: n ? n + (n === 1 ? " trial" : " trials") : { spin: "Spinner", coin: "Coin", dice: s.d2 ? "Two dice" : "Die" }[s.m] }; }
     if (k === "line") return { v: s.eq ? lineEq(s) : "Line" };
     if (k === "xform") return { v: s.ops.length ? s.ops.length + (s.ops.length === 1 ? " move" : " moves") : SHAPES[s.sh][0] };

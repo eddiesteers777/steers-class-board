@@ -12,7 +12,7 @@ import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST } from "./boardTools.js?v=71";
+import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST } from "./boardTools.js?v=72";
 import { FIND_KEYS } from "./findCore.js?v=1";
 import { setPhotoStore } from "./myPhotos.js?v=1";
 import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, isOn, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=31";
@@ -30,7 +30,7 @@ import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } fr
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 import { notesFrames } from "./notesFrames.js?v=1";
 import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=6";
-import { mountAttendance, syncAttendance } from "./attendanceRemote.js?v=9";
+import { mountAttendance, syncAttendance } from "./attendanceRemote.js?v=10";
 import { cleanChart, cleanPeriod, cleanView, seatCount, drawRoom } from "./seats.js?v=7";
 import { DAILY as SL_DAILY, INDEX as SL_INDEX, MAX_DAILY as SL_MAX_DAILY, cleanDeck, cleanIndex, showList, revealSteps, indexHas, liveContext, lessonDate, textOf } from "./slides.js?v=2";
 import { renderSlide, fitSlide, imageLoader, thumb } from "./slideView.js?v=2";

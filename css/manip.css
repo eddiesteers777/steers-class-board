@@ -101,6 +101,22 @@
 .bal-chip.neg{background:#E0524F;color:#fff}
 .bal-ghost{position:fixed;z-index:9999;pointer-events:none;transform:translate(-50%,-50%) scale(1.25);box-shadow:0 .6em 1.4em rgba(0,0,0,.4);cursor:grabbing;font-size:18px}
 .mt-both .mt-op{min-width:2.9em}
+.mt-state[data-tone="red"]{color:var(--mt-red);opacity:1}
+.bal-nl{display:block;width:100%;max-width:30em;margin:.1em auto 0;cursor:pointer;touch-action:manipulation}
+.bal-nlax{stroke:currentColor;stroke-opacity:.55;stroke-width:2}
+.bal-nltk{stroke:currentColor;stroke-opacity:.5;stroke-width:1.5}
+.bal-nll{fill:currentColor;fill-opacity:.7;font-size:11px;font-weight:700}
+.bal-ray{stroke:var(--mt-green);stroke-width:6;stroke-linecap:round;opacity:.9}
+.bal-rayh{fill:var(--mt-green)}
+.bal-bd{fill:var(--s-bg,#0E1A2E);stroke:var(--mt-green);stroke-width:3}
+.card.psty.plight .bal-bd{fill:#fff}
+.bal-bd.shut{fill:var(--mt-green)}
+.bal-dot{stroke:rgba(0,0,0,.3);stroke-width:1}
+.bal-dot.yes{fill:var(--mt-green)}.bal-dot.no{fill:var(--mt-red)}
+.bal-cur{fill:none;stroke-width:2.5}
+.bal-cur.yes{stroke:var(--mt-green)}.bal-cur.no{stroke:var(--mt-red)}
+.bal-sol{margin:.1em 0 0;text-align:center;font-size:.64em;font-weight:700;color:var(--mt-green)}
+.bal-try .bal-tv{min-width:1.8em;text-align:center}
 .mt-n .mt-sl{display:none}
 
 /* ---------- Chance lab ---------- */

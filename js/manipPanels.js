@@ -11,7 +11,7 @@
    between redraws of the board's panels, so a redraw never drops a drag, a half-typed equation or a spin in flight.
    A drag only moves things on this screen; the shared state is written once, when the finger lifts.
 ========================================== */
-import * as M from "./manipCore.js?v=7";
+import * as M from "./manipCore.js?v=8";
 import { makeCalc } from "./calcPanel.js?v=1";
 import { makeGraph } from "./graphPanel.js?v=1";
 import { makeAngle } from "./anglePanel.js?v=1";
@@ -102,6 +102,21 @@ function makeBalance(k) {
         tiles[sd] = s("g", { class: "bal-tiles" }, g);
     });
     const state = h("p", "mt-state");
+    /* inequality mode: a number line of the x's tried, and the solution */
+    const nl = s("svg", { viewBox: "0 0 440 64", class: "mt-svg bal-nl", role: "img" }), nlG = s("g", null, nl);
+    const sol = h("p", "bal-sol");
+    const NX = (v) => 20 + (v + M.BAL_TRY) * 20;
+    nl.addEventListener("pointerdown", (e) => e.stopPropagation());
+    nl.addEventListener("click", (e) => { const v = Math.round((svgPt(nl, e).x - 20) / 20 - M.BAL_TRY); if (Math.abs(v) <= M.BAL_TRY) { M.balTry(st(k), v); save(); } });
+    const modeRow = h("div", "mt-row");
+    const bEq = btn("Equation", "mt-chip", () => { const B = st(k); if (M.isIneq(B)) { M.balSet(B, B.e, "="); p.say(""); save(); } });
+    const bIn = btn("Inequality", "mt-chip", () => { const B = st(k); if (!M.isIneq(B)) { M.balSet(B, B.e, "<"); p.say("Now it's " + M.eqText(B.e, "<") + ". Try values of x and watch the scale."); save(); } });
+    modeRow.append(bEq, bIn);
+    const tryRow = h("div", "mt-row bal-try"); tryRow.appendChild(h("span", "mt-sl", "Try x"));
+    const tryV = h("b", "mt-sv bal-tv");
+    const tryGo = (d) => { const B = st(k), v = (B.t || 0) + d; if (Math.abs(v) <= M.BAL_TRY) { M.balTry(B, v); save(); } };
+    const bShow = btn("Show the solution", "mt-chip", () => { const B = st(k); B.sh = !B.sh; save(); }, "Show every x that makes it true");
+    tryRow.append(btn("−", "mt-sb", () => tryGo(-1), "Try a smaller x"), tryV, btn("+", "mt-sb", () => tryGo(1), "Try a bigger x"), bShow);
     /* the tray: drag a tile onto a pan */
     const tray = h("div", "mt-tray"); tray.appendChild(h("span", "mt-sl", "Drag onto a pan"));
     [["x", 1, "x"], ["x", -1, "−x"], ["u", 1, "1"], ["u", -1, "−1"]].forEach(([kind, sg, lab]) => {
@@ -127,14 +142,20 @@ function makeBalance(k) {
     let n = 1;
     const both = h("div", "mt-row mt-both"); both.appendChild(h("span", "mt-sl", "Both sides"));
     const nStep = stepper("", () => n, (v) => { n = v; drawBoth(); }, 1, 12); nStep.classList.add("mt-n");
-    const opBtns = [["-", "u"], ["+", "u"], ["-", "x"], ["+", "x"], ["/", ""]].map(([op, kind]) => {
-        const b = btn("", "mt-op", () => { const why = M.balBoth(st(k), op, n, kind); if (why) p.say(why, "amber"); else { p.say(""); save(); } });
+    const opBtns = [["-", "u"], ["+", "u"], ["-", "x"], ["+", "x"], ["/", ""], ["/-", ""]].map(([op, kind]) => {
+        const b = btn("", "mt-op", () => {
+            const B = st(k), was = B.r || "=", why = M.balBoth(B, op, n, kind);
+            if (why) { p.say(why, "amber"); return; }
+            p.say(B.r !== was ? "Dividing by a negative flips the sign: " + was + " became " + B.r + ". The scale flips too." : ""); save();
+        });
         b.dataset.op = op; b.dataset.kind = kind; return b;
     });
     both.append(nStep, ...opBtns);
     function drawBoth() {
         nStep.refresh();
+        const ineq = M.isIneq(st(k));
         opBtns.forEach((b) => { const op = b.dataset.op, kind = b.dataset.kind, nx = kind === "x" ? (n === 1 ? "" : n) + "x" : String(n);
+            if (op === "/-") { b.textContent = "÷ (−" + n + ")"; b.hidden = !ineq; b.setAttribute("aria-label", "Divide both sides by −" + n); return; }
             b.textContent = op === "/" ? "÷ " + n : (op === "-" ? "− " : "+ ") + nx; b.disabled = op === "/" && n < 2;
             b.setAttribute("aria-label", op === "/" ? "Divide both sides by " + n : (op === "-" ? "Take " : "Add ") + nx + (op === "-" ? " from" : " to") + " both sides"); });
     }
@@ -142,10 +163,33 @@ function makeBalance(k) {
     const form = h("form", "mt-row mt-set"); const inp = h("input", "mt-in"); inp.id = "mtIn-balance"; inp.type = "text"; inp.autocomplete = "off"; inp.spellcheck = false;
     inp.placeholder = "New equation, like 2x − 3 = x + 5"; inp.setAttribute("aria-label", "New equation");
     form.append(inp, btn("Set", "mt-go", () => form.requestSubmit()));
-    form.onsubmit = (e) => { e.preventDefault(); const r = M.parseEq(inp.value); if (r.err) { p.say(r.err, "amber"); return; } M.balSet(st(k), r); inp.value = ""; inp.blur(); p.say("Set. The scale knows x; can the class find it?"); save(); };
+    form.onsubmit = (e) => { e.preventDefault(); const r = M.parseRel(inp.value); if (r.err) { p.say(r.err, "amber"); return; } M.balSet(st(k), r.e, r.r); inp.value = ""; inp.blur(); p.say(r.r === "=" ? "Set. The scale knows x; can the class find it?" : "Set. Try values of x: which ones make it true?"); save(); };
     const tools = h("div", "mt-row mt-foot");
-    tools.append(btn("Undo", "", () => { if (M.balUndo(st(k))) save(); }, "Undo the last move"), btn("Start over", "", () => { const B = st(k); M.balSet(B, B.e); save(); }, "Back to the starting equation"));
-    p.main.append(steps, eq, svg, state); p.side.append(tray, both, form, tools, p.note);
+    tools.append(btn("Undo", "", () => { if (M.balUndo(st(k))) save(); }, "Undo the last move"), btn("Start over", "", () => { const B = st(k); M.balSet(B, B.e, B.er); save(); }, "Back to the starting equation"));
+    p.main.append(steps, eq, svg, state, nl, sol); p.side.append(modeRow, tryRow, tray, both, form, tools, p.note);
+    const fracOf = (num, den) => { if (den < 0) { num = -num; den = -den; } const g = M.gcd(num, den); return M.fracText([num / g, den / g]); };
+    const sg = (v) => (v < 0 ? "−" + Math.abs(v) : String(v));
+    function drawNl(B) {
+        clear(nlG);
+        const R = M.BAL_TRY, e = B.e, Y = 26, truth = (x) => M.relHolds(e[0] * x + e[1], B.er, e[2] * x + e[3]);
+        const S = M.ineqSol(B), solved = M.balSolved(B), showSol = B.sh || !!solved;
+        s("line", { x1: NX(-R) - 10, x2: NX(R) + 10, y1: Y, y2: Y, class: "bal-nlax" }, nlG);
+        for (let v = -R; v <= R; v++) { s("line", { x1: NX(v), x2: NX(v), y1: Y - (v % 5 ? 4 : 7), y2: Y + (v % 5 ? 4 : 7), class: "bal-nltk" }, nlG); if (v % 2 === 0) txt(nlG, NX(v), Y + 22, sg(v), "bal-nll", { "text-anchor": "middle" }); }
+        if (showSol) {
+            const left = S.r === "<" || S.r === "≤", bx = Math.max(NX(-R) - 10, Math.min(NX(R) + 10, NX(S.b))), end = left ? NX(-R) - 10 : NX(R) + 10, inR = Math.abs(S.b) <= R + 0.5;
+            if ((left && bx > end) || (!left && bx < end)) {
+                s("line", { x1: bx + (inR ? (left ? -7 : 7) : 0), x2: end, y1: Y, y2: Y, class: "bal-ray" }, nlG);
+                s("path", { d: left ? "M" + (end - 6) + " " + Y + " l9 -6 v12 z" : "M" + (end + 6) + " " + Y + " l-9 -6 v12 z", class: "bal-rayh" }, nlG);
+            }
+            if (inR) s("circle", { cx: NX(S.b), cy: Y, r: 6.5, class: "bal-bd" + (S.r === "≤" || S.r === "≥" ? " shut" : "") }, nlG);
+        }
+        B.tr.forEach((x) => s("circle", { cx: NX(x), cy: Y, r: 4.6, class: "bal-dot " + (truth(x) ? "yes" : "no") }, nlG));
+        s("circle", { cx: NX(B.t || 0), cy: Y, r: 9, class: "bal-cur " + (truth(B.t || 0) ? "yes" : "no") }, nlG);
+        sol.hidden = !showSol;
+        const e0 = e[0] - e[2];
+        sol.textContent = showSol ? "The solution: x " + S.r + " " + fracOf(e[3] - e[1], e0) + ". Every x " + M.REL_WORDS[S.r] + " " + fracOf(e[3] - e[1], e0) + " makes it true" + (S.r === "<" || S.r === ">" ? ", but not " + fracOf(e[3] - e[1], e0) + " itself." : ".") : "";
+        nl.setAttribute("aria-label", "Number line of the x's tried" + (showSol ? ", with the solution x " + S.r + " " + fracOf(e[3] - e[1], e0) : ""));
+    }
 
     function tile(g, kind, neg, x, y, side) {
         const [w, hh] = TILE[kind], r = s("g", { class: "bal-t " + kind + (neg ? " neg" : ""), transform: "translate(" + x + " " + y + ")", tabindex: "0", role: "button", "aria-label": "Take " + (neg ? "−" : "") + (kind === "x" ? "x" : "1") + " off this pan" }, g);
@@ -164,11 +208,23 @@ function makeBalance(k) {
         beam.style.transform = "rotate(" + tilt + "deg)";
         [["L", -1], ["R", 1]].forEach(([sd, dir]) => { const x = PIV.x + dir * ARM * Math.cos(rad), y = PIV.y + dir * ARM * Math.sin(rad); pans[sd].style.transform = "translate(" + x + "px," + y + "px)"; });
         fill("L", B.s[0], B.s[1]); fill("R", B.s[2], B.s[3]);
-        eq.textContent = solved ? "x = " + solved.v : M.eqText(B.s); eq.classList.toggle("done", !!solved);
-        clear(steps); B.h.slice(-3).forEach((x) => { const l = h("div", "mt-hl"); l.appendChild(h("span", null, M.eqText(x.s))); if (x.l) l.appendChild(h("i", null, x.l)); steps.appendChild(l); });
-        state.textContent = solved ? "Solved: x = " + solved.v + ". Check it in " + M.sideText(B.e[0], B.e[1]) + " = " + M.sideText(B.e[2], B.e[3]) + "." : ok ? "Balanced" : "Not balanced: do the same to both sides";
-        state.dataset.tone = solved ? "green" : ok ? "" : "amber";
-        svg.setAttribute("aria-label", "Balance scale, " + (ok ? "level" : "tipped") + ": " + M.eqText(B.s));
+        const ineq = M.isIneq(B);
+        bEq.setAttribute("aria-pressed", String(!ineq)); bIn.setAttribute("aria-pressed", String(ineq));
+        tryRow.hidden = !ineq; nl.style.display = ineq ? "" : "none"; if (!ineq) sol.hidden = true;
+        inp.placeholder = ineq ? "New inequality, like 3x + 7 < 22" : "New equation, like 2x − 3 = x + 5";
+        eq.textContent = solved ? "x " + (ineq ? solved.r : "=") + " " + sg(solved.v) : M.eqText(B.s, B.r); eq.classList.toggle("done", !!solved);
+        clear(steps); B.h.slice(-3).forEach((x) => { const l = h("div", "mt-hl"); l.appendChild(h("span", null, M.eqText(x.s, x.r))); if (x.l) l.appendChild(h("i", null, x.l)); steps.appendChild(l); });
+        if (ineq) {
+            const W = M.balTryWeights(B), yes = M.balTrue(B);
+            tryV.textContent = sg(W.x); bShow.setAttribute("aria-pressed", String(!!B.sh));
+            state.textContent = "x = " + sg(W.x) + ": the left pan is " + sg(W.L) + " and the right pan is " + sg(W.R) + ". " + sg(W.L) + " " + B.r + " " + sg(W.R) + " is " + (yes ? "true, so " + sg(W.x) + " is a solution." : "false, so " + sg(W.x) + " is not a solution.");
+            state.dataset.tone = yes ? "green" : "red";
+            drawNl(B);
+        } else {
+            state.textContent = solved ? "Solved: x = " + sg(solved.v) + ". Check it in " + M.sideText(B.e[0], B.e[1]) + " = " + M.sideText(B.e[2], B.e[3]) + "." : ok ? "Balanced" : "Not balanced: do the same to both sides";
+            state.dataset.tone = solved ? "green" : ok ? "" : "amber";
+        }
+        svg.setAttribute("aria-label", "Balance scale, " + (ok ? "level" : "tipped") + ": " + M.eqText(B.s, B.r));
         drawBoth();
     };
     return p;
