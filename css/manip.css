@@ -371,3 +371,72 @@ body.board.idle .gc-top,body.board.idle .gc-zoom{opacity:.35;transition:opacity 
 .an-cdot{fill:#fff;stroke:var(--mt-acc);stroke-width:2.5;vector-effect:non-scaling-stroke}
 .an-clab{font-size:13px;font-weight:800;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.an-wedge{transition:opacity .2s}}
+
+/* ================= Function machine (js/fnPanel.js) ================= */
+.float.tool-fn{width:40em}
+.mt-fn{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}
+.fn-svg{max-width:28em;margin:0 auto;overflow:hidden!important}
+.fn-lab{font-size:10px;font-weight:800;letter-spacing:.12em;opacity:.6}
+.fn-path{fill:none;stroke:currentColor;stroke-width:1.4;stroke-dasharray:3 4;opacity:.3;vector-effect:non-scaling-stroke}
+.fn-hop{fill:color-mix(in srgb,currentColor 12%,transparent);stroke:color-mix(in srgb,currentColor 45%,transparent);stroke-width:1.6;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.fn-chute{fill:color-mix(in srgb,currentColor 12%,transparent);stroke:color-mix(in srgb,currentColor 45%,transparent);stroke-width:1.6;vector-effect:non-scaling-stroke}
+.fn-box{fill:var(--mt-acc);stroke:color-mix(in srgb,#fff 55%,var(--mt-acc));stroke-width:2;vector-effect:non-scaling-stroke;filter:drop-shadow(0 4px 10px rgba(0,0,0,.25))}
+.fn-y{font-size:12px;font-weight:700;fill:#fff!important;opacity:.75}
+.fn-rule{font-size:24px;font-weight:800;fill:#fff!important;font-family:var(--display,"Bricolage Grotesque"),var(--ui,system-ui),sans-serif}
+.fn-rule.q{font-size:34px;fill:#FFE08A!important}
+.fn-teeth{fill:none;stroke:#fff;stroke-width:5;stroke-dasharray:3 2.6;opacity:.55}
+.fn-hub{fill:#fff;opacity:.55}
+.fn-gear>g{transform-box:fill-box;transform-origin:center}
+.fn-svg.go .fn-gear>g{animation:fnSpin 1.3s linear}
+.fn-svg.go .fn-gear:last-of-type>g{animation-direction:reverse}
+@keyframes fnSpin{to{transform:rotate(360deg)}}
+.fn-ball circle{fill:#fff;stroke:var(--mt-acc);stroke-width:2.5;vector-effect:non-scaling-stroke}
+.fn-bv{font-size:15px;font-weight:800;fill:#0E2147!important}
+.fn-inb{transform:translate(45px,71px)}
+.fn-outb{transform:translate(315px,95px)}
+.fn-outb circle{fill:#FFE08A;stroke:#C98A00}
+.fn-svg.go .fn-inb{animation:fnIn 1.3s cubic-bezier(.4,0,.3,1)}
+.fn-svg.go .fn-outb{animation:fnOut 1.3s cubic-bezier(.3,.6,.3,1)}
+.fn-svg.go .fn-box{animation:fnHum 1.3s}
+@keyframes fnIn{0%{transform:translate(45px,71px)}35%{transform:translate(180px,4px)}60%{transform:translate(180px,44px) scale(.55);opacity:1}68%{transform:translate(180px,56px) scale(.4);opacity:0}99%{transform:translate(45px,71px);opacity:0}100%{opacity:1}}
+@keyframes fnOut{0%,62%{transform:translate(262px,95px) scale(.4);opacity:0}72%{opacity:1}100%{transform:translate(315px,95px) scale(1);opacity:1}}
+@keyframes fnHum{0%,30%,85%,100%{transform:none}45%,65%{transform:translateY(-1.5px)}55%,75%{transform:translateY(1.5px)}}
+.fn-head{text-align:left!important;font-size:1.3em!important}
+.fn-head.fn-no{background:color-mix(in srgb,var(--mt-red) 25%,transparent);border-color:var(--mt-red)}
+.fn-sub{margin:0;font-size:.72em;line-height:1.35;opacity:.85;min-height:2.7em}
+.fn-nums{display:grid;grid-template-columns:repeat(5,1fr);gap:.3em}
+.fn-num{min-height:2.3em!important;font-weight:800;font-size:.9em!important;padding:0!important}
+.fn-rulerow{display:flex;flex-wrap:wrap;align-items:center;gap:.35em .7em}
+.fn-step{display:flex;align-items:center;gap:.25em}
+.fn-sb{width:2em;padding:0!important;font-weight:800}
+.fn-sv{min-width:1.8em;text-align:center;font-size:1em}
+.fn-sq{font-size:.66em!important}
+.fn-myst{border-color:#C98A00!important;background:color-mix(in srgb,#F2B33D 30%,transparent)!important;font-weight:750}
+.fn-ans{display:grid;grid-template-columns:1fr 1fr;gap:.4em}
+.fn-a{min-height:2.6em!important;font-weight:800;font-size:.85em!important}
+.fn-a[aria-pressed="true"]{background:var(--mt-acc);border-color:var(--mt-acc);color:#fff}
+.fn-rec{min-height:4em;display:flex;flex-direction:column;justify-content:center}
+.mt-fn.fn-testing .fn-rec{min-height:12em}
+.fn-empty{margin:0;text-align:center;font-size:.72em;opacity:.65}
+.fn-tab{border-collapse:separate;border-spacing:0;margin:0 auto;font-weight:750;font-size:.95em;border-radius:.6em;overflow:hidden;border:.06em solid var(--mt-line)}
+.fn-tab th,.fn-tab td{padding:.3em .6em;min-width:2.2em;text-align:center;border-left:.06em solid var(--mt-line)}
+.fn-tab th{background:var(--mt-fill2);font-style:italic;border-left:0}
+.fn-tab tr:first-child>*{border-bottom:.06em solid var(--mt-line)}
+.fn-tab td.new{background:color-mix(in srgb,#F2B33D 30%,transparent);animation:mtPop .5s ease-out}
+.fn-tab td.bad{background:color-mix(in srgb,var(--mt-red) 35%,transparent)}
+.fn-map,.fn-graph{max-width:28em;margin:0 auto}
+.fn-oval{fill:color-mix(in srgb,currentColor 8%,transparent);stroke:color-mix(in srgb,currentColor 40%,transparent);stroke-width:1.5;vector-effect:non-scaling-stroke}
+.fn-mv{font-size:15px;font-weight:800}
+.fn-arrow{stroke:var(--mt-blue);stroke-width:2;vector-effect:non-scaling-stroke}
+.fn-arrow.bad{stroke:var(--mt-red);stroke-width:3}
+.fn-ah{fill:var(--mt-blue)}.fn-ah.bad{fill:var(--mt-red)}
+.fn-none{font-size:12px;opacity:.5}
+.fn-gl{stroke:currentColor;stroke-width:1;opacity:.12;vector-effect:non-scaling-stroke}
+.fn-ax{stroke:currentColor;stroke-width:1.6;opacity:.55;vector-effect:non-scaling-stroke}
+.fn-tk{font-size:9px;font-weight:700;opacity:.65}
+.fn-pt{fill:var(--mt-blue);stroke:#fff;stroke-width:1.8;vector-effect:non-scaling-stroke}
+.fn-pt.new{fill:#F2B33D}
+.fn-pt.bad{fill:var(--mt-red)}
+.fn-vlt{stroke:var(--mt-red);stroke-width:2;stroke-dasharray:5 4;vector-effect:non-scaling-stroke}
+@media (prefers-reduced-motion:reduce){.fn-svg.go .fn-inb,.fn-svg.go .fn-outb,.fn-svg.go .fn-box,.fn-svg.go .fn-gear>g{animation:none}}
+.fn-a[aria-pressed="true"]:disabled{opacity:1}

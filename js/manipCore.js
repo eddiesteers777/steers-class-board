@@ -9,6 +9,7 @@
      pyth      Pythagorean squares  a right triangle with a square on each side (8.26–8.28)
      counters  Integer counters     two-colour counters and zero pairs (7.4, 7.5)
      angle     Angle explorer       parallel lines cut by a transversal, and a triangle's corners torn onto a line (8.25)
+     fn        Function machine     inputs go in, the rule makes outputs; mystery rules, and "function or not?" (8.13, 8.14)
      calc      Basic calculator     + − × ÷ and percent, with the order of operations
      sci       Scientific calculator powers, roots, trig, logs, Ans and fraction answers
      graph     Graphing calculator  expressions, sliders and a live graph (js/graphPanel.js)
@@ -18,7 +19,7 @@
 ========================================== */
 import { gcDefault, cleanGc, fmt } from "./graphCalc.js?v=1";
 
-export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "angle", "calc", "sci", "graph"];
+export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "angle", "fn", "calc", "sci", "graph"];
 export const isMt = (k) => MT_KEYS.includes(k);
 
 const int = (v, d) => { const n = Math.round(+v); return Number.isFinite(n) ? n : d; };
@@ -305,6 +306,60 @@ function cleanAng(o) {
     return { m: o.m === "tri" ? "tri" : "par", a: cint(o.a, ANG_MIN, ANG_MAX, 60), np: !!o.np, pk: ANG_KINDS.includes(o.pk) ? o.pk : "", sel: list(o.sel, 2), hide: !!o.hide, rv: list(o.rv, 8), t, torn: !!o.torn };
 }
 
+/* ---------- Function machine ---------- */
+/* A machine with a rule y = ax + b (or y = ax² + b). Each input dropped in comes out as its output, and the pairs build
+   a table, a mapping and a graph. A mystery rule hides the rule for the class to find. "Function or not?" shows a set
+   of pairs and asks whether each input has exactly one output. */
+export const FN_A = 6, FN_B = 12, FN_IN = 10, FN_MAX = 8;   // rule limits, input limit, inputs kept
+export const FN_VIEWS = ["table", "map", "graph"];
+export const fnDefault = () => ({ m: "mach", a: 2, b: 1, q: false, hide: false, ins: [], v: "table", ps: [], g: "", sh: false });
+/** The rule's output for x. */
+export const fnOut = (F, x) => F.a * (F.q ? x * x : x) + F.b;
+const fsg = (n, first) => (n < 0 ? (first ? "−" : " − ") : first ? "" : " + ");
+/** "2x + 1", "−x² − 4", "3": the right side of the rule. */
+export function fnRule(F) {
+    const v = F.q ? "x²" : "x";
+    const ax = F.a === 0 ? "" : fsg(F.a, true) + (Math.abs(F.a) === 1 ? "" : Math.abs(F.a)) + v;
+    if (!ax) return (F.b < 0 ? "−" : "") + Math.abs(F.b);
+    return ax + (F.b ? fsg(F.b, false) + Math.abs(F.b) : "");
+}
+/** The pairs the machine has made, in the order the inputs went in. */
+export const fnPairs = (F) => F.ins.map((x) => [x, fnOut(F, x)]);
+/** A new mystery rule, never the same as the one before. rnd: a function giving [0, 1). */
+export function fnMystery(F, rnd = Math.random) {
+    const pick = (lo, hi) => lo + Math.floor(rnd() * (hi - lo + 1));
+    let a, b, q, n = 0;
+    do { q = rnd() < 0.2; a = q ? pick(1, 2) : pick(-3, 4) || 3; b = pick(-6, 6); n++; } while (n < 20 && a === F.a && b === F.b && q === F.q);
+    Object.assign(F, { a, b, q, hide: true, ins: [] });
+}
+/** Is a set of pairs a function? If not, the first input that goes to two outputs, and those outputs. */
+export function fnTest(ps) {
+    const seen = new Map();
+    for (const [x, y] of ps) { if (!seen.has(x)) seen.set(x, new Set()); seen.get(x).add(y); }
+    for (const [x, ys] of seen) if (ys.size > 1) return { ok: false, x, ys: [...ys].sort((p, q) => p - q) };
+    const outs = ps.map((q) => q[1]);
+    return { ok: true, shared: outs.some((y, i) => outs.indexOf(y) !== i) };
+}
+/** A new set of pairs for "Function or not?": about half are functions, and some functions share an output. */
+export function fnNewSet(F, rnd = Math.random) {
+    const pick = (lo, hi) => lo + Math.floor(rnd() * (hi - lo + 1));
+    const n = pick(4, 5), xs = [];
+    while (xs.length < n) { const x = pick(-4, 6); if (!xs.includes(x)) xs.push(x); }
+    const ps = xs.map((x) => [x, pick(-5, 9)]);
+    if (rnd() < 0.5) {   // not a function: one input gets a second output
+        const [x, y] = ps[pick(0, n - 1)]; let y2 = y; while (y2 === y) y2 = pick(-5, 9);
+        ps.push([x, y2]);
+    } else if (rnd() < 0.5) ps[1][1] = ps[0][1];   // a function where two inputs share an output
+    for (let i = ps.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [ps[i], ps[j]] = [ps[j], ps[i]]; }
+    Object.assign(F, { ps, g: "", sh: false });
+}
+function cleanFn(o) {
+    const d = fnDefault(); if (!o || typeof o !== "object") return d;
+    const ins = (Array.isArray(o.ins) ? o.ins : []).map((v) => int(v, NaN)).filter((v) => Number.isFinite(v) && Math.abs(v) <= FN_IN).slice(-FN_MAX);
+    const ps = (Array.isArray(o.ps) ? o.ps : []).filter((q) => Array.isArray(q) && q.length === 2).map((q) => [cint(q[0], -20, 20, 0), cint(q[1], -40, 40, 0)]).slice(0, 8);
+    return { m: o.m === "test" ? "test" : "mach", a: cint(o.a, -FN_A, FN_A, 2), b: cint(o.b, -FN_B, FN_B, 1), q: !!o.q, hide: !!o.hide, ins, v: FN_VIEWS.includes(o.v) ? o.v : "table", ps, g: o.g === "f" || o.g === "n" ? o.g : "", sh: !!o.sh };
+}
+
 /* ---------- all six ---------- */
 /* ---------- the calculators: the line being typed, the last answers, and the scientific one's modes ---------- */
 const calcDefault = () => ({ x: "", h: [], a: 0, done: false });
@@ -319,8 +374,8 @@ function cleanCalc(o) {
     return out;
 }
 
-const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, angle: angDefault, calc: calcDefault, sci: sciDefault, graph: gcDefault };
-const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, angle: cleanAng, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
+const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, angle: angDefault, fn: fnDefault, calc: calcDefault, sci: sciDefault, graph: gcDefault };
+const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, angle: cleanAng, fn: cleanFn, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
 export const mtDefault = (k) => DEFAULTS[k]();
 /** tools.mt as saved: only panels that were used are kept, each cleaned. */
 export function cleanMt(o) { const out = {}; if (!o || typeof o !== "object") return out; MT_KEYS.forEach((k) => { if (o[k] && typeof o[k] === "object") out[k] = CLEAN[k](o[k]); }); return out; }
@@ -337,6 +392,7 @@ export function mtChip(k, T) {
     if (k === "calc" || k === "sci") return { v: s.done && num(s.r) != null ? fmt(s.r) : s.x ? s.x.slice(-14) : "0" };
     if (k === "graph") { const n = s.e.filter((x) => x.t.trim()).length; return { v: n === 1 ? s.e.find((x) => x.t.trim()).t.slice(0, 16) : n ? n + " graphs" : "Graph" }; }
     if (k === "angle") { if (s.m === "tri") { const d = triAngles(s.t).deg; return { v: d.join("° + ") + "° = 180°" }; } return { v: (s.np ? "Not parallel, " : "") + s.a + "° and " + (180 - s.a) + "°" }; }
+    if (k === "fn") return { v: s.m === "test" ? "Function or not?" : s.hide ? "Mystery rule" : "y = " + fnRule(s) };
     if (k === "counters") { const v = ctValue(s); return { v: (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) }; }
     return { v: "" };
 }

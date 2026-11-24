@@ -82,6 +82,26 @@ t("integer counters", () => {
     assert.match(M.ctAdd({ p: 20, n: 0 }, "p"), /holds/);
 });
 
+t("function machine", () => {
+    const F = M.fnDefault();
+    assert.equal(M.fnRule(F), "2x + 1");
+    assert.equal(M.fnRule({ a: -1, b: -4, q: true }), "−x² − 4");
+    assert.equal(M.fnRule({ a: 0, b: -3, q: false }), "−3");
+    assert.equal(M.fnRule({ a: 1, b: 0, q: false }), "x");
+    F.ins = [1, 2, -3]; assert.deepEqual(M.fnPairs(F), [[1, 3], [2, 5], [-3, -5]]);
+    assert.equal(M.fnOut({ a: 2, b: 1, q: true }, -2), 9);
+    assert.deepEqual(M.fnTest([[1, 2], [2, 2]]), { ok: true, shared: true });
+    assert.deepEqual(M.fnTest([[3, 8], [1, 2], [3, 5]]), { ok: false, x: 3, ys: [5, 8] });
+    let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+    let yes = 0, no = 0;
+    for (let i = 0; i < 200; i++) { M.fnNewSet(F, rnd); assert.ok(F.ps.length >= 4 && F.ps.length <= 6); M.fnTest(F.ps).ok ? yes++ : no++; }
+    assert.ok(yes > 50 && no > 50, yes + " / " + no);
+    const G = M.fnDefault(); M.fnMystery(G, rnd); assert.equal(G.hide, true); assert.deepEqual(G.ins, []); assert.ok(G.a !== 0);
+    const c = M.cleanMt({ fn: { m: "test", a: 99, b: -99, ins: [1, "x", 50, 2, 3, 4, 5, 6, 7, 8, 9], v: "nope", ps: [[1, 2], [3], "x"], g: "f", sh: 1 } }).fn;
+    assert.equal(c.a, M.FN_A); assert.equal(c.b, -M.FN_B); assert.deepEqual(c.ins, [2, 3, 4, 5, 6, 7, 8, 9]); assert.equal(c.v, "table"); assert.deepEqual(c.ps, [[1, 2]]); assert.equal(c.sh, true);
+    assert.equal(M.mtChip("fn", { mt: { fn: M.fnDefault() } }).v, "y = 2x + 1");
+});
+
 t("angle explorer", () => {
     const A = M.angDefault();
     assert.deepEqual(M.angVals(A).slice(1), [120, 60, 60, 120, 120, 60, 60, 120]);
