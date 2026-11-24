@@ -53,6 +53,12 @@ simpler, one less thing.
   - Pictures are the teacher's own, shrunk on the device (1600 px, under 720 KB) and kept in the teacher's own saved
     data (`slideimg/<id>`): not in Firebase Storage, which needs a paid plan, and never in the repo. With no wifi a
     picture still goes on the slide and goes up when the wifi is back.
+  - **One job each (Nov 24, Eddie: "what place should Slides serve?").** Slides is where a lesson is built, ahead of
+    time; Spotlight is where it is taught. So Slides does not present: Present was cut, and its one big amber button is
+    **Teach this slide** (the board goes to that lesson and Spotlight opens on the slide, live). Slides keeps one bar of
+    its own: the lesson row (‹ week ›, class when there is more than one, Mon–Fri, saved, Teach this slide, ⋯) sits in
+    the Board Builder header (`#slBarSlot`), with the tools under it. The ⋯ holds Start from my plan, Copy to another day
+    or class, and Put it on the board, stay here. A slide that has a Spotlight screen gets an "In Spotlight" badge.
   - **Screens list (Nov 21, Eddie: "get rid of some of those tabs"; Slides is the main one).** Slides comes first as
     a card ("6 slides for Monday", "Slide 2 of 6 on the board"). Tapping it puts the slides on the board and opens a
     list of that day's slides as small pictures (every-day ones tagged); tapping one shows it. Then the screens used

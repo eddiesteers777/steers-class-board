@@ -25,7 +25,7 @@
     <link rel="stylesheet" href="css/livestatus.css?v=2">
     <link rel="stylesheet" href="css/phone.css?v=9">
     <link rel="stylesheet" href="css/studio.css?v=3">
-    <link rel="stylesheet" href="css/slidedit.css?v=3">
+    <link rel="stylesheet" href="css/slidedit.css?v=4">
     <link rel="stylesheet" href="css/spotlight.css?v=4">
     <link rel="stylesheet" href="css/skin.css?v=2">
     <meta name="theme-color" content="#081B45">
@@ -34,16 +34,17 @@
     <header class="cbar">
         <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Board Builder</b><small id="who">Anchor Board</small></span></a>
         <div class="smode" id="modeSwitch" role="group" aria-label="What to build">
-            <button type="button" data-mode="board" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span>Board</span></button>
-            <button type="button" data-mode="slides" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="3" width="13" height="10" rx="1.6"/><path d="M3 8v9a2 2 0 0 0 2 2h11"/><path d="M5 12v3"/></svg><span>Slides</span></button>
-            <button type="button" data-mode="spot" aria-pressed="false" title="The board full screen: pop panels on and draw on the background"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v2.2M5.3 5.3l1.5 1.5M2.5 12h2.2M18.7 5.3l-1.5 1.5M21.5 12h-2.2"/><path d="M7.5 15.5a4.5 4.5 0 1 1 9 0"/><path d="M4 19.5h16"/></svg><span>Spotlight</span></button>
+            <button type="button" data-mode="board" aria-pressed="true" title="Board: build the board's look, panels and stickers" aria-label="Board"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span>Board</span></button>
+            <button type="button" data-mode="slides" aria-pressed="false" title="Slides: build each lesson's slides ahead of time" aria-label="Slides"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="3" width="13" height="10" rx="1.6"/><path d="M3 8v9a2 2 0 0 0 2 2h11"/><path d="M5 12v3"/></svg><span>Slides</span></button>
+            <button type="button" data-mode="spot" aria-pressed="false" aria-label="Spotlight" title="The board full screen: pop panels on and draw on the background"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v2.2M5.3 5.3l1.5 1.5M2.5 12h2.2M18.7 5.3l-1.5 1.5M21.5 12h-2.2"/><path d="M7.5 15.5a4.5 4.5 0 1 1 9 0"/><path d="M4 19.5h16"/></svg><span>Spotlight</span></button>
         </div>
         <label class="field"><span>Period</span><select id="periodSel" aria-label="Period"></select></label>
         <label class="field" id="weekField" hidden><span>Week</span><select id="weekSel" aria-label="Week"></select></label>
         <span class="live" id="status" role="status">Connecting…</span>
         <a class="btn ghost" id="openBoard" href="board.html" target="_blank" rel="noopener">Open the board</a>
         <button class="btn" id="boardBtn" type="button">Full screen</button>
-        <details class="menu acct"><summary>Menu</summary><div class="pop"><a href="index.html">Home</a><a href="remote.html">Remote</a><a href="lesson.html">Quick lesson</a><a href="seats.html">Seating charts</a><a href="games.html">Game Library</a><button id="signOut" type="button">Sign out</button></div></details>
+        <div id="slBarSlot"></div>
+        <details class="menu acct"><summary>Menu</summary><div class="pop"><a href="index.html">Home</a><a href="board.html" target="_blank" rel="noopener">Open the board</a><a href="remote.html">Remote</a><a href="lesson.html">Quick lesson</a><a href="seats.html">Seating charts</a><a href="games.html">Game Library</a><button id="signOut" type="button">Sign out</button></div></details>
     </header>
     <div class="cbody sbody">
         <aside class="srail" aria-label="Board Builder">
@@ -89,7 +90,7 @@
     <button id="exit" type="button">Show controls</button>
     <script type="module">
         import { startApp } from "./js/boardApp.js?v=143";
-        import { studio } from "./js/studio.js?v=9";
+        import { studio } from "./js/studio.js?v=10";
         const q = new URLSearchParams(location.search);
         if (q.has("demo")) {
             // ?demo: the made-up sample week on this device only, nothing saved (for trying it and for tests).
