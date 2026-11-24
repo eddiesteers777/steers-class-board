@@ -7,6 +7,12 @@
    the notes card from the board. When the teacher starts a check-in, the problem shows here
    with a work pad and an answer box. The student sends their work, and can say "I'm stuck".
    The teacher's Remote checks the answers; this page never sees the answer key or anyone else.
+
+   Send to students (2026-11-24, js/pushCore.js): a check-in can carry one of the board's math tools (a calculator,
+   the graphing calculator, a manipulative). It opens here beside the problem and the work pad, as this student's own
+   copy (nothing they do in it is sent), or on its own to explore. After a check-in the teacher can send a fresh try,
+   or Show Steps (the board's worked example, js/stepPlayer.js), to only the students who didn't get it: the room
+   says what is open, and this student's own s doc says whether it is for them (cin, st).
 ========================================== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { firebaseConfig } from "./firebaseConfig.js?v=1";
@@ -14,6 +20,7 @@ import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browser
 import { initializeFirestore, doc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import * as V from "./vaultCore.js?v=75";
 import { createStudentPad } from "./studentPad.js?v=1";
+import * as PC from "./pushCore.js?v=1";
 
 const app = initializeApp(firebaseConfig, "play");
 // iPhone and iPad Safari can stall Firestore's streaming connection with no error (see js/play.js).
@@ -39,7 +46,7 @@ const store = {
 const ST = {
     uid: "", code: "", room: null, waiting: false, gone: false, me: null, hadMe: false,
     joining: false, err: "", busy: false, typed: "",
-    sentQ: 0, editing: 0, help: false, seenFb: 0, padFor: 0, answer: "",
+    sentQ: 0, editing: 0, help: false, seenFb: 0, padFor: 0, answer: "", seenSt: 0, tab: "tool",
 };
 let unsubRoom = null, unsubMe = null, sig = "";
 const pad = createStudentPad();
@@ -104,7 +111,13 @@ function bar() {
     s.hidden = false; s.textContent = "";
     const chip = (label, val) => { const c = el("span", "pstat"); c.append(el("small", null, label), el("b", null, val)); s.append(c); };
     chip("Name", m.nm);
-    const ci = ST.room.ci; chip("Now", ci ? "Check-in " + ci.n : "Following along");
+    const ci = mineCi(); chip("Now", ci ? (ci.ex ? PC.TOOL_NAMES[ci.tool] || "Tool" : "Check-in " + ci.n) : phase() === "steps" ? "Show Steps" : "Following along");
+}
+/** The open check-in, if it is for this student: one sent to only some students says so in their own s doc. */
+function mineCi() {
+    const r = ST.room, m = ST.me, ci = r && r.ci;
+    if (!ci || !m) return null;
+    return !ci.tg || m.cin === ci.n ? ci : null;
 }
 function phase() {
     const r = ST.room, m = ST.me;
@@ -113,18 +126,20 @@ function phase() {
     if (ST.waiting) return "wait";
     if (!r) return "load";
     if (!m || !m.nm) return ST.joining ? "joining" : "name";
-    const ci = r.ci;
+    const ci = mineCi();
+    if (ci && ci.ex) return PC.isTool(ci.tool) ? "tool" : "follow";
     if (ci && (ST.editing === ci.n || !(m.got && m.got.q === ci.n))) return "ci";
     if (ci) return "sent";
+    if (r.stp && m.st === r.stp.n && ST.seenSt !== r.stp.n) return "steps";
     if (m.fb && m.fb.q !== ST.seenFb) return "fb";
     return "follow";
 }
 function draw(force) {
-    const r = ST.room, m = ST.me, ph = phase(), ci = r && r.ci;
-    const k = JSON.stringify([ph, ST.err, ST.busy, ST.code, ST.help, ST.sentQ, r && [r.names && r.names.length, r.taken, r.now, ci, r.title], m && [m.nm, m.got, m.fb]]);
+    const r = ST.room, m = ST.me, ph = phase(), ci = mineCi();
+    const k = JSON.stringify([ph, ST.err, ST.busy, ST.code, ST.help, ST.sentQ, ST.tab, r && [r.names && r.names.length, r.taken, r.now, ci, r.title, r.stp && r.stp.n], m && [m.nm, m.got, m.fb, m.cin, m.st]]);
     if (k === sig && !force) return;
     // Keep the pad and the typed answer while the same check-in stays on screen.
-    const sameCi = !force && ph === "ci" && $("padhost") && +$("padhost").dataset.q === ci.n;
+    const sameCi = !force && ph === "ci" && $("padhost") && +$("padhost").dataset.q === ci.n && ($("padhost").dataset.tool || "") === (ci.tool || "");
     sig = k; bar();
     if (sameCi) { const n = $("pnote"); if (n) n.textContent = ST.err; const h = $("helpBtn"); if (h) setHelp(h); const g = $("goBtn"); if (g) { g.disabled = ST.sentQ === ci.n; g.textContent = ST.sentQ === ci.n ? "Sending…" : "Submit"; } return; }
     document.body.classList.remove("qmode");
@@ -136,6 +151,8 @@ function draw(force) {
     if (ph === "load") { card.append(el("h1", null, "Connecting…"), el("p", "plead", "Hang on a second.")); note(card); return; }
     if (ph === "name" || ph === "joining") return nameStep(card, ph === "joining");
     if (ph === "ci") return checkView(card, ci);
+    if (ph === "tool") return toolView(card, ci);
+    if (ph === "steps") return stepsView(card, r.stp);
     if (ph === "sent") return sentView(card, ci);
     if (ph === "fb") return fbView(card);
     followView(card);
@@ -219,9 +236,67 @@ function checkView(card, ci) {
     };
     f.append(inp, go); right.append(f); note(right);
     qc.append(left, right); card.append(qc);
-    const host = el("div", "wbpaper ppaper"); host.id = "padhost"; host.dataset.q = String(ci.n);
+    const host = el("div", "wbpaper ppaper"); host.id = "padhost"; host.dataset.q = String(ci.n); host.dataset.tool = ci.tool || "";
     host.append(el("p", "ptag", ci.work ? "Show your work here (needed to submit)" : "Show your work here"));
+    if (PC.isTool(ci.tool)) {
+        // The tool beside the work pad; on a narrow screen, one at a time with a switch.
+        const duo = el("div", "lnduo tab-" + ST.tab), tabs = el("div", "lntabs"); tabs.setAttribute("role", "tablist");
+        [["tool", PC.TOOL_NAMES[ci.tool]], ["pad", "Work pad"]].forEach(([v, t]) => { const b = btn("lntab" + (ST.tab === v ? " on" : ""), t, () => { ST.tab = v; duo.className = "lnduo tab-" + v; tabs.querySelectorAll(".lntab").forEach((x) => x.classList.toggle("on", x === b)); }); b.setAttribute("role", "tab"); tabs.append(b); });
+        const tb = el("div", "lntoolhost"); mountTool(tb, ci.tool, ci.ts, "c" + ci.n + ci.tool);
+        duo.append(tb, host); card.append(tabs, duo); pad.mount(host); return;
+    }
     card.append(host); pad.mount(host);
+}
+/* ---------- a math tool from the board, this student's own copy ---------- */
+let manip = null, TOOL = null;
+function cssOnce(href) { if (document.querySelector('link[href="' + href + '"]')) return; const l = document.createElement("link"); l.rel = "stylesheet"; l.href = href; document.head.append(l); }
+function loadManip() {
+    if (!manip) { cssOnce("css/manip.css?v=9"); manip = import("./manipPanels.js?v=9").catch((e) => { manip = null; throw e; }); }
+    return manip;
+}
+/** Put tool k in host. The same check-in keeps the same tool (so a half-typed calculation survives a redraw). */
+function mountTool(host, k, ts, key) {
+    if (TOOL && TOOL.key === key) { host.append(TOOL.box); return; }
+    const box = el("section", "card tool panel tool-mt lntoolcard tool-" + k); box.setAttribute("aria-label", PC.TOOL_NAMES[k]);
+    const h = el("h3", null, PC.TOOL_NAMES[k]), inn = el("div", "in"); inn.append(el("p", "lntoolwait", "Opening…")); box.append(h, inn);
+    TOOL = { key, box }; host.append(box);
+    loadManip().then((m) => {
+        if (!TOOL || TOOL.key !== key) return;
+        const api = { S: { tools: { mt: {} } }, push: () => { m.mtBody(api, k); } };
+        const start = PC.readStart(k, ts); if (start) api.S.tools.mt[k] = start;
+        inn.textContent = ""; inn.append(m.mtBody(api, k));
+    }, () => { inn.textContent = ""; inn.append(el("p", "lntoolwait", "The " + PC.TOOL_NAMES[k].toLowerCase() + " didn't load. Check the Wi-Fi.")); });
+}
+/** A tool sent on its own: explore it. Nothing to submit; the teacher doesn't see what is done in it. */
+function toolView(card, ci) {
+    card.classList.add("wide", "lnexplorev");
+    const top = el("div", "lnexhead");
+    top.append(el("p", "lnkicker", "From your teacher"), el("h1", null, PC.TOOL_NAMES[ci.tool]), el("p", "plead", "Your own copy. Try it out, and keep your paper notes going."));
+    card.append(top);
+    const tb = el("div", "lntoolhost big"); mountTool(tb, ci.tool, ci.ts, "x" + ci.n + ci.tool); card.append(tb);
+    note(card);
+}
+/* ---------- Show Steps from the teacher, after a check-in ---------- */
+let stepMods = null, stepPlayerNow = null;
+function stepsView(card, stp) {
+    const m = ST.me, fb = m.fb && m.fb.q === stp.n ? m.fb : null;
+    card.classList.add("wide", "lnsteps");
+    card.append(el("p", "lnkicker", "Show Steps · Check-in " + stp.n), mathEl("p", "lnq", stp.q));
+    if (fb && fb.ok === false) card.append(el("p", "plead", "You wrote " + (fb.y || "no answer") + ". Watch each step, then fix it on your paper."));
+    else if (fb && fb.ok === true) card.append(el("p", "plead", "You got it. Watch the steps to check your work."));
+    if (stepPlayerNow) { try { stepPlayerNow.destroy(); } catch (e) { /* gone */ } stepPlayerNow = null; }
+    if (stp.w && stp.w.ok) {
+        const host = el("div", "lnstephost"); host.append(el("p", "lntoolwait", "Opening…")); card.append(host);
+        cssOnce("css/steps.css?v=4");
+        if (!stepMods) stepMods = import("./stepPlayer.js?v=5");
+        stepMods.then((sp) => { if (!host.isConnected) return; host.textContent = ""; stepPlayerNow = sp.createStepPlayer(host, stp.w, {}); }, () => { host.textContent = "Show Steps didn't load. Check the Wi-Fi."; });
+    } else if (stp.h && stp.h.length) {
+        const ol = el("ol", "lnhints"); card.append(ol);
+        let shown = 0;
+        const more = btn("pbtn ghost", "Next step", () => { if (shown < stp.h.length) { const li = el("li"); li.append(V.mathText(stp.h[shown])); ol.append(li); shown++; } more.disabled = shown >= stp.h.length; more.textContent = shown >= stp.h.length ? "That's every step" : "Next step"; });
+        card.append(more); more.click();
+    }
+    card.append(btn("pbtn go", "Back to the notes", () => { ST.seenSt = stp.n; ST.seenFb = stp.n; if (stepPlayerNow) { try { stepPlayerNow.destroy(); } catch (e) { /* gone */ } stepPlayerNow = null; } draw(true); }));
 }
 function sentView(card, ci) {
     const m = ST.me, fb = m.fb && m.fb.q === ci.n ? m.fb : null;

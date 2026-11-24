@@ -65,6 +65,8 @@ export function preloadFind() {
 const idle = (fn) => (typeof requestIdleCallback === "function" ? requestIdleCallback(fn, { timeout: 400 }) : setTimeout(fn, 16));
 let BYID = null;
 const itemOf = (id) => (BYID ? BYID.get(id) || null : null);
+/** A bank problem by id, once the bank is read (Send to students, js/liveNotes.js). */
+export function findItem(id) { return preloadFind().then(() => itemOf(id), () => null); }
 const hasWalk = (id) => !!(walkSet && walkSet.has(id));
 
 /* ---------- recent picks on this device ---------- */

@@ -17,3 +17,35 @@
 .lncheck{width:72px;height:72px;margin:0 auto;border-radius:50%;background:var(--green);color:#fff;font-size:2.4rem;font-weight:800;display:grid;place-items:center}
 .lnwait .lnpulse{width:56px;height:56px;margin:0 auto;border-radius:50%;background:var(--sky);animation:lnpulse 1.6s ease-in-out infinite}
 @keyframes lnpulse{0%,100%{transform:scale(.8);opacity:.5}50%{transform:scale(1);opacity:1}}
+
+/* Send to students (js/pushCore.js): a math tool from the board, beside the problem and the work pad, or on its own;
+   and Show Steps for the students who didn't get it yet. The tool card is the board's own glass panel (css/manip.css). */
+.lntoolcard{display:flex;flex-direction:column;min-height:0;border-radius:18px;overflow:hidden;font-size:clamp(15px,1.45vw,19px);text-align:left}
+.lntoolcard h3{font-family:var(--ui);font-size:.92em;font-weight:700;letter-spacing:.01em;padding:.55em 1em;border-bottom:1px solid rgba(255,255,255,.16);background:transparent}
+.lntoolcard .in{display:flex;flex-direction:column;flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+.lntoolwait{padding:1.2em;opacity:.8}
+.lntoolhost{display:flex;flex-direction:column;min-height:0;min-width:0}
+.lntoolhost>.lntoolcard{flex:1}
+.lnduo{flex:1;min-height:0;display:grid;grid-template-columns:minmax(300px,5fr) 7fr;gap:10px}
+.lnduo>.ppaper{min-height:0}
+.lntabs{display:none}
+@media (max-width:900px),(max-aspect-ratio:1/1){
+  .lnduo{grid-template-columns:1fr}
+  .lnduo.tab-tool>.ppaper,.lnduo.tab-pad>.lntoolhost{display:none}
+  .lntabs{display:flex;gap:6px;padding:3px;border-radius:999px;background:rgba(255,255,255,.12);align-self:flex-start}
+  .lntab{border:0;border-radius:999px;padding:7px 16px;font:700 .92rem var(--ui);color:#DDE7F8;background:transparent;cursor:pointer;min-height:40px}
+  .lntab.on{background:#fff;color:var(--navy);box-shadow:0 2px 8px rgba(2,8,26,.25)}
+}
+.pcard.lnexplorev{max-width:1100px;background:transparent;box-shadow:none;padding:6px 0;color:#F4F8FF}
+.lnexhead{display:flex;flex-direction:column;gap:2px;padding:0 4px}
+.lnexplorev .lnkicker{color:#A9C3EA}
+.lnexplorev h1{color:#fff}
+.lnexplorev .plead{color:#DDE7F8}
+.lntoolhost.big{min-height:min(72vh,640px)}
+.lntoolhost.big .lntoolcard{font-size:clamp(16px,1.7vw,21px)}
+.pcard.lnsteps{max-width:1100px}
+.lnstephost{min-height:min(60vh,520px);display:flex;flex-direction:column;border-radius:16px;overflow:hidden}
+.lnhints{display:flex;flex-direction:column;gap:8px;padding-left:1.4em;font-size:1.2rem;color:var(--ink)}
+.lnhints li{animation:lnhintin .35s ease-out}
+@keyframes lnhintin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.lnhints li{animation:none}}

@@ -382,3 +382,14 @@ body.board.idle .pmenu{opacity:1}
 .pslnav .pslnum{font-size:.7em;font-weight:700;min-width:4.5em;text-align:center;font-variant-numeric:tabular-nums}
 .pslnav button:disabled{opacity:.35;cursor:default}
 .docked.tool-slide .pslnav{margin-top:.3em}
+/* Send to students (js/liveNotes.js): the paper plane in a sendable panel's title bar. It stays on the board too,
+   so a tap at the Promethean sends through the Remote that runs live notes. */
+.card h3 .pbtn.sendbtn{opacity:1;width:auto;min-width:1.55em;padding:0 .3em;color:#F4F7FB;background:linear-gradient(135deg,#1F6FE5,#10358A);box-shadow:0 .08em .3em rgba(8,27,69,.28)}
+.card h3 .pbtn.sendbtn:hover{background:linear-gradient(135deg,#2C7DF2,#14409E)}
+.card h3 .pbtn.sendbtn:active{transform:scale(.94)}
+#stage .card h3 .pbtn.sendbtn:hover,.toolshelf .card h3 .pbtn.sendbtn:hover{background:linear-gradient(135deg,#2C7DF2,#14409E)}
+body.board .docked .close.sendbtn,body.board .float .close.sendbtn{display:inline-grid}
+.lntoast{position:fixed;left:50%;bottom:1.2em;transform:translate(-50%,1em);opacity:0;pointer-events:none;z-index:9999;max-width:min(90vw,34em);padding:.7em 1.1em;border-radius:.9em;font:600 1rem/1.35 "Instrument Sans",system-ui,sans-serif;color:#F4F7FB;background:rgba(8,27,69,.92);backdrop-filter:blur(10px);box-shadow:0 .6em 2em rgba(8,27,69,.35);transition:opacity .2s,transform .2s}
+.lntoast.on{opacity:1;transform:translate(-50%,0)}
+body.board .lntoast{font-size:1.4rem}
+@media (prefers-reduced-motion:reduce){.lntoast{transition:none}}

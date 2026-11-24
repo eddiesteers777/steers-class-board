@@ -43,6 +43,8 @@ The Notes box on Quick lesson takes a PDF (up to 20 pages). `js/pdfNotes.js` dra
 ## Student games left open
 The Remote closes a Vault Raid room or live notes session that nobody has touched for 24 hours the next time it opens (js/liveRoom.js, js/liveNotes.js, `LEFT_OPEN`). Closing deletes the room and the students' names and answers, the same as tapping Close.
 
+Send to students (`js/pushCore.js`): every math tool, calculator and Find panel has a send button in its title bar. A Find panel sends its problem as a live notes check-in, with its key, other accepted answers and bank id; a tool sends on its own (students explore their own copy, nothing to submit) or goes beside the open check-in. On the board the button asks the Remote that runs live notes (`tools.lns`), since only the Remote referees. The Remote groups the answers that mean the same thing, and can put on the board an answers chart or two students' work side by side, never with names. After a check-in it can send a fresh try, or Show Steps (the walk is worked out on the Remote and sent in the room doc as `stp`), to only the students who didn't get it: the room's `ci.to` and `stp.to` say who, and each student's own `s` doc carries `cin` and `st`. A check-in sent from a panel shows over any screen (`#lnstage`). No new Firestore rules. Tests: `node tools/board/push.test.mjs`.
+
 ## Plan (one tab row)
 Plan the Week, Week Review, Week Builder, Planner, Standards, Question Bank and Library share one "Plan" tab row (`mountPlanNav` in `js/studentsNav.js`), and Home's side panel shows Plan and Library only. A starter account sees no Plan row (the other six pages are Calera-only).
 

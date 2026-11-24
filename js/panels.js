@@ -7,13 +7,13 @@
    set the screen and the panels in one tap. All of it lives in S.tools
    inside the shared board state, so the board and the Remote always match.
 ========================================== */
-import { buildWidget, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=73";
+import { buildWidget, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=74";
 import { meterEl, setVoice, camBody, tooLoud } from "./roomSense.js?v=1";
 import { MARKS, markUrl } from "./marks.js?v=1";
 import { EFFECTS, FX_AMOUNTS, applyEffect, effectSample } from "./effects.js?v=3";
 import { isMine, mineList, mineSrc, onMine, addMine, removeMine, MY_MAX } from "./myPhotos.js?v=1";
 import { cleanStickers } from "./stickers.js?v=1";
-import { findBody, findChip, findTitle } from "./findPanel.js?v=9";
+import { findBody, findChip, findTitle } from "./findPanel.js?v=10";
 import { isFind, FIND_KEYS } from "./findCore.js?v=1";
 import { mtBody } from "./manipPanels.js?v=9";
 import { isMt, mtChip } from "./manipCore.js?v=9";
@@ -56,6 +56,7 @@ const IC = {
     nl: '<path d="M2 16h20M5 13v6M12 13v6M19 13v6"/><path d="M6 10q6-8 12 0"/><path d="M15.5 8.5L18 10l.4-2.8"/>',
     fn: '<rect x="6" y="7" width="12" height="10" rx="2"/><path d="M12 2v5M12 17v5M9 12h6"/><path d="M10 4.5L12 7l2-2.5"/>',
     counters: '<circle cx="7" cy="8" r="4"/><circle cx="17" cy="16" r="4"/><path d="M5.5 8h3M7 6.5v3M15.5 16h3"/>',
+    send: '<path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5L3 9.5z"/>',
     more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
     trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
     lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',

@@ -40,7 +40,7 @@ export function defaultTools() {
         pick: { period: "", cur: -1, used: [] }, groups: { period: "", size: 3, order: [] }, absent: { day: "", periods: {} },
         palert: { on: true, at: [5, 1], sound: true },   // Period clock alerts: minutes before the end of class (0 = the bell)
         pin: {}, lock: {}, zo: [], sty: {}, slp: "",
-        find: {}, mt: {} };   // mt: the math manipulatives, one entry per panel that was used (js/manipCore.js); find: the Find panel: which bank problem is up, and whether its answer and hints show (js/findPanel.js)   // panels shown on every screen, panels locked in place, the stacking order (back to front), each panel's own style (js/panelStyle.js)
+        find: {}, mt: {}, lns: { k: "", at: 0 } };   // mt: the math manipulatives, one entry per panel that was used (js/manipCore.js); find: the Find panel: which bank problem is up, and whether its answer and hints show (js/findPanel.js)   // panels shown on every screen, panels locked in place, the stacking order (back to front), each panel's own style (js/panelStyle.js); lns: a Send to students tapped on a screen that can't run live notes (the board), for the Remote to pick up (js/liveNotes.js)
 }
 export const PALERT_MINS = [15, 10, 5, 2, 1, 0];
 export function mergeTools(d) {
@@ -78,6 +78,7 @@ export function mergeTools(d) {
     if (d.absent && typeof d.absent.day === "string" && d.absent.periods) { t.absent.day = d.absent.day.slice(0, 10); PERIOD_KEYS.forEach((k) => { if (Array.isArray(d.absent.periods[k])) t.absent.periods[k] = idx(d.absent.periods[k]); }); }
     t.find = cleanFinds(d.find);
     t.mt = cleanMt(d.mt);
+    if (d.lns && typeof d.lns.k === "string" && /^[a-z0-9]{1,12}$/.test(d.lns.k) && Number.isFinite(+d.lns.at)) t.lns = { k: d.lns.k, at: Math.max(0, Math.floor(+d.lns.at)) };
     if (d.sw) t.sw = { running: !!d.sw.running, t0: +d.sw.t0 || 0, elapsed: +d.sw.elapsed || 0 };
     return t;
 }
