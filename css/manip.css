@@ -17,6 +17,9 @@
 .card.tool-mt{--mt-acc:rgb(var(--pacc,63 127 224));--mt-line:color-mix(in srgb,currentColor 20%,transparent);--mt-fill:color-mix(in srgb,currentColor 8%,transparent);
   --mt-fill2:color-mix(in srgb,currentColor 15%,transparent);--mt-amber:#F2B33D;--mt-green:#5FD3A2;--mt-red:#FF7A73;--mt-blue:#8CC8FF}
 .card.psty.plight.tool-mt{--mt-amber:#A06200;--mt-green:#1E7A52;--mt-red:#C62828;--mt-blue:#1D5FB8}
+/* On a dark style (Match board, the default for the math tools since Nov 24, or any dark color) the pressed chips, keys and
+   buttons keep the strong board blue: the style's own edge color is pale, and white words on it were hard to read. */
+.card.psty.pdark.tool-mt{--mt-acc:var(--s-acc,#3F7FE0)}
 .float.tool-mt{width:34em}
 .float.tool-chance,.float.tool-counters{width:32em}
 .tool-mt .in{padding:.4em .8em .75em!important;gap:0;align-items:stretch!important;justify-content:flex-start!important;text-align:left!important;min-width:0;container-type:inline-size}

@@ -12,7 +12,7 @@
    Slides (the switch in the header): the teacher's own slides for each lesson, Google Slides-style (js/slideEditor.js).
    Spotlight (the third tab): the board full screen, with a glass toolbar to pop panels on and draw on the background (js/spotlight.js).
 ========================================== */
-import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MATH_LIST, CALC_LIST, MAX_SCENES, MAX_DAYB } from "./boardTools.js?v=78";
+import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MATH_LIST, CALC_LIST, MAX_SCENES, MAX_DAYB } from "./boardTools.js?v=79";
 import { SCENES, sceneActive, applyScene, saveScene, panelOn, panelOff, panelToggle, PANEL_INFO, labelOf, icon, LOOK_THEMES, LOOK_BGS, LOOK_PHOTOS, bgName, LOOK_PRESETS,
     presetTile, photoPicker, photoGroupNow, gradOf, themeCols, MARKS, EFFECTS, FX_AMOUNTS } from "./panels.js?v=42";
 import { markUrl } from "./marks.js?v=1";
