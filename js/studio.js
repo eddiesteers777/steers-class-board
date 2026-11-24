@@ -12,9 +12,9 @@
    Slides (the switch in the header): the teacher's own slides for each lesson, Google Slides-style (js/slideEditor.js).
    Spotlight (the third tab): the board full screen, with a glass toolbar to pop panels on and draw on the background (js/spotlight.js).
 ========================================== */
-import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MATH_LIST, MAX_SCENES, MAX_DAYB } from "./boardTools.js?v=65";
+import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MATH_LIST, CALC_LIST, MAX_SCENES, MAX_DAYB } from "./boardTools.js?v=66";
 import { SCENES, sceneActive, applyScene, saveScene, panelOn, panelOff, panelToggle, PANEL_INFO, labelOf, icon, LOOK_THEMES, LOOK_BGS, LOOK_PHOTOS, bgName, LOOK_PRESETS,
-    presetTile, photoPicker, photoGroupNow, gradOf, themeCols, MARKS, EFFECTS, FX_AMOUNTS } from "./panels.js?v=23";
+    presetTile, photoPicker, photoGroupNow, gradOf, themeCols, MARKS, EFFECTS, FX_AMOUNTS } from "./panels.js?v=24";
 import { markUrl } from "./marks.js?v=1";
 import { addStepAndEdit } from "./bellPlan.js?v=6";
 import { effectSample } from "./effects.js?v=3";
@@ -63,7 +63,7 @@ function setMode(m, at) {
         const app = $("slideApp"); if (app) app.hidden = true; wantSlides = null; if (editor) editor.closeEditor();
         if (/^#slides/.test(location.hash)) { try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* the address is a convenience */ } }
         if (!A.synced()) { wantSpot = true; return; }   // open on the saved board, once it has arrived
-        import("./spotlight.js?v=17").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
+        import("./spotlight.js?v=18").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
             .catch(() => { setMode("board"); note("saveNote", "Spotlight did not load. Check the connection and reload the page."); });
         return;
     }
@@ -71,7 +71,7 @@ function setMode(m, at) {
     if (mode === "slides") {
         app.hidden = false;
         if (!A.synced()) { wantSlides = at || {}; return; }   // open on the lesson the board is on, once that has arrived
-        import("./slideEditor.js?v=18").then((mod) => { editor = mod; if (mode === "slides") mod.openEditor(A, app, at && at.week ? at : null); })
+        import("./slideEditor.js?v=19").then((mod) => { editor = mod; if (mode === "slides") mod.openEditor(A, app, at && at.week ? at : null); })
             .catch(() => { app.textContent = "The slide editor did not load. Check the connection and reload the page."; });
     } else {
         app.hidden = true; wantSlides = null;
@@ -260,7 +260,7 @@ function posFor(k) { const T = A.S.tools; return T.pos[k] ? Object.assign({}, T.
 function drawPanels() {
     const p = $("pane-panels"), S = A.S, T = S.tools, f = document.createDocumentFragment();
     f.appendChild(head("Add panels", "Tap a panel to put it on the board. Drag it by its title bar: it snaps into line with the grid and the other panels. Drag a corner to size it."));
-    [["Lesson", LESSON_PANELS], ["Classroom", TOOL_LIST], ["Math tools", MATH_LIST]].forEach(([title, list]) => {
+    [["Lesson", LESSON_PANELS], ["Calculators", CALC_LIST], ["Classroom", TOOL_LIST], ["Math tools", MATH_LIST]].forEach(([title, list]) => {
         f.appendChild(el("p", "lookh", title));
         const g = el("div", "stiles");
         list.filter(([k]) => A.panelOk(k)).forEach(([k, label]) => {

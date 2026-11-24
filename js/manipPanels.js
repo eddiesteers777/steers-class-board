@@ -11,13 +11,15 @@
    between redraws of the board's panels, so a redraw never drops a drag, a half-typed equation or a spin in flight.
    A drag only moves things on this screen; the shared state is written once, when the finger lifts.
 ========================================== */
-import * as M from "./manipCore.js?v=1";
+import * as M from "./manipCore.js?v=2";
+import { makeCalc } from "./calcPanel.js?v=1";
+import { makeGraph } from "./graphPanel.js?v=1";
 
 let api = null;
 const panels = new Map();
 const NS = "http://www.w3.org/2000/svg";
 
-export const MT_TITLES = { balance: "Equation balance", chance: "Chance lab", line: "Line explorer", xform: "Transformations", pyth: "Pythagorean squares", counters: "Integer counters" };
+export const MT_TITLES = { balance: "Equation balance", chance: "Chance lab", line: "Line explorer", xform: "Transformations", pyth: "Pythagorean squares", counters: "Integer counters", calc: "Basic calculator", sci: "Scientific calculator", graph: "Graphing calculator" };
 export function mtBody(a, k) {
     api = a;
     let p = panels.get(k); if (!p) { p = MAKE[k](k); panels.set(k, p); }
@@ -453,4 +455,6 @@ function makeCounters(k) {
     return p;
 }
 
-const MAKE = { balance: makeBalance, chance: makeChance, line: makeLine, xform: makeXform, pyth: makePyth, counters: makeCounters };
+const CTX = () => ({ shell, h, btn, st, save });
+const MAKE = { balance: makeBalance, chance: makeChance, line: makeLine, xform: makeXform, pyth: makePyth, counters: makeCounters,
+    calc: (k) => makeCalc(k, CTX(), false), sci: (k) => makeCalc(k, CTX(), true), graph: (k) => makeGraph(k, CTX()) };

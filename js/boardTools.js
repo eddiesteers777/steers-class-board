@@ -9,7 +9,7 @@
 import { cleanStickers } from "./stickers.js?v=1";
 import { cleanSty } from "./panelStyle.js?v=1";
 import { cleanFinds } from "./findCore.js?v=1";
-import { cleanMt } from "./manipCore.js?v=1";
+import { cleanMt } from "./manipCore.js?v=2";
 
 export const TOOL_LIST = [["traffic", "Traffic light"], ["work", "Voice level"], ["clock", "Clock"], ["stopwatch", "Stopwatch"], ["text", "Message"], ["dice", "Dice"], ["score", "Scoreboard"], ["goal", "Class goal"], ["pick", "Name picker"], ["groups", "Group maker"], ["cam", "Webcam"], ["slide", "Slide"], ["find", "Find a problem"]];
 /* Lesson panels (js/panels.js builds them) sit in the same panel system as the tools. */
@@ -18,7 +18,8 @@ export const LESSON_PANELS = [["ptimer", "Timer"], ["target", "Learning target"]
 export const FIND_MORE = [["find2", "Find a problem 2"], ["find3", "Find a problem 3"], ["find4", "Find a problem 4"]];
 /* Math manipulatives (js/manipPanels.js, Eddie 2026-11-24): their own group in the panel switches. */
 export const MATH_LIST = [["balance", "Equation balance"], ["chance", "Chance lab"], ["line", "Line explorer"], ["xform", "Transformations"], ["pyth", "Pythagorean squares"], ["counters", "Integer counters"]];
-export const PANEL_LIST = LESSON_PANELS.concat(TOOL_LIST, MATH_LIST, FIND_MORE);
+export const CALC_LIST = [["calc", "Basic calculator"], ["sci", "Scientific calculator"], ["graph", "Graphing calculator"]];
+export const PANEL_LIST = LESSON_PANELS.concat(CALC_LIST, TOOL_LIST, MATH_LIST, FIND_MORE);
 export const PERIOD_KEYS = ["1st", "2nd", "4th", "5th", "6th"];
 export const MAX_SCENES = 12;   // saved layouts and boards (was 6 before the Board Builder, Nov 21)
 export const MAX_DAYB = 60;     // day boards kept (about 4 weeks of 3 classes); the oldest go first

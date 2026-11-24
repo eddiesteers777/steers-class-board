@@ -7,7 +7,7 @@
    set the screen and the panels in one tap. All of it lives in S.tools
    inside the shared board state, so the board and the Remote always match.
 ========================================== */
-import { buildWidget, PANEL_LIST, LESSON_PANELS, MATH_LIST, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=65";
+import { buildWidget, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=66";
 import { meterEl, setVoice, camBody, tooLoud } from "./roomSense.js?v=1";
 import { MARKS, markUrl } from "./marks.js?v=1";
 import { EFFECTS, FX_AMOUNTS, applyEffect, effectSample } from "./effects.js?v=3";
@@ -15,11 +15,11 @@ import { isMine, mineList, mineSrc, onMine, addMine, removeMine, MY_MAX } from "
 import { cleanStickers } from "./stickers.js?v=1";
 import { findBody, findChip, findTitle } from "./findPanel.js?v=6";
 import { isFind, FIND_KEYS } from "./findCore.js?v=1";
-import { mtBody } from "./manipPanels.js?v=1";
-import { isMt, mtChip } from "./manipCore.js?v=1";
+import { mtBody } from "./manipPanels.js?v=2";
+import { isMt, mtChip } from "./manipCore.js?v=2";
 export { MARKS, EFFECTS, FX_AMOUNTS };
 
-const LESSON = new Set(LESSON_PANELS.map((x) => x[0])), MATH = new Set(MATH_LIST.map((x) => x[0]));
+const LESSON = new Set(LESSON_PANELS.map((x) => x[0])), MATH = new Set(MATH_LIST.concat(CALC_LIST).map((x) => x[0]));
 export const labelOf = (k) => (PANEL_LIST.find((x) => x[0] === k) || [k, k])[1];
 
 /* Small 24×24 stroke icons (currentColor). */
@@ -43,6 +43,9 @@ const IC = {
     find: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M8 10.5h5M10.5 8v5"/>',
     cam: '<rect x="2.5" y="6" width="13.5" height="12" rx="2.5"/><path d="M16 10.5l5.5-3v9l-5.5-3z"/>',
     gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+    calc: '<rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="8" y="5.5" width="8" height="3.5" rx=".8"/><path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01" stroke-width="2.4"/>',
+    sci: '<rect x="3.5" y="2.5" width="17" height="19" rx="2.5"/><path d="M7 7h10"/><path d="M7 12.5l2 3 2-5h2.5M15 13l3 3M18 13l-3 3"/>',
+    graph: '<path d="M4 3v17h17"/><path d="M6 17c3-9 6-11 8-6s4 2 6-6"/><path d="M6 13l13-6" stroke-dasharray="2 2.2"/>',
     balance: '<path d="M12 4v16M8 20h8M4 8h16"/><path d="M4 8l-2.5 6h5zM20 8l-2.5 6h5z"/><path d="M1.5 14a2.5 1.6 0 0 0 5 0M17.5 14a2.5 1.6 0 0 0 5 0"/>',
     chance: '<circle cx="12" cy="13" r="8.5"/><path d="M12 13V4.5M12 13l6.5 5M12 13l-7.5 3.5"/><path d="M10 2h4l-2 3z"/>',
     line: '<path d="M3 21h18M3 21V3"/><path d="M5 18L20 5"/><circle cx="8" cy="15.5" r="1.6"/><circle cx="16.5" cy="8" r="1.6"/>',
@@ -71,6 +74,8 @@ export const PANEL_INFO = {
     cam: "The camera, live, and recording to this device",
     slide: "One of this lesson's slides, as a panel you can move and size",
     find: "Search the problem bank by standard or topic and put one on the board",
+    calc: "Plus, minus, times, divide and percent, with the order of operations", sci: "Powers, roots, trig in degrees or radians, logs, Ans and fraction answers",
+    graph: "Type equations and see them graphed live, with sliders, zoom and tap-to-trace",
     balance: "x and unit tiles on a scale that tips until both sides match", chance: "Spinner, coin and dice, with a tally beside the expected results",
     line: "Drag two points: slope triangle and y = mx + b", xform: "Slide, flip, turn and dilate a shape on the grid", pyth: "A right triangle with a square on each side",
     counters: "Two-colour counters and zero pairs",
@@ -377,7 +382,7 @@ function refreshSheetNow() {
     sv.onsubmit = (e) => { e.preventDefault(); const n = inp.value.trim(); if (!n) { inp.focus(); return; } saveScene(S, n); inp.value = ""; api.push(); refreshSheet(); };
     sv.append(inp, sb); box.appendChild(sv);
 
-    [["Lesson", LESSON_PANELS], ["Classroom", PANEL_LIST.filter((p) => !LESSON.has(p[0]) && !MATH.has(p[0]) && !/^find\d/.test(p[0]))], ["Math tools", MATH_LIST]].forEach(([title, list]) => {
+    [["Lesson", LESSON_PANELS], ["Calculators", CALC_LIST], ["Classroom", PANEL_LIST.filter((p) => !LESSON.has(p[0]) && !MATH.has(p[0]) && !/^find\d/.test(p[0]))], ["Math tools", MATH_LIST]].forEach(([title, list]) => {
         box.appendChild(el("p", "psec", title));
         const g = el("div", "pgrid");
         list.filter(([k]) => api.panelOk(k)).forEach(([k, label]) => {

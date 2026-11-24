@@ -8,12 +8,16 @@
      xform     Transformations      slide, flip, turn, dilate a shape; coordinates and the rule (8.22–8.24)
      pyth      Pythagorean squares  a right triangle with a square on each side (8.26–8.28)
      counters  Integer counters     two-colour counters and zero pairs (7.4, 7.5)
+     calc      Basic calculator     + − × ÷ and percent, with the order of operations
+     sci       Scientific calculator powers, roots, trig, logs, Ans and fraction answers
+     graph     Graphing calculator  expressions, sliders and a live graph (js/graphPanel.js)
    What each one shows lives in the shared board state (tools.mt.<key>), so the board and the Remote always match.
    Saved state can come from another device, so cleanMt() keeps only what is known, in range.
    Original Anchor Board tools; the ideas (balance, spinner, counters…) are classroom staples.
 ========================================== */
+import { gcDefault, cleanGc, fmt } from "./graphCalc.js?v=1";
 
-export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters"];
+export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "calc", "sci", "graph"];
 export const isMt = (k) => MT_KEYS.includes(k);
 
 const int = (v, d) => { const n = Math.round(+v); return Number.isFinite(n) ? n : d; };
@@ -248,8 +252,21 @@ export function ctClear(K) { const z = Math.min(K.p, K.n); K.p -= z; K.n -= z; r
 function cleanCt(o) { const d = ctDefault(); if (!o || typeof o !== "object") return d; return { p: cint(o.p, 0, CT_MAX, 0), n: cint(o.n, 0, CT_MAX, 0), pr: !!o.pr }; }
 
 /* ---------- all six ---------- */
-const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault };
-const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt };
+/* ---------- the calculators: the line being typed, the last answers, and the scientific one's modes ---------- */
+const calcDefault = () => ({ x: "", h: [], a: 0, done: false });
+const sciDefault = () => ({ x: "", h: [], a: 0, done: false, d: true, f: false });
+const num = (v) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+function cleanCalc(o) {
+    const out = { x: typeof o.x === "string" ? o.x.slice(0, 120) : "", h: [], a: num(o.a) ?? 0, done: !!o.done };
+    (Array.isArray(o.h) ? o.h : []).forEach((e) => { if (out.h.length < 4 && e && typeof e.x === "string" && num(e.v) != null) out.h.push({ x: e.x.slice(0, 120), v: e.v }); });
+    if (num(o.r) != null) out.r = o.r;
+    if ("d" in o) out.d = !!o.d;
+    if ("f" in o) out.f = !!o.f;
+    return out;
+}
+
+const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, calc: calcDefault, sci: sciDefault, graph: gcDefault };
+const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
 export const mtDefault = (k) => DEFAULTS[k]();
 /** tools.mt as saved: only panels that were used are kept, each cleaned. */
 export function cleanMt(o) { const out = {}; if (!o || typeof o !== "object") return out; MT_KEYS.forEach((k) => { if (o[k] && typeof o[k] === "object") out[k] = CLEAN[k](o[k]); }); return out; }
@@ -263,6 +280,8 @@ export function mtChip(k, T) {
     if (k === "line") return { v: s.eq ? lineEq(s) : "Line" };
     if (k === "xform") return { v: s.ops.length ? s.ops.length + (s.ops.length === 1 ? " move" : " moves") : SHAPES[s.sh][0] };
     if (k === "pyth") return { v: s.a + "² + " + s.b + "² = " + pyOf(s).c2 };
+    if (k === "calc" || k === "sci") return { v: s.done && num(s.r) != null ? fmt(s.r) : s.x ? s.x.slice(-14) : "0" };
+    if (k === "graph") { const n = s.e.filter((x) => x.t.trim()).length; return { v: n === 1 ? s.e.find((x) => x.t.trim()).t.slice(0, 16) : n ? n + " graphs" : "Graph" }; }
     if (k === "counters") { const v = ctValue(s); return { v: (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) }; }
     return { v: "" };
 }
