@@ -66,7 +66,8 @@ export function mountAbsences(opts) {
                 S.days.slice(0, 3).forEach((d) => {
                     const line = el("div", "abs-day" + (d.mark && d.mark.st === "done" ? " done" : "")), lp = el("p", "abs-line", d.line); line.appendChild(lp);
                     if (d.mark) lp.appendChild(el("span", "abs-tag " + (d.mark.st === "done" ? "ok" : "out") + " abs-st", STATUS_WORD[d.mark.st] + (d.mark.via ? " (" + ROUTES[d.mark.via].name + ")" : "")));
-                    if (d.items.length) { const chips = el("p", "abs-chips"); d.items.forEach((i) => { const c = el("span", "abs-chip " + (i.graded ? "graded" : "practice"), i.t + " · " + (i.graded ? (i.catName ? "graded, " + i.catName : "graded") : "practice")); chips.appendChild(c); }); line.appendChild(chips); }
+                    // Only graded work gets a chip: that is what must not become a zero. Practice is already named in the line.
+                    d.items.filter((i) => i.graded).forEach((i) => { lp.appendChild(document.createTextNode(" ")); lp.appendChild(el("span", "abs-chip graded", i.t + " · " + (i.catName ? "graded, " + i.catName : "graded"))); });
                     row.appendChild(line);
                 });
                 if (S.days.length > 3) row.appendChild(el("p", "abs-more", "and " + (S.days.length - 3) + " earlier day" + (S.days.length - 3 === 1 ? "" : "s")));

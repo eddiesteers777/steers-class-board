@@ -14,8 +14,8 @@ for (const [w, h, tag] of [[390, 900, "phone"], [1280, 900, "desktop"]]) {
     assert.match(txt, /1st period · 8th Grade/); assert.match(txt, /5th period · 7th Grade/);
     assert.match(txt, /Missed Tuesday — Speed Dating Activity, Guided Notes Day 1/);
     assert.match(txt, /Missed Thursday — Test \(make-up needed\)/);
-    assert.match(txt, /Speed Dating Activity · graded, Class Work/); assert.match(txt, /Guided Notes Day 1 · practice/);
-    assert.match(txt, /Missed Wednesday — Fact Blitz: Integer facts, Guided Notes Day 2/); assert.match(txt, /Fact Blitz: Integer facts · practice/);
+    assert.match(txt, /Speed Dating Activity · graded, Class Work/); assert.doesNotMatch(txt, /· practice/);   // compact card: chips only for graded work
+    assert.match(txt, /Missed Wednesday — Fact Blitz: Integer facts, Guided Notes Day 2/);
     assert.match(txt, /Missed Monday — Guided Notes Day 3/);
     assert.match(txt, /Out often/); assert.match(txt, /Missed 8\.5, which was still being worked on/);
     const names = await p.$$eval(".abs-top b", (b) => b.map((x) => x.textContent)); assert.deepEqual(names, ["Ben", "Cara", "Ava", "Dev"]);
