@@ -7,10 +7,10 @@
 ========================================== */
 import { STANDARDS } from "../data/standards.js?v=58";
 import { SCHOOL_YEAR, today, short, daysLeftInNineWeeks, nineWeeksOf } from "./schoolCal.js?v=57";
-import * as T from "./timelineCore.js?v=1";
-import { mount as mountPick, bankNow } from "./timelinePick.js?v=2";
-import { counts as bankCounts, has as inTray } from "./timelineTray.js?v=2";
-import * as K from "./timelineLinks.js?v=1";
+import * as T from "./timelineCore.js?v=2";
+import { mount as mountPick, bankNow } from "./timelinePick.js?v=3";
+import { counts as bankCounts, has as inTray } from "./timelineTray.js?v=3";
+import * as K from "./timelineLinks.js?v=2";
 
 const demo = new URLSearchParams(location.search).has("demo");
 const store = await import(demo ? "./localStore.js?v=57" : "./boardStore.js?v=58");

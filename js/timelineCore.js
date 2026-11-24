@@ -160,6 +160,13 @@ export function timelineNext(cls, lanes, progress) {
     };
 }
 
+/** The unit to plan next, in the Timeline's order (for the Planner and Plan the Week): "Topic 3: Functions", or "". */
+export function timelineUnit(cls, lanes, progress) {
+    const n = timelineNext(cls, lanes, progress); if (!n) return "";
+    const u = (n.next.length && n.next[0].unit) || (n.current && n.current.unit);
+    return u ? n.unitWord + " " + u.id + ": " + u.name : "";
+}
+
 /** Taught count and total for one lane. */
 export function laneDone(lane, cls, progress) {
     const p = (progress || {})[cls] || {};

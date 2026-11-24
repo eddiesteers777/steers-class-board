@@ -8,7 +8,7 @@
    A step is Secure by the same rule as a standard (js/readiness.js): the lock (5 right, 6 of the last 8, on 2 days)
    and 80%+ latest. The current step is the first step from the start that is not Secure.
 ========================================== */
-import { LADDER, nameOf } from "./foundBank.js?v=1";
+import { LADDER, nameOf } from "./foundBank.js?v=2";
 import { lockOf, stateOf } from "./readiness.js?v=1";
 import { kidKey } from "./profileCore.js?v=2";
 
