@@ -15,7 +15,7 @@
    Frosted glass: translucent layers with a backdrop blur, a light top edge and a soft shadow.
 ========================================== */
 import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MATH_LIST, CALC_LIST } from "./boardTools.js?v=80";
-import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker, photoGroupNow, gradOf } from "./panels.js?v=43";
+import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker, photoGroupNow, gradOf } from "./panels.js?v=44";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { FIND_KEYS } from "./findCore.js?v=1";
 
@@ -106,6 +106,9 @@ function build() {
         el("i", "spsep"), button("spb spadd", svg(IC.plus, 2.2) + "<span>Screen</span>", "Add a screen after this one", () => { if (A.spot.add()) flash("New screen"); }),
         button("spb spdel", svg(IC.trash), "Remove this screen", removeScreen));
     host.appendChild(scr);
+    // the toolbar keeps clear of this pill whatever its width (the count grows with slides and steps): --scrw feeds .spdock's max-width (css/spotlight.css)
+    const fitScr = () => { const w = scr.offsetWidth; if (w) host.style.setProperty("--scrw", w + "px"); };
+    if (window.ResizeObserver) new ResizeObserver(fitScr).observe(scr); else addEventListener("resize", fitScr);
 
     // the sheet over the toolbar (Background, or the panel that was tapped)
     const sh = el("div", "spg spsheet"); sh.id = "spSheet"; sh.hidden = true; host.appendChild(sh);
