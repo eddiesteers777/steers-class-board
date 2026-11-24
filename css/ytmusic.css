@@ -1,0 +1,142 @@
+/* Anchor Board — YouTube music: the pill and the panel (js/ytMusic.js).
+   The board's frosted glass (css/boardglass.css, css/spotlight.css): a translucent navy fill with a backdrop blur, a bright
+   hairline on top and a soft deep shadow. Glass only because both float over the page (DESIGN.md, Nov 23).
+   The accent is the site colour scheme's (--s-acc) where the page has one; the projected board keeps the board's blue. */
+.ytpill,.ytpanel{--yt-fill:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.06));--yt-line:rgba(255,255,255,.26);--yt-hi:rgba(255,255,255,.42);
+  --yt-shadow:0 18px 50px rgba(2,8,26,.5),0 2px 8px rgba(2,8,26,.25);--yt-ink:#F4F8FF;--yt-soft:rgba(226,236,255,.74);
+  --yt-acc:var(--s-acc,#3F7FE0);--yt-on:linear-gradient(180deg,color-mix(in srgb,var(--yt-acc) 70%,#fff 30%),var(--yt-acc));
+  font-family:var(--ui,system-ui),sans-serif;color:var(--yt-ink);-webkit-tap-highlight-color:transparent}
+.ytpill *,.ytpanel *{box-sizing:border-box;touch-action:manipulation}
+.ytpill button,.ytpanel button{font:inherit;color:inherit;cursor:pointer}
+.ytpill button:focus-visible,.ytpanel button:focus-visible,.ytpanel input:focus-visible,.ytpanel a:focus-visible{outline:2px solid #8CC8FF;outline-offset:2px}
+.ytpill svg,.ytpanel svg{width:20px;height:20px;flex:none}
+.ytpill[hidden],.ytpanel [hidden],.ytpanel[hidden]{display:none!important}
+
+/* one glass surface */
+.ytpill:not(.inbar),.ytpanel{background:var(--yt-fill);background-color:rgba(12,28,66,.5);-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);
+  border:1px solid var(--yt-line);box-shadow:inset 0 1px 0 var(--yt-hi),inset 0 -1px 0 rgba(255,255,255,.05),var(--yt-shadow)}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){.ytpill:not(.inbar),.ytpanel{background:rgba(12,28,66,.92)}}
+
+/* ---------- the pill: top centre of the projected board ---------- */
+.ytpill{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:58;display:inline-flex;align-items:center;gap:2px;height:44px;padding:0 4px;border-radius:999px;
+  max-width:min(380px,calc(100vw - 420px));opacity:.6;transition:opacity .25s}
+.ytpill:hover,.ytpill:focus-within,.ytpill.isopen{opacity:1}
+body.board.idle .ytpill:not(.isopen){opacity:.12}
+.ytp-open{display:inline-flex;align-items:center;gap:8px;min-width:0;height:36px;padding:0 10px 0 8px;border:0;border-radius:999px;background:transparent;font-weight:600;font-size:15px;line-height:1}
+.ytp-open:hover{background:rgba(255,255,255,.12)}
+.ytp-ic{position:relative;display:inline-flex}
+.ytp-ic svg{width:18px;height:18px}
+.ytpill.playing .ytp-ic::after{content:"";position:absolute;right:-3px;top:-2px;width:8px;height:8px;border-radius:50%;background:#7CE0B0;box-shadow:0 0 0 2px rgba(124,224,176,.25),0 0 8px #7CE0B0}
+.ytp-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ytp-ch{display:inline-flex;opacity:.75}
+.ytp-ch svg{width:16px;height:16px}
+.ytp-play{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:0;border-radius:50%;background:rgba(255,255,255,.12);flex:none}
+.ytp-play:hover{background:rgba(255,255,255,.22)}
+.ytp-play svg{width:15px;height:15px}
+/* the Remote and the Board Builder: the pill sits in the top bar like the other buttons */
+.ytpill.inbar{position:static;transform:none;opacity:1;height:40px;max-width:240px;padding:0 3px;border-radius:999px;color:var(--k-ink,#0E1B3A);
+  background:var(--k-sub,#F6F9FD);border:1px solid var(--k-bd,#D5DCE9);box-shadow:none}
+.ytpill.inbar .ytp-open{font-size:14px;height:32px}
+.ytpill.inbar .ytp-open:hover,.ytpill.inbar .ytp-play:hover{background:color-mix(in srgb,var(--yt-acc) 12%,transparent)}
+.ytpill.inbar .ytp-play{width:32px;height:32px;background:var(--yt-acc);color:#fff}
+.ytpill.inbar.playing{border-color:color-mix(in srgb,var(--yt-acc) 45%,transparent)}
+body.board .ytpill.inbar{display:none}
+@media (max-width:700px){.ytpill.inbar{display:none}}
+
+/* ---------- the panel ---------- */
+.ytpanel{position:fixed;z-index:61;top:68px;left:50%;transform:translateX(-50%);width:min(420px,calc(100vw - 28px));max-height:calc(100vh - 86px);overflow:auto;overscroll-behavior:contain;
+  border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent;
+  animation:ytin .24s cubic-bezier(.2,.8,.2,1)}
+.ytpanel::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,.12) 0%,rgba(255,255,255,0) 38%);mix-blend-mode:screen}
+.ytpanel:not(.onboard){top:72px;left:auto;right:16px;transform:none;animation-name:ytinr;background-color:rgba(var(--s-rgb,12,28,66),.84)}
+@keyframes ytin{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes ytinr{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.ytpanel{animation:none}}
+@media (max-width:700px){.ytpanel:not(.onboard){top:8px;right:8px;width:calc(100vw - 16px);max-height:calc(100vh - 16px)}}
+
+.yth{display:flex;align-items:center;gap:10px;padding:0 2px}
+.yth>.ytp-ic{width:34px;height:34px;border-radius:11px;align-items:center;justify-content:center;background:var(--yt-on);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.ytht{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.15}
+.ytht b{font-family:var(--display,inherit);font-size:17px;font-weight:700}
+.ytht small{font-size:12.5px;color:var(--yt-soft)}
+.ytb{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:40px;height:40px;padding:0 10px;border:0;border-radius:13px;background:transparent;font-weight:600;font-size:14px;transition:background .18s}
+.ytb:hover{background:rgba(255,255,255,.12)}
+.ytmin{background:rgba(255,255,255,.1)}
+
+/* now playing */
+.ytnow{display:flex;flex-direction:column;gap:10px}
+.ytvid{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:rgba(0,8,30,.45);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.ytvid img{width:100%;height:100%;object-fit:cover;display:block}
+.ytvid.live img{visibility:hidden}
+.ytvempty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--yt-soft);font-size:14px}
+.ytvempty svg{width:30px;height:30px;opacity:.7}
+.ytmeta{min-width:0}
+.ytmt{margin:0;font-weight:700;font-size:15.5px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ytmc{margin:2px 0 0;font-size:13px;line-height:1.45;color:var(--yt-soft)}
+.ytctl{display:flex;align-items:center;gap:8px}
+.ytbig{display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;flex:none;border:0;border-radius:50%;
+  background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 6px 16px rgba(242,179,61,.35);transition:transform .12s,background .2s}
+.ytbig.on{background:var(--yt-on);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 16px rgba(20,60,140,.35)}
+.ytbig:active{transform:scale(.94)}
+.ytbig:disabled{opacity:.35;pointer-events:none}
+.ytbig svg{width:20px;height:20px}
+.ytloop{color:var(--yt-soft)}
+.ytloop svg{width:18px;height:18px}
+.ytloop[aria-pressed="true"]{color:#fff;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.ytvol{flex:1;display:flex;align-items:center;gap:8px;min-width:0;color:var(--yt-soft)}
+.ytvol svg{width:18px;height:18px}
+.ytvol input{flex:1;min-width:0;accent-color:var(--yt-acc);height:28px}
+.ytnote{margin:0;font-size:13px;line-height:1.45;color:var(--yt-soft);min-height:1em}
+.ytnote:empty{display:none}
+.ytnote.bad{color:#FFC2C4}
+
+/* search */
+.ytfind{display:flex;align-items:center;gap:6px;padding:4px 4px 4px 14px;border-radius:15px;background:rgba(0,8,30,.32);box-shadow:inset 0 1px 3px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.08)}
+.ytfind input{flex:1;min-width:0;height:40px;border:0;background:transparent;color:var(--yt-ink);font:500 16px/1.2 var(--ui,system-ui),sans-serif;outline:none}
+.ytfind input:focus,.ytfind input:focus-visible{outline:none;box-shadow:none;border:0}
+.ytfind:focus-within{box-shadow:inset 0 1px 3px rgba(0,0,0,.35),0 0 0 2px #8CC8FF}
+.ytfind input::placeholder{color:rgba(226,236,255,.55)}
+.ytfind input::-webkit-search-cancel-button{filter:invert(1)}
+.ytgo{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border:0;border-radius:12px;background:var(--yt-on);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.ytgo svg{width:18px;height:18px}
+.ytquick{display:flex;flex-wrap:wrap;gap:6px}
+.ytchip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px solid rgba(255,255,255,.16);border-radius:999px;background:rgba(255,255,255,.07);
+  color:var(--yt-ink);font-weight:600;font-size:13px;text-decoration:none;transition:background .18s}
+.ytchip:hover{background:rgba(255,255,255,.16)}
+.ytchip.on{background:var(--yt-on);border-color:transparent;color:#fff}
+.ytchip svg{width:15px;height:15px}
+.ytmsg{margin:0;font-size:13px;color:var(--yt-soft)}
+.ytmsg:empty{display:none}
+.ytnokey{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:12px;border-radius:14px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.ytnokey p{margin:0;font-size:13.5px;line-height:1.5}
+.ytsec{margin:2px 2px -4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--yt-soft)}
+.ytlist{display:flex;flex-direction:column;gap:4px}
+.ytlist:empty{display:none}
+.ytrow{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:5px;border:0;border-radius:13px;background:transparent;text-align:left;transition:background .18s}
+.ytrow:hover{background:rgba(255,255,255,.1)}
+.ytrow.on{background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--yt-acc) 60%,rgba(255,255,255,.3))}
+.ytrth{flex:none;width:72px;height:40px;border-radius:8px;overflow:hidden;background:rgba(0,8,30,.45);display:flex;align-items:center;justify-content:center}
+.ytrth img{width:100%;height:100%;object-fit:cover;display:block}
+.ytrtx{min-width:0;display:flex;flex-direction:column;gap:1px}
+.ytrtx b{font-size:13.5px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ytrtx small{font-size:12px;color:var(--yt-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* the search key, once */
+.ytkey{display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px solid rgba(255,255,255,.12)}
+.ytkeyt{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 6px;border:0;background:transparent;color:var(--yt-soft);font-size:13px;font-weight:600}
+.ytkeyt:hover{color:#fff}
+.ytkeyt svg{width:16px;height:16px}
+.ytkeyn{margin:0;font-size:12.5px;line-height:1.5;color:var(--yt-soft)}
+.ytkeyn:empty{display:none}
+.ytkeyf{display:flex;gap:6px}
+.ytkeyf input{flex:1;min-width:0;height:40px;padding:0 12px;border:1px solid rgba(255,255,255,.18);border-radius:11px;background:rgba(0,8,30,.32);color:var(--yt-ink);font:16px var(--ui,system-ui),sans-serif}
+.ytkeyf .ytchip{height:40px}
+.ytlink{align-self:flex-start;border:0;background:transparent;padding:4px 0;color:var(--yt-soft);font-size:12.5px;text-decoration:underline}
+
+/* the YouTube player: shown in the panel's video box on the device that plays; otherwise it keeps playing,
+   tucked out of sight behind the board (an iframe that is moved in the page would restart). */
+.ythost{position:fixed;left:0;top:0;width:200px;height:200px;opacity:.01;pointer-events:none;z-index:1;overflow:hidden;border-radius:14px}
+.ythost.show{opacity:1;pointer-events:auto;z-index:62}
+.ythost iframe{width:100%!important;height:100%!important;border:0;display:block}
+body.tvview .ytpill,body.tvview .ytpanel{display:none!important}
+.sndbox .ytopen{width:100%;justify-content:center;margin:2px 0 4px}

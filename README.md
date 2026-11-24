@@ -110,6 +110,12 @@ The "Student Game" screen on the Remote opens a game students play on their own 
 - The board and Remote show a QR code that opens `play.html?code=<code>`, so a scan skips typing the code (`js/vendor/qrcode.js`, qrcode-generator 1.4.4, MIT).
 - Testing: run `firebase emulators:start --only firestore,auth` and open pages on localhost with `?emu`.
 
+## YouTube music (js/ytMusic.js, css/ytmusic.css)
+Background music from YouTube, beside the built-in music in the Sound menu. On the projected board a frosted pill sits at the top centre (it fades with the other corners); on the Remote and Board Builder it sits in the top bar, and the Sound menu has "YouTube music". The pill opens a panel: the video, play/pause, Loop, volume, "Search YouTube or paste a link", quick searches and the last 8 picks. Minimize tucks it back into the pill and the music keeps playing.
+- It uses the shared sound settings: `S.sound.src` ("yt" or "gen"), `S.sound.yt` ({ id, list, t, ch, e }), `S.sound.ytr` (recent), `S.sound.ytl` (loop). Music on/off, the M key, the music volume and "Sound plays on" work the same for both; picking a built-in style switches back to it. Only the device that plays loads the YouTube player (youtube-nocookie), and timer bells lower it like the built-in music.
+- Search calls the YouTube Data API from the browser with the teacher's own key, saved once from the panel at `teacher/{uid}/keys/youtube` (a folder linked screens cannot read). Never put a key in this repo. Restrict the key to the YouTube Data API v3 and to anchorboard.web.app. SafeSearch strict and embeddable videos only. With no key (and on the sub page) a pasted link still plays and search opens YouTube in a new tab.
+- Tests: `node tools/board/ytmusic.test.mjs` (links and the saved shape).
+
 ## Design rules and the queue
 Read `DESIGN.md` before changing how anything looks or behaves, and `QUEUE.md` for what is next. Scout before building.
 

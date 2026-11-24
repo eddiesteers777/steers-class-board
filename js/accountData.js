@@ -36,7 +36,8 @@ export const COLLECTIONS = [
     ["seats", "Seating charts"],
     ["walk", "Walkthrough edits"],
     ["screens", "Live status of your screens"],
-    ["clock", "Clock checks (timers)"]
+    ["clock", "Clock checks (timers)"],
+    ["keys", "Saved keys (YouTube search)"]   // 2026-11-24, js/ytMusic.js
 ];
 
 async function deleteAll(paths, onStep) {

@@ -16,7 +16,8 @@ import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST,
 import { setPhotoStore } from "./myPhotos.js?v=1";
 import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=16";
 import { cleanStickers, renderStickers } from "./stickers.js?v=1";
-import * as snd from "./sound.js?v=61";
+import * as snd from "./sound.js?v=62";
+import { mountYt, cleanYt, cleanRecent } from "./ytMusic.js?v=1";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { senseIdle } from "./roomSense.js?v=1";
@@ -122,7 +123,7 @@ function cleanWb(o) {
 }
 const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0, slide: 0, sstep: 0,
     timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", fix: null, tools: defaultTools(), wb: defaultWb(),
-    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true }, look: defaultLook(), stickers: [], seatHi: null, seatView: cleanView(null), bplan: cleanBplan(null), walk: { id: "", step: 0 } };
+    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true, src: "gen", yt: null, ytr: [], ytl: true }, look: defaultLook(), stickers: [], seatHi: null, seatView: cleanView(null), bplan: cleanBplan(null), walk: { id: "", step: 0 } };
 
 // This page's own mark on what it saves, so a change from another tab of the same browser can be shown
 // before the server confirms it (those tabs share one offline copy, where it first arrives as "pending").
@@ -750,7 +751,11 @@ const unlockSound = () => snd.unlock();
    Settings are shared, so the Remote turns music on and the board plays it. */
 const DEVICE = (() => { try { let id = localStorage.getItem("anchorboard-device-id"); if (!id) { id = Math.random().toString(36).slice(2, 10); localStorage.setItem("anchorboard-device-id", id); } return id; } catch (e) { return Math.random().toString(36).slice(2, 10); } })();
 function playsHere() { return mode === "sub" || (S.sound.at ? S.sound.at === DEVICE : document.body.classList.contains("board")); }
-function soundSync() { snd.set(S.sound, playsHere()); soundControls(); }
+// YouTube music (js/ytMusic.js) uses the same switch, volume and speaker; while a YouTube pick is the music,
+// the built-in music stays quiet.
+let yt = null, ytTapWas = false;
+function soundSync() { snd.set(S.sound.src === "yt" ? Object.assign({}, S.sound, { music: false }) : S.sound, playsHere()); if (yt) yt.sync(); soundControls(); }
+const ytWantsTap = () => !!yt && yt.wantsTap();
 /* Every timer, every quarter second, whatever screen is showing. */
 function soundTick() {
     const sec = (t) => Math.max(0, Math.floor((t.running ? now() - t.t0 : t.elapsed) / 1000));
@@ -758,6 +763,7 @@ function soundTick() {
     const r = S.timers.round; snd.watchTimer({ kind: "round", running: r.running, secs: sec(r), round: { len: ROUND, gap: GAP } });
     // Vault Raid: the theme song follows the game, and each big moment has its own sound.
     const g = liveSound(); snd.gameSong(g.song); snd.gamePhase(g.phase); g.cues.forEach((c) => snd.cue(c));
+    { const w = ytWantsTap(); if (w !== ytTapWas) { ytTapWas = w; soundControls(); } }
 }
 let musicGroup = "";   // which group of music styles the Sound menu is showing
 function soundPanel() {
@@ -767,7 +773,8 @@ function soundPanel() {
     const b = el("div", "sndbox"); box.appendChild(b);
     const toggle = (id, label) => { const x = el("button", "sndtog"); x.type = "button"; x.id = id; x.appendChild(el("span", null, label)); x.appendChild(el("i")); b.appendChild(x); return x; };
     const slider = (id, label) => { const w = el("label", "sndvol"); w.appendChild(el("span", null, label)); const r = el("input"); r.type = "range"; r.min = "0"; r.max = "100"; r.step = "5"; r.id = id; w.appendChild(r); b.appendChild(w); return r; };
-    toggle("sndMusic", "Music").onclick = () => { S.sound.music = !S.sound.music; snd.unlock(); push(); };
+    toggle("sndMusic", "Music").onclick = () => { S.sound.music = !S.sound.music; snd.unlock(); if (yt) yt.unlock(); push(); };
+    { const yb = el("button", "btn ghost ytopen"); yb.id = "sndYt"; yb.type = "button"; yb.textContent = "YouTube music\u2026"; yb.onclick = () => { if (yt) yt.open(); }; b.appendChild(yb); }
     // Music styles in groups: a row of group chips, then the styles in that group (js/genres.js has the list).
     const grp = el("div", "seg sndgrp"); grp.id = "sndGroup"; grp.setAttribute("role", "group"); grp.setAttribute("aria-label", "Kind of music"); b.appendChild(grp);
     const sty = el("div", "seg sndsty"); sty.id = "sndStyle"; sty.setAttribute("role", "group"); sty.setAttribute("aria-label", "Music style"); b.appendChild(sty);
@@ -789,7 +796,7 @@ function soundPanel() {
     if (host) { box.open = true; host.appendChild(box); } else { const anchor = $("filesMenu") || $("toolsMenu"); anchor.after(box); }
     // The quick switch in the top bar, so music goes on and off without scrolling the rail.
     const q = el("button", "btn ghost musicbtn"); q.id = "musicBtn"; q.type = "button"; q.title = "Background music (M key)";
-    q.onclick = () => { S.sound.music = !S.sound.music; snd.unlock(); push(); };
+    q.onclick = () => { S.sound.music = !S.sound.music; snd.unlock(); if (yt) yt.unlock(); push(); };
     $("boardBtn").before(q);
     snd.onChange(soundControls);
 }
@@ -833,8 +840,8 @@ function phoneHeader() {
 function soundControls() {
     const box = $("soundMenu");
     let tap = $("sndTap");   // a screen that should play but has not been tapped yet (browsers need one tap first)
-    if (!tap) { tap = el("button", "sndtap", "Tap for sound"); tap.id = "sndTap"; tap.type = "button"; tap.onclick = (e) => { e.stopPropagation(); snd.unlock(); }; document.body.appendChild(tap); }
-    tap.hidden = !(synced && snd.wanted() && !snd.running());
+    if (!tap) { tap = el("button", "sndtap", "Tap for sound"); tap.id = "sndTap"; tap.type = "button"; tap.onclick = (e) => { e.stopPropagation(); snd.unlock(); if (yt) yt.unlock(); }; document.body.appendChild(tap); }
+    tap.hidden = !(synced && ((snd.wanted() && !snd.running()) || ytWantsTap()));
     if (!box) return;
     const so = S.sound, here = playsHere();
     const on = (id, v) => { const x = $(id); x.setAttribute("aria-pressed", String(v)); x.querySelector("i").textContent = v ? "On" : "Off"; };
@@ -843,14 +850,16 @@ function soundControls() {
     if (!musicGroup || !groups.some((g) => g[0] === musicGroup)) musicGroup = mine ? mine[0] : groups[0][0];
     if ($("sndGroup")) seg($("sndGroup"), groups.map((g) => [g[0], g[0] + (mine && mine[0] === g[0] ? " \u2022" : "")]), musicGroup, (v) => { musicGroup = v; soundControls(); });
     const shown = (groups.find((g) => g[0] === musicGroup) || groups[0])[1];
-    seg($("sndStyle"), shown, so.style, (v) => { S.sound.style = v; S.sound.music = true; snd.unlock(); push(); });
+    seg($("sndStyle"), shown, so.style, (v) => { S.sound.style = v; S.sound.src = "gen"; S.sound.music = true; snd.unlock(); push(); });
     [["sndMv", so.mv], ["sndFv", so.fxv]].forEach(([id, v]) => { const r = $(id); if (document.activeElement !== r) r.value = String(Math.round(v * 100)); });
     if ($("sndAt")) seg($("sndAt"), [["board", "The board"], ["here", "This device"]], so.at && so.at === DEVICE ? "here" : (so.at ? "other" : "board"), (v) => { S.sound.at = v === "here" ? DEVICE : ""; snd.unlock(); push(); });
-    $("soundCount").textContent = so.music ? "Music on" : "";
+    const ytOn = so.src === "yt" && !!so.yt;
+    $("soundCount").textContent = so.music ? (ytOn ? "YouTube on" : "Music on") : "";
+    if ($("sndYt")) $("sndYt").textContent = ytOn ? "YouTube: " + (so.yt.t || "video") : "YouTube music\u2026";
     const q = $("musicBtn"); if (q) { q.textContent = so.music ? "Music on" : "Music off"; q.setAttribute("aria-pressed", String(so.music)); }
     let note;
     if (!so.music && !so.fx && !so.game) note = "Sound is off.";
-    else if (here) note = snd.running() ? "Playing on this device." : "Tap this screen once to let it play sound.";
+    else if (here) note = snd.running() && !ytWantsTap() ? "Playing on this device." : "Tap this screen once to let it play sound.";
     else if (so.at) note = "Playing on another device.";
     else note = "Playing on the board. If it stays quiet, tap the board once.";
     $("sndNote").textContent = note;
@@ -1814,7 +1823,9 @@ function applyState(d) {
     S.seatHi = d.seatHi && typeof d.seatHi.n === "string" && typeof d.seatHi.at === "number" ? { n: d.seatHi.n.slice(0, 60), at: d.seatHi.at } : null;
     S.walk = d.walk && typeof d.walk.id === "string" ? { id: d.walk.id.slice(0, 40), step: Math.max(0, Math.min(40, Math.floor(+d.walk.step || 0))) } : { id: "", step: 0 };
     { const o = d.sound || {}, v = (x, def) => (typeof x === "number" && x >= 0 && x <= 1 ? x : def);
-        S.sound = { fx: o.fx !== false, fxv: v(o.fxv, 0.7), music: !!o.music, mv: v(o.mv, 0.35), style: snd.STYLES.some((x) => x[0] === o.style) ? o.style : "focus", at: typeof o.at === "string" ? o.at.slice(0, 20) : "", game: o.game !== false }; }
+        S.sound = { fx: o.fx !== false, fxv: v(o.fxv, 0.7), music: !!o.music, mv: v(o.mv, 0.35), style: snd.STYLES.some((x) => x[0] === o.style) ? o.style : "focus", at: typeof o.at === "string" ? o.at.slice(0, 20) : "", game: o.game !== false,
+            yt: cleanYt(o.yt), ytr: cleanRecent(o.ytr), ytl: o.ytl !== false };
+        S.sound.src = o.src === "yt" && S.sound.yt ? "yt" : "gen"; }
     ["bell", "round", "check", "free"].forEach((k) => { const t = d.timers && d.timers[k]; if (t) { S.timers[k] = { running: !!t.running, t0: +t.t0 || 0, elapsed: +t.elapsed || 0 }; if (k === "free") S.timers.free.dur = +t.dur || 300; } });
 }
 /* One-tap lesson flow: Weekly Agenda -> Today -> each bellringer problem and its answer -> the day's activity. */
@@ -1963,6 +1974,10 @@ export async function startApp(opts) {
     if (window.ResizeObserver) new ResizeObserver(fit).observe($("wrap")); document.addEventListener("fullscreenchange", () => setTimeout(fit, 60));
     document.addEventListener("pointerdown", unlockSound); document.addEventListener("keydown", unlockSound);
     soundPanel();
+    yt = mountYt({ S, push, quiet, guest, store: () => store, playsHere, readOnly: () => tvView, slot: () => $("boardBtn"),
+        unlock: () => snd.unlock(), refresh: () => soundControls() });
+    snd.onDuck((secs) => yt.duck(secs));
+    document.addEventListener("pointerdown", () => yt.unlock()); document.addEventListener("keydown", () => yt.unlock());
     phoneHeadReady = true; phoneHeader();
     if (mode === "remote" && !guest && !studio && !tvView && $("screens")) mountAttendance({ el, S, push: () => push(), mode: () => mode, signedIn: () => signedIn, store: () => store, rosters: () => ROSTERS, periods: () => PERIODS, today: () => localIso() }, $("screens"));   // Who's out (Remote only, Phase 2)
     if (!guest) planFold = mountPlanFold(planApi, $("planAnchor") || $("soundMenu") || $("toolsMenu"));
@@ -2005,7 +2020,7 @@ export async function startApp(opts) {
         const pb = el("button", "bpanels"); pb.id = "panelBtn"; pb.type = "button"; pb.innerHTML = pIcon("layout") + "<span>Panels</span>"; pb.onclick = () => openSheet(toolApi); document.body.appendChild(pb);
     }
     keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
-    document.addEventListener("keydown", (e) => { if (tvView) return; if (e.target && (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.target.isContentEditable)) return; if (e.altKey || e.ctrlKey || e.metaKey) return; if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); step(1); } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); step(-1); } else if (e.key === "m" || e.key === "M") { S.sound.music = !S.sound.music; push(); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
+    document.addEventListener("keydown", (e) => { if (tvView) return; if (e.target && (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.target.isContentEditable)) return; if (e.altKey || e.ctrlKey || e.metaKey) return; if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); step(1); } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); step(-1); } else if (e.key === "m" || e.key === "M") { S.sound.music = !S.sound.music; if (yt) yt.unlock(); push(); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
     let seatWas = "";
     setInterval(() => { if (!synced) return; if (S.screen === "seats") { const h = seatHiNow(); if (h !== seatWas) { seatWas = h; render(); } } tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); tickLive(); tickNotes(); soundTick(); quickTick(); if (!guest && !tvView && stateIn) { planTick(planApi); if (planFold) planFold.tick(); } }, 250);
     { const p = el("div", "connpill"); p.id = "connPill"; p.setAttribute("role", "status"); p.hidden = true; document.body.appendChild(p); }

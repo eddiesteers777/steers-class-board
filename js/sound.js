@@ -107,7 +107,11 @@ function noiseHit(t, vol, dest, type, freq, d, q = 0.8) {
 }
 
 /** Lower the music for a moment so a timer sound is easy to hear. */
+let duckers = [];
+/** Something else that plays music here (YouTube, js/ytMusic.js) wants to be lowered for timer bells too. */
+export function onDuck(fn) { duckers.push(fn); }
 function duck(secs) {
+    duckers.forEach((f) => { try { f(secs); } catch (e) { /* ignore */ } });
     if (!ctx) return; const t = ctx.currentTime;
     duckGain.gain.cancelScheduledValues(t); duckGain.gain.setTargetAtTime(0.18, t, 0.05); duckGain.gain.setTargetAtTime(1, t + secs, 0.6);
 }

@@ -13,6 +13,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 | 19 | Student Work: turn on Claude reading names | Built (functions/index.js readNames + "Read names with Claude" on the check-names step). Eddie: Blaze plan, ANTHROPIC_API_KEY in Secret Manager, then run Actions > Deploy functions. District OK for sending names to Anthropic still not confirmed. |
 | 5 | Colours and fonts | See the open question in DESIGN.md. |
 | 31 | Fact Blitz: try it before the baseline (week of Nov 30) | Built on a branch, waiting on "push it" (the new `flu/{code}` Firestore rules deploy with it). Then: set extra time on Fact Blitz > Extra time, open one speed check, and play one run on a real Chromebook before the class does. Confirm the goal (25 facts right a minute to start; 100% = 50 right on a 2-minute check) and the clock (2 minutes). Tested only with the Firebase emulator. |
+| 44 | YouTube music panel (branch `claude/youtube-music-panel`) | A glass "YouTube" pill at the top centre of the board (in the top bar on the Remote) opens a panel: search or paste a link, play/pause, loop, volume, recent picks; minimize keeps it playing. Waiting on "push it". Search needs Eddie's YouTube Data API key (restricted to anchorboard.web.app), pasted once in the panel; links work without it. Not tried on the Promethean or school wifi yet. |
 
 ## Next up
 | # | Item | Notes |
