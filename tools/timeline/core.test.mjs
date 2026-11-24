@@ -74,3 +74,54 @@ assert.match(T.timelineUnit("8th", T.defaultLanes("8th"), q1), /^\S+ \S+: /);
 assert.equal(T.timelineUnit("8th", T.defaultLanes("8th"), q1), n.unitWord + " " + n.next[0].unit.id + ": " + n.next[0].unit.name);
 assert.equal(T.timelineUnit("nope", [], {}), "");
 console.log("timeline core tests: passed");
+
+// The map (Nov 24): one stop per run of a unit in a lane, numbered through the year, "here" matches Next up.
+{
+    const L8 = T.defaultLanes("8th");
+    const m0 = T.mapStops("8th", L8, {});
+    assert.equal(m0.regions.length, 4);
+    assert.equal(m0.stops.flatMap((s) => s.items).length, 30, "every 8th standard on the map once");
+    assert.deepEqual(m0.stops.map((s) => s.n), m0.stops.map((_, i) => i + 1));
+    assert.equal(m0.regions[0].stops[0].label, "Topic 1A");
+    assert.equal(m0.regions[0].stops[0].name, "Real Numbers");
+    assert.deepEqual(m0.regions[0].stops[0].items.map((x) => x.code), ["8.1", "8.2", "8.4"]);
+    assert.equal(m0.here, 0, "nothing marked: the first stop");
+    assert.equal(m0.next, 1);
+    assert.equal(m0.stops[0].state, "here");
+    assert.equal(m0.stops[1].state, "ahead");
+    assert.ok(m0.stops.every((s) => s.name), "every stop has a name");
+    const geo = m0.stops.find((s) => s.items.some((x) => x.code === "8.29"));
+    assert.equal(geo.label, "", "8.29/8.30 have no unit doc: no label, named by their domain");
+    assert.equal(geo.name, STANDARDS["8th"].standards.find((s) => s.code === "8.29").domain);
+    const m7 = T.mapStops("7th", T.defaultLanes("7th"), {});
+    assert.equal(m7.regions[1].stops[0].cont, true, "7.9 carries Topic 2 over from the 1st nine weeks");
+    assert.equal(m7.regions[0].stops[0].cont, false);
+    assert.equal(m0.taught, 0); assert.equal(m0.total, 30);
+    // Eddie's marks on Nov 24: 1st nine weeks taught, 8.26-8.28 taught, 8.25, 8.13 and 8.7 teaching.
+    const t = { s: "taught", d: "2026-11-17" }, g = { s: "teaching", d: "2026-11-17" };
+    const P = { "8th": { "8.1": t, "8.2": t, "8.3": t, "8.4": t, "8.5": t, "8.6": t, "8.11": t, "8.26": t, "8.27": t, "8.28": t, "8.25": g, "8.13": g, "8.7": g } };
+    const m = T.mapStops("8th", L8, P);
+    const hereStop = m.stops[m.here];
+    assert.deepEqual(hereStop.items.map((x) => x.code), ["8.25"], "here is the first stop with a card marked Teaching");
+    const nu = T.timelineNext("8th", L8, P);
+    assert.equal(hereStop.lane, nu.current.lane); assert.equal(hereStop.unit.id, nu.current.unit.id);
+    assert.equal(m.stops.slice(0, m.here).every((s) => s.state === "done"), true);
+    assert.ok(m.next > m.here && m.stops[m.next].state !== "done" && m.stops.slice(m.here + 1, m.next).every((s) => s.state === "done"), "next is the first open stop after here");
+    assert.ok(m.stops.filter((s) => s.state === "teaching").length >= 2, "8.13's and 8.7's stops show Teaching too");
+    assert.equal(m.taught, 10);
+    // An open stop before the current one is "left".
+    const P2 = { "8th": { "8.1": t, "8.2": t, "8.4": t, "8.25": g } };
+    const m2 = T.mapStops("8th", L8, P2);
+    assert.equal(m2.stops[0].state, "done"); assert.equal(m2.stops[1].state, "left");
+    // Everything taught: no "here", no "next".
+    const all = { "7th": Object.fromEntries(STANDARDS["7th"].standards.map((s) => [s.code, t])) };
+    const m3 = T.mapStops("7th", T.defaultLanes("7th"), all);
+    assert.equal(m3.here, -1); assert.equal(m3.next, -1); assert.ok(m3.stops.every((s) => s.state === "done"));
+    // 8th Acc and a teacher's own order work the same way.
+    const ma = T.mapStops("8th-acc", T.defaultLanes("8th-acc"), {});
+    assert.equal(ma.stops.flatMap((s) => s.items).length, STANDARDS["8th-acc"].standards.length);
+    assert.ok(ma.stops[0].label.startsWith("Unit "));
+    const own = T.moveCard(L8, "8.11", 0, 0), mo = T.mapStops("8th", own, {});
+    assert.deepEqual(mo.stops[0].items.map((x) => x.code), ["8.11"], "a moved card makes its own stop");
+    console.log("map stops: 8th", m0.stops.length, "/ 7th", T.mapStops("7th", T.defaultLanes("7th"), {}).stops.length, "/ 8th Acc", ma.stops.length);
+}

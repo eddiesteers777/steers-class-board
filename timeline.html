@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
     <link rel="stylesheet" href="css/planner.css?v=59">
     <link rel="stylesheet" href="css/standards.css?v=58">
-    <link rel="stylesheet" href="css/timeline.css?v=4">
+    <link rel="stylesheet" href="css/timeline.css?v=5">
     <link rel="stylesheet" href="css/skin.css?v=2">
     <meta name="theme-color" content="#081B45">
     <script type="module" src="js/caleraOnly.js?v=1"></script>
@@ -27,18 +27,23 @@
     </header>
     <main class="tl-main">
         <h1>Standards Timeline</h1>
-        <p class="tl-lede">Every Alabama standard in teaching order, one lane per nine weeks. Drag a card by its handle to change the order. Tap the status to mark it. Tap a standard to see its problems and add it to an assignment.</p>
-        <section class="st-next" id="next" aria-label="Next up" hidden></section>
+        <p class="tl-lede" id="lede">Your year as a road: each stop is a unit, in your teaching order. Green stops are taught and the amber pin is where you are now. Tap a standard to see its problems.</p>
         <div class="pl-bar tl-bar">
             <div class="pl-seg" id="classes" role="group" aria-label="Class"></div>
             <span class="tl-orderNote" id="orderNote"></span>
             <button class="btn ghost sm" id="reset" type="button" hidden>Reset to the locked order</button>
+            <div class="pl-seg tl-view" id="view" role="group" aria-label="View">
+                <button type="button" data-view="map" aria-pressed="true">Map</button>
+                <button type="button" data-view="cards" aria-pressed="false">Cards</button>
+            </div>
         </div>
-        <div id="lanes" class="tl-lanes"></div>
+        <section class="st-next" id="next" aria-label="Next up" hidden></section>
+        <div id="map" class="tm-wrap"></div>
+        <div id="lanes" class="tl-lanes" hidden></div>
         <p class="sr" id="say" aria-live="polite"></p>
         <p class="pl-foot">Wording comes from the Alabama Course of Study (data/standards.js). Your order saves to your private account only and never changes the district unit order on the Standards page. Status marks are the same marks the Standards page uses.</p>
     </main>
-    <script type="module" src="js/timeline.js?v=6"></script>
+    <script type="module" src="js/timeline.js?v=7"></script>
     <script type="module">import { mountPlanNav } from "./js/studentsNav.js?v=5"; mountPlanNav("timeline.html");</script>
 </body>
 </html>

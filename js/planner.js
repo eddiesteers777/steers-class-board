@@ -8,7 +8,7 @@
 import { WEEKS as PUBLISHED } from "../data/weeks.js?v=62";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { LIBRARY } from "../data/library.js?v=57";
-import { timelineUnit, lanesFor } from "./timelineCore.js?v=2";
+import { timelineUnit, lanesFor } from "./timelineCore.js?v=3";
 import { SCHOOL_YEAR, iso, parse, addDays, today, weekday, mondayOf, eventsOn, isSchoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, schoolDaysBetween, SCHOOL_DAYS, short } from "./schoolCal.js?v=57";
 
 const demo = new URLSearchParams(location.search).has("demo");
