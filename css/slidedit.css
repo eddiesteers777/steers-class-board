@@ -2,7 +2,7 @@
    Anchor Board — the Slides side of the Board Builder (js/slideEditor.js).
    Google Slides-style: the lesson bar and the tools across the top, the day's slides down the left,
    the slide in the middle, notes for the teacher underneath. Console colours (css/console.css).
-   Everything is scoped to the editor (.sapp), its popovers (.spop), Present (.spres) and the toast (.stoast).
+   Everything is scoped to the editor (.sapp), its lesson row in the header (.slrow), its popovers (.spop) and the toast (.stoast).
 ========================================== */
 /* Board | Slides switch in the header */
 .smode{display:inline-flex;background:var(--c-bg);border:1.5px solid var(--c-line);border-radius:12px;padding:3px;gap:2px}
@@ -11,6 +11,14 @@
 .smode button:hover{background:var(--c-surface)}
 .smode button[aria-pressed="true"]{background:var(--navy);color:#fff}
 body.slidemode .cbody,body.slidemode #weekField,body.slidemode .cbar>.field,body.slidemode #boardBtn{display:none!important}
+/* Slides keeps one bar (Nov 24): the header carries the lesson row, so the name, the connection chip and Open the board
+   (in Menu now) step aside while Slides is up. The saved chip on the row says what the connection chip said. */
+body.slidemode .cbrand span,body.slidemode #status,body.slidemode #openBoard{display:none!important}
+body:not(.slidemode) #slBarSlot{display:none}
+body.slidemode .cbar{flex-wrap:nowrap;gap:10px}
+body.slidemode .cbar .smode{margin-right:0}
+body.slidemode .cbar .smode button{padding:7px 11px}
+#slBarSlot{flex:1;min-width:0}
 body:not(.slidemode) #slideApp{display:none}
 
 .sapp{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--c-bg);color:var(--c-ink);font-family:var(--ui)}
@@ -19,27 +27,50 @@ body:not(.slidemode) #slideApp{display:none}
 .sapp .icc{width:12px;height:12px;flex:none;margin-left:-2px;opacity:.7}
 
 /* the lesson bar: which lesson's slides, saved or not, and the big actions */
-.sbar1{display:flex;align-items:flex-end;flex-wrap:wrap;gap:8px 12px;padding:8px 14px;background:var(--c-surface);border-bottom:1px solid var(--c-line)}
-.sbar1 .field select{min-width:0;max-width:230px}
-.sbar1 #slWeek{max-width:196px}
-.slacts{display:flex;align-items:flex-end;gap:8px;margin-left:auto}
-.sldays{display:flex;gap:2px;background:var(--c-bg);border:1.5px solid var(--c-line);border-radius:12px;padding:3px}
-.slday{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:62px;min-height:40px;padding:3px 8px;border:0;border-radius:9px;background:transparent;color:var(--c-ink);cursor:pointer;font-family:var(--ui)}
+.slrow{display:flex;align-items:center;gap:8px;min-width:0;font-family:var(--ui)}
+.slrow .ic{width:18px;height:18px;flex:none;display:block}
+.sbar1{padding:8px 14px;background:var(--c-surface);border-bottom:1px solid var(--c-line)}   /* only when there is no header slot */
+.slgap{flex:1}
+/* ‹ Week 5 › : the name is a select underneath, so a tap on it lists every week */
+.slwk{display:flex;align-items:center;flex:none;background:var(--c-bg);border:1.5px solid var(--c-line);border-radius:12px;padding:3px;gap:1px}
+.slwka{display:grid;place-items:center;width:30px;height:40px;border:0;border-radius:9px;background:transparent;color:var(--c-ink);cursor:pointer}
+.slwka svg{width:18px;height:18px}
+.slwka:hover:not(:disabled){background:var(--c-surface)}
+.slwka:disabled{opacity:.3;cursor:default}
+.slwkn{position:relative;display:block;border-radius:9px;cursor:pointer}
+.slwkn:hover{background:var(--c-surface)}
+.slwkt{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40px;padding:0 8px;max-width:150px}
+.slwkt b{font:700 .9rem/1.15 var(--ui);color:var(--c-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.slwkt small{font-size:.68rem;line-height:1.2;color:var(--c-mute);white-space:nowrap}
+.slwkn select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;border:0}
+.slwkn:focus-within{box-shadow:0 0 0 2px var(--s-acc,#1B4FBF)}
+.slcls{flex:none}
+.slcls[hidden]{display:none}
+.slcls select{min-height:46px;max-width:150px;padding:6px 28px 6px 12px;border-radius:12px;font:700 .88rem var(--ui)}
+.sldays{display:flex;flex:none;gap:2px;background:var(--c-bg);border:1.5px solid var(--c-line);border-radius:12px;padding:3px}
+.slday{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:54px;min-height:40px;padding:3px 7px;border:0;border-radius:9px;background:transparent;color:var(--c-ink);cursor:pointer;font-family:var(--ui)}
 .slday b{font-size:.9rem;font-weight:700;line-height:1.1}
 .slday small{font-size:.66rem;color:var(--c-mute);line-height:1.2;white-space:nowrap}
 .slday:hover{background:var(--c-surface)}
 .slday.has::after{content:"";position:absolute;top:5px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--amber)}
 .slday.on{background:var(--navy);color:#fff}
 .slday.on small{color:#B9D3EE}
-.slsave{align-self:center;display:inline-flex;align-items:center;gap:7px;font-size:.8rem;font-weight:600;color:var(--c-mute);padding:5px 11px;border-radius:999px;background:var(--c-bg);white-space:nowrap}
-.slsave::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--green)}
+.slsave{flex:0 1 auto;min-width:0;display:inline-flex;align-items:center;gap:7px;font-size:.8rem;font-weight:600;color:var(--c-mute);padding:5px 11px;border-radius:999px;background:var(--c-bg);white-space:nowrap}
+.slsave span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slsave::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--green)}
 .slsave[data-state="wait"]::before{background:var(--amber)}
 .slsave[data-state="bad"]{color:var(--k-bad-ink,#A3262C);background:var(--k-bad-bg,#FBE9EA)}
 .slsave[data-state="bad"]::before{background:#C62828}
-.sbar1 .sla{display:inline-flex;align-items:center;gap:7px;min-height:40px;white-space:nowrap}
-.sbar1 .sla[aria-expanded="true"]{background:var(--c-bg)}
-.sbar1 .btn.sla:not(.ghost){background:var(--amber);color:var(--amber-ink);box-shadow:0 3px 0 #C98F1F}
-.sbar1 .btn.sla:not(.ghost):hover{background:#F5BF55}
+/* the one big button: amber, the site's "do this next" (its colours come from .btn.amber in css/skin.css, light and Night) */
+.slrow .slteach{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;white-space:nowrap}
+.slrow .slteach .ic{width:19px;height:19px}
+.slrow .slmore{flex:none;display:grid;place-items:center;width:44px;min-height:44px;padding:0}
+.slrow .slmore[aria-expanded="true"]{background:var(--c-bg)}
+.spop .spi.smi{align-items:flex-start;padding:10px 12px}
+.spop .spi.smi .ic{margin-top:2px}
+.spop .spi.smi span{display:flex;flex-direction:column;gap:1px}
+.spop .spi.smi b{font:700 .92rem var(--ui)}
+.spop .spi.smi small{font-size:.76rem;font-weight:400;color:var(--c-mute);line-height:1.35}
 
 /* the tools across the top */
 .sbar2{display:flex;align-items:center;flex-wrap:wrap;gap:4px 2px;padding:5px 10px;min-height:46px;background:var(--c-surface);border-bottom:1px solid var(--c-line);position:relative;z-index:2}
@@ -84,6 +115,7 @@ body:not(.slidemode) #slideApp{display:none}
 .sfb span{font:700 .64rem var(--ui);padding:1px 7px;border-radius:999px;background:var(--c-bg);color:var(--c-mute)}
 .sfb .sfrv{background:var(--k-warn-bg,#FFF3D6);color:var(--k-warn-ink,#7A5300)}
 .sfb .sfhid{background:var(--k-bad-bg,#FBE9EA);color:var(--k-bad-ink,#A3262C)}
+.sfb .sfinsp{background:#0E1B3A;color:#F2C46B}
 .sfm{position:absolute;top:4px;right:4px;width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:8px;background:rgba(255,255,255,.92);color:var(--c-ink);cursor:pointer;opacity:0;box-shadow:0 1px 4px rgba(14,27,58,.2);transition:opacity .15s}
 .sfm .ic{width:16px;height:16px}
 .sfi:hover .sfm,.sfi.on .sfm,.sfm:focus-visible,.sfm[aria-expanded="true"]{opacity:1}
@@ -93,7 +125,6 @@ body:not(.slidemode) #slideApp{display:none}
 .sfaddrow{display:flex;gap:6px;margin-left:24px}
 .sfaddrow .sfadd{margin:0;width:auto;flex:1}
 .sfaddrow .sfadd.lay{flex:none;width:40px}
-.sfempty{margin:0 0 0 24px;font-size:.78rem;line-height:1.45;color:var(--c-mute);padding:8px 10px;background:var(--c-bg);border-radius:9px}
 .sfdrop{height:4px;margin:0 0 0 24px;border-radius:2px;background:var(--amber)}
 
 /* the slide in the middle */
@@ -226,32 +257,28 @@ body.sldragging,body.sldragging *{cursor:grabbing!important;user-select:none!imp
 .spop .sgrad.on{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--navy)}
 .spop .sapn{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--amber);color:var(--amber-ink);font:800 .76rem var(--ui);flex:none}
 
-/* Present here: full screen on this computer */
-.spres{position:fixed;inset:0;z-index:120;background:#000;display:flex;flex-direction:column}
-.spreshost{position:relative;flex:1;min-height:0;cursor:pointer}
-.spresbar{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px;background:#0b1630;color:#fff;font-family:var(--ui,sans-serif)}
-.spb{min-height:38px;padding:6px 16px;border:1px solid rgba(255,255,255,.3);border-radius:10px;background:transparent;color:#fff;font:600 .92rem var(--ui,sans-serif);cursor:pointer}
-.spb:hover{background:rgba(255,255,255,.1)}
-.spb.x{margin-left:18px}
-.sprc{min-width:90px;text-align:center;font:600 .9rem var(--ui,sans-serif);opacity:.85}
-
 /* a short note at the bottom */
 .stoast{position:fixed;left:50%;bottom:26px;z-index:130;transform:translate(-50%,16px);max-width:min(560px,calc(100vw - 32px));padding:10px 18px;border-radius:12px;background:#0E1B3A;color:#fff;font:600 .9rem/1.4 var(--ui,sans-serif);box-shadow:0 12px 30px rgba(14,27,58,.3);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
 .stoast.on{opacity:1;transform:translate(-50%,0)}
 
 /* smaller screens: the slide list runs across the top, the tools scroll sideways */
-@media (max-width:1500px){.sbar1 .sla.slq span{display:none}}
-@media (max-width:1320px){.sbar1 .btn.ghost.sla span{display:none}}
-@media (max-width:1240px){.slsave[data-state="ok"]{font-size:0;gap:0;padding:6px}}
-@media (max-width:1180px){.sfilm{width:200px}}
+@media (max-width:1320px){.slsave[data-state="ok"]{font-size:0;gap:0;padding:6px} body.slidemode .cbar .smode button span{display:none}}
+@media (max-width:1180px){.sfilm{width:200px} .slday small{display:none} .slday{min-width:46px}}
+.slrow .slteach i{font-style:normal}
+@media (max-width:1240px){.slrow .slteach i{display:none} .slrow .slteach{padding:0 14px}}
+@media (max-width:1060px){.slwkt small{display:none} .slwkt{max-width:110px} .slrow .slteach span{display:none} .slrow .slteach{padding:0 12px}}
+@media (max-width:940px) and (min-width:861px){.slwkt{max-width:92px} .slwka{width:26px} .slday{min-width:40px;padding:3px 5px}}
+@media (max-width:1060px){.slsave[data-state="wait"]{font-size:0;gap:0;padding:6px}}
 @media (max-width:860px){
   .smode button span{display:none}
-  .sbar1{gap:6px 8px;padding:6px 10px}
-  .sbar1 .field select{max-width:160px;padding:6px 28px 6px 10px;font-size:.88rem}
-  .sbar1 .btn.ghost.sla{padding-left:12px;padding-right:12px}
+  body.slidemode .cbar{flex-wrap:wrap;gap:8px}
+  body.slidemode .cbar .smode{margin-right:auto}
+  #slBarSlot{order:5;flex:1 1 100%}
+  .slrow{flex-wrap:wrap;gap:6px}
   .slsave[data-state="ok"]{font-size:0;gap:0;padding:6px}
   .sldays{order:5;width:100%;justify-content:space-between}
   .slday{flex:1;min-width:0}
+  .slday small{display:block}
   .sbar2{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain}
   .tgrp{flex:none}
   .sbar2 .thint{white-space:nowrap}
@@ -267,7 +294,6 @@ body.sldragging,body.sldragging *{cursor:grabbing!important;user-select:none!imp
   .sfadd,.sfaddrow{margin-left:0;width:auto}
   .sfadd{min-height:68px;width:96px;flex-direction:column}
   .sfaddrow .sfadd.lay{width:44px}
-  .sfempty{display:none}
   .sright{display:contents}
   .sstage{order:1;flex:none;aspect-ratio:16/9.6;min-height:190px;max-height:72vh}
   .snotes{order:3}
@@ -278,13 +304,3 @@ body.sldragging,body.sldragging *{cursor:grabbing!important;user-select:none!imp
 @media (prefers-reduced-motion:reduce){.spop,.stoast,.sembig,.sft{animation:none;transition:none}}
 .cbar:has(.smode) .cbrand{margin-right:0}
 .cbar .smode{margin-right:auto}
-
-/* ---------- In Spotlight: this lesson's Spotlight screens, under the slides (js/slideEditor.js spotRow) ---------- */
-.sfh.sfspot{margin-top:14px}
-.sfspots{display:flex;flex-direction:column;gap:8px;padding:4px 10px 12px}
-.sfsp{display:flex;flex-direction:column;gap:4px;padding:5px;border-radius:10px;border:1px solid var(--c-line,#D9E2EF);background:var(--c-card,#fff);color:inherit;font:inherit;text-align:left;cursor:pointer}
-.sfsp:hover{border-color:var(--amber,#F2B33D)}
-.sfsp.on{border-color:var(--amber,#F2B33D);box-shadow:0 0 0 2px rgba(242,179,61,.35)}
-.sfspv{position:relative;display:block;aspect-ratio:16/9;border-radius:7px;overflow:hidden;background:#0a1838}
-.sfspv .slthumb{position:absolute;left:0;top:0}
-.sfspn{font-size:12px;font-weight:700;color:var(--mute,#55627F)}

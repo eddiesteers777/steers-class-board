@@ -4,7 +4,10 @@
    notes for the teacher underneath. Everything on a slide can be moved, sized, turned, restyled or deleted.
    Slides belong to a lesson (week, class, day); every-day slides show at the start of every lesson.
    It edits saved slides, never the live board, so next week can be built while class runs on this one.
-   "Show on board" is the one button that sends a slide to the board.
+   Slides is where a lesson is built; Spotlight is where it is taught. "Teach this slide" is the one big button across:
+   it puts the lesson on the board and opens this slide in Spotlight. (Nov 24: Present was cut, since Spotlight does it
+   with ink and panels.) The lesson row (week, days, saved, Teach, more) sits in the Board Builder's own header
+   (studio.html #slBarSlot), so the slide gets the room.
    Model: js/slides.js. Drawing: js/slideView.js. The board side: js/boardApp.js (the Slides screen).
 ========================================== */
 import { SW, SH, MAX_SLIDES, MAX_DAILY, DAILY, INDEX, deckKey, newId, cleanDeck, cleanSlide, cleanEl, cleanIndex, newEl, mathBox, LAYOUTS, todaySlide, agendaSlide,
@@ -22,7 +25,7 @@ const decks = {};                       // key -> { deck, ready, fresh, since, d
 let idx = cleanIndex(null), idxFresh = false, idxT = 0, idxDirty = false;
 let cur = { key: "", id: "" };          // the open slide: its deck (a lesson key or "daily") and its id
 let sel = [], editing = "", hist = [], fut = [], lastTag = "", lastAt = 0, clip = null;
-let k = 0.5, slideEl = null, drag = null, pop = null, popFor = null, present = null, toastT = 0, notesOpen = false;
+let k = 0.5, slideEl = null, drag = null, pop = null, popFor = null, toastT = 0, notesOpen = false;
 const thumbs = new Map();
 let images = null;
 
@@ -50,7 +53,7 @@ const IC = {
     lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', unlock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/>',
     dup: '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/>', trash: '<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
     spot: '<path d="M12 3v2M5.6 5.6 7 7M3 12h2M18.4 5.6 17 7M21 12h-2"/><path d="M8 16a4 4 0 1 1 8 0"/><path d="M5 20h14"/>',
-    present: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m10 8 4 2-4 2z"/>', board: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="m10 8.5 4 2-4 2z"/>',
+    board: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="m10 8.5 4 2-4 2z"/>',
     plan: '<path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 9h8M8 13h8M8 17h5"/>', copyto: '<rect x="3" y="7" width="12" height="12" rx="2"/><path d="M9 3h10a2 2 0 0 1 2 2v10"/><path d="M13 13l6-6M14 7h5v5"/>',
     al: '<path d="M4 6h16M4 12h10M4 18h13"/>', ac: '<path d="M4 6h16M7 12h10M5.5 18h13"/>', ar: '<path d="M4 6h16M10 12h10M7 18h13"/>', aj: '<path d="M4 6h16M4 12h16M4 18h16"/>',
     vt: '<path d="M4 4h16"/><path d="M8 9h8M8 13h8"/>', vm: '<path d="M8 10h8M8 14h8"/><path d="M4 4h16M4 20h16" opacity=".35"/>', vb: '<path d="M4 20h16"/><path d="M8 11h8M8 15h8"/>',
@@ -158,7 +161,8 @@ function status() {
     else if (ds.some((d) => !d.ready || !canEdit(d === decks[DAILY] ? DAILY : lessonKey()))) { t = "Getting your slides…"; st = "wait"; }
     else if (ds.some((d) => d.err)) { t = "Not saved yet (" + ds.find((d) => d.err).err + "). Trying again…"; st = "bad"; }
     else if (ds.some((d) => d.dirty || d.saving)) { t = navigator.onLine ? "Saving…" : "No wifi: saved on this computer"; st = "wait"; }
-    s.textContent = t; s.dataset.state = st; s.title = t;
+    if (s.title !== t || !s.firstChild) { s.textContent = ""; s.appendChild(el("span", null, t)); }   // a span, so a long one ends in "…" on a narrow screen
+    s.dataset.state = st; s.title = t;
 }
 
 /* ---------- loading ---------- */
@@ -219,6 +223,12 @@ function drawLessonBar() {
     const wl = weeks(), wsig = wl.map((w) => w.id).join();
     if (ws.dataset.sig !== wsig) { ws.textContent = ""; wl.slice().reverse().forEach((w) => { const o = el("option", null, weekName(w)); o.value = w.id; ws.appendChild(o); }); ws.dataset.sig = wsig; }
     ws.value = lesson.week;
+    // the week stepper: "‹ Week 5 / Nov 16–20 ›", with the whole list one tap away (the select sits over the name)
+    const wi = wl.findIndex((x) => x.id === lesson.week), wo = wl[wi] || null, nm = $("slWkName");
+    if (nm && wo) { nm.firstChild.textContent = wo.label || wo.id; nm.lastChild.textContent = wo.dates ? String(wo.dates).replace(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*/g, "$1") : ""; nm.lastChild.hidden = !wo.dates; nm.parentNode.title = weekName(wo); }
+    const pv = $("slWkPrev"), nx = $("slWkNext");
+    if (pv) { pv.disabled = wi <= 0; const w2 = wl[wi - 1]; pv.title = w2 ? "Back to " + weekName(w2) : "No earlier week"; pv.setAttribute("aria-label", pv.title); }
+    if (nx) { nx.disabled = wi < 0 || wi >= wl.length - 1; const w2 = wl[wi + 1]; nx.title = w2 ? "On to " + weekName(w2) : "No later week"; nx.setAttribute("aria-label", nx.title); }
     const w = weekObj(), cl = Object.keys((w && w.classes) || {}), csig = cl.join();
     if (cs.dataset.sig !== csig) { cs.textContent = ""; cl.forEach((c) => { const o = el("option", null, (w.classes[c].label || c)); o.value = c; cs.appendChild(o); }); cs.dataset.sig = csig; }
     cs.value = lesson.cls; cs.parentNode.hidden = cl.length < 2;
@@ -236,7 +246,7 @@ function drawDays() {
 /* The slide list down the left: every-day slides, then this day's. Drag a slide to move it, even from one list to the other. */
 function drawFilm() {
     const f = $("slFilm"); if (!f) return;
-    const keep = f.scrollTop; f.textContent = "";
+    const keep = f.scrollTop; f.textContent = ""; spotIds = inSpot();
     const own = deckOf(lessonKey()), daily = deckOf(DAILY), lk = lessonKey();
     const section = (key, deck, title, sub) => {
         const h = el("div", "sfh"); h.appendChild(el("b", null, title)); if (sub) h.appendChild(el("small", null, sub)); f.appendChild(h);
@@ -246,21 +256,25 @@ function drawFilm() {
         return list;
     };
     const dl = section(DAILY, daily, "Every day", "Shows first in every lesson" + ((own && own.nod) ? " (off for " + DAYS[lesson.day] + ")" : ""));
-    if (!daily || !daily.slides.length) dl.appendChild(el("p", "sfempty", "Your own board for the start of class. Make one here once and it fills in each day's plan."));
-    if (daily && daily.slides.length < MAX_DAILY) dl.appendChild(btn("sfadd small", icon("plus") + "<span>Every-day slide</span>", (e, b) => openPop(b, (p) => layoutMenu(p, DAILY)), "Add an every-day slide"));
+    if (daily && daily.slides.length < MAX_DAILY) dl.appendChild(btn("sfadd small", icon("plus") + "<span>Every-day slide</span>", (e, b) => openPop(b, (p) => layoutMenu(p, DAILY)), "Add an every-day slide: your own board for the start of class, made once, filled in from each day's plan"));
     const w = weekObj(), L = classOf(w, lesson.cls);
     const ol = section(lk, own, DAYS[lesson.day] + "'s slides", [(L && L.label) || lesson.cls, (w && w.label) || ""].filter(Boolean).join(" · "));
     const row = el("div", "sfaddrow");
     row.appendChild(btn("sfadd", icon("plus") + "<span>New slide</span>", () => addSlide(lk, LAYOUTS.find((x) => x[0] === "blank")[2]()), "Add a blank slide"));
     row.appendChild(btn("sfadd lay", icon("layout"), (e, b) => openPop(b, (p) => layoutMenu(p, lk)), "Add a slide from a layout"));
     ol.appendChild(row);
-    spotRow(f);
     f.scrollTop = keep;
     const on = f.querySelector(".sfi.on"); if (on && (on.offsetTop < f.scrollTop || on.offsetTop + on.offsetHeight > f.scrollTop + f.clientHeight)) on.scrollIntoView({ block: "nearest" });
 }
 /** Narrower screens (css/slidedit.css): at 1180px the slide list is thinner; at 860px it runs across under the slide. */
 const narrow = window.matchMedia("(max-width:860px)"), midSize = window.matchMedia("(max-width:1180px)");
 [narrow, midSize].forEach((m) => m.addEventListener("change", () => { thumbs.clear(); if (active) drawFilm(); }));
+/** The slides that already have a Spotlight screen, when the board is on this lesson (a badge on each, not a second list). */
+function inSpot() {
+    if (!A.spotScreens || !A.isLesson || !A.isLesson(lesson.week, lesson.cls, lesson.day)) return new Set();
+    return new Set(A.spotScreens().map((x) => x.sl).filter(Boolean));
+}
+let spotIds = new Set();
 function filmItem(key, s, i) {
     const it = el("div", "sfi" + (cur.key === key && cur.id === s.id ? " on" : "") + (s.hide ? " hid" : "")); it.dataset.key = key; it.dataset.id = s.id;
     it.appendChild(el("span", "sfn", String(i + 1)));
@@ -275,6 +289,7 @@ function filmItem(key, s, i) {
     const rv = revealSteps(s); if (rv) badges.appendChild(el("span", "sfrv", rv + " on Next"));
     if (s.hide) badges.appendChild(el("span", "sfhid", "Hidden"));
     if (s.nt) badges.appendChild(el("span", "sfnt", "Notes"));
+    if (spotIds.has(s.id)) { const b2 = el("span", "sfinsp", "In Spotlight"); b2.title = "This slide has a Spotlight screen, with its own panels and drawing"; badges.appendChild(b2); }
     it.appendChild(badges);
     it.appendChild(btn("sfm", icon("more"), (e, bb) => openPop(bb, (p) => slideMenu(p, key, s.id)), "More for slide " + (i + 1)));
     it.addEventListener("pointerdown", (e) => filmDrag(e, it, key, s.id));
@@ -357,7 +372,7 @@ function unionBox(list) {
 
 /* ---------- pointer: pick, move, size, turn, draw a box around ---------- */
 function stageDown(ev) {
-    if (present || (ev.pointerType === "mouse" && ev.button !== 0)) return;
+    if (ev.pointerType === "mouse" && ev.button !== 0) return;
     closePop();
     const h = ev.target.closest(".hd");
     if (h) { ev.preventDefault(); return startHandle(ev, h.dataset.h); }
@@ -616,8 +631,8 @@ function slideMenu(p, key, id) {
     if (i < d.slides.length - 1) item("caret", "Move down", () => moveSlide(key, id, key, i + 1));
     item("every", key === DAILY ? "Only on " + DAYS[lesson.day] : "Show every day", () => moveSlide(key, id, other, (deckOf(other) || { slides: [] }).slides.length));
     item(s.hide ? "reveal" : "hide", s.hide ? "Show it on the board" : "Hide it on the board", () => changeDeck(key, (dd) => { const x = dd.slides.find((q) => q.id === id); if (x) { if (x.hide) delete x.hide; else x.hide = true; } }));
-    item("copyto", "Copy to another day…", () => { openSlide(key, id); setTimeout(() => { const b = $("slCopy"); if (b) b.click(); }, 0); });
-    item("board", "Show it on the board", () => { openSlide(key, id); showOnBoard(); });
+    item("copyto", "Copy to another day…", () => { openSlide(key, id); setTimeout(() => { const b = $("slMore"); if (b) openPop(b, copyMenu); }, 0); });
+    item("board", "Put it on the board, stay here", () => { openSlide(key, id); showOnBoard(); });
     item("trash", "Delete slide", () => delSlide(key, id), "danger");
 }
 function dupSlide(key, id) {
@@ -733,7 +748,7 @@ function drawTools() {
     tb(g, "bg", "Background of this slide", (e, b) => openPop(b, bgMenu, "wide"), { text: "Background", menu: 1, dis: !ready });
     tb(g, "layout", "New slide from a layout", (e, b) => openPop(b, (p) => layoutMenu(p, cur.key || lessonKey())), { text: "Layout", menu: 1, dis: !canEdit(cur.key || lessonKey()) });
     if (!ready) { bar.appendChild(el("span", "thint", s ? "Getting your slides…" : "Add a slide to start.")); return; }
-    if (!list.length) { bar.appendChild(el("span", "thint", "Click a piece to change it. Double-click text to type. Drag a box around pieces to pick several.")); return; }
+    if (!list.length) return;   // nothing picked: the tools alone (the old "click a piece…" hint cost a whole row on a Chromebook)
     const boxes = list.filter((e) => e.k === "bx");
     if (boxes.length) formatText(grp("fmt"), boxes, tb);
     if (one && one.k === "ln") formatLine(grp("fmt"), one, tb);
@@ -1053,15 +1068,15 @@ function notesInput() {
 let thumbT = 0;
 function refreshThumb(badgesOnly) { clearTimeout(thumbT); thumbT = setTimeout(() => { if (!badgesOnly) thumbs.delete(cur.id); drawFilm(); }, 120); }
 
-/* ---------- present here, show on the board, copy to another day ---------- */
+/* ---------- teach it, show on the board, copy to another day ---------- */
 function showOnBoard() {
     const list = showList(deckOf(DAILY), deckOf(lessonKey()));
     if (!list.length) return toast("There are no slides to show for " + DAYS[lesson.day] + " yet.");
     let i = list.findIndex((s) => s.id === cur.id); if (i < 0) i = 0;
     flush().then(() => { A.showSlide(lesson.week, lesson.cls, lesson.day, i); toast("On the board now: slide " + (i + 1) + " of " + list.length + "."); });
 }
-/** Present this slide in Spotlight: the board moves to this lesson, the slide becomes a Spotlight screen (or the one that
-    already shows it opens), and the Spotlight tab opens on it, ready for panels and drawing. */
+/** Teach this slide: the board moves to this lesson, the slide becomes a Spotlight screen (or the one that already shows
+    it opens), and the Spotlight tab opens on it, live on the board, ready for panels and drawing. */
 function toSpotlight() {
     if (editing) finishEdit();
     const list = showList(deckOf(DAILY), deckOf(lessonKey()));
@@ -1074,46 +1089,6 @@ function toSpotlight() {
         const tryOpen = (n) => { if (A.spot.openSlide(s.id)) return; if (n < 20) setTimeout(() => tryOpen(n + 1), 150); };
         tryOpen(0);
     });
-}
-/** The film strip's Spotlight row: this lesson's Spotlight screens, when the board is on this lesson. */
-function spotRow(f) {
-    if (!A.spotScreens || !A.isLesson(lesson.week, lesson.cls, lesson.day)) return;
-    const list = A.spotScreens(); if (!list.length) return;
-    const h = el("div", "sfh sfspot"); h.appendChild(el("b", null, "In Spotlight")); h.appendChild(el("small", null, list.length + (list.length === 1 ? " screen" : " screens") + " · panels and drawing on top")); f.appendChild(h);
-    const row = el("div", "sfspots");
-    list.forEach((x) => {
-        const sl = x.sl ? showList(deckOf(DAILY), deckOf(lessonKey())).find((y) => y.id === x.sl) : null;
-        const b = btn("sfsp" + (x.on ? " on" : ""), "", () => { A.goMode("spot"); setTimeout(() => A.spot.go(x.i), 60); }, "Open Spotlight screen " + (x.i + 1));
-        const pv = el("span", "sfspv"); if (sl) pv.appendChild(thumb(sl, viewOpts(), 120)); else pv.style.background = gradOf((x.look && x.look.theme) || "navy");
-        b.append(pv, el("span", "sfspn", (x.i + 1) + (sl ? " · Slide" : " · Screen") + (x.panels ? " · " + x.panels + (x.panels === 1 ? " panel" : " panels") : "")));
-        row.appendChild(b);
-    });
-    f.appendChild(row);
-}
-function startPresent() {
-    if (editing) finishEdit();
-    const list = showList(deckOf(DAILY), deckOf(lessonKey())); if (!list.length) return toast("Add a slide first.");
-    let i = Math.max(0, list.findIndex((s) => s.id === cur.id)), step = 0;
-    const box = el("div", "spres"), host = el("div", "spreshost"), bar = el("div", "spresbar");
-    const back = btn("spb", "‹ Back", () => go(-1)), next = btn("spb", "Next ›", () => go(1)), count = el("span", "sprc"), done = btn("spb x", "Done (Esc)", () => end());
-    bar.append(back, count, next, done); box.append(host, bar); document.body.appendChild(box);
-    const paint = (fresh) => { host.textContent = ""; const r = renderSlide(list[i], viewOpts({ step, fresh, mark: false })); host.appendChild(r); fitSlide(host, r); count.textContent = (i + 1) + " / " + list.length + (revealSteps(list[i]) ? " · " + step + "/" + revealSteps(list[i]) : ""); };
-    const go = (n) => {
-        if (n > 0) { if (step < revealSteps(list[i])) { step++; return paint(step); } if (i < list.length - 1) { i++; step = 0; return paint(); } }
-        else { if (step > 0) { step--; return paint(); } if (i > 0) { i--; step = revealSteps(list[i]); return paint(); } }
-    };
-    const key = (e) => {
-        e.stopPropagation();   // no key reaches the live board (Next, music, answers) or the board's undo while presenting
-        if (e.altKey || e.ctrlKey || e.metaKey) return;
-        if (["ArrowRight", "ArrowDown", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); go(1); }
-        else if (["ArrowLeft", "ArrowUp", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); go(-1); }
-        else if (e.key === "Escape") { e.preventDefault(); end(); }
-    };
-    const end = () => { window.removeEventListener("keydown", key, true); box.remove(); present = null; try { if (document.fullscreenElement) document.exitFullscreen(); } catch (x) { /* fine */ } const s = list[i]; if (s) { const where = deckOf(DAILY) && deckOf(DAILY).slides.some((x) => x.id === s.id) ? DAILY : lessonKey(); openSlide(where, s.id); } };
-    host.onclick = () => go(1);
-    window.addEventListener("keydown", key, true); present = { end };
-    try { const pr = box.requestFullscreen && box.requestFullscreen(); if (pr && pr.catch) pr.catch(() => {}); } catch (x) { /* a window is fine */ }
-    paint();
 }
 function readOnce(path) {
     return new Promise((res) => {
@@ -1157,6 +1132,14 @@ function copyMenu(p) {
     p.appendChild(r);
     p.appendChild(el("p", "spnote", "Copies go at the end of that day's slides. Live fields fill in with that day's plan."));
 }
+/** The ⋯ on the lesson row: the things that used to be buttons of their own. Each opens its own menu in the same place. */
+function moreMenu(p) {
+    const b = $("slMore"), item = (ic, t, sub, fn) => p.appendChild(btn("spi smi", icon(ic) + "<span><b>" + t + "</b><small>" + sub + "</small></span>", () => { closePop(); fn(); }));
+    p.appendChild(el("p", "sph", DAYS[lesson.day] + "'s slides"));
+    item("plan", "Start from my plan", "The day's lesson, your Today screen or the week's agenda as slides", () => setTimeout(() => openPop(b, planMenu, "wide"), 0));
+    item("copyto", "Copy to another day or class", "This slide, or all of " + DAYS[lesson.day] + "'s", () => setTimeout(() => openPop(b, copyMenu), 0));
+    if (A.goMode) item("board", "Put it on the board, stay here", "The board shows this slide; you keep building", () => showOnBoard());
+}
 function planMenu(p) {
     const L = classOf(weekObj(), lesson.cls), d = dayOf(), frames = d ? (A.framesFor(lesson.week, lesson.cls, lesson.day) || []) : [];
     p.appendChild(el("p", "sph", "Start from my plan"));
@@ -1173,7 +1156,7 @@ function planMenu(p) {
 
 /* ---------- keys, copy and paste ---------- */
 function onKey(e) {
-    if (!active || present) return;
+    if (!active) return;
     const t = e.target, inField = t && (/INPUT|SELECT|TEXTAREA/.test(t.tagName) || t.isContentEditable);
     const mod = e.ctrlKey || e.metaKey, key = e.key;
     if (t && t.isContentEditable) {
@@ -1205,14 +1188,14 @@ function onKey(e) {
 function filmOrder() { const out = []; [DAILY, lessonKey()].forEach((key) => ((deckOf(key) || { slides: [] }).slides).forEach((s) => out.push({ key, id: s.id }))); return out; }
 const CLIP = "anchor-board-slide-pieces";
 function onCopy(e, cut) {
-    if (!active || present || editing || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return;
+    if (!active || editing || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return;
     const list = sel.map(byId).filter(Boolean); if (!list.length) return;
     clip = JSON.parse(JSON.stringify(list)); e.preventDefault();
     try { e.clipboardData.setData("text/plain", CLIP + ":" + list.length + "\n" + list.map((x) => (x.html ? textOf(x.html) : "")).filter(Boolean).join("\n")); } catch (x) { /* the copy is kept here anyway */ }
     if (cut) delSel();
 }
 function onPaste(e) {
-    if (!active || present || editing || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return;
+    if (!active || editing || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return;
     const items = [...((e.clipboardData && e.clipboardData.items) || [])], img = items.find((x) => x.kind === "file" && /^image\//.test(x.type));
     if (img) { e.preventDefault(); addPicture(img.getAsFile(), ""); return; }
     const text = (e.clipboardData && e.clipboardData.getData("text/plain")) || "";
@@ -1226,19 +1209,24 @@ function toast(t) { if (!toastEl) { toastEl = el("div", "stoast"); toastEl.setAt
 /* ---------- building the page once ---------- */
 function build() {
     R.textContent = "";
-    const b1 = el("div", "sbar1");
-    const wf = el("label", "field"); wf.appendChild(el("span", null, "Week")); const ws = el("select"); ws.id = "slWeek"; ws.setAttribute("aria-label", "Week"); wf.appendChild(ws);
-    const cf = el("label", "field"); cf.appendChild(el("span", null, "Class")); const cs = el("select"); cs.id = "slClass"; cs.setAttribute("aria-label", "Class"); cf.appendChild(cs);
+    // the lesson row: ‹ week ›, class (only with more than one), Mon–Fri, saved, Teach this slide, ⋯
+    const b1 = el("div", "slrow"); b1.setAttribute("role", "group"); b1.setAttribute("aria-label", "Which lesson's slides");
+    const wk = el("div", "slwk"), wp = btn("slwka", svg('<path d="m15 18-6-6 6-6"/>'), () => stepWeek(-1), "Earlier week"); wp.id = "slWkPrev";
+    const wn = el("label", "slwkn"); const nm = el("span", "slwkt"); nm.id = "slWkName"; nm.append(el("b"), el("small"));
+    const ws = el("select"); ws.id = "slWeek"; ws.setAttribute("aria-label", "Week"); wn.append(nm, ws);
+    const wx = btn("slwka", svg('<path d="m9 18 6-6-6-6"/>'), () => stepWeek(1), "Later week"); wx.id = "slWkNext";
+    wk.append(wp, wn, wx);
+    const cf = el("label", "slcls"); const cs = el("select"); cs.id = "slClass"; cs.setAttribute("aria-label", "Class"); cf.appendChild(cs);
     const days = el("div", "sldays"); days.id = "slDays"; days.setAttribute("role", "group"); days.setAttribute("aria-label", "Day");
     const sv = el("span", "slsave"); sv.id = "slSave"; sv.setAttribute("role", "status");
-    const acts = el("div", "slacts");
-    acts.appendChild(btn("btn ghost sla", icon("plan") + "<span>From my plan</span>", (e, b) => openPop(b, planMenu, "wide"), "Start from my plan"));
-    const cp = btn("btn ghost sla slq", icon("copyto") + "<span>Copy to…</span>", (e, b) => openPop(b, copyMenu), "Copy slides to another day or class"); cp.id = "slCopy"; acts.appendChild(cp);
-    acts.appendChild(btn("btn ghost sla slq", icon("present") + "<span>Present</span>", () => startPresent(), "Show the slides full screen on this computer"));
-    if (A.goMode) acts.appendChild(btn("btn ghost sla slq", icon("spot") + "<span>Spotlight</span>", () => toSpotlight(), "Present this slide in Spotlight: panels and drawing on top of it"));
-    acts.appendChild(btn("btn sla", icon("board") + "<span>Show on board</span>", () => showOnBoard(), "Send this slide to the board now"));
-    b1.append(wf, cf, days, sv, acts);
+    const teach = A.goMode
+        ? btn("btn amber slteach", icon("spot") + "<span>Teach<i> this slide</i></span>", () => toSpotlight(), "Teach this slide: it goes on the board and opens in Spotlight, with panels and drawing")
+        : btn("btn amber slteach", icon("board") + "<span>Show on board</span>", () => showOnBoard(), "Send this slide to the board now");
+    const more = btn("btn ghost slmore", icon("more"), (e, bb) => openPop(bb, moreMenu, "wide"), "More: start from my plan, copy to another day, put it on the board"); more.id = "slMore";
+    b1.append(wk, cf, days, el("span", "slgap"), sv, teach, more);
     ws.onchange = () => setLesson(ws.value, lesson.cls, lesson.day); cs.onchange = () => setLesson(lesson.week, cs.value, lesson.day);
+    const slot = document.getElementById("slBarSlot");
+    if (slot) { slot.textContent = ""; slot.appendChild(b1); } else { const bar = el("div", "sbar1"); bar.appendChild(b1); R.appendChild(bar); }
     const b2 = el("div", "sbar2"); b2.id = "slTools"; b2.setAttribute("role", "toolbar"); b2.setAttribute("aria-label", "Slide tools");
     const main = el("div", "smain"), film = el("aside", "sfilm"); film.id = "slFilm"; film.setAttribute("aria-label", "Slides");
     const right = el("div", "sright"), stage = el("div", "sstage"); stage.id = "slStage";
@@ -1246,7 +1234,7 @@ function build() {
     const nb = el("div", "snotes"); nb.id = "slNotesBox"; const nl = el("label", null, "Notes for me"); nl.htmlFor = "slNotes"; const nh = el("small", null, "Only on the Remote and your phone, never on the board");
     const ta = el("textarea"); ta.id = "slNotes"; ta.rows = 2; ta.maxLength = 3000; ta.placeholder = "What to say, questions to ask, where students get stuck…"; ta.oninput = notesInput; ta.onfocus = () => { if (editing) finishEdit(); };
     const nhd = el("div", "snh"); nhd.append(nl, nh); nb.append(nhd, ta);
-    right.append(stage, nb); main.append(film, right); R.append(b1, b2, main);
+    right.append(stage, nb); main.append(film, right); R.append(b2, main);
     stage.addEventListener("pointerdown", stageDown); stage.addEventListener("pointermove", stageMove); stage.addEventListener("pointerup", stageUp); stage.addEventListener("pointercancel", stageUp);
     stage.addEventListener("dblclick", stageDbl);
     stage.addEventListener("dragover", (e) => { if ([...(e.dataTransfer && e.dataTransfer.items || [])].some((x) => x.kind === "file")) { e.preventDefault(); stage.classList.add("drop"); } });
@@ -1260,6 +1248,12 @@ function build() {
     window.addEventListener("resize", () => closePop());
     window.addEventListener("online", () => status()); window.addEventListener("offline", () => status());
     built = true;
+}
+
+/** ‹ and › on the week: the week before or after, same class and day. */
+function stepWeek(n) {
+    const wl = weeks(), i = wl.findIndex((x) => x.id === lesson.week), w = wl[i + n];
+    if (w) setLesson(w.id, w.classes && w.classes[lesson.cls] ? lesson.cls : "", lesson.day);
 }
 
 /* ---------- what studio.js calls ---------- */
