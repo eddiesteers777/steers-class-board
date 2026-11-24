@@ -16,7 +16,7 @@ import { SW, SH, MAX_SLIDES, MAX_DAILY, DAILY, INDEX, deckKey, newId, cleanDeck,
 import { renderSlide, renderEl, fitSlide, thumb, imageLoader } from "./slideView.js?v=2";
 import { newItem, geom, MENU as MATH_MENU, parseStep, compileExpr, PLOT } from "./mathTools.js?v=1";
 import { STICKER_SETS, WORDS, WORD_COLORS, stickerFace } from "./stickers.js?v=1";
-import { gradOf, lookSeal } from "./panels.js?v=34";
+import { gradOf, lookSeal } from "./panels.js?v=35";
 
 const PAGE = Math.random().toString(36).slice(2, 10);
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];

@@ -26,7 +26,7 @@
    (ci.to and stp.to: who it is for; each student's s doc says whether they are in it).
 ========================================== */
 import * as V from "./vaultCore.js?v=75";
-import * as PC from "./pushCore.js?v=2";
+import * as PC from "./pushCore.js?v=3";
 import qrcode from "./vendor/qrcode.js?v=1";
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };

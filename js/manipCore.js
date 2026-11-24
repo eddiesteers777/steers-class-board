@@ -12,6 +12,7 @@
      area      Expression area model  a(bx + c) as tiles or an area box, expand and factor (7.6, 7.7)
      nl        Rational number line  jumps with fractions and decimals, subtracting as adding the opposite, distance (7.5)
      sys       Systems graph        two lines; where they cross, parallel or the same line; check a point in both (8.12, Alg I.10)
+     scat      Scatter plot         data on real axes; the trend, outliers, the class's own trend line and a prediction (8.SP)
      fn        Function machine     inputs go in, the rule makes outputs; mystery rules, and "function or not?" (8.13, 8.14)
      calc      Basic calculator     + − × ÷ and percent, with the order of operations
      sci       Scientific calculator powers, roots, trig, logs, Ans and fraction answers
@@ -22,7 +23,7 @@
 ========================================== */
 import { gcDefault, cleanGc, fmt } from "./graphCalc.js?v=1";
 
-export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "angle", "fn", "area", "nl", "sys", "calc", "sci", "graph"];
+export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "angle", "fn", "area", "nl", "sys", "scat", "calc", "sci", "graph"];
 export const isMt = (k) => MT_KEYS.includes(k);
 
 const int = (v, d) => { const n = Math.round(+v); return Number.isFinite(n) ? n : d; };
@@ -655,8 +656,130 @@ function cleanSys(o) {
     return { l: [l[0] || D.l[0], l[1] || D.l[1]], f: o.f === "std" ? "std" : "si", hide: !!o.hide, rv: !!o.rv, tp: pt(o.tp) };
 }
 
-const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, angle: angDefault, fn: fnDefault, area: exDefault, nl: nlDefault, sys: sysDefault, calc: calcDefault, sci: sciDefault, graph: gcDefault };
-const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, angle: cleanAng, fn: cleanFn, area: cleanEx, nl: cleanNl, sys: cleanSys, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
+/* ---------- Scatter plot ---------- */
+/* Points on a graph with real axes. The class drags points, taps to add more, and drags its own trend line through
+   them. The panel reads the association (positive, negative or none, and how strong), flags a point far from the
+   trend as a possible outlier, shows the best-fit line to compare, and predicts with the class's own line.
+   The data sets are made-up classroom samples. */
+export const SC_MAX = 40;
+/* x / y: [axis label, low, high, tick, snap]. u: how a value reads in a sentence [before, one, many].
+   per: what one step of x is, for the slope. yw: what y counts, for the slope (blank for plain y). ps: predict step. */
+export const SC_SETS = {
+    study: { name: "Study time", x: ["Hours studied", 0, 10, 1, 0.5], y: ["Quiz score", 40, 100, 10, 1], ux: ["", " hour", " hours"], uy: ["about ", " point", " points"], per: "each extra hour studied", yw: "points", yn: "quiz score", ps: 0.5,
+        p: [[1, 54], [1.5, 58], [2, 57], [2.5, 63], [3, 65], [3.5, 68], [4, 70], [4.5, 68], [5, 75], [5.5, 77], [6, 80], [6.5, 79], [7, 85], [7.5, 86], [8, 88], [9, 93], [1.5, 88]] },
+    cocoa: { name: "Cocoa sales", x: ["Temperature (°F)", 20, 80, 10, 1], y: ["Cups of cocoa sold", 0, 60, 10, 1], ux: ["", "°F", "°F"], uy: ["about ", " cup", " cups"], per: "each degree warmer", yw: "cups", yn: "cocoa sold", ps: 5,
+        p: [[24, 50], [28, 53], [31, 44], [35, 46], [38, 37], [42, 40], [45, 33], [48, 34], [52, 25], [55, 29], [58, 20], [62, 24], [66, 13], [70, 17], [74, 8], [78, 11]] },
+    month: { name: "Birth month", x: ["Birth month", 0, 12, 1, 1], y: ["Height (in)", 50, 74, 4, 1], ux: ["month ", "", ""], uy: ["about ", " inch", " inches"], per: "each month later", yw: "inches", yn: "height", ps: 1,
+        p: [[1, 62], [2, 58], [2, 66], [3, 61], [4, 64], [5, 57], [5, 63], [6, 60], [7, 65], [7, 59], [8, 62], [9, 66], [9, 58], [10, 63], [11, 60], [12, 64], [12, 59]] },
+    own: { name: "Your own", x: ["x", 0, 20, 2, 1], y: ["y", 0, 20, 2, 1], ux: ["x = ", "", ""], uy: ["y ≈ ", "", ""], per: "each 1 more in x", yw: "", yn: "y", ps: 1, p: [] },
+};
+export const SC_KEYS = Object.keys(SC_SETS);
+const scSnap = (v, a) => { const n = Math.round((v - a[1]) / a[4]) * a[4] + a[1]; return +clamp(n, a[1], a[2]).toFixed(4); };
+/** A number as the panel writes it: true minus, no trailing zeros, dp decimals at most. */
+export const scNum = (v, dp = 1) => { const t = (+v.toFixed(dp)).toString(); return t === "-0" ? "0" : t.replace("-", "−"); };
+function scLnDefault(D, pts) {
+    const span = D.x[2] - D.x[1], ym = pts.length ? pts.reduce((t, q) => t + q[1], 0) / pts.length : (D.y[1] + D.y[2]) / 2, y = scSnap(ym, D.y);
+    return [[scSnap(D.x[1] + span * 0.12, D.x), y], [scSnap(D.x[1] + span * 0.88, D.x), y]];
+}
+/** A fresh panel showing data set d (its own points, a flat trend line through the middle to tilt into place). */
+export function scDefault(d = "study") {
+    const D = SC_SETS[d] || SC_SETS.study, p = D.p.map((q) => q.slice());
+    return { d: SC_SETS[d] ? d : "study", p, ln: scLnDefault(D, p), best: false, hide: false, rv: false, px: null };
+}
+/** Least squares and the correlation: { n, m, b, r } (m, b null when every x is the same; r null when it can't be found). */
+export function scStats(pts) {
+    const n = pts.length; if (n < 2) return { n, m: null, b: null, r: null };
+    const mx = pts.reduce((t, q) => t + q[0], 0) / n, my = pts.reduce((t, q) => t + q[1], 0) / n;
+    let sxx = 0, syy = 0, sxy = 0; pts.forEach(([x, y]) => { sxx += (x - mx) ** 2; syy += (y - my) ** 2; sxy += (x - mx) * (y - my); });
+    if (sxx < 1e-9) return { n, m: null, b: null, r: null };
+    const m = sxy / sxx; return { n, m, b: my - m * mx, r: syy < 1e-9 ? 0 : sxy / Math.sqrt(sxx * syy) };
+}
+/** The association in words: { dir: "positive" | "negative" | "none" | "", str: "strong" | "moderate" | "weak" | "", text }. */
+export function scAssoc(pts) {
+    const { n, r } = scStats(pts);
+    if (n < 3 || r == null) return { dir: "", str: "", text: "Add more points to see a trend" };
+    const a = Math.abs(r);
+    if (a < 0.3) return { dir: "none", str: "", text: "No clear association" };
+    const dir = r > 0 ? "positive" : "negative", str = a >= 0.8 ? "strong" : a >= 0.5 ? "moderate" : "weak";
+    return { dir, str, text: str[0].toUpperCase() + str.slice(1) + " " + dir + " association" };
+}
+/** Points far from the trend: each one is checked against the best-fit line of the others. Needs 6 points or more. */
+export function scOutliers(S) {
+    const P = S.p, D = SC_SETS[S.d], out = []; if (P.length < 6) return out;
+    P.forEach((q, i) => {
+        const rest = P.filter((_, j) => j !== i), f = scStats(rest); if (f.m == null) return;
+        const sse = rest.reduce((t, [x, y]) => t + (y - (f.m * x + f.b)) ** 2, 0), sd = Math.sqrt(sse / (rest.length - 2));
+        if (Math.abs(q[1] - (f.m * q[0] + f.b)) > Math.max(3 * sd, 0.15 * (D.y[2] - D.y[1]))) out.push(i);
+    });
+    return out.length <= Math.max(1, Math.floor(P.length / 6)) ? out : [];   // if lots stand out, it isn't a line at all
+}
+/** The class's own line, y = m x + b. */
+export function scLine(S) { const [[x1, y1], [x2, y2]] = S.ln, m = (y2 - y1) / (x2 - x1); return { m, b: y1 - m * x1 }; }
+/** "y = 4.9x + 51", rounded so the numbers read well. */
+export function scEq(m, b) {
+    const md = Math.abs(m) < 1 ? 2 : 1, bd = Math.abs(b) < 10 ? 1 : 0;
+    let s = "y = "; const mt = scNum(m, md), bt = scNum(Math.abs(b), bd);
+    if (mt === "0") return s + scNum(b, bd);
+    s += (mt === "1" ? "" : mt === "−1" ? "−" : mt) + "x";
+    return bt === "0" ? s : s + (b < 0 ? " − " : " + ") + bt;
+}
+/** A value of x or y as a sentence says it: "6 hours", "65°F", "month 3", "about 80 points", "y ≈ 12". */
+export function scSay(D, ax, v) { const u = ax === "x" ? D.ux : D.uy, t = scNum(v, ax === "x" ? 2 : D.y[4] < 1 ? 1 : 0); return u[0] + t + (t === "1" ? u[1] : u[2]); }
+/** How many points sit above, below and on the class's line. */
+export function scSides(S) {
+    const { m, b } = scLine(S), tol = SC_SETS[S.d].y[4] / 2, o = { above: 0, below: 0, on: 0 };
+    S.p.forEach(([x, y]) => { const e = y - (m * x + b); o[Math.abs(e) < tol ? "on" : e > 0 ? "above" : "below"]++; });
+    return o;
+}
+/** The class's line read as slope and y-intercept sentences. */
+export function scRead(S) {
+    const D = SC_SETS[S.d], { m, b } = scLine(S), a = scAssoc(S.p), md = Math.abs(m) < 1 ? 2 : 1;
+    const mag = scNum(Math.abs(m), md), up = m > 0;
+    const slope = mag === "0" ? "Slope 0: a flat line says " + D.yn + " doesn't change. Tilt it to follow the points."
+        : a.dir === "none" ? "Slope " + scNum(m, md) + ", but with no clear association the line doesn't predict much."
+        : "Slope " + scNum(m, md) + ": " + D.per + " goes with " + (D.yw ? "about " + mag + (up ? " more " : " fewer ") + D.yw : "y going " + (up ? "up" : "down") + " about " + mag) + ".";
+    const xs = S.p.map((q) => q[0]), outside = !xs.length || Math.min(...xs) > 0 || Math.max(...xs) < 0;
+    const icpt = "y-intercept " + scNum(b, Math.abs(b) < 10 ? 1 : 0) + ": " + scSay(D, "y", b) + " at " + scSay(D, "x", 0) + (outside ? ". That's outside the data, so trust it less." : ".");
+    return { slope, icpt };
+}
+/** What the class's line predicts at x. */
+export function scPredict(S, x) { const { m, b } = scLine(S); return m * x + b; }
+/** Add a point (snapped to the axes). False when the plot is full or one is already there. */
+export function scAdd(S, x, y) {
+    const D = SC_SETS[S.d]; if (S.p.length >= SC_MAX) return false;
+    x = scSnap(x, D.x); y = scSnap(y, D.y); if (S.p.some((q) => q[0] === x && q[1] === y)) return false;
+    S.p.push([x, y]); S.rv = false; return true;
+}
+/** Move point i. False if nothing changed or another point is already there. */
+export function scMove(S, i, x, y) {
+    const D = SC_SETS[S.d], q = S.p[i]; if (!q) return false;
+    x = scSnap(x, D.x); y = scSnap(y, D.y); if ((q[0] === x && q[1] === y) || S.p.some((o, j) => j !== i && o[0] === x && o[1] === y)) return false;
+    S.p[i] = [x, y]; S.rv = false; return true;
+}
+export function scDel(S, i) { if (!S.p[i]) return false; S.p.splice(i, 1); S.rv = false; return true; }
+/** Move end w of the class's line. Its two ends keep apart across the graph. */
+export function scHandle(S, w, x, y) {
+    const D = SC_SETS[S.d]; x = scSnap(x, D.x); y = scSnap(y, D.y);
+    const o = S.ln[1 - w]; if (Math.abs(x - o[0]) < (D.x[2] - D.x[1]) / 10 || (w === 0 ? x > o[0] : x < o[0])) return false;
+    if (S.ln[w][0] === x && S.ln[w][1] === y) return false;
+    S.ln[w] = [x, y]; return true;
+}
+/** The chip's words. */
+export function scChip(S) { return S.hide && !S.rv ? "What's the trend?" : scAssoc(S.p).text.replace(" association", ""); }
+function cleanSc(o) {
+    if (!o || typeof o !== "object") return scDefault();
+    const d = SC_SETS[o.d] ? o.d : "study", D = SC_SETS[d], out = scDefault(d), okNum = (v) => typeof v === "number" && Number.isFinite(v);
+    const inAx = (q) => Array.isArray(q) && q.length === 2 && okNum(q[0]) && okNum(q[1]) && q[0] >= D.x[1] && q[0] <= D.x[2] && q[1] >= D.y[1] && q[1] <= D.y[2];
+    if (Array.isArray(o.p)) { out.p = []; o.p.forEach((q) => { if (out.p.length < SC_MAX && inAx(q)) { const r = [scSnap(q[0], D.x), scSnap(q[1], D.y)]; if (!out.p.some((z) => z[0] === r[0] && z[1] === r[1])) out.p.push(r); } }); }
+    if (Array.isArray(o.ln) && o.ln.length === 2 && o.ln.every(inAx)) { const L = o.ln.map((q) => [scSnap(q[0], D.x), scSnap(q[1], D.y)]); if (L[1][0] > L[0][0]) out.ln = L; else out.ln = scLnDefault(D, out.p); }
+    else out.ln = scLnDefault(D, out.p);
+    out.best = !!o.best; out.hide = !!o.hide; out.rv = !!o.rv;
+    out.px = okNum(o.px) && o.px >= D.x[1] && o.px <= D.x[2] ? scSnap(o.px, D.x) : null;
+    return out;
+}
+
+const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, angle: angDefault, fn: fnDefault, area: exDefault, nl: nlDefault, sys: sysDefault, scat: () => scDefault(), calc: calcDefault, sci: sciDefault, graph: gcDefault };
+const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, angle: cleanAng, fn: cleanFn, area: cleanEx, nl: cleanNl, sys: cleanSys, scat: cleanSc, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
 export const mtDefault = (k) => DEFAULTS[k]();
 /** tools.mt as saved: only panels that were used are kept, each cleaned. */
 export function cleanMt(o) { const out = {}; if (!o || typeof o !== "object") return out; MT_KEYS.forEach((k) => { if (o[k] && typeof o[k] === "object") out[k] = CLEAN[k](o[k]); }); return out; }
@@ -676,6 +799,7 @@ export function mtChip(k, T) {
     if (k === "area") { if (s.m === "fac") { const R = exRows(s); return { v: R.even ? (s.r === 1 ? exLin(s.p, s.q) : s.r + "(" + R.inside + ")") : exLin(s.p, s.q), tone: R.best ? "green" : "" }; } return { v: exFactored(s.a, s.b, s.c) + " = " + (s.hide ? "?" : exExpanded(s.a, s.b, s.c)) }; }
     if (k === "nl") return { v: nlSum(s, s.hide && !s.rv) };
     if (k === "sys") return { v: s.hide && !s.rv ? "Where do they cross?" : sysAns(s), tone: s.hide && !s.rv ? "" : "green" };
+    if (k === "scat") return { v: scChip(s) };
     if (k === "fn") return { v: s.m === "test" ? "Function or not?" : s.hide ? "Mystery rule" : "y = " + fnRule(s) };
     if (k === "counters") { const v = ctValue(s); return { v: (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) }; }
     return { v: "" };

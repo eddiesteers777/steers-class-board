@@ -213,6 +213,35 @@ t("systems graph", () => {
     assert.equal(M.mtChip("sys", { mt: { sys: Object.assign(M.sysDefault(), { hide: true }) } }).v, "Where do they cross?");
 });
 
+t("scatter plot", () => {
+    const S = M.scDefault();
+    assert.equal(S.d, "study"); assert.equal(S.p.length, 17);
+    assert.equal(M.scAssoc(S.p).text, "Moderate positive association");
+    assert.deepEqual(M.scOutliers(S).map((i) => S.p[i]), [[1.5, 88]], "the student who barely studied and scored 88");
+    M.scDel(S, M.scOutliers(S)[0]); assert.equal(M.scAssoc(S.p).text, "Strong positive association", "without it, the trend is strong");
+    assert.deepEqual(M.scOutliers(S), []);
+    assert.equal(M.scAssoc(M.scDefault("cocoa").p).dir, "negative"); assert.equal(M.scAssoc(M.scDefault("month").p).dir, "none");
+    assert.equal(M.scAssoc([[1, 1], [2, 2]]).text, "Add more points to see a trend");
+    assert.equal(M.scEq(4.38, 52.1), "y = 4.4x + 52"); assert.equal(M.scEq(-0.857, 73.4), "y = −0.86x + 73"); assert.equal(M.scEq(1, -3.25), "y = x − 3.3"); assert.equal(M.scEq(0, 62), "y = 62");
+    S.ln = [[0, 52], [10, 96]];
+    assert.equal(M.scEq(M.scLine(S).m, M.scLine(S).b), "y = 4.4x + 52");
+    assert.equal(M.scRead(S).slope, "Slope 4.4: each extra hour studied goes with about 4.4 more points.");
+    assert.match(M.scRead(S).icpt, /^y-intercept 52: about 52 points at 0 hours. That's outside the data/);
+    assert.equal(M.scSay(M.SC_SETS.study, "x", 6) + " / " + M.scSay(M.SC_SETS.study, "y", M.scPredict(S, 6)), "6 hours / about 78 points");
+    assert.equal(M.scSay(M.SC_SETS.study, "x", 1), "1 hour"); assert.equal(M.scSay(M.SC_SETS.cocoa, "x", 65), "65°F"); assert.equal(M.scSay(M.SC_SETS.own, "y", 12.4), "y ≈ 12");
+    const sd = M.scSides(S); assert.equal(sd.above + sd.below + sd.on, S.p.length);
+    assert.equal(M.scAdd(S, 3.3, 71.6), true); assert.deepEqual(S.p[S.p.length - 1], [3.5, 72], "snapped to the axes");
+    assert.equal(M.scAdd(S, 3.4, 72.2), false, "already a point there");
+    assert.equal(M.scMove(S, 0, 99, -5), true); assert.deepEqual(S.p[0], [10, 40], "kept on the graph");
+    assert.equal(M.scHandle(S, 0, 9.8, 60), false, "the ends stay apart"); assert.equal(M.scHandle(S, 1, 9, 90), true);
+    const O = M.scDefault("own"); assert.deepEqual(O.p, []); for (let i = 0; i < 50; i++) M.scAdd(O, i % 20, Math.floor(i / 20) * 3); assert.equal(O.p.length, M.SC_MAX);
+    const c = M.cleanMt({ scat: { d: "cocoa", p: [[30, 20], [30, 20], [500, 3], ["x", 1], [44.4, 19.6]], ln: [[80, 1], [20, 50]], best: 1, px: 999 } }).scat;
+    assert.deepEqual(c.p, [[30, 20], [44, 20]]); assert.equal(c.ln[0][0] < c.ln[1][0], true); assert.equal(c.best, true); assert.equal(c.px, null);
+    assert.equal(M.cleanMt({ scat: { d: "evil" } }).scat.d, "study");
+    assert.equal(M.mtChip("scat", { mt: { scat: M.scDefault("cocoa") } }).v, "Strong negative");
+    assert.equal(M.mtChip("scat", { mt: { scat: Object.assign(M.scDefault(), { hide: true }) } }).v, "What's the trend?");
+});
+
 t("saved state is cleaned", () => {
     assert.deepEqual(M.cleanMt(null), {}); assert.deepEqual(M.cleanMt({ evil: { a: 1 } }), {});
     const c = M.cleanMt({ balance: { e: [2, 2, 2, 9], s: [1, 2, 3, 4] }, chance: { m: "dice", d2: true, t: [1, "x", -4], last: 99, rot: "NaN" }, line: { a: [99, -99], b: [99, -99] },
