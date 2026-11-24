@@ -7,7 +7,7 @@
 ========================================== */
 
 import { cleanStickers } from "./stickers.js?v=1";
-import { cleanSty } from "./panelStyle.js?v=1";
+import { cleanSty } from "./panelStyle.js?v=3";
 import { cleanFinds } from "./findCore.js?v=1";
 import { cleanMt } from "./manipCore.js?v=14";
 

@@ -251,7 +251,7 @@ function checkView(card, ci) {
 let manip = null, TOOL = null;
 function cssOnce(href) { if (document.querySelector('link[href="' + href + '"]')) return; const l = document.createElement("link"); l.rel = "stylesheet"; l.href = href; document.head.append(l); }
 function loadManip() {
-    if (!manip) { cssOnce("css/manip.css?v=14"); manip = import("./manipPanels.js?v=14").catch((e) => { manip = null; throw e; }); }
+    if (!manip) { cssOnce("css/manip.css?v=16"); manip = import("./manipPanels.js?v=14").catch((e) => { manip = null; throw e; }); }
     return manip;
 }
 /** Put tool k in host. The same check-in keeps the same tool (so a half-typed calculation survives a redraw). */

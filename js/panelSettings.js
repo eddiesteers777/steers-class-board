@@ -7,9 +7,9 @@
    Everything writes to the shared board state, so the projector follows.
 ========================================== */
 
-import { WORK, PALERT_MINS } from "./boardTools.js?v=78";
-import { PANEL_COLORS, PANEL_FINISHES, PANEL_CORNERS, PANEL_PRESETS, MIN_SOLID, cleanSty, applySty, swatchBg } from "./panelStyle.js?v=1";
-import { themeCols } from "./panels.js?v=42";
+import { WORK, PALERT_MINS, MATH_LIST, CALC_LIST } from "./boardTools.js?v=80";
+import { PANEL_COLORS, PANEL_FINISHES, PANEL_CORNERS, PANEL_PRESETS, MIN_SOLID, MATCH_BOARD, cleanSty, applySty, swatchBg, styToSave, styShown } from "./panelStyle.js?v=3";
+import { themeCols } from "./panels.js?v=43";
 import { micSens, setMicSens, micState, micStart, micStop, camMirror, setCamMirror, camState, camStart, camStop, recStart, recStop } from "./roomSense.js?v=1";
 
 let open = "", api = null, box = null, sigWas = "", focusTo = "", paintedFor = "";
@@ -167,10 +167,16 @@ function own(k, sec, row, chips, toggle) {
 
 /* ---------- Style ---------- */
 const look = () => themeCols(api.S.look.theme);
+/* The math tools and calculators open in "Match board" (Eddie, 2026-11-24); every other panel opens plain. */
+const STY_MATCH = new Set(MATH_LIST.concat(CALC_LIST).map((x) => x[0]));
+const styDef = (k) => (STY_MATCH.has(k) ? MATCH_BOARD : null);
+/** Save style x on panel k, or clear it when x is that panel's default. */
+function keepSty(T, k, x) { const n = styToSave(x, styDef(k)); if (n) T.sty[k] = n; else delete T.sty[k]; }
 function styleSec(k, sec, row, chips) {
     const { S, el, push, quiet } = api, T = S.tools; T.sty = T.sty || {};
-    const cur = Object.assign({ c: "paper", f: "solid", o: 100, r: "soft" }, cleanSty(T.sty[k]) || {});
-    const set = (o) => { const n = cleanSty(Object.assign({}, cur, o)); if (n) T.sty[k] = n; else delete T.sty[k]; push(); };
+    const cur = Object.assign({ c: "paper", f: "solid", o: 100, r: "soft" }, styShown(T.sty[k], styDef(k)) || {});
+    delete cur.p;
+    const set = (o) => { keepSty(T, k, Object.assign({}, cur, o)); push(); };
     const s = sec("Style", "Color, finish and how much of the board shows through. The board updates as you tap.");
     s.classList.add("pssty");
     /* a live sample of this panel */
@@ -198,9 +204,9 @@ function styleSec(k, sec, row, chips) {
     const rr = row(s, "psrange psop"); const rg = document.createElement("input"); rg.type = "range"; rg.min = String(MIN_SOLID); rg.max = "100"; rg.step = "5"; rg.value = String(cur.o); rg.setAttribute("aria-label", "How solid");
     const word = (v) => (v >= 100 ? "Solid" : v >= 75 ? "A little see-through" : v >= 55 ? "See-through" : "Very see-through");
     const rv = el("span", "psrv", cur.o + "%");
-    const live = () => { const n = cleanSty(Object.assign({}, cur, { o: +rg.value })); rv.textContent = rg.value + "%"; hint.textContent = word(+rg.value);
+    const live = () => { const n = cleanSty(Object.assign({}, cur, { o: +rg.value, p: 1 })); rv.textContent = rg.value + "%"; hint.textContent = word(+rg.value);
         document.querySelectorAll('.card[data-panel="' + k + '"]').forEach((c) => applySty(c, n, look())); applySty(pc, n, look()); };
-    rg.oninput = () => { live(); if (cleanSty(Object.assign({}, cur, { o: +rg.value }))) T.sty[k] = cleanSty(Object.assign({}, cur, { o: +rg.value })); else delete T.sty[k]; quiet(); };
+    rg.oninput = () => { live(); keepSty(T, k, Object.assign({}, cur, { o: +rg.value })); quiet(); };
     rg.onchange = () => { set({ o: +rg.value }); rg.blur(); };
     rr.append(el("span", "psrl", "Solid"), rg, rv);
     const hint = el("p", "psnote pshint", word(cur.o) + (cur.f === "glass" ? ". Glass blurs what is behind it, so words stay clear." : "")); s.appendChild(hint);
@@ -209,8 +215,9 @@ function styleSec(k, sec, row, chips) {
     chips(s, PANEL_CORNERS, cur.r, (r) => set({ r }));
     /* every panel, or back to plain */
     const ar = row(s, "pslayer");
-    ar.append(btn("psbtn", "<span>Use on every panel</span>", "Use this style on every panel", () => { const st = cleanSty(cur); Object.keys(T.on).forEach((x) => { if (st) T.sty[x] = Object.assign({}, st); else delete T.sty[x]; }); push(); }),
-        btn("psbtn", "<span>Back to plain</span>", "Back to the plain style", () => { delete T.sty[k]; push(); }));
+    const backTo = styDef(k) ? "Match board" : "plain";
+    ar.append(btn("psbtn", "<span>Use on every panel</span>", "Use this style on every panel", () => { Object.keys(T.on).forEach((x) => keepSty(T, x, cur)); push(); }),
+        btn("psbtn", "<span>Back to " + backTo + "</span>", "Back to the " + backTo + " style", () => { delete T.sty[k]; push(); }));
 }
 
 function sensWord(v) { return v < 0.8 ? "Low" : v > 1.4 ? "High" : "Normal"; }

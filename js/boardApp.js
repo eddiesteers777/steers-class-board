@@ -12,18 +12,18 @@ import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST } from "./boardTools.js?v=78";
+import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST } from "./boardTools.js?v=80";
 import { FIND_KEYS } from "./findCore.js?v=1";
 import { setPhotoStore } from "./myPhotos.js?v=1";
-import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, isOn, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=42";
+import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, isOn, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=43";
 import { cleanStickers, renderStickers } from "./stickers.js?v=1";
 import * as snd from "./sound.js?v=62";
 import { mountYt, cleanYt, cleanRecent } from "./ytMusic.js?v=4";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { senseIdle } from "./roomSense.js?v=1";
-import { openSettings, closeSettings, refreshSettings, psOpen } from "./panelSettings.js?v=28";
-import { applySty } from "./panelStyle.js?v=1";
+import { openSettings, closeSettings, refreshSettings, psOpen } from "./panelSettings.js?v=29";
+import { applySty, styShown, MATCH_BOARD } from "./panelStyle.js?v=3";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=63";
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=90";
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes, sendPanel, canSend, mountStageLayer } from "./liveNotes.js?v=20";
@@ -31,7 +31,7 @@ import { findItem } from "./findPanel.js?v=14";
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 import { notesFrames } from "./notesFrames.js?v=1";
 import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=6";
-import { mountAttendance, syncAttendance } from "./attendanceRemote.js?v=16";
+import { mountAttendance, syncAttendance } from "./attendanceRemote.js?v=18";
 import { cleanChart, cleanPeriod, cleanView, seatCount, drawRoom } from "./seats.js?v=7";
 import { DAILY as SL_DAILY, INDEX as SL_INDEX, MAX_DAILY as SL_MAX_DAILY, cleanDeck, cleanIndex, showList, revealSteps, indexHas, liveContext, lessonDate, textOf } from "./slides.js?v=2";
 import { renderSlide, fitSlide, imageLoader, thumb } from "./slideView.js?v=2";
@@ -1451,7 +1451,8 @@ const inside = (r, e) => e.clientX >= r.left && e.clientX <= r.right && e.client
 /** Where a panel dropped on the shelf goes: before the first docked panel whose middle is below the pointer. */
 function shelfSlot(shelf, y, skip) { for (const c of shelf.querySelectorAll(".docked")) { if (c === skip) continue; const r = c.getBoundingClientRect(); if (y < r.top + r.height / 2) return c; } return shelf.querySelector(".ptray"); }
 /** A panel's own style (js/panelStyle.js): color, finish, how see-through. "Match board" takes the board look's colors. */
-function styOf(w, k) { const st = (S.tools.sty || {})[k]; if (st) applySty(w, st, themeCols(S.look.theme)); }
+const STY_MATCH = new Set(MATH_LIST.concat(CALC_LIST).map((x) => x[0]));   // math tools and calculators open in "Match board"
+function styOf(w, k) { const st = styShown((S.tools.sty || {})[k], STY_MATCH.has(k) ? MATCH_BOARD : null); if (st) applySty(w, st, themeCols(S.look.theme)); }
 let placed = {};   // where each panel was last drawn, so only a panel that just arrived animates in
 function renderLayer() {
     const layer = $("toolLayer"); if (!layer || dragging) return;
