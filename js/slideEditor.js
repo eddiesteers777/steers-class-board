@@ -252,9 +252,20 @@ function drawDays() {
     });
 }
 /* The slide list down the left: every-day slides, then this day's. Drag a slide to move it, even from one list to the other. */
+let filmCur = "";   // the open slide the list last scrolled to
+/** A slide showing in the list and where it sits, so a redraw (a tick, the bar growing) can put it back in the same place. */
+function filmAnchor(f) {
+    const across = narrow.matches, fr = f.getBoundingClientRect();
+    const items = [...f.querySelectorAll(".sfi")], vis = items.find((it) => { const r = it.getBoundingClientRect(); return across ? r.right > fr.left + 110 && r.left < fr.right : r.bottom > fr.top + 40 && r.top < fr.bottom; });
+    if (!vis) return null;
+    const r = vis.getBoundingClientRect();
+    return { key: vis.dataset.key, id: vis.dataset.id, off: across ? r.left - fr.left : r.top - fr.top, across };
+}
 function drawFilm() {
     const f = $("slFilm"); if (!f) return;
-    const keep = f.scrollTop; f.textContent = ""; spotIds = inSpot();
+    // Nov 24 (Eddie: "every time I select one it goes back to the top"): keep the list where it is across the redraw
+    const keepTop = f.scrollTop, keepLeft = f.scrollLeft, anchor = f.childElementCount ? filmAnchor(f) : null;
+    f.textContent = ""; spotIds = inSpot();
     const own = deckOf(lessonKey()), daily = deckOf(DAILY), lk = lessonKey();
     prunePicks(); f.appendChild(pickBar());
     const section = (key, deck, title, sub) => {
@@ -272,8 +283,22 @@ function drawFilm() {
     row.appendChild(btn("sfadd", icon("plus") + "<span>New slide</span>", () => addSlide(lk, LAYOUTS.find((x) => x[0] === "blank")[2]()), "Add a blank slide"));
     row.appendChild(btn("sfadd lay", icon("layout"), (e, b) => openPop(b, (p) => layoutMenu(p, lk)), "Add a slide from a layout"));
     ol.appendChild(row);
-    f.scrollTop = keep;
-    const on = f.querySelector(".sfi.on"); if (on && (on.offsetTop < f.scrollTop || on.offsetTop + on.offsetHeight > f.scrollTop + f.clientHeight)) on.scrollIntoView({ block: "nearest" });
+    f.scrollTop = keepTop; f.scrollLeft = keepLeft;
+    const back = anchor && [...f.querySelectorAll(".sfi")].find((it) => it.dataset.key === anchor.key && it.dataset.id === anchor.id);
+    if (back) {   // the same slide, back in the same place, however much the bar above it grew or shrank
+        const fr = f.getBoundingClientRect(), r = back.getBoundingClientRect();
+        if (anchor.across) f.scrollLeft += (r.left - fr.left) - anchor.off; else f.scrollTop += (r.top - fr.top) - anchor.off;
+    }
+    // Scroll to the open slide only when a different slide was opened (not on every tick or edit).
+    const sig = cur.key + "|" + cur.id, on = f.querySelector(".sfi.on");
+    if (sig !== filmCur) {
+        filmCur = sig;
+        if (on) {
+            const fr = f.getBoundingClientRect(), r = on.getBoundingClientRect();
+            const out = narrow.matches ? r.left < fr.left + 110 || r.right > fr.right : r.top < fr.top + (picks.size ? 180 : 44) || r.bottom > fr.bottom;
+            if (out) on.scrollIntoView({ block: "nearest", inline: "nearest" });
+        }
+    }
 }
 /** Narrower screens (css/slidedit.css): at 1180px the slide list is thinner; at 860px it runs across under the slide. */
 const narrow = window.matchMedia("(max-width:860px)"), midSize = window.matchMedia("(max-width:1180px)");
