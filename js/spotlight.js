@@ -15,7 +15,7 @@
    Frosted glass: translucent layers with a backdrop blur, a light top edge and a soft shadow.
 ========================================== */
 import { PANEL_LIST, LESSON_PANELS, TOOL_LIST } from "./boardTools.js?v=64";
-import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker, photoGroupNow, gradOf } from "./panels.js?v=21";
+import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker, photoGroupNow, gradOf } from "./panels.js?v=22";
 import { wbIcon } from "./wbIcons.js?v=1";
 
 let A = null, host = null, onBack = null, tucked = false, sheet = "", picked = "", built = false, lastSig = "", musicHooked = false;

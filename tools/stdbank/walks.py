@@ -231,4 +231,92 @@ WALKS = {
         "expr": "5 × (−2.40)",
         "why": "Losing §2.40 is a change of −2.40. It happens 5 times, so multiply 5 by −2.40.",
         "story": [["loses §2.40", "−2.40"], ["5 days", "5"]]},
+    # Week 6 gaps: 7.5
+    "A hiker climbs {3/4} mile in {1/2} hour. Write and simplify a complex fraction for her speed in miles per hour.": {
+        "expr": "{3/4} ÷ {1/2}", "why": "Speed is miles ÷ hours. The complex fraction has {3/4} on top and {1/2} on the bottom, and that's the same as {3/4} ÷ {1/2}.",
+        "story": [["{3/4} mile", "{3/4}"], ["{1/2} hour", "{1/2}"]]},
+    "Simplify the complex fraction: {3/5} ÷ {9/10}": {
+        "expr": "{3/5} ÷ {9/10}", "why": "A complex fraction is a fraction divided by a fraction. Divide {3/5} by {9/10}."},
+    "A hiker starts at an elevation of 125.4 feet, climbs 48.6 feet, and then descends 3 equal sections of 62.5 feet each. What is the hiker's final elevation?": {
+        "expr": "125.4 + 48.6 − 3 × 62.5", "why": "Start at 125.4. Climbing adds 48.6. Descending 3 sections of 62.5 takes away 3 × 62.5.",
+        "story": [["125.4 feet", "125.4"], ["climbs 48.6 feet", "48.6"], ["3 equal sections of 62.5 feet", "3 × 62.5"]]},
+    "A bakery has 18{3/4} pounds of flour. Each loaf of bread uses 1{1/4} pounds of flour, and each batch of rolls uses {5/8} pound of flour. If the baker makes 9 loaves of bread, how many full batches of rolls can be made with the remaining flour?": {
+        "expr": "(18{3/4} − 9 × 1{1/4}) ÷ {5/8}", "why": "9 loaves use 9 × 1{1/4} pounds. Take that from 18{3/4} to get what's left, then see how many {5/8}-pound batches fit in it.",
+        "story": [["18{3/4} pounds", "18{3/4}"], ["1{1/4} pounds", "1{1/4}"], ["{5/8} pound", "{5/8}"], ["9 loaves", "9"]]},
+    "Over four days, a bank account had transactions of -§42.50, +§115.00, -§28.75, and -§19.25. If the ending balance is §84.50, what was the starting balance?": {
+        "eq": "s − 42.50 + 115.00 − 28.75 − 19.25 = 84.50", "var": "the starting balance",
+        "why": "Start with the unknown balance, s. Add each transaction to it. What's left at the end is §84.50.",
+        "story": [["-§42.50", "42.50"], ["+§115.00", "115.00"], ["-§28.75", "28.75"], ["-§19.25", "19.25"], ["§84.50", "84.50"]]},
+    # Week 6 gaps: 7.6
+    "For what value of k is the expression k(4x − 6) + 2x equivalent to −10x + 18?": {
+        "eq": "−6k = 18", "var": "the number in front",
+        "why": "k(4x − 6) + 2x = 4kx − 6k + 2x. Its number without x is −6k. To match −10x + 18, that number has to be 18.",
+        "story": [["k(4x − 6)", "−6k"], ["18", "18"]]},
+    # Week 6 gaps: 8.14
+    "Given p(x) = −2x + 7 and q(x) = x² − 3, find the value of p(4) + q(−3).": {
+        "expr": "(−2(4) + 7) + ((−3)² − 3)", "why": "Put 4 in for x in p, and −3 in for x in q. Then add the two outputs.",
+        "story": [["p(4)", "−2(4) + 7"], ["q(−3)", "(−3)² − 3"]]},
+    "A tank drains according to V(t) = 120 − 4.5t, where V is gallons remaining after t minutes. How much water has drained out of the tank between t = 4 and t = 12?": {
+        "expr": "(120 − 4.5 × 4) − (120 − 4.5 × 12)", "why": "Find what's left at t = 4 and at t = 12. What drained out is the first amount minus the second.",
+        "story": [["t = 4", "4"], ["t = 12", "12"], ["120 − 4.5t", "120"]]},
+    # Week 6 gaps: 8.25
+    "Triangle JKL is divided into two smaller triangles, JKM and LKM, by drawing segment KM from vertex K to point M on side JL. Angle J measures 42°, angle JKM measures 53°, and angle L measures 61°. What is the measure of angle LKM?": {
+        "expr": "(180 − 42 − 61) − 53", "why": "The angles of the big triangle JKL add up to 180°, so angle K = 180 − 42 − 61. Segment KM splits angle K into JKM and LKM, so take away 53.",
+        "story": [["42°", "42"], ["61°", "61"], ["53°", "53"]]},
+    "In a figure, parallel lines AB and CD are intersected by two transversals that meet at point E on line CD, forming a triangle. If the angle at A is 52 degrees and the angle at B is 71 degrees, what is the interior angle at E inside the triangle?": {
+        "expr": "180 − (52 + 71)", "why": "The three angles of a triangle add up to 180°. Take the two known angles away from 180.",
+        "story": [["52 degrees", "52"], ["71 degrees", "71"]]},
+    "A zig-zag path between two parallel walls forms an interior 'elbow' angle pointing left. The top segment makes a 35-degree angle with the top wall, and the bottom segment makes a 42-degree angle with the bottom wall. By drawing an auxiliary parallel line through the vertex of the elbow, find the measure of the acute elbow angle.": {
+        "expr": "35 + 42", "why": "The line through the elbow, parallel to the walls, splits the elbow into two pieces. Each piece is an alternate interior angle with one wall, so the pieces are 35° and 42°. Add them.",
+        "story": [["35-degree", "35"], ["42-degree", "42"]]},
+    # Week 6 gaps: Alg I.11
+    "Hall A charges §300 plus §8 per student. Hall B charges a flat §1,100 for up to 150 students. For how many students n (up to 150) is Hall B cheaper?": {
+        "eq": "300 + 8n > 1100", "var": "the number of students",
+        "why": "Hall A costs 300 + 8n. Hall B is cheaper when Hall A costs more than §1,100.",
+        "story": [["§300", "300"], ["§8 per student", "8n"], ["§1,100", "1100"]],
+        "end": "n is a whole number of students, up to 150. So Hall B is cheaper for 101 to 150 students."},
+    "A culture of 100 bacteria doubles every hour. Which equation models the time t in hours when the population reaches 3,200?": {
+        "write": "100(2)^t = 3200", "var": "the number of hours",
+        "why": "Doubling every hour multiplies by 2 each hour, so after t hours there are 100 × 2 × 2 × … = 100(2)^t bacteria. That has to reach 3,200.",
+        "story": [["100 bacteria", "100"], ["doubles", "2"], ["3,200", "3200"]]},
+    "A car purchased for §20,000 loses 10% of its value each year. Which equation can be solved to find the number of years t until the car is worth §14,580?": {
+        "write": "20000(0.9)^t = 14580", "var": "the number of years",
+        "why": "Losing 10% each year leaves 90% of the value: 1 − 0.10 = 0.9. After t years the car is worth 20000(0.9)^t, and that has to equal §14,580.",
+        "story": [["§20,000", "20000"], ["loses 10%", "0.9"], ["§14,580", "14580"]]},
+    "A machine fills bags of flour with a target weight of 500 grams. Bags are acceptable if their actual weight w is within 4 grams of the target weight. Which inequality represents all acceptable weights?": {
+        "write": "|w − 500| ≤ 4", "var": "the actual weight",
+        "why": "How far w is from 500 is |w − 500|. Within 4 grams means that distance is 4 or less.",
+        "story": [["target weight of 500 grams", "500"], ["within 4 grams", "4"]]},
+    # Week 6 gaps: 7.6, a perimeter in factored form
+    "A rectangle has length (2.5x + 4) meters and width (1.5x − 1) meters. Which factored expression represents its perimeter?": {
+        "simp": "(2.5x + 4) + (1.5x − 1)", "var": "the unknown in the side lengths", "wrap": 2,
+        "why": "A rectangle's perimeter is 2 times (length + width). Add the length and width first.",
+        "wrapWhy": "The perimeter is 2 times that sum. Keep it in factored form: 2 in front, the sum in parentheses.",
+        "story": [["(2.5x + 4) meters", "2.5x"], ["(1.5x − 1) meters", "1.5x"]]},
+    # Week 6 gaps: Alg I.11, area and height by factoring
+    "A rectangle's length is 3 more than its width. Its area is 40. Write and solve an equation for the width.": {
+        "quad": "w(w + 3) = 40", "var": "the width", "keep": "positive",
+        "why": "Call the width w. The length is 3 more, w + 3. Area is width × length, so w(w + 3) = 40.",
+        "story": [["3 more than its width", "w + 3"], ["area is 40", "40"]],
+        "keepWhy": "A width can't be negative, so w = 5. The length is 5 + 3 = 8."},
+    "A rectangular garden has a length that is 5 meters longer than its width w. If the area of the garden is 84 square meters, write and solve an equation to find the width of the garden.": {
+        "quad": "w(w + 5) = 84", "var": "the width", "keep": "positive",
+        "why": "The width is w, so the length is w + 5. Area is width × length, so w(w + 5) = 84.",
+        "story": [["5 meters longer than its width w", "w + 5"], ["84 square meters", "84"]],
+        "keepWhy": "A width can't be negative, so the width is 7 meters."},
+    "A rocket's height is h = −16t² + 96t + 40 (feet, t seconds). When is the rocket 148 feet high?": {
+        "quad": "−16t² + 96t + 40 = 148", "var": "the time in seconds",
+        "why": "The height is −16t² + 96t + 40. Set it equal to 148 and solve for t.",
+        "story": [["h = −16t² + 96t + 40", "−16t² + 96t + 40"], ["148 feet", "148"]],
+        "keepWhy": "Both times work. The rocket passes 148 feet on the way up, then again on the way down.",
+        "labels": ["on the way up", "on the way down"]},
+    "A population of 200 doubles every year. Write an equation for when it reaches 3,200 and solve it.": {
+        "grow": "200 · 2^t = 3200", "var": "the number of years",
+        "why": "Doubling every year multiplies by 2 each year, so after t years the population is 200 · 2^t. It has to reach 3,200.",
+        "story": [["200", "200"], ["doubles every year", "2"], ["3,200", "3200"]]},
+    # Week 6 gaps: Alg I.11, absolute value
+    "A metal rod is cut to a length of 24 cm, but any rod whose length L differs from 24 cm by more than 0.15 cm must be rejected. Write an absolute value inequality representing the lengths of rejected rods and solve it.": {
+        "eq": "|L − 24| > 0.15", "var": "the rod's length",
+        "why": "How far L is from 24 is |L − 24|. A rejected rod is more than 0.15 cm away, so |L − 24| > 0.15.",
+        "story": [["a length of 24 cm", "24"], ["more than 0.15 cm", "0.15"]]},
 }

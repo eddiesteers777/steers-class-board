@@ -18,8 +18,9 @@ CHAIN = re.compile(r"\s*(=|<|>|≤|≥|≈)\s*")
 
 
 def py(t):
-    t = t.replace("−", "-").replace("×", "*").replace("·", "*").replace("÷", "/").replace("✓", "").replace("$", "").replace("°", "").replace("²", "**2").replace("π", "pi").strip()
+    t = t.replace("−", "-").replace("×", "*").replace("·", "*").replace("÷", "/").replace("✓", "").replace("✗", "").replace("$", "").replace("°", "").replace("²", "**2").replace("π", "pi").strip()
     t = re.sub(r"√(\d+(?:\.\d+)?)", r"sqrt(\1)", t)
+    t = re.sub(r"\|([^|]+)\|", r"Abs(\1)", t).replace("^", "**")
     t = re.sub(r"(\d+) (\d+)/(\d+)", r"(\1+\2/\3)", t)          # mixed numbers 2 1/4
     t = re.sub(r"(\d)\(", r"\1*(", t)
     t = re.sub(r"\)(\d|[a-z(])", r")*\1", t)
@@ -62,7 +63,7 @@ def main(path):
                 continue   # input → output pairs and sets of ordered pairs: the engine checks these itself
             try:
                 if row.get("chain"):                                 # "5² = 25 < 30 < 36 = 6²": every link must be true (≈: within half the last place shown)
-                    parts = CHAIN.split(" ".join(x for x in cells if x.strip()).replace("✓", ""))
+                    parts = CHAIN.split(" ".join(x for x in cells if x.strip()).replace("✓", "").replace("✗", ""))
                     if not parts[0].strip() and w.get("_last"):
                         parts[0] = w["_last"]                        # "= 11/18" goes on from the line above
                     w["_last"] = parts[-1]
