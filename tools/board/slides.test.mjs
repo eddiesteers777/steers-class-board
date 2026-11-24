@@ -1,7 +1,8 @@
 // Lesson slides rules: safe text, cleaning, live fields, the plan as slides. Run: node tools/board/slides.test.mjs
 import assert from "node:assert/strict";
 import { sanitizeHtml, textOf, plainHtml, cleanEl, cleanSlide, cleanDeck, cleanIndex, cleanBg, fillLive, liveContext, fromPlan, frameSlide, problemSlide,
-    todaySlide, agendaSlide, LAYOUTS, newEl, showList, revealSteps, countShown, shapePath, SHAPES, inkFor, inkOn, MAX_SLIDES, MAX_ELS, DAILY, isLessonKey, boxOf } from "../../js/slides.js";
+    todaySlide, agendaSlide, LAYOUTS, newEl, showList, revealSteps, countShown, shapePath, SHAPES, inkFor, inkOn, MAX_SLIDES, MAX_ELS, DAILY, isLessonKey, boxOf,
+    cleanPanels, panelWords, bankSlide, bankText, walkSlide, walkStep } from "../../js/slides.js";
 import demoWeek from "../../data/demo-week.js";
 
 let n = 0; const t = (name, fn) => { fn(); n++; };
@@ -105,5 +106,25 @@ t("every shape draws a path and text sits inside it", () => {
 t("automatic text color shows up on the background", () => {
     assert.equal(inkFor({ t: "board" }), "#f6f9fd"); assert.equal(inkFor({ t: "color", c: "#ffffff" }), "#14213d"); assert.equal(inkFor({ t: "color", c: "#081b45" }), "#f6f9fd");
     assert.equal(inkOn("#fff3b0"), "#14213d"); assert.equal(inkFor({ t: "grad", g: "night" }), "#f6f9fd"); assert.equal(inkFor({ t: "grad", g: "sky" }), "#14213d");
+});
+t("panels per slide keep only a timer, target and agenda", () => {
+    assert.deepEqual(cleanPanels({ tm: 300, tg: true, ag: "yes", x: 1 }), { tm: 300, tg: true });
+    assert.equal(cleanPanels({ tm: 0 }), null); assert.equal(cleanPanels(null), null); assert.equal(cleanPanels({ tm: 99999 }).tm, 5400);
+    assert.equal(panelWords({ tm: 300, tg: true, ag: true }), "Timer 5 min, target, agenda");
+    const s = cleanSlide({ id: "s1", els: [], pn: { tm: 120, ag: true, bad: 1 } }); assert.deepEqual(s.pn, { tm: 120, ag: true });
+    assert.equal(cleanSlide({ id: "s2", els: [], pn: { tg: false } }).pn, undefined);
+});
+t("a bank problem becomes a slide with its answer on Next", () => {
+    assert.equal(bankText("Cost: §12, $x$"), "Cost: $12, x");
+    const s = bankSlide({ id: "8.1-01", std: "8.1", q: "Is √50 rational?", a: "Irrational", lvl: 1 }, 1, 3);
+    assert.equal(revealSteps(s), 1); assert.ok(JSON.stringify(s).includes("Problem 2 of 3"));
+    assert.deepEqual(cleanSlide(JSON.parse(JSON.stringify(s))), s);
+});
+t("a Show Steps slide plays one step per Next", () => {
+    const s = walkSlide({ id: "7.4-05", std: "7.4", q: "Find −{3/4} + (−{1/2})" }, 5);
+    assert.equal(revealSteps(s), 4); assert.deepEqual(cleanSlide(JSON.parse(JSON.stringify(s))), s);
+    const wk = s.els.find((e) => e.k === "wk");
+    assert.equal(walkStep(wk, 0), 0); assert.equal(walkStep(wk, 3), 3); assert.equal(walkStep(wk, 9), 4); assert.equal(walkStep(wk, Infinity), 4);
+    assert.equal(cleanEl({ k: "wk", id: "a", x: 0, y: 0, w: 100, h: 100, wid: "bad id!", n: 3 }), null);
 });
 console.log("Lesson slides: " + n + " checks passed");

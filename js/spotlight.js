@@ -199,7 +199,8 @@ function setTucked(on) {
     if (tucked) sheet = "";
     lastSig = ""; paint();
 }
-function go(n) { const p = A.spot.pages(), i = p.n + n; if (i < 0 || i >= p.count) return; A.spot.go(i); }
+/** The arrows and the arrow keys: a slide's pieces set to appear on Next come first (an answer, each step of a Show Steps), then the next screen. */
+function go(n) { if (A.spot.step) { A.spot.step(n); return; } const p = A.spot.pages(), i = p.n + n; if (i < 0 || i >= p.count) return; A.spot.go(i); }
 let delArm = 0;
 function removeScreen() {
     if (A.spot.pages().count < 2) { flash("This is the only screen"); return; }
@@ -240,7 +241,7 @@ function keys(e) {
 function paintFull() { const b = host && host.querySelector(".spfull"); if (!b) return; const f = isFull(); b.innerHTML = svg(f ? IC.unfull : IC.full); b.title = f ? "Leave full screen" : "Full screen"; b.setAttribute("aria-label", b.title); b.setAttribute("aria-pressed", String(f)); setTimeout(() => A && A.fit(), 80); }
 function paint() {
     const S = A.S, T = S.tools, drawing = A.spot.draw(), p = A.spot.pages();
-    const sig = JSON.stringify([S.screen, T.on, T.min, Object.keys(T.pos), drawing, tucked, sheet, picked, p, photoGroupNow(), sheet === "screens" || sheet === "slides" ? String(T.slp) + A.spot.slides().map((x) => x.id).join(",") + A.spot.slidesReady() + JSON.stringify(A.S.wb.spot) : "", A.spot.slideIdOf(p.n), A.spot.tool(), A.spot.pen(), A.spot.size(), S.look, Date.now() - delArm < 3000, picked && T.pos[picked] ? T.pos[picked].s : 0]);
+    const sig = JSON.stringify([S.screen, T.on, T.min, Object.keys(T.pos), drawing, tucked, sheet, picked, p, photoGroupNow(), sheet === "screens" || sheet === "slides" ? String(T.slp) + A.spot.slides().map((x) => x.id).join(",") + A.spot.slidesReady() + JSON.stringify(A.S.wb.spot) : "", A.spot.slideIdOf(p.n), A.spot.reveal ? A.spot.reveal() : 0, A.spot.tool(), A.spot.pen(), A.spot.size(), S.look, Date.now() - delArm < 3000, picked && T.pos[picked] ? T.pos[picked].s : 0]);
     if (sig === lastSig) return; lastSig = sig;
     host.classList.toggle("tucked", tucked); document.body.classList.toggle("spotdraw", drawing);
     // a photo background runs edge to edge behind the board, with no frame around it
@@ -259,9 +260,11 @@ function paint() {
     { const t = host.querySelector(".sptuck"); t.innerHTML = svg(tucked ? IC.up : IC.down, 2.2); t.title = tucked ? "Show the whole toolbar" : "Make the toolbar small"; t.setAttribute("aria-label", t.title); t.setAttribute("aria-expanded", String(!tucked)); }
     // screens
     { const c = host.querySelector(".spcount"), isSl = !!A.spot.slideIdOf(p.n);
-        c.innerHTML = (isSl ? '<i class="spslb">' + svg(IC.slides) + "</i>" : "") + "<b>" + (p.n + 1) + " / " + p.count + "</b>"; c.setAttribute("aria-pressed", String(sheet === "screens"));
+        const rv = A.spot.reveal ? A.spot.reveal() : { at: 0, steps: 0 }, more = rv.at < rv.steps;
+        c.innerHTML = (isSl ? '<i class="spslb">' + svg(IC.slides) + "</i>" : "") + "<b>" + (p.n + 1) + " / " + p.count + "</b>" + (rv.steps ? '<small class="sprv">' + (more ? "more on Next" : "all shown") + "</small>" : ""); c.setAttribute("aria-pressed", String(sheet === "screens"));
         c.classList.toggle("on", sheet === "screens"); c.title = isSl ? "This screen shows a slide. Tap to see every screen and slide." : "All screens and slides";
-        const ar = host.querySelectorAll(".sparrow"); ar[0].disabled = p.n <= 0; ar[1].disabled = p.n >= p.count - 1;
+        const ar = host.querySelectorAll(".sparrow"); ar[0].disabled = p.n <= 0 && rv.at <= 0; ar[1].disabled = p.n >= p.count - 1 && !more;
+        ar[1].title = more ? "Show the next piece of this slide" : "Next screen"; ar[1].setAttribute("aria-label", ar[1].title);
         host.querySelector(".spadd").disabled = p.count >= p.max;
         const del = host.querySelector(".spdel"); del.hidden = p.count < 2; del.classList.toggle("armed", Date.now() - delArm < 3000); }
     { const b = host.querySelector(".splivebtn"), on = S.screen === "canvas"; b.classList.toggle("onair", on);

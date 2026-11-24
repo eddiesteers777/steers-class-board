@@ -63,7 +63,7 @@ function setMode(m, at) {
         const app = $("slideApp"); if (app) app.hidden = true; wantSlides = null; if (editor) editor.closeEditor();
         if (/^#slides/.test(location.hash)) { try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* the address is a convenience */ } }
         if (!A.synced()) { wantSpot = true; return; }   // open on the saved board, once it has arrived
-        import("./spotlight.js?v=8").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
+        import("./spotlight.js?v=9").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
             .catch(() => { setMode("board"); note("saveNote", "Spotlight did not load. Check the connection and reload the page."); });
         return;
     }
@@ -71,7 +71,7 @@ function setMode(m, at) {
     if (mode === "slides") {
         app.hidden = false;
         if (!A.synced()) { wantSlides = at || {}; return; }   // open on the lesson the board is on, once that has arrived
-        import("./slideEditor.js?v=8").then((mod) => { editor = mod; if (mode === "slides") mod.openEditor(A, app, at && at.week ? at : null); })
+        import("./slideEditor.js?v=9").then((mod) => { editor = mod; if (mode === "slides") mod.openEditor(A, app, at && at.week ? at : null); })
             .catch(() => { app.textContent = "The slide editor did not load. Check the connection and reload the page."; });
     } else {
         app.hidden = true; wantSlides = null;
