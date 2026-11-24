@@ -69,4 +69,8 @@ assert.equal(n.current.lane, 1);
 const ahead = T.timelineNext("8th", T.defaultLanes("8th"), { "8th": { ...q1["8th"], "8.13": { s: "teaching" } } });
 assert.deepEqual(ahead.left.map((x) => x.code), ["8.25", "8.26", "8.27", "8.28"]);
 assert.equal(ahead.next[0].code, "8.14");
+// timelineUnit: the unit the Planner suggests follows the Timeline order, not the district order.
+assert.match(T.timelineUnit("8th", T.defaultLanes("8th"), q1), /^\S+ \S+: /);
+assert.equal(T.timelineUnit("8th", T.defaultLanes("8th"), q1), n.unitWord + " " + n.next[0].unit.id + ": " + n.next[0].unit.name);
+assert.equal(T.timelineUnit("nope", [], {}), "");
 console.log("timeline core tests: passed");

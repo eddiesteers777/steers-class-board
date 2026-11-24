@@ -1,7 +1,7 @@
 /* ==========================================
    Focal — Plan the Week (plan.html). Replaces the weekly intake Sheet.
    Everything the site already knows is filled in: the dates and days off (district calendar), the next
-   standards for each class (Standards page marks + district unit order), the Planner's unit for the week,
+   standards for each class (Standards page marks + the Standards Timeline order), the Planner's unit for the week,
    last week's work, and the usual day pattern. The teacher changes what is different and taps Send to Claude.
    Saved privately at teacher/{uid}/plans/<weekId>: the editable plan, and on Send the "brief" Claude reads
    (dates, classes, topics, standards with their exact wording, quiz or test, roster COUNTS only, last week).
@@ -11,7 +11,7 @@ import { STANDARDS } from "../data/standards.js?v=58";
 import { WEEKS as PUBLISHED } from "../data/weeks.js?v=62";
 import { toLoginIfSignedOut } from "./signedOut.js?v=1";
 import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, eventsOn, nineWeeksOf, daysLeftInNineWeeks, short, parse } from "./schoolCal.js?v=58";
-import { nextUp } from "./standardsNext.js?v=58";
+import { timelineNext, lanesFor } from "./timelineCore.js?v=2";
 import { watchPrivateWeeks, weekIdFor } from "./weeksLive.js?v=58";
 import { watchEvidence, classEvidence, evidenceForBrief, weekStandards } from "./planEvidence.js?v=3";
 import { openBankPicker, bankFor } from "./bankPick.js?v=2";
@@ -74,10 +74,11 @@ const fmtRange = (m) => { const a = parse(m), b = parse(addDays(m, 4)); const mo
 
 /* ---------- prefill ---------- */
 const stdOf = (cls, code) => (STANDARDS[cls] || { standards: [] }).standards.find((s) => s.code === code);
+let tlOrder = {};   // the Standards Timeline order (standards/timeline); suggestions follow it, else the locked/district order
 function suggest(cls) {
-    const n = nextUp(cls, progress) || { teaching: [], next: [], current: null, unitWord: "Unit" };
+    const n = timelineNext(cls, lanesFor(cls, tlOrder[cls]), progress) || { teaching: [], next: [], current: null, unitWord: "Unit" };
     const codes = [...n.teaching]; n.next.slice(0, 3).forEach((x) => { if (!codes.includes(x.code)) codes.push(x.code); });
-    const unit = n.current || (n.next[0] && n.next[0].unit);
+    const unit = (n.current && n.current.unit) || (n.next[0] && n.next[0].unit);
     return { codes, unit: unit ? n.unitWord + " " + unit.id + ": " + unit.name : "", options: [...new Set([...n.teaching, ...n.next.slice(0, 8).map((x) => x.code)])] };
 }
 function pattern(day, assess, off) {
@@ -213,7 +214,7 @@ function drawClass(cls, label, periods) {
     const c = plan.classes[cls], card = el("section", "pw-class"), s = suggest(cls);
     const head = el("div", "pw-chead"); head.appendChild(el("h2", null, label)); head.appendChild(el("span", "pw-per", periods.join(", ") + (periods.length === 1 ? " period" : " periods"))); card.appendChild(head);
     const evBox = el("div", "pw-evd"); evBox.id = "ev-" + cls; card.appendChild(evBox); drawEvidence(cls, evBox);
-    card.appendChild(field("Topic this week", input(c.topic, (v) => { c.topic = v; }, "Unit or topic"), s.unit && s.unit !== c.topic ? "Next up on the Standards page: " + s.unit : ""));
+    card.appendChild(field("Topic this week", input(c.topic, (v) => { c.topic = v; }, "Unit or topic"), s.unit && s.unit !== c.topic ? "Next up on your Standards Timeline: " + s.unit : ""));
 
     // Standards: the suggestions as toggles, plus any other standard of the class.
     const sw = el("div", "pw-field"); sw.appendChild(el("span", "pw-lab", "Standards"));
@@ -490,6 +491,12 @@ else {
     store.watch("standards/progress", (s) => { if (empty(s)) return; progress = (s.exists && s.data) || {}; ready("p"); }, () => ready("p"));
     store.watch("planner/plans", (s) => { if (empty(s)) return; planner = (s.exists && s.data) || { weeks: {} }; if (!planner.weeks) planner.weeks = {}; ready("w"); }, () => ready("w"));
     store.watch("rosters/all", (s) => { if (empty(s)) return; rosters = (s.exists && s.data && s.data.periods) || {}; ready("r"); }, () => ready("r"));
+    // A changed Timeline order re-suggests a week that is not saved yet (never under typing).
+    store.watch("standards/timeline", (s) => {
+        if (s.pending) return; const d = (s.exists && s.data) || {}, was = JSON.stringify(tlOrder); tlOrder = d && typeof d === "object" ? d : {};
+        if (was === JSON.stringify(tlOrder) || !opened || !plan) return;
+        if (!plan.at && !dirty && !(document.activeElement && $("view").contains(document.activeElement))) openWeek(mon); else drawClasses();
+    }, () => {});
     watchPrivateWeeks(store, PUBLISHED, (list) => { WEEKS = list; if (plan) summary(); });
     watchEvidence(store, (d) => { evDocs = d; if (plan) drawEvidenceAll(); });
     store.watch("games/index", (s) => { if (s.pending) return; sets = ((s.exists && s.data && s.data.sets) || []).filter((x) => x && x.id); }, () => {});
