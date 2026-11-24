@@ -11,19 +11,20 @@
    between redraws of the board's panels, so a redraw never drops a drag, a half-typed equation or a spin in flight.
    A drag only moves things on this screen; the shared state is written once, when the finger lifts.
 ========================================== */
-import * as M from "./manipCore.js?v=9";
+import * as M from "./manipCore.js?v=10";
 import { makeCalc } from "./calcPanel.js?v=1";
 import { makeGraph } from "./graphPanel.js?v=1";
 import { makeAngle } from "./anglePanel.js?v=1";
 import { makeFn } from "./fnPanel.js?v=1";
 import { makeArea } from "./areaPanel.js?v=1";
 import { makeNl } from "./nlPanel.js?v=1";
+import { makeSys } from "./sysPanel.js?v=1";
 
 let api = null;
 const panels = new Map();
 const NS = "http://www.w3.org/2000/svg";
 
-export const MT_TITLES = { balance: "Equation balance", chance: "Chance lab", line: "Line explorer", xform: "Transformations", pyth: "Pythagorean squares", counters: "Integer counters", angle: "Angle explorer", fn: "Function machine", area: "Expression area model", nl: "Rational number line", calc: "Basic calculator", sci: "Scientific calculator", graph: "Graphing calculator" };
+export const MT_TITLES = { balance: "Equation balance", chance: "Chance lab", line: "Line explorer", xform: "Transformations", pyth: "Pythagorean squares", counters: "Integer counters", angle: "Angle explorer", fn: "Function machine", area: "Expression area model", nl: "Rational number line", sys: "Systems graph", calc: "Basic calculator", sci: "Scientific calculator", graph: "Graphing calculator" };
 export function mtBody(a, k) {
     api = a;
     let p = panels.get(k); if (!p) { p = MAKE[k](k); panels.set(k, p); }
@@ -515,6 +516,6 @@ function makeCounters(k) {
     return p;
 }
 
-const CTX = () => ({ shell, h, btn, st, save, s, txt, svgPt, drag, clear, M });
-const MAKE = { balance: makeBalance, chance: makeChance, line: makeLine, xform: makeXform, pyth: makePyth, counters: makeCounters, angle: (k) => makeAngle(k, CTX()), fn: (k) => makeFn(k, CTX()), area: (k) => makeArea(k, CTX()), nl: (k) => makeNl(k, CTX()),
+const CTX = () => ({ shell, h, btn, st, save, s, txt, svgPt, drag, clear, grid, M });
+const MAKE = { balance: makeBalance, chance: makeChance, line: makeLine, xform: makeXform, pyth: makePyth, counters: makeCounters, angle: (k) => makeAngle(k, CTX()), fn: (k) => makeFn(k, CTX()), area: (k) => makeArea(k, CTX()), nl: (k) => makeNl(k, CTX()), sys: (k) => makeSys(k, CTX()),
     calc: (k) => makeCalc(k, CTX(), false), sci: (k) => makeCalc(k, CTX(), true), graph: (k) => makeGraph(k, CTX()) };

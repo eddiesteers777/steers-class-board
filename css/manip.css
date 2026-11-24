@@ -544,3 +544,47 @@ body.board.idle .gc-top,body.board.idle .gc-zoom{opacity:.35;transition:opacity 
 .nl-sv{min-width:2.6em;text-align:center;font-size:.95em;white-space:nowrap}
 .nl-ops{gap:.3em}
 .nl-d{min-width:2.2em;font-weight:800}
+
+/* ---------- Systems graph ---------- */
+.tool-mt.tool-sys{--sys1:#4C8DF0;--sys2:#F2913D}
+.card.psty.plight.tool-sys{--sys1:#1D5FB8;--sys2:#B85A00}
+.sys-svg{max-width:24em;margin:0 auto;cursor:crosshair}
+.sys-line{stroke-width:3.2;stroke-linecap:round}
+.sys-line.sys-l1{stroke:var(--sys1)}.sys-line.sys-l2{stroke:var(--sys2)}
+.sys-line.two.same{stroke-dasharray:9 9;stroke-width:3.6}
+.sys-pt{cursor:grab}.sys-pt.drag{cursor:grabbing}
+.sys-hit{fill:transparent}
+.sys-dot{stroke:#fff;stroke-width:2.2;transition:r .15s}
+.sys-pt.sys-l1 .sys-dot{fill:var(--sys1)}.sys-pt.sys-l2 .sys-dot{fill:var(--sys2)}
+.sys-pt.drag .sys-dot,.sys-pt:hover .sys-dot{r:9.5}
+.sys-halo{fill:color-mix(in srgb,var(--mt-green) 28%,transparent);animation:sysPulse 1.8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes sysPulse{50%{transform:scale(1.35);opacity:.55}}
+@media (prefers-reduced-motion:reduce){.sys-halo{animation:none}}
+.sys-meet{cursor:pointer}
+.sys-x{fill:var(--mt-green);stroke:#fff;stroke-width:2.2}
+.sys-pill{fill:var(--mt-green)}.sys-pill.q{fill:var(--mt-amber)}
+.sys-pl{fill:#0B2A1C!important;font-size:12px;font-weight:800}
+.sys-tpd{fill:#8E5BD6;stroke:#fff;stroke-width:2}.sys-tpd.yes{fill:var(--mt-green)}
+.sys-tpl{font-size:11px;font-weight:800;fill:currentColor;paint-order:stroke;stroke:color-mix(in srgb,var(--s-bg,#0E1A2E) 85%,transparent);stroke-width:3px}
+.card.psty.plight .sys-tpl{stroke:#fff}
+.sys-eqs{display:flex;flex-direction:column;gap:.3em}
+.sys-eqr{display:flex;align-items:center;gap:.5em;padding:.35em .6em;border-radius:.6em;background:var(--mt-fill)}
+.sys-sw{display:inline-block;width:.9em;height:.25em;border-radius:1em;flex:none}
+.sys-l1 .sys-sw{background:var(--sys1)}.sys-l2 .sys-sw{background:var(--sys2)}
+.sys-n{font-size:.56em;font-weight:800;letter-spacing:.07em;text-transform:uppercase;opacity:.65;white-space:nowrap}
+.sys-eq{font-family:var(--display,"Bricolage Grotesque"),var(--ui,system-ui),sans-serif;font-size:1.02em;font-weight:750;font-variant-numeric:tabular-nums}
+.sys-res{padding:.5em .7em;border-radius:.7em;background:var(--mt-fill);border:.06em solid var(--mt-line);display:flex;flex-direction:column;align-items:flex-start;gap:.25em}
+.sys-res[data-kind="one"]{border-color:color-mix(in srgb,var(--mt-green) 60%,transparent)}
+.sys-res[data-kind="none"]{border-color:color-mix(in srgb,var(--mt-red) 60%,transparent)}
+.sys-res[data-kind="many"]{border-color:color-mix(in srgb,var(--mt-blue) 60%,transparent)}
+.sys-rh{font-size:.86em}
+.sys-res[data-kind="one"] .sys-rh{color:var(--mt-green)}.sys-res[data-kind="none"] .sys-rh{color:var(--mt-red)}.sys-res[data-kind="many"] .sys-rh{color:var(--mt-blue)}
+.sys-rp{margin:0;font-size:.64em;line-height:1.35;opacity:.85}
+.sys-chk{display:flex;flex-direction:column;gap:.2em;font-size:.7em}
+.sys-ch{font-weight:800;font-size:.8em;letter-spacing:.06em;text-transform:uppercase;opacity:.7}
+.sys-cl{display:flex;align-items:center;gap:.5em;font-variant-numeric:tabular-nums}
+.sys-cl b{margin-left:auto;font-size:1.1em}
+.sys-cl.yes b{color:var(--mt-green)}.sys-cl.no b{color:var(--mt-red)}
+.sys-cv{margin:.1em 0 0;font-weight:700;opacity:.85}.sys-cv.yes{color:var(--mt-green);opacity:1}
+.sys-hint{margin:0;opacity:.6;font-size:.92em}
+.sys-form .mt-in{min-width:6em}

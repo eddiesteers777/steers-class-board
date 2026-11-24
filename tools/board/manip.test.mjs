@@ -183,6 +183,36 @@ t("inequality balance", () => {
     assert.equal(M.mtChip("balance", { mt: { balance: Object.assign(M.balDefault(), { er: "<", r: "<", s: [1, 0, 0, 5] }) } }).v, "x < 5");
 });
 
+t("systems graph", () => {
+    const S = M.sysDefault();
+    assert.deepEqual(M.sysSolve(S), { kind: "one", x: [2, 1], y: [5, 1] }); assert.equal(M.sysAns(S), "(2, 5)");
+    assert.equal(M.sysEq(...S.l[0], "si"), "y = 2x + 1"); assert.equal(M.sysEq(...S.l[1], "si"), "y = −x + 7");
+    assert.equal(M.sysEq(...S.l[0], "std"), "2x − y = −1"); assert.equal(M.sysEq(...S.l[1], "std"), "x + y = 7");
+    assert.deepEqual(M.sysCheck(S, 0, [1, 3]), { on: true, text: "2(1) + 1 = 3" });
+    assert.deepEqual(M.sysCheck(S, 1, [1, 3]), { on: false, text: "−(1) + 7 = 6, not 3" });
+    assert.equal(M.sysCheck(Object.assign(M.sysDefault(), { f: "std" }), 1, [2, 5]).on, true);
+    assert.deepEqual(M.parseLine("y = 2x + 1"), { a: 2, b: -1, c: -1 }); assert.deepEqual(M.parseLine("2x + 3y = 12"), { a: 2, b: 3, c: 12 });
+    assert.deepEqual(M.parseLine("y = -1/2x + 3"), { a: 1, b: 2, c: 6 }); assert.deepEqual(M.parseLine("y = x/2 − 3"), { a: 1, b: -2, c: 6 });
+    assert.deepEqual(M.parseLine("x = 4"), { a: 1, b: 0, c: 4 }); assert.deepEqual(M.parseLine("3x - y + 2 = 0"), { a: 3, b: -1, c: -2 });
+    assert.ok(M.parseLine("y = 2x = 3").err); assert.ok(M.parseLine("y = 2z").err); assert.ok(M.parseLine("x - x = 4").err); assert.ok(M.parseLine("2x + 2y = 3").err, "misses every grid point");
+    assert.equal(M.sysSet(S, M.parseLine("y = 2x + 1"), M.parseLine("y = 2x - 3")), ""); assert.equal(M.sysSolve(S).kind, "none");
+    M.sysSet(S, M.parseLine("y = 2x + 1"), M.parseLine("4x - 2y = -2")); assert.equal(M.sysSolve(S).kind, "many");
+    M.sysSet(S, M.parseLine("x = 3"), M.parseLine("y = -2")); assert.equal(M.sysAns(S), "(3, −2)");
+    M.sysSet(S, M.parseLine("y = 1/2x"), M.parseLine("y = -x + 1")); assert.equal(M.sysAns(S), "(2/3, 1/3)");
+    const T = M.sysDefault(); assert.equal(M.sysMove(T, 0, 1, 0, 1), false, "a line's two points can't meet"); assert.equal(M.sysMove(T, 0, 1, 11, 0), false);
+    assert.equal(M.sysMove(T, 0, 1, 1, 4), true); assert.equal(M.sysEq(...T.l[0], "si"), "y = 3x + 1");
+    let seed = 11; const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+    for (let n = 0; n < 60; n++) for (const kind of ["one", "none", "many"]) {
+        assert.ok(M.sysNew(T, kind, rnd), kind); const r = M.sysSolve(T); assert.equal(r.kind, kind);
+        T.l.flat().forEach((q) => assert.ok(Math.abs(q[0]) <= M.SYS_R && Math.abs(q[1]) <= M.SYS_R));
+        if (kind === "one") { assert.equal(r.x[1], 1); assert.equal(r.y[1], 1); assert.ok(!T.l.flat().some((q) => q[0] === r.x[0] && q[1] === r.y[0]), "no point sits on the answer"); }
+    }
+    const c = M.cleanMt({ sys: { l: [[[0, 0], [0, 0]], [[1, 2], [3, 99]]], f: "x", hide: 1, tp: [2, "y"] } }).sys;
+    assert.deepEqual(c, Object.assign(M.sysDefault(), { hide: true }));
+    assert.equal(M.mtChip("sys", { mt: { sys: M.sysDefault() } }).v, "(2, 5)");
+    assert.equal(M.mtChip("sys", { mt: { sys: Object.assign(M.sysDefault(), { hide: true }) } }).v, "Where do they cross?");
+});
+
 t("saved state is cleaned", () => {
     assert.deepEqual(M.cleanMt(null), {}); assert.deepEqual(M.cleanMt({ evil: { a: 1 } }), {});
     const c = M.cleanMt({ balance: { e: [2, 2, 2, 9], s: [1, 2, 3, 4] }, chance: { m: "dice", d2: true, t: [1, "x", -4], last: 99, rot: "NaN" }, line: { a: [99, -99], b: [99, -99] },

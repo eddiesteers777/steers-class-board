@@ -11,6 +11,7 @@
      angle     Angle explorer       parallel lines cut by a transversal, and a triangle's corners torn onto a line (8.25)
      area      Expression area model  a(bx + c) as tiles or an area box, expand and factor (7.6, 7.7)
      nl        Rational number line  jumps with fractions and decimals, subtracting as adding the opposite, distance (7.5)
+     sys       Systems graph        two lines; where they cross, parallel or the same line; check a point in both (8.12, Alg I.10)
      fn        Function machine     inputs go in, the rule makes outputs; mystery rules, and "function or not?" (8.13, 8.14)
      calc      Basic calculator     + − × ÷ and percent, with the order of operations
      sci       Scientific calculator powers, roots, trig, logs, Ans and fraction answers
@@ -21,7 +22,7 @@
 ========================================== */
 import { gcDefault, cleanGc, fmt } from "./graphCalc.js?v=1";
 
-export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "angle", "fn", "area", "nl", "calc", "sci", "graph"];
+export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "angle", "fn", "area", "nl", "sys", "calc", "sci", "graph"];
 export const isMt = (k) => MT_KEYS.includes(k);
 
 const int = (v, d) => { const n = Math.round(+v); return Number.isFinite(n) ? n : d; };
@@ -527,8 +528,135 @@ function cleanCalc(o) {
     return out;
 }
 
-const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, angle: angDefault, fn: fnDefault, area: exDefault, nl: nlDefault, calc: calcDefault, sci: sciDefault, graph: gcDefault };
-const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, angle: cleanAng, fn: cleanFn, area: cleanEx, nl: cleanNl, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
+/* ---------- Systems graph ---------- */
+/* Two lines, each through two whole-number points on a −10..10 grid. Where they cross is the solution; parallel lines
+   have none; one line drawn twice has infinitely many. A tapped test point is checked in both equations. */
+export const SYS_R = 10;
+export const sysDefault = () => ({ l: [[[0, 1], [3, 7]], [[0, 7], [3, 4]]], f: "si", hide: false, rv: false, tp: null });
+const fr = (n, d) => { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d); return [n / g, d / g]; };
+/** The line through P and Q as a x + b y = c, whole numbers in lowest terms, a > 0 (or a = 0 and b > 0). */
+export function sysABC(P, Q) {
+    let a = Q[1] - P[1], b = P[0] - Q[0], c = a * P[0] + b * P[1];
+    const g = gcd(gcd(a, b), c), sg = a < 0 || (a === 0 && b < 0) ? -1 : 1;
+    return { a: sg * a / g, b: sg * b / g, c: sg * c / g };
+}
+/** Where the two lines meet: { kind: "one", x: [n, d], y: [n, d] } | { kind: "none" } | { kind: "many" }. */
+export function sysSolve(S) {
+    const A = sysABC(...S.l[0]), B = sysABC(...S.l[1]), D = A.a * B.b - B.a * A.b;
+    if (D) return { kind: "one", x: fr(A.c * B.b - B.c * A.b, D), y: fr(A.a * B.c - B.a * A.c, D) };
+    return A.a === B.a && A.b === B.b && A.c === B.c ? { kind: "many" } : { kind: "none" };
+}
+const coefX = (n, v) => (n === 1 ? v : n === -1 ? "−" + v : fracText([n, 1]) + v);
+/** One equation as text, in slope-intercept ("si") or standard form ("std"). */
+export function sysEq(P, Q, f) {
+    if (f !== "std") return lineEq({ a: P, b: Q });
+    const { a, b, c } = sysABC(P, Q); let s = "";
+    if (a) s = coefX(a, "x");
+    if (b) s += s ? (b < 0 ? " − " : " + ") + coefX(Math.abs(b), "y") : coefX(b, "y");
+    return s + " = " + fracText([c, 1]);
+}
+/** Is the point on line i? With the working, in the panel's form: "2(1) + 1 = 3" and whether it matches. */
+export function sysCheck(S, i, pt) {
+    const [P, Q] = S.l[i], { a, b, c } = sysABC(P, Q), [x, y] = pt, on = a * x + b * y === c, par = (v) => "(" + fracText([v, 1]) + ")";
+    if (S.f === "std") {
+        const parts = []; if (a) parts.push((a === 1 ? "" : a === -1 ? "−" : fracText([a, 1])) + "(" + x + ")"); if (b) parts.push((parts.length ? (b < 0 ? " − " : " + ") : b < 0 ? "−" : "") + (Math.abs(b) === 1 ? "" : Math.abs(b)) + "(" + y + ")");
+        const v = a * x + b * y;
+        return { on, text: parts.join("").replace(/\((-\d+)\)/g, (m, n) => "(−" + n.slice(1) + ")") + " = " + fracText([v, 1]) + (on ? "" : ", not " + fracText([c, 1])) };
+    }
+    const o = lineOf({ a: P, b: Q });
+    if (o.vert) return { on, text: "x is " + fracText([x, 1]) + (on ? "" : ", not " + fracText([o.x, 1])) };
+    const [mn, md] = o.m, [bn, bd] = o.b, yv = fr(mn * x * bd + bn * md, md * bd);
+    let s = mn === 0 ? "" : (md === 1 && Math.abs(mn) === 1 ? (mn < 0 ? "−" : "") : fracText(o.m)) + par(x);
+    if (bn || !s) s += s ? (bn < 0 ? " − " : " + ") + fracText([Math.abs(bn), bd]) : fracText(o.b);
+    return { on, text: s + " = " + fracText(yv) + (on ? "" : ", not " + fracText([y, 1])) };
+}
+const inR = (v) => Math.abs(v) <= SYS_R;
+/** Two whole-number points on a x + b y = c, inside the grid, near the middle, not at `avoid`. Null if there are none. */
+export function sysPts(a, b, c, avoid) {
+    const pts = [];
+    for (let x = -SYS_R; x <= SYS_R; x++) for (let y = -SYS_R; y <= SYS_R; y++) if (a * x + b * y === c && !(avoid && avoid[0] === x && avoid[1] === y)) pts.push([x, y]);
+    if (pts.length < 2) return null;
+    pts.sort((p, q) => Math.abs(p[0]) + Math.abs(p[1]) - Math.abs(q[0]) - Math.abs(q[1]) || p[0] - q[0]);
+    const P = pts[0], g = gcd(a, b), d = [b / g, -a / g];
+    let Q = [P[0] + d[0], P[1] + d[1]];
+    if (!inR(Q[0]) || !inR(Q[1]) || (avoid && Q[0] === avoid[0] && Q[1] === avoid[1])) Q = pts.find((q) => q !== P && !(avoid && q[0] === avoid[0] && q[1] === avoid[1])) || pts[1];
+    if (Math.abs(Q[0] - P[0]) + Math.abs(Q[1] - P[1]) < 2) { const far = [P[0] + 2 * d[0], P[1] + 2 * d[1]]; if (inR(far[0]) && inR(far[1]) && !(avoid && far[0] === avoid[0] && far[1] === avoid[1])) Q = far; }
+    return [P, Q];
+}
+/** One equation typed in: y = 2x + 1, 2x + 3y = 12, x = 4, y = −1/2x + 3, 3x − y + 2 = 0. -> { a, b, c } or { err }. */
+export function parseLine(str) {
+    const t = String(str || "").toLowerCase().replace(/[−–—]/g, "-").replace(/\s+/g, "").replace(/\*/g, "");
+    const sides = t.split("=");
+    if (sides.length !== 2 || !sides[0] || !sides[1]) return { err: "Write it with one =, like y = 2x + 1 or 2x + 3y = 12." };
+    const tot = { x: [0, 1], y: [0, 1], k: [0, 1] }, add = (key, f) => { const [n, d] = tot[key]; tot[key] = fr(n * f[1] + f[0] * d, d * f[1]); };
+    for (const [si, side] of sides.entries()) {
+        const terms = side.replace(/(?!^)-/g, "+-").split("+").filter((z) => z !== "");
+        if (!terms.length) return { err: "Something is missing around the =." };
+        for (const term of terms) {
+            const dv = term.match(/^(-?)(\d*)([xy])\/(\d+)$/);   // x/2, -3y/4
+            if (dv) { if (!+dv[4]) return { err: "A fraction can't have 0 on the bottom." }; let f = fr(dv[2] ? +dv[2] : 1, +dv[4]); if (dv[1]) f = [-f[0], f[1]]; if (si === 1) f = [-f[0], f[1]]; add(dv[3], f); continue; }
+            const m = term.match(/^(-?)(\d+(?:\/\d+)?|\d*\.\d+)?(\(?(?:\d+\/\d+)\)?)?([xy])?$/);
+            if (!m || (!m[2] && !m[3] && !m[4])) return { err: "I can't read “" + term + "”. Use x, y, whole numbers and fractions." };
+            let f = [1, 1];
+            const num = m[2] || (m[3] ? m[3].replace(/[()]/g, "") : "");
+            if (num) { if (num.includes("/")) { const [n, d] = num.split("/").map(Number); if (!d) return { err: "A fraction can't have 0 on the bottom." }; f = fr(n, d); } else if (num.includes(".")) { const d = 10 ** (num.split(".")[1].length); f = fr(Math.round(+num * d), d); } else f = [+num, 1]; }
+            if (m[1]) f = [-f[0], f[1]];
+            if (si === 1) f = [-f[0], f[1]];
+            add(m[4] || "k", f);
+        }
+    }
+    const L = [tot.x[1], tot.y[1], tot.k[1]].reduce((p, q) => p * q / gcd(p, q), 1);
+    let a = tot.x[0] * L / tot.x[1], b = tot.y[0] * L / tot.y[1], c = -tot.k[0] * L / tot.k[1];
+    if (!a && !b) return { err: "That has no x or y in it once it's simplified. Try another." };
+    const g = gcd(gcd(a, b), c), sg = a < 0 || (a === 0 && b < 0) ? -1 : 1;
+    a = sg * a / g; b = sg * b / g; c = sg * c / g;
+    if (!sysPts(a, b, c)) return { err: "That line misses the grid's whole-number points. Try numbers that land on the grid." };
+    return { a, b, c };
+}
+/** Set the system from two typed equations. Returns "" or why not. */
+export function sysSet(S, A, B) {
+    const P = sysPts(A.a, A.b, A.c), Q = sysPts(B.a, B.b, B.c);
+    if (!P || !Q) return "That line misses the grid's whole-number points.";
+    S.l = [P, Q]; S.tp = null; S.rv = false; return "";
+}
+/** Move point w (0 or 1) of line i. False if it would sit on the line's other point or leave the grid. */
+export function sysMove(S, i, w, x, y) {
+    x = int(x, 0); y = int(y, 0); if (!inR(x) || !inR(y)) return false;
+    const o = S.l[i][1 - w]; if (o[0] === x && o[1] === y) return false;
+    S.l[i][w] = [x, y]; S.rv = false; return true;
+}
+const SLOPES = [[1, 1], [2, 1], [3, 1], [-1, 1], [-2, 1], [-3, 1], [1, 2], [-1, 2], [1, 3], [-1, 3], [2, 3], [-2, 3], [3, 2], [-3, 2]];
+/** A new system with one solution (whole numbers), no solution or infinitely many. */
+export function sysNew(S, kind, rnd = Math.random) {
+    const pick = (a) => a[Math.floor(rnd() * a.length)];
+    for (let n = 0; n < 200; n++) {
+        const sx = Math.floor(rnd() * 9) - 4, sy = Math.floor(rnd() * 9) - 4, m1 = pick(SLOPES);
+        let m2 = pick(SLOPES); if (kind !== "one") m2 = m1; else if (m2[0] * m1[1] === m1[0] * m2[1]) continue;
+        const L1 = { a: m1[0], b: -m1[1], c: m1[0] * sx - m1[1] * sy };   // through (sx, sy): rise·x − run·y = rise·sx − run·sy
+        let L2 = { a: m2[0], b: -m2[1], c: m2[0] * sx - m2[1] * sy };
+        if (kind === "none") { const sh = pick([-6, -5, -4, -3, 3, 4, 5, 6]); L2 = { a: m2[0], b: -m2[1], c: L1.c + sh * m2[1] }; }
+        if ([L1, L2].some((L) => L.c % L.b || Math.abs(L.c / L.b) > 8)) continue;   // whole-number y-intercepts on the grid
+        const avoid = kind === "one" ? [sx, sy] : null, P = sysPts(L1.a, L1.b, L1.c, avoid);
+        let Q = sysPts(L2.a, L2.b, L2.c, avoid);
+        if (!P || !Q) continue;
+        if (kind === "many") { const all = []; for (let x = -SYS_R; x <= SYS_R; x++) for (let y = -SYS_R; y <= SYS_R; y++) if (L1.a * x + L1.b * y === L1.c && !P.some((q) => q[0] === x && q[1] === y)) all.push([x, y]); if (all.length < 2) continue; all.sort((p, q) => Math.abs(p[0]) + Math.abs(p[1]) - Math.abs(q[0]) - Math.abs(q[1])); Q = [all[0], all[1]]; }
+        if (kind === "one" && (P.some((q) => Math.abs(q[1]) > 8) || Q.some((q) => Math.abs(q[1]) > 8))) continue;
+        S.l = [P, Q]; S.tp = null; S.rv = false; return true;
+    }
+    return false;
+}
+/** The system's answer as text, for the chip and the panel. */
+export function sysAns(S) { const r = sysSolve(S); return r.kind === "one" ? "(" + fracText(r.x) + ", " + fracText(r.y) + ")" : r.kind === "none" ? "No solution" : "Infinitely many"; }
+function cleanSys(o) {
+    const D = sysDefault(); if (!o || typeof o !== "object") return D;
+    const pt = (q) => (Array.isArray(q) && q.length === 2 && q.every((v) => Number.isInteger(v) && inR(v)) ? [q[0], q[1]] : null);
+    const ln = (L) => { if (!Array.isArray(L) || L.length !== 2) return null; const P = pt(L[0]), Q = pt(L[1]); return P && Q && (P[0] !== Q[0] || P[1] !== Q[1]) ? [P, Q] : null; };
+    const l = Array.isArray(o.l) && o.l.length === 2 ? o.l.map(ln) : [null, null];
+    return { l: [l[0] || D.l[0], l[1] || D.l[1]], f: o.f === "std" ? "std" : "si", hide: !!o.hide, rv: !!o.rv, tp: pt(o.tp) };
+}
+
+const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, angle: angDefault, fn: fnDefault, area: exDefault, nl: nlDefault, sys: sysDefault, calc: calcDefault, sci: sciDefault, graph: gcDefault };
+const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, angle: cleanAng, fn: cleanFn, area: cleanEx, nl: cleanNl, sys: cleanSys, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
 export const mtDefault = (k) => DEFAULTS[k]();
 /** tools.mt as saved: only panels that were used are kept, each cleaned. */
 export function cleanMt(o) { const out = {}; if (!o || typeof o !== "object") return out; MT_KEYS.forEach((k) => { if (o[k] && typeof o[k] === "object") out[k] = CLEAN[k](o[k]); }); return out; }
@@ -547,6 +675,7 @@ export function mtChip(k, T) {
     if (k === "angle") { if (s.m === "tri") { const d = triAngles(s.t).deg; return { v: d.join("° + ") + "° = 180°" }; } return { v: (s.np ? "Not parallel, " : "") + s.a + "° and " + (180 - s.a) + "°" }; }
     if (k === "area") { if (s.m === "fac") { const R = exRows(s); return { v: R.even ? (s.r === 1 ? exLin(s.p, s.q) : s.r + "(" + R.inside + ")") : exLin(s.p, s.q), tone: R.best ? "green" : "" }; } return { v: exFactored(s.a, s.b, s.c) + " = " + (s.hide ? "?" : exExpanded(s.a, s.b, s.c)) }; }
     if (k === "nl") return { v: nlSum(s, s.hide && !s.rv) };
+    if (k === "sys") return { v: s.hide && !s.rv ? "Where do they cross?" : sysAns(s), tone: s.hide && !s.rv ? "" : "green" };
     if (k === "fn") return { v: s.m === "test" ? "Function or not?" : s.hide ? "Mystery rule" : "y = " + fnRule(s) };
     if (k === "counters") { const v = ctValue(s); return { v: (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) }; }
     return { v: "" };

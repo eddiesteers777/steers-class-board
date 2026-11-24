@@ -15,8 +15,8 @@ import { isMine, mineList, mineSrc, onMine, addMine, removeMine, MY_MAX } from "
 import { cleanStickers } from "./stickers.js?v=1";
 import { findBody, findChip, findTitle } from "./findPanel.js?v=10";
 import { isFind, FIND_KEYS } from "./findCore.js?v=1";
-import { mtBody } from "./manipPanels.js?v=9";
-import { isMt, mtChip } from "./manipCore.js?v=9";
+import { mtBody } from "./manipPanels.js?v=10";
+import { isMt, mtChip } from "./manipCore.js?v=10";
 export { MARKS, EFFECTS, FX_AMOUNTS };
 
 const LESSON = new Set(LESSON_PANELS.map((x) => x[0])), MATH = new Set(MATH_LIST.concat(CALC_LIST).map((x) => x[0]));
@@ -54,6 +54,7 @@ const IC = {
     angle: '<path d="M2 8h20M2 17h20M7 22L17 3"/><path d="M13.6 8a3 3 0 0 0 1.6 2.4"/>',
     area: '<rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M14 5v14M3 12h18"/>',
     nl: '<path d="M2 16h20M5 13v6M12 13v6M19 13v6"/><path d="M6 10q6-8 12 0"/><path d="M15.5 8.5L18 10l.4-2.8"/>',
+    sys: '<path d="M3 3v18h18"/><path d="M5 18L20 6"/><path d="M5 8l15 9"/><circle cx="12.6" cy="12.4" r="1.8" fill="currentColor"/>',
     fn: '<rect x="6" y="7" width="12" height="10" rx="2"/><path d="M12 2v5M12 17v5M9 12h6"/><path d="M10 4.5L12 7l2-2.5"/>',
     counters: '<circle cx="7" cy="8" r="4"/><circle cx="17" cy="16" r="4"/><path d="M5.5 8h3M7 6.5v3M15.5 16h3"/>',
     send: '<path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5L3 9.5z"/>',
@@ -87,6 +88,7 @@ export const PANEL_INFO = {
     fn: "Inputs in, outputs out: mystery rules, and function or not",
     area: "Expand and factor expressions with tiles or an area box",
     nl: "Add, subtract and find distance with fractions and decimals on a number line",
+    sys: "Two lines on a grid: where they cross, parallel or the same line, and test a point",
 };
 
 /* ---------- layouts ---------- */
