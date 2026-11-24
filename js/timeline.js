@@ -10,7 +10,7 @@
 import { STANDARDS } from "../data/standards.js?v=58";
 import { SCHOOL_YEAR, today, short, daysLeftInNineWeeks, nineWeeksOf } from "./schoolCal.js?v=57";
 import * as T from "./timelineCore.js?v=3";
-import { drawMap } from "./timelineMap.js?v=1";
+import { drawMap } from "./timelineMap.js?v=2";
 import { mount as mountPick, bankNow } from "./timelinePick.js?v=4";
 import { counts as bankCounts, has as inTray } from "./timelineTray.js?v=4";
 import * as K from "./timelineLinks.js?v=2";

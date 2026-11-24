@@ -6,7 +6,11 @@
    codes and open their wording with one tap. Tapping a standard opens its problems (the Phase 2 picker).
    The road is one SVG behind the stops, drawn through the stop dots after layout and again when the size changes.
    Model: mapStops() in js/timelineCore.js. Page: js/timeline.js. Styles: css/timeline.css (class names start tm-).
+   Tapping a standard shows what it looks like in class (js/stdExplain.js): in the open space to the right of the map
+   on a wide screen, or as a sheet on a phone. The panel has the "Problems for …" button that opens the picker.
 ========================================== */
+import { exampleFor } from "../data/stdExamples.js?v=1";
+import { renderExplain } from "./stdExplain.js?v=1";
 
 const NS = "http://www.w3.org/2000/svg";
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -19,11 +23,21 @@ const ICON = {
     check: '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M5 10.5l3.2 3.2L15 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     pin: '<svg viewBox="0 0 20 24" width="16" height="19" aria-hidden="true"><path d="M10 1.5a7.5 7.5 0 0 0-7.5 7.5c0 5.4 7.5 13.5 7.5 13.5S17.5 14.4 17.5 9A7.5 7.5 0 0 0 10 1.5z" fill="currentColor"/><circle cx="10" cy="9" r="2.8" fill="#fff"/></svg>',
     flag: '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M4 18V2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M5 3h10.5l-2.6 3.6L15.5 10H5z" fill="currentColor"/></svg>',
+    play: '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6.4 5.2v5.6L11 8z" fill="currentColor"/></svg>',
     finish: '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M4 18V2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M5 3h11v7H5z" fill="#fff" stroke="currentColor" stroke-width="1.4"/><path d="M5 3h2.75v1.75H5zM10.5 3h2.75v1.75H10.5zM7.75 4.75h2.75V6.5H7.75zM13.25 4.75H16V6.5h-2.75zM5 6.5h2.75v1.75H5zM10.5 6.5h2.75v1.75H10.5zM7.75 8.25h2.75V10H7.75zM13.25 8.25H16V10h-2.75z" fill="currentColor"/></svg>',
 };
 
 /** Stops the teacher opened or closed by hand, per class: { cls: Map(stop number -> open) }. Others follow the default. */
 const flipped = {};
+/** The standard shown in the side panel, per class. */
+const picked = {};
+
+/** The standard the panel starts on: at the "You are here" stop, the one being taught that has an example, else any with one. */
+export function defaultPick(m) {
+    const st = m && m.stops[m.here >= 0 ? m.here : 0]; if (!st) return null;
+    const it = st.items.find((x) => x.state === "teaching" && exampleFor(x.code)) || st.items.find((x) => exampleFor(x.code)) || st.items.find((x) => x.state !== "taught") || st.items[0];
+    return it ? it.code : null;
+}
 
 /** What a stop says under its name: "Done", "You are here · teaching 8.25", "2 of 5 taught"… */
 function stopLine(st) {
@@ -55,7 +69,8 @@ export function drawMap(box, o) {
     const openByDefault = (st, i) => i === m.here || i === m.next || st.state === "teaching";
     const isOpen = (st, i) => (flip.has(st.n) ? flip.get(st.n) : openByDefault(st, i));
 
-    box.appendChild(summary(m, o));
+    const cols = el("div", "tm-cols"), main = el("div", "tm-main");
+    main.appendChild(summary(m, o));
 
     const map = el("div", "tm-map"); map.setAttribute("role", "list"); map.setAttribute("aria-label", "The year, stop by stop");
     const road = svg("svg", { class: "tm-road", "aria-hidden": "true" }); map.appendChild(road);
@@ -107,14 +122,16 @@ export function drawMap(box, o) {
             const open = isOpen(st, i);
             const list = el("ul", "tm-stds" + (open ? " open" : ""));
             st.items.forEach((x) => {
-                const row = el("li", "tm-std t-" + (x.state || "none"));
-                const b = el("button", "tm-sbtn"); b.type = "button";
-                b.setAttribute("aria-label", x.code + ", " + STATE_WORD[x.state || ""] + (x.critical ? ", critical" : "") + ". " + x.text + " Show problems.");
-                b.title = x.text + "\n\nShow problems for " + x.code;
+                const hasEx = !!exampleFor(x.code);
+                const row = el("li", "tm-std t-" + (x.state || "none") + (hasEx ? " has-ex" : ""));
+                const b = el("button", "tm-sbtn"); b.type = "button"; b.dataset.code = x.code;
+                b.setAttribute("aria-label", x.code + ", " + STATE_WORD[x.state || ""] + (x.critical ? ", critical" : "") + ". " + x.text + (hasEx ? " See what it looks like in class." : " See it and its problems."));
+                b.title = x.text + (hasEx ? "\n\nSee what it looks like in class" : "");
                 const code = el("span", "tm-code", x.code); b.appendChild(code);
                 if (x.critical) b.appendChild(el("span", "tm-star", "★"));
                 if (open) b.appendChild(el("span", "tm-text", cut(x.text, 150)));
-                b.onclick = () => o.openStd(x.code);
+                if (hasEx) { const ic = el("span", "tm-ex"); ic.innerHTML = ICON.play; ic.title = "Has a class example"; b.appendChild(ic); }
+                b.onclick = () => choose(x.code, true);
                 row.appendChild(b); list.appendChild(row);
             });
             card.appendChild(list);
@@ -132,10 +149,64 @@ export function drawMap(box, o) {
     const fin = el("div", "tm-end tm-finish"); fin.setAttribute("role", "listitem");
     fin.innerHTML = '<span class="tm-flag">' + ICON.finish + "</span>";
     fin.appendChild(el("span", "tm-endtxt", o.endLabel || "Last day of school")); map.appendChild(fin);
-    box.appendChild(map);
+    main.appendChild(map);
+
+    // the panel beside the map (shown on a wide screen; on a phone the same panel opens as a sheet)
+    const side = el("aside", "tm-side"); side.setAttribute("aria-label", "What a standard looks like in class");
+    cols.append(main, side);
+    box.appendChild(cols);
+
+    const where = new Map();
+    m.stops.forEach((st) => st.items.forEach((x) => { if (!where.has(x.code)) where.set(x.code, { x, st }); }));
+    if (!where.has(picked[o.cls])) picked[o.cls] = defaultPick(m);
+    const panelFor = (code, close) => {
+        const f = where.get(code); if (!f) return null;
+        return {
+            code, text: f.x.text, critical: f.x.critical, state: f.x.state, ex: exampleFor(code), close,
+            where: "Stop " + f.st.n + (f.st.label ? " · " + f.st.label + (f.st.cont ? " (continued)" : "") : "") + " · " + f.st.name,
+            headingId: close ? "tm-sheet-h" : "tm-side-h",
+            openStd: (c) => { closeSheet(false); o.openStd(c); },
+        };
+    };
+    const mark = (code) => map.querySelectorAll(".tm-sbtn").forEach((b) => { const on = b.dataset.code === code; b.classList.toggle("sel", on); if (on) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current"); });
+    const drawSide = () => { const p = panelFor(picked[o.cls], null); if (p) renderExplain(side, p); else side.textContent = ""; };
+    function choose(code, tap) {
+        picked[o.cls] = code; mark(code);
+        const wide = getComputedStyle(side).display !== "none";
+        if (wide) { drawSide(); if (tap) { side.scrollTop = 0; const h = side.querySelector(".se-skill"); if (h) h.focus({ preventScroll: true }); } }
+        else openSheet(panelFor(code, () => closeSheet(true)), code);
+    }
+    sheetSync = drawSide;
+    mark(picked[o.cls]); drawSide();
+    if (sheet && sheet.classList.contains("open") && sheet.dataset.code) { const p = panelFor(sheet.dataset.code, () => closeSheet(true)); if (p) renderExplain(sheet, p); }
 
     layoutRoad(map, m);
     if (o.onLayout) o.onLayout();
+}
+
+/* ---------- the sheet (phone): the same panel, over the page ---------- */
+let sheet = null, scrim = null, sheetFrom = null, sheetSync = null;
+function openSheet(p, code) {
+    if (!p) return;
+    if (!sheet) {
+        scrim = el("div", "tm-scrim"); scrim.onclick = () => closeSheet(true);
+        sheet = el("div", "tm-sheet"); sheet.setAttribute("role", "dialog"); sheet.setAttribute("aria-modal", "true"); sheet.setAttribute("aria-labelledby", "tm-sheet-h");
+        document.body.append(scrim, sheet);
+        document.addEventListener("keydown", (e) => { if (e.key === "Escape" && sheet.classList.contains("open")) closeSheet(true); });
+    }
+    sheetFrom = document.activeElement;
+    sheet.dataset.code = code;
+    renderExplain(sheet, p);
+    sheet.scrollTop = 0;
+    scrim.classList.add("open"); sheet.classList.add("open");
+    document.body.classList.add("tm-sheet-on");
+    const h = sheet.querySelector(".se-skill"); if (h) h.focus({ preventScroll: true });
+}
+function closeSheet(refocus) {
+    if (!sheet || !sheet.classList.contains("open")) return;
+    sheet.classList.remove("open"); scrim.classList.remove("open"); document.body.classList.remove("tm-sheet-on");
+    if (sheetSync) sheetSync();
+    if (refocus && sheetFrom && sheetFrom.isConnected) sheetFrom.focus({ preventScroll: true });
 }
 
 /** The strip above the map: where you are, the next stop, and how far through the year this class is. */
