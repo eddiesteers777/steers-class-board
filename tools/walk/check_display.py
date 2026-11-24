@@ -17,7 +17,7 @@ REL = {"=": Eq, "<": Lt, ">": Gt, "≤": Le, "≥": Ge}
 
 
 def py(t):
-    t = t.replace("−", "-").replace("×", "*").replace("÷", "/").replace("✓", "").replace("$", "").strip()
+    t = t.replace("−", "-").replace("×", "*").replace("·", "*").replace("÷", "/").replace("✓", "").replace("$", "").replace("°", "").strip()
     t = re.sub(r"(\d+) (\d+)/(\d+)", r"(\1+\2/\3)", t)          # mixed numbers 2 1/4
     t = re.sub(r"(\d)\(", r"\1*(", t)
     t = re.sub(r"\)(\d|[a-z(])", r")*\1", t)
@@ -57,6 +57,15 @@ def main(path):
             if row["move"] in ("divide", "cancel") and any("/" in c for c in cells):
                 continue   # the written-out divide/cancel line
             try:
+                if row["move"] == "then":                            # "Angle B = 2(30) + 34 = 94°": the working must equal the value
+                    parts = cells[0].split(" = ")[1:]
+                    if len(parts) != 2 or simplify(ex(parts[0]) - ex(parts[1])) != 0:
+                        bad += 1; print("THEN WRONG", w["id"], text)
+                    continue
+                if re.fullmatch(r"\s*(?:[A-Za-z]\([^)]*\)|y)\s*", cells[0]) and cells[1].strip() == "=":
+                    if re.search(r"[a-z]", cells[2].replace("Rational", "")):
+                        continue                                     # the rule itself, f(x) = 3x - 4
+                    first = simplify(ex(cells[2])); continue         # f(5) = 3(5) - 4: the value to keep
                 if row["check"]:
                     sides, rels = cells[0::2], cells[1::2]
                     vals = [ex(s) for s in sides]

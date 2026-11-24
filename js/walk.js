@@ -273,6 +273,10 @@ function stepDistribute(W, line) {
                 out.push(n); ks.push([x.k, n.k]);
             });
             if (t.c.one) whys.push("Nothing is multiplying the parentheses, so drop them.");
+            else if (t.c.eq(-1) && !t.dec) {
+                seq.push({ a: "arrow", from: t.k + "c", to: t.g.map((x) => x.k) });
+                whys.push("The minus in front means −1 times everything inside, so every sign inside changes: " + t.g.map((x) => termText(x, true) + " becomes " + termText({ c: x.c.neg(), v: x.v, dec: x.dec }, true)).join(", ") + ".");
+            }
             else {
                 seq.push({ a: "arrow", from: t.k + "c", to: t.g.map((x) => x.k) });
                 const cT = t.c.eq(-1) ? MINUS + "1" : numText(t.c, t.dec ? "dec" : "frac");
@@ -284,7 +288,7 @@ function stepDistribute(W, line) {
     });
     const next = Object.assign({}, line, { s: s2 });
     const fly = seq.filter((x) => x.a === "fly"), pre = seq.filter((x) => x.a !== "fly");
-    W.steps.push({ move: "distribute", title: whys.some((w) => w.startsWith("Distribute")) ? "Distribute" : "Drop the parentheses",
+    W.steps.push({ move: "distribute", title: whys.some((w) => w.startsWith("Distribute") || w.startsWith("The minus")) ? "Distribute" : "Drop the parentheses",
         why: [...new Set(whys)].join(" "), seq: [...pre, { a: "row", row: lineRow(W, next) }, ...fly] });
     return next;
 }
@@ -521,7 +525,7 @@ function tidyParens(root) {
         if (n.k === "op") {
             o.a = fix(n.a, n.op === "^" ? "base" : n.imp ? "impL" : "left");
             o.b = fix(n.b, n.imp ? "imp" : "right");
-            if (o.b.k === "n" && o.b.q.sign < 0) o.b = { k: "p", a: o.b, id: o.b.id + "p" };
+            if (o.b.k === "n" && (o.b.q.sign < 0 || (n.imp && !(n.a.neg1)))) o.b = { k: "p", a: o.b, id: o.b.id + "p" };   // 2(4), never 24
             if (n.op === "^" && o.a.k === "n" && o.a.q.sign < 0) o.a = { k: "p", a: o.a, id: o.a.id + "p" };
         } else if (n.k === "p") o.a = fix(n.a, "in");
         else if (n.k === "cf") { o.a = fix(n.a, "in"); o.b = fix(n.b, "in"); }
@@ -554,7 +558,7 @@ function evaluate(W, root0, opts) {
         const pairs = opts.story.map((mk, i) => { const n = nodes.find((x) => norm(exprText(x)) === norm(mk[1])); return n ? ["s" + i, n.id] : null; }).filter(Boolean);
         if (pairs.length) seq0.push({ a: "fly", pairs, story: true });
     }
-    W.steps.push({ move: opts && opts.story ? "setup" : "start", title: opts && opts.story ? "Write it as math" : opts && opts.title || "The problem", why: opts && opts.story ? "Each number from the story goes into the problem, with its sign." : opts && opts.why0 || why0, seq: seq0 });
+    if (!(opts && opts.noStart)) W.steps.push({ move: opts && opts.story ? "setup" : "start", title: opts && opts.story ? "Write it as math" : opts && opts.title || "The problem", why: opts && opts.story ? "Each number from the story goes into the problem, with its sign." : opts && opts.why0 || why0, seq: seq0 });
     // mixed decimals and fractions: write the fractions as decimals first
     const nums = []; (function walk(n) { if (n.k === "n") nums.push(n); ["a", "b"].forEach((x) => n[x] && walk(n[x])); })(root);
     if (nums.some((n) => n.s === "dec") && nums.some((n) => fracLike(n) && terminates(n.q))) {
@@ -628,7 +632,7 @@ function reduce(W, root, n, only) {
         if (n.op === "+") {
             if (v.zero && !a.zero) why = numText(a, st === "dec" ? "dec" : "frac") + " and " + numText(b, st === "dec" ? "dec" : "frac") + " are opposites. Opposites add up to 0.";
             else if (a.sign * b.sign < 0) why = "Different signs: subtract " + (a.abs().cmp(b.abs()) >= 0 ? sa + " − " + sb : sb + " − " + sa) + " and keep the sign of the number farther from 0. " + numText(a, st === "dec" ? "dec" : "frac") + " + " + numText(b, st === "dec" ? "dec" : "frac") + " = " + numText(v, st === "dec" ? "dec" : "frac") + ".";
-            else why = (a.sign < 0 && b.sign < 0 ? "Same signs: add " + sa + " + " + sb + " and keep the negative sign." : "Add: " + sa + " + " + sb + ".") + " = " + numText(v, st === "dec" ? "dec" : "frac") + ".";
+            else why = a.sign < 0 && b.sign < 0 ? "Same signs: add " + sa + " + " + sb + " and keep the negative sign: " + numText(v, st === "dec" ? "dec" : "frac") + "." : "Add: " + sa + " + " + sb + " = " + numText(v, st === "dec" ? "dec" : "frac") + ".";
         } else why = "Subtract: " + numText(a, st === "dec" ? "dec" : "frac") + " − " + numText(b, st === "dec" ? "dec" : "frac") + " = " + numText(v, st === "dec" ? "dec" : "frac") + "." + (v.sign < 0 && a.sign > 0 ? " The bigger number is subtracted, so the answer is negative." : "");
         if (st === "dec" && (!a.int || !b.int)) why += " Line up the decimal points.";
         return after(by, n.op === "+" ? "add" : "sub", n.op === "+" ? "Add" : "Subtract", why);
@@ -758,6 +762,7 @@ function verify(W) {
         const sem = x.row.sem;
         if (sem.truth != null) { if (!sem.truth) errs.push("step " + (si + 1) + ": check line is not true"); return; }
         if (sem.v) { if (W.kind === "eval") { if (!first) first = sem.v; else if (!sem.v.eq(first)) errs.push("step " + (si + 1) + ": value changed"); } return; }
+        if (sem.f && W.kind === "simp") { if (!first) first = sem.f; else if (!(sem.f.a.eq(first.a) && sem.f.b.eq(first.b))) errs.push("step " + (si + 1) + ": not the same expression as the first line"); return; }
         if (sem.s && W.kind === "solve" && !sem.then) { if (!first) first = sem; else if (!sameAnswers(first, sem)) errs.push("step " + (si + 1) + ": not the same answers as the first line"); }
     }));
     return errs;
@@ -881,7 +886,45 @@ function angleSetup(q) {
     if ((m = q.match(/One angle is (\d+)°\. Find its (corresponding|alternate interior|alternate exterior) angle/i))) return T("x = " + m[1], (m[2][0].toUpperCase() + m[2].slice(1)) + " angles are equal when the lines are parallel.", { kind: "lines", pair: m[2].replace(" ", "-"), labels: [m[1] + "°", "x°"] });
     if ((m = q.match(/Same-side interior angles are \((.+?)\)° and \((.+?)\)°\. Find x/i))) return T(m[1] + " + " + m[2] + " = 180", "Same-side interior angles add up to 180° when the lines are parallel.", { kind: "lines", pair: "same-side", labels: ["(" + m[1] + ")°", "(" + m[2] + ")°"] });
     if ((m = q.match(/(Alternate exterior|Alternate interior|Corresponding) angles are \((.+?)\)° and (?:\((.+?)\)°|(\d+)°)\. Find x/i))) return T(m[2] + " = " + (m[3] || m[4]), m[1] + " angles are equal when the lines are parallel.", { kind: "lines", pair: m[1].toLowerCase().replace(" ", "-"), labels: ["(" + m[2] + ")°", m[3] ? "(" + m[3] + ")°" : m[4] + "°"] });
+    // the same facts, worded the way newer bank problems word them
+    const D = "(?:°| degrees)";
+    if ((m = q.match(/^A triangle has interior angles measuring (\d+)° and (\d+)°\. What is the measure of the third interior angle\?$/))) return T(m[1] + " + " + m[2] + " + x = 180", "The three angles of a triangle add up to 180°.", { kind: "triangle", labels: [m[1] + "°", m[2] + "°", "x°"] });
+    if ((m = q.match(/^In a right triangle, one of the acute angles measures (\d+)°\. What is the measure of the other acute angle\?$/))) return T("90 + " + m[1] + " + x = 180", "The three angles of a triangle add up to 180°, and the right angle is 90°.", { kind: "triangle", labels: ["90°", m[1] + "°", "x°"] });
+    if ((m = q.match(/isosceles triangle with a top vertex angle of (\d+)°\. What is the measure of each of the two equal base angles\?$/))) return T(m[1] + " + x + x = 180", "The angles add up to 180°, and the two base angles of an isosceles triangle are equal, so call each one x.", { kind: "triangle", labels: [m[1] + "°", "x°", "x°"], iso: true });
+    if ((m = q.match(/^The interior angles of a triangle measure \((.+?)\)°, (\d+)°, and (\d+)°\. What is the value of x\?$/))) return T("(" + m[1] + ") + " + m[2] + " + " + m[3] + " = 180", "The three angles of a triangle add up to 180°.", { kind: "triangle", labels: ["(" + m[1] + ")°", m[2] + "°", m[3] + "°"], exprs: [m[1], m[2], m[3]] });
+    if ((m = q.match(/^In triangle ([A-Z])([A-Z])([A-Z]), angle \1 measures \((.+?)\)°, angle \2 measures \((.+?)\)°, and angle \3 measures \((.+?)\)°\. What is the measure of the (largest|smallest) angle in triangle \1\2\3\?$/))) {
+        const ex = [m[4], m[5], m[6]], names = [m[1], m[2], m[3]], vals = anglesAt(ex, 180);
+        if (!vals) return null;
+        const pick = vals.indexOf((m[7] === "largest" ? Math.max : Math.min)(...vals));
+        return T("(" + ex[0] + ") + (" + ex[1] + ") + (" + ex[2] + ") = 180", "The three angles of a triangle add up to 180°.", { kind: "triangle", labels: ex.map((e, i) => names[i] + " = (" + e + ")°"), exprs: ex },
+            Object.assign(ex.map((e, i) => ({ label: "Angle " + names[i], expr: e, unit: "°", pick: i === pick })), { why: (v) => "Find all three angles. The " + m[7] + " is angle " + names[pick] + ", " + v[pick] + "°." }));
+    }
+    if ((m = q.match(/^The interior angles of a triangle are in the ratio (\d+) : (\d+) : (\d+)\. What is the difference between the largest angle and the smallest angle of the triangle\?$/))) {
+        const r = [+m[1], +m[2], +m[3]], big = Math.max(...r), small = Math.min(...r);
+        return T(r.map((x) => x + "x").join(" + ") + " = 180", "Ratio " + r.join(" : ") + " means the angles are " + r.map((x) => x + "x").join(", ") + ". They add up to 180°.", { kind: "triangle", labels: r.map((x) => x + "x"), exprs: r.map((x) => x + "x") }, [{ label: "Largest − smallest", expr: big + "x − " + small + "x", unit: "°" }]);
+    }
+    if ((m = q.match(new RegExp("^Two parallel lines are cut by a transversal\\. One of the acute angles formed measures (\\d+)" + D + "\\. What is the measure of any obtuse angle formed by these lines\\?$")))) return T(m[1] + " + x = 180", "An acute angle and the obtuse angle next to it sit on a straight line, so they add up to 180°.", { kind: "lines", pair: "linear", labels: [m[1] + "°", "x°"] });
+    if ((m = q.match(new RegExp("Angle (\\d+) and Angle (\\d+) are corresponding angles\\. If Angle \\1 measures (\\d+)" + D + ", what is the measure of Angle \\2\\?$")))) return T("x = " + m[3], "Corresponding angles are equal when the lines are parallel.", { kind: "lines", pair: "corresponding", labels: [m[3] + "°", "x°"] });
+    if ((m = q.match(new RegExp("Two (alternate exterior|alternate interior|corresponding) angles measure \\((.+?)\\)" + D + " and \\((.+?)\\)" + D + "\\. (?:Solve for|Find) x\\.$", "i")))) return T(m[2] + " = " + m[3], m[1][0].toUpperCase() + m[1].slice(1) + " angles are equal when the lines are parallel.", { kind: "lines", pair: m[1].toLowerCase().replace(" ", "-"), labels: ["(" + m[2] + ")°", "(" + m[3] + ")°"] });
+    if ((m = q.match(new RegExp("Two same-side \\(consecutive\\) interior angles measure \\((.+?)\\)" + D + " and \\((.+?)\\)" + D + "\\. Find the measure of the (smaller|larger) angle\\.$")))) {
+        const ex = [m[1], m[2]], vals = anglesAt(ex, 180);
+        if (!vals || vals[0] === vals[1]) return null;
+        const pick = vals.indexOf((m[3] === "larger" ? Math.max : Math.min)(...vals));
+        return T("(" + ex[0] + ") + (" + ex[1] + ") = 180", "Same-side interior angles add up to 180° when the lines are parallel.", { kind: "lines", pair: "same-side", labels: ["(" + ex[0] + ")°", "(" + ex[1] + ")°"] },
+            Object.assign(ex.map((e, i) => ({ label: i ? "Second angle" : "First angle", expr: e, unit: "°", pick: i === pick })), { why: (v) => "Find both angles. The " + m[3] + " one is " + v[pick] + "°." }));
+    }
+    if ((m = q.match(new RegExp("Angle A and Angle B are alternate interior angles, and Angle C is supplementary to Angle B\\. If Angle A = \\((.+?)\\)" + D + " and Angle C = \\((.+?)\\)" + D + ", find the measure of Angle B\\.$")))) return T("(" + m[1] + ") + (" + m[2] + ") = 180", "Alternate interior angles are equal, so angle B is the same as angle A. Angle C is supplementary to angle B, so A and C add up to 180°.", null, [{ label: "Angle B", expr: m[1], unit: "°" }]);
     return null;
+}
+/** The angles (as numbers) once x is found from "they add up to total"; null if that does not work out. */
+function anglesAt(exprs, total) {
+    try {
+        const Wt = { kc: 0 }, fs = exprs.map((e) => formOf(parseSide(Wt, tokens(e))));
+        const a = fs.reduce((s, f) => s.add(f.a), ZERO), b = fs.reduce((s, f) => s.add(f.b), ZERO);
+        if (a.zero) return null;
+        const x = new Q(total).sub(b).div(a);
+        return fs.map((f) => f.a.mul(x).add(f.b).toNumber());
+    } catch (e) { return null; }
 }
 
 /* ---------- one problem ---------- */
@@ -922,13 +965,20 @@ function build(W, item) {
     if (setup && setup.expr) return evalSetup(W, item, setup.expr, { story: setup.story, why0: setup.why });
     // angles
     const ang = angleSetup(q);
-    if (ang) return solveSetup(W, item, ang.eq, { fact: ang.fact, pic: ang.pic, then: ang.then });
+    if (ang) return solveSetup(W, item, ang.eq, { fact: ang.fact, pic: ang.pic, then: ang.then, thenWhy: ang.then && ang.then.why });
+    // functions: plug a number in, or find the input that gives an output
+    const fn = funcParse(q);
+    if (fn && fn.at != null) return funcSetup(W, item, fn);
+    if (fn && fn.out != null) return solveSetup(W, item, fn.rule.replace(new RegExp(fn.v, "g"), fn.solveFor) + " = " + fn.out, { intro: { title: "Write the equation", why: fn.label + " = " + fn.out + " means the output is " + fn.out + ". Set the rule equal to " + fn.out + " and solve for " + fn.solveFor + ".", rows: [{ t: "line", cells: [R([fn.name + "(" + fn.v + ")"]), "=", exprDT(tidyParens(parseExpr(W, fn.rule)))] }] } });
     if ((m = q.match(/^Solve(?: and [^:]*)?:\s*(.+)$/))) return solveSetup(W, item, m[1], {});
     if ((m = q.match(/^How many solutions does (.+) have\?$/))) return solveSetup(W, item, m[1], { count: true });
     if ((m = q.match(/^A complex fraction has (.+?) on top and (.+?) on the bottom\. Simplify it\.$/))) return evalSetup(W, item, { k: "cf", a: parseExpr(W, m[1]), b: parseExpr(W, m[2]), id: key(W) }, { cf: true });
     if ((m = q.match(/^Use the distributive property to find: (\d+) × (\d+)\{(\d+)\/(\d+)\}$/))) return distribNumber(W, item, +m[1], +m[2], +m[3], +m[4]);
     if ((m = q.match(/^Rewrite (.+) as an addition problem\.$/))) return null;
     if (/[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(String(item.a))) return null;   // exponent rules: the answer is a power, not a number
+    // expressions with a variable: distribute and combine like terms, or factor out the GCF
+    if ((m = q.match(/^(?:Simplify|Expand|Expand the expression|Expand and simplify|Combine like terms to simplify|Subtract the linear expressions):\s*(.+)$/)) && /[a-z]/i.test(m[1].replace(/\{[^}]*\}/g, ""))) return simpSetup(W, item, m[1]);
+    if ((m = q.match(/^Factor(?: the expression using the greatest common factor)?:\s*(.+)$/))) return factorSetup(W, item, m[1]);
     if ((m = q.match(/^(?:Find|Simplify|Evaluate):\s*(.+)$/))) return evalSetup(W, item, m[1], {});
     return null;
 }
@@ -940,6 +990,10 @@ function solveSetup(W, item, eqText, o) {
     W.cols = line.s.length === 3 ? 5 : 3;
     const v = varOf(line);
     let started = false;
+    if (o.intro) {
+        W.steps.push({ move: "setup", title: o.intro.title, why: o.intro.why, seq: [...(o.intro.rows || []).map((row) => ({ a: "row", row })), { a: "row", row: lineRow(W, line) }] });
+        started = true;
+    }
     if (o.story || o.fact) {
         const seq = [];
         if (o.story) seq.push({ a: "row", row: { t: "pic", pic: { kind: "story", text: item.q, marks: o.story } } });
@@ -963,9 +1017,10 @@ function solveSetup(W, item, eqText, o) {
             const e = parseExpr(W, t.expr, { [res.v]: res.val }), val = valueOf(e);
             return { t, e, val };
         });
-        const best = o.then.length === 1 ? vals[0] : null;
-        W.steps.push({ move: "then", title: "Answer the question", why: res.v + " = " + numText(res.val) + " is not the end. The question asks for " + o.then.map((t) => t.label.toLowerCase()).join(" and ") + ".",
-            seq: vals.map(({ t, e, val }) => ({ a: "row", row: { t: "line", cells: [R([t.label]), "=", R([exprDT(tidyParens(e)), " = ", numDT(val), t.unit || ""])], sem: { truth: true } } })) });
+        const best = vals.find((x) => x.t.pick) || (o.then.length === 1 ? vals[0] : null);
+        const low1 = (l) => l[0].toLowerCase() + l.slice(1);
+        W.steps.push({ move: "then", title: "Answer the question", why: res.v + " = " + numText(res.val) + " is not the end. " + (o.thenWhy ? o.thenWhy(vals.map((x) => numText(x.val))) : "The question asks for " + o.then.map((t) => low1(t.label)).join(" and ") + "."),
+            seq: vals.map(({ t, e, val }) => ({ a: "row", row: { t: "line", cells: [R([t.label, " = ", exprDT(tidyParens(e)), " = ", numDT(val), t.unit || ""]), null, null], sem: { truth: true } } })) });   // one piece, written from the left, so a long line above never pushes it off the board
         if (best) matchKey({ kind: "num", val: best.val }, readKey(item.a), item);
         else if (!/=/.test(item.a)) throw new Error("key");
         else { const got = item.a.split(",").map((p) => qOf(p.split("=")[1].replace(/[°\s]/g, ""))); if (got.length !== vals.length || got.some((g, i) => !g || !g.eq(vals[i].val))) throw new Error("key"); }
@@ -1024,6 +1079,113 @@ function distribNumber(W, item, k, w, n, d) {
     return true;
 }
 
+/* ---------- functions: f(x) = rule ---------- */
+/** { name, v, rule, label, at } to evaluate, or { …, out, solveFor } to find the input. null when it is not one of these. */
+function funcParse(q) {
+    let m;
+    const F = (name, v, rule, o) => Object.assign({ name, v, rule: rule.trim(), label: name === "y" ? "y" : name + "(" + v + ")" }, o);
+    if ((m = q.match(/^([A-Z])\(([a-z])\) = (.+?) is the [^.]+\. Find \1\(([^)]+)\)\.$/))) return F(m[1], m[2], m[3], { at: m[4] });
+    if ((m = q.match(/^([a-zA-Z])\(([a-z])\) = (.+?)\. Find \1\(([^)]+)\)\.$/))) return F(m[1], m[2], m[3], { at: m[4] });
+    if ((m = q.match(/^Given the function ([a-zA-Z])\(([a-z])\) = (.+?), find \1\(([^)]+)\)\.$/))) return F(m[1], m[2], m[3], { at: m[4] });
+    if ((m = q.match(/^For the function ([a-zA-Z])\(([a-z])\) = (.+?), what is the value of \1\(([^)]+)\)\?$/))) return F(m[1], m[2], m[3], { at: m[4] });
+    if ((m = q.match(/^Evaluate ([a-zA-Z])\(([a-z])\) = (.+?) for \2 = (\S+)\.$/))) return F(m[1], m[2], m[3], { at: m[4] });
+    if ((m = q.match(/^The function ([A-Z])\(([a-z])\) = (.+?) represents [^.]+\. Find \1\(([^)]+)\) and state what it means\.$/))) return F(m[1], m[2], m[3], { at: m[4], means: true });
+    if ((m = q.match(/^y = (.+?)\. Find y when x = (\S+)\.$/))) return F("y", "x", m[1], { at: m[2] });
+    if ((m = q.match(/^Evaluate the function y = (.+?) when x = (\S+)\.$/))) return F("y", "x", m[1], { at: m[2] });
+    if ((m = q.match(/^([a-zA-Z])\(([a-z])\) = (.+?)\. Find \2 when \1\(\2\) = (\S+)\.$/))) return F(m[1], m[2], m[3], { out: m[4], solveFor: m[2] });
+    if ((m = q.match(/^If ([a-zA-Z])\(([a-z])\) = (.+?) and \1\(([a-z])\) = (\S+), what is the value of \4\?$/))) return Object.assign(F(m[1], m[2], m[3], { out: m[5], solveFor: m[4] }), { label: m[1] + "(" + m[4] + ")" });
+    return null;
+}
+function funcSetup(W, item, fn) {
+    W.kind = "eval";
+    const at = qOf(fn.at); if (!at) return null;
+    const rule = parseExpr(W, fn.rule);
+    if (!rule) return null;
+    const atT = numText(at), labelAt = fn.name === "y" ? "y" : fn.name + "(" + atT + ")";
+    W.steps.push({ move: "start", title: "The problem", why: fn.name === "y" ? "The rule tells you how to get y from x. Here x is " + atT + "." : fn.label + " is the rule. " + labelAt + " means: put " + atT + " in for " + fn.v + ".",
+        seq: [{ a: "row", row: { t: "line", cells: [R([fn.label]), "=", exprDT(tidyParens(rule))] } }] });
+    const sub = tidyParens(parseExpr(W, fn.rule, { [fn.v]: at }));
+    const vs = [], ns = [];
+    (function w(n) { if (!n) return; if (n.k === "v") vs.push(n.id); w(n.a); w(n.b); })(rule);
+    (function w(n) { if (!n) return; if (n.k === "n" && n.sub) ns.push(n.id); w(n.a); w(n.b); })(sub);
+    if (!vs.length || vs.length !== ns.length) return null;
+    W.steps.push({ move: "sub", title: "Plug in " + atT, why: "Write " + atT + " everywhere " + fn.v + " was. Keep it in parentheses so the signs stay right.",
+        seq: [{ a: "row", row: { t: "line", cells: [R([labelAt]), "=", exprDT(sub)], sem: { v: valueOf(sub) } } }, { a: "fly", pairs: vs.map((v, i) => [v, ns[i]]) }] });
+    const out = evaluate(W, sub, { noStart: true });
+    const v = valueOf(out), key0 = readKey(item.a);
+    if (!key0 || key0.kind !== "num" || !v.eq(key0.v)) throw new Error("key");
+    answerStep(W, item.a, "So " + labelAt + " = " + numText(v, key0.dec || key0.money ? "dec" : "frac") + "." + (fn.means ? " Put it back in the story to say what it means." : ""));
+    return true;
+}
+
+/* ---------- expressions with a variable: simplify, expand, factor ---------- */
+function oneSide(W, text) {
+    const toks = tokens(text);
+    if (!toks || toks.some((t) => t.t === "rel" || t.t === "|")) return null;
+    const side = parseSide(W, toks), names = new Set();
+    side.forEach((t) => { if (t.v) names.add(t.v); if (t.g) t.g.forEach((x) => { if (x.v) names.add(x.v); if (x.g) names.add("?"); }); });
+    return names.size === 1 && !names.has("?") ? side : null;
+}
+/** Rows of an expression chain: the first one on the left, the rest as "= …" under it. */
+function chainRows(W, from) {
+    W.steps.slice(from).forEach((st) => st.seq.forEach((x) => {
+        if (x.a !== "row" || x.row.t !== "line" || x.row.cells.length !== 1) return;
+        x.row.cells = [null, "=", x.row.cells[0]];
+        if (x.row.sem && x.row.sem.s) x.row.sem = { f: x.row.sem.s[0] };
+    }));
+}
+function simpSetup(W, item, text) {
+    W.kind = "simp";
+    const side = oneSide(W, text); if (!side) return null;
+    const v = varOf({ s: [side] }), hasG = side.some((t) => t.g);
+    let line = { s: [side], r: [] };
+    if (!hasG && !needsCombine(side)) return null;
+    W.steps.push({ move: "start", title: "The problem", why: hasG ? "First get rid of the parentheses, then combine like terms." : "Like terms have the same variable part. Put the " + v + " terms together and the plain numbers together.",
+        seq: [{ a: "row", row: { t: "line", cells: [sideDT(side), null, null], sem: { f: formOf(side) } } }] });
+    if (hasG) line = stepDistribute(W, line);
+    if (needsCombine(line.s[0])) line = stepCombine(W, line);
+    chainRows(W, 1);
+    const k = oneSide(W, item.a); if (!k) throw new Error("key");
+    const fk = formOf(k), fl = formOf(line.s[0]);
+    if (k.some((t) => t.g) || needsCombine(k) || !fk.a.eq(fl.a) || !fk.b.eq(fl.b) || varOf({ s: [k] }) !== v) throw new Error("key");
+    answerStep(W, item.a, "No parentheses and one term of each kind: that's as simple as it gets.");
+    return true;
+}
+function factorList(n) { const out = []; for (let i = 1; i <= n; i++) if (n % i === 0) out.push(i); return out; }
+function factorSetup(W, item, text) {
+    W.kind = "simp";
+    const side = oneSide(W, text); if (!side) return null;
+    if (side.length !== 2 || side.some((t) => t.g || t.over || t.dec || !t.c.int) || !side.some((t) => t.v) || !side.some((t) => !t.v)) return null;
+    const g = gcd(side[0].c.n, side[1].c.n); if (g < 2) return null;
+    const G = new Q(g), v = varOf({ s: [side] }), f0 = formOf(side);
+    const inner = side.map((t) => ({ c: t.c.div(G), v: t.v, g: null, over: false, dec: false, k: key(W) }));
+    const grp = { c: G, v: null, g: inner, over: false, dec: false, k: key(W) };
+    W.steps.push({ move: "start", title: "The problem", why: "Factoring means writing it as a product: one number times parentheses. Start with the greatest common factor (GCF) of " + side.map((t) => Math.abs(t.c.n)).join(" and ") + ".",
+        seq: [{ a: "row", row: { t: "line", cells: [sideDT(side), null, null], sem: { f: f0 } } }] });
+    // 6x + 18 = 6 · x + 6 · 3
+    const gk = side.map(() => key(W)), items = [];
+    side.forEach((t, i) => {
+        const inT = Object.assign({}, inner[i], { c: inner[i].c.abs() });
+        if (i) items.push(t.c.sign < 0 ? " " + MINUS + " " : " + ");
+        items.push(R([i === 0 && t.c.sign < 0 ? MINUS : "", R([String(g)], { k: gk[i] }), " · ", termDT(inT, true)], { k: key(W) }));
+    });
+    const ns = side.map((t) => Math.abs(t.c.n));
+    const why1 = ns.every((n) => n <= 60) ? ns.map((n) => "Factors of " + n + ": " + factorList(n).join(", ") + ".").join(" ") + " The greatest one they share is " + g + "." : "The greatest number that divides both " + ns.join(" and ") + " is " + g + ".";
+    W.steps.push({ move: "gcf", title: "Find the GCF: " + g, why: why1 + " Write each term as " + g + " times something.",
+        seq: [{ a: "row", row: { t: "line", cells: [null, "=", R(items)], sem: { f: f0 } } }, { a: "hl", ks: gk, tone: "n" }] });
+    W.steps.push({ move: "factor", title: "Pull out the " + g, why: "Write the " + g + " once, in front. What is left of each term goes in the parentheses: " + side.map((t, i) => termText(Object.assign({}, t, { c: t.c.abs() }), true) + " ÷ " + g + " = " + termText(Object.assign({}, inner[i], { c: inner[i].c.abs() }), true)).join(" and ") + ".",
+        seq: [{ a: "row", row: { t: "line", cells: [null, "=", termDT(grp, true)], sem: { f: formOf([grp]) } } }, { a: "fly", pairs: [[gk[0], grp.k + "c"], [gk[1], grp.k + "c"]], merge: true }] });
+    const back = inner.map((t) => ({ c: t.c.mul(G), v: t.v, g: null, over: false, dec: false, k: key(W) }));
+    W.steps.push({ move: "check", title: "Check", why: "Distribute the " + g + " back: " + inner.map((t) => g + " × " + (t.c.sign < 0 && !t.v ? "(" + termText(t, true) + ")" : termText(t, true)) + " = " + termText(back[inner.indexOf(t)], true)).join(" and ") + ". You get the problem back ✓.",
+        seq: [{ a: "row", row: { t: "line", cells: [termDT(Object.assign({}, grp, { k: key(W) }), true), "=", R([sideDT(back), " ✓"])], sem: { truth: formOf(back).a.eq(f0.a) && formOf(back).b.eq(f0.b) }, c: "w-check" } }] });
+    const k = oneSide(W, item.a);
+    if (!k || k.length !== 1 || !k[0].g || !k[0].c.eq(G)) throw new Error("key");
+    const fk = formOf(k[0].g), fi = formOf(inner);
+    if (!fk.a.eq(fi.a) || !fk.b.eq(fi.b) || varOf({ s: [k] }) !== v) throw new Error("key");
+    answerStep(W, item.a, "The number in front is the GCF, so nothing else can come out.");
+    return true;
+}
+
 /** Words for a move, for chips and the list. */
-export const MOVE_NAMES = { distribute: "Distribute", combine: "Combine like terms", both: "Both sides", divide: "Divide", reciprocal: "Reciprocal", flip: "Flip the sign", swap: "Put x first", clear: "Clear fractions", kcc: "Add the opposite", kcf: "Keep, change, flip", lcd: "Common denominator", cancel: "Cancel", numline: "Number line", story: "Story to equation", fact: "Angle fact", graph: "Graph", check: "Check", abs: "Absolute value", power: "Exponent", cfrac: "Complex fraction" };
+export const MOVE_NAMES = { distribute: "Distribute", combine: "Combine like terms", both: "Both sides", divide: "Divide", reciprocal: "Reciprocal", flip: "Flip the sign", swap: "Put x first", clear: "Clear fractions", kcc: "Add the opposite", kcf: "Keep, change, flip", lcd: "Common denominator", cancel: "Cancel", numline: "Number line", story: "Story to equation", fact: "Angle fact", graph: "Graph", check: "Check", sub: "Plug in", gcf: "Find the GCF", factor: "Factor", abs: "Absolute value", power: "Exponent", cfrac: "Complex fraction" };
 export { parseLine as _parseLine, parseExpr as _parseExpr, valueOf as _valueOf, sameAnswers as _sameAnswers, semOf as _semOf };

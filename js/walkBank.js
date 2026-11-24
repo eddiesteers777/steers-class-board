@@ -6,7 +6,7 @@
    teacher/{uid}/walk/ok and teacher/{uid}/walk/edits.
 ========================================== */
 import { loadStdBank } from "./stdBank.js?v=4";
-import { walkFor } from "./walk.js?v=1";
+import { walkFor } from "./walk.js?v=2";
 
 let cache = null;
 const built = new Map();
