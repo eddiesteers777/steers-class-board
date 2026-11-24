@@ -34,3 +34,19 @@ body.board .spotcount{position:fixed;left:auto;right:130px;bottom:22px;z-index:5
 body.board.idle .bnav,body.board.idle .bpanels,body.board.idle #exit{opacity:.12}
 body.board.idle .spotcount{opacity:0}
 body.board.idle .sndtap{opacity:.55;transition:opacity .3s}
+
+/* 4. the drawing rail lies flat at the bottom middle (Eddie, 2026-11-24: "Move it to the bottom middle"), glass like the rest.
+      The whiteboard's page buttons and the math tool tray move up to sit above it, and the lesson card moves to the left edge. */
+body.board .wbrail{left:50%;right:auto;top:auto;bottom:.55em;transform:translateX(-50%);flex-direction:row;gap:.2em;padding:.3em .45em;
+  max-width:calc(100% - 1em);max-height:none;overflow-x:auto;overflow-y:hidden;border-radius:999px}
+body.board .wbrail .rsep{width:.06em;height:1.2em;margin:0 .14em}
+body.board .wbrail .rsw{display:flex;align-items:center;gap:.26em;padding:0 .12em}
+body.board .wbrail .rb{flex:none}
+body.board .wbrail .rb:hover{background:rgba(255,255,255,.16)}
+body.board .wbpages{bottom:3.35em}
+body.board .wbpaper .mathmenu{bottom:6.4em}
+body.board .wbcard,body.board .wbshow{left:.6em}
+body.board .cv .inknote{left:.6em;bottom:3.35em}
+
+/* panels docked at the side start under Panels and Show controls, so the top-right corner buttons never cover a panel */
+body.board .toolshelf{padding-top:52px}

@@ -142,7 +142,7 @@ function loadApi() {
 /**
  * Mount the pill and the panel. A = {
  *   S, push(), quiet(), store() (null on a guest page), playsHere(), readOnly(), guest, slot() (top-bar element to sit before),
- *   unlock() (wake the board's sound), refresh() (redraw the Sound menu)
+ *   unlock() (wake the board's sound), refresh() (redraw the Sound menu), genName() (the built-in music style's name)
  * }
  */
 export function mountYt(A) {
@@ -161,7 +161,10 @@ export function mountYt(A) {
     const pPlay = btn("ytp-play", "play", "Play");
     pill.append(pOpen, pPlay);
     pOpen.onclick = () => setOpen(!open);
-    pPlay.onclick = () => togglePlay();
+    // The pill's play button is the one music switch in the top bar (Eddie, 2026-11-24: the YouTube play button and the
+    // "Music on" button did the same job). With a YouTube pick as the music it plays and pauses that; with the built-in
+    // music it turns that on and off.
+    pPlay.onclick = () => { const so = A.S.sound; if (so.src === "yt" && so.yt) togglePlay(); else { so.music = !so.music; if (A.unlock) A.unlock(); A.push(); } };
 
     /* --- the panel --- */
     const panel = el("section", "ytpanel"); panel.id = "ytPanel"; panel.setAttribute("aria-label", "YouTube music"); panel.hidden = true;
@@ -593,13 +596,16 @@ export function mountYt(A) {
         subs.forEach((f) => { try { f({ open: open && !A.readOnly(), playing, name: on ? nameOf(y) : "" }); } catch (e) { /* theirs */ } });
         // pill
         pill.hidden = A.readOnly();
-        pill.classList.toggle("playing", playing); pill.classList.toggle("isopen", open);
-        pOpen.querySelector(".ytp-t").textContent = on ? nameOf(y) : "YouTube";
+        pill.classList.toggle("isopen", open);
+        const gen = so.src !== "yt", genPlaying = gen && so.music;
+        pill.classList.toggle("playing", playing || genPlaying);
+        pOpen.querySelector(".ytp-t").textContent = on ? nameOf(y) : genPlaying ? ((A.genName && A.genName()) || "Music") : "Music";
         pOpen.setAttribute("aria-label", (open ? "Close" : "Open") + " the music panel" + (on ? ", " + nameOf(y) : ""));
         pOpen.setAttribute("aria-expanded", String(open));
         pOpen.querySelector(".ytp-ch").innerHTML = svg(open ? IC.min : IC.open);
-        pPlay.hidden = !on;
-        pPlay.innerHTML = svg(playing ? IC.pause : IC.play); pPlay.setAttribute("aria-label", playing ? "Pause" : "Play"); pPlay.title = playing ? "Pause" : "Play";
+        pPlay.hidden = !on && !gen;
+        { const pl = playing || genPlaying, t = gen ? (pl ? "Pause the music" : "Play the built-in music") : (pl ? "Pause" : "Play");
+          pPlay.innerHTML = svg(pl ? IC.pause : IC.play); pPlay.setAttribute("aria-label", t); pPlay.title = t; }
         // panel
         panel.hidden = !open || A.readOnly();
         if (panel.hidden) { host.classList.remove("show"); host.style.cssText = ""; return; }
