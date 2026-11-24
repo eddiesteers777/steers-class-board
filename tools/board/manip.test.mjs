@@ -99,6 +99,35 @@ t("expression area model", () => {
     assert.equal(M.mtChip("area", { mt: { area: M.exDefault() } }).v, "3(2x + 3) = 6x + 9");
 });
 
+t("rational number line", () => {
+    const N = M.nlDefault();
+    assert.equal(M.nlSum(N), "−1 1/2 + 2 3/4 = 1 1/4");
+    N.op = "−"; assert.equal(M.nlSum(N), "−1 1/2 − 2 3/4 = −4 1/4"); assert.equal(M.nlMove(N), -11);
+    N.q = -6; assert.equal(M.nlSum(N), "−1 1/2 − (−1 1/2) = 0");
+    N.op = "+"; N.q = 6; assert.equal(M.nlEnd(N), 0);
+    N.f = "dec"; assert.equal(M.nlSum(N), "−1.5 + 1.5 = 0");
+    assert.equal(M.nlText(-5, 3, "frac"), "−1 2/3"); assert.equal(M.nlText(1, 3, "dec"), "0.3\u0305"); assert.equal(M.nlText(10, 4, "frac"), "2 1/2"); assert.equal(M.nlText(3, 10, "dec"), "0.3");
+    assert.deepEqual(M.nlDec(-7, 3), { s: "−2.", rep: "3" });
+    assert.deepEqual(M.nlParts(6, 8), { neg: false, w: 0, num: 3, den: 4, zero: false });
+    // limits: nothing leaves −10..10
+    const L = Object.assign(M.nlDefault(), { p: 30, q: 10 });
+    assert.equal(M.nlStep(L, "q", 1), false); assert.equal(M.nlStep(L, "p", -1), true); assert.equal(L.p, 29);
+    assert.equal(M.nlSet(L, "q", 12), false); assert.equal(M.nlSet(L, "q", -40), true); assert.equal(M.nlStep(L, "p", 12), false);
+    // changing the step size keeps the values close
+    const D = M.nlDefault(); M.nlDen(D, 2); assert.deepEqual([D.d, D.p, D.q], [2, -3, 6]); M.nlDen(D, 10); assert.deepEqual([D.p, D.q], [-15, 30]);
+    D.m = "dist"; D.a = -25; D.b = 13;
+    assert.equal(M.nlSum(Object.assign({}, D, { f: "dec" })), "|1.3 − (−2.5)| = 3.8");
+    assert.equal(M.nlSum(D, true), "|1 3/10 − (−2 1/2)| = ?");
+    let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+    const R = M.nlDefault();
+    for (let i = 0; i < 100; i++) { M.nlNew(R, rnd); const e = M.nlEnd(R); assert.ok(R.q !== 0 && Math.abs(e) <= M.NL_MAX * R.d && Math.abs(R.p) <= 4 * R.d, M.nlSum(R)); }
+    R.m = "dist"; for (let i = 0; i < 50; i++) { M.nlNew(R, rnd); assert.ok(R.a !== R.b, M.nlSum(R)); }
+    const c = M.cleanMt({ nl: { m: "zz", d: 7, f: "dec", op: "x", p: 999, q: "a", a: -999, b: 3.4, hide: 1 } }).nl;
+    assert.deepEqual([c.m, c.d, c.f, c.op, c.p, c.q, c.a, c.b, c.hide], ["add", 4, "dec", "+", 40, 0, -40, 3, true]);
+    assert.equal(M.mtChip("nl", { mt: { nl: M.nlDefault() } }).v, "−1 1/2 + 2 3/4 = 1 1/4");
+    assert.equal(M.mtChip("nl", { mt: { nl: Object.assign(M.nlDefault(), { hide: true }) } }).v, "−1 1/2 + 2 3/4 = ?");
+});
+
 t("function machine", () => {
     const F = M.fnDefault();
     assert.equal(M.fnRule(F), "2x + 1");

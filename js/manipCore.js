@@ -10,6 +10,7 @@
      counters  Integer counters     two-colour counters and zero pairs (7.4, 7.5)
      angle     Angle explorer       parallel lines cut by a transversal, and a triangle's corners torn onto a line (8.25)
      area      Expression area model  a(bx + c) as tiles or an area box, expand and factor (7.6, 7.7)
+     nl        Rational number line  jumps with fractions and decimals, subtracting as adding the opposite, distance (7.5)
      fn        Function machine     inputs go in, the rule makes outputs; mystery rules, and "function or not?" (8.13, 8.14)
      calc      Basic calculator     + − × ÷ and percent, with the order of operations
      sci       Scientific calculator powers, roots, trig, logs, Ans and fraction answers
@@ -20,7 +21,7 @@
 ========================================== */
 import { gcDefault, cleanGc, fmt } from "./graphCalc.js?v=1";
 
-export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "angle", "fn", "area", "calc", "sci", "graph"];
+export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "angle", "fn", "area", "nl", "calc", "sci", "graph"];
 export const isMt = (k) => MT_KEYS.includes(k);
 
 const int = (v, d) => { const n = Math.round(+v); return Number.isFinite(n) ? n : d; };
@@ -400,6 +401,79 @@ function cleanEx(o) {
         p: nz(o.p, EX_P, 6), q: nz(o.q, EX_Q, 9), r: cint(o.r, 1, EX_R, 1) };
 }
 
+/* ---------- Rational number line ---------- */
+/* Every value is a whole number of steps of 1/d (p = −6 with d = 4 is −1½), so the sums are always exact. */
+export const NL_MAX = 10, NL_DENS = [2, 3, 4, 5, 8, 10];   // values stay within −10..10
+export const nlDefault = () => ({ m: "add", d: 4, f: "frac", op: "+", p: -6, q: 11, a: -10, b: 5, hide: false, rv: false });
+/** Where the jump lands, in steps. */
+export const nlEnd = (N) => (N.op === "−" ? N.p - N.q : N.p + N.q);
+/** The move the jump makes: subtracting q is adding −q. */
+export const nlMove = (N) => (N.op === "−" ? -N.q : N.q);
+/** n/d as sign, whole, and a reduced fraction part. */
+export function nlParts(n, d) {
+    const neg = n < 0, A = Math.abs(n), w = Math.floor(A / d), r = A % d;
+    return { neg: neg && A > 0, w, num: r / (r ? gcd(r, d) : 1), den: r ? d / gcd(r, d) : 1, zero: A === 0 };
+}
+/** n/d as a decimal: { s } when it ends, or { s, rep } when one digit repeats (thirds). */
+export function nlDec(n, d) {
+    const P = nlParts(n, d), sg = P.neg ? "−" : "";
+    if (P.den === 3) return { s: sg + P.w + ".", rep: P.num === 1 ? "3" : "6" };
+    const v = Math.abs(n) / d;
+    return { s: sg + String(Math.round(v * 1000) / 1000) };
+}
+/** Plain text for n/d: "−1 1/2", or "−1.5", or "0.3̅" for a repeating decimal. */
+export function nlText(n, d, f) {
+    if (f === "dec") { const D = nlDec(n, d); return D.rep ? D.s + D.rep + "̅" : D.s; }
+    const P = nlParts(n, d);
+    if (P.zero) return "0";
+    return (P.neg ? "−" : "") + (P.w ? String(P.w) : "") + (P.num ? (P.w ? " " : "") + P.num + "/" + P.den : "");
+}
+const nlPar = (n, d, f) => (n < 0 ? "(" + nlText(n, d, f) + ")" : nlText(n, d, f));
+/** The whole sentence, as plain text: "−1 1/2 + 2 3/4 = 1 1/4" or "|1 1/4 − (−2 1/2)| = 3 3/4". */
+export function nlSum(N, hideAns) {
+    if (N.m === "dist") return "|" + nlText(N.b, N.d, N.f) + " − " + nlPar(N.a, N.d, N.f) + "| = " + (hideAns ? "?" : nlText(Math.abs(N.b - N.a), N.d, N.f));
+    return nlText(N.p, N.d, N.f) + " " + N.op + " " + nlPar(N.q, N.d, N.f) + " = " + (hideAns ? "?" : nlText(nlEnd(N), N.d, N.f));
+}
+export const nlIn = (n, d) => Math.abs(n) <= NL_MAX * d;
+/** Move one value by k steps, if everything stays on the line. */
+export function nlStep(N, key, k) {
+    const T = Object.assign({}, N, { [key]: N[key] + k });
+    if (!nlIn(T[key], N.d) || (N.m === "add" && !nlIn(nlEnd(T), N.d))) return false;
+    N[key] = T[key]; N.rv = false; return true;
+}
+/** Set a value straight (a drag); false if it would leave the line. */
+export function nlSet(N, key, v) {
+    const T = Object.assign({}, N, { [key]: Math.round(v) });
+    if (!nlIn(T[key], N.d) || (N.m === "add" && !nlIn(nlEnd(T), N.d))) return false;
+    N[key] = T[key]; return true;
+}
+/** Change the step size, keeping each value as close as it can. */
+export function nlDen(N, d) {
+    if (!NL_DENS.includes(d) || d === N.d) return;
+    const cv = (n) => Math.max(-NL_MAX * d, Math.min(NL_MAX * d, Math.round(n * d / N.d)));
+    N.p = cv(N.p); N.q = cv(N.q); N.a = cv(N.a); N.b = cv(N.b); N.d = d; N.rv = false;
+    if (!nlIn(nlEnd(N), d)) N.q = 0;
+}
+/** A new problem in the current step size: a start and a jump that cross 0 more often than not. */
+export function nlNew(N, rnd = Math.random) {
+    const d = N.d, pick = (lo, hi) => lo + Math.floor(rnd() * (hi - lo + 1)), R = 4 * d;
+    let n = 0;
+    do {
+        if (N.m === "dist") { N.a = pick(-R, R); N.b = pick(-R, R); }
+        else { N.p = pick(-R, R); N.q = pick(-R, R); N.op = rnd() < 0.35 ? "−" : "+"; }
+        n++;
+    } while (n < 40 && (N.m === "dist" ? Math.abs(N.a - N.b) < d / 2 || N.a % d === 0 && N.b % d === 0 : N.q === 0 || N.p === 0 || (N.p % d === 0 && N.q % d === 0) || !nlIn(nlEnd(N), d)));
+    N.rv = false;
+}
+function cleanNl(o) {
+    const D = nlDefault(); if (!o || typeof o !== "object") return D;
+    const d = NL_DENS.includes(+o.d) ? +o.d : D.d, L = NL_MAX * d;
+    const N = { m: o.m === "dist" ? "dist" : "add", d, f: o.f === "dec" ? "dec" : "frac", op: o.op === "−" ? "−" : "+",
+        p: cint(o.p, -L, L, D.p), q: cint(o.q, -L, L, D.q), a: cint(o.a, -L, L, D.a), b: cint(o.b, -L, L, D.b), hide: !!o.hide, rv: !!o.rv };
+    if (!nlIn(nlEnd(N), d)) N.q = 0;
+    return N;
+}
+
 /* ---------- all six ---------- */
 /* ---------- the calculators: the line being typed, the last answers, and the scientific one's modes ---------- */
 const calcDefault = () => ({ x: "", h: [], a: 0, done: false });
@@ -414,8 +488,8 @@ function cleanCalc(o) {
     return out;
 }
 
-const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, angle: angDefault, fn: fnDefault, area: exDefault, calc: calcDefault, sci: sciDefault, graph: gcDefault };
-const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, angle: cleanAng, fn: cleanFn, area: cleanEx, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
+const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, angle: angDefault, fn: fnDefault, area: exDefault, nl: nlDefault, calc: calcDefault, sci: sciDefault, graph: gcDefault };
+const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, angle: cleanAng, fn: cleanFn, area: cleanEx, nl: cleanNl, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
 export const mtDefault = (k) => DEFAULTS[k]();
 /** tools.mt as saved: only panels that were used are kept, each cleaned. */
 export function cleanMt(o) { const out = {}; if (!o || typeof o !== "object") return out; MT_KEYS.forEach((k) => { if (o[k] && typeof o[k] === "object") out[k] = CLEAN[k](o[k]); }); return out; }
@@ -433,6 +507,7 @@ export function mtChip(k, T) {
     if (k === "graph") { const n = s.e.filter((x) => x.t.trim()).length; return { v: n === 1 ? s.e.find((x) => x.t.trim()).t.slice(0, 16) : n ? n + " graphs" : "Graph" }; }
     if (k === "angle") { if (s.m === "tri") { const d = triAngles(s.t).deg; return { v: d.join("° + ") + "° = 180°" }; } return { v: (s.np ? "Not parallel, " : "") + s.a + "° and " + (180 - s.a) + "°" }; }
     if (k === "area") { if (s.m === "fac") { const R = exRows(s); return { v: R.even ? (s.r === 1 ? exLin(s.p, s.q) : s.r + "(" + R.inside + ")") : exLin(s.p, s.q), tone: R.best ? "green" : "" }; } return { v: exFactored(s.a, s.b, s.c) + " = " + (s.hide ? "?" : exExpanded(s.a, s.b, s.c)) }; }
+    if (k === "nl") return { v: nlSum(s, s.hide && !s.rv) };
     if (k === "fn") return { v: s.m === "test" ? "Function or not?" : s.hide ? "Mystery rule" : "y = " + fnRule(s) };
     if (k === "counters") { const v = ctValue(s); return { v: (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) }; }
     return { v: "" };
