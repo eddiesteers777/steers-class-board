@@ -17,6 +17,7 @@ body.slidemode .cbrand span,body.slidemode #status,body.slidemode #openBoard{dis
 body:not(.slidemode) #slBarSlot{display:none}
 body.slidemode .cbar{flex-wrap:nowrap;gap:10px}
 body.slidemode .cbar .smode{margin-right:0}
+body.slidemode .ytpill.inbar .ytp-t,body.slidemode .ytpill.inbar .ytp-ch{display:none}   /* music pill: icon + play only, so the lesson row fits */
 body.slidemode .cbar .smode button{padding:7px 11px}
 #slBarSlot{flex:1;min-width:0}
 body:not(.slidemode) #slideApp{display:none}
@@ -267,7 +268,7 @@ body.sldragging,body.sldragging *{cursor:grabbing!important;user-select:none!imp
 .slrow .slteach i{font-style:normal}
 @media (max-width:1240px){.slrow .slteach i{display:none} .slrow .slteach{padding:0 14px}}
 @media (max-width:1060px){.slwkt small{display:none} .slwkt{max-width:110px} .slrow .slteach span{display:none} .slrow .slteach{padding:0 12px}}
-@media (max-width:940px) and (min-width:861px){.slwkt{max-width:92px} .slwka{width:26px} .slday{min-width:40px;padding:3px 5px}}
+@media (max-width:940px) and (min-width:861px){body.slidemode .ytpill.inbar{display:none} .slwkt{max-width:92px} .slwka{width:26px} .slday{min-width:40px;padding:3px 5px}}
 @media (max-width:1060px){.slsave[data-state="wait"]{font-size:0;gap:0;padding:6px}}
 @media (max-width:860px){
   .smode button span{display:none}
