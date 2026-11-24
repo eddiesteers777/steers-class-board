@@ -73,7 +73,7 @@ export function mountStudentsNav(here) { mountSectionNav("students", here); }
 export function mountPlanNav(here) {
     const nav = mountSectionNav("plan", here);
     if (!nav || !CALERA_ONLY.every((p) => p !== here)) return;   // the Calera-only pages already send a starter account home
-    import("../data/weeks.js?v=61").then(({ PACK }) => { if (PACK !== "calera") nav.remove(); }).catch(() => {});
+    import("../data/weeks.js?v=62").then(({ PACK }) => { if (PACK !== "calera") nav.remove(); }).catch(() => {});
 }
 
 /** The period shared by the Students tabs. Falls back to the page's own saved choice. */

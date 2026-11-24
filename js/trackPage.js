@@ -615,7 +615,7 @@ async function start() {
     }
     const storeP = DEMO ? Promise.resolve(demoStore()) : realStore();
     if (DEMO) PERIODS = ["1st", "2nd", "4th", "5th", "6th"].map((p) => [p, ""]);
-    else import("../data/weeks.js?v=61").then((m) => { if (Array.isArray(m.PERIODS) && m.PERIODS.length) { PERIODS = m.PERIODS; choosePeriod(); draw(); quickSave(); } }, () => {});
+    else import("../data/weeks.js?v=62").then((m) => { if (Array.isArray(m.PERIODS) && m.PERIODS.length) { PERIODS = m.PERIODS; choosePeriod(); draw(); quickSave(); } }, () => {});
     choosePeriod();
     [...$("views").children].forEach((b) => { b.onclick = () => { S.view = b.dataset.v; remember("view", S.view); if (S.view !== "class") S.sel = null; draw(); window.scrollTo({ top: 0 }); }; });
     $("sheetClose").onclick = closeSheet;

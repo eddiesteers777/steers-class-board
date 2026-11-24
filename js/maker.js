@@ -12,7 +12,7 @@
 ========================================== */
 import * as V from "./vaultCore.js?v=75";
 import * as F from "./acapFormats.js?v=1";
-import { WEEKS as PUBLISHED } from "../data/weeks.js?v=61";
+import { WEEKS as PUBLISHED } from "../data/weeks.js?v=62";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { extract, norm as bnorm, KINDS } from "./bank.js?v=2";
 import { loadStdBank, inClass, KIND as SB_KIND, WEEK_ID as SB_WEEK, WEEK_LABEL as SB_LABEL } from "./stdBank.js?v=2";
