@@ -8,6 +8,7 @@
      xform     Transformations      slide, flip, turn, dilate a shape; coordinates and the rule (8.22–8.24)
      pyth      Pythagorean squares  a right triangle with a square on each side (8.26–8.28)
      counters  Integer counters     two-colour counters and zero pairs (7.4, 7.5)
+     angle     Angle explorer       parallel lines cut by a transversal, and a triangle's corners torn onto a line (8.25)
      calc      Basic calculator     + − × ÷ and percent, with the order of operations
      sci       Scientific calculator powers, roots, trig, logs, Ans and fraction answers
      graph     Graphing calculator  expressions, sliders and a live graph (js/graphPanel.js)
@@ -17,7 +18,7 @@
 ========================================== */
 import { gcDefault, cleanGc, fmt } from "./graphCalc.js?v=1";
 
-export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "calc", "sci", "graph"];
+export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "angle", "calc", "sci", "graph"];
 export const isMt = (k) => MT_KEYS.includes(k);
 
 const int = (v, d) => { const n = Math.round(+v); return Number.isFinite(n) ? n : d; };
@@ -251,6 +252,59 @@ export function ctPair(K) { if (K.p >= CT_MAX || K.n >= CT_MAX) return "The mat 
 export function ctClear(K) { const z = Math.min(K.p, K.n); K.p -= z; K.n -= z; return z; }
 function cleanCt(o) { const d = ctDefault(); if (!o || typeof o !== "object") return d; return { p: cint(o.p, 0, CT_MAX, 0), n: cint(o.n, 0, CT_MAX, 0), pr: !!o.pr }; }
 
+/* ---------- Angle explorer ---------- */
+/* Two parallel lines cut by a transversal, angles numbered 1–8 (1 top left, 2 top right, 3 bottom left, 4 bottom right
+   at the top crossing; 5–8 the same at the bottom one), and a triangle whose corners tear off onto a straight line. */
+export const ANG_MIN = 30, ANG_MAX = 150, ANG_TILT = 12;   // the transversal's slant, and how far "not parallel" tips the lower line
+export const ANG_W = 360, ANG_H = 280, TRI_BOT = 205;      // the triangle stays above the strip where its corners land
+export const ANG_PAIRS = {
+    corr: { name: "Corresponding", plural: "Corresponding angles", same: true, pairs: [[1, 5], [2, 6], [3, 7], [4, 8]], where: "sit in the same spot at each crossing" },
+    altin: { name: "Alternate interior", plural: "Alternate interior angles", same: true, pairs: [[3, 6], [4, 5]], where: "sit between the lines, on opposite sides of the transversal" },
+    altex: { name: "Alternate exterior", plural: "Alternate exterior angles", same: true, pairs: [[1, 8], [2, 7]], where: "sit outside the lines, on opposite sides of the transversal" },
+    same: { name: "Same-side interior", plural: "Same-side interior angles", same: false, pairs: [[3, 5], [4, 6]], where: "sit between the lines, on the same side of the transversal" },
+    vert: { name: "Vertical", plural: "Vertical angles", same: true, pairs: [[1, 4], [2, 3], [5, 8], [6, 7]], where: "sit across from each other at one crossing" },
+    lin: { name: "Linear pair", plural: "Linear pairs", same: false, pairs: [[1, 2], [3, 4], [5, 6], [7, 8], [1, 3], [2, 4], [5, 7], [6, 8]], where: "sit side by side on one line" },
+};
+export const ANG_KINDS = Object.keys(ANG_PAIRS);
+export function angDefault() { return { m: "par", a: 60, np: false, pk: "", sel: [], hide: false, rv: [], t: [[70, 195], [300, 195], [205, 55]], torn: false }; }
+/** The eight angles, index 1–8 (0 is unused). Whole degrees. */
+export function angVals(A) {
+    const a = A.a, b = A.a - (A.np ? ANG_TILT : 0);
+    return [0, 180 - a, a, a, 180 - a, 180 - b, b, b, 180 - b];
+}
+/** What two angles are to each other: the pair's name, and whether they match or add to 180°. */
+export function angPair(A, i, j) {
+    const v = angVals(A);
+    if (i === j) return null;
+    for (const k of ANG_KINDS) {
+        const P = ANG_PAIRS[k];
+        if (P.pairs.some(([x, y]) => (x === i && y === j) || (x === j && y === i))) {
+            const ok = P.same ? v[i] === v[j] : v[i] + v[j] === 180;
+            return { kind: k, name: P.name, same: P.same, ok, a: v[i], b: v[j] };
+        }
+    }
+    return { kind: "", name: "", same: v[i] === v[j], ok: v[i] === v[j] || v[i] + v[j] === 180, a: v[i], b: v[j] };
+}
+/** A triangle's three angles: exact, and in whole degrees that still add to 180. */
+export function triAngles(t) {
+    const ang = (p, q, r) => { const u = [q[0] - p[0], q[1] - p[1]], w = [r[0] - p[0], r[1] - p[1]]; const c = (u[0] * w[0] + u[1] * w[1]) / (Math.hypot(...u) * Math.hypot(...w)); return Math.acos(clamp(c, -1, 1)) * 180 / Math.PI; };
+    const ex = [ang(t[0], t[1], t[2]), ang(t[1], t[2], t[0]), ang(t[2], t[0], t[1])];
+    const fl = ex.map(Math.floor); let left = 180 - fl.reduce((x, y) => x + y, 0);
+    ex.map((x, i) => [x - fl[i], i]).sort((p, q) => q[0] - p[0]).forEach(([, i]) => { if (left > 0) { fl[i]++; left--; } });
+    return { ex, deg: fl };
+}
+export const triArea = (t) => Math.abs((t[1][0] - t[0][0]) * (t[2][1] - t[0][1]) - (t[2][0] - t[0][0]) * (t[1][1] - t[0][1])) / 2;
+/** A corner may move here: on the page, above the strip, and the triangle keeps some width (no corner under 8°). */
+export function triOk(t) { return t.every(([x, y]) => x >= 15 && x <= ANG_W - 15 && y >= 15 && y <= TRI_BOT) && triArea(t) >= 600 && triAngles(t).ex.every((x) => x >= 8); }
+function cleanAng(o) {
+    const d = angDefault(); if (!o || typeof o !== "object") return d;
+    const idx = (v) => { const n = int(v, 0); return n >= 1 && n <= 8 ? n : 0; };
+    const list = (v, n) => (Array.isArray(v) ? v : []).map(idx).filter((x, i, a) => x && a.indexOf(x) === i).slice(0, n);
+    let t = Array.isArray(o.t) && o.t.length === 3 && o.t.every((q) => Array.isArray(q) && q.length === 2) ? o.t.map((q) => [cint(q[0], 0, ANG_W, 0), cint(q[1], 0, ANG_H, 0)]) : d.t;
+    if (!triOk(t)) t = d.t;
+    return { m: o.m === "tri" ? "tri" : "par", a: cint(o.a, ANG_MIN, ANG_MAX, 60), np: !!o.np, pk: ANG_KINDS.includes(o.pk) ? o.pk : "", sel: list(o.sel, 2), hide: !!o.hide, rv: list(o.rv, 8), t, torn: !!o.torn };
+}
+
 /* ---------- all six ---------- */
 /* ---------- the calculators: the line being typed, the last answers, and the scientific one's modes ---------- */
 const calcDefault = () => ({ x: "", h: [], a: 0, done: false });
@@ -265,8 +319,8 @@ function cleanCalc(o) {
     return out;
 }
 
-const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, calc: calcDefault, sci: sciDefault, graph: gcDefault };
-const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
+const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, angle: angDefault, calc: calcDefault, sci: sciDefault, graph: gcDefault };
+const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, angle: cleanAng, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
 export const mtDefault = (k) => DEFAULTS[k]();
 /** tools.mt as saved: only panels that were used are kept, each cleaned. */
 export function cleanMt(o) { const out = {}; if (!o || typeof o !== "object") return out; MT_KEYS.forEach((k) => { if (o[k] && typeof o[k] === "object") out[k] = CLEAN[k](o[k]); }); return out; }
@@ -282,6 +336,7 @@ export function mtChip(k, T) {
     if (k === "pyth") return { v: s.a + "² + " + s.b + "² = " + pyOf(s).c2 };
     if (k === "calc" || k === "sci") return { v: s.done && num(s.r) != null ? fmt(s.r) : s.x ? s.x.slice(-14) : "0" };
     if (k === "graph") { const n = s.e.filter((x) => x.t.trim()).length; return { v: n === 1 ? s.e.find((x) => x.t.trim()).t.slice(0, 16) : n ? n + " graphs" : "Graph" }; }
+    if (k === "angle") { if (s.m === "tri") { const d = triAngles(s.t).deg; return { v: d.join("° + ") + "° = 180°" }; } return { v: (s.np ? "Not parallel, " : "") + s.a + "° and " + (180 - s.a) + "°" }; }
     if (k === "counters") { const v = ctValue(s); return { v: (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) }; }
     return { v: "" };
 }

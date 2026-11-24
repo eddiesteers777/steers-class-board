@@ -82,6 +82,21 @@ t("integer counters", () => {
     assert.match(M.ctAdd({ p: 20, n: 0 }, "p"), /holds/);
 });
 
+t("angle explorer", () => {
+    const A = M.angDefault();
+    assert.deepEqual(M.angVals(A).slice(1), [120, 60, 60, 120, 120, 60, 60, 120]);
+    for (const k of M.ANG_KINDS) M.ANG_PAIRS[k].pairs.forEach(([i, j]) => assert.equal(M.angPair(A, i, j).ok, true, k + " " + i + "," + j));
+    assert.equal(M.angPair(A, 3, 6).name, "Alternate interior"); assert.equal(M.angPair(A, 4, 6).name, "Same-side interior");
+    const N = Object.assign(M.angDefault(), { np: true });
+    assert.equal(M.angPair(N, 2, 6).ok, false); assert.equal(M.angPair(N, 2, 3).ok, true, "vertical angles match even when the lines are not parallel");
+    const d = M.triAngles([[0, 0], [100, 0], [0, 100]]).deg; assert.deepEqual(d, [90, 45, 45]);
+    for (let n = 0; n < 50; n++) { const t = [[20 + n, 190], [330 - n, 180], [100 + 3 * n, 30 + n]]; assert.equal(M.triAngles(t).deg.reduce((a, b) => a + b, 0), 180); }
+    assert.equal(M.triOk([[20, 100], [300, 100], [160, 100]]), false, "a flat triangle is not allowed");
+    const c = M.cleanMt({ angle: { m: "tri", a: 500, pk: "evil", sel: [9, 3, 3, 4, 5], rv: ["x"], t: [[0, 0], [1, 1], [2, 2]], torn: 1 } }).angle;
+    assert.deepEqual([c.m, c.a, c.pk, c.sel, c.rv, c.torn], ["tri", 150, "", [3, 4], [], true]);
+    assert.deepEqual(c.t, M.angDefault().t);
+});
+
 t("saved state is cleaned", () => {
     assert.deepEqual(M.cleanMt(null), {}); assert.deepEqual(M.cleanMt({ evil: { a: 1 } }), {});
     const c = M.cleanMt({ balance: { e: [2, 2, 2, 9], s: [1, 2, 3, 4] }, chance: { m: "dice", d2: true, t: [1, "x", -4], last: 99, rot: "NaN" }, line: { a: [99, -99], b: [99, -99] },

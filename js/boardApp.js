@@ -12,7 +12,7 @@ import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST } from "./boardTools.js?v=66";
+import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST } from "./boardTools.js?v=67";
 import { FIND_KEYS } from "./findCore.js?v=1";
 import { setPhotoStore } from "./myPhotos.js?v=1";
 import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, isOn, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=25";
@@ -30,7 +30,7 @@ import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } fr
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 import { notesFrames } from "./notesFrames.js?v=1";
 import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=6";
-import { mountAttendance, syncAttendance } from "./attendanceRemote.js?v=4";
+import { mountAttendance, syncAttendance } from "./attendanceRemote.js?v=5";
 import { cleanChart, cleanPeriod, cleanView, seatCount, drawRoom } from "./seats.js?v=7";
 import { DAILY as SL_DAILY, INDEX as SL_INDEX, MAX_DAILY as SL_MAX_DAILY, cleanDeck, cleanIndex, showList, revealSteps, indexHas, liveContext, lessonDate, textOf } from "./slides.js?v=2";
 import { renderSlide, fitSlide, imageLoader, thumb } from "./slideView.js?v=2";
@@ -1284,7 +1284,7 @@ function blanked(text, reveal) {
 }
 
 /* ---------- floating tools (shown over every screen) ---------- */
-const DEFAULT_POS = { calc: [62, 8], sci: [38, 6], graph: [4, 4], balance: [6, 6], chance: [10, 6], line: [8, 6], xform: [6, 4], pyth: [12, 6], counters: [14, 10], find: [44, 4], find2: [4, 30], find3: [36, 30], find4: [68, 30], slide: [2, 2], cam: [56, 34], pick: [34, 30], groups: [10, 24],  traffic: [2, 23], work: [10, 55], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40], goal: [60, 30], ptimer: [66, 18], target: [24, 8], agenda: [4, 18], period: [66, 6] };
+const DEFAULT_POS = { calc: [62, 8], sci: [38, 6], graph: [4, 4], balance: [6, 6], chance: [10, 6], line: [8, 6], xform: [6, 4], pyth: [12, 6], counters: [14, 10], angle: [10, 5], find: [44, 4], find2: [4, 30], find3: [36, 30], find4: [68, 30], slide: [2, 2], cam: [56, 34], pick: [34, 30], groups: [10, 24],  traffic: [2, 23], work: [10, 55], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40], goal: [60, 30], ptimer: [66, 18], target: [24, 8], agenda: [4, 18], period: [66, 6] };
 let topZ = 1;
 let layerSig = "", dragging = false;
 /** Where a new Find panel goes: beside the Find panel it was opened from (right, left, then below), clear of the other

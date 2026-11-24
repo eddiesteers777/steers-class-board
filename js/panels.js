@@ -7,7 +7,7 @@
    set the screen and the panels in one tap. All of it lives in S.tools
    inside the shared board state, so the board and the Remote always match.
 ========================================== */
-import { buildWidget, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=66";
+import { buildWidget, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=67";
 import { meterEl, setVoice, camBody, tooLoud } from "./roomSense.js?v=1";
 import { MARKS, markUrl } from "./marks.js?v=1";
 import { EFFECTS, FX_AMOUNTS, applyEffect, effectSample } from "./effects.js?v=3";
@@ -15,8 +15,8 @@ import { isMine, mineList, mineSrc, onMine, addMine, removeMine, MY_MAX } from "
 import { cleanStickers } from "./stickers.js?v=1";
 import { findBody, findChip, findTitle } from "./findPanel.js?v=7";
 import { isFind, FIND_KEYS } from "./findCore.js?v=1";
-import { mtBody } from "./manipPanels.js?v=2";
-import { isMt, mtChip } from "./manipCore.js?v=2";
+import { mtBody } from "./manipPanels.js?v=3";
+import { isMt, mtChip } from "./manipCore.js?v=3";
 export { MARKS, EFFECTS, FX_AMOUNTS };
 
 const LESSON = new Set(LESSON_PANELS.map((x) => x[0])), MATH = new Set(MATH_LIST.concat(CALC_LIST).map((x) => x[0]));
@@ -51,6 +51,7 @@ const IC = {
     line: '<path d="M3 21h18M3 21V3"/><path d="M5 18L20 5"/><circle cx="8" cy="15.5" r="1.6"/><circle cx="16.5" cy="8" r="1.6"/>',
     xform: '<path d="M3 12h18M12 3v18"/><path d="M5 9l3-5 3 5zM13 15l3 5 3-5z"/>',
     pyth: '<path d="M6 18V9l8 9z"/><rect x="6" y="18" width="8" height="4" rx=".5"/><path d="M6 9H2v9h4"/><path d="M6 9l4.5-4 8 9-4.5 4"/>',
+    angle: '<path d="M2 8h20M2 17h20M7 22L17 3"/><path d="M13.6 8a3 3 0 0 0 1.6 2.4"/>',
     counters: '<circle cx="7" cy="8" r="4"/><circle cx="17" cy="16" r="4"/><path d="M5.5 8h3M7 6.5v3M15.5 16h3"/>',
     more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
     trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
@@ -78,7 +79,7 @@ export const PANEL_INFO = {
     graph: "Type equations and see them graphed live, with sliders, zoom and tap-to-trace",
     balance: "x and unit tiles on a scale that tips until both sides match", chance: "Spinner, coin and dice, with a tally beside the expected results",
     line: "Drag two points: slope triangle and y = mx + b", xform: "Slide, flip, turn and dilate a shape on the grid", pyth: "A right triangle with a square on each side",
-    counters: "Two-colour counters and zero pairs",
+    counters: "Two-colour counters and zero pairs", angle: "Parallel lines cut by a transversal, and a triangle's angles",
 };
 
 /* ---------- layouts ---------- */

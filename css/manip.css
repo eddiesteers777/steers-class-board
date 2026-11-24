@@ -326,3 +326,48 @@ body.board.idle .mt-setup{opacity:0;pointer-events:none}
 .gc-tip{position:absolute;transform:translate(-50%,-100%);padding:.2em .55em;border-radius:.45em;background:rgba(16,30,60,.92);color:#fff;font-size:.62em;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;box-shadow:0 .1em .4em rgba(0,0,0,.3)}
 body.board.idle .gc-top,body.board.idle .gc-zoom{opacity:.35;transition:opacity .4s}
 @media (prefers-reduced-motion:reduce){.cc-res.done{animation:none}}
+
+/* ================= Angle explorer (js/anglePanel.js) ================= */
+.float.tool-angle{width:40em}
+.mt-angle{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+.an-svg{max-width:30em;margin:0 auto;overflow:hidden!important;border-radius:.7em}
+.an-l{stroke:currentColor;stroke-width:2.6;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.an-tr{stroke:#8CC8FF;stroke-width:2.6;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.card.psty.plight .an-tr{stroke:#1D5FB8}
+.an-pmark{fill:none;stroke:currentColor;stroke-width:2;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
+.an-ang{cursor:pointer;outline:none}
+.an-hit{fill:transparent}
+.an-fill{fill:color-mix(in srgb,currentColor 12%,transparent);stroke:color-mix(in srgb,currentColor 45%,transparent);stroke-width:1.2;vector-effect:non-scaling-stroke;transition:fill .2s}
+.an-ang:hover .an-fill{fill:color-mix(in srgb,currentColor 24%,transparent)}
+.an-ang.lit .an-fill{fill:color-mix(in srgb,var(--c) 70%,transparent);stroke:var(--c);stroke-width:2}
+.an-ang:focus-visible .an-fill{stroke:#8CC8FF;stroke-width:2.4}
+.an-num{font-size:9.5px;font-weight:800;opacity:.75;pointer-events:none}
+.an-val{font-size:14px;font-weight:800;pointer-events:none;paint-order:stroke;stroke:rgba(8,20,50,.6);stroke-width:3px;stroke-linejoin:round}
+.card.psty.plight .an-val{stroke:rgba(255,255,255,.85)}
+.an-ang.given .an-val{fill:#F2B33D}
+.an-knob{cursor:grab;outline:none}.an-knob.drag{cursor:grabbing}
+.an-khit{fill:transparent}
+.an-kdot{fill:#8CC8FF;stroke:#fff;stroke-width:2.5;vector-effect:non-scaling-stroke;transition:r .15s}
+.an-knob:hover .an-kdot,.an-knob.drag .an-kdot,.an-knob:focus-visible .an-kdot{r:11}
+.an-head{text-align:left!important;font-size:1.12em!important}
+.an-sub{margin:0;font-size:.72em;line-height:1.35;opacity:.8;min-height:2.7em}
+.an-kinds{display:flex;flex-wrap:wrap;gap:.3em}
+.an-kind{font-size:.62em!important}
+.an-tear{min-height:2.3em;border:0;border-radius:1.15em;background:var(--mt-acc);color:#fff!important;font-weight:750;font-size:.78em!important}
+.an-tfacts{display:flex;gap:.4em}
+.an-tf{flex:1;display:flex;flex-direction:column;align-items:center;padding:.3em .2em;border-radius:.6em;background:color-mix(in srgb,var(--c) 30%,transparent);border:.06em solid var(--c)}
+.an-tf span{font-size:.62em;opacity:.85}.an-tf b{font-size:1.05em;font-weight:800}
+.an-tpoly{fill:color-mix(in srgb,currentColor 10%,transparent);stroke:currentColor;stroke-width:2.4;vector-effect:non-scaling-stroke;stroke-linejoin:round;transition:opacity .4s}
+.an-tri.torn .an-tpoly{opacity:.45}
+.an-tarc path{fill:color-mix(in srgb,var(--c) 30%,transparent);stroke:var(--c);stroke-width:1.4;vector-effect:non-scaling-stroke}
+.an-tri.torn .an-tarc path{fill:none;stroke-dasharray:3 3}
+.an-wedge{pointer-events:none;opacity:0;transition:transform 1.1s cubic-bezier(.45,.05,.2,1),opacity .3s}
+.an-wedge path{fill:color-mix(in srgb,var(--c) 75%,transparent);stroke:#fff;stroke-width:1.2;vector-effect:non-scaling-stroke}
+.an-wedge.torn{opacity:1}
+.an-bl{stroke:currentColor;stroke-width:2.4;vector-effect:non-scaling-stroke;stroke-linecap:round;opacity:.18;transition:opacity .4s}
+.an-base.on .an-bl{opacity:.85}
+.an-blab{font-size:15px;font-weight:800;transition:opacity .4s .8s}
+.an-corner{cursor:grab;outline:none}.an-corner.drag{cursor:grabbing}
+.an-cdot{fill:#fff;stroke:var(--mt-acc);stroke-width:2.5;vector-effect:non-scaling-stroke}
+.an-clab{font-size:13px;font-weight:800;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.an-wedge{transition:opacity .2s}}
