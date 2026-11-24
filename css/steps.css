@@ -99,6 +99,17 @@
 .sp.big{border-radius:.6em;box-shadow:none;height:100%}
 .sp.big .sp-why{font-size:clamp(18px,2.2cqi,40px)}
 
+/* the hand-written look (default): marker handwriting, red slashes and a green answer box drawn in the
+   ink layer by js/stepPlayer.js, and a pen tip that moves with the writing */
+.sp.hand .sp-board{font-family:"Sriracha","Patrick Hand","Comic Sans MS",cursive;font-weight:400}
+.sp.hand .sp-row.op,.sp.hand .w-sub,.sp.hand .w-u,.sp.hand .sp-ans{font-weight:400}
+.sp.hand .w-k.x::after{display:none}
+.sp.hand .sp-ans{color:var(--sp-ink)}
+.sp.hand .sp-ans::before{display:none}
+.sp.hand .sp-ink path.sp-slash,.sp.hand .sp-ink path.sp-box{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.sp-pen{position:absolute;left:0;top:0;width:.3em;height:.3em;margin:-.15em 0 0 -.15em;border-radius:50%;background:#fff;border:.06em solid var(--sp-navy);
+    box-shadow:inset 0 0 0 .05em #fff,inset 0 0 0 .1em var(--sp-navy),0 .05em .2em rgba(8,27,69,.25);opacity:0;pointer-events:none;z-index:4;transition:opacity .15s}
+
 @media (prefers-reduced-motion:reduce){
     .sp *,.sp *::after{transition:none !important}
     .sp-board{scroll-behavior:auto}

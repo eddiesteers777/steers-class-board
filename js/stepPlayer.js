@@ -7,6 +7,8 @@
 
    createStepPlayer(host, walk, opts) → { go(i, animate), next(), back(), play(), pause(), replay(), index, count, destroy() }
      opts.controls (default true) · opts.big (projected board) · opts.onStep(i, step) · opts.autoplay
+     opts.look: "hand" (default) writes the work in marker handwriting, one piece at a time with a pen tip, and draws
+     each cancel as a red slash and the answer box in green, the way a teacher writes it; "print" is the older typed look.
    Calm on purpose: one move at a time, no sound, no confetti, and no motion at all when the device asks for reduced motion.
 ========================================== */
 const NS = "http://www.w3.org/2000/svg";
@@ -275,6 +277,16 @@ const pics = {
     }
 };
 
+/* ---------- the hand-written look ---------- */
+// Sriracha is a marker handwriting with clear numbers (a 1 with a flag, so 15 never reads as "IS"). Google Fonts, like the
+// site's other fonts. Patrick Hand (already on the board page) is the fallback.
+function handFont() {
+    if (document.getElementById("sp-handfont")) return;
+    const l = document.createElement("link"); l.id = "sp-handfont"; l.rel = "stylesheet";
+    l.href = "https://fonts.googleapis.com/css2?family=Sriracha&display=swap"; document.head.appendChild(l);
+}
+const WRITE_EM = 5.5;   // how fast the pen moves, in letters (em) per second: steady enough to follow
+
 /* ---------- the player ---------- */
 /** Draw a dt (from js/walk.js) as page elements, for problem text outside the player. */
 export const drawDT = (d) => draw(d);
@@ -282,13 +294,16 @@ export const drawDT = (d) => draw(d);
 export function createStepPlayer(host, walk, opts) {
     opts = opts || {};
     const steps = walk.steps, N = steps.length;
-    const root = el("div", "sp" + (opts.big ? " big" : "") + (opts.controls === false ? " bare" : ""));
+    const hand = opts.look !== "print";
+    if (hand) handFont();
+    const root = el("div", "sp" + (opts.big ? " big" : "") + (opts.controls === false ? " bare" : "") + (hand ? " hand" : ""));
     root.tabIndex = -1;
     const head = el("div", "sp-head"), mv = el("div", "sp-move"), dots = el("div", "sp-dots"), count = el("span", "sp-count");
     head.append(mv, dots, count);
     const board = el("div", "sp-board"), work = el("div", "sp-work" + (walk.cols === 5 ? " c5" : "")), ink = document.createElementNS(NS, "svg");
     ink.setAttribute("class", "sp-ink"); ink.setAttribute("aria-hidden", "true");
-    board.append(work, ink);
+    const pen = el("div", "sp-pen"); pen.setAttribute("aria-hidden", "true");
+    board.append(work, ink, pen);
     const why = el("p", "sp-why"); why.setAttribute("aria-live", "polite");
     const ctl = el("div", "sp-ctl");
     const btn = (icon, label, cls, opt) => { const b = el("button", cls || ""); b.type = "button"; b.innerHTML = ICON[icon] + '<span class="lbl' + (opt ? " opt" : "") + '">' + label + "</span>"; b.setAttribute("aria-label", label); return b; };
@@ -332,6 +347,56 @@ export function createStepPlayer(host, walk, opts) {
             });
         }
         dim(i);
+        if (hand) marks();
+    }
+    /* hand look: the red cancel slashes and the green answer box are drawn in the ink layer, so they look pen-drawn */
+    const em = () => parseFloat(getComputedStyle(board).fontSize) || 30;
+    function sizeInk() { ink.setAttribute("width", work.scrollWidth + 40); ink.setAttribute("height", work.scrollHeight + 80); }
+    function slashOf(e) {
+        const r = rel(e), f = em(), p = f * .1;
+        return { d: `M${r.x - p} ${r.y + r.h * .82}Q${r.x + r.w / 2 + f * .03} ${r.y + r.h * .52} ${r.x + r.w + p} ${r.y + r.h * .16}`, w: f * .075 };
+    }
+    function boxOf(e) {
+        const r = rel(e), f = em(), rr = f * .28;
+        return { d: `M${r.x + rr} ${r.y}H${r.x + r.w - rr}Q${r.x + r.w} ${r.y} ${r.x + r.w} ${r.y + rr}V${r.y + r.h - rr}Q${r.x + r.w} ${r.y + r.h} ${r.x + r.w - rr} ${r.y + r.h}H${r.x + rr}Q${r.x} ${r.y + r.h} ${r.x} ${r.y + r.h - rr}V${r.y + rr}Q${r.x} ${r.y} ${r.x + rr} ${r.y}Z`, w: f * .07 };
+    }
+    function inkPath(g, color, cls) {
+        const p = sv("path", { d: g.d, class: cls }); p.style.stroke = color; p.style.strokeWidth = g.w + "px"; ink.appendChild(p); return p;
+    }
+    function marks() {
+        sizeInk();
+        work.querySelectorAll(".w-k.x.on").forEach((e) => { const p = inkPath(slashOf(e), PEN.red, "sp-slash"); if (e.closest(".sp-row.old")) p.style.opacity = .5; });
+        work.querySelectorAll(".sp-ans").forEach((e) => inkPath(boxOf(e), PEN.green, "sp-box"));
+    }
+    /** Draw a path like a pen stroke, with the pen tip riding along it. */
+    async function drawStroke(p, ms) {
+        const L = p.getTotalLength(); p.style.strokeDasharray = L; p.style.strokeDashoffset = L;
+        const a = p.animate([{ strokeDashoffset: L }, { strokeDashoffset: 0 }], { duration: ms, easing: "ease-in-out", fill: "forwards" });
+        const pts = []; for (let j = 0; j <= 12; j++) { const q = p.getPointAtLength(L * j / 12); pts.push({ transform: `translate(${q.x}px,${q.y}px)` }); }
+        pen.style.opacity = 1; pen.animate(pts, { duration: ms, easing: "ease-in-out", fill: "forwards" });
+        await a.finished.catch(() => {}); pen.style.opacity = 0;
+        p.style.strokeDasharray = ""; p.style.strokeDashoffset = "";
+    }
+    /** Write a row the way a hand does: each piece left to right, the pen tip moving with the ink. */
+    async function writeRow(n, small, live) {
+        const parts = n.classList.contains("ans") ? [n.querySelector(".sp-ans")] : [...n.children].filter((c) => c.textContent.trim());
+        const HIDE = "inset(-40% 100% -40% -5%)";
+        parts.forEach((c) => (c.style.clipPath = HIDE));
+        const f = em() * (small ? .68 : 1);
+        for (const c of parts) {
+            if (!live()) { parts.forEach((x) => (x.style.clipPath = "")); return; }
+            // a cell is a whole grid column; the writing is only where its letters are
+            const rg = document.createRange(); rg.selectNodeContents(c);
+            const box = rel(c), r = rel(rg.getBoundingClientRect()), ms = Math.max(200, (r.w / f / WRITE_EM) * 1000), y = r.y + r.h * .58;
+            const from = Math.max(0, box.x + box.w - r.x), to = Math.max(0, box.x + box.w - (r.x + r.w)) - 4;
+            c.style.clipPath = "";
+            const a = c.animate([{ clipPath: `inset(-40% ${from}px -40% -5%)` }, { clipPath: `inset(-40% ${to}px -40% -5%)` }], { duration: ms, easing: "linear" });
+            pen.style.opacity = 1;
+            pen.animate([{ transform: `translate(${r.x}px,${y}px)` }, { transform: `translate(${r.x + r.w}px,${y}px)` }], { duration: ms, easing: "linear", fill: "forwards" });
+            await a.finished.catch(() => {});
+            await wait(90);
+        }
+        pen.style.opacity = 0;
     }
     function dim(i) {
         // earlier steps fade back so the eye lands on the newest line
@@ -354,7 +419,7 @@ export function createStepPlayer(host, walk, opts) {
     const toBottom = () => { board.scrollTop = board.scrollHeight; };
     function rel(e) {
         // k: the player can sit inside a scaled slide (a Show Steps piece on a slide), so screen pixels are turned back into its own
-        const b = board.getBoundingClientRect(), r = e.getBoundingClientRect(), k = board.offsetWidth ? (b.width / board.offsetWidth) || 1 : 1;
+        const b = board.getBoundingClientRect(), r = e.getBoundingClientRect ? e.getBoundingClientRect() : e, k = board.offsetWidth ? (b.width / board.offsetWidth) || 1 : 1;
         return { x: (r.left - b.left) / k + board.scrollLeft, y: (r.top - b.top) / k + board.scrollTop, w: r.width / k, h: r.height / k };
     }
     async function animateStep(i, my) {
@@ -369,6 +434,11 @@ export function createStepPlayer(host, walk, opts) {
                 n.querySelectorAll("[data-k]").forEach((e) => { if (hidden.has(e.dataset.k)) e.style.opacity = 0; });
                 dim(i); toBottom();
                 if (x.row.t === "pic") { n.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250 }); await n._pic.play(false); }
+                else if (hand) {
+                    await writeRow(n, x.row.t === "op", live);
+                    if (x.row.t === "ans" && live()) { sizeInk(); await drawStroke(inkPath(boxOf(n.firstChild), PEN.green, "sp-box"), 900); }
+                    await wait(x.row.t === "op" ? 200 : 300);
+                }
                 else if (x.row.t === "ans") { const a = n.firstChild; a.animate([{ clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0 0 0)" }], { duration: 520, easing: "ease-out" }); await wait(560); }
                 else { n.animate([{ clipPath: "inset(0 100% 0 0)", opacity: .3 }, { clipPath: "inset(0 0 0 0)", opacity: 1 }], { duration: x.row.t === "op" ? 380 : 560, easing: "cubic-bezier(.3,.1,.3,1)" }); await wait(x.row.t === "op" ? 420 : 520); }
             } else if (x.a === "hl" || x.a === "box") {
@@ -376,7 +446,11 @@ export function createStepPlayer(host, walk, opts) {
                 for (const k of x.ks) { const e = keyEl(k); if (!e) continue; e.classList.add(cls); if (x.a === "hl") e.animate([{ backgroundSize: "0% 100%" }, { backgroundSize: "100% 100%" }], { duration: 320, easing: "ease-out" }); else e.animate([{ boxShadow: "0 0 0 0 rgba(242,179,61,0)" }, { boxShadow: "0 0 0 .08em #F2B33D, 0 0 0 .2em rgba(242,179,61,.28)" }], { duration: 320 }); await wait(x.a === "hl" ? 240 : 0); }
                 await wait(420);
             } else if (x.a === "strike") {
-                for (const k of x.ks) { const e = keyEl(k); if (!e) continue; e.classList.add("x"); void e.offsetWidth; e.classList.add("on"); await wait(240); }
+                for (const k of x.ks) {
+                    const e = keyEl(k); if (!e) continue;
+                    if (hand) { sizeInk(); await drawStroke(inkPath(slashOf(e), PEN.red, "sp-slash"), 420); e.classList.add("x", "on"); await wait(160); continue; }
+                    e.classList.add("x"); void e.offsetWidth; e.classList.add("on"); await wait(240);
+                }
                 await wait(420);
             } else if (x.a === "arrow") {
                 const from = keyEl(x.from); if (!from) continue;
@@ -440,13 +514,14 @@ export function createStepPlayer(host, walk, opts) {
         i = Math.max(0, Math.min(N - 1, i));
         const my = ++token;
         board.querySelectorAll(".sp-fly").forEach((g) => g.remove());
+        pen.getAnimations().forEach((a) => a.cancel()); pen.style.opacity = 0;
         const step = animate && !fast() && (i === at + 1 || i === at);
         at = i; header(i);
         if (opts.onStep) opts.onStep(i, steps[i]);
         if (step) {
             lay(i - 1);
             work.querySelectorAll(".hl-x,.hl-n,.box,.turned").forEach((e) => e.classList.remove("hl-x", "hl-n", "box", "turned"));
-            ink.textContent = "";
+            ink.textContent = ""; if (hand) marks();   // keep the earlier steps' slashes while this one plays
             busy = true;
             try { await animateStep(i, my); } catch (e) { if (opts.debug) console.error(e); /* a step that cannot animate still lands below */ }
             busy = false;
@@ -480,6 +555,7 @@ export function createStepPlayer(host, walk, opts) {
     });
     let rz = 0; const ro = new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(() => { if (!busy && at >= 0) lay(at); }, 120); });
     ro.observe(board);
+    if (hand && document.fonts) document.fonts.load('40px "Sriracha"').then(() => { if (!busy && at >= 0 && root.isConnected) lay(at); }).catch(() => {});
     go(0, false);
     if (opts.autoplay) api.play();
     return api;
