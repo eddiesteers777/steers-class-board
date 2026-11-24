@@ -8,7 +8,7 @@ const browser = await chromium.launch(), errs = [];
 const shot = async (w, h, qs, name, open) => {
     const ctx = await browser.newContext({ viewport: { width: w, height: h }, timezoneId: "America/Chicago" }), p = await ctx.newPage();
     p.on("pageerror", (e) => errs.push(name + ": " + e.message));
-    await p.goto(BASE + "?" + qs); await p.waitForSelector(".abs-kid", { timeout: 8000 }); if (open) { await p.click('.abs-per > summary >> nth=0'); if (open !== true) await p.click('.abs-kid:has(b:text-is("' + open + '")) summary'); } await p.waitForTimeout(400);
+    await p.goto(BASE + "?" + qs); await p.waitForSelector(".abs-kid", { timeout: 8000, state: "attached" }); if (open) { await p.click('.abs-per > summary >> nth=0'); if (open !== true) await p.click('.abs-kid:has(b:text-is("' + open + '")) summary'); } await p.waitForTimeout(400);
     const box = await p.evaluate(() => { const a = document.querySelector(".nowcard").getBoundingClientRect(), b = document.querySelector("#absent").getBoundingClientRect(); return { y: Math.max(0, a.top - 12), h: b.bottom - a.top + 24 }; });
     await p.screenshot({ path: `${OUT}/${name}.png`, clip: { x: 0, y: box.y, width: w, height: box.h } });
     await ctx.close();

@@ -7,7 +7,7 @@ const browser = await chromium.launch(), logs = [];
 for (const [w, h, tag] of [[390, 900, "phone"], [1280, 900, "desktop"]]) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h } }), p = await ctx.newPage();
     p.on("console", (m) => { if (m.type() === "error") logs.push(tag + ": " + m.text()); }); p.on("pageerror", (e) => logs.push(tag + " PAGEERROR: " + e.message));
-    await p.goto(BASE); await p.waitForSelector(".abs-kid", { timeout: 8000 });
+    await p.goto(BASE); await p.waitForSelector(".abs-kid", { timeout: 8000, state: "attached" });
     await p.waitForSelector('.abs-warn:has-text("8.5")', { timeout: 8000, state: "attached" }); await p.waitForSelector('.abs-warn:has-text("foundational")', { timeout: 8000, state: "attached" });   // the "was behind" check waits for the game profile to load
     const txt = await p.textContent("#absent");
     assert.match(txt, /2 out today/); assert.match(txt, /2 need a look/);
