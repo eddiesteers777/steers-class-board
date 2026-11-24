@@ -11,14 +11,14 @@
                         sent each. The right one first, then the rest, most common first.
      Follow-ups         after a check-in: try again for only the students who didn't get it, or Show Steps for them.
 ========================================== */
-import { MT_KEYS, cleanMt } from "./manipCore.js?v=12";
+import { MT_KEYS, cleanMt } from "./manipCore.js?v=13";
 
 /** The tools a teacher can send, in the order the picker lists them. */
 export const SEND_TOOLS = [
     ["calc", "Basic calculator"], ["sci", "Scientific calculator"], ["graph", "Graphing calculator"],
     ["balance", "Equation balance"], ["counters", "Integer counters"], ["line", "Line explorer"], ["xform", "Transformations"],
     ["pyth", "Pythagorean squares"], ["angle", "Angle explorer"], ["fn", "Function machine"], ["area", "Expression area model"],
-    ["nl", "Rational number line"], ["sys", "Systems graph"], ["scat", "Scatter plot"], ["chance", "Chance lab"],
+    ["nl", "Rational number line"], ["sys", "Systems graph"], ["scat", "Scatter plot"], ["tape", "Tape diagram"], ["chance", "Chance lab"],
 ];
 export const TOOL_NAMES = Object.fromEntries(SEND_TOOLS);
 export const isTool = (k) => typeof k === "string" && MT_KEYS.includes(k) && !!TOOL_NAMES[k];
@@ -39,6 +39,7 @@ export function toolStart(k, T) {
     if (k === "nl") clean.rv = false;
     if (k === "sys") { clean.rv = false; clean.tp = null; }   // each student tests their own points
     if (k === "scat") { clean.rv = false; clean.px = null; }   // each student checks the trend and predicts themselves
+    if (k === "tape") clean.s = 0;   // each student works the steps themselves
     const s = JSON.stringify(clean);
     return s.length <= TS_MAX ? s : "";
 }

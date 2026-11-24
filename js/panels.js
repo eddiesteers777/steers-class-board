@@ -7,7 +7,7 @@
    set the screen and the panels in one tap. All of it lives in S.tools
    inside the shared board state, so the board and the Remote always match.
 ========================================== */
-import { buildWidget, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=76";
+import { buildWidget, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=77";
 import { meterEl, setVoice, camBody, tooLoud } from "./roomSense.js?v=1";
 import { MARKS, markUrl } from "./marks.js?v=1";
 import { EFFECTS, FX_AMOUNTS, applyEffect, effectSample } from "./effects.js?v=3";
@@ -15,8 +15,8 @@ import { isMine, mineList, mineSrc, onMine, addMine, removeMine, MY_MAX } from "
 import { cleanStickers } from "./stickers.js?v=1";
 import { findBody, findChip, findTitle } from "./findPanel.js?v=11";
 import { isFind, FIND_KEYS } from "./findCore.js?v=1";
-import { mtBody } from "./manipPanels.js?v=12";
-import { isMt, mtChip } from "./manipCore.js?v=12";
+import { mtBody } from "./manipPanels.js?v=13";
+import { isMt, mtChip } from "./manipCore.js?v=13";
 export { MARKS, EFFECTS, FX_AMOUNTS };
 
 const LESSON = new Set(LESSON_PANELS.map((x) => x[0])), MATH = new Set(MATH_LIST.concat(CALC_LIST).map((x) => x[0]));
@@ -56,6 +56,7 @@ const IC = {
     nl: '<path d="M2 16h20M5 13v6M12 13v6M19 13v6"/><path d="M6 10q6-8 12 0"/><path d="M15.5 8.5L18 10l.4-2.8"/>',
     sys: '<path d="M3 3v18h18"/><path d="M5 18L20 6"/><path d="M5 8l15 9"/><circle cx="12.6" cy="12.4" r="1.8" fill="currentColor"/>',
     scat: '<path d="M3 3v18h18"/><path d="M6 17L20 7" stroke-dasharray="2 2.4"/><circle cx="7.5" cy="14" r="1.4" fill="currentColor"/><circle cx="11" cy="14.5" r="1.4" fill="currentColor"/><circle cx="12.5" cy="10.5" r="1.4" fill="currentColor"/><circle cx="16" cy="11" r="1.4" fill="currentColor"/><circle cx="18" cy="7" r="1.4" fill="currentColor"/>',
+    tape: '<rect x="2.5" y="5" width="19" height="6" rx="1"/><path d="M7.3 5v6M12 5v6M16.7 5v6"/><rect x="2.5" y="14" width="11" height="6" rx="1"/><path d="M7.3 14v6"/><path d="M2.5 11h9.5" stroke-width="3"/>',
     fn: '<rect x="6" y="7" width="12" height="10" rx="2"/><path d="M12 2v5M12 17v5M9 12h6"/><path d="M10 4.5L12 7l2-2.5"/>',
     counters: '<circle cx="7" cy="8" r="4"/><circle cx="17" cy="16" r="4"/><path d="M5.5 8h3M7 6.5v3M15.5 16h3"/>',
     send: '<path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5L3 9.5z"/>',
@@ -91,6 +92,7 @@ export const PANEL_INFO = {
     nl: "Add, subtract and find distance with fractions and decimals on a number line",
     sys: "Two lines on a grid: where they cross, parallel or the same line, and test a point",
     scat: "Data on a graph: the trend, outliers, your own trend line and a prediction",
+    tape: "Bar models for percent and ratio problems, solved one step at a time",
 };
 
 /* ---------- layouts ---------- */

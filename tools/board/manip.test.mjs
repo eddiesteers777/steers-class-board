@@ -242,6 +242,31 @@ t("scatter plot", () => {
     assert.equal(M.mtChip("scat", { mt: { scat: Object.assign(M.scDefault(), { hide: true }) } }).v, "What's the trend?");
 });
 
+t("tape diagram", () => {
+    const S = M.tpDefault();
+    assert.equal(M.tpPctQ(S.p), "What is 30% of 80?"); assert.equal(M.tpPctA(S.p), "24");
+    assert.deepEqual(M.tpPctSteps(S.p), ["100% is 80, cut into 10 equal parts, so each part is 80 ÷ 10 = 8.", "30% is 3 parts: 3 × 8 = 24."]);
+    assert.equal(M.tpChip(S), "30% of 80 = ?");
+    M.tpAsk(S, "whole"); assert.equal(M.tpPctQ(S.p), "24 is 30% of what number?"); assert.equal(M.tpPctA(S.p), "80"); assert.equal(M.tpChip(S), "30% of ? = 24");
+    M.tpAsk(S, "pct"); assert.equal(M.tpPctQ(S.p), "24 is what percent of 80?"); assert.equal(M.tpPctA(S.p), "30%");
+    S.s = 2; assert.equal(M.tpChip(S), "30% of 80 = 24");
+    assert.equal(M.tpSet(S, "n", -1), true); assert.deepEqual([S.p.n, S.p.k, S.s], [5, 2, 0], "fifths: 30% of tenths becomes 2 of 5");
+    assert.equal(M.tpSet(S, "k", 99), true); assert.equal(S.p.k, 10, "up to 200%"); assert.equal(M.tpPct(S.p).pct, 200);
+    S.r = { a: 3, b: 5, u: 5, c: 0, ask: "total" }; S.m = "ratio";
+    assert.equal(M.tpRatQ(S.r), "The ratio of boys to girls is 3 : 5. There are 40 students in all. How many of each?"); assert.equal(M.tpRatA(S.r), "Boys 15, girls 25");
+    assert.equal(M.tpRatSteps(S.r)[0], "3 + 5 = 8 units make 40, so 1 unit is 40 ÷ 8 = 5.");
+    M.tpAsk(S, "diff"); assert.equal(M.tpRatQ(S.r), "The ratio of boys to girls is 3 : 5. There are 10 more girls. How many of each?");
+    M.tpAsk(S, "one"); assert.equal(M.tpRatQ(S.r), "The ratio of boys to girls is 3 : 5. There are 15 boys. How many girls?"); assert.equal(M.tpRatA(S.r), "25 girls");
+    M.tpAsk(S, "diff"); M.tpSet(S, "a", 2); assert.equal(S.r.a, 5); assert.equal(S.r.ask, "total", "no difference when the tapes match");
+    assert.equal(M.tpAsk(S, "diff"), false);
+    let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+    for (let i = 0; i < 80; i++) { S.m = i % 2 ? "ratio" : "pct"; M.tpNew(S, rnd); assert.equal(S.s, 0);
+        if (S.m === "pct") { const v = M.tpPct(S.p); assert.ok(M.TP_PARTS.includes(S.p.n) && Number.isInteger(v.pct) && v.part > 0); }
+        else { assert.equal(M.gcd(S.r.a, S.r.b), 1); if (S.r.ask === "diff") assert.notEqual(S.r.a, S.r.b); } }
+    const c = M.cleanMt({ tape: { m: "ratio", p: { n: 3, k: 50, u: -2, ask: "x" }, r: { a: 4, b: 4, u: 99, c: 9, ask: "diff" }, s: 7 } }).tape;
+    assert.deepEqual(c, { m: "ratio", p: { n: 10, k: 20, u: 1, ask: "part" }, r: { a: 4, b: 4, u: 25, c: 3, ask: "total" }, s: 2 });
+});
+
 t("saved state is cleaned", () => {
     assert.deepEqual(M.cleanMt(null), {}); assert.deepEqual(M.cleanMt({ evil: { a: 1 } }), {});
     const c = M.cleanMt({ balance: { e: [2, 2, 2, 9], s: [1, 2, 3, 4] }, chance: { m: "dice", d2: true, t: [1, "x", -4], last: 99, rot: "NaN" }, line: { a: [99, -99], b: [99, -99] },

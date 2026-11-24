@@ -13,6 +13,7 @@
      nl        Rational number line  jumps with fractions and decimals, subtracting as adding the opposite, distance (7.5)
      sys       Systems graph        two lines; where they cross, parallel or the same line; check a point in both (8.12, Alg I.10)
      scat      Scatter plot         data on real axes; the trend, outliers, the class's own trend line and a prediction (8.SP)
+     tape      Tape diagram         percent of a whole, and ratios as equal units; solved one step at a time (7.RP)
      fn        Function machine     inputs go in, the rule makes outputs; mystery rules, and "function or not?" (8.13, 8.14)
      calc      Basic calculator     + − × ÷ and percent, with the order of operations
      sci       Scientific calculator powers, roots, trig, logs, Ans and fraction answers
@@ -23,7 +24,7 @@
 ========================================== */
 import { gcDefault, cleanGc, fmt } from "./graphCalc.js?v=1";
 
-export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "angle", "fn", "area", "nl", "sys", "scat", "calc", "sci", "graph"];
+export const MT_KEYS = ["balance", "chance", "line", "xform", "pyth", "counters", "angle", "fn", "area", "nl", "sys", "scat", "tape", "calc", "sci", "graph"];
 export const isMt = (k) => MT_KEYS.includes(k);
 
 const int = (v, d) => { const n = Math.round(+v); return Number.isFinite(n) ? n : d; };
@@ -778,8 +779,91 @@ function cleanSc(o) {
     return out;
 }
 
-const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, angle: angDefault, fn: fnDefault, area: exDefault, nl: nlDefault, sys: sysDefault, scat: () => scDefault(), calc: calcDefault, sci: sciDefault, graph: gcDefault };
-const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, angle: cleanAng, fn: cleanFn, area: cleanEx, nl: cleanNl, sys: cleanSys, scat: cleanSc, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
+/* ---------- Tape diagram ---------- */
+/* Percent: one tape is the whole (100%), cut into equal parts; some parts are shaded. Find the part, the whole or the
+   percent. Ratio: two tapes made of equal units, a : b. Find each amount from the total, the difference or one amount.
+   Each problem is solved in two steps the class reveals one at a time: first one part (or one unit), then the answer. */
+export const TP_PARTS = [2, 4, 5, 10];
+export const TP_CTX = [["Boys", "Girls", "students"], ["Cats", "Dogs", "pets"], ["Red marbles", "Blue marbles", "marbles"], ["Adults", "Kids", "people"]];
+export const tpDefault = () => ({ m: "pct", p: { n: 10, k: 3, u: 8, ask: "part" }, r: { a: 3, b: 5, u: 5, c: 0, ask: "total" }, s: 0 });
+const ASK_P = ["part", "whole", "pct"], ASK_R = ["total", "diff", "one"];
+/** The percent problem in numbers: whole, part, percent, one part's value and percent. */
+export function tpPct(P) { const pp = 100 / P.n; return { whole: P.n * P.u, part: P.k * P.u, pct: P.k * pp, pp, u: P.u }; }
+/** The percent problem as a question. */
+export function tpPctQ(P) {
+    const v = tpPct(P);
+    return P.ask === "part" ? "What is " + v.pct + "% of " + v.whole + "?" : P.ask === "whole" ? v.part + " is " + v.pct + "% of what number?" : v.part + " is what percent of " + v.whole + "?";
+}
+export function tpPctA(P) { const v = tpPct(P); return P.ask === "part" ? String(v.part) : P.ask === "whole" ? String(v.whole) : v.pct + "%"; }
+/** The two steps, as sentences. */
+export function tpPctSteps(P) {
+    const v = tpPct(P), parts = (k) => k + (k === 1 ? " part" : " parts");
+    if (P.ask === "part") return ["100% is " + v.whole + ", cut into " + P.n + " equal parts, so each part is " + v.whole + " ÷ " + P.n + " = " + v.u + ".", v.pct + "% is " + parts(P.k) + ": " + P.k + " × " + v.u + " = " + v.part + "."];
+    if (P.ask === "whole") return [v.pct + "% is " + parts(P.k) + " (each part is " + v.pp + "%), so each part is " + v.part + " ÷ " + P.k + " = " + v.u + ".", "100% is " + parts(P.n) + ": " + P.n + " × " + v.u + " = " + v.whole + "."];
+    return ["The whole is " + P.n + " equal parts, so each part is " + v.whole + " ÷ " + P.n + " = " + v.u + ", and " + v.part + " ÷ " + v.u + " = " + parts(P.k) + ".", "Each part is " + v.pp + "%, so " + parts(P.k) + " is " + P.k + " × " + v.pp + "% = " + v.pct + "%."];
+}
+/** The ratio problem in numbers. */
+export function tpRat(R) { return { A: R.a * R.u, B: R.b * R.u, tot: (R.a + R.b) * R.u, diff: Math.abs(R.a - R.b) * R.u, units: R.a + R.b }; }
+export function tpRatQ(R) {
+    const v = tpRat(R), [na, nb, all] = TP_CTX[R.c], lo = (t) => t.toLowerCase();
+    const head = "The ratio of " + lo(na) + " to " + lo(nb) + " is " + R.a + " : " + R.b + ". ";
+    if (R.ask === "total") return head + "There are " + v.tot + " " + all + " in all. How many of each?";
+    if (R.ask === "diff") { const more = R.b > R.a ? nb : na; return head + "There are " + v.diff + " more " + lo(more) + ". How many of each?"; }
+    return head + "There are " + v.A + " " + lo(na) + ". How many " + lo(nb) + "?";
+}
+export function tpRatA(R) { const v = tpRat(R), [na, nb] = TP_CTX[R.c]; return R.ask === "one" ? v.B + " " + nb.toLowerCase() : na + " " + v.A + ", " + nb.toLowerCase() + " " + v.B; }
+export function tpRatSteps(R) {
+    const v = tpRat(R), [na, nb] = TP_CTX[R.c], un = (k) => k + (k === 1 ? " unit" : " units");
+    const ans = R.ask === "one" ? nb + ": " + R.b + " × " + R.u + " = " + v.B + "." : na + ": " + R.a + " × " + R.u + " = " + v.A + ". " + nb + ": " + R.b + " × " + R.u + " = " + v.B + ".";
+    if (R.ask === "total") return [R.a + " + " + R.b + " = " + un(v.units) + " make " + v.tot + ", so 1 unit is " + v.tot + " ÷ " + v.units + " = " + R.u + ".", ans];
+    if (R.ask === "diff") { const d = Math.abs(R.a - R.b); return ["The difference is " + Math.max(R.a, R.b) + " − " + Math.min(R.a, R.b) + " = " + un(d) + ", and that's " + v.diff + ", so 1 unit is " + v.diff + " ÷ " + d + " = " + R.u + ".", ans]; }
+    return [un(R.a) + " of " + na.toLowerCase() + " is " + v.A + ", so 1 unit is " + v.A + " ÷ " + R.a + " = " + R.u + ".", ans];
+}
+/** A new problem of the same kind, with whole numbers. */
+export function tpNew(S, rnd = Math.random) {
+    const pick = (a) => a[Math.floor(rnd() * a.length)], ri = (a, b) => a + Math.floor(rnd() * (b - a + 1));
+    if (S.m === "pct") { const n = pick([4, 5, 10, 10]), big = n === 10 && rnd() < 0.2; S.p = { n, k: big ? ri(11, 15) : ri(1, n - 1), u: ri(2, 12), ask: pick(ASK_P) }; }
+    else { const ask = pick(ASK_R); let a, b; do { a = ri(1, 6); b = ri(1, 6); } while (gcd(a, b) > 1 || (ask === "diff" && a === b) || a + b < 3); S.r = { a, b, u: ri(2, 12), c: ri(0, TP_CTX.length - 1), ask }; }
+    S.s = 0;
+}
+/** Change one number on the tape. Keeps it a problem with whole numbers and starts the steps over. */
+export function tpSet(S, key, v) {
+    if (S.m === "pct") {
+        const P = S.p;
+        if (key === "n") { const i = clamp(TP_PARTS.indexOf(P.n) + Math.sign(v), 0, TP_PARTS.length - 1), n = TP_PARTS[i]; if (n === P.n) return false; P.k = clamp(Math.round(P.k * n / P.n), 1, 2 * n); P.n = n; }
+        else if (key === "k") { const k = clamp(P.k + v, 1, 2 * P.n); if (k === P.k) return false; P.k = k; }
+        else if (key === "u") { const u = clamp(P.u + v, 1, 25); if (u === P.u) return false; P.u = u; }
+        else return false;
+    } else {
+        const R = S.r;
+        if (key === "a" || key === "b") { const n = clamp(R[key] + v, 1, 8); if (n === R[key]) return false; R[key] = n; if (R.ask === "diff" && R.a === R.b) R.ask = "total"; }
+        else if (key === "u") { const u = clamp(R.u + v, 1, 25); if (u === R.u) return false; R.u = u; }
+        else return false;
+    }
+    S.s = 0; return true;
+}
+export function tpAsk(S, ask) {
+    if (S.m === "pct" ? !ASK_P.includes(ask) : !ASK_R.includes(ask)) return false;
+    if (S.m === "ratio" && ask === "diff" && S.r.a === S.r.b) return false;
+    const o = S.m === "pct" ? S.p : S.r; if (o.ask === ask) return false; o.ask = ask; S.s = 0; return true;
+}
+export function tpChip(S) {
+    if (S.m === "ratio") return S.s >= 2 ? tpRatA(S.r) : S.r.a + " : " + S.r.b;
+    const v = tpPct(S.p), done = S.s >= 2, a = S.p.ask, q = (x, on) => (done || a !== on ? x : "?");
+    return q(v.pct, "pct") + "% of " + q(v.whole, "whole") + " = " + q(v.part, "part");
+}
+function cleanTape(o) {
+    const D = tpDefault(); if (!o || typeof o !== "object") return D;
+    const P = o.p && typeof o.p === "object" ? o.p : {}, R = o.r && typeof o.r === "object" ? o.r : {};
+    const n = TP_PARTS.includes(P.n) ? P.n : D.p.n;
+    const out = { m: o.m === "ratio" ? "ratio" : "pct", p: { n, k: cint(P.k, 1, 2 * n, Math.min(D.p.k, 2 * n)), u: cint(P.u, 1, 25, D.p.u), ask: ASK_P.includes(P.ask) ? P.ask : "part" },
+        r: { a: cint(R.a, 1, 8, D.r.a), b: cint(R.b, 1, 8, D.r.b), u: cint(R.u, 1, 25, D.r.u), c: cint(R.c, 0, TP_CTX.length - 1, 0), ask: ASK_R.includes(R.ask) ? R.ask : "total" }, s: cint(o.s, 0, 2, 0) };
+    if (out.r.ask === "diff" && out.r.a === out.r.b) out.r.ask = "total";
+    return out;
+}
+
+const DEFAULTS = { balance: balDefault, chance: chanceDefault, line: lineDefault, xform: xfDefault, pyth: pyDefault, counters: ctDefault, angle: angDefault, fn: fnDefault, area: exDefault, nl: nlDefault, sys: sysDefault, scat: () => scDefault(), tape: tpDefault, calc: calcDefault, sci: sciDefault, graph: gcDefault };
+const CLEAN = { balance: cleanBal, chance: cleanChance, line: cleanLine, xform: cleanXf, pyth: cleanPy, counters: cleanCt, angle: cleanAng, fn: cleanFn, area: cleanEx, nl: cleanNl, sys: cleanSys, scat: cleanSc, tape: cleanTape, calc: cleanCalc, sci: (o) => Object.assign(sciDefault(), cleanCalc(o)), graph: cleanGc };
 export const mtDefault = (k) => DEFAULTS[k]();
 /** tools.mt as saved: only panels that were used are kept, each cleaned. */
 export function cleanMt(o) { const out = {}; if (!o || typeof o !== "object") return out; MT_KEYS.forEach((k) => { if (o[k] && typeof o[k] === "object") out[k] = CLEAN[k](o[k]); }); return out; }
@@ -800,6 +884,7 @@ export function mtChip(k, T) {
     if (k === "nl") return { v: nlSum(s, s.hide && !s.rv) };
     if (k === "sys") return { v: s.hide && !s.rv ? "Where do they cross?" : sysAns(s), tone: s.hide && !s.rv ? "" : "green" };
     if (k === "scat") return { v: scChip(s) };
+    if (k === "tape") return { v: tpChip(s), tone: s.s >= 2 ? "green" : "" };
     if (k === "fn") return { v: s.m === "test" ? "Function or not?" : s.hide ? "Mystery rule" : "y = " + fnRule(s) };
     if (k === "counters") { const v = ctValue(s); return { v: (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) }; }
     return { v: "" };
