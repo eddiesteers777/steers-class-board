@@ -16,7 +16,7 @@ import { SW, SH, MAX_SLIDES, MAX_DAILY, DAILY, INDEX, deckKey, newId, cleanDeck,
 import { renderSlide, renderEl, fitSlide, thumb, imageLoader } from "./slideView.js?v=2";
 import { newItem, geom, MENU as MATH_MENU, parseStep, compileExpr, PLOT } from "./mathTools.js?v=1";
 import { STICKER_SETS, WORDS, WORD_COLORS, stickerFace } from "./stickers.js?v=1";
-import { gradOf, lookSeal } from "./panels.js?v=30";
+import { gradOf, lookSeal } from "./panels.js?v=31";
 
 const PAGE = Math.random().toString(36).slice(2, 10);
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
@@ -781,7 +781,7 @@ async function openBank(mode) {
     let mods;
     try {
         mods = await Promise.all([import("./stdBank.js?v=4"), import("./weekSheets.js?v=60"), import("../data/standards.js?v=58"),
-            walk ? import("./walkBank.js?v=9") : null, walk ? import("./stepPlayer.js?v=5") : null]);
+            walk ? import("./walkBank.js?v=10") : null, walk ? import("./stepPlayer.js?v=5") : null]);
     } catch (e) { body.textContent = ""; body.appendChild(el("p", "spk-wait", "The bank didn't load. Check the connection and try again.")); return; }
     const [sb, ws, st, wb, spm] = mods, rich = ws.rich;
     const every = walk ? await wb.loadWalkItems() : await sb.loadStdBank();
