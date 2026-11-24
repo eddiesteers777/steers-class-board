@@ -955,7 +955,7 @@ function render() {
    Only walkthroughs the teacher has checked (walk.html, or "Looks right" here on the Remote) are ever shown on the board. */
 let walkMods = null, WALKITEMS = null, WALKOK = {}, WALKED = {}, walkIn = false, stepPlayer = null, stepFor = "", stepReady = false;
 function stepsLoad() {
-    if (!walkMods) walkMods = Promise.all([import("./walkBank.js?v=2"), import("./stepPlayer.js?v=3"), import("./walk.js?v=2")]).then(async ([wb, sp, wk]) => { WALKITEMS = await wb.loadWalkItems(); return { wb, sp, wk }; });
+    if (!walkMods) walkMods = Promise.all([import("./walkBank.js?v=3"), import("./stepPlayer.js?v=3"), import("./walk.js?v=3")]).then(async ([wb, sp, wk]) => { WALKITEMS = await wb.loadWalkItems(); return { wb, sp, wk }; });
     return walkMods;
 }
 /* Show Steps on a slide (Board Builder > Slides > Show Steps): the same player, inside the slide, one step per Next.
@@ -2168,8 +2168,8 @@ export async function startApp(opts) {
     }); }
     store.watch("rosters/all", (snap) => { const p = (snap.exists && snap.data && snap.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); renderLayer(); }, () => {});
     if (!guest) {
-        store.watch("walk/ok", (snap) => { if (snap.pending) return; import("./walkBank.js?v=2").then((wb) => { WALKOK = wb.cleanOk(snap.exists ? snap.data : null); walkIn = true; if (synced && ["steps", "deck", "canvas"].includes(S.screen)) render(); }); }, () => { walkIn = true; });
-        store.watch("walk/edits", (snap) => { if (snap.pending) return; import("./walkBank.js?v=2").then((wb) => { WALKED = wb.cleanEdits(snap.exists ? snap.data : null); if (synced && ["steps", "deck", "canvas"].includes(S.screen)) { sig = ""; render(); } }); }, () => {});
+        store.watch("walk/ok", (snap) => { if (snap.pending) return; import("./walkBank.js?v=3").then((wb) => { WALKOK = wb.cleanOk(snap.exists ? snap.data : null); walkIn = true; if (synced && ["steps", "deck", "canvas"].includes(S.screen)) render(); }); }, () => { walkIn = true; });
+        store.watch("walk/edits", (snap) => { if (snap.pending) return; import("./walkBank.js?v=3").then((wb) => { WALKED = wb.cleanEdits(snap.exists ? snap.data : null); if (synced && ["steps", "deck", "canvas"].includes(S.screen)) { sig = ""; render(); } }); }, () => {});
     } else walkIn = true;
     if (!guest) store.watch("seats/chart", (snap) => { if (snap.pending) return; SEATS = cleanChart(snap.exists ? snap.data : null); seatsIn = true; if (synced && S.screen === "seats") render(); }, () => { seatsIn = true; });
     else seatsIn = true;

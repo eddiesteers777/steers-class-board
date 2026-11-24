@@ -56,6 +56,8 @@ def main(path):
             text = " ".join(cells)
             if row["move"] in ("divide", "cancel") and any("/" in c for c in cells):
                 continue   # the written-out divide/cancel line
+            if "→" in text or text.lstrip().startswith("{("):
+                continue   # input → output pairs and sets of ordered pairs: the engine checks these itself
             try:
                 if row["move"] == "then":                            # "Angle B = 2(30) + 34 = 94°": the working must equal the value
                     parts = cells[0].split(" = ")[1:]
