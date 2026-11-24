@@ -15,7 +15,7 @@ import * as C from "./assignCore.js?v=7";
 import { namesOnly, indexEntry } from "./acapAssign.js?v=4";
 import { sendToProgress, sigOf } from "./asgSync.js?v=2";
 import * as V from "./vaultCore.js?v=75";
-import { loadStdBank, inClass, LEVELS } from "./stdBank.js?v=2";
+import { loadStdBank, inClass, LEVELS } from "./stdBank.js?v=3";
 import { STANDARDS } from "../data/standards.js?v=58";
 import qrcode from "./vendor/qrcode.js?v=1";
 
