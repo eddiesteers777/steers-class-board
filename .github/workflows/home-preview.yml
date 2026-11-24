@@ -16,8 +16,8 @@ jobs:
           python3 -m http.server 5000 &
           sleep 2
           TZ=America/Chicago node tools/attendance/homeday.test.mjs
-          TZ=America/Chicago PLAYWRIGHT=$PWD/node_modules/playwright/index.js node tools/attendance/home-test.mjs shots
           TZ=America/Chicago PLAYWRIGHT=$PWD/node_modules/playwright/index.js node tools/attendance/home-shots.mjs shots
+          TZ=America/Chicago PLAYWRIGHT=$PWD/node_modules/playwright/index.js node tools/attendance/home-test.mjs shots
       - uses: actions/upload-artifact@v4
         if: always()
         with:

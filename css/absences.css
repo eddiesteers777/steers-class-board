@@ -22,7 +22,7 @@
 .abs-per{margin-top:8px}
 .abs-per h3{margin:0 0 4px;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:var(--k-ink,#0E1B3A);opacity:.8}
 .abs-kid{border:1px solid rgba(255,255,255,.9);border-radius:11px;padding:7px 10px;margin:0;background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 #fff,0 6px 16px -10px rgba(var(--s-rgb,8,27,69),.45)}
-.abs-kid.warn{border-color:var(--k-bad-line,#F3B4B0);background:color-mix(in srgb,var(--k-bad-bg,#FDECEC) 88%,#fff);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),inset 4px 0 0 var(--k-bad-ink,#B42318),0 6px 16px -10px rgba(180,35,24,.45)}
+.abs-kid.warn{border-color:var(--k-bad-line,#F3B4B0);background:var(--k-bad-bg,#FDECEC);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),inset 4px 0 0 var(--k-bad-ink,#B42318),0 6px 16px -10px rgba(180,35,24,.45)}
 .abs-top{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .abs-top b{font-size:.95rem;margin-right:2px;color:var(--k-ink,#0E1B3A)}
 .abs-tag{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.75rem;font-weight:700;background:var(--k-sub,#F6F9FD);border:1px solid var(--k-bd,#D5DCE9);color:var(--k-ink,#0E1B3A)}
