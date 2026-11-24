@@ -2047,7 +2047,10 @@ export async function startApp(opts) {
     document.addEventListener("click", (e) => { document.querySelectorAll("details.acct[open]").forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });
     $("weekSel").onchange = function () { autoWeekUntil = 0; S.week = this.value; resetPos(); push(); };
     $("boardBtn").onclick = () => { document.body.classList.add("board"); unlockSound(); try { const p = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ok */ } fit(); soundSync(); };
-    $("exit").onclick = () => { document.body.classList.remove("board"); soundSync(); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* ok */ } fit(); };
+    /* One controls screen (Eddie, Nov 24): Show controls on Open Board (board.html) goes to the Remote, the same place as the
+       Remote's own Board view > Show controls. Both pages read the same board state, so the Remote opens on the same lesson.
+       The browser's Back button returns to the board. A linked TV never shows the button. */
+    $("exit").onclick = (mode === "board" && !studio) ? () => { if (!tvView) location.href = "remote.html"; } : () => { document.body.classList.remove("board"); soundSync(); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* ok */ } fit(); };
     $("signOut").onclick = async () => { try { await store.signOut(); } finally { location.replace("login.html"); } };
     window.addEventListener("resize", fit); window.addEventListener("pageshow", () => fit());   // pageshow: back to a page the phone kept
     if (window.ResizeObserver) new ResizeObserver(fit).observe($("wrap")); document.addEventListener("fullscreenchange", () => setTimeout(fit, 60));
