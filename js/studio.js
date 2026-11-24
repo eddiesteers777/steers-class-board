@@ -14,7 +14,7 @@
 ========================================== */
 import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MATH_LIST, CALC_LIST, MAX_SCENES, MAX_DAYB } from "./boardTools.js?v=67";
 import { SCENES, sceneActive, applyScene, saveScene, panelOn, panelOff, panelToggle, PANEL_INFO, labelOf, icon, LOOK_THEMES, LOOK_BGS, LOOK_PHOTOS, bgName, LOOK_PRESETS,
-    presetTile, photoPicker, photoGroupNow, gradOf, themeCols, MARKS, EFFECTS, FX_AMOUNTS } from "./panels.js?v=25";
+    presetTile, photoPicker, photoGroupNow, gradOf, themeCols, MARKS, EFFECTS, FX_AMOUNTS } from "./panels.js?v=26";
 import { markUrl } from "./marks.js?v=1";
 import { addStepAndEdit } from "./bellPlan.js?v=6";
 import { effectSample } from "./effects.js?v=3";
@@ -63,7 +63,7 @@ function setMode(m, at) {
         const app = $("slideApp"); if (app) app.hidden = true; wantSlides = null; if (editor) editor.closeEditor();
         if (/^#slides/.test(location.hash)) { try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* the address is a convenience */ } }
         if (!A.synced()) { wantSpot = true; return; }   // open on the saved board, once it has arrived
-        import("./spotlight.js?v=19").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
+        import("./spotlight.js?v=20").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
             .catch(() => { setMode("board"); note("saveNote", "Spotlight did not load. Check the connection and reload the page."); });
         return;
     }
@@ -71,7 +71,7 @@ function setMode(m, at) {
     if (mode === "slides") {
         app.hidden = false;
         if (!A.synced()) { wantSlides = at || {}; return; }   // open on the lesson the board is on, once that has arrived
-        import("./slideEditor.js?v=20").then((mod) => { editor = mod; if (mode === "slides") mod.openEditor(A, app, at && at.week ? at : null); })
+        import("./slideEditor.js?v=21").then((mod) => { editor = mod; if (mode === "slides") mod.openEditor(A, app, at && at.week ? at : null); })
             .catch(() => { app.textContent = "The slide editor did not load. Check the connection and reload the page."; });
     } else {
         app.hidden = true; wantSlides = null;
