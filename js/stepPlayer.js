@@ -353,8 +353,9 @@ export function createStepPlayer(host, walk, opts) {
     }
     const toBottom = () => { board.scrollTop = board.scrollHeight; };
     function rel(e) {
-        const b = board.getBoundingClientRect(), r = e.getBoundingClientRect();
-        return { x: r.left - b.left + board.scrollLeft, y: r.top - b.top + board.scrollTop, w: r.width, h: r.height };
+        // k: the player can sit inside a scaled slide (a Show Steps piece on a slide), so screen pixels are turned back into its own
+        const b = board.getBoundingClientRect(), r = e.getBoundingClientRect(), k = board.offsetWidth ? (b.width / board.offsetWidth) || 1 : 1;
+        return { x: (r.left - b.left) / k + board.scrollLeft, y: (r.top - b.top) / k + board.scrollTop, w: r.width / k, h: r.height / k };
     }
     async function animateStep(i, my) {
         const st = steps[i], live = () => my === token;

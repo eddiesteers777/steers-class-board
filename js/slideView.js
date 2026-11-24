@@ -3,7 +3,7 @@
    One drawing for every place a slide shows: the board, the Remote's picture, the Board Builder's
    canvas and its little slide pictures. A slide is drawn at 1600 x 900 and scaled to fit (fitSlide).
 ========================================== */
-import { SW, SH, shapePath, textInset, fontOf, fillLive, sanitizeHtml, inkFor, inkOn, GRADS, boxOf } from "./slides.js?v=1";
+import { SW, SH, shapePath, textInset, fontOf, fillLive, sanitizeHtml, inkFor, inkOn, GRADS, boxOf, walkStep } from "./slides.js?v=2";
 import { drawItem, geom } from "./mathTools.js?v=1";
 import { stickerFace } from "./stickers.js?v=1";
 import { parseFigure, figureEl } from "./figures.js?v=1";
@@ -168,11 +168,27 @@ function drawSticker(e) {
     const d = div("sle slst"), f = stickerFace({ t: e.t, v: e.v, c: e.c || 0 });
     d.style.setProperty("--h", e.h + "px"); d.appendChild(f); return d;
 }
+/** Show Steps. On the board and in Spotlight (o.walk given) the worked walkthrough plays in this box, one step per Next;
+    in the editor and the little pictures it is a card: the problem and how many steps it has. */
+function drawWalk(e, o, step) {
+    const d = div("sle slwk");
+    if (o.walk && !o.edit && !o.thumb) {
+        const i = walkStep(e, step), base = e.ap || 0;
+        o.walk(d, e, i, !!o.fresh && o.fresh > base && o.fresh - base === i);
+        return d;
+    }
+    const c = div("slwkcard"), h = div("slwkh"), q = div("slwkq"), f = div("slwkf");
+    h.textContent = "Show Steps" + (e.std ? " · " + e.std : "");
+    q.appendChild(mathText(e.q || ""));
+    f.textContent = e.n > 1 ? e.n + " steps: the problem, then one step on each Next" : "1 step";
+    c.append(h, q, f); d.appendChild(c);
+    return d;
+}
 function drawLogo(e, o) { const d = div("sle slg"), im = document.createElement("img"); im.src = o.logo || "brand/logo.svg"; im.alt = ""; im.draggable = false; d.appendChild(im); return d; }
 
 /** One element as a node, placed and turned on the slide. o: as renderSlide. ink: the slide's automatic text color. */
-export function renderEl(e, o, ink) {
-    const n = e.k === "bx" ? drawBox(e, o, ink) : e.k === "ln" ? drawLine(e) : e.k === "tb" ? drawTable(e, o, ink) : e.k === "pc" ? drawPic(e, o) : e.k === "mt" ? drawMath(e, o) : e.k === "st" ? drawSticker(e) : e.k === "lg" ? drawLogo(e, o) : div("sle");
+export function renderEl(e, o, ink, step) {
+    const n = e.k === "bx" ? drawBox(e, o, ink) : e.k === "ln" ? drawLine(e) : e.k === "tb" ? drawTable(e, o, ink) : e.k === "pc" ? drawPic(e, o) : e.k === "mt" ? drawMath(e, o) : e.k === "st" ? drawSticker(e) : e.k === "lg" ? drawLogo(e, o) : e.k === "wk" ? drawWalk(e, o, step == null ? Infinity : step) : div("sle");
     n.dataset.id = e.id;
     if (e.k !== "ln") { n.style.left = e.x + "px"; n.style.top = e.y + "px"; n.style.width = e.w + "px"; n.style.height = e.h + "px"; if (e.r) n.style.transform = "rotate(" + e.r + "deg)"; }
     if (e.op) n.style.opacity = String(e.op);
@@ -186,6 +202,7 @@ export function renderEl(e, o, ink) {
  * o.fresh: the step just reached (those pieces animate in) · o.live: the lesson's plan for live fields · o.mark: show live fields as live
  * o.img(id): a picture's address ("" while loading, "x" when missing) · o.logo: the board's logo · o.board: { grad, cls } a stand-in for the board's look
  * o.edit: the Board Builder (ids, reveal badges) · o.editing: the element being typed in · o.scale: screen pixels per slide unit (sharp math tools)
+ * o.walk(node, el, stepIndex, animate): plays a Show Steps piece in its box (the board and Spotlight); without it the piece is a card
  */
 export function renderSlide(slide, o) {
     const opt = o || {}, root = div("sl" + (opt.edit ? " sledit" : "")), bg = div("slbg"), layer = div("slels");
@@ -195,7 +212,7 @@ export function renderSlide(slide, o) {
     const step = opt.edit ? Infinity : (opt.step == null ? Infinity : opt.step);
     ((slide && slide.els) || []).forEach((e) => {
         if ((e.ap || 0) > step) return;
-        const n = renderEl(e, opt, ink);
+        const n = renderEl(e, opt, ink, step);
         if (!opt.edit && opt.fresh && e.ap === opt.fresh) n.classList.add("slin");
         layer.appendChild(n);
     });

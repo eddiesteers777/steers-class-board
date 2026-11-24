@@ -69,3 +69,16 @@ body.board.idle .deckpen:not([aria-pressed="true"]){opacity:0}
 .deckx .cv.drawoff .wbrail{display:none}
 .slnotes{margin:.6em 0 0;padding:.6em .8em;border-radius:.6em;background:rgba(242,179,61,.12);border:1px solid rgba(242,179,61,.45);font-size:.92rem;line-height:1.4;white-space:pre-wrap;color:inherit}
 .slnotes b{display:block;font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;opacity:.75;margin-bottom:.15em}
+/* Show Steps on a slide (js/slideView.js drawWalk): the walkthrough player fills its box; a card in the editor */
+.slwk{display:flex}
+.slwkhost{position:absolute;inset:0;display:flex;flex-direction:column}
+.slwkhost > .sp{flex:1;min-height:0;border-radius:26px}
+.slwkhost > .sp .sp-head{min-height:84px;padding:16px 28px}
+.slwkwait{margin:auto;font:600 40px "Instrument Sans",system-ui,sans-serif;color:#5f6b7a;background:#fbfcfe;border-radius:26px;padding:28px 40px}
+.slwkcard{flex:1;display:flex;flex-direction:column;background:#fbfcfe;color:#14213d;border:2px solid #dce7f5;border-radius:26px;overflow:hidden;box-shadow:0 10px 30px rgba(8,27,69,.14)}
+.slwkh{background:#081b45;color:#f4f7fb;font:700 44px "Bricolage Grotesque","Instrument Sans",sans-serif;padding:20px 32px}
+.slwkq{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px 48px;font:500 60px/1.25 "Instrument Sans",system-ui,sans-serif;
+    background-image:linear-gradient(#dce7f5 2px,transparent 2px);background-size:100% 84px}
+.slwkf{padding:16px 32px;font:600 34px "Instrument Sans",system-ui,sans-serif;color:#10358a;background:#f6f9fd;border-top:2px solid #dce7f5}
+.slwkhost .sp-board{scrollbar-width:none}
+.slwkhost .sp-board::-webkit-scrollbar{display:none}

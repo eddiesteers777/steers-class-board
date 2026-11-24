@@ -10,13 +10,16 @@
      slides/index                  how many slides each lesson has       { v, n: { key: count } }
      slideimg/<id>                 a picture, shrunk on the device        { d: data URL, w, h }
 
-   A slide: { id, bg: { t, c, g, p }, els: [El], nt (notes for the teacher, never on the board), hide }
+   A slide: { id, bg: { t, c, g, p }, els: [El], nt (notes for the teacher, never on the board), hide, pn }
+     pn  panels Spotlight opens when it reaches this slide: { tm: timer seconds, tg: learning target, ag: agenda } (Nov 24)
      bg.t  "board" (the board's own look) | "color" (c) | "grad" (g); bg.p a paper pattern over a color or gradient
    An element: { id, k, x, y, w, h, r, ap, lk, op, ...its own settings }, in slide units (1600 x 900)
      k   "bx" a box: text, a card (hd = its heading), a shape (sh) or a sticky note
          "ln" a line or arrow (x1, y1, x2, y2 instead of x, y, w, h)
          "tb" a table of short texts     "pc" a picture (img = its id)
          "mt" a math tool (js/mathTools.js item)   "st" a sticker (js/stickers.js)   "lg" the board's logo
+         "wk" Show Steps: a worked walkthrough from the standards bank (wid = its problem id, n = its steps, q = the problem).
+              On the board and in Spotlight it plays one step per Next (js/stepPlayer.js); in the editor it is a card.
      r   turn in degrees   ap  appears on the ap-th Next (0 = always shown)   lk  locked   op  see-through
    Text is a small safe subset of HTML (sanitizeHtml). {3/4} draws a fraction, x^2 a power, √{49} a root,
    and {{agenda}} style live fields fill in from the lesson's plan wherever the slide is shown.
@@ -267,7 +270,7 @@ export function cleanEl(o) {
         ["x1", "y1", "x2", "y2"].forEach((p, i) => { e[p] = r1(num(o[p], i % 2 ? -SH : -SW, i % 2 ? 2 * SH : 2 * SW, i % 2 ? 450 : (i ? 1000 : 600))); });
         if (e.x1 === e.x2 && e.y1 === e.y2) e.x2 += 1;
         e.ln = color(o.ln, "#14213d"); e.lw = r1(num(o.lw, 1, 40, 6)); e.dash = pick(o.dash, DASH, ""); e.a1 = pick(o.a1, HEADS, ""); e.a2 = pick(o.a2, HEADS, "");
-    } else if (["bx", "tb", "pc", "mt", "st", "lg"].includes(k)) {
+    } else if (["bx", "tb", "pc", "mt", "st", "lg", "wk"].includes(k)) {
         e.x = r1(num(o.x, -SW, 2 * SW, 200)); e.y = r1(num(o.y, -SH, 2 * SH, 200));
         e.w = r1(num(o.w, 8, 4 * SW, 400)); e.h = r1(num(o.h, 8, 4 * SH, 200));
         const r = r1(num(o.r, -720, 720, 0) % 360); if (r) e.r = r > 180 ? r - 360 : r < -180 ? r + 360 : r;
@@ -295,6 +298,9 @@ export function cleanEl(o) {
         const it = cleanItems([o.it])[0]; if (!it || it.k === "text") return null; it.x = 0.5; it.y = 0.5; it.r = 0; e.it = it;
     } else if (k === "st") {
         const s = cleanSticker({ t: o.t, v: o.v, c: o.c }); if (!s) return null; e.t = s.t; e.v = s.v; if (s.t === "w") e.c = s.c;
+    } else if (k === "wk") {
+        e.wid = typeof o.wid === "string" && /^[\w.-]{1,40}$/.test(o.wid) ? o.wid : ""; if (!e.wid) return null;
+        e.n = int(o.n, 1, 30, 1); e.q = str(o.q, 400); e.std = str(o.std, 20);
     }
     return e;
 }
@@ -317,6 +323,7 @@ export function cleanSlide(o) {
     (Array.isArray(o.els) ? o.els : []).forEach((x) => { const e = cleanEl(x); if (e && s.els.length < MAX_ELS) { if (seen.has(e.id)) e.id = newId("e"); seen.add(e.id); s.els.push(e); } });
     const nt = str(o.nt, MAX_NOTES); if (nt.trim()) s.nt = nt;
     if (o.hide === true) s.hide = true;
+    const pn = cleanPanels(o.pn); if (pn) s.pn = pn;
     return s;
 }
 export function cleanDeck(o, max) {
@@ -342,8 +349,25 @@ export function showList(daily, lesson) {
     const own = (lesson && lesson.slides) || [], all = (lesson && lesson.nod ? [] : ((daily && daily.slides) || []).map((s) => Object.assign({ daily: true }, s))).concat(own);
     return all.filter((s) => !s.hide);
 }
-/** How many times Next reveals something on a slide before moving on. */
-export const revealSteps = (s) => (s && s.els ? s.els.reduce((m, e) => Math.max(m, e.ap || 0), 0) : 0);
+/** How many times Next reveals something on a slide before moving on. A Show Steps piece takes one Next per step after its first. */
+export const revealSteps = (s) => (s && s.els ? s.els.reduce((m, e) => Math.max(m, (e.ap || 0) + (e.k === "wk" ? (e.n || 1) - 1 : 0)), 0) : 0);
+/** Which step a Show Steps piece is on after `step` Nexts on its slide (0 = the problem; it appears at its own ap). */
+export const walkStep = (e, step) => Math.max(0, Math.min((e.n || 1) - 1, (step === Infinity ? (e.n || 1) : step) - (e.ap || 0)));
+
+/* ---------- panels Spotlight opens on a slide (Nov 24: Slides builds the lesson, Spotlight teaches it) ---------- */
+export const PANEL_MINS = [1, 2, 3, 5, 10, 15, 20];
+export function cleanPanels(o) {
+    if (!o || typeof o !== "object") return null;
+    const out = {}, tm = int(o.tm, 0, 5400, 0);
+    if (tm) out.tm = tm; if (o.tg === true) out.tg = true; if (o.ag === true) out.ag = true;
+    return Object.keys(out).length ? out : null;
+}
+/** The panels in words, for a badge: "Timer 5 min, target". */
+export function panelWords(pn) {
+    if (!pn) return "";
+    const w = []; if (pn.tm) w.push("Timer " + (pn.tm % 60 ? Math.round(pn.tm / 6) / 10 : pn.tm / 60) + " min"); if (pn.tg) w.push("target"); if (pn.ag) w.push("agenda");
+    const t = w.join(", "); return t.charAt(0).toUpperCase() + t.slice(1);
+}
 export const countShown = (deck) => ((deck && deck.slides) || []).filter((s) => !s.hide).length;
 
 /* ---------- new elements ---------- */
@@ -364,6 +388,7 @@ export function newEl(kind, o) {
         case "math": return base({ k: "mt", x: 550, y: 200, w: 500, h: 500 });
         case "sticker": return base({ k: "st", x: 700, y: 330, w: 200, h: 200 });
         case "logo": return base({ k: "lg", x: 60, y: 40, w: 120, h: 120 });
+        case "walk": return base({ k: "wk", x: 40, y: 172, w: 1520, h: 696, wid: at.wid, n: at.n, q: at.q, std: at.std });
     }
     return null;
 }
@@ -430,6 +455,18 @@ export function problemSlide(title, sub, q, a) {
     const els = banner(title, sub);
     els.push(card(40, 180, 1520, a ? 440 : 680, "", "<div style=\"text-align:center\">" + esc(q) + "</div>", { fs: 76, va: "m" }));
     if (a) els.push(card(40, 650, 1520, 210, "Answer", "<div style=\"text-align:center\">" + esc(a) + "</div>", { fs: 64, va: "m", fill: "#fff6dd", ln: "#f2b33d", hf: "#b77905", ap: 1 }));
+    return S1(els);
+}
+/** Bank problems use § for a dollar sign and $ for nothing (js/weekSheets.js rich); slides use $ as typed. */
+export const bankText = (t) => String(t == null ? "" : t).replace(/\$/g, "").replace(/§/g, "$");
+/** A standards-bank problem as a slide: the problem, and its checked answer one Next away. */
+export function bankSlide(item, i, n) {
+    return problemSlide("Practice", [item.std, n > 1 ? "Problem " + (i + 1) + " of " + n : ""].filter(Boolean).join(" · "), bankText(item.q), bankText(item.a));
+}
+/** A worked walkthrough as a slide: a banner, then the walkthrough filling the rest, one step per Next. */
+export function walkSlide(item, steps) {
+    const els = banner("Show Steps", item.std || "");
+    els.push({ k: "wk", x: 40, y: 172, w: 1520, h: 696, wid: item.id, n: steps, q: bankText(item.q), std: item.std || "" });
     return S1(els);
 }
 /** A Guided Notes frame (js/boardApp.js notesFrames) as a slide: the question, then each step on its own Next, then the answer. */

@@ -192,3 +192,5 @@ body.spotdraw #stage .spotink canvas{cursor:crosshair}
 /* a slide screen: the slide fills the board under the panels and ink */
 .spotx .spotslide{position:absolute;inset:0}
 .spotgone{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;padding:12px 18px;border-radius:14px;background:rgba(5,12,31,.55);color:#fff;font-size:1.1em}
+/* a slide with pieces still to show on Next (Nov 24) */
+.spot .spcount .sprv{font:600 11px/1.1 var(--ui,system-ui);opacity:.78;white-space:nowrap;letter-spacing:0}

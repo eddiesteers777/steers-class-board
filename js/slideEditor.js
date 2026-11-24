@@ -11,8 +11,9 @@
    Model: js/slides.js. Drawing: js/slideView.js. The board side: js/boardApp.js (the Slides screen).
 ========================================== */
 import { SW, SH, MAX_SLIDES, MAX_DAILY, DAILY, INDEX, deckKey, newId, cleanDeck, cleanSlide, cleanEl, cleanIndex, newEl, mathBox, LAYOUTS, todaySlide, agendaSlide,
-    fromPlan, liveContext, lessonDate, showList, revealSteps, countShown, sanitizeHtml, textOf, PALETTE, FONTS, SHAPES, GRADS, PATTERNS, LIVE, boxOf, shapePath, inkFor } from "./slides.js?v=1";
-import { renderSlide, renderEl, fitSlide, thumb, imageLoader } from "./slideView.js?v=1";
+    fromPlan, liveContext, lessonDate, showList, revealSteps, countShown, sanitizeHtml, textOf, PALETTE, FONTS, SHAPES, GRADS, PATTERNS, LIVE, boxOf, shapePath, inkFor,
+    PANEL_MINS, cleanPanels, panelWords, bankSlide, walkSlide } from "./slides.js?v=2";
+import { renderSlide, renderEl, fitSlide, thumb, imageLoader } from "./slideView.js?v=2";
 import { newItem, geom, MENU as MATH_MENU, parseStep, compileExpr, PLOT } from "./mathTools.js?v=1";
 import { STICKER_SETS, WORDS, WORD_COLORS, stickerFace } from "./stickers.js?v=1";
 import { gradOf, lookSeal } from "./panels.js?v=16";
@@ -66,7 +67,9 @@ const IC = {
     hide: '<path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.9 8.4 2 12 2 12s3.5 7 10 7a9.6 9.6 0 0 0 5.4-1.6"/>',
     head: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18" stroke-width="3"/>', round: '<path d="M4 20V10a6 6 0 0 1 6-6h10"/>', grid: '<path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
     keys: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>', settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
-    notes: '<path d="M4 4h16v12H8l-4 4z"/><path d="M8 8h8M8 12h5"/>', every: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+    notes: '<path d="M4 4h16v12H8l-4 4z"/><path d="M8 8h8M8 12h5"/>',
+    panels: '<circle cx="12" cy="13" r="7"/><path d="M12 9v4l2.5 1.5M10 3h4"/>', bank: '<path d="M4 19V6a2 2 0 0 1 2-2h12v15H6a2 2 0 0 0-2 2z"/><path d="M8 8h6M8 11h4"/>',
+    steps: '<path d="M4 18h4v-4h4v-4h4V6h4"/>', every: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
 };
 const icon = (k) => svg(IC[k] || IC.more);
 
@@ -289,6 +292,7 @@ function filmItem(key, s, i) {
     const rv = revealSteps(s); if (rv) badges.appendChild(el("span", "sfrv", rv + " on Next"));
     if (s.hide) badges.appendChild(el("span", "sfhid", "Hidden"));
     if (s.nt) badges.appendChild(el("span", "sfnt", "Notes"));
+    if (s.pn) { const b3 = el("span", "sfpn", panelWords(s.pn)); b3.title = "Spotlight opens these when it reaches this slide"; badges.appendChild(b3); }
     if (spotIds.has(s.id)) { const b2 = el("span", "sfinsp", "In Spotlight"); b2.title = "This slide has a Spotlight screen, with its own panels and drawing"; badges.appendChild(b2); }
     it.appendChild(badges);
     it.appendChild(btn("sfm", icon("more"), (e, bb) => openPop(bb, (p) => slideMenu(p, key, s.id)), "More for slide " + (i + 1)));
@@ -722,6 +726,183 @@ function layoutMenu(p, key) {
     }
 }
 
+/* ---------- panels per slide (Spotlight opens them when it reaches the slide) ---------- */
+function panelsMenu(p) {
+    const s = S0(); if (!s) return;
+    const pn = s.pn || {};
+    const set = (fn) => {
+        change((sl) => { const o = Object.assign({}, sl.pn || {}); fn(o); const c = cleanPanels(o); if (c) sl.pn = c; else delete sl.pn; });
+        setTimeout(() => { const b = $("slPanelsBtn"); if (b && !pop) openPop(b, panelsMenu); }, 0);   // stay open for the next pick
+    };
+    p.appendChild(el("p", "sph", "When Spotlight reaches this slide"));
+    p.appendChild(el("p", "spnote spfirst", "Timer"));
+    const r = el("div", "srow");
+    r.appendChild(btn("spchip" + (!pn.tm ? " on" : ""), "Off", () => set((o) => { delete o.tm; })));
+    PANEL_MINS.forEach((m) => r.appendChild(btn("spchip" + (pn.tm === m * 60 ? " on" : ""), m + " min", () => set((o) => { o.tm = m * 60; }), "Start with a " + m + " minute timer")));
+    p.appendChild(r);
+    const tog = (key, name, sub) => {
+        const on = pn[key] === true;
+        const b = btn("spi smi" + (on ? " on" : ""), icon(on ? "check" : "plus") + "<span><b>" + name + "</b><small>" + sub + "</small></span>", () => set((o) => { if (on) delete o[key]; else o[key] = true; }));
+        b.setAttribute("aria-pressed", String(on)); p.appendChild(b);
+    };
+    tog("tg", "Learning target", "The day's \"I can\" from your plan");
+    tog("ag", "Agenda", "The day's agenda from your plan");
+    p.appendChild(el("p", "spnote", "Spotlight opens these by itself when it gets to this slide. If you close one in class, it stays closed."));
+}
+
+/* ---------- slides from the standards bank: practice problems, or a Show Steps walkthrough ---------- */
+function bankMenu(p) {
+    p.appendChild(el("p", "sph", "From the standards bank"));
+    p.appendChild(btn("spi smi", icon("bank") + "<span><b>Practice problems</b><small>Pick a few. Each gets its own slide, with the answer on Next.</small></span>", () => { closePop(); openBank("prob"); }));
+    p.appendChild(btn("spi smi", icon("steps") + "<span><b>Show Steps</b><small>A worked walkthrough. Next plays it one step at a time.</small></span>", () => { closePop(); openBank("walk"); }));
+}
+const byCode = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true });
+/** The day's standards first (its bellringer problems), then the rest of the week's for this class. */
+function lessonCodes() {
+    const L = classOf(weekObj(), lesson.cls), out = [];
+    const add = (d) => ((d && d.problems) || []).forEach((x) => { if (x && x.std) out.push(String(x.std)); });
+    add(dayOf()); ((L && L.days) || []).forEach(add);
+    return [...new Set(out)];
+}
+let bankDlg = null;
+async function openBank(mode) {
+    if (bankDlg) bankDlg.close();
+    const walk = mode === "walk", cls = lesson.cls, lk = lessonKey();
+    const dlg = el("dialog", "spick"); bankDlg = dlg;
+    dlg.setAttribute("aria-label", walk ? "Show Steps on a slide" : "Practice problems from the bank");
+    const head = el("div", "spk-head"); head.appendChild(el("h2", null, walk ? "Show Steps on a slide" : "Practice problems from the bank"));
+    const x = btn("spk-x", svg('<path d="M6 6l12 12M18 6 6 18"/>'), () => dlg.close(), "Close"); head.appendChild(x);
+    const body = el("div", "spk-body"); body.appendChild(el("p", "spk-wait", "Getting the bank…"));
+    dlg.append(head, body);
+    let player = null;
+    dlg.addEventListener("close", () => { if (player) player.destroy(); dlg.remove(); if (bankDlg === dlg) bankDlg = null; });
+    document.body.appendChild(dlg); dlg.showModal();
+
+    let mods;
+    try {
+        mods = await Promise.all([import("./stdBank.js?v=3"), import("./weekSheets.js?v=60"), import("../data/standards.js?v=58"),
+            walk ? import("./walkBank.js?v=1") : null, walk ? import("./stepPlayer.js?v=2") : null]);
+    } catch (e) { body.textContent = ""; body.appendChild(el("p", "spk-wait", "The bank didn't load. Check the connection and try again.")); return; }
+    const [sb, ws, st, wb, spm] = mods, rich = ws.rich;
+    const every = walk ? await wb.loadWalkItems() : await sb.loadStdBank();
+    let all = every.filter((it) => sb.inClass(it, cls));
+    if (!all.length) all = every;   // a class the bank doesn't know (a new teacher's, the sample): the whole bank, the lesson's standards first
+    if (!dlg.open) return;
+    const stdText = (code) => { for (const c of Object.values(st.STANDARDS || {})) { const f = ((c && c.standards) || []).find((y) => y.code === code); if (f) return f.text || ""; } return ""; };
+    const hasWalk = (it) => !walk || wb.walkOf(it).ok;
+    const count = (code) => all.filter((it) => it.std === code && hasWalk(it)).length;
+    const first = lessonCodes().filter((c) => count(c));
+    const rest = [...new Set(all.map((it) => it.std))].filter((c) => !first.includes(c)).sort(byCode);
+    let cur = first[0] || rest.find((c) => count(c)) || "", lvl = 0;
+    let ok = {}, edits = {}, checksIn = !walk, pick = null;
+    const picked = [];   // problems mode: the ones ticked, in the order ticked
+    if (walk) Promise.all([readOnce("walk/ok"), readOnce("walk/edits")]).then(([o, e]) => { ok = wb.cleanOk(o); edits = wb.cleanEdits(e); checksIn = true; if (dlg.open) { drawList(); drawPick(); } });
+
+    body.textContent = "";
+    const top = el("div", "spk-top"), chips = el("div", "srow spk-chips"), other = el("select", "spk-other"), text = el("p", "spk-std"), lv = el("div", "srow spk-lv");
+    other.setAttribute("aria-label", "Another standard");
+    top.append(chips, other);
+    const main = el("div", "spk-main" + (walk ? " two" : "")), list = el("div", "spk-list"), side = el("div", "spk-side");
+    main.appendChild(list); if (walk) main.appendChild(side);
+    const foot = el("div", "spk-foot");
+    body.append(top, text); if (!walk) body.appendChild(lv); body.append(main, foot);
+    other.onchange = () => { if (other.value) { cur = other.value; pick = null; drawAll(); } };
+
+    function drawTop() {
+        chips.textContent = "";
+        first.slice(0, 8).forEach((c) => { const b = btn("spchip" + (c === cur ? " on" : ""), c + " · " + count(c), () => { cur = c; pick = null; drawAll(); }); b.setAttribute("aria-pressed", String(c === cur)); chips.appendChild(b); });
+        if (!first.length) chips.appendChild(el("span", "spk-none", "No standards on this day's plan yet. Pick one:"));
+        other.textContent = ""; const o0 = el("option", null, first.length ? "Another standard…" : "Pick a standard…"); o0.value = ""; other.appendChild(o0);
+        [...first.slice(8), ...rest].filter((c) => count(c)).forEach((c) => { const op = el("option", null, c + " · " + count(c) + (walk ? " walkthroughs" : " problems")); op.value = c; other.appendChild(op); });
+        other.value = first.slice(0, 8).includes(cur) ? "" : cur;
+        const t = stdText(cur); text.textContent = cur ? cur + (t ? ": " + t : "") : "";
+        text.hidden = !cur;
+        lv.textContent = "";
+        [[0, "All levels"], [1, sb.LEVELS[1]], [2, sb.LEVELS[2]], [3, sb.LEVELS[3]]].forEach(([v, n]) => { const b = btn("spchip" + (v === lvl ? " on" : ""), n, () => { lvl = v; drawList(); drawTop(); }); b.setAttribute("aria-pressed", String(v === lvl)); lv.appendChild(b); });
+    }
+    function drawList() {
+        list.textContent = "";
+        const items = all.filter((it) => it.std === cur && (!lvl || it.lvl === lvl) && hasWalk(it));
+        if (!items.length) { list.appendChild(el("p", "spk-none", cur ? (walk ? "No walkthroughs for " + cur + " yet." : "No bank problems for " + cur + " at this level.") : "Pick a standard.")); return; }
+        items.forEach((it) => {
+            const row = el("button", "spk-row"); row.type = "button";
+            const q = el("div", "spk-q"); q.appendChild(rich(it.q));
+            const meta = el("div", "spk-meta");
+            if (walk) {
+                const w = wb.walkOf(it);
+                meta.appendChild(el("span", null, w.steps.length + " steps"));
+                if (checksIn) meta.appendChild(el("span", ok[it.id] ? "spk-ok" : "spk-un", ok[it.id] ? "Checked" : "Not checked yet"));
+                row.setAttribute("aria-pressed", String(pick === it.id));
+                row.onclick = () => { pick = it.id; drawList(); drawPick(); };
+            } else {
+                const a = el("div", "spk-a"); a.appendChild(el("span", null, "Answer ")); a.appendChild(rich(it.a)); q.appendChild(a);
+                meta.appendChild(el("span", null, sb.LEVELS[it.lvl] || ""));
+                const n = picked.findIndex((y) => y.id === it.id);
+                if (n >= 0) meta.appendChild(el("span", "spk-ok", "Slide " + (n + 1)));
+                row.setAttribute("aria-pressed", String(n >= 0));
+                row.onclick = () => { const i = picked.findIndex((y) => y.id === it.id); if (i >= 0) picked.splice(i, 1); else picked.push(it); drawList(); drawFoot(); };
+            }
+            const tick = el("span", "spk-tick"); tick.innerHTML = svg(IC.check);
+            row.append(tick, q, meta); list.appendChild(row);
+        });
+    }
+    function drawPick() {
+        if (!walk) return;
+        if (player) { player.destroy(); player = null; }
+        side.textContent = "";
+        const it = all.find((y) => y.id === pick);
+        if (!it) { side.appendChild(el("p", "spk-none", "Pick a problem to watch its walkthrough here first.")); drawFoot(); return; }
+        const w = wb.walkOf(it), host = el("div", "spk-player");
+        side.appendChild(host);
+        player = spm.createStepPlayer(host, wb.withEdits(w, edits[it.id]), {});
+        drawFoot();
+        if (narrow.matches) host.scrollIntoView({ block: "start", behavior: "smooth" });   // on a phone the preview sits under the list
+    }
+    function drawFoot() {
+        foot.textContent = "";
+        const d = deckOf(lk), room = d ? MAX_SLIDES - d.slides.length : 0;
+        if (!walk) {
+            foot.appendChild(el("p", "spk-note", picked.length ? picked.length + " picked. Each gets its own slide, with the answer on Next." : "Tap problems to pick them. Each gets its own slide, with the answer on Next."));
+            const add = btn("spk-go", picked.length > 1 ? "Add " + picked.length + " slides" : "Add the slide", () => addBank(), "Add the picked problems as slides");
+            add.disabled = !picked.length || !canEdit(lk) || room < picked.length;
+            if (picked.length > room) foot.appendChild(el("p", "spk-note bad", "A lesson holds " + MAX_SLIDES + " slides. There's room for " + Math.max(0, room) + " more."));
+            foot.appendChild(add); return;
+        }
+        const it = all.find((y) => y.id === pick);
+        const checked = !!(it && ok[it.id]);
+        foot.appendChild(el("p", "spk-note", !it ? "Only walkthroughs you've checked show on the board." : !checksIn ? "Getting your checks…" : checked ? "You've checked this one. Next on the board plays it one step at a time." : "Watch it through. Adding it marks it checked, since only checked walkthroughs show on the board."));
+        const add = btn("spk-go", checked || !it ? "Add the slide" : "Looks right, add it", () => addWalk(it, checked));
+        add.disabled = !it || !checksIn || !canEdit(lk) || room < 1;
+        foot.appendChild(add);
+    }
+    function drawAll() { drawTop(); drawList(); drawPick(); drawFoot(); }
+    function addBank() {
+        const n = picked.length, slides = picked.map((it, i) => bankSlide(it, i, n));
+        if (!insertSlides(lk, slides)) return;
+        dlg.close(); toast(n > 1 ? "Added " + n + " problem slides. Each answer shows on Next." : "Added a problem slide. The answer shows on Next.");
+    }
+    async function addWalk(it, checked) {
+        if (!it) return;
+        const w = wb.walkOf(it); if (!w.ok) return;
+        let warn = "";
+        if (!checked) {
+            const ids = Object.assign({}, ok, { [it.id]: Date.now() }); ok = ids;
+            try { await A.store().save("walk/ok", { ids, at: Date.now() }); } catch (e) { warn = " Your check didn't save (" + ((e && e.code) || "connection") + "), so check it on the Show Steps page before class."; }
+        }
+        if (!insertSlides(lk, [walkSlide(it, w.steps.length)])) return;
+        dlg.close(); toast("Added the Show Steps slide." + warn);
+    }
+    drawAll();
+}
+/** Put new slides into a lesson right after the open slide (or at the end), and open the first. */
+function insertSlides(key, slides) {
+    const d = deckOf(key); if (!d || !slides.length) return false;
+    if (d.slides.length + slides.length > MAX_SLIDES) { toast("A lesson holds " + MAX_SLIDES + " slides at most."); return false; }
+    const at = cur.key === key ? d.slides.findIndex((s) => s.id === cur.id) + 1 : d.slides.length;
+    if (!changeDeck(key, (dd) => { dd.slides.splice(at > 0 ? at : dd.slides.length, 0, ...slides); })) return false;
+    cur = { key, id: slides[0].id }; sel = []; draw(); return true;
+}
+
 /* ---------- the toolbar across the top ---------- */
 const FS = [12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 44, 48, 54, 60, 66, 72, 80, 88, 96, 110, 120, 140, 160, 180, 200, 240, 280, 320];
 function drawTools() {
@@ -747,6 +928,8 @@ function drawTools() {
     g = grp("slideg");
     tb(g, "bg", "Background of this slide", (e, b) => openPop(b, bgMenu, "wide"), { text: "Background", menu: 1, dis: !ready });
     tb(g, "layout", "New slide from a layout", (e, b) => openPop(b, (p) => layoutMenu(p, cur.key || lessonKey())), { text: "Layout", menu: 1, dis: !canEdit(cur.key || lessonKey()) });
+    tb(g, "panels", s && s.pn ? "Panels for this slide: " + panelWords(s.pn) : "Open a timer, learning target or agenda when Spotlight reaches this slide", (e, b) => openPop(b, panelsMenu), { text: "Panels", menu: 1, on: !!(s && s.pn), dis: !ready }).id = "slPanelsBtn";
+    tb(g, "bank", "Slides from the standards bank: practice problems or a Show Steps walkthrough", (e, b) => openPop(b, bankMenu), { text: "Bank", menu: 1, dis });
     if (!ready) { bar.appendChild(el("span", "thint", s ? "Getting your slides…" : "Add a slide to start.")); return; }
     if (!list.length) return;   // nothing picked: the tools alone (the old "click a piece…" hint cost a whole row on a Chromebook)
     const boxes = list.filter((e) => e.k === "bx");
