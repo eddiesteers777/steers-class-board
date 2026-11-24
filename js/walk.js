@@ -559,7 +559,7 @@ function evaluate(W, root0, opts) {
         const pairs = opts.story.map((mk, i) => { const n = nodes.find((x) => norm(exprText(x)) === norm(mk[1])); return n ? ["s" + i, n.id] : null; }).filter(Boolean);
         if (pairs.length) seq0.push({ a: "fly", pairs, story: true });
     }
-    if (!(opts && opts.noStart)) W.steps.push({ move: opts && opts.story ? "setup" : "start", title: opts && opts.story ? "Write it as math" : opts && opts.title || "The problem", why: opts && opts.story ? "Each number from the story goes into the problem, with its sign." : opts && opts.why0 || why0, seq: seq0 });
+    if (!(opts && opts.noStart)) W.steps.push({ move: opts && opts.story ? "setup" : "start", title: opts && opts.story ? "Write it as math" : opts && opts.title || "The problem", why: opts && opts.story ? "Each number from the story goes into the problem" + (/[\u2212-]\d/.test(exprText(root).replace(/(\d|\)) [\u2212-] /g, "$1 + ")) ? ", with its sign." : ".") : opts && opts.why0 || why0, seq: seq0 });
     // mixed decimals and fractions: write the fractions as decimals first
     const nums = []; (function walk(n) { if (n.k === "n") nums.push(n); ["a", "b"].forEach((x) => n[x] && walk(n[x])); })(root);
     if (nums.some((n) => n.s === "dec") && nums.some((n) => fracLike(n) && terminates(n.q))) {
@@ -1079,8 +1079,21 @@ function evalSetup(W, item, exprText0, o) {
     }
     let out = evaluate(W, root, { why0: o.cf ? "The fraction bar in a complex fraction means divide." : undefined, story: o.story });
     const v = valueOf(out);
-    if (!key || key.kind !== "num" || !v.eq(key.v)) throw new Error("key");
+    // "30%": the math gives 0.3, then it is written as a percent
+    const pct = key && key.kind === "num" && /^%/.test(key.unit) && !v.eq(key.v) && v.mul(new Q(100)).eq(key.v) && terminates(v);
+    if (!key || key.kind !== "num" || !(v.eq(key.v) || pct)) throw new Error("key");
     const n = numOf(out);
+    if (pct) {
+        let at = n;
+        if (n.s !== "dec" && !v.int) {
+            at = { k: "n", q: v, s: "dec", id: key2(W) };
+            W.steps.push({ move: "decimal", title: "Write it as a decimal", why: numText(v, "frac") + " = " + numText(v, "dec") + ".", seq: [{ a: "row", row: evalRow(W, at) }, { a: "fly", pairs: [[n.id, at.id]] }] });
+        }
+        const p100 = v.mul(new Q(100)), kp = key2(W);
+        W.steps.push({ move: "percent", title: "Write it as a percent", why: "Percent means out of 100, so multiply by 100: " + numText(v, "dec") + " × 100 = " + numText(p100, "dec") + ". Move the decimal point 2 places right.", seq: [{ a: "row", row: { t: "line", cells: [null, "=", R([numText(p100, "dec") + "%"], { k: kp })] } }, { a: "fly", pairs: [[at.id, kp]] }] });
+        answerStep(W, item.a);
+        return true;
+    }
     if (key.mixed && !v.int && v.abs().cmp(ONE) > 0 && n.s !== "mixed") {
         const by = { k: "n", q: v, s: "mixed", id: key2(W) };
         W.steps.push({ move: "mixed", title: "Write it as a mixed number", why: numText(v.abs(), "frac") + " = " + numText(v.abs(), "mixed") + ": " + v.abs().n + " ÷ " + v.d + " = " + Math.floor(v.abs().n / v.d) + " remainder " + (v.abs().n % v.d) + ".", seq: [{ a: "row", row: evalRow(W, by) }, { a: "fly", pairs: [[n.id, by.id]] }] });
@@ -1495,5 +1508,5 @@ function writeStory(W, item, o) {
 }
 
 /** Words for a move, for chips and the list. */
-export const MOVE_NAMES = { distribute: "Distribute", combine: "Combine like terms", both: "Both sides", divide: "Divide", reciprocal: "Reciprocal", flip: "Flip the sign", swap: "Put x first", clear: "Clear fractions", kcc: "Add the opposite", kcf: "Keep, change, flip", lcd: "Common denominator", cancel: "Cancel", numline: "Number line", story: "Story to equation", fact: "Angle fact", graph: "Graph", check: "Check", sub: "Plug in", gcf: "Find the GCF", factor: "Factor", pairs: "Inputs and outputs", longdiv: "Long division", stop: "It stops", repeat: "Repeated input", verdict: "Decide", choice: "Check the choices", abs: "Absolute value", power: "Exponent", cfrac: "Complex fraction" };
+export const MOVE_NAMES = { distribute: "Distribute", combine: "Combine like terms", both: "Both sides", divide: "Divide", reciprocal: "Reciprocal", flip: "Flip the sign", swap: "Put x first", clear: "Clear fractions", kcc: "Add the opposite", kcf: "Keep, change, flip", lcd: "Common denominator", cancel: "Cancel", numline: "Number line", story: "Story to equation", fact: "Angle fact", graph: "Graph", check: "Check", sub: "Plug in", gcf: "Find the GCF", factor: "Factor", pairs: "Inputs and outputs", longdiv: "Long division", stop: "It stops", percent: "Write it as a percent", repeat: "Repeated input", verdict: "Decide", choice: "Check the choices", abs: "Absolute value", power: "Exponent", cfrac: "Complex fraction" };
 export { parseLine as _parseLine, parseExpr as _parseExpr, valueOf as _valueOf, sameAnswers as _sameAnswers, semOf as _semOf };

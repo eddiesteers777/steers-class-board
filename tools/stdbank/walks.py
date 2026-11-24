@@ -42,6 +42,70 @@ WALKS = {
         "eq": "9t + 4 ≤ 40", "var": "the number of tickets",
         "why": "Tickets cost §9 each, so t tickets cost 9t. Add the popcorn. You can spend at most §40, so use ≤.",
         "story": [["§9 each", "9t"], ["§4 on popcorn", "4"], ["You have §40", "40"]]},
+    # 7th Grade, 7.3
+    "A shirt costs §24. The sales tax is 8%. What is the total cost?": {
+        "expr": "24 + 0.08 × 24", "why": "Tax is 8% of the price, and 8% = 0.08. The total is the price plus the tax.",
+        "story": [["§24", "24"], ["8%", "0.08"]]},
+    "Your meal costs §36. You leave a 20% tip. How much is the tip?": {
+        "expr": "0.2 × 36", "why": "The tip is 20% of the meal, and 20% = 0.20 = 0.2.",
+        "story": [["§36", "36"], ["20%", "0.2"]]},
+    "A §60 jacket is 25% off. What is the sale price?": {
+        "expr": "60 − 0.25 × 60", "why": "25% off means take away 25% of the price, and 25% = 0.25.",
+        "story": [["§60", "60"], ["25%", "0.25"]]},
+    "You deposit §500 at 3% simple interest per year for 4 years. How much interest do you earn?": {
+        "expr": "500 × 0.03 × 4", "why": "Simple interest = principal × rate × years. The rate 3% = 0.03.",
+        "story": [["§500", "500"], ["3%", "0.03"], ["4 years", "4"]]},
+    "A store buys a lamp for §40 and marks it up 35%. What is the selling price?": {
+        "expr": "40 + 0.35 × 40", "why": "A markup adds 35% of the cost to the cost, and 35% = 0.35.",
+        "story": [["§40", "40"], ["35%", "0.35"]]},
+    "A salesperson earns 6% commission. She sells §2,500 of shoes. How much commission does she earn?": {
+        "expr": "0.06 × 2500", "why": "Commission is 6% of the sales, and 6% = 0.06.",
+        "story": [["6%", "0.06"], ["§2,500", "2500"]]},
+    "A price goes from §50 to §65. What is the percent increase?": {
+        "expr": "(65 − 50) ÷ 50", "why": "Percent increase = the change ÷ the original price. Then write the decimal as a percent.",
+        "story": [["§50", "50"], ["§65", "65"]]},
+    "A town's population drops from 800 to 680. What is the percent decrease?": {
+        "expr": "(800 − 680) ÷ 800", "why": "Percent decrease = the change ÷ the original number. Then write the decimal as a percent.",
+        "story": [["800", "800"], ["680", "680"]]},
+    "A §80 game is 15% off, then 6% tax is added to the sale price. What is the total?": {
+        "expr": "(80 − 0.15 × 80) × 1.06", "why": "First take 15% off. Then the tax adds 6%, so you pay 106% of the sale price, and 106% = 1.06.",
+        "story": [["§80", "80"], ["15%", "0.15"], ["6%", "1.06"]]},
+    "You borrow §1,200 at 5% simple interest for 3 years. What is the total you pay back?": {
+        "expr": "1200 + 1200 × 0.05 × 3", "why": "You pay back what you borrowed plus the interest. Interest = principal × rate × years, and 5% = 0.05.",
+        "story": [["§1,200", "1200"], ["5%", "0.05"], ["3 years", "3"]]},
+    "A bank charges a 2% fee to cash a §350 check. How much money do you get?": {
+        "expr": "350 − 0.02 × 350", "why": "The bank keeps 2% of the check, and 2% = 0.02. You get the rest.",
+        "story": [["2%", "0.02"], ["§350", "350"]]},
+    "Your bill is §45. You pay 7% tax and leave an 18% tip on the bill before tax. What is the total?": {
+        "expr": "45 + 0.07 × 45 + 0.18 × 45", "why": "Both the tax and the tip are a percent of the §45 bill. 7% = 0.07 and 18% = 0.18.",
+        "story": [["§45", "45"], ["7%", "0.07"], ["18%", "0.18"]]},
+    "A jacket costs §60 before tax. If sales tax is 8%, how much is the sales tax?": {
+        "expr": "0.08 × 60", "why": "The tax is 8% of the price, and 8% = 0.08.",
+        "story": [["§60", "60"], ["8%", "0.08"]]},
+    "Marcus deposits §500 in a savings account that earns 4% simple interest per year. How much simple interest does he earn in 2 years?": {
+        "expr": "500 × 0.04 × 2", "why": "Simple interest = principal × rate × years. The rate 4% = 0.04.",
+        "story": [["§500", "500"], ["4%", "0.04"], ["2 years", "2"]]},
+    "A store marks down a §45 backpack by 20%. What is the sale price?": {
+        "expr": "45 − 0.2 × 45", "why": "A 20% markdown takes away 20% of the price, and 20% = 0.2.",
+        "story": [["§45", "45"], ["20%", "0.2"]]},
+    "A family's restaurant bill is §68.00 before tax and tip. Sales tax is 5% of the pre-tax bill, and they leave a 15% tip on the pre-tax bill. What is the total amount they pay?": {
+        "expr": "68 + 0.05 × 68 + 0.15 × 68", "why": "The tax and the tip are both a percent of the §68 bill. 5% = 0.05 and 15% = 0.15.",
+        "story": [["§68.00", "68"], ["5%", "0.05"], ["15%", "0.15"]]},
+    "Last month, a school club had 40 members. This month, it has 52 members. What is the percent increase in membership?": {
+        "expr": "(52 − 40) ÷ 40", "why": "Percent increase = the change ÷ the original number. Then write the decimal as a percent.",
+        "story": [["40 members", "40"], ["52 members", "52"]]},
+    "A real estate agent earns a 3.5% commission on home sales. How much commission does the agent earn on a house that sells for §240,000?": {
+        "expr": "0.035 × 240000", "why": "The commission is 3.5% of the price, and 3.5% = 0.035.",
+        "story": [["3.5%", "0.035"], ["§240,000", "240000"]]},
+    "A bike shop buys a bicycle from a manufacturer for §180, marks it up by 40%, and later puts it on sale for 25% off the marked-up price. What is the final sale price?": {
+        "expr": "(180 + 0.4 × 180) × 0.75", "why": "First add the 40% markup. 25% off means you pay 75% of the marked-up price, and 75% = 0.75.",
+        "story": [["§180", "180"], ["40%", "0.4"], ["25% off", "0.75"]]},
+    "After a 15% discount, a pair of headphones costs §102. What was the original price before the discount?": {
+        "eq": "0.85p = 102", "var": "the original price", "why": "After 15% off you pay 85% of the original price: 100% − 15% = 85% = 0.85. So 0.85 of the original price, p, is §102.",
+        "story": [["15% discount", "0.85p"], ["§102", "102"]]},
+    "Elena borrows §1,200 at 6% simple annual interest. If she pays back a total of §1,416 (principal plus interest), for how many years did she borrow the money?": {
+        "eq": "1200 + 72t = 1416", "var": "the number of years", "why": "Each year's interest is 6% of §1,200: 0.06 × 1,200 = §72. What she pays back = what she borrowed + §72 for each year, t.",
+        "story": [["§1,200", "1200"], ["6%", "72t"], ["§1,416", "1416"]]},
     # 7th Grade, 7.4
     "A diver goes down 12 feet, then up 12 feet. What is her total change in depth?": {
         "expr": "−12 + 12", "why": "Down is negative and up is positive. Add the two changes.",

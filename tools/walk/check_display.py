@@ -82,7 +82,8 @@ def main(path):
                         bad += 1; print("CHECK FALSE", w["id"], text)
                     continue
                 if cells[0] == "" and cells[1].strip() == "=":       # "= value" line of an evaluation
-                    val = simplify(ex(cells[2]))
+                    pc = cells[2].strip().endswith("%")             # "= 30%" is the value 0.3 written as a percent
+                    val = simplify(ex(cells[2].strip().rstrip("%")) / (100 if pc else 1))
                     if first is None:
                         bad += 1; print("NO START", w["id"])
                     elif simplify(val - first) != 0:
