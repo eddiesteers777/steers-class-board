@@ -992,7 +992,7 @@ function stepsSync() {
 }
 function drawSteps(st) {
     const remote = mode === "remote", id = S.walk.id;
-    st.appendChild(header("Show Steps", "Watch each move, then try the next one yourself"));
+    const hd = header("Show Steps", ""); hd.classList.add("slim"); st.appendChild(hd);   // a slim header, so the step itself gets the room (Eddie, Nov 24)
     const body = el("div", "body stepsbody"); st.appendChild(body);
     const pick = remote ? el("div", "steppick") : null;
     if (pick) body.appendChild(pick);

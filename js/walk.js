@@ -982,6 +982,7 @@ function build(W, item) {
     if (setup && setup.write) return writeStory(W, item, Object.assign({ why0: setup.why }, setup));
     if (setup && setup.expo) return expoSetup(W, item, Object.assign({ why0: setup.why }, setup.expo, { story: setup.story }));
     if (setup && setup.chain) return chainSetup(W, item, Object.assign({ why0: setup.why }, setup));
+    if (setup && setup.reason) return reasonSetup(W, item, Object.assign({ why0: setup.why }, setup.reason));
     if (setup && setup.line) return lineSetup(W, item, Object.assign({ why0: setup.why }, setup.line, { story: setup.story }));
     if (setup && setup.prop) return propSetup(W, item, Object.assign({ why0: setup.why }, setup.prop, { story: setup.story }));
     if (setup && setup.sys) return systemSetup(W, item, setup.sys.eqs, Object.assign({ why0: setup.why, story: setup.story }, setup.sys));
@@ -2741,6 +2742,39 @@ function chainSetup(W, item, o) {
     return true;
 }
 
+/* ---------- reasoning: a fact, number lines that are checked, a picture, and a decision ---------- */
+/** "3 + 4 = 7 < 8": every link read and checked; null when a part can't be read. ° is dropped for the check. */
+function relTruth(t) {
+    const parts = String(t).replace(/°/g, "").split(/\s(=|<|>|≤|≥|≠)\s/);
+    if (parts.length < 3) return null;
+    const vals = [];
+    for (let i = 0; i < parts.length; i += 2) { const v = chainVal(parts[i], {}); if (!v) return null; vals.push(v); }
+    return vals.every((v, i) => i === 0 || (parts[2 * i - 1] === "≠" ? !v.eq(vals[i - 1]) : relTrue(vals[i - 1], parts[2 * i - 1], v)));
+}
+/** setup.reason: { story, steps: [[title, why, row…]…], key, end }. A row is a picture object, "fact: …", "yes: …" or
+ *  "no: …" (a decision), "left → right" (a note), or a number line such as "7 + 9 = 16" that must be true.
+ *  key is how the answer starts; it must match the start of the answer key. */
+function reasonSetup(W, item, o) {
+    W.kind = "rel"; W.cols = 3;
+    const k = String(o.key || "").trim(), a = String(item.a).trim();
+    if (!k || a.toLowerCase().indexOf(k.toLowerCase()) !== 0) throw new Error("key");
+    if (o.story) W.steps.push({ move: "story", title: "Read the question", why: o.why0 || "Find what the question gives you and what it asks.", seq: [storyRow(item, o.story)] });
+    for (const [title, why, ...rows] of o.steps) {
+        const seq = rows.map((r) => {
+            if (typeof r === "object") return { a: "row", row: { t: "pic", pic: r } };
+            let m;
+            if ((m = String(r).match(/^fact:\s*(.+)$/))) return { a: "row", row: { t: "pic", pic: { kind: "fact", text: m[1] } } };
+            if ((m = String(r).match(/^(yes|no):\s*(.+)$/))) return { a: "row", row: { t: "pic", pic: { kind: "verdict", ok: m[1] === "yes", text: m[2] } } };
+            if ((m = String(r).match(/^(.+?)\s→\s(.+)$/))) return { a: "row", row: noteRow(keyDT(m[1]), keyDT(m[2])) };
+            const tr = relTruth(r); if (tr == null) throw new Error("row");
+            return { a: "row", row: rowT([chainDT(r)], tr) };
+        });
+        W.steps.push({ move: o.move || "verdict", title, why, seq });
+    }
+    answerStep(W, item.a, o.end || "");
+    return true;
+}
+
 /** Words for a move, for chips and the list. */
-export const MOVE_NAMES = { distribute: "Distribute", combine: "Combine like terms", both: "Both sides", divide: "Divide", reciprocal: "Reciprocal", flip: "Flip the sign", swap: "Put x first", clear: "Clear fractions", kcc: "Add the opposite", kcf: "Keep, change, flip", lcd: "Common denominator", cancel: "Cancel", numline: "Number line", story: "Story to equation", fact: "Angle fact", graph: "Graph", check: "Check", sub: "Plug in", gcf: "Find the GCF", factor: "Factor", pairs: "Inputs and outputs", longdiv: "Long division", stop: "It stops", percent: "Write it as a percent", shift: "Move the decimal point", repsub: "Subtract the copies", root: "Square roots", half: "Halfway point", tenths: "Try tenths", count: "Count", order: "Order", round: "Round", repeat: "Repeated input", verdict: "Decide", choice: "Check the choices", abs: "Absolute value", power: "Exponent", cfrac: "Complex fraction", expand: "Multiply it out", zero: "Get 0 on one side", zp: "Set each factor to 0", pick: "Keep what fits", wrap: "Multiply the sum" };
+export const MOVE_NAMES = { distribute: "Distribute", combine: "Combine like terms", both: "Both sides", divide: "Divide", reciprocal: "Reciprocal", flip: "Flip the sign", swap: "Put x first", clear: "Clear fractions", kcc: "Add the opposite", kcf: "Keep, change, flip", lcd: "Common denominator", cancel: "Cancel", numline: "Number line", story: "Story to equation", fact: "Angle fact", graph: "Graph", check: "Check", sub: "Plug in", gcf: "Find the GCF", factor: "Factor", pairs: "Inputs and outputs", longdiv: "Long division", stop: "It stops", percent: "Write it as a percent", shift: "Move the decimal point", repsub: "Subtract the copies", root: "Square roots", half: "Halfway point", tenths: "Try tenths", count: "Count", order: "Order", round: "Round", repeat: "Repeated input", verdict: "Decide", slice: "Slice it", choice: "Check the choices", abs: "Absolute value", power: "Exponent", cfrac: "Complex fraction", expand: "Multiply it out", zero: "Get 0 on one side", zp: "Set each factor to 0", pick: "Keep what fits", wrap: "Multiply the sum" };
 export { parseLine as _parseLine, parseExpr as _parseExpr, valueOf as _valueOf, sameAnswers as _sameAnswers, semOf as _semOf };

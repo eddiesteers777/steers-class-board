@@ -270,6 +270,107 @@ const pics = {
             for (const s of spans) { s.animate([{ backgroundSize: "0% 100%" }, { backgroundSize: "100% 100%" }], { duration: 380, easing: "ease-out", fill: "forwards" }); await wait(420); s.style.backgroundSize = "100% 100%"; }
         } };
     },
+    slice(p) {
+        // a solid drawn in 3D, the flat cut through it in amber, and the flat shape the cut leaves, drawn beside it
+        const W = 640, H = 300, P = (x, y, z) => [x + 0.5 * y, -z - 0.32 * y];
+        const ring = (r, z, cx = 0, cy = 0, n = 48) => Array.from({ length: n }, (_, i) => [cx + r * Math.cos((2 * Math.PI * i) / n), cy + r * Math.sin((2 * Math.PI * i) / n), z]);
+        const S = p.solid, cut = p.cut, solid = [], dash = [];   // polylines of 3D points
+        let face = null;
+        const box = (w, d, h) => {
+            const v = (x, y, z) => [x * w - w / 2, y * d - d / 2, z * h];
+            [[[0, 0, 0], [1, 0, 0], [1, 0, 1], [0, 0, 1], [0, 0, 0]], [[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], [[0, 0, 1], [0, 1, 1], [1, 1, 1]]].forEach((l) => solid.push(l.map((q) => v(...q))));
+            [[[0, 1, 0], [1, 1, 0]], [[0, 1, 0], [0, 1, 1]], [[0, 1, 0], [0, 0, 0]]].forEach((l) => dash.push(l.map((q) => v(...q))));
+            if (cut === "flat") face = [[0, 0], [1, 0], [1, 1], [0, 1]].map(([x, y]) => v(x, y, 0.45));
+            else if (cut === "corner") face = [v(1, 0, 0.55), v(0.55, 0, 1), v(1, 0.45, 1)];
+            else if (cut === "diag") face = [v(0, 0, 0), v(1, 0, 0), v(1, 1, 1), v(0, 1, 1)];
+            else if (cut === "down") face = [v(0, 0.5, 0), v(1, 0.5, 0), v(1, 0.5, 1), v(0, 0.5, 1)];
+        };
+        const pyr = (w, d, h) => {
+            const A = [0, 0, h], c = [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2]].map(([x, y]) => [x, y, 0]);
+            solid.push([c[3], c[0], c[1], c[2]], [c[0], A, c[1]], [A, c[2]]); dash.push([c[2], c[3]], [c[3], A]);
+            if (cut === "flat") { const k = 0.55; face = c.map(([x, y]) => [x * k, y * k, h * (1 - k)]); }
+            else if (cut === "apex") face = [[-w / 2, 0, 0], [w / 2, 0, 0], A];
+            else if (cut === "off") { const y0 = -d / 4, zt = h * (1 - Math.abs(y0) / (d / 2)), k = 1 - zt / h; face = [[-w / 2, y0, 0], [w / 2, y0, 0], [(w / 2) * k, y0, zt], [(-w / 2) * k, y0, zt]]; }
+        };
+        const round = (r, h, top) => {
+            const b = ring(r, 0); solid.push(b.filter((q) => q[1] <= 0.01)); dash.push(b.filter((q) => q[1] >= -0.01));
+            if (top) { const t = ring(r, h); solid.push([...t, t[0]], [[-r, 0, 0], [-r, 0, h]], [[r, 0, 0], [r, 0, h]]); }
+            else solid.push([[-r, 0, 0], [0, 0, h], [r, 0, 0]]);
+            if (cut === "flat") face = top ? ring(r, h * 0.5) : ring(r * 0.5, h * 0.5);
+            else if (cut === "down") face = [[-r, 0, 0], [r, 0, 0], [r, 0, h], [-r, 0, h]];
+            else if (cut === "apex") face = [[-r, 0, 0], [r, 0, 0], [0, 0, h]];
+        };
+        if (S === "prism") box(3.2, 2, 2.2); else if (S === "cube") box(2.4, 2.4, 2.4);
+        else if (S === "sqpyr") pyr(2.6, 2.6, 2.8); else if (S === "rectpyr") pyr(3.2, 2.2, 2.8);
+        else if (S === "cylinder") round(1.2, 2.6, true); else if (S === "cone") round(1.3, 2.8, false);
+        else if (S === "sphere") { const e = ring(1.5, 0); solid.push([...e, e[0]].filter((q) => q[1] <= 0.01)); dash.push(e.filter((q) => q[1] >= -0.01)); face = ring(1.2, 0.9); }
+        const all = [...solid, ...dash, face || []].flat().map((q) => P(...q));
+        if (S === "sphere") all.push([-1.5, -1.5], [1.5, 1.5]);
+        const xs = all.map((q) => q[0]), ys = all.map((q) => q[1]), x0 = Math.min(...xs), y0 = Math.min(...ys);
+        const sc = Math.min(260 / (Math.max(...xs) - x0), 240 / (Math.max(...ys) - y0));
+        const T = (q) => { const [a, b] = P(...q); return [30 + (a - x0) * sc, 30 + (b - y0) * sc]; };
+        const path = (pts, close) => "M" + pts.map(T).map((q) => q.map((v) => v.toFixed(1)).join(" ")).join("L") + (close ? "Z" : "");
+        const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, class: "sp-pic", width: W, role: "img", "aria-label": (p.label || "A solid") + " sliced; the cut is a " + p.shape });
+        if (S === "sphere") { const [cx, cy] = T([0, 0, 0]); svg.appendChild(sv("circle", { cx, cy, r: 1.5 * sc, fill: "none", stroke: PEN.ink, "stroke-width": 3.5 })); }
+        solid.forEach((l) => svg.appendChild(sv("path", { d: path(l), fill: "none", stroke: PEN.ink, "stroke-width": 3.5, "stroke-linejoin": "round", "stroke-linecap": "round" })));
+        dash.forEach((l) => svg.appendChild(sv("path", { d: path(l), fill: "none", stroke: PEN.ink, "stroke-width": 2, "stroke-dasharray": "7 7", opacity: 0.55 })));
+        const cutP = face ? sv("path", { d: path(face, true), fill: PEN.amber, "fill-opacity": 0.45, stroke: "#B7791F", "stroke-width": 3.5, "stroke-linejoin": "round" }) : null;
+        if (cutP) svg.appendChild(cutP);
+        // the flat shape on the right
+        const g = sv("g"), cx = 500, cy = 130, A = { fill: PEN.amber, "fill-opacity": 0.45, stroke: "#B7791F", "stroke-width": 4, "stroke-linejoin": "round" };
+        const sh = p.shape;
+        if (sh === "circle") g.appendChild(sv("circle", Object.assign({ cx, cy, r: 62 }, A)));
+        else if (sh === "square") g.appendChild(sv("rect", Object.assign({ x: cx - 60, y: cy - 60, width: 120, height: 120 }, A)));
+        else if (sh === "rectangle") g.appendChild(sv("rect", Object.assign({ x: cx - 85, y: cy - 50, width: 170, height: 100 }, A)));
+        else if (sh === "tall") g.appendChild(sv("rect", Object.assign({ x: cx - 48, y: cy - 75, width: 96, height: 150 }, A)));
+        else if (sh === "triangle") g.appendChild(sv("path", Object.assign({ d: `M${cx - 80} ${cy + 60}L${cx + 80} ${cy + 60}L${cx} ${cy - 70}Z` }, A)));
+        else if (sh === "trapezoid") g.appendChild(sv("path", Object.assign({ d: `M${cx - 90} ${cy + 55}L${cx + 90} ${cy + 55}L${cx + 45} ${cy - 45}L${cx - 45} ${cy - 45}Z` }, A)));
+        const lab = sv("text", { x: cx, y: 265, "text-anchor": "middle", "font-size": 26, "font-weight": 700 }); lab.textContent = p.name || sh; g.appendChild(lab);
+        const id = "ah" + ++uid; arrowHead(svg, id, PEN.ink);
+        const arr = sv("line", { x1: 318, y1: 140, x2: 382, y2: 140, stroke: PEN.ink, "stroke-width": 4, "marker-end": `url(#${id})` });
+        svg.append(arr, g);
+        return { node: svg, async play(fast) {
+            if (fast) return;
+            [cutP, arr, g].forEach((x) => x && (x.style.opacity = 0));
+            await wait(350);
+            if (cutP) { cutP.style.opacity = 1; await cutP.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450 }).finished.catch(() => {}); }
+            arr.style.opacity = 1; await wait(250);
+            g.style.opacity = 1; await g.animate([{ opacity: 0, transform: "translateX(-20px)" }, { opacity: 1, transform: "none" }], { duration: 400 }).finished.catch(() => {});
+        } };
+    },
+    graph(p) {
+        // a small graph: points (a scatter plot) and/or a path of line pieces, with one piece or point picked out in amber
+        const W = 640, H = 330, L = 70, R = 610, Tp = 20, B = 280;
+        const xr = p.xr || [0, 10], yr = p.yr || [0, 10];
+        const X = (v) => L + ((v - xr[0]) / (xr[1] - xr[0])) * (R - L), Y = (v) => B - ((v - yr[0]) / (yr[1] - yr[0])) * (B - Tp);
+        const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, class: "sp-pic", width: W, role: "img", "aria-label": p.label || "A graph" });
+        svg.appendChild(sv("path", { d: `M${L} ${Tp}L${L} ${B}L${R} ${B}`, fill: "none", stroke: PEN.ink, "stroke-width": 3 }));
+        (p.xt || []).forEach((v) => { svg.appendChild(sv("line", { x1: X(v), y1: B, x2: X(v), y2: B + 8, stroke: PEN.ink, "stroke-width": 2 })); const t = sv("text", { x: X(v), y: B + 30, "text-anchor": "middle", "font-size": 20 }); t.textContent = String(v).replace("-", MINUS); svg.appendChild(t); });
+        (p.yt || []).forEach((v) => { svg.appendChild(sv("line", { x1: L - 8, y1: Y(v), x2: L, y2: Y(v), stroke: PEN.ink, "stroke-width": 2 })); const t = sv("text", { x: L - 14, y: Y(v) + 7, "text-anchor": "end", "font-size": 20 }); t.textContent = String(v).replace("-", MINUS); svg.appendChild(t); });
+        if (p.xl) { const t = sv("text", { x: (L + R) / 2, y: H - 2, "text-anchor": "middle", "font-size": 20 }); t.textContent = p.xl; svg.appendChild(t); }
+        const marks = [];
+        if (p.line) {
+            const pts = p.line;
+            for (let i = 1; i < pts.length; i++) {
+                const hi = (p.hl || []).includes(i - 1);
+                const s = sv("line", { x1: X(pts[i - 1][0]), y1: Y(pts[i - 1][1]), x2: X(pts[i][0]), y2: Y(pts[i][1]), stroke: hi ? "#D9901A" : PEN.blue, "stroke-width": hi ? 9 : 5, "stroke-linecap": "round" });
+                svg.appendChild(s); if (hi) marks.push(s);
+            }
+            if (p.ends) pts.forEach((q) => svg.appendChild(sv("circle", { cx: X(q[0]), cy: Y(q[1]), r: 6, fill: PEN.blue })));
+        }
+        (p.pts || []).forEach((q, i) => {
+            const hi = (p.hlp || []).includes(i);
+            const c = sv("circle", { cx: X(q[0]), cy: Y(q[1]), r: hi ? 13 : 9, fill: hi ? PEN.amber : PEN.blue, stroke: hi ? "#B7791F" : "none", "stroke-width": 3 });
+            svg.appendChild(c); if (hi) marks.push(c);
+        });
+        (p.tags || []).forEach(([x, y, s]) => { const t = sv("text", { x: X(x), y: Y(y), "text-anchor": "middle", "font-size": 22, "font-weight": 700, fill: "#B7791F" }); t.textContent = s; svg.appendChild(t); marks.push(t); });
+        return { node: svg, async play(fast) {
+            if (fast || !marks.length) return;
+            marks.forEach((m) => (m.style.opacity = 0)); await wait(400);
+            marks.forEach((m) => (m.style.opacity = 1));
+            await Promise.all(marks.map((m) => m.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450 }).finished.catch(() => {})));
+        } };
+    },
     verdict(p) {
         const b = el("span", "sp-verdict " + (p.ok ? "yes" : "no"), (p.ok ? "✓ " : "✗ ") + p.text);
         return { node: b, async play(fast) { if (!fast) await b.animate([{ opacity: 0, transform: "scale(.9)" }, { opacity: 1, transform: "none" }], { duration: 300 }).finished.catch(() => {}); } };
@@ -349,7 +450,7 @@ export function createStepPlayer(host, walk, opts) {
                 else if (s === i && x.a === "box") x.ks.forEach((k) => { const e = keyEl(k); if (e) e.classList.add("box"); });
             });
         }
-        dim(i);
+        dim(i); fit();
         if (hand) marks();
     }
     /* hand look: the red cancel slashes and the green answer box are drawn in the ink layer, so they look pen-drawn */
@@ -368,8 +469,8 @@ export function createStepPlayer(host, walk, opts) {
     }
     function marks() {
         sizeInk();
-        work.querySelectorAll(".w-k.x.on").forEach((e) => { const p = inkPath(slashOf(e), PEN.red, "sp-slash"); if (e.closest(".sp-row.old")) p.style.opacity = .5; });
-        work.querySelectorAll(".sp-ans").forEach((e) => inkPath(boxOf(e), PEN.green, "sp-box"));
+        work.querySelectorAll(".w-k.x.on").forEach((e) => { if (e.closest(".gone")) return; const p = inkPath(slashOf(e), PEN.red, "sp-slash"); if (e.closest(".sp-row.old")) p.style.opacity = .5; });
+        work.querySelectorAll(".sp-ans").forEach((e) => !e.closest(".gone") && inkPath(boxOf(e), PEN.green, "sp-box"));
     }
     /** Draw a path like a pen stroke, with the pen tip riding along it. */
     async function drawStroke(p, ms) {
@@ -405,6 +506,7 @@ export function createStepPlayer(host, walk, opts) {
         // earlier steps fade back so the eye lands on the newest line
         const mine = new Set(); let count2 = 0;
         if (i >= 0) steps[i].seq.forEach((x) => { if (x.a === "row") count2++; });
+        keep = count2 + 1;
         const rows = [...work.children];
         rows.forEach((r, j) => r.classList.toggle("old", j < rows.length - count2 - 1 && rows.length > 3));
         void mine;
@@ -419,7 +521,34 @@ export function createStepPlayer(host, walk, opts) {
         bPlay.innerHTML = (playing ? ICON.pause : ICON.play) + '<span class="lbl">' + (playing ? "Pause" : i >= N - 1 ? "Play again" : "Play") + "</span>";
         bPlay.setAttribute("aria-label", playing ? "Pause" : "Play");
     }
-    const toBottom = () => { board.scrollTop = board.scrollHeight; };
+    // the end of the writing, not of the ink layer (that runs a little past it for the pen strokes)
+    const toBottom = () => { const end = work.offsetTop + work.offsetHeight + (parseFloat(getComputedStyle(board).paddingBottom) || 0); board.scrollTop = Math.max(0, end - board.clientHeight); };
+    /* big (projected) board: every step stays in sight (Eddie, Nov 24). The writing shrinks to fit; when even that is not
+       enough, the oldest lines step off the top first, never the lines of the step being shown. */
+    let keep = 1;
+    function fit() {
+        if (!opts.big) return;
+        board.style.fontSize = "";
+        work.querySelectorAll(".sp-row.gone").forEach((r) => r.classList.remove("gone"));
+        const fits = () => {
+            const cs = getComputedStyle(board);
+            const ah = board.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom), aw = board.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+            return ah <= 0 || (work.scrollHeight <= ah + 1 && work.scrollWidth <= aw + 1);
+        };
+        if (fits()) return;
+        const base = em(), floor = Math.max(16, base * .45), easy = Math.max(floor, base * .7);
+        const shrink = (lo, hi) => {   // the largest size between lo and hi that fits (lo when none does)
+            for (let n = 0; n < 7 && hi - lo > .5; n++) { const mid = (lo + hi) / 2; board.style.fontSize = mid + "px"; if (fits()) lo = mid; else hi = mid; }
+            board.style.fontSize = lo + "px";
+        };
+        board.style.fontSize = easy + "px";
+        if (fits()) return shrink(easy, base);
+        const rows = [...work.children];
+        for (let j = 0; j < rows.length - keep && !fits(); j++) rows[j].classList.add("gone");
+        if (!fits()) shrink(floor, easy);
+    }
+
+
     function rel(e) {
         // k: the player can sit inside a scaled slide (a Show Steps piece on a slide), so screen pixels are turned back into its own
         const b = board.getBoundingClientRect(), r = e.getBoundingClientRect ? e.getBoundingClientRect() : e, k = board.offsetWidth ? (b.width / board.offsetWidth) || 1 : 1;
@@ -435,7 +564,7 @@ export function createStepPlayer(host, walk, opts) {
             if (x.a === "row") {
                 const n = rowNode(x.row); work.appendChild(n); newRows.push(n);
                 n.querySelectorAll("[data-k]").forEach((e) => { if (hidden.has(e.dataset.k)) e.style.opacity = 0; });
-                dim(i); toBottom();
+                dim(i); fit(); toBottom();
                 if (x.row.t === "pic") { n.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250 }); await n._pic.play(false); }
                 else if (hand) {
                     await writeRow(n, x.row.t === "op", live);
