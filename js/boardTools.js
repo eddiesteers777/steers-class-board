@@ -9,7 +9,7 @@
 import { cleanStickers } from "./stickers.js?v=1";
 import { cleanSty } from "./panelStyle.js?v=1";
 import { cleanFinds } from "./findCore.js?v=1";
-import { cleanMt } from "./manipCore.js?v=8";
+import { cleanMt } from "./manipCore.js?v=9";
 
 export const TOOL_LIST = [["traffic", "Traffic light"], ["work", "Voice level"], ["clock", "Clock"], ["stopwatch", "Stopwatch"], ["text", "Message"], ["dice", "Dice"], ["score", "Scoreboard"], ["goal", "Class goal"], ["pick", "Name picker"], ["groups", "Group maker"], ["cam", "Webcam"], ["slide", "Slide"], ["find", "Find a problem"]];
 /* Lesson panels (js/panels.js builds them) sit in the same panel system as the tools. */

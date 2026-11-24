@@ -9,7 +9,7 @@
 ========================================== */
 import * as A from "./attendanceCore.js?v=1";
 import { shortNames } from "./vaultCore.js?v=75";
-import { PERIOD_KEYS } from "./boardTools.js?v=72";
+import { PERIOD_KEYS } from "./boardTools.js?v=73";
 import { kidKey } from "./profileCore.js?v=2";
 
 let api = null, box = null, body = null, count = null, unsub = null, watchedDay = "", DOC = null, note = "";
