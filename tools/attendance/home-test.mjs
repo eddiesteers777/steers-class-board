@@ -8,7 +8,7 @@ for (const [w, h, tag] of [[390, 900, "phone"], [1280, 900, "desktop"]]) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h } }), p = await ctx.newPage();
     p.on("console", (m) => { if (m.type() === "error") logs.push(tag + ": " + m.text()); }); p.on("pageerror", (e) => logs.push(tag + " PAGEERROR: " + e.message));
     await p.goto(BASE); await p.waitForSelector(".abs-kid", { timeout: 8000 });
-    await p.waitForSelector('.abs-warn:has-text("8.5")', { timeout: 8000 }); await p.waitForSelector('.abs-warn:has-text("foundational")', { timeout: 8000 });   // the "was behind" check waits for the game profile to load
+    await p.waitForSelector('.abs-warn:has-text("8.5")', { timeout: 8000, state: "attached" }); await p.waitForSelector('.abs-warn:has-text("foundational")', { timeout: 8000, state: "attached" });   // the "was behind" check waits for the game profile to load
     const txt = await p.textContent("#absent");
     assert.match(txt, /2 out today/); assert.match(txt, /2 need a look/);
     assert.match(txt, /1st period · 8th Grade/); assert.match(txt, /5th period · 7th Grade/);
@@ -25,7 +25,7 @@ for (const [w, h, tag] of [[390, 900, "phone"], [1280, 900, "desktop"]]) {
     assert.match(txt, /Out often/); assert.match(txt, /Missed 8\.5, which was still being worked on/);
     const names = await p.$$eval(".abs-top b", (b) => b.map((x) => x.textContent)); assert.deepEqual(names, ["Ben", "Cara", "Ava", "Dev"]);
     assert.match(txt, /On the foundational track \(Add integers\)/);
-    await p.waitForSelector('.abs-st', { timeout: 8000 }); const t2 = await p.textContent("#absent");
+    await p.waitForSelector('.abs-st', { timeout: 8000, state: "attached" }); const t2 = await p.textContent("#absent");
     assert.match(t2, /Missed Thursday — Test \(make-up needed\)Catch-up assigned \(Magma Math\)/);   // assigned is not done: the test warning stays
     assert.match(t2, /Missed a test \(Thursday\): make-up needed/);
     assert.match(t2, /All caught up/);                                                            // Ava's only missed day is done
