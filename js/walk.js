@@ -981,6 +981,7 @@ function build(W, item) {
     if (setup && setup.simp) return simpStory(W, item, Object.assign({ why0: setup.why }, setup));
     if (setup && setup.write) return writeStory(W, item, Object.assign({ why0: setup.why }, setup));
     if (setup && setup.expo) return expoSetup(W, item, Object.assign({ why0: setup.why }, setup.expo, { story: setup.story }));
+    if (setup && setup.chain) return chainSetup(W, item, Object.assign({ why0: setup.why }, setup));
     if (setup && setup.line) return lineSetup(W, item, Object.assign({ why0: setup.why }, setup.line, { story: setup.story }));
     if (setup && setup.prop) return propSetup(W, item, Object.assign({ why0: setup.why }, setup.prop, { story: setup.story }));
     if (setup && setup.sys) return systemSetup(W, item, setup.sys.eqs, Object.assign({ why0: setup.why, story: setup.story }, setup.sys));
@@ -2647,6 +2648,95 @@ function writeStory(W, item, o) {
     const wv = /\^/.test(o.write) ? (o.write.match(/\^\{?([a-z])/) || [])[1] : varOf(isLine ? parseLine(W, o.write) : { s: [side] });
     W.steps.push({ move: "setup", title: "Write the " + noun, why: o.why1 || ("Each piece of the story becomes a piece of the " + noun + ". " + (o.var ? wv + " is " + o.var + "." : "")),
         seq: [{ a: "row", row }, ...(pairs.length ? [{ a: "fly", pairs, story: true }] : [])] });
+    answerStep(W, item.a, o.end || "");
+    return true;
+}
+
+/* ---------- a chain of equal expressions, written out by hand (exponent rules, roots, scientific notation) ---------- */
+const SUPS = { "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9", "⁻": "−" };
+/** "3⁻²" → "3^{−2}", so key text and row text read the same way. */
+const supIn = (s) => String(s).replace(/[⁻⁰¹²³⁴⁵⁶⁷⁸⁹]+/g, (m) => "^{" + [...m].map((c) => SUPS[c]).join("") + "}");
+/** The exact value of a row like "(3 × 10^{4})(2 × 10^{5})", "{x^{7} · x^{−2}/x^{3}}", "−2^{4}" or "√144"; null if it can't be read. */
+function chainVal(text, vars) {
+    const s = supIn(text).replace(/(\d),(\d{3})/g, "$1$2").replace(/(\d),(\d{3})/g, "$1$2").replace(/^\s*(?:[a-z]\s*)?=\s*/, "");
+    let i = 0;
+    const sp = () => { while (s[i] === " ") i++; };
+    const peek = () => (sp(), s[i]);
+    const root = (q, k) => {
+        const r = (n) => { const x = Math.round(Math.pow(Math.abs(n), 1 / k)); return Math.pow(x, k) === Math.abs(n) ? x : null; };
+        const a = r(q.n), b = r(q.d); if (a == null || b == null || (q.sign < 0 && k % 2 === 0)) throw 0;
+        return new Q(q.sign < 0 ? -a : a, b);
+    };
+    function expr() { let v = term(); for (;;) { const c = peek(); if (c === "+") { i++; v = v.add(term()); } else if (c === "−" || c === "-") { i++; v = v.sub(term()); } else return v; } }
+    function term() {
+        let v = unary();
+        for (;;) {
+            const c = peek();
+            if (c === "×" || c === "·") { i++; v = v.mul(unary()); }
+            else if (c === "÷") { i++; v = v.div(unary()); }
+            else if (c && /[\d.a-z({√∛]/.test(c)) v = v.mul(unary());
+            else return v;
+        }
+    }
+    function unary() { const c = peek(); if (c === "−" || c === "-") { i++; return unary().neg(); } return power(); }
+    function power() {
+        let b = atom();
+        while (peek() === "^") {
+            i++; if (s[i] !== "{") throw 0; i++;
+            const k = expr(); if (peek() !== "}") throw 0; i++;
+            if (!k.int || Math.abs(k.n) > 40) throw 0;
+            b = k.sign < 0 ? b.pow(-k.n).inv() : b.pow(k.n);
+        }
+        return b;
+    }
+    function atom() {
+        const c = peek();
+        if (c === "(") { i++; const v = expr(); if (peek() !== ")") throw 0; i++; return v; }
+        if (c === "{") { i++; const t = expr(); if (peek() !== "/") throw 0; i++; const d = expr(); if (peek() !== "}") throw 0; i++; return t.div(d); }
+        if (c === "√") { i++; return root(atom(), 2); }
+        if (c === "∛") { i++; return root(atom(), 3); }
+        let m;
+        if ((m = s.slice(i).match(/^(\d+\.?\d*|\.\d+)/))) { i += m[1].length; return qOf(m[1]); }
+        if (c && /[a-z]/.test(c)) { i++; if (!(c in vars)) throw 0; return vars[c]; }
+        throw 0;
+    }
+    try { const v = expr(); if (peek() !== undefined) return null; return v; } catch (e) { return null; }
+}
+/** What gets written for a row: ^{…} as an exponent, {a/b} as a stacked fraction. */
+function chainDT(text) {
+    const s = String(text), out = []; let i = 0, buf = "";
+    const close = (j) => { let d = 0; for (let k = j; k < s.length; k++) { if (s[k] === "{") d++; else if (s[k] === "}" && --d === 0) return k; } return -1; };
+    const split = (t) => { let d = 0; for (let k = 0; k < t.length; k++) { if (t[k] === "{") d++; else if (t[k] === "}") d--; else if (t[k] === "/" && !d) return [t.slice(0, k), t.slice(k + 1)]; } return null; };
+    while (i < s.length) {
+        if (s[i] === "^" && s[i + 1] === "{") { const e = close(i + 1); if (e < 0) break; if (buf) out.push(buf), (buf = ""); out.push({ sup: chainDT(s.slice(i + 2, e)) }); i = e + 1; continue; }
+        if (s[i] === "{") { const e = close(i), p = e > 0 ? split(s.slice(i + 1, e)) : null; if (p) { if (buf) out.push(buf), (buf = ""); out.push(F(chainDT(p[0]), chainDT(p[1]))); i = e + 1; continue; } }
+        buf += s[i++];
+    }
+    if (buf || i < s.length) out.push(buf + s.slice(i));
+    return R(out);
+}
+/** o.chain: [[title, why, row, row…], …]. Every row has the same exact value as the first (with letters tried at 2 and 3), and so does the key. */
+function chainSetup(W, item, o) {
+    W.kind = "rel"; W.cols = 3;
+    const letters = [...new Set((o.chain.flat().join(" ") + " " + supIn(item.a)).match(/(?<![a-z])[a-z](?![a-z])/g) || [])];
+    const tries = [2, 3, 5].map((n, j) => Object.fromEntries(letters.map((l, k) => [l, new Q(n + k + j)])));
+    const val = (t) => tries.map((v) => chainVal(t, v));
+    const same = (a, b) => a.every((x, j) => x && b[j] && x.eq(b[j]));
+    if (o.story) W.steps.push({ move: "story", title: "Read the story", why: o.why0 || "Find the numbers in the story and what each one means.", seq: [storyRow(item, o.story)] });
+    let first = null;
+    for (const [title, why, ...rows] of o.chain) {
+        const seq = rows.map((t) => {
+            const v = val(t); if (v.some((x) => !x)) throw new Error("row");
+            if (!first) first = v;
+            return { a: "row", row: rowT([chainDT(t)], same(v, first)) };
+        });
+        W.steps.push({ move: "chain", title, why, seq });
+    }
+    // the key: the part before ";" or "(", read the same way
+    const k = val(String(item.a).split(/;| \(/)[0].replace(/^About\s+/i, "").replace(/^[a-z]\s*=\s*(?=[−\d])/, "").replace(/§/g, "").split(/,?\s+(?=[A-Za-z]{2,})/)[0].trim());
+    if (k.some((x) => !x) || !same(k, first)) throw new Error("key");
+    const last = o.chain[o.chain.length - 1], lastRow = last[last.length - 1];
+    if (!same(val(lastRow), first)) throw new Error("key");
     answerStep(W, item.a, o.end || "");
     return true;
 }
