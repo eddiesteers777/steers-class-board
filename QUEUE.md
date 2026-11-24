@@ -14,7 +14,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 | 19 | Student Work: turn on Claude reading names | Built (functions/index.js readNames + "Read names with Claude" on the check-names step). Eddie: Blaze plan, ANTHROPIC_API_KEY in Secret Manager, then run Actions > Deploy functions. District OK for sending names to Anthropic still not confirmed. |
 | 5 | Colours and fonts | See the open question in DESIGN.md. |
 | 31 | Fact Blitz: try it before the baseline (week of Nov 30) | Built on a branch, waiting on "push it" (the new `flu/{code}` Firestore rules deploy with it). Then: set extra time on Fact Blitz > Extra time, open one speed check, and play one run on a real Chromebook before the class does. Confirm the goal (25 facts right a minute to start; 100% = 50 right on a 2-minute check) and the clock (2 minutes). Tested only with the Firebase emulator. |
-| 44 | YouTube music in Spotlight (branch `claude/youtube-music-spotlight`) | A Music button in Spotlight's bottom toolbar opens the same panel above the toolbar, same player and saved library, and the panel now shows four short steps for the search key. Waiting on "push it". Eddie still needs to make the YouTube Data API key and paste it once. Real playback not tried on the Promethean or school wifi yet. |
+| 44 | YouTube search key | The music panel, saved library and Spotlight Music button are live. Eddie makes a YouTube Data API v3 key (restricted to https://anchorboard.web.app/* and that API) and pastes it once under "Turn on search here". Then try real playback on the Promethean and school wifi. |
 
 ## Next up
 | # | Item | Notes |
@@ -34,6 +34,7 @@ Scout before building (see DESIGN.md). Check the head of `main` before every pus
 ## Done
 | When | Item |
 |------|------|
+| Nov 24 | YouTube music in Spotlight (live): Music button in Spotlight's toolbar opens the same panel above it, same player and library, green dot while playing; four short key steps in the panel. |
 | Nov 24 | YouTube music library (live): Saved and Find tabs; save a video under a name Eddie picks (no link shown), in folders he makes, and for class periods so the panel opens on that period's music. `teacher/{uid}/music/library`. |
 | Nov 24 | Slides tab: one top bar (live Nov 24): Slides builds the lesson, Spotlight teaches it. The lesson row (‹ week ›, class, Mon–Fri, saved, **Teach this slide**, ⋯) sits in the header, so Slides has two bars instead of four and the slide is about 18% bigger at 1366×768. Teach this slide = the old Spotlight button. ⋯ holds Start from my plan, Copy to another day or class, Put it on the board, stay here. Cut: Present, the In Spotlight list (now a badge on the slide), the hint row, the empty Every day box. Open the board moved into Menu. In Slides the YouTube pill shows as an icon (hidden 861–940px) so the row fits. Not yet seen on a real Chromebook or the Promethean. Next if wanted: panels per slide, bank problems as slides, Show Steps on a slide. |
 | Nov 24 | YouTube music panel (live): a glass pill at the top centre of the board (top bar on the Remote and Builder) opens a panel to search or paste a YouTube link, play/pause, loop, volume and recent picks; minimize keeps it playing. Search waits on Eddie's own YouTube Data API key. |
