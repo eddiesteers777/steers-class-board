@@ -31,7 +31,7 @@
     <link rel="stylesheet" href="css/wb.css?v=7">
     <link rel="stylesheet" href="css/panels.css?v=7">
     <link rel="stylesheet" href="css/look.css?v=9">
-    <link rel="stylesheet" href="css/boardglass.css?v=2">
+    <link rel="stylesheet" href="css/boardglass.css?v=3">
     <link rel="stylesheet" href="css/slides.css?v=2">
     <link rel="stylesheet" href="css/seats.css?v=6">
     <link rel="stylesheet" href="css/bellplan.css?v=7">
@@ -43,7 +43,7 @@
     <link rel="stylesheet" href="css/phone.css?v=9">
     <link rel="stylesheet" href="css/attendance.css?v=1">
     <link rel="stylesheet" href="css/skin.css?v=2">
-    <link rel="stylesheet" href="css/remotebar.css?v=1">
+    <link rel="stylesheet" href="css/remotebar.css?v=2">
 </head>
 <body class="console">
     <header class="cbar">
@@ -95,6 +95,7 @@
         import("./js/boardStore.js?v=58").then(async (store) => { if (await store.ready()) (await import("./js/tally.js?v=58")).mount({ store, period: () => document.getElementById("periodSel").value || "1st" }); }).catch(() => {});
         import("./js/recorder.js?v=58").then((m) => m.mount());
     </script>
+    <script type="module" src="js/railSize.js?v=1"></script>
     <script src="js/offline.js?v=1" defer></script>
 </body>
 </html>

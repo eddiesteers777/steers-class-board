@@ -6,7 +6,8 @@
    3. "Push those days right under the board view and expand the panel": the day picker and Back/Next sit at the top of
       the board area, right under the top bar, so the board picture runs down to the bottom of the screen.
    4. The left rail is a little wider and its buttons never squash: a long label like "Live notes (Chromebooks)" wraps
-      inside its button, and the rail scrolls when it is full.
+      inside its button, and the rail scrolls when it is full. Later the same day: the rail can be dragged wider or
+      narrower and hidden to a slim strip (js/railSize.js), and the days line up with the board's left edge.
    The phone keeps its own two-row layout (css/phone.css); every rule here is for body:not(.phone). */
 
 /* 1. one row */
@@ -32,12 +33,29 @@ body.console:not(.phone) .cbar #musicBtn{display:none}
   body.console:not(.phone) .cbar .field>span{display:none}
 }
 
-/* 3. days and Back/Next at the top of the board area */
-body.console:not(.phone):not(.board) .deck .flowbar{order:-1;padding:10px 16px 0}
+/* 3. days and Back/Next at the top of the board area, lined up with the board's own edges
+   (js/railSize.js measures the board and sets --fbl and --fbr) */
+body.console:not(.phone):not(.board) .deck .flowbar{order:-1;padding:10px var(--fbr,16px) 0 var(--fbl,16px)}
 body.console:not(.phone):not(.board) .wrap{padding:8px 16px 12px;align-items:flex-start}   /* the picture sits right under the days */
 
-/* 4. the rail */
-body.console:not(.phone) .rail{width:244px}
+/* 4. the rail: wider to start, drag its edge to resize, « hides it to a slim strip (js/railSize.js) */
+@media (min-width:861px){
+  body.console:not(.phone) .rail{width:var(--railw,280px);transition:width .18s ease}
+  body.raildrag .rail{transition:none}
+  body.raildrag,body.raildrag *{cursor:col-resize!important;user-select:none}
+  body.console:not(.phone) .railtoggle{display:flex}
+  body.console:not(.phone):not(.board) .railgrip{display:block}
+  body.console.railmin:not(.phone) .rail{width:56px;padding:12px 8px;overflow:hidden}
+  body.console.railmin:not(.phone) .rail>*:not(.railtoggle){display:none!important}
+  body.console.railmin:not(.phone) .railtoggle{margin:0 auto}
+  body.console.railmin:not(.phone) .railgrip{display:none}
+}
+.railtoggle{display:none;position:sticky;top:0;z-index:2;align-self:flex-end;align-items:center;justify-content:center;width:28px;height:28px;margin:-8px -6px -24px 0;border-radius:8px;border:1.5px solid var(--c-line);background:var(--c-surface,#fff);color:var(--c-ink);cursor:pointer}
+.railtoggle:hover{background:var(--c-bg)}
+.railgrip{display:none;flex:none;width:10px;margin:0 -5px;position:relative;z-index:6;cursor:col-resize;touch-action:none}
+.railgrip::after{content:"";position:absolute;top:0;bottom:0;left:4px;width:2px;border-radius:2px;background:transparent;transition:background .15s}
+.railgrip:hover::after,.railgrip:focus-visible::after,body.raildrag .railgrip::after{background:var(--s-acc,#1B4FBF)}
+.railgrip:focus-visible{outline:none}
 body.console:not(.phone) .rail>*{flex-shrink:0}
 body.console:not(.phone) .rail .btn.tallyopen{height:auto;white-space:normal;line-height:1.25;padding-top:9px;padding-bottom:9px}
 body.console:not(.phone):not(.board) .toolshelf{align-self:flex-start}
