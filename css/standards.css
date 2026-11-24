@@ -89,3 +89,12 @@
 @keyframes stflash{0%,40%{background:var(--k-warn-bg,#FFF4D6)}100%{background:transparent}}
 @media (prefers-reduced-motion:reduce){.st-row.st-flash{animation:none}}
 @media (max-width:560px){.st-nstart{margin-left:0}}
+/* Nov 24: a new teacher's own list (paste box, the bar above it) and a class with no course yet */
+.st-paste{background:var(--card,#fff);border:1px solid var(--line,#DCE3F0);border-radius:16px;padding:18px;margin:0 0 16px}
+.st-paste h2{margin:0 0 6px;font-size:18px}
+.st-paste textarea{width:100%;box-sizing:border-box;min-height:220px;border:1px solid var(--line,#DCE3F0);border-radius:12px;padding:12px;font:15px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--bg,#fff);color:inherit}
+.st-pastego{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.st-paste .msg{margin:8px 0 0;min-height:1.2em}
+.st-ownbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 12px;color:var(--muted,#55617A);font-weight:600}
+.st-setup{display:flex;flex-direction:column;align-items:center;gap:12px}
+.st-setup p{margin:0}

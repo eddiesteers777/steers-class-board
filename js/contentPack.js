@@ -32,6 +32,7 @@ import { db } from "./firebase.js";
 import { waitForUser } from "./auth.js";
 import { doc, getDoc, getDocFromServer, getDocsFromServer, collection, query, limit, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { trail } from "./signInTrail.js";
+import { okCourse } from "./courseRules.js?v=1";
 import { PACKS, EVIDENCE_DOCS, EVIDENCE_COLLECTIONS, trusted, inferPack } from "./packRules.js?v=1";
 export { PACKS, EVIDENCE_DOCS, EVIDENCE_COLLECTIONS, trusted, inferPack };
 
@@ -141,7 +142,8 @@ export function myPack() {
 /* ---------- A new teacher's own setup (setup.html) ----------
    teacher/{uid}/settings/setup = {
      name, school, grades: ["6","7"], subject,
-     classes: [{ p: "1st", label: "Math 6", room: "112" }, ...],   one row per period, in bell order
+     classes: [{ p: "1st", label: "Math 6", room: "112", course: "al-7" }, ...],   one row per period, in bell order
+                                                    (course: js/courseRules.js; "" = not picked)
      done: true, at
    }
    Pages read it through mySetup(); setup.html saves it with saveSetup(). */
@@ -157,7 +159,7 @@ export function cleanSetup(d) {
     const s = d && typeof d === "object" ? d : {};
     const str = (v, n) => (typeof v === "string" ? v.trim().slice(0, n) : "");
     const seen = new Set();
-    const classes = (Array.isArray(s.classes) ? s.classes : []).map((c) => ({ p: str(c && c.p, 12), label: str(c && c.label, 40), room: str(c && c.room, 20) }))
+    const classes = (Array.isArray(s.classes) ? s.classes : []).map((c) => ({ p: str(c && c.p, 12), label: str(c && c.label, 40), room: str(c && c.room, 20), course: okCourse(c && c.course) ? c.course : "" }))
         .filter((c) => c.p && c.label && !seen.has(c.p) && seen.add(c.p)).slice(0, 10);
     return {
         name: str(s.name, 40), school: str(s.school, 60), subject: str(s.subject, 30),

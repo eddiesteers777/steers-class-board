@@ -5,7 +5,7 @@
    "Work on next" card (ACAP readiness, js/readiness.js + js/acapAssign.js): that saves one Practice assignment.
    ?demo fills a this-tab store with made-up students (js/progressDemo.js) and saves nothing.
 ========================================== */
-import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=5";
+import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=6";
 import { buildProgress, distribution, standardOverTime, needGroups, missedOn, heatmap, engagement, fidelity, studentSummary, stdIn, BAND_WORD } from "./progress.js?v=4";
 import { lineChart, sparkline, bandBar, meter } from "./charts.js?v=1";
 import { STANDARDS } from "../data/standards.js?v=58";
@@ -33,7 +33,7 @@ export async function mountProgress() {
     const demo = new URLSearchParams(location.search).has("demo");
     const store = await import(demo ? "./localStore.js?v=57" : "./boardStore.js?v=58");
     // This teacher's periods and the class each one is (Mr. Steers' five, or a new teacher's own from Setup).
-    const PER = demo ? DEMO_PERIODS : (await import("../data/weeks.js?v=62")).PERIODS;
+    const PER = demo ? DEMO_PERIODS : (await import("../data/weeks.js?v=63")).PERIODS;
     const CLS = Object.fromEntries(PER), PERIODS = PER.map(([p, c]) => [p, (STANDARDS[c] && STANDARDS[c].label) || c]);
     const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
 

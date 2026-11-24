@@ -39,7 +39,7 @@ export async function mountFluency() {
     // The page never waits on data/weeks.js (it can take seconds on a slow connection): until it loads, the periods
     // come from the rosters in their own order; then the school's period order and list take over.
     let PER = demo ? [["1st", "8th"], ["2nd", "8th"], ["5th", "7th"], ["6th", "8th-acc"]] : null;
-    if (!demo) import("../data/weeks.js?v=62").then((m) => { PER = m.PERIODS; soon(); }, () => {});
+    if (!demo) import("../data/weeks.js?v=63").then((m) => { PER = m.PERIODS; soon(); }, () => {});
     const user = await store.ready();
     if (!user) { location.replace("login.html"); return; }
     $("who").textContent = demo ? "Sample students, nothing is saved" : "Signed in as " + user.name;

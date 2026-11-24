@@ -148,8 +148,8 @@
         </div>
     </footer>
     <script type="module">
-        import { WEEKS as PUBLISHED, PERIODS, PACK, SETUP } from "./data/weeks.js?v=62";
-        import { packInfo, choosePack, hasRealWork } from "./js/contentPack.js?v=3";
+        import { WEEKS as PUBLISHED, PERIODS, PACK, SETUP } from "./data/weeks.js?v=63";
+        import { packInfo, choosePack, hasRealWork } from "./js/contentPack.js?v=4";
         import { toLoginIfSignedOut } from "./js/signedOut.js?v=1";
         // A new teacher who hasn't been through setup yet goes there first (setup.html): only on a starter choice the server confirmed.
         if (PACK !== "calera" && SETUP && !SETUP.done && packInfo().confirmed) location.replace("setup.html");
@@ -161,8 +161,12 @@
         import { homeDay, isWeekday, longDay, span } from "./js/homeDay.js?v=1";
         let WEEKS = PUBLISHED, ABS = null;
         // A new teacher (starter pack) doesn't get Mr. Steers' Calera planning pages yet: they are built
-        // around his classes, calendar and Alabama standards (js/contentPack.js).
-        if (PACK !== "calera") document.querySelectorAll(["plan", "review", "bank", "planner", "builder", "standards"].map((p) => 'a[href="' + p + '.html"]').join(",")).forEach((a) => { a.hidden = true; a.style.display = "none"; });
+        // around his classes, calendar and Alabama standards (js/contentPack.js). Standards is open to them (Nov 24).
+        if (PACK !== "calera") document.querySelectorAll(["plan", "review", "bank", "planner", "builder"].map((p) => 'a[href="' + p + '.html"]').join(",")).forEach((a) => { a.hidden = true; a.style.display = "none"; });
+        if (PACK !== "calera") {   // the sidebar's Plan link opens Standards instead
+            const sl = document.querySelector('a.hm-sl[href="plan.html"]');
+            if (sl) { sl.href = "standards.html"; sl.title = "Standards"; sl.hidden = false; sl.style.display = ""; sl.querySelector("b").textContent = "Standards"; sl.querySelector("small").textContent = "Each class's standards, with what you've taught"; }
+        }
         import * as store from "./js/boardStore.js?v=58";
         import { LIBRARY } from "./data/library.js?v=57";
         import { SCHOOL_YEAR, SCHOOL_DAYS, today as todayFn, addDays, mondayOf, eventsOn, isSchoolDay as schoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, short, CAL_SOURCE, TERM_NAME } from "./js/schoolCal.js?v=59";

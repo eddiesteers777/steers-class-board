@@ -5,8 +5,8 @@
    Nov 23: the page is sent away only when the server CONFIRMED a starter choice. A provisional answer
    (remembered on this device, sign-in still restoring, server not reached) never redirects: Plan stays,
    and a short "Checking your account" note shows while the check runs. */
-import { PACK } from "../data/weeks.js?v=62";
-import { packInfo } from "./contentPack.js?v=3";
+import { PACK } from "../data/weeks.js?v=63";
+import { packInfo } from "./contentPack.js?v=4";
 
 if (PACK !== "calera") {
     const info = packInfo();
