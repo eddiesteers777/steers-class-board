@@ -983,6 +983,8 @@ function build(W, item) {
     if (setup && setup.line) return lineSetup(W, item, Object.assign({ why0: setup.why }, setup.line, { story: setup.story }));
     if (setup && setup.prop) return propSetup(W, item, Object.assign({ why0: setup.why }, setup.prop, { story: setup.story }));
     if (setup && setup.sys) return systemSetup(W, item, setup.sys.eqs, Object.assign({ why0: setup.why, story: setup.story }, setup.sys));
+    if (setup && setup.stats) return statsSetup(W, item, Object.assign({ end: setup.end }, setup.stats));
+    if (setup && setup.xform) return xformSetup(W, item, setup.xform);
     if (setup && setup.rates) return ratesSetup(W, item, Object.assign({ why0: setup.why }, setup.rates, { story: setup.story }));
     if (setup && setup.cmp) return cmpSetup(W, item, Object.assign({ why0: setup.why }, setup.cmp, { story: setup.story }));
     // lines through two points, proportional tables, linear or not
@@ -2258,6 +2260,77 @@ function cmpSetup(W, item, o) {
     if (!o.diffOnly && s.indexOf(win.label) !== 0) throw new Error("key");
     W.steps.push({ move: "cmp", title: "Compare", why, seq: [{ a: "row", row: rowT([win.label + " ✓"], true, { c: "w-check" }) }] });
     answerStep(W, item.a, o.end || "");
+    return true;
+}
+
+/* ---------- a point moved by a rule: translate, reflect, rotate, dilate ---------- */
+function xformSetup(W, item, o) {
+    W.kind = "rel"; W.cols = 3;
+    const split = (r) => { const s = r.trim().replace(/^\(|\)$/g, ""); let d = 0; for (let i = 0; i < s.length; i++) { const c = s[i]; if (c === "(") d++; else if (c === ")") d--; else if (c === "," && !d) return [s.slice(0, i), s.slice(i + 1)].map((x) => x.trim()); } return null; };
+    let p = pairsIn(o.pt)[0].map(qIn);
+    W.dec = /\./.test(JSON.stringify(o));
+    W.steps.push({ move: "start", title: "The point", why: "x = " + nTx(W, p[0]) + " and y = " + nTx(W, p[1]) + ".", seq: [{ a: "row", row: rowT([ptDT(W, p)], true) }] });
+    o.steps.forEach((st) => {
+        const parts = split(st.rule); if (!parts) throw new Error("rule");
+        const vars = { x: p[0], y: p[1] }, es = parts.map((e) => parseExpr(W, e, vars)), np = es.map(valueOf);
+        const seq = [{ a: "row", row: rowT([keyDT("(x, y) → " + (st.show || "(" + parts.join(", ") + ")"))], true) }];
+        es.forEach((e, i) => { if (!/^[−-]?[xy]$/.test(parts[i])) seq.push({ a: "row", row: rowT([exprDT(tidyParens(e)), " = ", nDT(W, np[i])], true) }); });
+        seq.push({ a: "row", row: rowT([ptDT(W, np)], true, { c: "w-check" }) });
+        W.steps.push({ move: "move", title: st.title, why: st.why, seq });
+        p = np;
+    });
+    const k = pairsIn(String(item.a))[0];
+    if (!k || !qIn(k[0]).eq(p[0]) || !qIn(k[1]).eq(p[1])) throw new Error("key");
+    answerStep(W, item.a, o.end || "");
+    return true;
+}
+
+/* ---------- one data set: mean, MAD, median, IQR, range ---------- */
+function statsSetup(W, item, o) {
+    W.kind = "rel"; W.cols = 3;
+    const xs = o.data.map((d) => qIn(String(d))), n = xs.length, N = new Q(n);
+    W.dec = true;
+    const list = (a) => a.map((x) => nTx(W, x)).join(", ");
+    const sum = (a) => a.reduce((s, x) => s.add(x), ZERO);
+    const row = (cells, truth = true, extra) => ({ a: "row", row: rowT(cells, truth, extra) });
+    W.steps.push({ move: "start", title: "The data", why: "There are " + n + " numbers.", seq: [row([list(xs)])] });
+    const meanSteps = () => {
+        const s = sum(xs), m = s.div(N);
+        W.steps.push({ move: "sum", title: "Add them", why: "The mean is the total shared out evenly. Start with the total.", seq: [row([xs.map((x) => nDT(W, x)).flatMap((d, i) => (i ? [" + ", d] : [d])), " = ", nDT(W, s)].flat())] });
+        W.steps.push({ move: "share", title: "Divide by how many", why: "Share the total over the " + n + " numbers: " + nTx(W, s) + " ÷ " + n + ".", seq: [row([nDT(W, s), " ÷ ", String(n), " = ", nDT(W, m)])] });
+        return m;
+    };
+    const median = (a) => { const k = a.length; return k % 2 ? a[(k - 1) / 2] : a[k / 2 - 1].add(a[k / 2]).div(new Q(2)); };
+    const medRow = (a) => a.length % 2 ? row([nDT(W, median(a))]) : row(["(", nDT(W, a[a.length / 2 - 1]), " + ", nDT(W, a[a.length / 2]), ") ÷ 2 = ", nDT(W, median(a))]);
+    let v, end = "";
+    if (o.ask === "mean") v = meanSteps();
+    else if (o.ask === "mad") {
+        const m = meanSteps(), ds = xs.map((x) => x.sub(m).abs());
+        W.steps.push({ move: "dist", title: "How far is each one from " + nTx(W, m) + "?", why: "Distance is never negative, so take the bigger number minus the smaller one.",
+            seq: xs.map((x) => row([nDT(W, x.cmp(m) >= 0 ? x : m), " − ", nDT(W, x.cmp(m) >= 0 ? m : x), " = ", nDT(W, x.sub(m).abs())])) });
+        v = sum(ds).div(N);
+        W.steps.push({ move: "avg", title: "Find the mean of the distances", why: "MAD is the mean absolute deviation: the average distance from the mean.",
+            seq: [row(["(", ds.map((d) => nTx(W, d)).join(" + "), ") ÷ ", String(n)]), row(["= ", nDT(W, sum(ds)), " ÷ ", String(n), " = ", nDT(W, v)])] });
+    } else {
+        const s = xs.slice().sort((a, b) => a.cmp(b));
+        const sorted = xs.some((x, i) => !x.eq(s[i]));
+        if (sorted) W.steps.push({ move: "order", title: "Put them in order", why: "Least to greatest.", seq: [row([list(s)])] });
+        if (o.ask === "range") {
+            v = s[n - 1].sub(s[0]);
+            W.steps.push({ move: "range", title: "Greatest − least", why: "The range is how far the greatest is from the least.", seq: [row([nDT(W, s[n - 1]), " − ", nDT(W, s[0]), " = ", nDT(W, v)])] });
+        } else if (o.ask === "median") {
+            v = median(s);
+            W.steps.push({ move: "mid", title: "Find the middle", why: n % 2 ? "The middle number is the median." : "With " + n + " numbers there are two in the middle, " + nTx(W, s[n / 2 - 1]) + " and " + nTx(W, s[n / 2]) + ". The median is halfway between them.", seq: [medRow(s)] });
+        } else if (o.ask === "iqr") {
+            const lo = s.slice(0, Math.floor(n / 2)), hi = s.slice(Math.ceil(n / 2)), q1 = median(lo), q3 = median(hi);
+            W.steps.push({ move: "halves", title: "Split it in half", why: "The lower half is " + list(lo) + ". The upper half is " + list(hi) + "." + (n % 2 ? " The middle number stays out of both halves." : ""), seq: [row([list(lo)]), row([list(hi)])] });
+            W.steps.push({ move: "q1", title: "Find Q1 and Q3", why: "Q1 is the middle of the lower half, " + nTx(W, q1) + ". Q3 is the middle of the upper half, " + nTx(W, q3) + ".", seq: [medRow(lo), medRow(hi)] });
+            v = q3.sub(q1);
+            W.steps.push({ move: "iqr", title: "IQR = Q3 − Q1", why: "The interquartile range is the spread of the middle half of the data.", seq: [row([nDT(W, q3), " − ", nDT(W, q1), " = ", nDT(W, v)])] });
+        } else return null;
+    }
+    const k = keyNum(item.a); if (!k || !k.eq(v)) throw new Error("key");
+    answerStep(W, item.a, o.end || end);
     return true;
 }
 
