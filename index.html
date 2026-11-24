@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="css/console.css?v=64">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
     <link rel="stylesheet" href="css/home.css?v=61">
-    <link rel="stylesheet" href="css/absences.css?v=3">
+    <link rel="stylesheet" href="css/absences.css?v=4">
     <link rel="stylesheet" href="css/footer.css?v=2">
     <link rel="stylesheet" href="css/skin.css?v=2">
     <meta name="theme-color" content="#081B45">
@@ -58,7 +58,6 @@
     </aside>
     <div class="hm-scrim" id="sideScrim" hidden></div>
     <main>
-        <section class="abs" id="absent" aria-label="Absences" hidden></section>
         <section class="nowcard" aria-labelledby="nowTitle">
             <div class="nowmain">
                 <p class="nowwhen" id="nowWhen"></p>
@@ -76,6 +75,7 @@
                 <a class="btn ghost onnavy" href="remote.html?screen=blank" id="nowBoard">Whiteboard</a>
             </div>
         </section>
+        <section class="abs" id="absent" aria-label="Absences" hidden></section>
 
         <div class="hm-glance" id="glance" aria-live="polite"></div>
         <section class="hm-flow" id="weekflow" aria-label="This week's planning" hidden></section>
@@ -156,6 +156,7 @@
         import { closeoutItems, closeoutSummary, closeoutDue } from "./js/closeout.js?v=3";
         import { mountWeekFlow } from "./js/weekFlow.js?v=1";
         import { runAutoStandards } from "./js/autoStandards.js?v=1";
+        import { homeDay, isWeekday, longDay, span } from "./js/homeDay.js?v=1";
         let WEEKS = PUBLISHED, ABS = null;
         // A new teacher (starter pack) doesn't get Mr. Steers' Calera planning pages yet: they are built
         // around his classes, calendar and Alabama standards (js/contentPack.js).
@@ -167,8 +168,13 @@
         function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
         const iso = (d) => d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
         const todayIso = iso(new Date());
-        let week = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= todayIso) week = w;
-        const wd = new Date().getDay(), isSchoolDay = wd >= 1 && wd <= 5, di = isSchoolDay ? wd - 1 : 0;
+        // Which day the Today card is about (js/homeDay.js): the school calendar decides, so a break or holiday says so
+        // and points at the next school day. A new teacher (starter) has no school calendar here, so weekdays count.
+        const offOn = (d) => { const e = eventsOn(d).find((x) => x.kind === "off" || x.kind === "work"); return e ? { text: e.text, start: e.start, end: e.end } : null; };
+        const dayOpts = () => PACK === "calera" ? { today: todayIso, weeks: WEEKS, inSchool: schoolDay, offOn, byCalendar: true } : { today: todayIso, weeks: WEEKS, inSchool: isWeekday };
+        let HD = homeDay(dayOpts()), week = HD.week, di = HD.di;
+        const isSchoolDay = HD.school;
+        const pickWeek = () => { HD = homeDay(dayOpts()); week = HD.week; di = HD.di; };
         // settings/bells: { periods (the Regular schedule, as before), schedules: { id: { name, periods, extra: [{ label, start, end }] } }, today: { date, id },
         //   days: { "YYYY-MM-DD": id } (planned ahead: that date starts on that schedule) }
         let bells = {}, doc = { periods: {}, schedules: {}, today: null, days: {} };
@@ -183,7 +189,12 @@
         function current() {
             const n = new Date(), now = n.getHours() * 60 + n.getMinutes(), timed = PERIODS.map(([p]) => ({ p, s: mins(bells[p] && bells[p].start), e: mins(bells[p] && bells[p].end) })).filter((x) => x.s != null && x.e != null);
             // Never claim a period the clock cannot back up: no period on a weekend, with no bell times, or after school.
-            if (!isSchoolDay) return { p: null, label: "No school today", note: "The plan below is for Monday.", go: ["Open Remote", "remote.html"] };
+            if (!isSchoolDay) {
+                const back = HD.planDay ? longDay(HD.planDay) : "", label = HD.off ? HD.off.text + " · " + span(HD.off.start, HD.off.end) : "No school today";
+                if (!HD.planDay) return { p: null, label, title: "No school today", note: "No more school days on the calendar.", go: ["Open Remote", "remote.html"] };
+                if (HD.planned) return { p: null, label, title: "Back " + back, note: "That day's plan is below.", go: ["Open Remote", "remote.html?day=" + DAYKEYS[di]] };
+                return { p: null, label, title: "Back " + back, note: back + " isn't planned yet.", go: PACK === "calera" ? ["Plan the Week", "plan.html"] : ["Open Remote", "remote.html"] };
+            }
             if (!timed.length) return { p: null, label: "Today", note: "Bell times are not set yet, so this page cannot tell which period you are in. Set them once and this panel will follow the clock. Until then, pick your period below.", go: ["Set bell times", "#bells"] };
             const live = timed.find((x) => now >= x.s && now < x.e); if (live) return { p: live.p, label: "Right now, until " + nice(bells[live.p].end) };
             const next = timed.filter((x) => x.s > now).sort((a, b) => a.s - b.s)[0]; if (next) return { p: next.p, label: "Up next at " + nice(bells[next.p].start) };
@@ -197,18 +208,20 @@
             const cur = current(), c = week.classes[classOf(cur.p || PERIODS[0][0])], d = c.days[di];
             document.querySelector(".nowfacts").hidden = !cur.p;
             $("nowWhen").textContent = cur.p ? cur.label + " · " + cur.p + " period · " + c.label : cur.label;
-            $("nowTitle").textContent = cur.p ? d.agendaLine : d.name + (d.date ? ", " + d.date : "");
+            $("nowTitle").textContent = cur.p ? d.agendaLine : cur.title || d.name + (d.date ? ", " + d.date : "");
             $("nowLT").textContent = cur.p ? d.lt : cur.note;
             $("nowSup").textContent = (d.supplies || []).join(", ");
             $("nowRem").textContent = (d.reminders || []).join(". ");
             fileLinks($("nowFiles"), c.links); $("nowFilesBox").hidden = !(c.links && c.links.length);
             if (cur.p) { $("nowStart").textContent = "Start " + cur.p + " period"; $("nowStart").href = startUrl(cur.p); $("nowStart").onclick = null; }
             else { $("nowStart").textContent = cur.go[0]; $("nowStart").href = cur.go[1]; $("nowStart").onclick = cur.go[1] === "#bells" ? (e) => { e.preventDefault(); openSettings(); } : null; }
-            $("todayTitle").textContent = (isSchoolDay ? d.name : "Monday") + (d.date ? ", " + d.date : "") + ", period by period";
+            $("todayTitle").textContent = HD.planned ? d.name + (d.date ? ", " + d.date : "") + ", period by period" : (HD.planDay ? longDay(HD.planDay) + " isn't planned yet" : "Period by period");
+            $("periods").hidden = !HD.planned;
             { const sc = schedOf(todayId()), ex = (sc.extra || []).filter((x) => x.label && mins(x.start) != null).sort((a, b) => mins(a.start) - mins(b.start)), bits = [];
               if (todayId() !== "regular") bits.push(sc.name + " schedule today.");
               if (ex.length) bits.push("Also today: " + ex.map((x) => x.label + " " + nice(x.start) + (mins(x.end) != null ? " to " + nice(x.end) : "")).join(" · "));
-              $("todayExtra").textContent = bits.join(" "); $("todayExtra").hidden = !bits.length || !isSchoolDay; }
+              if (!HD.planned) bits.splice(0, bits.length, "The last week you planned is under The week below.");
+              $("todayExtra").textContent = bits.join(" "); $("todayExtra").hidden = !bits.length || (!isSchoolDay && HD.planned); }
             const host = $("periods"); host.textContent = "";
             PERIODS.forEach(([p, cls]) => {
                 const k = week.classes[cls], day = k.days[di], row = el("div", "prow" + (p === cur.p ? " on" : ""));
@@ -441,7 +454,7 @@
             }
             $("who").textContent = "Signed in as " + (user.name || "teacher");
             if (PACK === "calera") mountWeekFlow(store, $("weekflow"), PUBLISHED, todayIso);
-            if (PACK === "calera") import("./js/absenceHome.js?v=4").then((m) => { ABS = m.mountAbsences({ store, host: $("absent"), el, periods: PERIODS, today: todayIso, weeks: WEEKS, classLabel: (c) => ((WEEKS[WEEKS.length - 1] || { classes: {} }).classes[c] || {}).label || c }); }).catch(() => {});   // absences by period (Phase 2B); a failure here never blocks Home
+            if (PACK === "calera") import("./js/absenceHome.js?v=5").then((m) => { ABS = m.mountAbsences({ store, host: $("absent"), el, periods: PERIODS, today: todayIso, weeks: WEEKS, classLabel: (c) => ((WEEKS[WEEKS.length - 1] || { classes: {} }).classes[c] || {}).label || c }); }).catch(() => {});   // absences by period (Phase 2B); a failure here never blocks Home
             // Standards mark themselves from approved weeks: Teaching from Monday, Taught the day after the quiz or test.
             if (PACK === "calera") runAutoStandards(store, todayIso).then((ch) => {
                 if (!ch.length) return;
@@ -450,7 +463,7 @@
                 P.append((t ? "Marked taught after the quiz: " + t + ". " : "") + (g ? "Marked teaching this week: " + g + ". " : ""));
                 const a = el("a", null, "Change on Standards"); a.href = "standards.html"; P.append(a); P.hidden = false;
             }).catch(() => {});
-            watchPrivateWeeks(store, PUBLISHED, (list) => { WEEKS = list; if (ABS) ABS.setWeeks(WEEKS); week = WEEKS[0]; for (const w of WEEKS) if (!w.monday || w.monday <= todayIso) week = w; coRefresh(); statuses(todayIso); render(); });
+            watchPrivateWeeks(store, PUBLISHED, (list) => { WEEKS = list; if (ABS) ABS.setWeeks(WEEKS); pickWeek(); coRefresh(); statuses(todayIso); render(); });
             store.watch("weekfiles/index", (s) => { if (s.pending) return; coIndex = (s.exists && s.data) || { weeks: [] }; coRefresh(); statuses(todayIso); }, () => {});
             store.watch("settings/closeout", (s) => { if (s.pending) return; coSet = (s.exists && s.data) || {}; coRefresh(); statuses(todayIso); }, () => {});
             // Weekly Google Drive backup (account.html, js/backup.js): a reminder once the last one is a week old.
