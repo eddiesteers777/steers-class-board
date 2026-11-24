@@ -17,7 +17,7 @@ const WARN_WORD = { days: "Out often", test: "Test", work: "Graded work", behind
 
 export function mountAbsences(opts) {
     const { store, host, el, periods, today } = opts, D = { att: new Map(), trk: new Map(), gb: { items: [], cats: [] }, data: [], asg: [], rost: {}, prof: new Map(), found: new Map(), cu: new Map(), weeks: opts.weeks || [] };
-    let timer = null; const seenDays = new Set();
+    let timer = null; const seenDays = new Set(), openRows = new Set();   // which periods and students the teacher opened survive a redraw
     const soon = () => { clearTimeout(timer); timer = setTimeout(draw, 60); };
     const days = []; for (let i = 0; i < K.WINDOW_DAYS; i++) { const d = new Date(today + "T12:00:00"); d.setDate(d.getDate() - i); const k = K.isoOf(d); if (K.dayIndex(k) >= 0) days.push(k); }
     days.forEach((k) => {
@@ -38,6 +38,7 @@ export function mountAbsences(opts) {
     const behind = (per, nm, codes) => { watchProf(per); const prof = D.prof.get(per), kid = prof && prof.kids ? prof.kids[kidKey(nm)] : null; return K.behindFromKid(kid, codes); };
     const dash = () => K.buildDashboard({ absences: AC.absences(days.map((k) => ({ day: k, doc: D.att.get(k) })).filter((x) => x.doc), [...D.trk.values()].filter(Boolean)), weeks: D.weeks, periods, gb: D.gb, data: D.data, asg: D.asg, behind, found, marks, today });
 
+    function keepOpen(d, k) { if (openRows.has(k)) d.open = true; d.addEventListener("toggle", () => { if (d.open) openRows.add(k); else openRows.delete(k); }); }
     function draw() {
         host.textContent = "";
         if (seenDays.size < days.length) { host.hidden = false; host.setAttribute("aria-busy", "true"); host.appendChild(el("div", "abs-skel")); return; }   // the shape of the card until the records arrive
@@ -54,12 +55,12 @@ export function mountAbsences(opts) {
         const md = (k) => { const d = new Date(k + "T12:00:00"); return d.toLocaleDateString("en-US", { weekday: "short" }) + " " + (d.getMonth() + 1) + "/" + d.getDate(); };   // "Tue 11/17"
         R.periods.forEach((P) => {
             // Each period is its own collapsed row too (Eddie, Nov 24): "1st period · 8th Grade   3 absent · 1 needs a look".
-            const sec = el("details", "abs-per"), names = D.rost[P.per] || [], list = el("div", "abs-list"), ps = el("summary", "abs-phead");
+            const sec = el("details", "abs-per"), pk = "p:" + P.per, names = D.rost[P.per] || [], list = el("div", "abs-list"), ps = el("summary", "abs-phead");
             ps.appendChild(el("h3", null, P.per + " period" + (P.cls ? " · " + (opts.classLabel ? opts.classLabel(P.cls) : P.cls) : "")));
             const warnN = P.students.filter((x) => x.warnings.length).length, outN = P.students.filter((x) => x.today).length;
             const pc = el("span", "abs-pcount", P.students.length + " absent"); if (outN) pc.appendChild(el("span", "abs-tag out", outN + " out today")); if (warnN) pc.appendChild(el("span", "abs-tag w-look", warnN + (warnN === 1 ? " needs" : " need") + " a look"));
             ps.appendChild(pc); { const c = el("span", "abs-chev"); c.setAttribute("aria-hidden", "true"); ps.appendChild(c); }
-            sec.appendChild(ps);
+            sec.appendChild(ps); keepOpen(sec, pk);
             P.students.forEach((S) => {
                 const row = el("details", "abs-kid" + (S.warnings.length ? " warn" : "") + (S.allDone ? " done" : "")), top = el("summary", "abs-top");
                 const who = el("span", "abs-who"); who.appendChild(el("b", null, AC.displayName(S.nm, names.length ? names : P.students.map((x) => x.nm))));
@@ -82,7 +83,7 @@ export function mountAbsences(opts) {
                 });
                 if (S.days.length > 5) body.appendChild(el("p", "abs-more", "and " + (S.days.length - 5) + " earlier day" + (S.days.length - 5 === 1 ? "" : "s")));
                 { const a = el("a", "abs-go" + (S.allDone ? "" : " due"), S.allDone ? "Open catch-up" : "Assign catch-up work"); a.href = "catchup.html?p=" + encodeURIComponent(P.per) + "&k=" + encodeURIComponent(S.key); body.appendChild(a); }
-                row.appendChild(body);
+                row.appendChild(body); keepOpen(row, "k:" + P.per + "|" + S.key);
                 list.appendChild(row);
             });
             sec.appendChild(list);
