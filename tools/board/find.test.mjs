@@ -1,15 +1,16 @@
 // The Find panel's search (js/findCore.js): standard codes, topic words, courses, and the saved state of up to four
 // Find panels. Run: node tools/board/find.test.mjs
 import assert from "node:assert/strict";
-import { buildIndex, search, browse, another, parseCode, topicOf, courseFor, cleanFind, cleanFinds, isFind, FIND_KEYS, TOPICS } from "../../js/findCore.js";
+import { buildIndex, search, browse, another, parseCode, topicOf, courseFor, cleanFind, cleanFinds, isFind, FIND_KEYS, TOPICS, inFind } from "../../js/findCore.js";
 import { loadStdBank } from "../../js/stdBank.js";
 import { STANDARDS } from "../../data/standards.js";
 
 let n = 0; const t = (name, fn) => { try { fn(); n++; } catch (e) { console.error("FAIL", name); throw e; } };
-const items = await loadStdBank();
+const all = await loadStdBank(), items = all.filter((x) => inFind(x.std));   // the 2nd-6th grade bank stays out of Find
 let t0 = performance.now(); const ix = buildIndex(items, STANDARDS); const built = performance.now() - t0;
 
-t("the index holds the whole bank", () => assert.equal(ix.rows.length, items.length));
+t("the index holds the whole 7th, 8th and Algebra I bank", () => assert.equal(ix.rows.length, items.length));
+t("grades 2-6 stay out of Find", () => { assert.ok(all.length > items.length); assert.equal(buildIndex(all, STANDARDS).rows.length, items.length); });
 t("the index builds fast", () => assert.ok(built < 400, "built in " + built.toFixed(0) + " ms"));
 t("every standard in the bank has a topic", () => { const miss = [...new Set(items.map((x) => x.std))].filter((s) => !TOPICS[s]); assert.deepEqual(miss, []); });
 

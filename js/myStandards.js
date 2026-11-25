@@ -6,7 +6,7 @@
    New teacher: the classes from setup, each with the course picked in setup step 2. A class on
    "My own standards" reads its pasted list from teacher/{uid}/settings/standards.
 ========================================== */
-import { STANDARDS } from "../data/standards.js?v=58";
+import { STANDARDS } from "../data/standards.js?v=59";
 import { PACK, PERIODS, WEEKS, SETUP } from "../data/weeks.js?v=63";
 import { classesFor, cleanLists, ownCourse, listKey } from "./courseRules.js?v=1";
 

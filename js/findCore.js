@@ -114,7 +114,10 @@ export const TOPICS = {
 };
 
 export const COURSES = [["", "All"], ["7th", "7th"], ["8th", "8th"], ["alg1", "Alg I"]];
-const courseOf = (code) => (/^7\./.test(code) ? "7th" : /^8\./.test(code) ? "8th" : "alg1");
+// 7th, 8th and Algebra I only: the 2nd-6th grade bank (g2..g6) stays out of Find, so the board's search is unchanged.
+const courseOf = (code) => (/^7\./.test(code) ? "7th" : /^8\./.test(code) ? "8th" : /^Alg I\./.test(code) ? "alg1" : "");
+/** True when Find searches this standard's problems (7th, 8th, Algebra I). */
+export const inFind = (code) => !!courseOf(code);
 /** The course chip a board class starts on: 7th → 7th, 8th → 8th, 8th Accelerated → All (it teaches 8th and Algebra I). */
 export const courseFor = (cls) => (cls === "7th" ? "7th" : cls === "8th" ? "8th" : "");
 
@@ -171,7 +174,7 @@ export function buildIndex(items, standards) {
     Object.values(standards || {}).forEach((c) => (c.standards || []).forEach((s) => { if (!stdText[s.code]) stdText[s.code] = { text: s.text || "", domain: s.domain || "" }; }));
     const stds = {}, rows = [];
     (items || []).forEach((x, i) => {
-        if (!x || !x.id || !x.std) return;
+        if (!x || !x.id || !x.std || !courseOf(x.std)) return;
         const code = x.std, st = stds[code] || (stds[code] = { code, course: courseOf(code), topic: topicOf(code) || code, n: 0, order: 0,
             tags: " " + norm((TOPICS[code] || "").replace(/;/g, ",")) + " ", text: " " + norm((stdText[code] || {}).text + " " + (stdText[code] || {}).domain) + " " });
         st.n++;

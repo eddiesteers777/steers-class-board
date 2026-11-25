@@ -10,7 +10,7 @@
    It never changes data/standards.js or the district unit order the Standards page shows.
    Status marks are the same standards/progress marks the Standards page uses ({ s, d }).
 ========================================== */
-import { STANDARDS } from "../data/standards.js?v=58";
+import { STANDARDS } from "../data/standards.js?v=59";
 
 export const LANES = 4;
 export const LANE_NAMES = ["1st nine weeks", "2nd nine weeks", "3rd nine weeks", "4th nine weeks"];

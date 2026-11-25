@@ -1,0 +1,4605 @@
+[
+ {
+  "src": "4.1-L1-01",
+  "std": "4.1",
+  "q": "Which equation represents the statement '24 is 4 times as many as 6'?",
+  "a": "24 = 4 × 6",
+  "lvl": 1,
+  "choices": [
+   "24 = 4 × 6",
+   "24 = 4 + 6",
+   "6 = 24 × 4",
+   "4 = 24 × 6"
+  ],
+  "steps": [
+   "'Times as many' means multiplication, and 'is' means equals (=).",
+   "Translate '24 is 4 times as many as 6' into a multiplication equation.",
+   "Match your equation to the choices and verify the numbers are in order."
+  ]
+ },
+ {
+  "src": "4.1-L1-02",
+  "std": "4.1",
+  "q": "Which statement correctly describes the equation 35 = 5 × 7?",
+  "a": "35 is 5 times as many as 7.",
+  "lvl": 1,
+  "choices": [
+   "35 is 5 more than 7.",
+   "5 is 7 times as many as 35.",
+   "35 is 5 times as many as 7.",
+   "7 is 5 times as many as 35."
+  ],
+  "steps": [
+   "Read the equation 35 = 5 × 7 as a multiplicative comparison statement.",
+   "Replace '=' with 'is' and '×' with 'times as many as'.",
+   "Find the choice that says 35 is compared to 7 using multiplication."
+  ]
+ },
+ {
+  "src": "4.1-L1-03",
+  "std": "4.1",
+  "q": "Which equation represents '18 is 3 times as many as 6'?",
+  "a": "18 = 3 × 6",
+  "lvl": 1,
+  "choices": [
+   "18 = 3 + 6",
+   "18 = 6 − 3",
+   "3 = 18 × 6",
+   "18 = 3 × 6"
+  ],
+  "steps": [
+   "Identify the key words: 'is' means '=' and 'times as many' means '×'.",
+   "Write 18 on one side of '=' and multiply 3 and 6 on the other side.",
+   "Select the matching equation and double-check the operation symbol."
+  ]
+ },
+ {
+  "src": "4.1-L2-01",
+  "std": "4.1",
+  "q": "Mia has 8 stickers. Noah has 6 times as many stickers as Mia. Which equation shows how many stickers, s, Noah has?",
+  "a": "s = 6 × 8",
+  "lvl": 2,
+  "choices": [
+   "s = 6 + 8",
+   "s = 6 × 8",
+   "8 = 6 × s",
+   "s = 8 − 6"
+  ],
+  "steps": [
+   "Noah has 6 times as many stickers as Mia's 8, so multiply to find s.",
+   "Set up an equation with s equal to 6 times Mia's amount.",
+   "Match your equation to the choices and confirm s is the larger amount."
+  ]
+ },
+ {
+  "src": "4.1-L2-02",
+  "std": "4.1",
+  "q": "Which two statements BOTH represent the equation 42 = 6 × 7?",
+  "a": "42 is 6 times as many as 7, and 42 is 7 times as many as 6.",
+  "lvl": 2,
+  "choices": [
+   "42 is 6 times as many as 7, and 42 is 7 times as many as 6.",
+   "42 is 6 more than 7, and 42 is 7 more than 6.",
+   "6 is 7 times as many as 42, and 7 is 6 times as many as 42.",
+   "42 is 6 times as many as 7, and 6 is 7 times as many as 42."
+  ],
+  "steps": [
+   "Multiplication is commutative, so 6 × 7 and 7 × 6 give two comparisons.",
+   "Write 42 as 6 times as many as 7, and also as 7 times as many as 6.",
+   "Choose the option where both statements keep 42 as the total."
+  ]
+ },
+ {
+  "src": "4.1-L2-03",
+  "std": "4.1",
+  "q": "A red ribbon is 45 inches long. A blue ribbon is 9 inches long. Which comparison sentence matches the equation 45 = 5 × 9?",
+  "a": "The red ribbon is 5 times as long as the blue ribbon.",
+  "lvl": 2,
+  "choices": [
+   "The blue ribbon is 5 times as long as the red ribbon.",
+   "The red ribbon is 5 inches longer than the blue ribbon.",
+   "The red ribbon is 9 times as long as the blue ribbon.",
+   "The red ribbon is 5 times as long as the blue ribbon."
+  ],
+  "steps": [
+   "Match 45 to the red ribbon and 9 to the blue ribbon in 45 = 5 × 9.",
+   "Read '=' as 'is' and '×' as 'times as long as' using the 5.",
+   "Pick the sentence that correctly compares the red ribbon to the blue."
+  ]
+ },
+ {
+  "src": "4.1-L3-01",
+  "std": "4.1",
+  "q": "A zoo has 72 birds and 8 monkeys. Liam writes 72 = 9 × 8. What does the 9 mean in this situation?",
+  "a": "There are 9 times as many birds as monkeys.",
+  "lvl": 3,
+  "choices": [
+   "There are 9 more birds than monkeys.",
+   "There are 9 monkeys in each cage.",
+   "There are 9 times as many birds as monkeys.",
+   "There are 9 times as many monkeys as birds."
+  ],
+  "steps": [
+   "Connect 72 to birds and 8 to monkeys in the equation 72 = 9 × 8.",
+   "Interpret the factor 9 as how many times as many birds there are.",
+   "Select the statement that describes a multiplicative comparison."
+  ]
+ },
+ {
+  "src": "4.1-L3-02",
+  "std": "4.1",
+  "q": "Which situation is represented by the equation 56 = 8 × 7?",
+  "a": "A tree is 56 feet tall, which is 8 times as tall as a 7-foot bush.",
+  "lvl": 3,
+  "choices": [
+   "A tree is 56 feet tall, which is 8 feet taller than a 7-foot bush.",
+   "A tree is 56 feet tall, which is 8 times as tall as a 7-foot bush.",
+   "A bush is 56 feet tall, and 8 trees are 7 feet tall.",
+   "A tree is 8 feet tall, which is 7 times as tall as a 56-foot bush."
+  ],
+  "steps": [
+   "Look for a situation where 56 is a multiple of 7 by a factor of 8.",
+   "Eliminate additive ('taller than') or reversed comparisons.",
+   "Confirm the chosen story matches 56 as the product of 8 and 7."
+  ]
+ },
+ {
+  "src": "4.1-L3-03",
+  "std": "4.1",
+  "q": "Write a multiplicative comparison equation for this statement: '63 is 9 times as many as 7.'",
+  "a": "63 = 9 × 7",
+  "lvl": 3,
+  "steps": [
+   "Translate 'is' to '=' and 'times as many as' to '×'.",
+   "Place 63 on one side and the product of 9 and 7 on the other.",
+   "Verify both sides of your equation are equal."
+  ]
+ },
+ {
+  "src": "4.2-L1-01",
+  "std": "4.2",
+  "q": "A notebook costs §4. A backpack costs 7 times as much as the notebook. How much does the backpack cost?",
+  "a": "§28",
+  "lvl": 1,
+  "choices": [
+   "§11",
+   "§24",
+   "§28",
+   "§32"
+  ],
+  "steps": [
+   "'7 times as much' means multiply the notebook's cost by 7.",
+   "Set up the multiplication: 7 × 4.",
+   "Compute the product and include the dollar sign."
+  ]
+ },
+ {
+  "src": "4.2-L1-02",
+  "std": "4.2",
+  "q": "Carlos read 5 books this month. His sister read 4 times as many books as Carlos. How many books did his sister read?",
+  "a": "20 books",
+  "lvl": 1,
+  "choices": [
+   "20 books",
+   "9 books",
+   "16 books",
+   "25 books"
+  ],
+  "steps": [
+   "'4 times as many' means multiply Carlos's books by 4.",
+   "Set up the multiplication: 4 × 5.",
+   "Find the product to get how many books his sister read."
+  ]
+ },
+ {
+  "src": "4.2-L1-03",
+  "std": "4.2",
+  "q": "A puppy weighs 6 pounds. An adult dog weighs 9 times as much as the puppy. How much does the adult dog weigh?",
+  "a": "54 pounds",
+  "lvl": 1,
+  "choices": [
+   "15 pounds",
+   "48 pounds",
+   "56 pounds",
+   "54 pounds"
+  ],
+  "steps": [
+   "'9 times as much' means multiply the puppy's weight by 9.",
+   "Set up the multiplication: 9 × 6.",
+   "Compute the product and label your answer in pounds."
+  ]
+ },
+ {
+  "src": "4.2-L2-01",
+  "std": "4.2",
+  "q": "A jacket costs §48. That is 6 times as much as a hat costs. Which equation can be used to find the cost of the hat, h, and what is h?",
+  "a": "6 × h = 48; h = §8",
+  "lvl": 2,
+  "choices": [
+   "h = 48 × 6; h = §288",
+   "6 × h = 48; h = §8",
+   "h + 6 = 48; h = §42",
+   "6 × h = 48; h = §7"
+  ],
+  "steps": [
+   "The jacket (§48) is 6 times the hat's cost (h), so 6 × h = 48.",
+   "Solve for h by dividing 48 by 6.",
+   "Confirm your value of h makes 6 × h equal 48."
+  ]
+ },
+ {
+  "src": "4.2-L2-02",
+  "std": "4.2",
+  "q": "A soccer team scored 36 goals this season, which is 4 times as many goals as they scored last season. How many goals did they score last season?",
+  "a": "9 goals",
+  "lvl": 2,
+  "choices": [
+   "32 goals",
+   "40 goals",
+   "9 goals",
+   "144 goals"
+  ],
+  "steps": [
+   "36 goals is 4 times last season's goals, so divide to find the smaller.",
+   "Set up the division: 36 ÷ 4.",
+   "Compute the quotient and verify by multiplying by 4."
+  ]
+ },
+ {
+  "src": "4.2-L2-03",
+  "std": "4.2",
+  "q": "Elena has 45 marbles. She has 5 times as many marbles as Ben. How many marbles does Ben have?",
+  "a": "9 marbles",
+  "lvl": 2,
+  "choices": [
+   "9 marbles",
+   "40 marbles",
+   "50 marbles",
+   "225 marbles"
+  ],
+  "steps": [
+   "Elena's 45 marbles is 5 times Ben's amount, so Ben has fewer.",
+   "Divide 45 by 5 to find Ben's marbles.",
+   "Verify your answer by multiplying it by 5 to get 45."
+  ]
+ },
+ {
+  "src": "4.2-L3-01",
+  "std": "4.2",
+  "q": "A museum sold 8 times as many adult tickets as child tickets. If the museum sold 72 adult tickets, how many MORE adult tickets than child tickets were sold?",
+  "a": "63 tickets",
+  "lvl": 3,
+  "choices": [
+   "9 tickets",
+   "64 tickets",
+   "81 tickets",
+   "63 tickets"
+  ],
+  "steps": [
+   "First find the number of child tickets, then find the difference.",
+   "Divide 72 ÷ 8 for child tickets, then subtract that from 72.",
+   "Confirm your final answer answers 'how many MORE'."
+  ]
+ },
+ {
+  "src": "4.2-L3-02",
+  "std": "4.2",
+  "q": "A bridge is 84 feet long, which is 7 times as long as a boat. What is the combined length of the bridge and the boat?",
+  "a": "96 feet",
+  "lvl": 3,
+  "choices": [
+   "12 feet",
+   "91 feet",
+   "96 feet",
+   "72 feet"
+  ],
+  "steps": [
+   "Find the boat's length first, then add it to the bridge's length.",
+   "Divide 84 ÷ 7 for the boat, then add 84 to that result.",
+   "Verify the combined length is greater than 84 feet."
+  ]
+ },
+ {
+  "src": "4.2-L3-03",
+  "std": "4.2",
+  "q": "A baker made 63 muffins. That is 7 times as many muffins as she made yesterday. Write an equation using m for yesterday's muffins and solve for m.",
+  "a": "7 × m = 63; m = 9",
+  "lvl": 3,
+  "steps": [
+   "Write a multiplicative equation relating 63, 7, and m.",
+   "Use 7 × m = 63, then divide 63 by 7 to solve for m.",
+   "Substitute your value of m back into the equation to verify."
+  ]
+ },
+ {
+  "src": "4.3-L1-01",
+  "std": "4.3",
+  "part": "a",
+  "q": "Maya had 15 pencils. She bought 2 packs with 6 pencils in each pack. Which equation shows how to find the total number of pencils, p, she has now?",
+  "a": "p = 15 + (2 × 6)",
+  "lvl": 1,
+  "choices": [
+   "p = 15 + (2 × 6)",
+   "p = 15 × 2 + 6",
+   "p = 15 + 2 + 6",
+   "p = (15 − 2) × 6"
+  ],
+  "steps": [
+   "Find the pencils in the 2 packs first, then add to the 15 she had.",
+   "Multiply 2 × 6 for the new pencils, then add 15 to equal p.",
+   "Match your equation to the choices with parentheses around 2 × 6."
+  ]
+ },
+ {
+  "src": "4.3-L1-02",
+  "std": "4.3",
+  "part": "b",
+  "q": "A store sold 198 apples on Monday and 304 apples on Tuesday. About how many apples did the store sell in all?",
+  "a": "500 apples",
+  "lvl": 1,
+  "choices": [
+   "400 apples",
+   "500 apples",
+   "600 apples",
+   "700 apples"
+  ],
+  "steps": [
+   "'About how many' means round each number before adding.",
+   "Round 198 to 200 and 304 to 300, then add them.",
+   "Choose the estimate that matches your sum."
+  ]
+ },
+ {
+  "src": "4.3-L1-03",
+  "std": "4.3",
+  "q": "A teacher has 25 markers to share equally among 4 tables. How many markers are left over?",
+  "a": "1 marker",
+  "lvl": 1,
+  "choices": [
+   "4 markers",
+   "6 markers",
+   "1 marker",
+   "2 markers"
+  ],
+  "steps": [
+   "Sharing equally means divide 25 by 4 and look at the remainder.",
+   "Find the largest multiple of 4 less than 25, then subtract from 25.",
+   "The remainder tells how many markers are left over."
+  ]
+ },
+ {
+  "src": "4.3-L2-01",
+  "std": "4.3",
+  "q": "A class of 29 students is going on a field trip in vans. Each van holds 6 students. What is the fewest number of vans needed so every student can go?",
+  "a": "5 vans",
+  "lvl": 2,
+  "choices": [
+   "4 vans",
+   "6 vans",
+   "23 vans",
+   "5 vans"
+  ],
+  "steps": [
+   "Divide 29 students by 6 per van to see how many full vans are filled.",
+   "Find 29 ÷ 6 with its remainder; leftover students still need a van.",
+   "Add 1 to the quotient so every student has a seat."
+  ]
+ },
+ {
+  "src": "4.3-L2-02",
+  "std": "4.3",
+  "part": "a",
+  "q": "Sam had §50. He bought 3 books that cost §9 each. Which equation can be used to find how much money, m, Sam has left, and what is m?",
+  "a": "m = 50 − (3 × 9); m = §23",
+  "lvl": 2,
+  "choices": [
+   "m = 50 − (3 × 9); m = §23",
+   "m = 50 − 3 − 9; m = §38",
+   "m = (50 − 3) × 9; m = §423",
+   "m = 50 + (3 × 9); m = §77"
+  ],
+  "steps": [
+   "Find the total cost of the 3 books, then subtract from §50.",
+   "Write m = 50 − (3 × 9), then multiply 3 × 9 first.",
+   "Subtract that product from 50 to find m."
+  ]
+ },
+ {
+  "src": "4.3-L2-03",
+  "std": "4.3",
+  "part": "b",
+  "q": "Ava calculated 489 + 312 − 195 and got 996. Using rounding to the nearest hundred, is her answer reasonable?",
+  "a": "No, because 500 + 300 − 200 = 600, which is much less than 996.",
+  "lvl": 2,
+  "choices": [
+   "Yes, because 500 + 300 + 200 = 1,000, which is close to 996.",
+   "No, because 500 + 300 − 200 = 600, which is much less than 996.",
+   "No, because 400 + 300 − 100 = 600, so the answer should be 200.",
+   "Yes, because 996 is close to 900."
+  ],
+  "steps": [
+   "Round each number to the nearest hundred: 500, 300, and 200.",
+   "Compute 500 + 300 − 200 to estimate the true answer.",
+   "Compare your estimate to 996 to decide if Ava is reasonable."
+  ]
+ },
+ {
+  "src": "4.3-L3-01",
+  "std": "4.3",
+  "q": "A baker made 50 cupcakes. He put 8 cupcakes in each full box to sell and gave the leftover cupcakes to his neighbors. How many cupcakes did he give to his neighbors?",
+  "a": "2 cupcakes",
+  "lvl": 3,
+  "choices": [
+   "6 cupcakes",
+   "7 cupcakes",
+   "2 cupcakes",
+   "4 cupcakes"
+  ],
+  "steps": [
+   "Divide 50 by 8 to find full boxes and leftover cupcakes.",
+   "The remainder is the number of cupcakes given to neighbors.",
+   "Verify that (8 × full boxes) + remainder = 50."
+  ]
+ },
+ {
+  "src": "4.3-L3-02",
+  "std": "4.3",
+  "part": "a",
+  "q": "A school ordered 4 boxes of 24 notebooks and 3 boxes of 18 notebooks. Then 35 notebooks were handed out. How many notebooks are left?",
+  "a": "115 notebooks",
+  "lvl": 3,
+  "choices": [
+   "150 notebooks",
+   "185 notebooks",
+   "96 notebooks",
+   "115 notebooks"
+  ],
+  "steps": [
+   "Find the total notebooks ordered from both sets of boxes first.",
+   "Compute (4 × 24) + (3 × 18), then subtract 35 handed out.",
+   "Recalculate each multiplication to ensure accuracy."
+  ]
+ },
+ {
+  "src": "4.3-L3-03",
+  "std": "4.3",
+  "q": "A florist has 43 roses and makes bouquets of 6 roses each. How many full bouquets can the florist make?",
+  "a": "7",
+  "lvl": 3,
+  "steps": [
+   "Divide 43 roses by 6 roses per bouquet.",
+   "Ignore the remainder since the question asks for full bouquets only.",
+   "Verify that 6 × your answer is 43 or less."
+  ]
+ },
+ {
+  "src": "4.4-L1-01",
+  "std": "4.4",
+  "q": "Which list shows ALL the factor pairs of 12?",
+  "a": "(1, 12), (2, 6), (3, 4)",
+  "lvl": 1,
+  "choices": [
+   "(1, 12), (2, 6)",
+   "(1, 12), (2, 6), (3, 4)",
+   "(2, 6), (3, 4)",
+   "(1, 12), (3, 4), (4, 6)"
+  ],
+  "steps": [
+   "Factor pairs are two whole numbers that multiply to 12.",
+   "Test 1, 2, 3, and 4 to find every pair with a product of 12.",
+   "Pick the list that includes every pair without extras."
+  ]
+ },
+ {
+  "src": "4.4-L1-02",
+  "std": "4.4",
+  "part": "a",
+  "q": "Which number is a multiple of 7?",
+  "a": "42",
+  "lvl": 1,
+  "choices": [
+   "42",
+   "27",
+   "36",
+   "54"
+  ],
+  "steps": [
+   "A multiple of 7 can be divided evenly by 7 with no remainder.",
+   "Skip-count by 7s: 7, 14, 21, 28, 35, 42, 49, 56.",
+   "Find which answer choice appears in your list."
+  ]
+ },
+ {
+  "src": "4.4-L1-03",
+  "std": "4.4",
+  "part": "b",
+  "q": "Which number is a prime number?",
+  "a": "13",
+  "lvl": 1,
+  "choices": [
+   "9",
+   "15",
+   "13",
+   "21"
+  ],
+  "steps": [
+   "A prime number has exactly two factors: 1 and itself.",
+   "Test each choice to see if it divides evenly by 3 or another number.",
+   "Choose the number that has no factors other than 1 and itself."
+  ]
+ },
+ {
+  "src": "4.4-L2-01",
+  "std": "4.4",
+  "part": "b",
+  "q": "Which list contains ONLY composite numbers?",
+  "a": "12, 21, 25, 33",
+  "lvl": 2,
+  "choices": [
+   "4, 9, 11, 16",
+   "6, 15, 19, 24",
+   "10, 17, 22, 27",
+   "12, 21, 25, 33"
+  ],
+  "steps": [
+   "A composite number has more than two factors (not prime).",
+   "Scan each list and eliminate any list containing a prime like 11, 17, 19.",
+   "Verify every number in the remaining list has a factor besides 1 and itself."
+  ]
+ },
+ {
+  "src": "4.4-L2-02",
+  "std": "4.4",
+  "q": "How many factor pairs does the number 24 have?",
+  "a": "4",
+  "lvl": 2,
+  "choices": [
+   "3",
+   "4",
+   "6",
+   "8"
+  ],
+  "steps": [
+   "List all pairs of whole numbers that multiply to 24.",
+   "Start with 1 × 24, then test 2, 3, 4, and 5 until factors repeat.",
+   "Count how many distinct pairs you found."
+  ]
+ },
+ {
+  "src": "4.4-L2-03",
+  "std": "4.4",
+  "part": "a",
+  "q": "Which number is a multiple of BOTH 4 and 6?",
+  "a": "36",
+  "lvl": 2,
+  "choices": [
+   "36",
+   "18",
+   "28",
+   "42"
+  ],
+  "steps": [
+   "The number must divide evenly by both 4 and 6.",
+   "Test each choice by dividing by 4 and by 6.",
+   "Select the choice that has no remainder for either division."
+  ]
+ },
+ {
+  "src": "4.4-L3-01",
+  "std": "4.4",
+  "part": "b",
+  "q": "Devon says 51 is a prime number because it is odd. Is Devon correct?",
+  "a": "No, because 51 = 3 × 17, so 51 is composite.",
+  "lvl": 3,
+  "choices": [
+   "Yes, because all odd numbers greater than 10 are prime.",
+   "Yes, because 51 is not divisible by 2 or 5.",
+   "No, because 51 = 3 × 17, so 51 is composite.",
+   "No, because 51 = 7 × 7, so 51 is composite."
+  ],
+  "steps": [
+   "Test if 51 has any factors besides 1 and 51 (try dividing by 3).",
+   "Use the sum-of-digits rule: 5 + 1 = 6, which is divisible by 3.",
+   "Find 51 ÷ 3 to choose the statement that explains why."
+  ]
+ },
+ {
+  "src": "4.4-L3-02",
+  "std": "4.4",
+  "q": "I am a composite number between 30 and 45. I am a multiple of 8, and 5 is one of my factors. What number am I?",
+  "a": "40",
+  "lvl": 3,
+  "choices": [
+   "32",
+   "35",
+   "45",
+   "40"
+  ],
+  "steps": [
+   "List the multiples of 8 between 30 and 45.",
+   "Test which of those also has 5 as a factor (ends in 0 or 5).",
+   "Confirm your number is composite and fits all clues."
+  ]
+ },
+ {
+  "src": "4.4-L3-03",
+  "std": "4.4",
+  "q": "List all the factors of 36 from least to greatest.",
+  "a": "1, 2, 3, 4, 6, 9, 12, 18, 36",
+  "lvl": 3,
+  "steps": [
+   "Find all factor pairs of 36 by testing 1 through 6.",
+   "Remember not to list 6 twice when writing the factors.",
+   "Write all factors in order from least to greatest."
+  ]
+ },
+ {
+  "src": "4.5-L1-01",
+  "std": "4.5",
+  "q": "A number pattern starts at 5 and follows the rule 'add 4.' What are the first four numbers in the pattern?",
+  "a": "5, 9, 13, 17",
+  "lvl": 1,
+  "choices": [
+   "5, 9, 13, 17",
+   "4, 9, 14, 19",
+   "5, 8, 11, 14",
+   "5, 20, 80, 320"
+  ],
+  "steps": [
+   "Start with 5 as the first number in the pattern.",
+   "Add 4 repeatedly to get the 2nd, 3rd, and 4th numbers.",
+   "Match your four-number list to the answer choices."
+  ]
+ },
+ {
+  "src": "4.5-L1-02",
+  "std": "4.5",
+  "q": "A shape pattern repeats: circle, square, triangle, circle, square, triangle. What is the 8th shape in the pattern?",
+  "a": "square",
+  "lvl": 1,
+  "choices": [
+   "circle",
+   "square",
+   "triangle",
+   "rectangle"
+  ],
+  "steps": [
+   "The pattern repeats every 3 shapes: circle, square, triangle.",
+   "Continue the pattern to the 7th and 8th positions.",
+   "Identify which shape lands on position 8."
+  ]
+ },
+ {
+  "src": "4.5-L1-03",
+  "std": "4.5",
+  "q": "What is the next number in the pattern: 40, 34, 28, 22, ___?",
+  "a": "16",
+  "lvl": 1,
+  "choices": [
+   "14",
+   "18",
+   "16",
+   "20"
+  ],
+  "steps": [
+   "Find the rule by subtracting consecutive numbers: 40 − 34 = 6.",
+   "Apply the rule 'subtract 6' to the last number, 22.",
+   "Confirm the difference matches one of the choices."
+  ]
+ },
+ {
+  "src": "4.5-L2-01",
+  "std": "4.5",
+  "q": "A pattern starts at 3 and follows the rule 'add 6.' Which statement is true about every number in the pattern?",
+  "a": "Every number is odd and a multiple of 3.",
+  "lvl": 2,
+  "choices": [
+   "Every number is even.",
+   "The numbers alternate between odd and even.",
+   "Every number ends in 3 or 6.",
+   "Every number is odd and a multiple of 3."
+  ],
+  "steps": [
+   "Write the first few terms starting at 3 and adding 6: 3, 9, 15, 21.",
+   "Notice whether each term is odd or even, and check divisibility by 3.",
+   "Select the statement that holds true for every term."
+  ]
+ },
+ {
+  "src": "4.5-L2-02",
+  "std": "4.5",
+  "q": "A pattern starts at 2 and follows the rule 'multiply by 3.' What is the 5th number in the pattern?",
+  "a": "162",
+  "lvl": 2,
+  "choices": [
+   "54",
+   "162",
+   "18",
+   "486"
+  ],
+  "steps": [
+   "Start at 2 and multiply each term by 3 to get the next.",
+   "Track each position carefully: 1st = 2, 2nd = 6, 3rd = 18, and so on.",
+   "Stop at the 5th number and verify your last multiplication."
+  ]
+ },
+ {
+  "src": "4.5-L2-03",
+  "std": "4.5",
+  "q": "A shape pattern repeats every 4 shapes: star, heart, moon, sun. What is the 15th shape in the pattern?",
+  "a": "moon",
+  "lvl": 2,
+  "choices": [
+   "star",
+   "heart",
+   "moon",
+   "sun"
+  ],
+  "steps": [
+   "The cycle has 4 shapes, so it starts over every 4 positions.",
+   "Divide 15 by 4 and use the remainder to count into the cycle.",
+   "Count the remainder into the cycle and check the shape."
+  ]
+ },
+ {
+  "src": "4.5-L3-01",
+  "std": "4.5",
+  "q": "A pattern starts at 7 and follows the rule 'add 5.' What is the 10th number in the pattern?",
+  "a": "52",
+  "lvl": 3,
+  "choices": [
+   "52",
+   "57",
+   "47",
+   "50"
+  ],
+  "steps": [
+   "To reach the 10th term from the 1st term (7), add 5 nine times.",
+   "Compute 7 + (9 × 5).",
+   "Verify by counting up by 5s if needed."
+  ]
+ },
+ {
+  "src": "4.5-L3-02",
+  "std": "4.5",
+  "q": "A pattern starts at 4 and follows the rule 'add 7.' Why do the numbers in this pattern alternate between even and odd?",
+  "a": "Adding an odd number (7) to an even number gives an odd number, and adding 7 to an odd number gives an even number.",
+  "lvl": 3,
+  "choices": [
+   "All addition patterns alternate between even and odd.",
+   "Adding an odd number (7) to an even number gives an odd number, and adding 7 to an odd number gives an even number.",
+   "Because 4 is even, every number in the pattern must be even.",
+   "Because 7 is prime, the pattern can only have odd numbers."
+  ],
+  "steps": [
+   "Generate a few terms: 4, 11, 18, 25, noting even and odd.",
+   "Recall that even + odd = odd, and odd + odd = even.",
+   "Pick the choice that explains this using the odd rule (+7)."
+  ]
+ },
+ {
+  "src": "4.5-L3-03",
+  "std": "4.5",
+  "q": "A number pattern starts at 100 and follows the rule 'subtract 9.' What is the 6th number in the pattern?",
+  "a": "55",
+  "lvl": 3,
+  "steps": [
+   "To get from the 1st term (100) to the 6th term, subtract 9 five times.",
+   "Compute 100 − (5 × 9).",
+   "Double-check by listing all 6 terms."
+  ]
+ },
+ {
+  "src": "4.6-L1-01",
+  "std": "4.6",
+  "q": "In the number 5,500, how does the value of the 5 in the thousands place compare to the value of the 5 in the hundreds place?",
+  "a": "It is 10 times as great.",
+  "lvl": 1,
+  "choices": [
+   "It is 100 times as great.",
+   "It is 10 more.",
+   "It is 10 times as great.",
+   "It has the same value."
+  ],
+  "steps": [
+   "Write the value of each 5: 5,000 and 500.",
+   "Divide 5,000 by 500 to compare the two values.",
+   "Choose the statement showing how many times as great 5,000 is than 500."
+  ]
+ },
+ {
+  "src": "4.6-L1-02",
+  "std": "4.6",
+  "q": "What is the value of the digit 8 in 48,320?",
+  "a": "8,000",
+  "lvl": 1,
+  "choices": [
+   "800",
+   "8,000",
+   "80,000",
+   "8"
+  ],
+  "steps": [
+   "Identify the place value of the digit 8 in 48,320.",
+   "The 8 is in the thousands place, so multiply 8 × 1,000.",
+   "Select the matching value from the choices."
+  ]
+ },
+ {
+  "src": "4.6-L1-03",
+  "std": "4.6",
+  "q": "What is 700 ÷ 70?",
+  "a": "10",
+  "lvl": 1,
+  "choices": [
+   "1",
+   "100",
+   "7",
+   "10"
+  ],
+  "steps": [
+   "Think: how many 70s make 700?",
+   "Cancel one trailing zero from both numbers to simplify to 70 ÷ 7.",
+   "Compute the quotient and verify by multiplying by 70."
+  ]
+ },
+ {
+  "src": "4.6-L2-01",
+  "std": "4.6",
+  "q": "In which number is the value of the digit 4 ten times as great as the value of the digit 4 in 3,420?",
+  "a": "54,109",
+  "lvl": 2,
+  "choices": [
+   "54,109",
+   "45,109",
+   "3,240",
+   "1,490"
+  ],
+  "steps": [
+   "In 3,420, the 4 is in the hundreds place (value 400).",
+   "Ten times 400 is 4,000, so look for a 4 in the thousands place.",
+   "Find the choice with 4 in the thousands place."
+  ]
+ },
+ {
+  "src": "4.6-L2-02",
+  "std": "4.6",
+  "q": "Compare the digit 6 in 62,100 and the digit 6 in 16,200. Which statement is true?",
+  "a": "The 6 in 62,100 is 10 times as great as the 6 in 16,200.",
+  "lvl": 2,
+  "choices": [
+   "The 6 in 62,100 is 100 times as great as the 6 in 16,200.",
+   "The 6 in 16,200 is 10 times as great as the 6 in 62,100.",
+   "The 6 in 62,100 is 10 times as great as the 6 in 16,200.",
+   "Both 6s have the same value."
+  ],
+  "steps": [
+   "Find the value of 6 in 62,100 (ten-thousands) and in 16,200 (thousands).",
+   "Since ten-thousands is one place left of thousands, it is 10 times as great.",
+   "Choose the statement that compares the two 6s in the right direction."
+  ]
+ },
+ {
+  "src": "4.6-L2-03",
+  "std": "4.6",
+  "q": "How many tens are in 4,000?",
+  "a": "400",
+  "lvl": 2,
+  "choices": [
+   "40",
+   "400",
+   "4,000",
+   "4"
+  ],
+  "steps": [
+   "To find how many tens are in 4,000, divide 4,000 by 10.",
+   "Removing one zero from 4,000 gives the number of tens.",
+   "Verify by multiplying your answer by 10 to get 4,000."
+  ]
+ },
+ {
+  "src": "4.6-L3-01",
+  "std": "4.6",
+  "q": "In the number 330,900, the 3 in the hundred-thousands place is how many times as great as the 3 in the ten-thousands place?",
+  "a": "10 times as great",
+  "lvl": 3,
+  "choices": [
+   "100 times as great",
+   "1,000 times as great",
+   "3 times as great",
+   "10 times as great"
+  ],
+  "steps": [
+   "Compare the hundred-thousands place to the ten-thousands place.",
+   "Count how many places to the left the first 3 is from the second 3.",
+   "Use what one place to the left does to a value; pick the match."
+  ]
+ },
+ {
+  "src": "4.6-L3-02",
+  "std": "4.6",
+  "q": "A number has a 9 in the hundreds place. If you move the 9 two places to the left, how does its value change?",
+  "a": "Its value becomes 100 times as great.",
+  "lvl": 3,
+  "choices": [
+   "Its value becomes 100 times as great.",
+   "Its value becomes 20 times as great.",
+   "Its value becomes 10 times as great.",
+   "Its value increases by 200."
+  ],
+  "steps": [
+   "Each place moved to the left multiplies the value by 10.",
+   "Moving two places to the left multiplies by 10 × 10.",
+   "Select the choice that shows this multiplicative change."
+  ]
+ },
+ {
+  "src": "4.6-L3-03",
+  "std": "4.6",
+  "q": "Write a 5-digit number in which the digit 7 has a value that is 10 times as great as the value of the 7 in 2,750.",
+  "a": "Any 5-digit number with 7 in the thousands place (for example, 17,000)",
+  "lvl": 3,
+  "steps": [
+   "In 2,750, the 7 is in the hundreds place (700); 10 times that is 7,000.",
+   "Place 7 in the thousands place of a 5-digit number.",
+   "Fill the other four places with any valid digits (first digit not 0)."
+  ]
+ },
+ {
+  "src": "4.7-L1-01",
+  "std": "4.7",
+  "q": "What is the standard form of 'forty-two thousand, six hundred eight'?",
+  "a": "42,608",
+  "lvl": 1,
+  "choices": [
+   "42,680",
+   "42,608",
+   "4,268",
+   "420,608"
+  ],
+  "steps": [
+   "Separate the number at the comma: 'forty-two thousand' and 'six hundred eight'.",
+   "Write 42 before the comma and 608 after the comma (0 in the tens place).",
+   "Verify each digit is in the correct place."
+  ]
+ },
+ {
+  "src": "4.7-L1-02",
+  "std": "4.7",
+  "q": "What is 50,000 + 3,000 + 400 + 20 + 9 in standard form?",
+  "a": "53,429",
+  "lvl": 1,
+  "choices": [
+   "53,429",
+   "53,492",
+   "503,429",
+   "5,349"
+  ],
+  "steps": [
+   "Each addend gives the digit for one place value from ten-thousands to ones.",
+   "Combine 5 ten-thousands, 3 thousands, 4 hundreds, 2 tens, and 9 ones.",
+   "Read your standard form aloud to confirm it matches."
+  ]
+ },
+ {
+  "src": "4.7-L1-03",
+  "std": "4.7",
+  "q": "Which shows 7,305 in expanded form?",
+  "a": "7,000 + 300 + 5",
+  "lvl": 1,
+  "choices": [
+   "7,000 + 30 + 5",
+   "700 + 30 + 5",
+   "7,000 + 300 + 50",
+   "7,000 + 300 + 5"
+  ],
+  "steps": [
+   "Break 7,305 into the value of each nonzero digit.",
+   "Write 7 thousands, 3 hundreds, and 5 ones as an addition expression.",
+   "Skip the tens place since its digit is 0, and match the choice."
+  ]
+ },
+ {
+  "src": "4.7-L2-01",
+  "std": "4.7",
+  "q": "What is the word form of 308,045?",
+  "a": "three hundred eight thousand, forty-five",
+  "lvl": 2,
+  "choices": [
+   "three hundred eighty thousand, forty-five",
+   "three hundred eight thousand, four hundred five",
+   "three hundred eight thousand, forty-five",
+   "thirty-eight thousand, forty-five"
+  ],
+  "steps": [
+   "Read the thousands period (308) and the ones period (045) separately.",
+   "Say 'three hundred eight thousand' followed by 'forty-five'.",
+   "Check that you did not turn 08 into eighty or 045 into four hundred five."
+  ]
+ },
+ {
+  "src": "4.7-L2-02",
+  "std": "4.7",
+  "q": "Which number is equivalent to 600,000 + 9,000 + 700 + 3?",
+  "a": "609,703",
+  "lvl": 2,
+  "choices": [
+   "69,703",
+   "609,703",
+   "690,703",
+   "609,730"
+  ],
+  "steps": [
+   "Identify which place values are missing: ten-thousands and tens.",
+   "Put 0s in the missing places as you combine 600,000 + 9,000 + 700 + 3.",
+   "Confirm the result has 6 digits."
+  ]
+ },
+ {
+  "src": "4.7-L2-03",
+  "std": "4.7",
+  "q": "A city's population is 'five hundred twelve thousand, ninety.' How is this written in standard form?",
+  "a": "512,090",
+  "lvl": 2,
+  "choices": [
+   "512,090",
+   "512,900",
+   "501,290",
+   "512,009"
+  ],
+  "steps": [
+   "Write 512 in the thousands period before the comma.",
+   "Write 'ninety' as 090 in the ones period (0 in the hundreds place).",
+   "Verify the standard form reads 'five hundred twelve thousand, ninety'."
+  ]
+ },
+ {
+  "src": "4.7-L3-01",
+  "std": "4.7",
+  "q": "Which expression represents 405,210?",
+  "a": "40 ten-thousands + 5 thousands + 21 tens",
+  "lvl": 3,
+  "choices": [
+   "40 thousands + 5 hundreds + 21 tens",
+   "4 hundred-thousands + 50 thousands + 210 ones",
+   "40 ten-thousands + 5 thousands + 21 tens",
+   "405 hundreds + 21 tens"
+  ],
+  "steps": [
+   "Convert each choice into standard form to see which equals 405,210.",
+   "Remember 40 ten-thousands = 400,000 and 21 tens = 210.",
+   "Add the parts of your chosen option to verify it equals 405,210."
+  ]
+ },
+ {
+  "src": "4.7-L3-02",
+  "std": "4.7",
+  "q": "What is the standard form of 23 ten-thousands + 4 thousands + 16 tens + 5 ones?",
+  "a": "234,165",
+  "lvl": 3,
+  "choices": [
+   "23,465",
+   "234,165",
+   "234,615",
+   "270,165"
+  ],
+  "steps": [
+   "Convert each unit to standard values: 230,000; 4,000; 160; and 5.",
+   "Add all four values carefully by lining up place values.",
+   "Verify each digit of your sum against the choices."
+  ]
+ },
+ {
+  "src": "4.7-L3-03",
+  "std": "4.7",
+  "q": "Write 740,082 in expanded form.",
+  "a": "700,000 + 40,000 + 80 + 2",
+  "lvl": 3,
+  "steps": [
+   "Find the value of each nonzero digit in 740,082.",
+   "Write the sum of the hundred-thousands, ten-thousands, tens, and ones.",
+   "Verify that adding your expanded parts gives 740,082."
+  ]
+ },
+ {
+  "src": "4.8-L1-01",
+  "std": "4.8",
+  "q": "Which symbol makes the statement true? 4,821 ___ 4,812",
+  "a": ">",
+  "lvl": 1,
+  "choices": [
+   "<",
+   "=",
+   ">",
+   "+"
+  ],
+  "steps": [
+   "Compare 4,821 and 4,812 from left to right by place value.",
+   "The thousands (4) and hundreds (8) match, so compare the tens (2 vs 1).",
+   "Choose the symbol that opens toward the greater number."
+  ]
+ },
+ {
+  "src": "4.8-L1-02",
+  "std": "4.8",
+  "q": "Which symbol makes the statement true? 35,900 ___ 53,900",
+  "a": "<",
+  "lvl": 1,
+  "choices": [
+   "<",
+   ">",
+   "=",
+   "×"
+  ],
+  "steps": [
+   "Compare 35,900 and 53,900 starting at the ten-thousands place.",
+   "Compare 3 ten-thousands to 5 ten-thousands.",
+   "Pick the symbol that points to the smaller number."
+  ]
+ },
+ {
+  "src": "4.8-L1-03",
+  "std": "4.8",
+  "q": "Which whole-number comparison is TRUE?",
+  "a": "12,450 < 12,540",
+  "lvl": 1,
+  "choices": [
+   "12,450 > 12,540",
+   "12,450 = 12,540",
+   "12,540 < 12,450",
+   "12,450 < 12,540"
+  ],
+  "steps": [
+   "Line up the digits and find the first place that differs.",
+   "In the hundreds place, 4 is less than 5.",
+   "Pick the choice whose symbol matches your comparison."
+  ]
+ },
+ {
+  "src": "4.8-L2-01",
+  "std": "4.8",
+  "q": "Which symbol makes the comparison true? 60,000 + 4,000 + 500 + 20 ___ 64,502",
+  "a": ">",
+  "lvl": 2,
+  "choices": [
+   "<",
+   ">",
+   "=",
+   "None of these"
+  ],
+  "steps": [
+   "Write the expanded form 60,000 + 4,000 + 500 + 20 in standard form.",
+   "Compare 64,520 and 64,502 starting from the left.",
+   "Compare the tens place (2 vs 0) to pick the right symbol."
+  ]
+ },
+ {
+  "src": "4.8-L2-02",
+  "std": "4.8",
+  "q": "Order these numbers from LEAST to GREATEST: 82,405; 82,045; 84,205.",
+  "a": "82,045; 82,405; 84,205",
+  "lvl": 2,
+  "choices": [
+   "82,045; 82,405; 84,205",
+   "82,405; 82,045; 84,205",
+   "84,205; 82,405; 82,045",
+   "82,045; 84,205; 82,405"
+  ],
+  "steps": [
+   "Compare the thousands place first: two numbers have 82, one has 84.",
+   "Between 82,405 and 82,045, compare the hundreds place (4 vs 0).",
+   "Arrange all three from least to greatest."
+  ]
+ },
+ {
+  "src": "4.8-L2-03",
+  "std": "4.8",
+  "q": "Which comparison is FALSE?",
+  "a": "409,120 > 490,120",
+  "lvl": 2,
+  "choices": [
+   "305,400 < 350,400",
+   "710,000 = 700,000 + 10,000",
+   "409,120 > 490,120",
+   "99,999 < 100,000"
+  ],
+  "steps": [
+   "Test each comparison by checking the first place where digits differ.",
+   "Look closely at 409,120 vs 490,120 in the ten-thousands place.",
+   "Select the one statement that is false."
+  ]
+ },
+ {
+  "src": "4.8-L3-01",
+  "std": "4.8",
+  "q": "What is the SMALLEST digit that can replace the blank to make the comparison true? 54_,310 > 546,890",
+  "a": "7",
+  "lvl": 3,
+  "choices": [
+   "6",
+   "7",
+   "8",
+   "9"
+  ],
+  "steps": [
+   "The hundred-thousands (5) and ten-thousands (4) are equal.",
+   "If the blank is 6, compare 310 to 890—that's too small.",
+   "Choose the smallest digit greater than 6."
+  ]
+ },
+ {
+  "src": "4.8-L3-02",
+  "std": "4.8",
+  "q": "Four stadiums have capacities of 92,450; 94,250; 92,540; and 94,052. Which stadium has the SECOND LARGEST capacity?",
+  "a": "94,052",
+  "lvl": 3,
+  "choices": [
+   "94,250",
+   "92,540",
+   "92,450",
+   "94,052"
+  ],
+  "steps": [
+   "Find the two largest numbers first (both start with 94).",
+   "Compare 94,250 and 94,052 in the hundreds place.",
+   "Pick the smaller of those two as the second largest."
+  ]
+ },
+ {
+  "src": "4.8-L3-03",
+  "std": "4.8",
+  "q": "Write >, <, or = to compare: 300,000 + 80,000 + 900 ___ three hundred eight thousand, nine hundred.",
+  "a": ">",
+  "lvl": 3,
+  "steps": [
+   "Convert both sides to standard form: 380,900 and 308,900.",
+   "Compare the ten-thousands place (8 vs 0).",
+   "Write the correct comparison symbol."
+  ]
+ },
+ {
+  "src": "4.9-L1-01",
+  "std": "4.9",
+  "q": "Round 4,382 to the nearest thousand.",
+  "a": "4,000",
+  "lvl": 1,
+  "choices": [
+   "4,000",
+   "4,400",
+   "5,000",
+   "4,300"
+  ],
+  "steps": [
+   "Find the thousands digit (4) and look at the hundreds digit (3).",
+   "Since 3 is less than 5, keep the 4 and change the rest to zeros.",
+   "Match your rounded number to the choices."
+  ]
+ },
+ {
+  "src": "4.9-L1-02",
+  "std": "4.9",
+  "q": "Round 6,749 to the nearest hundred.",
+  "a": "6,700",
+  "lvl": 1,
+  "choices": [
+   "6,800",
+   "6,700",
+   "7,000",
+   "6,750"
+  ],
+  "steps": [
+   "Find the hundreds digit (7) and look at the tens digit (4).",
+   "Since 4 is less than 5, round down by keeping 7 and zeroing the rest.",
+   "Select the matching rounded number."
+  ]
+ },
+ {
+  "src": "4.9-L1-03",
+  "std": "4.9",
+  "q": "Round 28,510 to the nearest ten thousand.",
+  "a": "30,000",
+  "lvl": 1,
+  "choices": [
+   "20,000",
+   "28,000",
+   "29,000",
+   "30,000"
+  ],
+  "steps": [
+   "Find the ten-thousands digit (2) and look at the thousands digit (8).",
+   "Since 8 is 5 or greater, increase 2 by 1 and zero the remaining digits.",
+   "Match your result to the choices."
+  ]
+ },
+ {
+  "src": "4.9-L2-01",
+  "std": "4.9",
+  "q": "Round 459,621 to the nearest thousand.",
+  "a": "460,000",
+  "lvl": 2,
+  "choices": [
+   "459,000",
+   "459,600",
+   "460,000",
+   "500,000"
+  ],
+  "steps": [
+   "Locate the thousands digit (9) and look at the hundreds digit (6).",
+   "Since 6 ≥ 5, round 459 thousand up by 1 thousand (regrouping 59 to 60).",
+   "Zero out the hundreds, tens, and ones places."
+  ]
+ },
+ {
+  "src": "4.9-L2-02",
+  "std": "4.9",
+  "q": "Which number rounds to 70,000 when rounded to the nearest ten thousand?",
+  "a": "65,499",
+  "lvl": 2,
+  "choices": [
+   "64,999",
+   "65,499",
+   "75,100",
+   "76,000"
+  ],
+  "steps": [
+   "Numbers from 65,000 to 74,999 round to 70,000 at the ten-thousands place.",
+   "Check the thousands digit of each choice to see which rounds to 70,000.",
+   "Select the only number inside that range."
+  ]
+ },
+ {
+  "src": "4.9-L2-03",
+  "std": "4.9",
+  "q": "A town has 19,845 residents. What is the population rounded to the nearest hundred?",
+  "a": "19,800",
+  "lvl": 2,
+  "choices": [
+   "19,800",
+   "19,900",
+   "20,000",
+   "19,850"
+  ],
+  "steps": [
+   "Find the hundreds digit (8) and look at the tens digit (4).",
+   "Since 4 is less than 5, keep 8 in the hundreds place.",
+   "Replace the tens and ones digits with zeros."
+  ]
+ },
+ {
+  "src": "4.9-L3-01",
+  "std": "4.9",
+  "q": "What is the GREATEST whole number that rounds to 5,000 when rounded to the nearest thousand?",
+  "a": "5,499",
+  "lvl": 3,
+  "choices": [
+   "5,500",
+   "5,490",
+   "5,999",
+   "5,499"
+  ],
+  "steps": [
+   "To round down to 5,000, the hundreds digit must be 4 or less.",
+   "Maximize the hundreds (4), tens (9), and ones (9) digits.",
+   "Verify that adding 1 more would make it round to 6,000."
+  ]
+ },
+ {
+  "src": "4.9-L3-02",
+  "std": "4.9",
+  "q": "When rounded to the nearest thousand, a number is 84,000. When rounded to the nearest hundred, the same number is 83,700. Which number could it be?",
+  "a": "83,682",
+  "lvl": 3,
+  "choices": [
+   "83,682",
+   "83,751",
+   "84,120",
+   "83,640"
+  ],
+  "steps": [
+   "Test each choice by rounding to the nearest thousand (must be 84,000).",
+   "Then round each remaining choice to the nearest hundred (must be 83,700).",
+   "Select the only choice that satisfies both conditions."
+  ]
+ },
+ {
+  "src": "4.9-L3-03",
+  "std": "4.9",
+  "q": "Round 299,540 to the nearest thousand.",
+  "a": "300,000",
+  "lvl": 3,
+  "steps": [
+   "Look at the thousands digit (9) and the hundreds digit (5).",
+   "Since 5 ≥ 5, add 1 to 299 thousand, which regroups across all 9s.",
+   "Replace the last three digits with zeros."
+  ]
+ },
+ {
+  "src": "4.10-L1-01",
+  "std": "4.10",
+  "q": "Find the sum: 4,325 + 2,461.",
+  "a": "6,786",
+  "lvl": 1,
+  "choices": [
+   "6,786",
+   "6,776",
+   "6,886",
+   "2,136"
+  ],
+  "steps": [
+   "Line up 4,325 and 2,461 by place value.",
+   "Add from right to left: ones, tens, hundreds, then thousands.",
+   "Verify each column sum (no regrouping is needed here)."
+  ]
+ },
+ {
+  "src": "4.10-L1-02",
+  "std": "4.10",
+  "q": "Find the difference: 8,754 − 3,421.",
+  "a": "5,333",
+  "lvl": 1,
+  "choices": [
+   "5,323",
+   "5,333",
+   "5,433",
+   "12,175"
+  ],
+  "steps": [
+   "Line up 8,754 and 3,421 by place value.",
+   "Subtract each column from right to left (ones to thousands).",
+   "Check your difference by adding it back to 3,421."
+  ]
+ },
+ {
+  "src": "4.10-L1-03",
+  "std": "4.10",
+  "q": "Find the sum: 12,480 + 5,315.",
+  "a": "17,795",
+  "lvl": 1,
+  "choices": [
+   "17,695",
+   "17,895",
+   "17,795",
+   "18,795"
+  ],
+  "steps": [
+   "Line up 12,480 and 5,315 carefully by the ones place.",
+   "Add column by column from right to left.",
+   "Confirm the ten-thousands digit stays 1."
+  ]
+ },
+ {
+  "src": "4.10-L2-01",
+  "std": "4.10",
+  "q": "Find the sum: 48,769 + 25,483.",
+  "a": "74,252",
+  "lvl": 2,
+  "choices": [
+   "73,252",
+   "74,152",
+   "64,252",
+   "74,252"
+  ],
+  "steps": [
+   "Line up 48,769 and 25,483 by place value.",
+   "Add from right to left, regrouping whenever a column sum is 10 or more.",
+   "Estimate 49,000 + 25,000 to check reasonableness."
+  ]
+ },
+ {
+  "src": "4.10-L2-02",
+  "std": "4.10",
+  "q": "Find the difference: 60,400 − 27,856.",
+  "a": "32,544",
+  "lvl": 2,
+  "choices": [
+   "32,544",
+   "33,544",
+   "32,654",
+   "42,544"
+  ],
+  "steps": [
+   "Line up 60,400 − 27,856 by place value.",
+   "Regroup across the zeros from the hundreds and ten-thousands places.",
+   "Verify by adding your difference to 27,856 to get 60,400."
+  ]
+ },
+ {
+  "src": "4.10-L2-03",
+  "std": "4.10",
+  "q": "A library has 14,250 fiction books and 9,875 nonfiction books. How many books does the library have in all?",
+  "a": "24,125 books",
+  "lvl": 2,
+  "choices": [
+   "23,125 books",
+   "24,125 books",
+   "24,025 books",
+   "4,375 books"
+  ],
+  "steps": [
+   "'In all' means add 14,250 and 9,875.",
+   "Line up the ones place and add right to left, regrouping as needed.",
+   "Check with an estimate: 14,000 + 10,000 = 24,000."
+  ]
+ },
+ {
+  "src": "4.10-L3-01",
+  "std": "4.10",
+  "q": "Find the missing digit d in the subtraction problem: 50,000 − 1d,428 = 33,572.",
+  "a": "6",
+  "lvl": 3,
+  "choices": [
+   "5",
+   "7",
+   "6",
+   "4"
+  ],
+  "steps": [
+   "Use the inverse relationship: 50,000 − 33,572 gives the missing number.",
+   "Subtract 33,572 from 50,000 carefully by regrouping across zeros.",
+   "Read the thousands digit of your result to find d."
+  ]
+ },
+ {
+  "src": "4.10-L3-02",
+  "std": "4.10",
+  "q": "A stadium had 42,650 fans on Friday and 38,975 fans on Saturday. The goal for the weekend was 100,000 fans. How many more fans were needed to reach the goal?",
+  "a": "18,375 fans",
+  "lvl": 3,
+  "choices": [
+   "81,625 fans",
+   "18,475 fans",
+   "19,375 fans",
+   "18,375 fans"
+  ],
+  "steps": [
+   "First add Friday's and Saturday's fans: 42,650 + 38,975.",
+   "Subtract that total from the goal of 100,000.",
+   "Verify by checking that all three parts sum to 100,000."
+  ]
+ },
+ {
+  "src": "4.10-L3-03",
+  "std": "4.10",
+  "q": "Find the difference: 100,000 − 46,729.",
+  "a": "53,271",
+  "lvl": 3,
+  "steps": [
+   "Set up 100,000 − 46,729 vertically.",
+   "Regroup across the zeros (or subtract 1 from both: 99,999 − 46,728).",
+   "Check your answer by adding it to 46,729 to get 100,000."
+  ]
+ },
+ {
+  "src": "4.11-L1-01",
+  "std": "4.11",
+  "q": "Find the product: 324 × 3.",
+  "a": "972",
+  "lvl": 1,
+  "choices": [
+   "962",
+   "972",
+   "974",
+   "672"
+  ],
+  "steps": [
+   "Multiply each digit of 324 by 3, starting from the ones place.",
+   "Compute 4 × 3 (regroup 1 ten), then 2 × 3 + 1, then 3 × 3.",
+   "Combine the digits to get the final product."
+  ]
+ },
+ {
+  "src": "4.11-L1-02",
+  "std": "4.11",
+  "part": "a",
+  "q": "Which equation matches an area model for 24 × 3?",
+  "a": "(20 × 3) + (4 × 3) = 72",
+  "lvl": 1,
+  "choices": [
+   "(20 × 3) + (4 × 3) = 72",
+   "(20 + 3) × (4 + 3) = 161",
+   "(2 × 3) + (4 × 3) = 18",
+   "(20 × 4) + (3 × 4) = 92"
+  ],
+  "steps": [
+   "Break 24 into tens and ones: 20 + 4.",
+   "Multiply each part by 3: (20 × 3) and (4 × 3), then add them.",
+   "Match your expression and sum to the choices."
+  ]
+ },
+ {
+  "src": "4.11-L1-03",
+  "std": "4.11",
+  "q": "Find the product: 40 × 30.",
+  "a": "1,200",
+  "lvl": 1,
+  "choices": [
+   "120",
+   "700",
+   "1,200",
+   "12,000"
+  ],
+  "steps": [
+   "Multiply the nonzero digits first: 4 × 3.",
+   "Count the total trailing zeros in 40 and 30 (two zeros).",
+   "Attach two zeros to your product of 4 × 3."
+  ]
+ },
+ {
+  "src": "4.11-L2-01",
+  "std": "4.11",
+  "q": "Find the product: 1,426 × 4.",
+  "a": "5,704",
+  "lvl": 2,
+  "choices": [
+   "4,684",
+   "5,604",
+   "5,724",
+   "5,704"
+  ],
+  "steps": [
+   "Multiply 1,426 by 4 from right to left (or use partial products).",
+   "Compute 4×6, 4×20, 4×400, and 4×1,000, or regroup step by step.",
+   "Add the partial products and check against 1,400 × 4 = 5,600."
+  ]
+ },
+ {
+  "src": "4.11-L2-02",
+  "std": "4.11",
+  "q": "Find the product: 36 × 24.",
+  "a": "864",
+  "lvl": 2,
+  "choices": [
+   "864",
+   "744",
+   "844",
+   "624"
+  ],
+  "steps": [
+   "Break 36 into 30 + 6 and 24 into 20 + 4.",
+   "Find all four partial products: 30×20, 30×4, 6×20, and 6×4.",
+   "Add the four partial products carefully."
+  ]
+ },
+ {
+  "src": "4.11-L2-03",
+  "std": "4.11",
+  "part": "a",
+  "q": "Which list shows the four partial products for 47 × 32?",
+  "a": "1,200; 80; 210; 14",
+  "lvl": 2,
+  "choices": [
+   "120; 80; 21; 14",
+   "1,200; 80; 210; 14",
+   "1,200; 14; 70; 30",
+   "1,200; 280; 60; 14"
+  ],
+  "steps": [
+   "Split 47 into 40 + 7 and 32 into 30 + 2.",
+   "Multiply each pair: 40×30, 40×2, 7×30, and 7×2.",
+   "Match your four partial products to the choices."
+  ]
+ },
+ {
+  "src": "4.11-L3-01",
+  "std": "4.11",
+  "q": "A theater has 28 rows with 35 seats in each row. If 820 tickets are sold for a show, how many seats are empty?",
+  "a": "160 seats",
+  "lvl": 3,
+  "choices": [
+   "980 seats",
+   "140 seats",
+   "160 seats",
+   "260 seats"
+  ],
+  "steps": [
+   "First find the total number of seats: 28 × 35.",
+   "Subtract the 820 sold tickets from the total seats.",
+   "Verify your answer is reasonable by estimating 30 × 35 − 820."
+  ]
+ },
+ {
+  "src": "4.11-L3-02",
+  "std": "4.11",
+  "part": "a",
+  "q": "To multiply 54 × 26, Jordan found (50 × 20) + (4 × 6) = 1,024. How much less is Jordan's answer than the correct product?",
+  "a": "380",
+  "lvl": 3,
+  "choices": [
+   "300",
+   "80",
+   "280",
+   "380"
+  ],
+  "steps": [
+   "Jordan missed two partial products in (50 + 4) × (20 + 6).",
+   "Identify the missing products: (50 × 6) and (4 × 20).",
+   "Add those two missing partial products to find how much less Jordan got."
+  ]
+ },
+ {
+  "src": "4.11-L3-03",
+  "std": "4.11",
+  "q": "Find the product: 2,345 × 6.",
+  "a": "14,070",
+  "lvl": 3,
+  "steps": [
+   "Multiply 2,345 by 6 using partial products or standard algorithm.",
+   "Keep track of every regrouped digit from ones to thousands.",
+   "Estimate 2,300 × 6 = 13,800 to check your product."
+  ]
+ },
+ {
+  "src": "4.12-L1-01",
+  "std": "4.12",
+  "q": "Find the quotient: 84 ÷ 4.",
+  "a": "21",
+  "lvl": 1,
+  "choices": [
+   "21",
+   "22",
+   "24",
+   "19"
+  ],
+  "steps": [
+   "Split 84 into 80 + 4 to divide easily by 4.",
+   "Divide 80 ÷ 4 and 4 ÷ 4, then add the two quotients.",
+   "Check by multiplying your quotient by 4."
+  ]
+ },
+ {
+  "src": "4.12-L1-02",
+  "std": "4.12",
+  "q": "Find the quotient: 360 ÷ 6.",
+  "a": "60",
+  "lvl": 1,
+  "choices": [
+   "6",
+   "60",
+   "600",
+   "36"
+  ],
+  "steps": [
+   "Use the basic fact 36 ÷ 6.",
+   "Since 360 is 36 tens, your quotient will be that many tens.",
+   "Verify by multiplying your answer by 6 to get 360."
+  ]
+ },
+ {
+  "src": "4.12-L1-03",
+  "std": "4.12",
+  "q": "Find the quotient and remainder: 29 ÷ 4.",
+  "a": "7 R1",
+  "lvl": 1,
+  "choices": [
+   "7 R2",
+   "6 R5",
+   "7 R1",
+   "8 R1"
+  ],
+  "steps": [
+   "Find the greatest multiple of 4 that is 29 or less.",
+   "That multiple gives the quotient; subtract it from 29 for the remainder.",
+   "Confirm the remainder is less than 4."
+  ]
+ },
+ {
+  "src": "4.12-L2-01",
+  "std": "4.12",
+  "q": "Find the quotient: 852 ÷ 6.",
+  "a": "142",
+  "lvl": 2,
+  "choices": [
+   "132",
+   "140",
+   "144",
+   "142"
+  ],
+  "steps": [
+   "Divide 852 by 6 using long division or partial quotients.",
+   "Start with 6 into 8 hundreds, regroup the remainder, and continue.",
+   "Check your quotient by multiplying it by 6."
+  ]
+ },
+ {
+  "src": "4.12-L2-02",
+  "std": "4.12",
+  "part": "a",
+  "q": "To solve 168 ÷ 4 using an area model, Maria splits 168 into 160 + 8. What is the quotient?",
+  "a": "42",
+  "lvl": 2,
+  "choices": [
+   "42",
+   "44",
+   "48",
+   "32"
+  ],
+  "steps": [
+   "Divide each part of 160 + 8 by 4.",
+   "Compute 160 ÷ 4 and 8 ÷ 4.",
+   "Add the two partial quotients together."
+  ]
+ },
+ {
+  "src": "4.12-L2-03",
+  "std": "4.12",
+  "q": "Find the quotient and remainder: 1,527 ÷ 5.",
+  "a": "305 R2",
+  "lvl": 2,
+  "choices": [
+   "35 R2",
+   "305 R2",
+   "305 R1",
+   "315 R2"
+  ],
+  "steps": [
+   "Divide 1,527 by 5; remember to place a 0 when 5 does not go into 2.",
+   "Continue to 27 ÷ 5 to get the ones digit and remainder.",
+   "Verify that (5 × quotient) + remainder = 1,527."
+  ]
+ },
+ {
+  "src": "4.12-L3-01",
+  "std": "4.12",
+  "q": "Find the quotient: 2,418 ÷ 6.",
+  "a": "403",
+  "lvl": 3,
+  "choices": [
+   "43",
+   "430",
+   "403",
+   "406"
+  ],
+  "steps": [
+   "Divide 2,418 by 6; start with 24 hundreds ÷ 6.",
+   "Watch the tens place: 6 goes into 1 zero times, so put 0 in the tens.",
+   "Bring down 8 to divide 18 ÷ 6, then check by multiplying by 6."
+  ]
+ },
+ {
+  "src": "4.12-L3-02",
+  "std": "4.12",
+  "q": "A warehouse packs 1,356 water bottles equally into 4 crates. How many water bottles are in 3 of those crates?",
+  "a": "1,017 bottles",
+  "lvl": 3,
+  "choices": [
+   "339 bottles",
+   "678 bottles",
+   "1,014 bottles",
+   "1,017 bottles"
+  ],
+  "steps": [
+   "First divide 1,356 by 4 to find how many bottles are in 1 crate.",
+   "Multiply that per-crate amount by 3.",
+   "Verify your answer is less than 1,356 and about three-fourths of it."
+  ]
+ },
+ {
+  "src": "4.12-L3-03",
+  "std": "4.12",
+  "q": "Find the quotient and remainder: 947 ÷ 7.",
+  "a": "135 R2",
+  "lvl": 3,
+  "steps": [
+   "Divide 947 by 7 step by step from hundreds to ones.",
+   "Record the leftover amount as the remainder (must be less than 7).",
+   "Check with (7 × quotient) + remainder = 947."
+  ]
+ },
+ {
+  "src": "4.13-L1-01",
+  "std": "4.13",
+  "part": "a",
+  "q": "Which fraction is equivalent to {1/2}?",
+  "a": "{4/8}",
+  "lvl": 1,
+  "choices": [
+   "{4/8}",
+   "{3/8}",
+   "{2/6}",
+   "{3/4}"
+  ],
+  "steps": [
+   "A fraction equivalent to {1/2} has a numerator that is half the denominator.",
+   "Check each choice to see if numerator × 2 equals the denominator.",
+   "Select the matching fraction."
+  ]
+ },
+ {
+  "src": "4.13-L1-02",
+  "std": "4.13",
+  "part": "a",
+  "q": "What number makes the fractions equivalent? {2/3} = ?/9",
+  "a": "6",
+  "lvl": 1,
+  "choices": [
+   "4",
+   "6",
+   "5",
+   "8"
+  ],
+  "steps": [
+   "Find what you multiply 3 by to get 9 in {2/3} = {?/9}.",
+   "Multiply the numerator 2 by that same number (3).",
+   "Verify both top and bottom were multiplied by the same factor."
+  ]
+ },
+ {
+  "src": "4.13-L1-03",
+  "std": "4.13",
+  "q": "A rectangle is divided into 3 equal parts with 1 part shaded. Each part is then split into 2 smaller equal parts. What equivalent fraction is now shaded?",
+  "a": "{2/6}",
+  "lvl": 1,
+  "choices": [
+   "{1/6}",
+   "{3/6}",
+   "{2/6}",
+   "{2/3}"
+  ],
+  "steps": [
+   "The original shaded fraction is {1/3}.",
+   "Splitting each part into 2 multiplies both numerator and denominator by 2.",
+   "Compute {1×{2/3}×2} to find the new fraction."
+  ]
+ },
+ {
+  "src": "4.13-L2-01",
+  "std": "4.13",
+  "part": "a",
+  "q": "Which fraction is equivalent to {3/4}?",
+  "a": "{9/12}",
+  "lvl": 2,
+  "choices": [
+   "{6/12}",
+   "{8/12}",
+   "{7/8}",
+   "{9/12}"
+  ],
+  "steps": [
+   "Multiply both numerator and denominator of {3/4} by the same number.",
+   "Test multiplying by 2 (denominator 8) and by 3 (denominator 12).",
+   "Match your equivalent fraction to the choices."
+  ]
+ },
+ {
+  "src": "4.13-L2-02",
+  "std": "4.13",
+  "q": "Why is {2/5} equivalent to {4/10}?",
+  "a": "{4/10} has twice as many shaded parts, and each part is half as large, so the total shaded area is the same.",
+  "lvl": 2,
+  "choices": [
+   "{4/10} has twice as many shaded parts, and each part is half as large, so the total shaded area is the same.",
+   "Both fractions have the same size parts.",
+   "You can add 2 to the numerator and 5 to the denominator of any fraction.",
+   "{4/10} has larger parts than {2/5}."
+  ],
+  "steps": [
+   "Compare {2/5} and {4/10}: both numerator and denominator are multiplied by 2.",
+   "Think of a visual model: twice as many parts means each part is half as big.",
+   "Choose the explanation that shows the total shaded area stays equal."
+  ]
+ },
+ {
+  "src": "4.13-L2-03",
+  "std": "4.13",
+  "part": "a",
+  "q": "Which fraction is NOT equivalent to {2/3}?",
+  "a": "{6/8}",
+  "lvl": 2,
+  "choices": [
+   "{4/6}",
+   "{6/8}",
+   "{6/9}",
+   "{8/12}"
+  ],
+  "steps": [
+   "Check if each choice can be formed by multiplying {2/3} by {n/n}.",
+   "Test denominators 6 (×2), 9 (×3), 12 (×4), and check {6/8}.",
+   "Pick the one fraction that does not match."
+  ]
+ },
+ {
+  "src": "4.13-L3-01",
+  "std": "4.13",
+  "part": "a",
+  "q": "A recipe calls for {3/4} cup of milk, but you only have a {1/12}-cup measuring scoop. How many scoops of milk do you need?",
+  "a": "9 scoops",
+  "lvl": 3,
+  "choices": [
+   "3 scoops",
+   "6 scoops",
+   "9 scoops",
+   "12 scoops"
+  ],
+  "steps": [
+   "Find an equivalent fraction for {3/4} with a denominator of 12.",
+   "Since 4 × 3 = 12, multiply the numerator 3 by 3.",
+   "The new numerator tells how many {1/12}-cup scoops are needed."
+  ]
+ },
+ {
+  "src": "4.13-L3-02",
+  "std": "4.13",
+  "q": "Maya says {2/4} is equivalent to {3/5} because she added 1 to both the numerator and the denominator. Is she correct?",
+  "a": "No, because equivalent fractions are found by multiplying or dividing both the numerator and denominator by the same nonzero number, not adding.",
+  "lvl": 3,
+  "choices": [
+   "Yes, because adding the same number to the top and bottom keeps the value the same.",
+   "Yes, because both fractions are close to {1/2}.",
+   "No, because you should add 2 instead of 1.",
+   "No, because equivalent fractions are found by multiplying or dividing both the numerator and denominator by the same nonzero number, not adding."
+  ],
+  "steps": [
+   "Compare {2/4} (which is {1/2}) with {3/5} (more than {1/2}).",
+   "Recall that equivalent fractions require multiplying or dividing, not adding.",
+   "Select the choice that correctly explains Maya's mistake."
+  ]
+ },
+ {
+  "src": "4.13-L3-03",
+  "std": "4.13",
+  "part": "a",
+  "q": "Write a fraction with a denominator of 100 that is equivalent to {3/4}.",
+  "a": "{75/100}",
+  "lvl": 3,
+  "steps": [
+   "Find what you multiply 4 by to get 100 (100 ÷ 4 = 25).",
+   "Multiply the numerator 3 by 25 as well.",
+   "Write the resulting fraction over 100."
+  ]
+ },
+ {
+  "src": "4.14-L1-01",
+  "std": "4.14",
+  "q": "Which symbol makes the comparison true? {1/2} ___ {3/8}",
+  "a": ">",
+  "lvl": 1,
+  "choices": [
+   ">",
+   "<",
+   "=",
+   "+"
+  ],
+  "steps": [
+   "Rewrite {1/2} with a denominator of 8 so both fractions have the same unit.",
+   "Compare {4/8} to {3/8} by looking at the numerators.",
+   "Choose the symbol that makes the statement true."
+  ]
+ },
+ {
+  "src": "4.14-L1-02",
+  "std": "4.14",
+  "q": "Which symbol makes the comparison true? {2/3} ___ {5/6}",
+  "a": "<",
+  "lvl": 1,
+  "choices": [
+   ">",
+   "<",
+   "=",
+   "−"
+  ],
+  "steps": [
+   "Rewrite {2/3} with a denominator of 6 by multiplying top and bottom by 2.",
+   "Compare {4/6} and {5/6} using their numerators.",
+   "Pick the correct comparison symbol."
+  ]
+ },
+ {
+  "src": "4.14-L1-03",
+  "std": "4.14",
+  "q": "Which symbol makes the comparison true? {3/4} ___ {1/3}",
+  "a": ">",
+  "lvl": 1,
+  "choices": [
+   "<",
+   "=",
+   ">",
+   "×"
+  ],
+  "steps": [
+   "Use {1/2} as a benchmark to compare {3/4} and {1/3}.",
+   "Notice {3/4} is greater than {1/2}, while {1/3} is less than {1/2}.",
+   "Select the symbol that shows which fraction is greater."
+  ]
+ },
+ {
+  "src": "4.14-L2-01",
+  "std": "4.14",
+  "q": "Which fraction is greater than {1/2}?",
+  "a": "{7/10}",
+  "lvl": 2,
+  "choices": [
+   "{3/8}",
+   "{2/5}",
+   "{5/12}",
+   "{7/10}"
+  ],
+  "steps": [
+   "A fraction is greater than {1/2} if its numerator is more than half the bottom.",
+   "Compare each numerator to half of its denominator.",
+   "Select the only fraction whose numerator is greater than half."
+  ]
+ },
+ {
+  "src": "4.14-L2-02",
+  "std": "4.14",
+  "part": "a",
+  "q": "Leo ate {1/2} of a small pizza, and Mia ate {1/2} of a large pizza. Did they eat the same amount of pizza?",
+  "a": "No, because the two fractions do not refer to the same size whole.",
+  "lvl": 2,
+  "choices": [
+   "No, because the two fractions do not refer to the same size whole.",
+   "Yes, because {1/2} is always equal to {1/2}.",
+   "Yes, because both pizzas were cut into 2 pieces.",
+   "No, because Leo's pieces were bigger."
+  ],
+  "steps": [
+   "Check whether the two pizzas are the same size whole.",
+   "Fractions can only be compared directly when they refer to the same whole.",
+   "Choose the answer that explains why the amounts are not equal."
+  ]
+ },
+ {
+  "src": "4.14-L2-03",
+  "std": "4.14",
+  "q": "Which symbol makes the comparison true? {2/3} ___ {5/8}",
+  "a": ">",
+  "lvl": 2,
+  "choices": [
+   "<",
+   ">",
+   "=",
+   "None of these"
+  ],
+  "steps": [
+   "Find a common denominator for 3 and 8 (use 24).",
+   "Convert {2/3} to twenty-fourths and {5/8} to twenty-fourths.",
+   "Compare the numerators to pick the right symbol."
+  ]
+ },
+ {
+  "src": "4.14-L3-01",
+  "std": "4.14",
+  "q": "Order these fractions from LEAST to GREATEST: {2/3}, {3/8}, {5/6}.",
+  "a": "{3/8}, {2/3}, {5/6}",
+  "lvl": 3,
+  "choices": [
+   "{2/3}, {3/8}, {5/6}",
+   "{5/6}, {2/3}, {3/8}",
+   "{3/8}, {2/3}, {5/6}",
+   "{3/8}, {5/6}, {2/3}"
+  ],
+  "steps": [
+   "Use {1/2} to spot the smallest fraction first ({3/8} < {1/2}).",
+   "Convert {2/3} to sixths ({4/6}) to compare with {5/6}.",
+   "Order all three fractions from least to greatest."
+  ]
+ },
+ {
+  "src": "4.14-L3-02",
+  "std": "4.14",
+  "q": "Which fraction is greater than {1/2} and less than {3/4}?",
+  "a": "{5/8}",
+  "lvl": 3,
+  "choices": [
+   "{3/8}",
+   "{7/8}",
+   "{1/3}",
+   "{5/8}"
+  ],
+  "steps": [
+   "Rewrite {1/2} as {4/8} and {3/4} as {6/8}.",
+   "Look for a choice that falls between {4/8} and {6/8}.",
+   "Verify your chosen fraction is larger than {1/2} and smaller than {3/4}."
+  ]
+ },
+ {
+  "src": "4.14-L3-03",
+  "std": "4.14",
+  "q": "Write >, <, or = to compare: {5/6} ___ {7/8}.",
+  "a": "<",
+  "lvl": 3,
+  "steps": [
+   "Find a common denominator for 6 and 8 (24), or compare distances from 1.",
+   "Compare {1/6} away from 1 vs {1/8} away from 1 (smaller piece missing = larger).",
+   "Write the correct symbol between {5/6} and {7/8}."
+  ]
+ },
+ {
+  "src": "4.15-L1-01",
+  "std": "4.15",
+  "part": "a",
+  "q": "Which equation shows {3/5} decomposed as a sum of unit fractions?",
+  "a": "{1/5} + {1/5} + {1/5}",
+  "lvl": 1,
+  "choices": [
+   "{1/5} + {1/5} + {1/5}",
+   "{2/5} + {1/5}",
+   "{1/3} + {1/3} + {1/3}",
+   "{1/5} + {1/5}"
+  ],
+  "steps": [
+   "A unit fraction has 1 in the numerator.",
+   "Add enough copies of {1/5} to make {3/5}.",
+   "Choose the equation that uses only {1/5}s."
+  ]
+ },
+ {
+  "src": "4.15-L1-02",
+  "std": "4.15",
+  "part": "b",
+  "q": "Find the sum: {2/8} + {3/8}.",
+  "a": "{5/8}",
+  "lvl": 1,
+  "choices": [
+   "{5/16}",
+   "{5/8}",
+   "{6/8}",
+   "{1/8}"
+  ],
+  "steps": [
+   "The denominators are both 8, so keep 8 as the denominator.",
+   "Add the numerators: 2 + 3.",
+   "Write the sum and check that the denominator did not change."
+  ]
+ },
+ {
+  "src": "4.15-L1-03",
+  "std": "4.15",
+  "part": "b",
+  "q": "Find the difference: {7/10} − {4/10}.",
+  "a": "{3/10}",
+  "lvl": 1,
+  "choices": [
+   "{3/0}",
+   "{11/10}",
+   "{3/10}",
+   "{3/20}"
+  ],
+  "steps": [
+   "The denominators are both 10, so keep 10 as the denominator.",
+   "Subtract the numerators: 7 − 4.",
+   "Write the difference and check it against the choices."
+  ]
+ },
+ {
+  "src": "4.15-L2-01",
+  "std": "4.15",
+  "part": "a",
+  "q": "Which equation is a correct decomposition of {5/6}?",
+  "a": "{2/6} + {2/6} + {1/6}",
+  "lvl": 2,
+  "choices": [
+   "{2/6} + {2/6} + {2/6}",
+   "{3/6} + {1/6}",
+   "{2/3} + {3/3}",
+   "{2/6} + {2/6} + {1/6}"
+  ],
+  "steps": [
+   "A correct decomposition of {5/6} must have sixths whose numerators sum to 5.",
+   "Add the numerators in each choice (keep denominator 6).",
+   "Select the choice that sums to {5/6}."
+  ]
+ },
+ {
+  "src": "4.15-L2-02",
+  "std": "4.15",
+  "part": "b",
+  "q": "Find the sum: 2{3/5} + 1{4/5}.",
+  "a": "4{2/5}",
+  "lvl": 2,
+  "choices": [
+   "4{2/5}",
+   "3{7/10}",
+   "3{2/5}",
+   "4{1/5}"
+  ],
+  "steps": [
+   "Add the whole numbers (2 + 1) and the fractions ({3/5} + {4/5}) separately.",
+   "Rewrite {7/5} as 1{2/5} since 7 is greater than 5.",
+   "Add the extra 1 to the whole number sum."
+  ]
+ },
+ {
+  "src": "4.15-L2-03",
+  "std": "4.15",
+  "part": "c",
+  "q": "Noah walked {3/8} mile in the morning and {4/8} mile in the afternoon. How far did he walk in all?",
+  "a": "{7/8} mile",
+  "lvl": 2,
+  "choices": [
+   "{7/16} mile",
+   "{7/8} mile",
+   "{1/8} mile",
+   "1 mile"
+  ],
+  "steps": [
+   "'In all' means add {3/8} and {4/8}.",
+   "Keep the denominator 8 and add the numerators.",
+   "Match your fraction to the choices."
+  ]
+ },
+ {
+  "src": "4.15-L3-01",
+  "std": "4.15",
+  "part": "b",
+  "q": "Find the difference: 4{1/6} − 1{5/6}.",
+  "a": "2{2/6}",
+  "lvl": 3,
+  "choices": [
+   "3{4/6}",
+   "3{2/6}",
+   "2{2/6}",
+   "2{4/6}"
+  ],
+  "steps": [
+   "Since {1/6} < {5/6}, regroup 1 whole from 4 into {6/6}.",
+   "Rewrite 4{1/6} as 3{7/6}, then subtract 1{5/6}.",
+   "Subtract whole numbers and numerators separately."
+  ]
+ },
+ {
+  "src": "4.15-L3-02",
+  "std": "4.15",
+  "part": "c",
+  "q": "A ribbon is 5{1/4} feet long. Ava cuts off 2{3/4} feet to wrap a gift. How much ribbon is left?",
+  "a": "2{2/4} feet",
+  "lvl": 3,
+  "choices": [
+   "3{2/4} feet",
+   "3{1/4} feet",
+   "2{3/4} feet",
+   "2{2/4} feet"
+  ],
+  "steps": [
+   "Set up 5{1/4} − 2{3/4}; regroup 1 from 5 because {1/4} < {3/4}.",
+   "Rewrite 5{1/4} as 4{5/4}, then subtract 2{3/4}.",
+   "Verify by adding your answer back to 2{3/4}."
+  ]
+ },
+ {
+  "src": "4.15-L3-03",
+  "std": "4.15",
+  "part": "b",
+  "q": "Find the sum: 3{5/8} + 2{7/8}. Write your answer as a mixed number.",
+  "a": "6{4/8} (or 6{1/2})",
+  "lvl": 3,
+  "steps": [
+   "Add whole numbers (3 + 2) and fractions ({5/8} + {7/8}).",
+   "Convert {12/8} to 1{4/8} and combine with the whole number sum.",
+   "Write the final result as a mixed number."
+  ]
+ },
+ {
+  "src": "4.16-L1-01",
+  "std": "4.16",
+  "part": "a",
+  "q": "Which equation shows {5/8} as a whole number times a unit fraction?",
+  "a": "{5/8} = 5 × {1/8}",
+  "lvl": 1,
+  "choices": [
+   "{5/8} = 5 × {1/8}",
+   "{5/8} = 8 × {1/5}",
+   "{5/8} = 5 × 8",
+   "{5/8} = {1/5} × {1/8}"
+  ],
+  "steps": [
+   "The unit fraction for eighths is {1/8}.",
+   "Count how many {1/8}s make {5/8} to find the whole number factor.",
+   "Match your multiplication equation to the choices."
+  ]
+ },
+ {
+  "src": "4.16-L1-02",
+  "std": "4.16",
+  "part": "b",
+  "q": "Find the product: 4 × {1/5}.",
+  "a": "{4/5}",
+  "lvl": 1,
+  "choices": [
+   "{4/20}",
+   "{4/5}",
+   "{5/4}",
+   "{1/20}"
+  ],
+  "steps": [
+   "Multiply the whole number 4 by the numerator 1.",
+   "Keep the denominator 5 the same.",
+   "Select the matching fraction."
+  ]
+ },
+ {
+  "src": "4.16-L1-03",
+  "std": "4.16",
+  "part": "b",
+  "q": "Find the product: 3 × {2/7}.",
+  "a": "{6/7}",
+  "lvl": 1,
+  "choices": [
+   "{6/21}",
+   "{5/7}",
+   "{6/7}",
+   "{2/21}"
+  ],
+  "steps": [
+   "Multiply the whole number 3 by the numerator 2.",
+   "Keep the denominator 7 unchanged.",
+   "Match your product to the choices."
+  ]
+ },
+ {
+  "src": "4.16-L2-01",
+  "std": "4.16",
+  "part": "b",
+  "q": "Find the product: 5 × {3/4}.",
+  "a": "{15/4}",
+  "lvl": 2,
+  "choices": [
+   "{15/20}",
+   "{8/4}",
+   "{3/20}",
+   "{15/4}"
+  ],
+  "steps": [
+   "Multiply the whole number 5 by the numerator 3.",
+   "Keep the denominator 4 the same (do not multiply 5 × 4).",
+   "Select the matching improper fraction."
+  ]
+ },
+ {
+  "src": "4.16-L2-02",
+  "std": "4.16",
+  "part": "c",
+  "q": "Each batch of pancakes needs {2/3} cup of milk. How much milk is needed to make 4 batches?",
+  "a": "{8/3} cups",
+  "lvl": 2,
+  "choices": [
+   "{8/3} cups",
+   "{8/12} cups",
+   "{6/3} cups",
+   "{4/3} cups"
+  ],
+  "steps": [
+   "Multiply the number of batches (4) by {2/3} cup per batch.",
+   "Compute 4 × 2 for the numerator and keep 3 as the denominator.",
+   "Match your result to the choices."
+  ]
+ },
+ {
+  "src": "4.16-L2-03",
+  "std": "4.16",
+  "part": "a",
+  "q": "Which expression is equal to 3 × {4/5}?",
+  "a": "12 × {1/5}",
+  "lvl": 2,
+  "choices": [
+   "7 × {1/5}",
+   "12 × {1/5}",
+   "12 × {1/15}",
+   "4 × {1/5}"
+  ],
+  "steps": [
+   "Find the product 3 × {4/5} first: {12/5}.",
+   "Rewrite {12/5} as a whole number times the unit fraction {1/5}.",
+   "Select the matching expression."
+  ]
+ },
+ {
+  "src": "4.16-L3-01",
+  "std": "4.16",
+  "part": "c",
+  "q": "Six friends each eat {3/8} of a pizza. How many pizzas do they eat in all?",
+  "a": "2{2/8} pizzas",
+  "lvl": 3,
+  "choices": [
+   "1{6/8} pizzas",
+   "2{4/8} pizzas",
+   "2{2/8} pizzas",
+   "3 pizzas"
+  ],
+  "steps": [
+   "Multiply 6 friends by {3/8} pizza each to get {18/8}.",
+   "Convert {18/8} to a mixed number by dividing 18 by 8.",
+   "Write it as a mixed number and check the choices."
+  ]
+ },
+ {
+  "src": "4.16-L3-02",
+  "std": "4.16",
+  "part": "c",
+  "q": "A runner runs {3/4} mile every day for 5 days. Her goal for the week is 5 miles. How many more miles does she need to run to reach her goal?",
+  "a": "1{1/4} miles",
+  "lvl": 3,
+  "choices": [
+   "3{3/4} miles",
+   "2{1/4} miles",
+   "1{3/4} miles",
+   "1{1/4} miles"
+  ],
+  "steps": [
+   "First find total miles run: 5 × {3/4} = {15/4}, or 3{3/4} miles.",
+   "Subtract 3{3/4} from her 5-mile goal (rewrite 5 as 4{4/4}).",
+   "Verify your answer plus 3{3/4} equals 5."
+  ]
+ },
+ {
+  "src": "4.16-L3-03",
+  "std": "4.16",
+  "part": "b",
+  "q": "Find the product: 7 × {2/5}. Write your answer as a fraction or mixed number.",
+  "a": "{14/5} (or 2{4/5})",
+  "lvl": 3,
+  "steps": [
+   "Multiply 7 by the numerator 2, keeping 5 as the denominator.",
+   "Optionally convert the improper fraction to a mixed number.",
+   "Double-check your multiplication."
+  ]
+ },
+ {
+  "src": "4.17-L1-01",
+  "std": "4.17",
+  "q": "Which fraction with a denominator of 100 is equivalent to {3/10}?",
+  "a": "{30/100}",
+  "lvl": 1,
+  "choices": [
+   "{30/100}",
+   "{3/100}",
+   "{300/100}",
+   "{13/100}"
+  ],
+  "steps": [
+   "To change denominator 10 to 100, multiply by 10.",
+   "Multiply the numerator 3 by 10 as well.",
+   "Select the equivalent fraction over 100."
+  ]
+ },
+ {
+  "src": "4.17-L1-02",
+  "std": "4.17",
+  "q": "Which fraction with a denominator of 10 is equivalent to {70/100}?",
+  "a": "{7/10}",
+  "lvl": 1,
+  "choices": [
+   "{70/10}",
+   "{7/10}",
+   "{1/10}",
+   "{17/10}"
+  ],
+  "steps": [
+   "To change denominator 100 to 10, divide by 10.",
+   "Divide the numerator 70 by 10 as well.",
+   "Choose the matching fraction over 10."
+  ]
+ },
+ {
+  "src": "4.17-L1-03",
+  "std": "4.17",
+  "part": "a",
+  "q": "Find the sum: {2/10} + {5/100}.",
+  "a": "{25/100}",
+  "lvl": 1,
+  "choices": [
+   "{7/100}",
+   "{7/110}",
+   "{25/100}",
+   "{70/100}"
+  ],
+  "steps": [
+   "Convert {2/10} to hundredths so both fractions share denominator 100.",
+   "Rewrite {2/10} as {20/100}, then add {5/100}.",
+   "Keep the denominator 100 and select your sum."
+  ]
+ },
+ {
+  "src": "4.17-L2-01",
+  "std": "4.17",
+  "part": "a",
+  "q": "Find the sum: {4/10} + {38/100}.",
+  "a": "{78/100}",
+  "lvl": 2,
+  "choices": [
+   "{42/100}",
+   "{42/110}",
+   "{38/100}",
+   "{78/100}"
+  ],
+  "steps": [
+   "Convert {4/10} to hundredths: {40/100}.",
+   "Add the numerators: 40 + 38, keeping denominator 100.",
+   "Match your sum to the choices."
+  ]
+ },
+ {
+  "src": "4.17-L2-02",
+  "std": "4.17",
+  "part": "a",
+  "q": "Find the sum: {6/10} + {45/100}.",
+  "a": "{105/100}",
+  "lvl": 2,
+  "choices": [
+   "{105/100}",
+   "{51/100}",
+   "{51/110}",
+   "{95/100}"
+  ],
+  "steps": [
+   "Convert {6/10} to {60/100} to match the denominator of {45/100}.",
+   "Add 60 + 45 for the numerator over 100.",
+   "Confirm the denominator stays 100."
+  ]
+ },
+ {
+  "src": "4.17-L2-03",
+  "std": "4.17",
+  "part": "a",
+  "q": "Which expression has the same value as {8/10} + {7/100}?",
+  "a": "{80/100} + {7/100}",
+  "lvl": 2,
+  "choices": [
+   "{8/100} + {7/100}",
+   "{80/100} + {7/100}",
+   "{80/100} + {70/100}",
+   "{8/10} + {7/10}"
+  ],
+  "steps": [
+   "Convert {8/10} to hundredths by multiplying top and bottom by 10.",
+   "Leave {7/100} unchanged since it is already in hundredths.",
+   "Select the matching addition expression."
+  ]
+ },
+ {
+  "src": "4.17-L3-01",
+  "std": "4.17",
+  "part": "a",
+  "q": "What is the missing numerator? ?/10 + {24/100} = {64/100}",
+  "a": "4",
+  "lvl": 3,
+  "choices": [
+   "40",
+   "6",
+   "4",
+   "44"
+  ],
+  "steps": [
+   "Subtract {24/100} from {64/100} to find the missing hundredths ({40/100}).",
+   "Convert {40/100} to tenths by dividing top and bottom by 10.",
+   "Select the numerator over 10."
+  ]
+ },
+ {
+  "src": "4.17-L3-02",
+  "std": "4.17",
+  "part": "a",
+  "q": "A plant grew {3/10} inch in week 1, {25/100} inch in week 2, and {4/10} inch in week 3. How much did the plant grow in all?",
+  "a": "{95/100} inch",
+  "lvl": 3,
+  "choices": [
+   "{32/100} inch",
+   "{75/100} inch",
+   "{85/100} inch",
+   "{95/100} inch"
+  ],
+  "steps": [
+   "Convert both tenths fractions to hundredths: {30/100} and {40/100}.",
+   "Add all three numerators: 30 + 25 + 40 over 100.",
+   "Verify the denominator stays 100."
+  ]
+ },
+ {
+  "src": "4.17-L3-03",
+  "std": "4.17",
+  "part": "a",
+  "q": "Find the sum: {7/10} + {19/100}.",
+  "a": "{89/100}",
+  "lvl": 3,
+  "steps": [
+   "Rewrite {7/10} as {70/100}.",
+   "Add {70/100} + {19/100} by adding the numerators.",
+   "Write your final sum over 100."
+  ]
+ },
+ {
+  "src": "4.18-L1-01",
+  "std": "4.18",
+  "q": "How is {7/10} written as a decimal?",
+  "a": "0.7",
+  "lvl": 1,
+  "choices": [
+   "0.7",
+   "0.07",
+   "7.0",
+   "7.10"
+  ],
+  "steps": [
+   "Tenths is the first place to the right of the decimal point.",
+   "Place 7 in the tenths place with 0 in the ones place.",
+   "Match your decimal to the choices."
+  ]
+ },
+ {
+  "src": "4.18-L1-02",
+  "std": "4.18",
+  "q": "How is {35/100} written as a decimal?",
+  "a": "0.35",
+  "lvl": 1,
+  "choices": [
+   "3.5",
+   "0.35",
+   "0.035",
+   "35.0"
+  ],
+  "steps": [
+   "Hundredths takes two places to the right of the decimal point.",
+   "Write 35 after the decimal point with 0 in the ones place.",
+   "Confirm the 5 lands in the hundredths place."
+  ]
+ },
+ {
+  "src": "4.18-L1-03",
+  "std": "4.18",
+  "q": "Which fraction is equivalent to 0.4?",
+  "a": "{4/10}",
+  "lvl": 1,
+  "choices": [
+   "{4/100}",
+   "{1/4}",
+   "{4/10}",
+   "{40/10}"
+  ],
+  "steps": [
+   "Read 0.4 aloud as 'four tenths'.",
+   "Write 'four tenths' as a fraction with 10 in the denominator.",
+   "Select the matching fraction."
+  ]
+ },
+ {
+  "src": "4.18-L2-01",
+  "std": "4.18",
+  "q": "How is {8/100} written as a decimal?",
+  "a": "0.08",
+  "lvl": 2,
+  "choices": [
+   "0.8",
+   "8.00",
+   "0.80",
+   "0.08"
+  ],
+  "steps": [
+   "Hundredths is the second place to the right of the decimal point.",
+   "Put a 0 placeholder in the tenths place and 8 in the hundredths place.",
+   "Verify it is not 0.8 (which is eight tenths)."
+  ]
+ },
+ {
+  "src": "4.18-L2-02",
+  "std": "4.18",
+  "q": "Which decimal represents 2{6/100}?",
+  "a": "2.06",
+  "lvl": 2,
+  "choices": [
+   "2.06",
+   "2.6",
+   "2.60",
+   "20.6"
+  ],
+  "steps": [
+   "Write the whole number 2 before the decimal point.",
+   "Write {6/100} as 06 after the decimal point (0 tenths, 6 hundredths).",
+   "Match your decimal to the choices."
+  ]
+ },
+ {
+  "src": "4.18-L2-03",
+  "std": "4.18",
+  "q": "On a 100-square grid, 60 squares are shaded. Which pair of numbers BOTH represent the shaded part?",
+  "a": "0.6 and {6/10}",
+  "lvl": 2,
+  "choices": [
+   "0.06 and {6/100}",
+   "0.6 and {6/10}",
+   "6.0 and {60/10}",
+   "0.60 and {6/100}"
+  ],
+  "steps": [
+   "Write 60 out of 100 as a fraction in hundredths.",
+   "Simplify {60/100} by dividing top and bottom by 10 to get tenths.",
+   "Choose the pair where both numbers equal 60 hundredths."
+  ]
+ },
+ {
+  "src": "4.18-L3-01",
+  "std": "4.18",
+  "q": "Where is 0.45 located on a number line?",
+  "a": "Halfway between 0.4 and 0.5",
+  "lvl": 3,
+  "choices": [
+   "Halfway between 0 and 1",
+   "Halfway between 4 and 5",
+   "Halfway between 0.4 and 0.5",
+   "Halfway between 0.04 and 0.05"
+  ],
+  "steps": [
+   "Think of 0.4 as 0.40 and 0.5 as 0.50.",
+   "See where 0.45 falls between 0.40 and 0.50.",
+   "Select the description that matches."
+  ]
+ },
+ {
+  "src": "4.18-L3-02",
+  "std": "4.18",
+  "q": "Elena wrote 0.5 to represent {5/100}. What mistake did she make?",
+  "a": "She placed the 5 in the tenths place instead of the hundredths place; {5/100} is 0.05.",
+  "lvl": 3,
+  "choices": [
+   "She forgot to write a 0 after the 5; it should be 0.50.",
+   "She did not make a mistake because 0.5 = {5/100}.",
+   "She should have written 5.00.",
+   "She placed the 5 in the tenths place instead of the hundredths place; {5/100} is 0.05."
+  ],
+  "steps": [
+   "Identify the place value of 5 in 0.5 (tenths, or {5/10}).",
+   "Compare that to {5/100}, which needs 5 in the hundredths place.",
+   "Pick the choice that correctly describes this place-value error."
+  ]
+ },
+ {
+  "src": "4.18-L3-03",
+  "std": "4.18",
+  "q": "Write 4{9/100} as a decimal.",
+  "a": "4.09",
+  "lvl": 3,
+  "steps": [
+   "Place 4 in the ones place before the decimal point.",
+   "Put 0 in the tenths place and 9 in the hundredths place.",
+   "Read your decimal aloud to confirm it says 4 and 9 hundredths."
+  ]
+ },
+ {
+  "src": "4.19-L1-01",
+  "std": "4.19",
+  "q": "Which symbol makes the comparison true? 0.6 ___ 0.4",
+  "a": ">",
+  "lvl": 1,
+  "choices": [
+   ">",
+   "<",
+   "=",
+   "+"
+  ],
+  "steps": [
+   "Compare 0.6 and 0.4 in the tenths place.",
+   "Since 6 tenths is more than 4 tenths, pick the greater-than symbol.",
+   "Confirm the symbol opens toward the larger decimal."
+  ]
+ },
+ {
+  "src": "4.19-L1-02",
+  "std": "4.19",
+  "q": "Which symbol makes the comparison true? 0.25 ___ 0.35",
+  "a": "<",
+  "lvl": 1,
+  "choices": [
+   ">",
+   "<",
+   "=",
+   "−"
+  ],
+  "steps": [
+   "Compare 0.25 and 0.35 starting at the tenths place (2 vs 3).",
+   "Since 2 tenths is less than 3 tenths, 0.25 is smaller.",
+   "Select the correct comparison symbol."
+  ]
+ },
+ {
+  "src": "4.19-L1-03",
+  "std": "4.19",
+  "q": "Which symbol makes the comparison true? 0.5 ___ 0.50",
+  "a": "=",
+  "lvl": 1,
+  "choices": [
+   "<",
+   ">",
+   "=",
+   "×"
+  ],
+  "steps": [
+   "Write 0.5 with a hundredths digit: 0.50.",
+   "Compare 0.50 and 0.50 place by place.",
+   "Choose the symbol that shows their relationship."
+  ]
+ },
+ {
+  "src": "4.19-L2-01",
+  "std": "4.19",
+  "q": "Which symbol makes the comparison true? 0.4 ___ 0.38",
+  "a": ">",
+  "lvl": 2,
+  "choices": [
+   "<",
+   "=",
+   "None of these",
+   ">"
+  ],
+  "steps": [
+   "Rewrite 0.4 as 0.40 so both decimals have two decimal places.",
+   "Compare 40 hundredths to 38 hundredths (or compare tenths: 4 vs 3).",
+   "Select the symbol that makes the statement true."
+  ]
+ },
+ {
+  "src": "4.19-L2-02",
+  "std": "4.19",
+  "q": "Which comparison is TRUE?",
+  "a": "0.09 < 0.1",
+  "lvl": 2,
+  "choices": [
+   "0.09 < 0.1",
+   "0.09 > 0.1",
+   "0.09 = 0.9",
+   "0.7 < 0.69"
+  ],
+  "steps": [
+   "Add trailing zeros so each pair has the same number of decimal places.",
+   "Compare 0.09 to 0.10, and 0.70 to 0.69.",
+   "Pick the one comparison that is true."
+  ]
+ },
+ {
+  "src": "4.19-L2-03",
+  "std": "4.19",
+  "q": "Order these decimals from LEAST to GREATEST: 0.7, 0.07, 0.72.",
+  "a": "0.07, 0.7, 0.72",
+  "lvl": 2,
+  "choices": [
+   "0.7, 0.07, 0.72",
+   "0.07, 0.7, 0.72",
+   "0.72, 0.7, 0.07",
+   "0.07, 0.72, 0.7"
+  ],
+  "steps": [
+   "Rewrite all three to hundredths: 0.70, 0.07, 0.72.",
+   "Compare 7, 70, and 72 hundredths from least to greatest.",
+   "Match your ordered list to the choices."
+  ]
+ },
+ {
+  "src": "4.19-L3-01",
+  "std": "4.19",
+  "q": "Four sprinters finished a race in 12.4 seconds, 12.09 seconds, 12.35 seconds, and 12.42 seconds. Which time was the FASTEST (least)?",
+  "a": "12.09 seconds",
+  "lvl": 3,
+  "choices": [
+   "12.4 seconds",
+   "12.35 seconds",
+   "12.09 seconds",
+   "12.42 seconds"
+  ],
+  "steps": [
+   "All whole numbers are 12, so compare the tenths place first.",
+   "Rewrite 12.4 as 12.40 to compare 0.40, 0.09, 0.35, and 0.42.",
+   "Pick the smallest decimal for the fastest time."
+  ]
+ },
+ {
+  "src": "4.19-L3-02",
+  "std": "4.19",
+  "q": "Which decimal is greater than 0.6 and less than 0.65?",
+  "a": "0.62",
+  "lvl": 3,
+  "choices": [
+   "0.59",
+   "0.66",
+   "0.06",
+   "0.62"
+  ],
+  "steps": [
+   "Rewrite 0.6 as 0.60 so you are looking between 0.60 and 0.65.",
+   "Test each choice to see which falls strictly between 0.60 and 0.65.",
+   "Verify the chosen decimal is greater than 0.60 and less than 0.65."
+  ]
+ },
+ {
+  "src": "4.19-L3-03",
+  "std": "4.19",
+  "q": "Write >, <, or = to compare: 0.8 ___ 0.79.",
+  "a": ">",
+  "lvl": 3,
+  "steps": [
+   "Rewrite 0.8 as 0.80 to compare with 0.79.",
+   "Compare 80 hundredths to 79 hundredths (or 8 tenths vs 7 tenths).",
+   "Write the correct comparison symbol."
+  ]
+ },
+ {
+  "src": "4.20-L1-01",
+  "std": "4.20",
+  "q": "A bar graph shows students' favorite sports: Soccer (14), Basketball (9), and Baseball (11). How many more students chose Soccer than Basketball?",
+  "a": "5 students",
+  "lvl": 1,
+  "choices": [
+   "5 students",
+   "3 students",
+   "23 students",
+   "4 students"
+  ],
+  "steps": [
+   "'How many more' means subtract Basketball (9) from Soccer (14).",
+   "Compute 14 − 9.",
+   "Check your subtraction by adding back to 9."
+  ]
+ },
+ {
+  "src": "4.20-L1-02",
+  "std": "4.20",
+  "part": "a",
+  "q": "A student is making a line plot for these pencil lengths (in inches): 3, 3{1/4}, 3{1/4}, 3{1/2}, 3{3/4}. How many X's should be placed above 3{1/4}?",
+  "a": "2",
+  "lvl": 1,
+  "choices": [
+   "1",
+   "2",
+   "3",
+   "5"
+  ],
+  "steps": [
+   "Each X on a line plot represents one data value.",
+   "Count how many times 3{1/4} appears in the list.",
+   "Select that count from the choices."
+  ]
+ },
+ {
+  "src": "4.20-L1-03",
+  "std": "4.20",
+  "part": "b",
+  "q": "A line plot shows the lengths of three ribbons: two ribbons are {1/2} foot long, and one ribbon is 1 foot long. What is the total length of all three ribbons?",
+  "a": "2 feet",
+  "lvl": 1,
+  "choices": [
+   "1{1/2} feet",
+   "3 feet",
+   "2 feet",
+   "2{1/2} feet"
+  ],
+  "steps": [
+   "Add the lengths of all three ribbons: {1/2} + {1/2} + 1.",
+   "Combine {1/2} + {1/2} to make 1 whole, then add the other 1.",
+   "Match your total to the choices."
+  ]
+ },
+ {
+  "src": "4.20-L2-01",
+  "std": "4.20",
+  "part": "b",
+  "q": "A line plot shows insect lengths (in inches): {1/4}, {1/4}, {1/2}, {3/4}, {3/4}, 1. What is the difference between the longest and shortest insect?",
+  "a": "{3/4} inch",
+  "lvl": 2,
+  "choices": [
+   "{1/4} inch",
+   "{1/2} inch",
+   "1{1/4} inches",
+   "{3/4} inch"
+  ],
+  "steps": [
+   "Identify the longest (1) and shortest ({1/4}) insect lengths.",
+   "Subtract 1 − {1/4} by rewriting 1 as {4/4}.",
+   "Select the matching difference."
+  ]
+ },
+ {
+  "src": "4.20-L2-02",
+  "std": "4.20",
+  "q": "In a picture graph, each star stands for 6 books. Maya has 4 stars, and Leo has 2 and a half stars. How many books did they read together?",
+  "a": "39 books",
+  "lvl": 2,
+  "choices": [
+   "39 books",
+   "36 books",
+   "42 books",
+   "27 books"
+  ],
+  "steps": [
+   "Find Maya's books (4 × 6) and Leo's books (2 × 6 plus half of 6).",
+   "Add Maya's total and Leo's total together.",
+   "Verify that a half star equals 3 books."
+  ]
+ },
+ {
+  "src": "4.20-L2-03",
+  "std": "4.20",
+  "part": "b",
+  "q": "A line plot shows the weights of 5 rocks: three rocks weigh {1/8} pound each, and two rocks weigh {3/8} pound each. What is the combined weight of all 5 rocks?",
+  "a": "1{1/8} pounds",
+  "lvl": 2,
+  "choices": [
+   "{4/8} pound",
+   "1{1/8} pounds",
+   "{7/8} pound",
+   "1{3/8} pounds"
+  ],
+  "steps": [
+   "Find 3 × {1/8} and 2 × {3/8}.",
+   "Add {3/8} + {6/8} to get {9/8}.",
+   "Convert {9/8} to a mixed number."
+  ]
+ },
+ {
+  "src": "4.20-L3-01",
+  "std": "4.20",
+  "part": "b",
+  "q": "A line plot shows daily rainfall (in inches) over 5 days: {1/4}, {1/4}, {1/2}, {3/4}, and 1{1/4}. What is the total rainfall for all 5 days?",
+  "a": "3 inches",
+  "lvl": 3,
+  "choices": [
+   "2{1/2} inches",
+   "2{3/4} inches",
+   "3 inches",
+   "3{1/4} inches"
+  ],
+  "steps": [
+   "Rewrite {1/2} as {2/4} so all measurements are in fourths.",
+   "Add {1/4} + {1/4} + {2/4} + {3/4} + 1{1/4}.",
+   "Convert any improper fraction to wholes and combine."
+  ]
+ },
+ {
+  "src": "4.20-L3-02",
+  "std": "4.20",
+  "part": "b",
+  "q": "A line plot shows shell widths: two shells are {3/8} inch, three shells are {5/8} inch, and one shell is {7/8} inch. What is the difference between the total width of the {5/8}-inch shells and the total width of the {3/8}-inch shells?",
+  "a": "1{1/8} inches",
+  "lvl": 3,
+  "choices": [
+   "{2/8} inch",
+   "{7/8} inch",
+   "1{3/8} inches",
+   "1{1/8} inches"
+  ],
+  "steps": [
+   "Find 3 × {5/8} and 2 × {3/8}.",
+   "Subtract {15/8} − {6/8}.",
+   "Convert your result to a mixed number."
+  ]
+ },
+ {
+  "src": "4.20-L3-03",
+  "std": "4.20",
+  "part": "b",
+  "q": "A line plot shows the lengths of four strings: {2/8} foot, {3/8} foot, {3/8} foot, and {6/8} foot. What is the total length of all four strings?",
+  "a": "{14/8} feet (or 1{6/8} feet, or 1{3/4} feet)",
+  "lvl": 3,
+  "steps": [
+   "All four strings have denominator 8, so add the numerators: 2 + 3 + 3 + 6.",
+   "Write the sum over 8.",
+   "Optionally convert to a mixed number and check your addition."
+  ]
+ },
+ {
+  "src": "4.21-L1-01",
+  "std": "4.21",
+  "q": "Which unit is MOST appropriate for measuring the mass of a paperclip?",
+  "a": "Grams",
+  "lvl": 1,
+  "choices": [
+   "Kilograms",
+   "Grams",
+   "Liters",
+   "Meters"
+  ],
+  "steps": [
+   "A paperclip is very light, so choose a small unit of mass.",
+   "Eliminate liters (liquid volume) and meters (length).",
+   "Compare the two mass units and pick the better fit."
+  ]
+ },
+ {
+  "src": "4.21-L1-02",
+  "std": "4.21",
+  "part": "a",
+  "q": "How many centimeters are in 3 meters?",
+  "a": "300 centimeters",
+  "lvl": 1,
+  "choices": [
+   "30 centimeters",
+   "300 centimeters",
+   "3,000 centimeters",
+   "103 centimeters"
+  ],
+  "steps": [
+   "Recall that 1 meter = 100 centimeters.",
+   "Multiply 3 meters × 100 to convert to centimeters.",
+   "Match your product to the choices."
+  ]
+ },
+ {
+  "src": "4.21-L1-03",
+  "std": "4.21",
+  "part": "a",
+  "q": "How many minutes are in 2 hours?",
+  "a": "120 minutes",
+  "lvl": 1,
+  "choices": [
+   "60 minutes",
+   "100 minutes",
+   "120 minutes",
+   "180 minutes"
+  ],
+  "steps": [
+   "Recall that 1 hour = 60 minutes.",
+   "Multiply 2 × 60 to convert hours to minutes.",
+   "Verify your answer is greater than 60."
+  ]
+ },
+ {
+  "src": "4.21-L2-01",
+  "std": "4.21",
+  "part": "a",
+  "q": "How many ounces are in 5 pounds?",
+  "a": "80 ounces",
+  "lvl": 2,
+  "choices": [
+   "60 ounces",
+   "50 ounces",
+   "75 ounces",
+   "80 ounces"
+  ],
+  "steps": [
+   "Recall that 1 pound = 16 ounces.",
+   "Multiply 5 × 16 (or 5 × 10 + 5 × 6).",
+   "Match your product to the choices."
+  ]
+ },
+ {
+  "src": "4.21-L2-02",
+  "std": "4.21",
+  "part": "a",
+  "q": "A two-column table converts liters (L) to milliliters (mL): 1 L = 1,000 mL; 2 L = 2,000 mL; 4 L = ? mL. What number completes the table?",
+  "a": "4,000",
+  "lvl": 2,
+  "choices": [
+   "4,000",
+   "400",
+   "40",
+   "40,000"
+  ],
+  "steps": [
+   "Use the rule from the table: multiply liters by 1,000.",
+   "Compute 4 × 1,000.",
+   "Verify the number of zeros matches the pattern."
+  ]
+ },
+ {
+  "src": "4.21-L2-03",
+  "std": "4.21",
+  "part": "a",
+  "q": "How many meters are in 7 kilometers?",
+  "a": "7,000 meters",
+  "lvl": 2,
+  "choices": [
+   "70 meters",
+   "700 meters",
+   "7,000 meters",
+   "70,000 meters"
+  ],
+  "steps": [
+   "Recall that 1 kilometer = 1,000 meters.",
+   "Multiply 7 × 1,000.",
+   "Select the matching measurement in meters."
+  ]
+ },
+ {
+  "src": "4.21-L3-01",
+  "std": "4.21",
+  "part": "a",
+  "q": "Which measurement is GREATEST: 4 kilograms, 3,850 grams, 4,100 grams, or 3 kilograms 900 grams?",
+  "a": "4,100 grams",
+  "lvl": 3,
+  "choices": [
+   "4 kilograms",
+   "3,850 grams",
+   "4,100 grams",
+   "3 kilograms 900 grams"
+  ],
+  "steps": [
+   "Convert every measurement to grams using 1 kg = 1,000 g.",
+   "Compare 4,000 g; 3,850 g; 4,100 g; and 3,900 g.",
+   "Select the greatest value."
+  ]
+ },
+ {
+  "src": "4.21-L3-02",
+  "std": "4.21",
+  "part": "a",
+  "q": "A movie is 2 hours and 15 minutes long. How many minutes long is the movie?",
+  "a": "135 minutes",
+  "lvl": 3,
+  "choices": [
+   "115 minutes",
+   "125 minutes",
+   "145 minutes",
+   "135 minutes"
+  ],
+  "steps": [
+   "Convert 2 hours to minutes first (2 × 60).",
+   "Add the extra 15 minutes to that product.",
+   "Check your sum against the choices."
+  ]
+ },
+ {
+  "src": "4.21-L3-03",
+  "std": "4.21",
+  "part": "a",
+  "q": "Convert 6 minutes 25 seconds into seconds.",
+  "a": "385 seconds",
+  "lvl": 3,
+  "steps": [
+   "Convert 6 minutes to seconds using 1 minute = 60 seconds.",
+   "Compute (6 × 60) + 25.",
+   "Verify your multiplication and addition."
+  ]
+ },
+ {
+  "src": "4.22-L1-01",
+  "std": "4.22",
+  "q": "A soccer practice starts at 3:15 PM and lasts 45 minutes. What time does practice end?",
+  "a": "4:00 PM",
+  "lvl": 1,
+  "choices": [
+   "4:00 PM",
+   "3:55 PM",
+   "4:15 PM",
+   "3:60 PM"
+  ],
+  "steps": [
+   "Add 45 minutes to 3:15 PM.",
+   "15 minutes + 45 minutes = 60 minutes, which is 1 full hour.",
+   "Add that full hour to the start hour, then check the choices."
+  ]
+ },
+ {
+  "src": "4.22-L1-02",
+  "std": "4.22",
+  "q": "Maya buys a notebook for §3.25 and a pen for §1.50. How much does she spend in all?",
+  "a": "§4.75",
+  "lvl": 1,
+  "choices": [
+   "§4.25",
+   "§4.75",
+   "§5.75",
+   "§4.50"
+  ],
+  "steps": [
+   "Line up the decimal points in §3.25 and §1.50.",
+   "Add cents first (25 + 50), then add dollars (3 + 1).",
+   "Match your total to the choices."
+  ]
+ },
+ {
+  "src": "4.22-L1-03",
+  "std": "4.22",
+  "part": "b",
+  "q": "A pitcher holds 2 liters of water. Liam pours out 500 milliliters. How many milliliters of water are left in the pitcher?",
+  "a": "1,500 milliliters",
+  "lvl": 1,
+  "choices": [
+   "500 milliliters",
+   "1,000 milliliters",
+   "1,500 milliliters",
+   "2,500 milliliters"
+  ],
+  "steps": [
+   "Convert 2 liters to milliliters first (2 × 1,000 = 2,000 mL).",
+   "Subtract 500 mL from 2,000 mL.",
+   "Verify by adding your answer to 500 mL."
+  ]
+ },
+ {
+  "src": "4.22-L2-01",
+  "std": "4.22",
+  "part": "b",
+  "q": "A watermelon has a mass of 3 kilograms. A cantaloupe has a mass of 1,400 grams. How many more grams does the watermelon weigh than the cantaloupe?",
+  "a": "1,600 grams",
+  "lvl": 2,
+  "choices": [
+   "1,400 grams",
+   "1,700 grams",
+   "2,600 grams",
+   "1,600 grams"
+  ],
+  "steps": [
+   "Convert 3 kilograms to grams (3 × 1,000 = 3,000 g).",
+   "Subtract 1,400 g from 3,000 g.",
+   "Check by adding your difference to 1,400 g."
+  ]
+ },
+ {
+  "src": "4.22-L2-02",
+  "std": "4.22",
+  "part": "a",
+  "q": "Noah ran 2.4 kilometers on Monday and 1.8 kilometers on Tuesday. How many kilometers did he run in total?",
+  "a": "4.2 kilometers",
+  "lvl": 2,
+  "choices": [
+   "4.2 kilometers",
+   "3.2 kilometers",
+   "4.12 kilometers",
+   "3.12 kilometers"
+  ],
+  "steps": [
+   "Line up the decimal points in 2.4 and 1.8.",
+   "Add tenths (4 + 8 = 12 tenths; regroup 1 whole) and then ones.",
+   "Check that your sum is a little over 4."
+  ]
+ },
+ {
+  "src": "4.22-L2-03",
+  "std": "4.22",
+  "part": "c",
+  "q": "A number line shows time in 15-minute intervals. A train leaves at 1:30 PM and arrives 1 hour and 45 minutes later. What time does the train arrive?",
+  "a": "3:15 PM",
+  "lvl": 2,
+  "choices": [
+   "2:45 PM",
+   "3:15 PM",
+   "3:00 PM",
+   "3:30 PM"
+  ],
+  "steps": [
+   "Start at 1:30 PM and jump forward 1 hour to 2:30 PM.",
+   "Add 30 minutes to reach 3:00 PM, then add the remaining 15 minutes.",
+   "Confirm the total elapsed time is 1 hour 45 minutes."
+  ]
+ },
+ {
+  "src": "4.22-L3-01",
+  "std": "4.22",
+  "part": "b",
+  "q": "A rope is 4 meters long. Elena cuts off three pieces that are each 85 centimeters long. How many centimeters of rope are left?",
+  "a": "145 centimeters",
+  "lvl": 3,
+  "choices": [
+   "255 centimeters",
+   "315 centimeters",
+   "145 centimeters",
+   "155 centimeters"
+  ],
+  "steps": [
+   "Convert 4 meters to centimeters (4 × 100 = 400 cm).",
+   "Find the total cut off (3 × 85 cm), then subtract from 400 cm.",
+   "Verify your answer plus 3 × 85 equals 400."
+  ]
+ },
+ {
+  "src": "4.22-L3-02",
+  "std": "4.22",
+  "part": "a",
+  "q": "Sam has a §20 bill. He buys 3 books that cost §4.75 each. How much change should he receive?",
+  "a": "§5.75",
+  "lvl": 3,
+  "choices": [
+   "§14.25",
+   "§6.75",
+   "§5.25",
+   "§5.75"
+  ],
+  "steps": [
+   "Find the total cost of 3 books: 3 × §4.75 (or add §4.75 three times).",
+   "Subtract that total from §20.00.",
+   "Check by adding your change back to the total cost."
+  ]
+ },
+ {
+  "src": "4.22-L3-03",
+  "std": "4.22",
+  "part": "b",
+  "q": "A baker has 3 pounds of flour. She uses 20 ounces for bread and 14 ounces for muffins. How many ounces of flour does she have left?",
+  "a": "14 ounces",
+  "lvl": 3,
+  "steps": [
+   "Convert 3 pounds to ounces using 1 lb = 16 oz (3 × 16).",
+   "Add the flour used (20 + 14 oz), then subtract from the total ounces.",
+   "Verify all three amounts sum to 48 ounces."
+  ]
+ },
+ {
+  "src": "4.23-L1-01",
+  "std": "4.23",
+  "q": "What is the area of a rectangle with a length of 9 feet and a width of 4 feet?",
+  "a": "36 square feet",
+  "lvl": 1,
+  "choices": [
+   "36 square feet",
+   "26 square feet",
+   "13 square feet",
+   "32 square feet"
+  ],
+  "steps": [
+   "Area of a rectangle is length × width.",
+   "Multiply 9 × 4.",
+   "Label your answer in square feet."
+  ]
+ },
+ {
+  "src": "4.23-L1-02",
+  "std": "4.23",
+  "q": "What is the perimeter of a rectangle with a length of 8 meters and a width of 5 meters?",
+  "a": "26 meters",
+  "lvl": 1,
+  "choices": [
+   "13 meters",
+   "26 meters",
+   "40 meters",
+   "21 meters"
+  ],
+  "steps": [
+   "Perimeter is the distance around all four sides: 2×length + 2×width.",
+   "Compute 8 + 5 + 8 + 5 (or 2 × 8 + 2 × 5).",
+   "Match your sum in meters to the choices."
+  ]
+ },
+ {
+  "src": "4.23-L1-03",
+  "std": "4.23",
+  "q": "A square garden has a side length of 7 yards. What is its perimeter?",
+  "a": "28 yards",
+  "lvl": 1,
+  "choices": [
+   "14 yards",
+   "49 yards",
+   "28 yards",
+   "21 yards"
+  ],
+  "steps": [
+   "A square has 4 equal sides of 7 yards each.",
+   "Multiply 4 × 7 (or add 7 four times) for perimeter.",
+   "Make sure you did not find area (7 × 7)."
+  ]
+ },
+ {
+  "src": "4.23-L2-01",
+  "std": "4.23",
+  "q": "A rectangular rug has an area of 54 square feet and a width of 6 feet. What is the length of the rug?",
+  "a": "9 feet",
+  "lvl": 2,
+  "choices": [
+   "8 feet",
+   "48 feet",
+   "7 feet",
+   "9 feet"
+  ],
+  "steps": [
+   "Use Area = length × width, so 54 = length × 6.",
+   "Divide 54 by 6 to find the missing length.",
+   "Verify by multiplying your length by 6."
+  ]
+ },
+ {
+  "src": "4.23-L2-02",
+  "std": "4.23",
+  "q": "A rectangular yard has a perimeter of 36 meters and a length of 11 meters. What is the width of the yard?",
+  "a": "7 meters",
+  "lvl": 2,
+  "choices": [
+   "7 meters",
+   "14 meters",
+   "25 meters",
+   "6 meters"
+  ],
+  "steps": [
+   "Subtract both lengths from the perimeter: 36 − (2 × 11).",
+   "Divide the remaining amount by 2 to find one width.",
+   "Check that 11 + 11 + width + width = 36."
+  ]
+ },
+ {
+  "src": "4.23-L2-03",
+  "std": "4.23",
+  "q": "A poster is 14 inches long and 10 inches wide. How many square inches of wall space does the poster cover?",
+  "a": "140 square inches",
+  "lvl": 2,
+  "choices": [
+   "48 square inches",
+   "140 square inches",
+   "24 square inches",
+   "120 square inches"
+  ],
+  "steps": [
+   "'Square inches of wall space' means find the area.",
+   "Multiply length × width: 14 × 10.",
+   "Select the matching area."
+  ]
+ },
+ {
+  "src": "4.23-L3-01",
+  "std": "4.23",
+  "q": "A rectangular playground is 18 feet long. Its width is half of its length. What is the perimeter of the playground?",
+  "a": "54 feet",
+  "lvl": 3,
+  "choices": [
+   "27 feet",
+   "162 feet",
+   "54 feet",
+   "36 feet"
+  ],
+  "steps": [
+   "Find the width first: half of 18 feet is 18 ÷ 2.",
+   "Compute perimeter: 2 × 18 + 2 × width.",
+   "Verify you found perimeter, not area."
+  ]
+ },
+ {
+  "src": "4.23-L3-02",
+  "std": "4.23",
+  "q": "A rectangular patio has a perimeter of 40 feet and a length of 12 feet. What is the AREA of the patio?",
+  "a": "96 square feet",
+  "lvl": 3,
+  "choices": [
+   "480 square feet",
+   "80 square feet",
+   "112 square feet",
+   "96 square feet"
+  ],
+  "steps": [
+   "Find the width from the perimeter: (40 − 2 × 12) ÷ 2.",
+   "Multiply length (12) × width to find the area.",
+   "Label your final answer in square feet."
+  ]
+ },
+ {
+  "src": "4.23-L3-03",
+  "std": "4.23",
+  "q": "A rectangular painting has an area of 72 square inches and a length of 9 inches. What is the perimeter of the painting?",
+  "a": "34 inches",
+  "lvl": 3,
+  "steps": [
+   "Find the width from the area: 72 ÷ 9.",
+   "Use length (9) and your width to find perimeter: 2×9 + 2×width.",
+   "Verify both area and perimeter match."
+  ]
+ },
+ {
+  "src": "4.24-L1-01",
+  "std": "4.24",
+  "q": "How is an angle formed?",
+  "a": "Wherever two rays share a common endpoint",
+  "lvl": 1,
+  "choices": [
+   "Wherever two rays share a common endpoint",
+   "Whenever two parallel lines never cross",
+   "By connecting two separate points with a curve",
+   "By drawing a single straight line"
+  ],
+  "steps": [
+   "Recall the definition of an angle in geometry.",
+   "An angle is made of two rays meeting at one vertex (endpoint).",
+   "Select the choice that matches this definition."
+  ]
+ },
+ {
+  "src": "4.24-L1-02",
+  "std": "4.24",
+  "q": "How many one-degree angles make up a full circle?",
+  "a": "360",
+  "lvl": 1,
+  "choices": [
+   "90",
+   "180",
+   "360",
+   "100"
+  ],
+  "steps": [
+   "A circle is divided into a standard total number of degrees.",
+   "Recall how many degrees are in one full turn around a circle.",
+   "Select that number from the choices."
+  ]
+ },
+ {
+  "src": "4.24-L1-03",
+  "std": "4.24",
+  "q": "An angle turns through {1/4} of a circle. What is the measure of the angle?",
+  "a": "90°",
+  "lvl": 1,
+  "choices": [
+   "45°",
+   "180°",
+   "90°",
+   "360°"
+  ],
+  "steps": [
+   "A full circle is 360°, so find {1/4} of 360°.",
+   "Divide 360 ÷ 4.",
+   "Match your degree measure to the choices."
+  ]
+ },
+ {
+  "src": "4.24-L2-01",
+  "std": "4.24",
+  "q": "An angle turns through {1/2} of a circle. What is the measure of the angle?",
+  "a": "180°",
+  "lvl": 2,
+  "choices": [
+   "90°",
+   "120°",
+   "360°",
+   "180°"
+  ],
+  "steps": [
+   "A full circle is 360°, so find {1/2} of 360°.",
+   "Divide 360 ÷ 2.",
+   "Select the matching degree measure."
+  ]
+ },
+ {
+  "src": "4.24-L2-02",
+  "std": "4.24",
+  "q": "An angle turns through 45 one-degree angles. What is the measure of the angle?",
+  "a": "45°",
+  "lvl": 2,
+  "choices": [
+   "45°",
+   "90°",
+   "{1/45}°",
+   "315°"
+  ],
+  "steps": [
+   "Each one-degree angle measures 1°.",
+   "Multiply 45 × 1° to find the angle's measure.",
+   "Choose the matching degree measure."
+  ]
+ },
+ {
+  "src": "4.24-L2-03",
+  "std": "4.24",
+  "q": "What fraction of a full circle does a 60° angle turn through?",
+  "a": "{60/360} (or {1/6})",
+  "lvl": 2,
+  "choices": [
+   "{60/180} (or {1/3})",
+   "{60/360} (or {1/6})",
+   "{60/90} (or {2/3})",
+   "{60/100} (or {3/5})"
+  ],
+  "steps": [
+   "A full circle measures 360°.",
+   "Write the angle over the full circle: {60/360}.",
+   "Simplify by dividing top and bottom by the same number."
+  ]
+ },
+ {
+  "src": "4.24-L3-01",
+  "std": "4.24",
+  "q": "The minute hand on a clock moves from the 12 to the 4. How many degrees did the minute hand turn?",
+  "a": "120°",
+  "lvl": 3,
+  "choices": [
+   "90°",
+   "60°",
+   "120°",
+   "150°"
+  ],
+  "steps": [
+   "Find the fraction of the clock from 12 to 4: {4/12}.",
+   "Multiply that fraction by 360° for a full circle.",
+   "Multiply, then check it is less than half a turn (180°)."
+  ]
+ },
+ {
+  "src": "4.24-L3-02",
+  "std": "4.24",
+  "q": "An angle turns through {3/4} of a full circle. What is the measure of the angle?",
+  "a": "270°",
+  "lvl": 3,
+  "choices": [
+   "90°",
+   "180°",
+   "240°",
+   "270°"
+  ],
+  "steps": [
+   "Find {1/4} of a full 360° circle first: 360° ÷ 4 = 90°.",
+   "Multiply by 3 to find {3/4} of the circle.",
+   "Multiply, then check it is more than half a turn (180°)."
+  ]
+ },
+ {
+  "src": "4.24-L3-03",
+  "std": "4.24",
+  "q": "A sprinkler turns through {1/3} of a full circle. How many degrees does the sprinkler turn?",
+  "a": "120°",
+  "lvl": 3,
+  "steps": [
+   "A full circle is 360°.",
+   "Divide 360° by 3 to find {1/3} of a full turn.",
+   "Divide, then check that 3 of your angle make 360°."
+  ]
+ },
+ {
+  "src": "4.25-L1-01",
+  "std": "4.25",
+  "q": "Which tool is used to measure an angle in degrees?",
+  "a": "Protractor",
+  "lvl": 1,
+  "choices": [
+   "Protractor",
+   "Ruler",
+   "Balance scale",
+   "Graduated cylinder"
+  ],
+  "steps": [
+   "Think about what each tool measures: length, mass, volume, or angles.",
+   "A curved tool marked from 0° to 180° measures angles.",
+   "Pick the tool name that matches that description."
+  ]
+ },
+ {
+  "src": "4.25-L1-02",
+  "std": "4.25",
+  "q": "One ray of an angle points to 0° on a protractor, and the other ray points to 65° on the same scale. What is the measure of the angle?",
+  "a": "65°",
+  "lvl": 1,
+  "choices": [
+   "115°",
+   "65°",
+   "60°",
+   "75°"
+  ],
+  "steps": [
+   "Check that one ray starts at 0° on the protractor.",
+   "Follow that same scale to where the second ray points.",
+   "The second ray is at 65°, so the angle measures 65°."
+  ]
+ },
+ {
+  "src": "4.25-L1-03",
+  "std": "4.25",
+  "q": "An angle is clearly obtuse. When measured with a protractor, its ray crosses both 50° and 130°. What is the measure of the angle?",
+  "a": "130°",
+  "lvl": 1,
+  "choices": [
+   "50°",
+   "80°",
+   "130°",
+   "180°"
+  ],
+  "steps": [
+   "Recall that an obtuse angle is greater than 90° and less than 180°.",
+   "Compare the two numbers on the protractor: 50° and 130°.",
+   "Since 130° is greater than 90°, the angle measures 130°."
+  ]
+ },
+ {
+  "src": "4.25-L2-01",
+  "std": "4.25",
+  "q": "An acute angle is placed on a protractor with one ray at 0°. The other ray crosses the 40° and 140° marks. What is the measure of the angle?",
+  "a": "40°",
+  "lvl": 2,
+  "choices": [
+   "140°",
+   "100°",
+   "50°",
+   "40°"
+  ],
+  "steps": [
+   "An acute angle measures less than 90°.",
+   "Choose the mark between 40° and 140° that is less than 90°.",
+   "The angle measures 40°."
+  ]
+ },
+ {
+  "src": "4.25-L2-02",
+  "std": "4.25",
+  "q": "To sketch a 115° angle, Mia draws a ray and places the center of the protractor on its endpoint. Which mark should she use?",
+  "a": "The 115° mark on the scale that starts at 0° along her ray",
+  "lvl": 2,
+  "choices": [
+   "The 115° mark on the scale that starts at 0° along her ray",
+   "The 115° mark on the scale that starts at 180° along her ray",
+   "The 65° mark on either scale",
+   "The 90° mark"
+  ],
+  "steps": [
+   "Line up the drawn ray with 0° on one of the two protractor scales.",
+   "Stay on that same scale that starts at 0° along her ray.",
+   "Find 115° on that scale and check the angle looks obtuse."
+  ]
+ },
+ {
+  "src": "4.25-L2-03",
+  "std": "4.25",
+  "q": "One ray of an angle is at 20° on a protractor, and the other ray is at 95° on the same scale. What is the measure of the angle?",
+  "a": "75°",
+  "lvl": 2,
+  "choices": [
+   "115°",
+   "75°",
+   "95°",
+   "85°"
+  ],
+  "steps": [
+   "When neither ray is at 0°, subtract the smaller reading from the larger.",
+   "Set up the subtraction on the same scale: 95° − 20°.",
+   "Subtract, then check the angle is acute (under 90°)."
+  ]
+ },
+ {
+  "src": "4.25-L3-01",
+  "std": "4.25",
+  "q": "One ray of an angle points to 35° on the outer scale of a protractor, and the other ray points to 150° on the outer scale. What is the measure of the angle?",
+  "a": "115°",
+  "lvl": 3,
+  "choices": [
+   "185°",
+   "125°",
+   "115°",
+   "105°"
+  ],
+  "steps": [
+   "Both rays are on the outer scale, so find the difference.",
+   "Subtract the smaller mark from the larger mark: 150° − 35°.",
+   "Subtract, then check the angle is obtuse (over 90°)."
+  ]
+ },
+ {
+  "src": "4.25-L3-02",
+  "std": "4.25",
+  "q": "Leo measured an acute angle and got 145°. What mistake did he most likely make?",
+  "a": "He read the wrong scale on the protractor; the angle actually measures 35°.",
+  "lvl": 3,
+  "choices": [
+   "He forgot to add 90°.",
+   "He used a ruler instead of a protractor.",
+   "He read the wrong scale; the angle actually measures 45°.",
+   "He read the wrong scale on the protractor; the angle actually measures 35°."
+  ],
+  "steps": [
+   "An acute angle must be less than 90°, so 145° is too large.",
+   "Find the matching number on the other scale: 180° − 145°.",
+   "Pick the choice that names his mistake and the true measure."
+  ]
+ },
+ {
+  "src": "4.25-L3-03",
+  "std": "4.25",
+  "q": "On a protractor, ray AB passes through 48° and ray AC passes through 132° on the same scale. What is the measure of angle BAC?",
+  "a": "84°",
+  "lvl": 3,
+  "steps": [
+   "Find the difference between the two marks on the same scale.",
+   "Set up the subtraction: 132° − 48°.",
+   "Subtract, then check the angle is acute (under 90°)."
+  ]
+ },
+ {
+  "src": "4.26-L1-01",
+  "std": "4.26",
+  "q": "Two non-overlapping angles share a ray and measure 30° and 45°. What is the measure of the larger angle they form together?",
+  "a": "75°",
+  "lvl": 1,
+  "choices": [
+   "75°",
+   "15°",
+   "90°",
+   "85°"
+  ],
+  "steps": [
+   "When two non-overlapping angles join, add their measures.",
+   "Add the two angle measures: 30° + 45°.",
+   "Add, then check the sum is larger than each part."
+  ]
+ },
+ {
+  "src": "4.26-L1-02",
+  "std": "4.26",
+  "q": "A right angle (90°) is split into two smaller angles. One angle measures 40°. What is the measure of the other angle?",
+  "a": "50°",
+  "lvl": 1,
+  "choices": [
+   "130°",
+   "50°",
+   "40°",
+   "60°"
+  ],
+  "steps": [
+   "The two smaller angles add up to a right angle, 90°.",
+   "Subtract the known angle from 90°: 90° − 40°.",
+   "Subtract, then check the two parts add to 90°."
+  ]
+ },
+ {
+  "src": "4.26-L1-03",
+  "std": "4.26",
+  "q": "A straight angle (180°) is divided into two angles. One angle measures 110°. What is the measure of the other angle?",
+  "a": "70°",
+  "lvl": 1,
+  "choices": [
+   "80°",
+   "90°",
+   "70°",
+   "60°"
+  ],
+  "steps": [
+   "The two angles together form a straight angle of 180°.",
+   "Subtract the known angle from 180°: 180° − 110°.",
+   "Subtract, then check the two parts add to 180°."
+  ]
+ },
+ {
+  "src": "4.26-L2-01",
+  "std": "4.26",
+  "q": "Angle XYZ measures 125°. A ray inside the angle splits it into two parts. One part measures 48°. What is the measure of the other part?",
+  "a": "77°",
+  "lvl": 2,
+  "choices": [
+   "87°",
+   "173°",
+   "67°",
+   "77°"
+  ],
+  "steps": [
+   "The two parts add up to the whole angle of 125°.",
+   "Subtract the known part from the whole: 125° − 48°.",
+   "Subtract, then check the two parts add to 125°."
+  ]
+ },
+ {
+  "src": "4.26-L2-02",
+  "std": "4.26",
+  "q": "Three non-overlapping angles form a straight line (180°). Two of the angles measure 55° and 65°. What is the measure of the third angle?",
+  "a": "60°",
+  "lvl": 2,
+  "choices": [
+   "60°",
+   "120°",
+   "70°",
+   "50°"
+  ],
+  "steps": [
+   "Add the two known angles first: 55° + 65° = 120°.",
+   "Subtract their sum from 180°: 180° − 120°.",
+   "Subtract, then check all three angles add to 180°."
+  ]
+ },
+ {
+  "src": "4.26-L2-03",
+  "std": "4.26",
+  "q": "A right angle is split into three non-overlapping angles measuring 25°, 35°, and x°. What is the value of x?",
+  "a": "30",
+  "lvl": 2,
+  "choices": [
+   "60",
+   "30",
+   "40",
+   "20"
+  ],
+  "steps": [
+   "Add the two known angles: 25° + 35° = 60°.",
+   "Subtract that sum from a right angle (90°): 90° − 60°.",
+   "Subtract, then check all three angles add to 90°."
+  ]
+ },
+ {
+  "src": "4.26-L3-01",
+  "std": "4.26",
+  "q": "A door opens 38°, then opens another 47°. How many more degrees must it open to reach a straight angle of 180°?",
+  "a": "95°",
+  "lvl": 3,
+  "choices": [
+   "85°",
+   "105°",
+   "95°",
+   "115°"
+  ],
+  "steps": [
+   "Find how far the door opened in total: 38° + 47° = 85°.",
+   "Subtract from 180° to find the remaining turn: 180° − 85°.",
+   "Subtract, then check 38° + 47° + your answer = 180°."
+  ]
+ },
+ {
+  "src": "4.26-L3-02",
+  "std": "4.26",
+  "q": "Four non-overlapping angles meet at a point to form a full circle (360°). Three of the angles measure 90°, 115°, and 80°. What is the measure of the fourth angle?",
+  "a": "75°",
+  "lvl": 3,
+  "choices": [
+   "285°",
+   "85°",
+   "65°",
+   "75°"
+  ],
+  "steps": [
+   "Sum the three known angles: 90° + 115° + 80° = 285°.",
+   "Subtract that sum from 360°: 360° − 285°.",
+   "Subtract, then check all four angles add to 360°."
+  ]
+ },
+ {
+  "src": "4.26-L3-03",
+  "std": "4.26",
+  "q": "A straight angle is split into two angles. One angle is 30° greater than a right angle. What is the measure of the other angle?",
+  "a": "60°",
+  "lvl": 3,
+  "steps": [
+   "Find the first angle: 90° + 30° = 120°.",
+   "Subtract from a straight angle (180°): 180° − 120°.",
+   "Subtract, then check the two angles add to 180°."
+  ]
+ },
+ {
+  "src": "4.27-L1-01",
+  "std": "4.27",
+  "q": "Which geometric figure has one endpoint and extends forever in one direction?",
+  "a": "Ray",
+  "lvl": 1,
+  "choices": [
+   "Ray",
+   "Line segment",
+   "Line",
+   "Point"
+  ],
+  "steps": [
+   "Compare figures: a point has no length; a line extends both ways.",
+   "A segment has two endpoints, while one figure has only one endpoint.",
+   "Pick the figure with exactly one endpoint."
+  ]
+ },
+ {
+  "src": "4.27-L1-02",
+  "std": "4.27",
+  "q": "What type of angle measures less than 90°?",
+  "a": "Acute angle",
+  "lvl": 1,
+  "choices": [
+   "Obtuse angle",
+   "Acute angle",
+   "Right angle",
+   "Straight angle"
+  ],
+  "steps": [
+   "Use a right angle (90°) as your benchmark.",
+   "Angles smaller than 90° are sharp and narrow.",
+   "Pick the angle name that means smaller than a right angle."
+  ]
+ },
+ {
+  "src": "4.27-L1-03",
+  "std": "4.27",
+  "q": "Two lines in the same plane that never intersect are called what?",
+  "a": "Parallel lines",
+  "lvl": 1,
+  "choices": [
+   "Perpendicular lines",
+   "Intersecting lines",
+   "Parallel lines",
+   "Rays"
+  ],
+  "steps": [
+   "Think of railroad tracks that stay the same distance apart.",
+   "Lines in the same plane that never cross never intersect.",
+   "Pick the name for lines that never cross."
+  ]
+ },
+ {
+  "src": "4.27-L2-01",
+  "std": "4.27",
+  "q": "Two lines that intersect to form 90° angles are called what?",
+  "a": "Perpendicular lines",
+  "lvl": 2,
+  "choices": [
+   "Parallel lines",
+   "Acute lines",
+   "Skew lines",
+   "Perpendicular lines"
+  ],
+  "steps": [
+   "Identify the special angle formed where the lines cross: 90°.",
+   "Lines that cross to form square corners (right angles) have a name.",
+   "Pick the name for lines that meet at right angles."
+  ]
+ },
+ {
+  "src": "4.27-L2-02",
+  "std": "4.27",
+  "q": "Which capital letter contains BOTH parallel line segments and perpendicular line segments?",
+  "a": "H",
+  "lvl": 2,
+  "choices": [
+   "H",
+   "V",
+   "X",
+   "C"
+  ],
+  "steps": [
+   "Look for a letter with two segments that never meet (parallel).",
+   "Check that it also has segments meeting at 90° (perpendicular).",
+   "Check your letter has both kinds of segments."
+  ]
+ },
+ {
+  "src": "4.27-L2-03",
+  "std": "4.27",
+  "q": "An angle measures 135°. How is this angle classified?",
+  "a": "Obtuse",
+  "lvl": 2,
+  "choices": [
+   "Acute",
+   "Obtuse",
+   "Right",
+   "Straight"
+  ],
+  "steps": [
+   "Compare 135° to 90° (right) and 180° (straight).",
+   "135° is greater than 90° and less than 180°.",
+   "Pick the angle name for between 90° and 180°."
+  ]
+ },
+ {
+  "src": "4.27-L3-01",
+  "std": "4.27",
+  "q": "How many pairs of parallel sides and how many pairs of perpendicular sides does a rectangle have?",
+  "a": "2 pairs of parallel sides and 4 pairs of perpendicular sides",
+  "lvl": 3,
+  "choices": [
+   "1 pair of parallel sides and 2 pairs of perpendicular sides",
+   "4 pairs of parallel sides and 2 pairs of perpendicular sides",
+   "2 pairs of parallel sides and 4 pairs of perpendicular sides",
+   "2 pairs of parallel sides and 0 pairs of perpendicular sides"
+  ],
+  "steps": [
+   "Count the pairs of opposite sides that never meet.",
+   "Count corners where sides meet at 90°: 4 right-angle corners.",
+   "Count each kind and match both numbers to a choice."
+  ]
+ },
+ {
+  "src": "4.27-L3-02",
+  "std": "4.27",
+  "q": "Which statement is ALWAYS true about two perpendicular lines?",
+  "a": "They intersect to form four right angles.",
+  "lvl": 3,
+  "choices": [
+   "They never intersect.",
+   "They form two acute angles and two obtuse angles.",
+   "They are also parallel.",
+   "They intersect to form four right angles."
+  ],
+  "steps": [
+   "Recall the definition: perpendicular lines meet at 90°.",
+   "When two lines cross at 90°, all four angles at the crossing are 90°.",
+   "Pick the statement that is true for every perpendicular pair."
+  ]
+ },
+ {
+  "src": "4.27-L3-03",
+  "std": "4.27",
+  "q": "Name the geometric figure that has two endpoints and a fixed length.",
+  "a": "Line segment",
+  "lvl": 3,
+  "steps": [
+   "Look at the clues: two endpoints and a measurable, fixed length.",
+   "Unlike a line or ray, it does not extend forever.",
+   "Name the figure that has two endpoints and stops."
+  ]
+ },
+ {
+  "src": "4.28-L1-01",
+  "std": "4.28",
+  "part": "a",
+  "q": "A triangle has angle measures of 90°, 45°, and 45°. What kind of triangle is it?",
+  "a": "Right triangle",
+  "lvl": 1,
+  "choices": [
+   "Right triangle",
+   "Obtuse triangle",
+   "Acute triangle",
+   "Equilateral triangle"
+  ],
+  "steps": [
+   "Look for the largest angle in the triangle: 90°.",
+   "A 90° angle is a right angle.",
+   "Name a triangle by its largest angle and check the choices."
+  ]
+ },
+ {
+  "src": "4.28-L1-02",
+  "std": "4.28",
+  "q": "Which quadrilateral ALWAYS has four right angles?",
+  "a": "Rectangle",
+  "lvl": 1,
+  "choices": [
+   "Trapezoid",
+   "Rectangle",
+   "Parallelogram",
+   "Rhombus"
+  ],
+  "steps": [
+   "Check each shape to see if all four corners must be 90°.",
+   "Parallelograms, rhombuses, and trapezoids can have slanted angles.",
+   "Pick the one shape whose corners must all be 90°."
+  ]
+ },
+ {
+  "src": "4.28-L1-03",
+  "std": "4.28",
+  "q": "Which figure has NO parallel sides?",
+  "a": "Triangle",
+  "lvl": 1,
+  "choices": [
+   "Square",
+   "Parallelogram",
+   "Triangle",
+   "Rectangle"
+  ],
+  "steps": [
+   "Squares, rectangles, and parallelograms all have opposite parallel sides.",
+   "A 3-sided polygon has every pair of sides meeting at a vertex.",
+   "Pick the figure where no two sides can be parallel."
+  ]
+ },
+ {
+  "src": "4.28-L2-01",
+  "std": "4.28",
+  "q": "A quadrilateral has 2 pairs of parallel sides, 4 equal sides, and NO right angles. What is the best name for this shape?",
+  "a": "Rhombus",
+  "lvl": 2,
+  "choices": [
+   "Square",
+   "Rectangle",
+   "Trapezoid",
+   "Rhombus"
+  ],
+  "steps": [
+   "Eliminate shapes that require right angles (square, rectangle).",
+   "Look for a parallelogram with all 4 sides equal in length.",
+   "Pick the name for that kind of parallelogram."
+  ]
+ },
+ {
+  "src": "4.28-L2-02",
+  "std": "4.28",
+  "part": "a",
+  "q": "Which set of angle measures forms a right triangle?",
+  "a": "30°, 60°, 90°",
+  "lvl": 2,
+  "choices": [
+   "30°, 60°, 90°",
+   "60°, 60°, 60°",
+   "20°, 40°, 120°",
+   "50°, 50°, 80°"
+  ],
+  "steps": [
+   "A right triangle must include one 90° angle.",
+   "Scan the choices for a set containing 90°.",
+   "Check that your set also adds to 180°."
+  ]
+ },
+ {
+  "src": "4.28-L2-03",
+  "std": "4.28",
+  "q": "Which quadrilateral has EXACTLY one pair of parallel sides?",
+  "a": "Trapezoid",
+  "lvl": 2,
+  "choices": [
+   "Parallelogram",
+   "Trapezoid",
+   "Rectangle",
+   "Rhombus"
+  ],
+  "steps": [
+   "Parallelograms, rectangles, and rhombuses have 2 parallel pairs.",
+   "Identify the quadrilateral with only 1 pair of parallel sides.",
+   "Pick the shape with exactly 1 pair of parallel sides."
+  ]
+ },
+ {
+  "src": "4.28-L3-01",
+  "std": "4.28",
+  "part": "a",
+  "q": "Can a triangle have TWO obtuse angles?",
+  "a": "No, because two obtuse angles already add up to more than 180°.",
+  "lvl": 3,
+  "choices": [
+   "Yes, if the triangle is very large.",
+   "Yes, if the third angle is very small.",
+   "No, because two obtuse angles already add up to more than 180°.",
+   "No, because a triangle cannot have any obtuse angles."
+  ],
+  "steps": [
+   "Recall that a triangle's three angles always add up to 180°.",
+   "Each obtuse angle is more than 90°, so add two of them.",
+   "Compare that sum to 180° and decide if a third angle fits."
+  ]
+ },
+ {
+  "src": "4.28-L3-02",
+  "std": "4.28",
+  "q": "Maya sorts shapes into two groups: Group A has shapes with perpendicular sides, and Group B has shapes with NO perpendicular sides. Which shape belongs in Group A?",
+  "a": "Right triangle",
+  "lvl": 3,
+  "choices": [
+   "Equilateral triangle",
+   "Regular hexagon",
+   "Parallelogram with 60° and 120° angles",
+   "Right triangle"
+  ],
+  "steps": [
+   "Perpendicular sides meet at a 90° (right) angle.",
+   "Check which choice has a 90° corner.",
+   "Pick the shape that has a 90° corner."
+  ]
+ },
+ {
+  "src": "4.28-L3-03",
+  "std": "4.28",
+  "q": "A quadrilateral has 2 pairs of parallel sides and 2 pairs of perpendicular sides, and all 4 sides are equal in length. What is the most specific name for this shape?",
+  "a": "Square",
+  "lvl": 3,
+  "steps": [
+   "Parallel and perpendicular sides mean it has right angles (rectangle).",
+   "All 4 equal sides also make it a rhombus.",
+   "Name the shape that is both of those at once."
+  ]
+ },
+ {
+  "src": "4.29-L1-01",
+  "std": "4.29",
+  "q": "What is a line of symmetry?",
+  "a": "A line across a figure such that the figure can be folded along the line into two matching parts",
+  "lvl": 1,
+  "choices": [
+   "A line across a figure such that the figure can be folded along the line into two matching parts",
+   "Any line that touches the edge of a shape",
+   "A line that is always vertical",
+   "A line that divides a shape into two different-sized pieces"
+  ],
+  "steps": [
+   "Picture folding a paper shape in half along a line.",
+   "If the two halves match up exactly, that fold is a line of symmetry.",
+   "Pick the choice that matches folding into matching halves."
+  ]
+ },
+ {
+  "src": "4.29-L1-02",
+  "std": "4.29",
+  "part": "a",
+  "q": "How many lines of symmetry does a square have?",
+  "a": "4",
+  "lvl": 1,
+  "choices": [
+   "2",
+   "4",
+   "1",
+   "8"
+  ],
+  "steps": [
+   "Count the folds through opposite sides: 1 vertical and 1 horizontal.",
+   "Count the folds through opposite corners: 2 diagonals.",
+   "Add both kinds of folds to get the total."
+  ]
+ },
+ {
+  "src": "4.29-L1-03",
+  "std": "4.29",
+  "part": "a",
+  "q": "Which capital letter has a vertical line of symmetry?",
+  "a": "A",
+  "lvl": 1,
+  "choices": [
+   "F",
+   "L",
+   "A",
+   "S"
+  ],
+  "steps": [
+   "Imagine a vertical line down the middle of each letter.",
+   "Check which letter's left and right halves mirror each other.",
+   "Pick the only letter whose halves match."
+  ]
+ },
+ {
+  "src": "4.29-L2-01",
+  "std": "4.29",
+  "part": "a",
+  "q": "How many lines of symmetry does a non-square rectangle have?",
+  "a": "2",
+  "lvl": 2,
+  "choices": [
+   "4",
+   "1",
+   "0",
+   "2"
+  ],
+  "steps": [
+   "Test the vertical and horizontal center folds: both match up.",
+   "Test the diagonals: the corners do not align when folded.",
+   "Count only the folds that match up."
+  ]
+ },
+ {
+  "src": "4.29-L2-02",
+  "std": "4.29",
+  "part": "a",
+  "q": "How many lines of symmetry does an equilateral triangle have?",
+  "a": "3",
+  "lvl": 2,
+  "choices": [
+   "3",
+   "1",
+   "2",
+   "6"
+  ],
+  "steps": [
+   "An equilateral triangle has all sides and angles equal.",
+   "Draw a fold from each vertex to the midpoint of the opposite side.",
+   "Count each fold that matches up."
+  ]
+ },
+ {
+  "src": "4.29-L2-03",
+  "std": "4.29",
+  "part": "a",
+  "q": "Which capital letter has BOTH a horizontal line of symmetry and a vertical line of symmetry?",
+  "a": "H",
+  "lvl": 2,
+  "choices": [
+   "M",
+   "H",
+   "E",
+   "T"
+  ],
+  "steps": [
+   "Check vertical symmetry (left matches right): M, H, and T pass.",
+   "Now check horizontal symmetry (top matches bottom) among those.",
+   "Only H has both horizontal and vertical symmetry."
+  ]
+ },
+ {
+  "src": "4.29-L3-01",
+  "std": "4.29",
+  "part": "a",
+  "q": "Which figure has NO lines of symmetry?",
+  "a": "A parallelogram with no right angles and unequal adjacent sides",
+  "lvl": 3,
+  "choices": [
+   "A rectangle",
+   "An isosceles trapezoid",
+   "A parallelogram with no right angles and unequal adjacent sides",
+   "A regular pentagon"
+  ],
+  "steps": [
+   "Test each choice for any fold that creates two matching halves.",
+   "Rectangles, isosceles trapezoids, and regular pentagons all fold evenly.",
+   "Pick the figure where no fold works."
+  ]
+ },
+ {
+  "src": "4.29-L3-02",
+  "std": "4.29",
+  "part": "a",
+  "q": "Noah drew a diagonal line from corner to corner on a 4-inch by 8-inch rectangle and called it a line of symmetry. Is he correct?",
+  "a": "No, because folding a non-square rectangle along its diagonal does not make the two halves match up.",
+  "lvl": 3,
+  "choices": [
+   "Yes, because the diagonal cuts the rectangle into two equal triangles.",
+   "Yes, because all rectangles have 4 lines of symmetry.",
+   "No, because rectangles have no lines of symmetry.",
+   "No, because folding a non-square rectangle along its diagonal does not make the two halves match up."
+  ],
+  "steps": [
+   "Check what happens when you fold a 4-by-8 rectangle on its diagonal.",
+   "The short side (4 in) lands on the long side (8 in), so corners miss.",
+   "Decide if the halves match, then pick the matching reason."
+  ]
+ },
+ {
+  "src": "4.29-L3-03",
+  "std": "4.29",
+  "part": "a",
+  "q": "How many lines of symmetry does a regular hexagon have?",
+  "a": "6",
+  "lvl": 3,
+  "steps": [
+   "A regular polygon has as many lines of symmetry as it has sides.",
+   "Count the folds: 3 through opposite vertices and 3 through midpoints.",
+   "Add both kinds of folds to get the total."
+  ]
+ }
+]

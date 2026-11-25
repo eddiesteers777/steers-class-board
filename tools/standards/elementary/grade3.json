@@ -1,0 +1,316 @@
+{
+ "source": "2019 Alabama Course of Study: Mathematics, Grade 3 (3.1-3.26), standard text verified Nov 24, 2026 against the official ALSDE 2019 Course of Study PDF. Denominators for fractions are limited to 2, 3, 4, 6, and 8 in the standard. Domains/clusters are the standard Alabama groupings. No DIGS critical flags exist for 3rd grade in Eddie's files, so critical is false for all — do not treat that as a DIGS marking.",
+ "standards": [
+  {
+   "cluster": "Represent and solve problems involving multiplication and division.",
+   "code": "3.1",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Illustrate the product of two whole numbers as equal groups by identifying the number of groups and the number in each group and represent as a written expression."
+  },
+  {
+   "cluster": "Represent and solve problems involving multiplication and division.",
+   "code": "3.2",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Illustrate and interpret the quotient of two whole numbers as the number of objects in each group or the number of groups when the whole is partitioned into equal shares."
+  },
+  {
+   "cluster": "Represent and solve problems involving multiplication and division.",
+   "code": "3.3",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Solve word situations using multiplication and division within 100 involving equal groups, arrays, and measurement quantities; represent the situation using models, drawings, and equations with a symbol for the unknown number."
+  },
+  {
+   "cluster": "Represent and solve problems involving multiplication and division.",
+   "code": "3.4",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Determine the unknown whole number in a multiplication or division equation relating three whole numbers."
+  },
+  {
+   "cluster": "Understand properties of multiplication and the relationship between multiplication and division.",
+   "code": "3.5",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Develop and apply properties of operations as strategies to multiply and divide."
+  },
+  {
+   "cluster": "Understand properties of multiplication and the relationship between multiplication and division.",
+   "code": "3.6",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Use the relationship between multiplication and division to represent division as an equation with an unknown factor."
+  },
+  {
+   "cluster": "Multiply and divide within 100.",
+   "code": "3.7",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Fluently determine all products obtained by multiplying two one-digit numbers."
+    },
+    {
+     "l": "b",
+     "text": "State automatically all products of two one-digit numbers by the end of third grade."
+    }
+   ],
+   "prior": [],
+   "text": "Use strategies based on properties and patterns of multiplication to demonstrate fluency with multiplication and division within 100."
+  },
+  {
+   "cluster": "Solve problems involving the four operations and identify and explain patterns in arithmetic.",
+   "code": "3.8",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Determine and justify solutions for two-step word problems using the four operations and write an equation with a letter standing for the unknown quantity. Determine reasonableness of answers using number sense, context, mental computation, and estimation strategies including rounding."
+  },
+  {
+   "cluster": "Solve problems involving the four operations and identify and explain patterns in arithmetic.",
+   "code": "3.9",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Recognize and explain arithmetic patterns using properties of operations."
+  },
+  {
+   "cluster": "Use place value understanding and properties of operations to perform multi-digit arithmetic.",
+   "code": "3.10",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Identify the nearest 10 or 100 when rounding whole numbers, using place value understanding."
+  },
+  {
+   "cluster": "Use place value understanding and properties of operations to perform multi-digit arithmetic.",
+   "code": "3.11",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Use various strategies to add and subtract fluently within 1000."
+  },
+  {
+   "cluster": "Use place value understanding and properties of operations to perform multi-digit arithmetic.",
+   "code": "3.12",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Use concrete materials and pictorial models based on place value and properties of operations to find the product of a one-digit whole number by a multiple of ten (from 10 to 90)."
+  },
+  {
+   "cluster": "Develop understanding of fractions as numbers.",
+   "code": "3.13",
+   "critical": false,
+   "domain": "Operations with Numbers: Fractions",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Demonstrate that a unit fraction represents one part of an area model or length model of a whole that has been equally partitioned; explain that a numerator greater than one indicates the number of unit pieces represented by the fraction."
+  },
+  {
+   "cluster": "Develop understanding of fractions as numbers.",
+   "code": "3.14",
+   "critical": false,
+   "domain": "Operations with Numbers: Fractions",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Represent a unit fraction (1/b) on a number line by defining the interval from 0 to 1 as the whole and partitioning it into b equal parts as specified by the denominator."
+    },
+    {
+     "l": "b",
+     "text": "Represent a fraction (a/b) on a number line by marking off a lengths of size (1/b) from zero."
+    }
+   ],
+   "prior": [],
+   "text": "Interpret a fraction as a number on the number line; locate or represent fractions on a number line diagram."
+  },
+  {
+   "cluster": "Develop understanding of fractions as numbers.",
+   "code": "3.15",
+   "critical": false,
+   "domain": "Operations with Numbers: Fractions",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Express whole numbers as fractions and recognize fractions that are equivalent to whole numbers."
+    },
+    {
+     "l": "b",
+     "text": "Compare two fractions with the same numerator or with the same denominator by reasoning about their size (recognizing that fractions must refer to the same whole for the comparison to be valid). Record comparisons using <, >, or = and justify conclusions."
+    }
+   ],
+   "prior": [],
+   "text": "Explain equivalence and compare fractions by reasoning about their size using visual fraction models and number lines."
+  },
+  {
+   "cluster": "Represent and interpret data.",
+   "code": "3.16",
+   "critical": false,
+   "domain": "Data Analysis",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Determine a simple probability from a context that includes a picture."
+    },
+    {
+     "l": "b",
+     "text": "Solve one- and two-step 'how many more' and 'how many less' problems using information presented in scaled graphs."
+    }
+   ],
+   "prior": [],
+   "text": "For a given or collected set of data, create a scaled (one-to-many) picture graph and scaled bar graph to represent a data set with several categories."
+  },
+  {
+   "cluster": "Represent and interpret data.",
+   "code": "3.17",
+   "critical": false,
+   "domain": "Data Analysis",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Measure lengths using rulers marked with halves and fourths of an inch to generate data and create a line plot marked off in appropriate units to display the data."
+  },
+  {
+   "cluster": "Solve problems involving measurement and estimation of intervals of time, liquid volumes, and masses of objects.",
+   "code": "3.18",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Solve real-world problems involving addition and subtraction of time intervals in minutes by representing the problem on a number line diagram."
+    }
+   ],
+   "prior": [],
+   "text": "Tell and write time to the nearest minute; measure time intervals in minutes (within 90 minutes)."
+  },
+  {
+   "cluster": "Solve problems involving measurement and estimation of intervals of time, liquid volumes, and masses of objects.",
+   "code": "3.19",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use the four operations to solve one-step word problems involving masses or volumes given in the same metric units."
+    }
+   ],
+   "prior": [],
+   "text": "Estimate and measure liquid volumes and masses of objects using liters (l), grams (g), and kilograms (kg)."
+  },
+  {
+   "cluster": "Geometric measurement: understand concepts of area and relate area to multiplication and to addition.",
+   "code": "3.20",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Find the area of a rectangle with whole number side lengths by tiling without gaps or overlays and counting unit squares."
+  },
+  {
+   "cluster": "Geometric measurement: understand concepts of area and relate area to multiplication and to addition.",
+   "code": "3.21",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Count unit squares (square cm, square m, square in, square ft, and improvised or non-standard units) to determine area."
+  },
+  {
+   "cluster": "Geometric measurement: understand concepts of area and relate area to multiplication and to addition.",
+   "code": "3.22",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Relate area to the operations of multiplication using real-world problems, concrete materials, mathematical reasoning, and the distributive property."
+  },
+  {
+   "cluster": "Geometric measurement: understand concepts of area and relate area to multiplication and to addition.",
+   "code": "3.23",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Decompose rectilinear figures into smaller rectangles to find the area, using concrete materials."
+  },
+  {
+   "cluster": "Geometric measurement: recognize perimeter as an attribute of plane figures and distinguish between linear and area measures.",
+   "code": "3.24",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Construct rectangles with the same perimeter and different areas or the same area and different perimeters."
+  },
+  {
+   "cluster": "Geometric measurement: recognize perimeter as an attribute of plane figures and distinguish between linear and area measures.",
+   "code": "3.25",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Solve real-world problems involving perimeters of polygons, including finding the perimeter given the side lengths and finding an unknown side length of rectangles."
+  },
+  {
+   "cluster": "Reason with shapes and their attributes.",
+   "code": "3.26",
+   "critical": false,
+   "domain": "Geometry",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Draw examples of quadrilaterals that are and are not rhombuses, rectangles, and squares."
+    }
+   ],
+   "prior": [],
+   "text": "Recognize and describe polygons (up to 8 sides), triangles, and quadrilaterals (rhombuses, rectangles, and squares) based on the number of sides and the presence or absence of square corners."
+  }
+ ]
+}

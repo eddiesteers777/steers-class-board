@@ -1,0 +1,350 @@
+{
+ "source": "2019 Alabama Course of Study: Mathematics, Grade 5 (5.1-5.23), standard text verified Nov 24, 2026 against the ALSDE text as reproduced at goblins.com/standards/math/alabama. Domains/clusters are the standard Alabama groupings. No DIGS critical flags exist for 5th grade in Eddie's files, so critical is false for all.",
+ "standards": [
+  {
+   "code": "5.1",
+   "domain": "Operations and Algebraic Thinking",
+   "cluster": "Write and interpret numerical expressions.",
+   "text": "Write, explain, and evaluate simple numerical expressions involving the four operations to solve up to two-step problems. Include expressions involving parentheses, brackets, or braces, using commutative, associative, and distributive properties.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.2",
+   "domain": "Operations and Algebraic Thinking",
+   "cluster": "Analyze patterns and relationships.",
+   "text": "Generate two numerical patterns using two given rules and complete an input/output table for the data.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use data from an input/output table to identify apparent relationships between corresponding terms."
+    },
+    {
+     "l": "b",
+     "text": "Form ordered pairs from values in an input/output table."
+    },
+    {
+     "l": "c",
+     "text": "Graph ordered pairs from an input/output table on a coordinate plane."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.3",
+   "domain": "Number and Operations in Base Ten",
+   "cluster": "Understand the place value system.",
+   "text": "Using models and quantitative reasoning, explain that in a multi-digit number, including decimals, a digit in any place represents ten times what it represents in the place to its right and 1/10 of what it represents in the place to its left.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Explain patterns in the number of zeros of the product when multiplying a number by powers of 10, using whole-number exponents to denote powers of 10."
+    },
+    {
+     "l": "b",
+     "text": "Explain patterns in the placement of the decimal point when a decimal is multiplied or divided by a power of 10, using whole-number exponents to denote powers of 10."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.4",
+   "domain": "Number and Operations in Base Ten",
+   "cluster": "Understand the place value system.",
+   "text": "Read, write, and compare decimals to thousandths.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Read and write decimals to thousandths using base-ten numerals, number names, and expanded form."
+    },
+    {
+     "l": "b",
+     "text": "Compare two decimals to thousandths based on the meaning of the digits in each place, using >, =, and < to record the results of comparisons."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.5",
+   "domain": "Number and Operations in Base Ten",
+   "cluster": "Understand the place value system.",
+   "text": "Use place value understanding to round decimals to thousandths.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.6",
+   "domain": "Number and Operations in Base Ten",
+   "cluster": "Perform operations with multi-digit whole numbers and with decimals to hundredths.",
+   "text": "Fluently multiply multi-digit whole numbers using the standard algorithm.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.7",
+   "domain": "Number and Operations in Base Ten",
+   "cluster": "Perform operations with multi-digit whole numbers and with decimals to hundredths.",
+   "text": "Use strategies based on place value, properties of operations, and/or the relationship between multiplication and division to find whole-number quotients and remainders with up to four-digit dividends and two-digit divisors. Illustrate and explain the calculation by using equations, rectangular arrays, and/or area models.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.8",
+   "domain": "Number and Operations in Base Ten",
+   "cluster": "Perform operations with multi-digit whole numbers and with decimals to hundredths.",
+   "text": "Add, subtract, multiply, and divide decimals to hundredths using strategies based on place value, properties of operations, and/or the relationships between addition/subtraction and multiplication/division; relate the strategy to a written method, and explain the reasoning used.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use concrete models and drawings to solve problems with decimals to hundredths."
+    },
+    {
+     "l": "b",
+     "text": "Solve problems in a real-world context with decimals to hundredths."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.9",
+   "domain": "Number and Operations - Fractions",
+   "cluster": "Use equivalent fractions as a strategy to add and subtract fractions.",
+   "text": "Model and solve real-world problems involving addition and subtraction of fractions referring to the same whole, including cases of unlike denominators, using visual fraction models or equations to represent the problem. Use benchmark fractions and number sense of fractions to estimate mentally, and assess the reasonableness of answers.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.10",
+   "domain": "Number and Operations - Fractions",
+   "cluster": "Use equivalent fractions as a strategy to add and subtract fractions.",
+   "text": "Add and subtract fractions and mixed numbers with unlike denominators, using fraction equivalence to calculate a sum or difference of fractions or mixed numbers with like denominators.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.11",
+   "domain": "Number and Operations - Fractions",
+   "cluster": "Apply and extend previous understandings of multiplication and division to multiply and divide fractions.",
+   "text": "Solve word problems involving division of whole numbers leading to answers in the form of fractions or mixed numbers.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Model and interpret a fraction as division of the numerator by the denominator (a/b = a ÷ b)"
+    },
+    {
+     "l": "b",
+     "text": "Use visual fraction models, drawings, or equations to represent word problems involving division of whole numbers leading to answers in the form of fractions or mixed numbers"
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.12",
+   "domain": "Number and Operations - Fractions",
+   "cluster": "Apply and extend previous understandings of multiplication and division to multiply and divide fractions.",
+   "text": "Apply and extend previous understandings of multiplication to find the product of a fraction times a whole number or a fraction times a fraction.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use a visual fraction model (area model, set model, or linear model) to show (a/b) x q and create a story context for this equation to interpret the product as a parts of a partition of q into b equal parts."
+    },
+    {
+     "l": "b",
+     "text": "Use a visual fraction model (area model, set model, or linear model) to show (a/b) x (c/d) and create a story context for this equation to interpret the product."
+    },
+    {
+     "l": "c",
+     "text": "Multiply fractional side lengths to find areas of rectangles, and represent fraction products as rectangular areas."
+    },
+    {
+     "l": "d",
+     "text": "Find the area of a rectangle with fractional side lengths by tiling it with unit squares of the appropriate unit fraction side lengths to show that the area is the same as would be found by multiplying the side lengths."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.13",
+   "domain": "Number and Operations - Fractions",
+   "cluster": "Apply and extend previous understandings of multiplication and division to multiply and divide fractions.",
+   "text": "Interpret multiplication as scaling (resizing).",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Compare the size of a product to the size of one factor on the basis of the size of the other factor, without performing the indicated multiplication."
+    },
+    {
+     "l": "b",
+     "text": "Explain why multiplying a given number by a fraction greater than 1 results in a product greater than the given number and relate the principle of fraction equivalence."
+    },
+    {
+     "l": "c",
+     "text": "Explain why multiplying a given number by a fraction less than 1 results in a product smaller than the given number and relate the principle of fraction equivalence."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.14",
+   "domain": "Number and Operations - Fractions",
+   "cluster": "Apply and extend previous understandings of multiplication and division to multiply and divide fractions.",
+   "text": "Model and solve real-world problems involving multiplication of fractions and mixed numbers using visual fraction models, drawings, or equations to represent the problem.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.15",
+   "domain": "Number and Operations - Fractions",
+   "cluster": "Apply and extend previous understandings of multiplication and division to multiply and divide fractions.",
+   "text": "Apply and extend previous understandings of division to divide unit fractions by whole numbers and whole numbers by unit fractions.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Solve real-world problems involving division of unit fractions by non-zero whole numbers and division of whole numbers by unit fractions and illustrate using visual fraction models, drawings, and equations to represent the problem."
+    },
+    {
+     "l": "b",
+     "text": "Create a story context for a unit fraction divided by a whole number, and use a visual fraction model to show the quotient."
+    },
+    {
+     "l": "c",
+     "text": "Create a story context for a whole number divided by a unit fraction, and use a visual fraction model to show the quotient."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.16",
+   "domain": "Measurement and Data",
+   "cluster": "Represent and interpret data.",
+   "text": "Make a line plot to display a data set of measurements in fractions of a unit (1/2, 1/4, 1/8).",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Add, subtract, multiply, and divide fractions to solve problems involving information presented in line plots."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.17",
+   "domain": "Measurement and Data",
+   "cluster": "Convert like measurement units within a given measurement system.",
+   "text": "Convert among different-sized standard measurement units within a given measurement system and use these conversions in solving multi-step, real-world problems.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.18",
+   "domain": "Measurement and Data",
+   "cluster": "Geometric measurement: understand concepts of volume.",
+   "text": "Identify volume as an attribute of solid figures, and measure volumes by counting unit cubes, using cubic cm, cubic in, cubic ft, and improvised (non-standard) units.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Pack a solid figure without gaps or overlaps using n unit cubes to demonstrate volume as n cubic units."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.19",
+   "domain": "Measurement and Data",
+   "cluster": "Geometric measurement: understand concepts of volume.",
+   "text": "Relate volume to the operations of multiplication and addition, and solve real-world and mathematical problems involving volume.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use the associative property of multiplication to find the volume of a right rectangular prism and relate it to packing the prism with unit cubes. Show that the volume can be determined by multiplying the three edge lengths or by multiplying the height by the area of the base."
+    },
+    {
+     "l": "b",
+     "text": "Apply the formulas V = l x w x h and V = B x h for rectangular prisms to find volumes of right rectangular prisms with whole-number edge lengths in the context of solving real-world and mathematical problems."
+    },
+    {
+     "l": "c",
+     "text": "Find volumes of solid figures composed of two non-overlapping right rectangular prisms by adding the volumes of the two parts, applying this technique to solve real-world problems."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.20",
+   "domain": "Geometry",
+   "cluster": "Graph points on the coordinate plane to solve real-world and mathematical problems.",
+   "text": "Graph points in the first quadrant of the coordinate plane, and interpret coordinate values of points to represent real-world and mathematical problems.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.21",
+   "domain": "Geometry",
+   "cluster": "Classify two-dimensional figures into categories based on their properties.",
+   "text": "Classify triangles according to side length (isosceles, equilateral, scalene) and angle measure (acute, obtuse, right, equiangular).",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.22",
+   "domain": "Geometry",
+   "cluster": "Classify two-dimensional figures into categories based on their properties.",
+   "text": "Classify quadrilaterals in a hierarchy based on properties.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "5.23",
+   "domain": "Geometry",
+   "cluster": "Classify two-dimensional figures into categories based on their properties.",
+   "text": "Explain that attributes belonging to a category of two-dimensional figures also belong to all subcategories of that category.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  }
+ ]
+}

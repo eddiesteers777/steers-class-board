@@ -1,18 +1,19 @@
 /* ==========================================
    Anchor Board — the standards Question Bank: problems written for every Alabama standard in 7th Grade, 8th Grade
-   and 8th Accelerated, each tagged with its standard (and part letter), with a checked answer.
+   and 8th Accelerated, and (Nov 24, 2026) 2nd through 6th Grade (g2..g6, for students who need an earlier grade's
+   skill), each tagged with its standard (and part letter), with a checked answer.
    Built by tools/stdbank/build.py into data/stdbank/<course>.js. Shared by every page that pulls questions:
    the Question Bank page, the Question Maker (and so Vault Raid and every review game), and Claude's copy.
    Items come out in the same shape as js/bank.js extract(): { q, a, cls, kind, std, part?, lvl, choices?, also? }.
    8th Grade problems are also offered to 8th Accelerated, which teaches the same 8th standards (for).
 ========================================== */
-import { STANDARDS } from "../data/standards.js?v=58";
+import { STANDARDS } from "../data/standards.js?v=59";
 
 export const WEEK_ID = "stdbank";
 export const WEEK_LABEL = "Standards bank";
 export const KIND = "Standards bank";
 export const LEVELS = { 1: "On-ramp", 2: "On level", 3: "Stretch" };
-const FILES = ["g7", "g8", "alg1"];
+const FILES = ["g7", "g8", "alg1", "g2", "g3", "g4", "g5", "g6"];
 
 /** Classes whose standards list holds this code (an 8.x problem is for 8th and 8th Accelerated). */
 function classesFor(std) { return Object.keys(STANDARDS).filter((c) => STANDARDS[c].standards.some((s) => s.code === std)); }

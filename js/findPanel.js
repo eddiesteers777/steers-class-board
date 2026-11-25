@@ -20,7 +20,7 @@
    keystroke is a few milliseconds of plain string checks. The search UI is one node kept between redraws, so a redraw
    of the board's panels never drops what is typed or the place in the list.
 ========================================== */
-import { buildIndex, search, browse, another, topicOf, courseFor, COURSES, plain, FIND_KEYS } from "./findCore.js?v=1";
+import { buildIndex, search, browse, another, topicOf, courseFor, COURSES, plain, FIND_KEYS, inFind } from "./findCore.js?v=2";
 
 const RECENT_KEY = "anchorboard-find-recent", RECENT_MAX = 6, PAGE = 30;
 const LEVEL = { 1: "On-ramp", 2: "On level", 3: "Stretch" };
@@ -47,7 +47,8 @@ const changed = () => listeners.forEach((f) => f());
 /** Start reading the bank now (quietly, when the board has a moment), so the first search is instant. */
 export function preloadFind() {
     if (loading) return loading;
-    loading = Promise.all([import("./walkBank.js?v=14"), import("../data/standards.js?v=58")]).then(([wb, sd]) => wb.loadWalkItems().then((items) => {
+    loading = Promise.all([import("./walkBank.js?v=14"), import("../data/standards.js?v=59")]).then(([wb, sd]) => wb.loadWalkItems().then((every) => {
+        const items = every.filter((x) => inFind(x.std));   // 7th, 8th and Algebra I; the 2nd-6th grade bank stays out of Find
         const walkOf = wb.walkOf;
         ITEMS = items; BYID = new Map(items.map((x) => [x.id, x])); IX = buildIndex(items, sd.STANDARDS); changed();
         // Which problems have a worked example (Show Steps): built in small slices so the board never stutters

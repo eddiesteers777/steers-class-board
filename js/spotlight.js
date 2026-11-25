@@ -17,7 +17,7 @@
 import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MATH_LIST, CALC_LIST } from "./boardTools.js?v=80";
 import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker, photoGroupNow, gradOf } from "./panels.js?v=44";
 import { wbIcon } from "./wbIcons.js?v=1";
-import { FIND_KEYS } from "./findCore.js?v=1";
+import { FIND_KEYS } from "./findCore.js?v=2";
 
 let A = null, host = null, onBack = null, tucked = false, sheet = "", picked = "", built = false, lastSig = "", musicHooked = false;
 const PREF = "anchorboard-spot-tucked";

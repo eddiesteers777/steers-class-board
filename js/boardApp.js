@@ -13,7 +13,7 @@ let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
 import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST } from "./boardTools.js?v=80";
-import { FIND_KEYS } from "./findCore.js?v=1";
+import { FIND_KEYS } from "./findCore.js?v=2";
 import { setPhotoStore } from "./myPhotos.js?v=1";
 import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, isOn, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=44";
 import { cleanStickers, renderStickers } from "./stickers.js?v=1";
@@ -27,7 +27,7 @@ import { applySty, styShown, MATCH_BOARD } from "./panelStyle.js?v=3";
 import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=63";
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=90";
 import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes, sendPanel, canSend, mountStageLayer } from "./liveNotes.js?v=20";
-import { findItem } from "./findPanel.js?v=14";
+import { findItem } from "./findPanel.js?v=15";
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 import { notesFrames } from "./notesFrames.js?v=1";
 import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=6";

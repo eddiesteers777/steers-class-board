@@ -17,7 +17,7 @@ for (const [code, e] of Object.entries(STD_EXAMPLES)) {
     if (/\d-\d|\(-|\s-\d|= -/.test(txt)) fail(code + ": uses a hyphen for minus");
 }
 // each class has at least one example at a standard in its course
-for (const [cls, C] of Object.entries(STANDARDS)) {
+for (const [cls, C] of Object.entries(STANDARDS).filter(([, c]) => c.units.length)) {   // timeline classes only, not the g2..g6 bank grades
     const n = C.standards.filter((s) => STD_EXAMPLES[s.code]).length;
     if (!n) fail(cls + ": no examples yet");
 }
