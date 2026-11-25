@@ -165,8 +165,11 @@ data = {
 sys.path.insert(0, HERE)
 from elementary import elementary   # grades 2-6, from tools/standards/elementary/ (no Drive docs needed)
 data.update(elementary())
+from highschool import highschool   # Geometry, Algebra II, Precalculus, Math Modeling, Finite Math (tools/standards/highschool/)
+data.update(highschool())
 head = """// Alabama Course of Study math standards for each class, grouped by the district's units.
 // Grades 2-6 (g2..g6) come from tools/standards/elementary/ and have no district units.
+// High school courses (geo, alg2, precalc, mm, afm) come from tools/standards/highschool/ and have no district units.
 // GENERATED from Eddie's Drive docs (Critical Standards "DIGS" docs and the unit/topic docs). Do not hand-edit;
 // rebuild instead. Standard wording is copied as written. A * in the DIGS docs marks a critical standard.
 // Links, Schoology codes and district teacher notes are left out on purpose: this repo is public.

@@ -7,7 +7,7 @@
    along; Cards is the four lanes, for changing the order and marking status. ?view=cards opens the cards.
    ?demo keeps everything on this device only. ?cls=7th opens a class.
 ========================================== */
-import { STANDARDS } from "../data/standards.js?v=59";
+import { STANDARDS } from "../data/standards.js?v=60";
 import { SCHOOL_YEAR, today, short, daysLeftInNineWeeks, nineWeeksOf } from "./schoolCal.js?v=59";
 import * as T from "./timelineCore.js?v=3";
 import { drawMap } from "./timelineMap.js?v=2";

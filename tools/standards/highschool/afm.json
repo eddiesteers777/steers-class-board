@@ -1,0 +1,407 @@
+{
+ "source": "2019 Alabama Course of Study: Mathematics, Applications of Finite Mathematics (AFM.1-AFM.32), standard text verified against the official ALSDE PDF (alabama-cos-mathematics-2019.pdf). Domains/clusters are the standard Alabama groupings. No DIGS critical flags exist for these courses in Eddie's files, so critical is false for all — do not treat that as a DIGS marking.",
+ "standards": [
+  {
+   "code": "AFM.1",
+   "domain": "Logical Reasoning",
+   "cluster": "The validity of a statement or argument can be determined using the models and language of first order logic.",
+   "text": "Represent logic statements in words, with symbols, and in truth tables, including conditional, biconditional, converse, inverse, contrapositive, and quantified statements.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.2",
+   "domain": "Logical Reasoning",
+   "cluster": "The validity of a statement or argument can be determined using the models and language of first order logic.",
+   "text": "Represent logic operations such as and, or, not, nor, and x or (exclusive or) in words, with symbols, and in truth tables.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.3",
+   "domain": "Logical Reasoning",
+   "cluster": "The validity of a statement or argument can be determined using the models and language of first order logic.",
+   "text": "Use truth tables to solve application-based logic problems and determine the truth value of simple and compound statements including negations and implications.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Determine whether statements are equivalent and construct equivalent statements."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.4",
+   "domain": "Logical Reasoning",
+   "cluster": "The validity of a statement or argument can be determined using the models and language of first order logic.",
+   "text": "Determine whether a logical argument is valid or invalid, using laws of logic such as the law of syllogism and the law of detachment.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Determine whether a logical argument is a tautology or a contradiction."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.5",
+   "domain": "Logical Reasoning",
+   "cluster": "The validity of a statement or argument can be determined using the models and language of first order logic.",
+   "text": "Prove a statement indirectly by proving the contrapositive of the statement.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.6",
+   "domain": "Advanced Counting",
+   "cluster": "Complex counting problems can be solved efficiently using a variety of techniques.",
+   "text": "Use multiple representations and methods for counting objects and developing more efficient counting techniques. Note: Representations and methods may include tree diagrams, lists, manipulatives, overcounting methods, recursive patterns, and explicit formulas.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.7",
+   "domain": "Advanced Counting",
+   "cluster": "Complex counting problems can be solved efficiently using a variety of techniques.",
+   "text": "Develop and use the Fundamental Counting Principle for counting independent and dependent events.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use various counting models (including tree diagrams and lists) to identify the distinguishing factors of a context in which the Fundamental Counting Principle can be applied."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.8",
+   "domain": "Advanced Counting",
+   "cluster": "Complex counting problems can be solved efficiently using a variety of techniques.",
+   "text": "Using application-based problems, develop formulas for permutations, combinations, and combinations with repetition and compare student-derived formulas to standard representations of the formulas.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Identify differences between applications of combinations and permutations."
+    },
+    {
+     "l": "b",
+     "text": "Using application-based problems, calculate the number of permutations of a set with n elements. Calculate the number of permutations of r elements taken from a set of n elements."
+    },
+    {
+     "l": "c",
+     "text": "Using application-based problems, calculate the number of subsets of size r that can be chosen from a set of n elements, explaining this number as the number of combinations “n choose r.”"
+    },
+    {
+     "l": "d",
+     "text": "Using application-based problems, calculate the number of combinations with repetitions of r elements from a set of n elements as “(n + r – 1) choose r.”"
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.9",
+   "domain": "Advanced Counting",
+   "cluster": "Complex counting problems can be solved efficiently using a variety of techniques.",
+   "text": "Use various counting techniques to determine probabilities of events.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.10",
+   "domain": "Advanced Counting",
+   "cluster": "Complex counting problems can be solved efficiently using a variety of techniques.",
+   "text": "Use the Pigeonhole Principle to solve counting problems.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.11",
+   "domain": "Recursion",
+   "cluster": "Recursion is a method of problem solving where a given relation or routine operation is repeatedly applied.",
+   "text": "Find patterns in application problems involving series and sequences, and develop recursive and explicit formulas as models to understand and describe sequential change.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.12",
+   "domain": "Recursion",
+   "cluster": "Recursion is a method of problem solving where a given relation or routine operation is repeatedly applied.",
+   "text": "Determine characteristics of sequences, including the Fibonacci Sequence, the triangular numbers, and pentagonal numbers.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.13",
+   "domain": "Recursion",
+   "cluster": "Recursion is a method of problem solving where a given relation or routine operation is repeatedly applied.",
+   "text": "Use the recursive process and difference equations to create fractals, population growth models, sequences, and series.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.14",
+   "domain": "Recursion",
+   "cluster": "Recursion is a method of problem solving where a given relation or routine operation is repeatedly applied.",
+   "text": "Use mathematical induction to prove statements involving the positive integers.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.15",
+   "domain": "Recursion",
+   "cluster": "Recursion is a method of problem solving where a given relation or routine operation is repeatedly applied.",
+   "text": "Develop and apply connections between Pascal’s Triangle and combinations.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.16",
+   "domain": "Networks",
+   "cluster": "Complex problems can be modeled using vertex and edge graphs and characteristics of the different structures are used to find solutions.",
+   "text": "Use vertex and edge graphs to model mathematical situations involving networks.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Identify properties of simple graphs, complete graphs, bipartite graphs, complete bipartite graphs, and trees."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.17",
+   "domain": "Networks",
+   "cluster": "Complex problems can be modeled using vertex and edge graphs and characteristics of the different structures are used to find solutions.",
+   "text": "Solve problems involving networks through investigation and application of existence and nonexistence of Euler paths, Euler circuits, Hamilton paths, and Hamilton circuits. Note: Real-world contexts modeled by graphs may include roads or communication networks.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Develop optimal solutions of application-based problems using existing and student-created algorithms."
+    },
+    {
+     "l": "b",
+     "text": "Give an argument for graph properties."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.18",
+   "domain": "Networks",
+   "cluster": "Complex problems can be modeled using vertex and edge graphs and characteristics of the different structures are used to find solutions.",
+   "text": "Apply algorithms relating to minimum weight spanning trees, networks, flows, and Steiner trees.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use shortest path techniques to find optimal shipping routes."
+    },
+    {
+     "l": "b",
+     "text": "Show that every connected graph has a minimal spanning tree."
+    },
+    {
+     "l": "c",
+     "text": "Use Kruskal’s Algorithm and Prim’s Algorithm to determine the minimal spanning tree of a weighted graph."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.19",
+   "domain": "Networks",
+   "cluster": "Complex problems can be modeled using vertex and edge graphs and characteristics of the different structures are used to find solutions.",
+   "text": "Use vertex-coloring, edge-coloring, and matching techniques to solve application-based problems involving conflict.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.20",
+   "domain": "Networks",
+   "cluster": "Complex problems can be modeled using vertex and edge graphs and characteristics of the different structures are used to find solutions.",
+   "text": "Determine the minimum time to complete a project using algorithms to schedule tasks in order, including critical path analysis, the list-processing algorithm, and student-created algorithms.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.21",
+   "domain": "Networks",
+   "cluster": "Complex problems can be modeled using vertex and edge graphs and characteristics of the different structures are used to find solutions.",
+   "text": "Use the adjacency matrix of a graph to determine the number of walks of length n in a graph.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.22",
+   "domain": "Fairness and Democracy",
+   "cluster": "Various methods for determining a winner in a voting system can result in paradoxes or other issues of fairness.",
+   "text": "Analyze advantages and disadvantages of different types of ballot voting systems.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Identify impacts of using a preferential ballot voting system and compare it to single candidate voting and other voting systems."
+    },
+    {
+     "l": "b",
+     "text": "Analyze the impact of legal and cultural features of political systems on the mathematical aspects of elections."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.23",
+   "domain": "Fairness and Democracy",
+   "cluster": "Various methods for determining a winner in a voting system can result in paradoxes or other issues of fairness.",
+   "text": "Apply a variety of methods for determining a winner using a preferential ballot voting system, including plurality, majority, run-off with majority, sequential run-off with majority, Borda count, pairwise comparison, Condorcet, and approval voting.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.24",
+   "domain": "Fairness and Democracy",
+   "cluster": "Various methods for determining a winner in a voting system can result in paradoxes or other issues of fairness.",
+   "text": "Identify issues of fairness for different methods of determining a winner using a preferential voting ballot and other voting systems and identify paradoxes that can result.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.25",
+   "domain": "Fairness and Democracy",
+   "cluster": "Various methods for determining a winner in a voting system can result in paradoxes or other issues of fairness.",
+   "text": "Use methods of weighted voting and identify issues of fairness related to weighted voting.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Distinguish between weight and power in voting."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.26",
+   "domain": "Fair Division",
+   "cluster": "Methods used to solve non-trivial problems of division of objects often reveal issues of fairness.",
+   "text": "Explain and apply mathematical aspects of fair division, with respect to classic problems of apportionment, cake cutting, and estate division. Include applications in other contexts and modern situations.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.27",
+   "domain": "Fair Division",
+   "cluster": "Methods used to solve non-trivial problems of division of objects often reveal issues of fairness.",
+   "text": "Identify and apply historic methods of apportionment for voting districts including Hamilton, Jefferson, Adams, Webster, and Huntington-Hill. Identify issues of fairness and paradoxes that may result from methods.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.28",
+   "domain": "Fair Division",
+   "cluster": "Methods used to solve non-trivial problems of division of objects often reveal issues of fairness.",
+   "text": "Use spreadsheets to examine apportionment methods in large problems.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.29",
+   "domain": "Information Processing",
+   "cluster": "Effective systems for sending and receiving information include components that impact accuracy, efficiency, and security.",
+   "text": "Critically analyze issues related to information processing including accuracy, efficiency, and security.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.30",
+   "domain": "Information Processing",
+   "cluster": "Effective systems for sending and receiving information include components that impact accuracy, efficiency, and security.",
+   "text": "Apply ciphers (encryption and decryption algorithms) and cryptosystems for encrypting and decrypting including symmetric-key or public-key systems.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use modular arithmetic to apply RSA (Rivest-Shamir-Adleman) public-key cryptosystems."
+    },
+    {
+     "l": "b",
+     "text": "Use matrices and their inverses to encode and decode messages."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.31",
+   "domain": "Information Processing",
+   "cluster": "Effective systems for sending and receiving information include components that impact accuracy, efficiency, and security.",
+   "text": "Apply error-detecting codes and error-correcting codes to determine accuracy of information processing.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "AFM.32",
+   "domain": "Information Processing",
+   "cluster": "Effective systems for sending and receiving information include components that impact accuracy, efficiency, and security.",
+   "text": "Apply methods of data compression.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  }
+ ]
+}
