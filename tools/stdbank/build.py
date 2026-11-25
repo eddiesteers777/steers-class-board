@@ -21,8 +21,13 @@ COURSES = [  # module, output, class it is written for, label
     ("g4", "g4", "g4", "4th Grade"),
     ("g5", "g5", "g5", "5th Grade"),
     ("g6", "g6", "g6", "6th Grade"),
+    ("geo", "geo", "geo", "Geometry"),   # high school: tools/stdbank/<course>.json through grades.py
+    ("alg2", "alg2", "alg2", "Algebra II"),
+    ("precalc", "precalc", "precalc", "Precalculus"),
+    ("mm", "mm", "mm", "Math Modeling"),
+    ("afm", "afm", "afm", "Finite Math"),
 ]
-STRICT_STEPS = {"g2", "g3", "g4", "g5", "g6"}   # exactly 3 steps, each at most 80 characters (Eddie, Nov 24 2026)
+STRICT_STEPS = {"g2", "g3", "g4", "g5", "g6", "geo", "alg2", "precalc", "mm", "afm"}   # exactly 3 steps, each at most 80 characters (Eddie, Nov 24 2026)
 
 
 def standards():

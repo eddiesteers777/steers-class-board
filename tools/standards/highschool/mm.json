@@ -1,0 +1,337 @@
+{
+ "source": "2019 Alabama Course of Study: Mathematics, Mathematical Modeling (MM.1-MM.22), standard text verified against the official ALSDE PDF (alabama-cos-mathematics-2019.pdf). Domains/clusters are the standard Alabama groupings. No DIGS critical flags exist for these courses in Eddie's files, so critical is false for all — do not treat that as a DIGS marking.",
+ "standards": [
+  {
+   "code": "MM.1",
+   "domain": "Modeling",
+   "cluster": "Mathematical modeling and statistical problem-solving are extensive, cyclical processes that can be used to answer significant real-world problems.",
+   "text": "Use the full Mathematical Modeling Cycle or Statistical Problem-Solving Cycle to answer a real-world problem of particular student interest, incorporating standards from across the course.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.2",
+   "domain": "Financial Planning and Management",
+   "cluster": "Mathematical models involving growth and decay are useful in solving real-world problems involving borrowing and investing; spreadsheets are a frequently-used and powerful tool to assist with modeling financial situations.",
+   "text": "Use elements of the Mathematical Modeling Cycle to solve real-world problems involving finances.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.3",
+   "domain": "Financial Planning and Management",
+   "cluster": "Mathematical models involving growth and decay are useful in solving real-world problems involving borrowing and investing; spreadsheets are a frequently-used and powerful tool to assist with modeling financial situations.",
+   "text": "Organize and display financial information using arithmetic sequences to represent simple interest and straight-line depreciation.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.4",
+   "domain": "Financial Planning and Management",
+   "cluster": "Mathematical models involving growth and decay are useful in solving real-world problems involving borrowing and investing; spreadsheets are a frequently-used and powerful tool to assist with modeling financial situations.",
+   "text": "Organize and display financial information using geometric sequences to represent compound interest and proportional depreciation, including periodic (yearly, monthly, weekly) and continuous compounding.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Explain the relationship between annual percentage yield (APY) and annual percentage rate (APR) as values for r in the formulas A=P(1+r)t and A=Pert."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.5",
+   "domain": "Financial Planning and Management",
+   "cluster": "Mathematical models involving growth and decay are useful in solving real-world problems involving borrowing and investing; spreadsheets are a frequently-used and powerful tool to assist with modeling financial situations.",
+   "text": "Compare simple and compound interest, and straight-line and proportional depreciation.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.6",
+   "domain": "Financial Planning and Management",
+   "cluster": "Mathematical models involving growth and decay are useful in solving real-world problems involving borrowing and investing; spreadsheets are a frequently-used and powerful tool to assist with modeling financial situations.",
+   "text": "Investigate growth and reduction of credit card debt using spreadsheets, including variables such as beginning balance, payment structures, credits, interest rates, new purchases, finance charges, and fees.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.7",
+   "domain": "Financial Planning and Management",
+   "cluster": "Mathematical models involving growth and decay are useful in solving real-world problems involving borrowing and investing; spreadsheets are a frequently-used and powerful tool to assist with modeling financial situations.",
+   "text": "Compare and contrast housing finance options including renting, leasing to purchase, purchasing with a mortgage, and purchasing with cash.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Research and evaluate various mortgage products available to consumers."
+    },
+    {
+     "l": "b",
+     "text": "Compare monthly mortgage payments for different terms, interest rates, and down payments."
+    },
+    {
+     "l": "c",
+     "text": "Analyze the financial consequence of buying a home (mortgage payments vs. potentially increasing resale value) versus investing the money saved when renting, assuming that renting is the less expensive option."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.8",
+   "domain": "Financial Planning and Management",
+   "cluster": "Mathematical models involving growth and decay are useful in solving real-world problems involving borrowing and investing; spreadsheets are a frequently-used and powerful tool to assist with modeling financial situations.",
+   "text": "Investigate the advantages and disadvantages of various means of paying for an automobile, including leasing, purchasing by cash, and purchasing by loan.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.9",
+   "domain": "Design in Three Dimensions",
+   "cluster": "Two- and three-dimensional representations, coordinates systems, geometric transformations, and scale models are useful tools in planning, designing, and constructing solutions to real-world problems.",
+   "text": "Use the Mathematical Modeling Cycle to solve real-world problems involving the design of three-dimensional objects.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.10",
+   "domain": "Design in Three Dimensions",
+   "cluster": "Two- and three-dimensional representations, coordinates systems, geometric transformations, and scale models are useful tools in planning, designing, and constructing solutions to real-world problems.",
+   "text": "Construct a two-dimensional visual representation of a three-dimensional object or structure.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Determine the level of precision and the appropriate tools for taking the measurements in constructing a two-dimensional visual representation of a three-dimensional object or structure."
+    },
+    {
+     "l": "b",
+     "text": "Create an elevation drawing to represent a given solid structure, using technology where appropriate."
+    },
+    {
+     "l": "c",
+     "text": "Determine which measurements cannot be taken directly and must be calculated based on other measurements when constructing a two-dimensional visual representation of a three-dimensional object or structure."
+    },
+    {
+     "l": "d",
+     "text": "Determine an appropriate means to visually represent an object or structure, such as drawings on paper or graphics on computer screens."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.11",
+   "domain": "Design in Three Dimensions",
+   "cluster": "Two- and three-dimensional representations, coordinates systems, geometric transformations, and scale models are useful tools in planning, designing, and constructing solutions to real-world problems.",
+   "text": "Plot coordinates on a three-dimensional Cartesian coordinate system and use relationships between coordinates to solve design problems.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Describe the features of a three-dimensional Cartesian coordinate system and use them to graph points."
+    },
+    {
+     "l": "b",
+     "text": "Graph a point in space as the vertex of a right prism drawn in the appropriate octant with edges along the x, y, and z axes."
+    },
+    {
+     "l": "c",
+     "text": "Find the distance between two objects in space given the coordinates of each."
+    },
+    {
+     "l": "d",
+     "text": "Find the midpoint between two objects in space given the coordinates of each."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.12",
+   "domain": "Design in Three Dimensions",
+   "cluster": "Two- and three-dimensional representations, coordinates systems, geometric transformations, and scale models are useful tools in planning, designing, and constructing solutions to real-world problems.",
+   "text": "Use technology and other tools to explore the results of simple transformations using three-dimensional coordinates, including translations in the x, y, and/or z directions; rotations of 90º, 180º, or 270º about the x, y, and z axes; reflections over the xy, yz, and xy planes; and dilations from the origin.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.13",
+   "domain": "Design in Three Dimensions",
+   "cluster": "Two- and three-dimensional representations, coordinates systems, geometric transformations, and scale models are useful tools in planning, designing, and constructing solutions to real-world problems.",
+   "text": "Create a scale model of a complex three-dimensional structure based on observed measurements and indirect measurements, using translations, reflections, rotations, and dilations of its components.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.14",
+   "domain": "Creating Functions to Model Change in the Environment and Society",
+   "cluster": "Functions can be used to represent general trends in conditions that change over time and to predict future conditions based on present observations.",
+   "text": "Use elements of the Mathematical Modeling Cycle to make predictions based on measurements that change over time, including motion, growth, decay, and cycling.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.15",
+   "domain": "Creating Functions to Model Change in the Environment and Society",
+   "cluster": "Functions can be used to represent general trends in conditions that change over time and to predict future conditions based on present observations.",
+   "text": "Use regression with statistical graphing technology to determine an equation that best fits a set of bivariate data, including nonlinear patterns.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Create a scatter plot with a sufficient number of data points to predict a pattern."
+    },
+    {
+     "l": "b",
+     "text": "Describe the overall relationship between two quantitative variables (increase, decrease, linearity, concavity, extrema, inflection) or pattern of change."
+    },
+    {
+     "l": "c",
+     "text": "Make a prediction based upon patterns."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.16",
+   "domain": "Creating Functions to Model Change in the Environment and Society",
+   "cluster": "Functions can be used to represent general trends in conditions that change over time and to predict future conditions based on present observations.",
+   "text": "Create a linear representation of non-linear data and interpret solutions, using technology and the process of linearization with logarithms.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.17",
+   "domain": "Modeling to Interpret Statistical Studies",
+   "cluster": "Statistical studies allow a conclusion to be drawn about a population that is too large to survey completely or about cause and effect in an experiment.",
+   "text": "Use the Statistical Problem Solving Cycle to answer real-world questions.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.18",
+   "domain": "Modeling to Interpret Statistical Studies",
+   "cluster": "Statistical studies allow a conclusion to be drawn about a population that is too large to survey completely or about cause and effect in an experiment.",
+   "text": "Construct a probability distribution based on empirical observations of a variable.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Estimate the probability of each value for a random variable based on empirical observations or simulations, using technology."
+    },
+    {
+     "l": "b",
+     "text": "Represent a probability distribution by a relative frequency histogram and/or a cumulative relative frequency graph."
+    },
+    {
+     "l": "c",
+     "text": "Find the mean, standard deviation, median, and interquartile range of a probability distribution and make long-term predictions about future possibilities. Determine which measures are most appropriate based upon the shape of the distribution."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.19",
+   "domain": "Modeling to Interpret Statistical Studies",
+   "cluster": "Statistical studies allow a conclusion to be drawn about a population that is too large to survey completely or about cause and effect in an experiment.",
+   "text": "Construct a sampling distribution for a random event or random sample.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use the binomial theorem to construct the sampling distribution for the number of successes in a binary event or the number of positive responses to a yes/no question in a random sample."
+    },
+    {
+     "l": "b",
+     "text": "Use the normal approximation of a proportion from a random event or sample when conditions are met."
+    },
+    {
+     "l": "c",
+     "text": "Use the central limit theorem to construct a normal sampling distribution for the sample mean when conditions are met."
+    },
+    {
+     "l": "d",
+     "text": "Find the long-term probability of a given range of outcomes from a random event or random sample."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.20",
+   "domain": "Modeling to Interpret Statistical Studies",
+   "cluster": "Statistical studies allow a conclusion to be drawn about a population that is too large to survey completely or about cause and effect in an experiment.",
+   "text": "Perform inference procedures based on the results of samples and experiments.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use a point estimator and margin of error to construct a confidence interval for a proportion or mean."
+    },
+    {
+     "l": "b",
+     "text": "Interpret a confidence interval in context and use it to make strategic decisions."
+    },
+    {
+     "l": "c",
+     "text": "Perform a significance test for null and alternative hypotheses."
+    },
+    {
+     "l": "d",
+     "text": "Interpret the significance level of a test in the context of error probabilities, and use the results to make strategic decisions."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.21",
+   "domain": "Modeling to Interpret Statistical Studies",
+   "cluster": "Statistical studies allow a conclusion to be drawn about a population that is too large to survey completely or about cause and effect in an experiment.",
+   "text": "Critique the validity of reported conclusions from statistical studies in terms of bias and random error probabilities.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "MM.22",
+   "domain": "Modeling to Interpret Statistical Studies",
+   "cluster": "Statistical studies allow a conclusion to be drawn about a population that is too large to survey completely or about cause and effect in an experiment.",
+   "text": "Conduct a randomized study on a topic of student interest (sample or experiment) and draw conclusions based upon the results.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  }
+ ]
+}

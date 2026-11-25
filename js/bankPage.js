@@ -8,15 +8,15 @@ import { WEEKS as PUBLISHED } from "../data/weeks.js?v=63";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { extract, norm, KINDS, saveBankWeek } from "./bank.js?v=2";
 import { rich } from "./weekSheets.js?v=60";
-import { STANDARDS } from "../data/standards.js?v=59";
-import { loadStdBank, inClass, coverage, LEVELS, WEEK_ID, WEEK_LABEL, KIND } from "./stdBank.js?v=5";
+import { STANDARDS } from "../data/standards.js?v=60";
+import { loadStdBank, inClass, coverage, LEVELS, WEEK_ID, WEEK_LABEL, KIND } from "./stdBank.js?v=6";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
 const $ = (id) => document.getElementById(id);
 const el = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
 const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
-const LABEL = { "8th": "8th Grade", "7th": "7th Grade", "8th-acc": "8th Accelerated", "g2": "2nd Grade", "g3": "3rd Grade", "g4": "4th Grade", "g5": "5th Grade", "g6": "6th Grade" };
+const LABEL = { "8th": "8th Grade", "7th": "7th Grade", "8th-acc": "8th Accelerated", "g2": "2nd Grade", "g3": "3rd Grade", "g4": "4th Grade", "g5": "5th Grade", "g6": "6th Grade", "geo": "Geometry", "alg2": "Algebra II", "precalc": "Precalculus", "mm": "Math Modeling", "afm": "Finite Math" };
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 const PAGE = 60;
 // Alabama standard wording by code (from data/standards.js, built from the curriculum docs), for the chip and filter labels.
