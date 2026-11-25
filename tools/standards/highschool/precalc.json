@@ -1,0 +1,482 @@
+{
+ "source": "2019 Alabama Course of Study: Mathematics, Precalculus (Precalc.1-Precalc.37), standard text verified against the official ALSDE PDF (alabama-cos-mathematics-2019.pdf). Domains/clusters are the standard Alabama groupings. No DIGS critical flags exist for these courses in Eddie's files, so critical is false for all — do not treat that as a DIGS marking.",
+ "standards": [
+  {
+   "code": "Precalc.1",
+   "domain": "Number and Quantity",
+   "cluster": "The Complex Number System: Perform arithmetic operations with complex numbers.",
+   "text": "Define the constant e in a variety of contexts.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Explore the behavior of the function y=e^x and its applications."
+    },
+    {
+     "l": "b",
+     "text": "Explore the behavior of ln(x), the logarithmic function with base e, and its applications."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.2",
+   "domain": "Number and Quantity",
+   "cluster": "The Complex Number System: Perform arithmetic operations with complex numbers.",
+   "text": "Find the conjugate of a complex number; use conjugates to find moduli and quotients of complex numbers.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.3",
+   "domain": "Number and Quantity",
+   "cluster": "Represent complex numbers and their operations on the complex plane.",
+   "text": "Represent complex numbers on the complex plane in rectangular and polar form (including real and imaginary numbers), and explain why the rectangular and polar forms of a given complex number represent the same number.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.4",
+   "domain": "Number and Quantity",
+   "cluster": "Represent complex numbers and their operations on the complex plane.",
+   "text": "Represent addition, subtraction, multiplication, and conjugation of complex numbers geometrically on the complex plane; use properties of this representation for computation.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.5",
+   "domain": "Number and Quantity",
+   "cluster": "Represent complex numbers and their operations on the complex plane.",
+   "text": "Calculate the distance between numbers in the complex plane as the modulus of the difference, and the midpoint of a segment as the average of the numbers at its endpoints.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.6",
+   "domain": "Number and Quantity",
+   "cluster": "Use complex numbers in polynomial identities and equations.",
+   "text": "Analyze possible zeros for a polynomial function over the complex numbers by applying the Fundamental Theorem of Algebra, using a graph of the function, or factoring with algebraic identities.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.7",
+   "domain": "Number and Quantity",
+   "cluster": "Limits: Understand limits of functions.",
+   "text": "Determine numerically, algebraically, and graphically the limits of functions at specific values and at infinity.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Apply limits of functions at specific values and at infinity in problems involving convergence and divergence."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.8",
+   "domain": "Number and Quantity",
+   "cluster": "Vector and Matrix Quantities: Represent and model with vector quantities.",
+   "text": "Explain that vector quantities have both magnitude and direction. Represent vector quantities by directed line segments, and use appropriate symbols for vectors and their magnitudes.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.9",
+   "domain": "Number and Quantity",
+   "cluster": "Vector and Matrix Quantities: Represent and model with vector quantities.",
+   "text": "Find the components of a vector by subtracting the coordinates of an initial point from the coordinates of a terminal point.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.10",
+   "domain": "Number and Quantity",
+   "cluster": "Vector and Matrix Quantities: Represent and model with vector quantities.",
+   "text": "Solve problems involving velocity and other quantities that can be represented by vectors.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.11",
+   "domain": "Number and Quantity",
+   "cluster": "Vector and Matrix Quantities: Represent and model with vector quantities.",
+   "text": "Find the scalar (dot) product of two vectors as the sum of the products of corresponding components and explain its relationship to the cosine of the angle formed by two vectors.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.12",
+   "domain": "Number and Quantity",
+   "cluster": "Perform operations on vectors.",
+   "text": "Add and subtract vectors.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Add vectors end-to-end, component-wise, and by the parallelogram rule, understanding that the magnitude of a sum of two vectors is not always the sum of the magnitudes."
+    },
+    {
+     "l": "b",
+     "text": "Given two vectors in magnitude and direction form, determine the magnitude and direction of their sum."
+    },
+    {
+     "l": "c",
+     "text": "Explain vector subtraction, v – w, as v + (–w), where –w is the additive inverse of w, with the same magnitude as w and pointing in the opposite direction. Represent vector subtraction graphically by connecting the tips in the appropriate order, and perform vector subtraction component-wise."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.13",
+   "domain": "Number and Quantity",
+   "cluster": "Perform operations on vectors.",
+   "text": "Multiply a vector by a scalar.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Represent scalar multiplication graphically by scaling vectors and possibly reversing their direction; perform scalar multiplication component-wise."
+    },
+    {
+     "l": "b",
+     "text": "Compute the magnitude of a scalar multiple cv using ||cv|| = |c|v. Compute the direction of cv knowing that when |c|v ≠ 0, the direction of cv is either along v (for c > 0) or against v (for c < 0)."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.14",
+   "domain": "Number and Quantity",
+   "cluster": "Perform operations on vectors.",
+   "text": "Multiply a vector (regarded as a matrix with one column) by a matrix of suitable dimensions to produce another vector. Work with matrices as transformations of vectors.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.15",
+   "domain": "Algebra",
+   "cluster": "Seeing Structure in Expressions: Write expressions in equivalent forms to solve problems.",
+   "text": "Derive the formula for the sum of a finite geometric series (when the common ratio is not 1), and use the formula to solve problems, extending to infinite geometric series.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.16",
+   "domain": "Algebra",
+   "cluster": "Arithmetic With Polynomials and Rational Expressions: Understand the relationship between zeros and factors of polynomials.",
+   "text": "Derive and apply the Remainder Theorem: For a polynomial p(x) and a number a, the remainder on division by x – a is p(a), so p(a) = 0 if and only if (x – a) is a factor of p(x).",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.17",
+   "domain": "Algebra",
+   "cluster": "Use polynomial identities to solve problems.",
+   "text": "Know and apply the Binomial Theorem for the expansion of (x + y)n in powers of x and y for a positive integer, n, where x and y are any numbers.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.18",
+   "domain": "Algebra",
+   "cluster": "Rewrite rational expressions.",
+   "text": "Rewrite simple rational expressions in different forms; write a(x)/b(x) in the form q(x) + r(x)/b(x), where a(x), b(x), q(x), and r(x) are polynomials with the degree of r(x) less than the degree of b(x), using inspection, long division, or, for the more complicated cases, a computer algebra system.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.19",
+   "domain": "Algebra",
+   "cluster": "Rewrite rational expressions.",
+   "text": "Add, subtract, multiply, and divide rational expressions.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Explain why rational expressions form a system analogous to the rational numbers, which is closed under addition, subtraction, multiplication, and division by a non-zero rational expression."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.20",
+   "domain": "Algebra",
+   "cluster": "Reasoning With Equations and Inequalities: Understand solving equations as a process of reasoning and explain the reasoning. Solve systems of equations.",
+   "text": "Explain each step in solving an equation as following from the equality of numbers asserted at the previous step, starting from the assumption that the original equation has a clear-cut solution. Construct a viable argument to justify a solution method. Include equations that may involve linear, quadratic, polynomial, exponential, logarithmic, absolute value, radical, rational, piecewise, and trigonometric functions, and their inverses.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.21",
+   "domain": "Algebra",
+   "cluster": "Reasoning With Equations and Inequalities: Understand solving equations as a process of reasoning and explain the reasoning. Solve systems of equations.",
+   "text": "Solve simple rational equations in one variable, and give examples showing how extraneous solutions may arise.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.22",
+   "domain": "Algebra",
+   "cluster": "Reasoning With Equations and Inequalities: Understand solving equations as a process of reasoning and explain the reasoning. Solve systems of equations.",
+   "text": "Represent a system of linear equations as a single matrix equation in a vector variable.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.23",
+   "domain": "Algebra",
+   "cluster": "Reasoning With Equations and Inequalities: Understand solving equations as a process of reasoning and explain the reasoning. Solve systems of equations.",
+   "text": "Find the inverse of a matrix if it exists and use it to solve systems of linear equations (using technology for matrices of dimension 3 x 3 or greater).",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.24",
+   "domain": "Functions",
+   "cluster": "Interpreting Functions: Interpret functions that arise in applications in terms of the context.",
+   "text": "Compare and contrast families of functions and their representations algebraically, graphically, numerically, and verbally in terms of their key features. Note: Key features include intercepts; intervals where the function is increasing, decreasing, positive, or negative; maximums and minimums; symmetries (including even and odd); end behavior; asymptotes; and periodicity. Families of functions include but are not limited to linear, quadratic, polynomial, exponential, logarithmic, absolute value, radical, rational, piecewise, trigonometric, and their inverses.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.25",
+   "domain": "Functions",
+   "cluster": "Interpreting Functions: Interpret functions that arise in applications in terms of the context.",
+   "text": "Calculate and interpret the average rate of change of a function (presented symbolically or as a table) over a specified interval. Estimate the rate of change from a graph. Extend from polynomial, exponential, logarithmic, and radical to rational and all trigonometric functions.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Find the difference quotient (f(x+∆x)−f(x))/∆x of a function and use it to evaluate the average rate of change at a point."
+    },
+    {
+     "l": "b",
+     "text": "Explore how the average rate of change of a function over an interval (presented symbolically or as a table) can be used to approximate the instantaneous rate of change at a point as the interval decreases."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.26",
+   "domain": "Functions",
+   "cluster": "Analyze functions using different representations.",
+   "text": "Graph functions expressed symbolically and show key features of the graph, by hand and using technology. Use the equation of functions to identify key features in order to generate a graph.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Graph rational functions, identifying zeros and asymptotes when suitable factorizations are available, and showing end behavior."
+    },
+    {
+     "l": "b",
+     "text": "Graph trigonometric functions and their inverses, showing period, midline, amplitude, and phase shift."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.27",
+   "domain": "Functions",
+   "cluster": "Building Functions: Build a function that models a relationship between two quantities.",
+   "text": "Compose functions. Extend to polynomial, trigonometric, radical, and rational functions.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.28",
+   "domain": "Functions",
+   "cluster": "Build new functions from existing functions.",
+   "text": "Find inverse functions.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Given that a function has an inverse, write an expression for the inverse of the function."
+    },
+    {
+     "l": "b",
+     "text": "Verify by composition that one function is the inverse of another."
+    },
+    {
+     "l": "c",
+     "text": "Read values of an inverse function from a graph or a table, given that the function has an inverse."
+    },
+    {
+     "l": "d",
+     "text": "Produce an invertible function from a non-invertible function by restricting the domain."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.29",
+   "domain": "Functions",
+   "cluster": "Build new functions from existing functions.",
+   "text": "Use the inverse relationship between exponents and logarithms to solve problems involving logarithms and exponents. Extend from logarithms with base 2 and 10 to a base of e.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.30",
+   "domain": "Functions",
+   "cluster": "Build new functions from existing functions.",
+   "text": "Identify the effect on the graph of replacing f(x) by f(x) + k, k · f(x), f(k · x), and f(x + k) for specific values of k (both positive and negative); find the value of k given the graphs. Extend the analysis to include all trigonometric, rational, and general piecewise-defined functions with and without technology.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.31",
+   "domain": "Functions",
+   "cluster": "Build new functions from existing functions.",
+   "text": "Graph conic sections from second-degree equations, extending from circles and parabolas to ellipses and hyperbolas, using technology to discover patterns.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Graph conic sections given their standard form."
+    },
+    {
+     "l": "b",
+     "text": "Identify the conic section that will be formed, given its equation in general form."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.32",
+   "domain": "Functions",
+   "cluster": "Trigonometric Functions: Recognize attributes of trigonometric functions and solve problems involving trigonometry.",
+   "text": "Solve application-based problems involving parametric and polar equations.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Graph parametric and polar equations."
+    },
+    {
+     "l": "b",
+     "text": "Convert parametric and polar equations to rectangular form."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.33",
+   "domain": "Functions",
+   "cluster": "Extend the domain of trigonometric functions using the unit circle.",
+   "text": "Use special triangles to determine geometrically the values of sine, cosine, and tangent for π/3, π/4, and π/6, and use the unit circle to express the values of sine, cosine, and tangent for π – x, π + x, and 2π – x in terms of their values for x, where x is any real number.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.34",
+   "domain": "Functions",
+   "cluster": "Extend the domain of trigonometric functions using the unit circle.",
+   "text": "Use the unit circle to explain symmetry (odd and even) and periodicity of trigonometric functions.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.35",
+   "domain": "Functions",
+   "cluster": "Model periodic phenomena with trigonometric functions.",
+   "text": "Demonstrate that restricting a trigonometric function to a domain on which it is always increasing or always decreasing allows its inverse to be constructed.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.36",
+   "domain": "Functions",
+   "cluster": "Model periodic phenomena with trigonometric functions.",
+   "text": "Use inverse functions to solve trigonometric equations that arise in modeling contexts; evaluate the solutions using technology, and interpret them in terms of the context.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Precalc.37",
+   "domain": "Functions",
+   "cluster": "Prove and apply trigonometric identities.",
+   "text": "Use trigonometric identities to solve problems.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use the Pythagorean identity sin^2(θ) + cos^2(θ) = 1 to derive the other forms of the identity."
+    },
+    {
+     "l": "b",
+     "text": "Use the angle sum formulas for sine, cosine, and tangent to derive the double angle formulas."
+    },
+    {
+     "l": "c",
+     "text": "Use the Pythagorean and double angle identities to prove other simple identities."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  }
+ ]
+}

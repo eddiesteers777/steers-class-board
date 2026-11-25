@@ -1,0 +1,460 @@
+{
+ "source": "2019 Alabama Course of Study: Mathematics, Algebra II with Statistics (Alg II.1-Alg II.38), standard text verified against the official ALSDE PDF (alabama-cos-mathematics-2019.pdf). Domains/clusters are the standard Alabama groupings. No DIGS critical flags exist for these courses in Eddie's files, so critical is false for all — do not treat that as a DIGS marking.",
+ "standards": [
+  {
+   "code": "Alg II.1",
+   "domain": "Number and Quantity",
+   "cluster": "Together, irrational numbers and rational numbers complete the real number system, representing all points on the number line, while there exist numbers beyond the real numbers called complex numbers.",
+   "text": "Identify numbers written in the form a + bi, where a and b are real numbers and i2 = –1, as complex numbers.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Add, subtract, and multiply complex numbers using the commutative, associative, and distributive properties."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.2",
+   "domain": "Number and Quantity",
+   "cluster": "Matrices are a useful way to represent information.",
+   "text": "Use matrices to represent and manipulate data.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.3",
+   "domain": "Number and Quantity",
+   "cluster": "Matrices are a useful way to represent information.",
+   "text": "Multiply matrices by scalars to produce new matrices.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.4",
+   "domain": "Number and Quantity",
+   "cluster": "Matrices are a useful way to represent information.",
+   "text": "Add, subtract, and multiply matrices of appropriate dimensions.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.5",
+   "domain": "Number and Quantity",
+   "cluster": "Matrices are a useful way to represent information.",
+   "text": "Describe the roles that zero and identity matrices play in matrix addition and multiplication, recognizing that they are similar to the roles of 0 and 1 in the real numbers.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Find the additive and multiplicative inverses of square matrices, using technology as appropriate."
+    },
+    {
+     "l": "b",
+     "text": "Explain the role of the determinant in determining if a square matrix has a multiplicative inverse."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.6",
+   "domain": "Algebra and Functions",
+   "cluster": "Expressions can be rewritten in equivalent forms by using algebraic properties, including properties of addition, multiplication, and exponentiation, to make different characteristics or features visible.",
+   "text": "Factor polynomials using common factoring techniques, and use the factored form of a polynomial to reveal the zeros of the function it defines.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.7",
+   "domain": "Algebra and Functions",
+   "cluster": "Expressions can be rewritten in equivalent forms by using algebraic properties, including properties of addition, multiplication, and exponentiation, to make different characteristics or features visible.",
+   "text": "Prove polynomial identities and use them to describe numerical relationships.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.8",
+   "domain": "Algebra and Functions",
+   "cluster": "Finding solutions to an equation, inequality, or system of equations or inequalities requires the checking of candidate solutions, whether generated analytically or graphically, to ensure that solutions are found and that those found are not extraneous.",
+   "text": "Explain why extraneous solutions to an equation may arise and how to check to be sure that a candidate solution satisfies an equation. Extend to radical equations.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.9",
+   "domain": "Algebra and Functions",
+   "cluster": "The structure of an equation or inequality (including, but not limited to, one-variable linear and quadratic equations, inequalities, and systems of linear equations in two variables) can be purposefully analyzed (with and without technology) to determine an efficient strategy to find a solution, if one exists, and then to justify the solution.",
+   "text": "For exponential models, express as a logarithm the solution to abct = d, where a, c, and d are real numbers and the base b is 2 or 10; evaluate the logarithm using technology to solve an exponential equation.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.10",
+   "domain": "Algebra and Functions",
+   "cluster": "Expressions, equations, and inequalities can be used to analyze and make predictions, both within mathematics and as mathematics is applied in different contexts—in particular, contexts that arise in relation to linear, quadratic, and exponential situations.",
+   "text": "Create equations and inequalities in one variable and use them to solve problems. Extend to equations arising from polynomial, trigonometric (sine and cosine), logarithmic, radical, and general piecewise functions.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.11",
+   "domain": "Algebra and Functions",
+   "cluster": "Expressions, equations, and inequalities can be used to analyze and make predictions, both within mathematics and as mathematics is applied in different contexts—in particular, contexts that arise in relation to linear, quadratic, and exponential situations.",
+   "text": "Solve quadratic equations with real coefficients that have complex solutions.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.12",
+   "domain": "Algebra and Functions",
+   "cluster": "Expressions, equations, and inequalities can be used to analyze and make predictions, both within mathematics and as mathematics is applied in different contexts—in particular, contexts that arise in relation to linear, quadratic, and exponential situations.",
+   "text": "Solve simple equations involving exponential, radical, logarithmic, and trigonometric functions using inverse functions.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.13",
+   "domain": "Algebra and Functions",
+   "cluster": "Expressions, equations, and inequalities can be used to analyze and make predictions, both within mathematics and as mathematics is applied in different contexts—in particular, contexts that arise in relation to linear, quadratic, and exponential situations.",
+   "text": "Create equations in two or more variables to represent relationships between quantities; graph equations on coordinate axes with labels and scales and use them to make predictions. Extend to polynomial, trigonometric (sine and cosine), logarithmic, reciprocal, radical, and general piecewise functions.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.14",
+   "domain": "Algebra and Functions",
+   "cluster": "Graphs can be used to obtain exact or approximate solutions of equations, inequalities, and systems of equations and inequalities—including systems of linear equations in two variables and systems of linear and quadratic equations (given or obtained by using technology).",
+   "text": "Explain why the x-coordinates of the points where the graphs of the equations y = f(x) and y = g(x) intersect are the solutions of the equation f(x) = g(x).",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Find the approximate solutions of an equation graphically, using tables of values, or finding successive approximations, using technology where appropriate. Extend to cases where f(x) and/or g(x) are polynomial, trigonometric (sine and cosine), logarithmic, radical, and general piecewise functions."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.15",
+   "domain": "Algebra and Functions",
+   "cluster": "Functions can be described by using a variety of representations: mapping diagrams, function notation (e.g., f(x) = x ), recursive definitions, tables, and graphs.",
+   "text": "Compare properties of two functions each represented in a different way (algebraically, graphically, numerically in tables, or by verbal descriptions). Extend to polynomial, trigonometric (sine and cosine), logarithmic, radical, and general piecewise functions.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.16",
+   "domain": "Algebra and Functions",
+   "cluster": "Functions that are members of the same family have distinguishing attributes (structure) common to all functions within that family.",
+   "text": "Identify the effect on the graph of replacing f(x) by f(x) + k, k · f(x), f(k · x), and f(x + k) for specific values of k (both positive and negative); find the value of k given the graphs. Experiment with cases and illustrate an explanation of the effects on the graph using technology. Extend to polynomial, trigonometric (sine and cosine), logarithmic, reciprocal, radical, and general piecewise functions.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.17",
+   "domain": "Algebra and Functions",
+   "cluster": "Functions can be represented graphically, and key features of the graphs, including zeros, intercepts, and, when relevant, rate of change and maximum/minimum values, can be associated with and interpreted in terms of the equivalent symbolic representation.",
+   "text": "For a function that models a relationship between two quantities, interpret key features of graphs and tables in terms of the quantities, and sketch graphs showing key features given a verbal description of the relationship. Note: Key features include intercepts; intervals where the function is increasing, decreasing, positive, or negative; maximums and minimums; symmetries (including even and odd); end behavior; and periodicity. Extend to polynomial, trigonometric (sine and cosine), logarithmic, reciprocal, radical, and general piecewise functions.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.18",
+   "domain": "Algebra and Functions",
+   "cluster": "Functions can be represented graphically, and key features of the graphs, including zeros, intercepts, and, when relevant, rate of change and maximum/minimum values, can be associated with and interpreted in terms of the equivalent symbolic representation.",
+   "text": "Relate the domain of a function to its graph and, where applicable, to the quantitative relationship it describes. Extend to polynomial, trigonometric (sine and cosine), logarithmic, reciprocal, radical, and general piecewise functions.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.19",
+   "domain": "Algebra and Functions",
+   "cluster": "Functions can be represented graphically, and key features of the graphs, including zeros, intercepts, and, when relevant, rate of change and maximum/minimum values, can be associated with and interpreted in terms of the equivalent symbolic representation.",
+   "text": "Calculate and interpret the average rate of change of a function (presented symbolically or as a table) over a specified interval. Estimate the rate of change from a graph. Extend to polynomial, trigonometric (sine and cosine), logarithmic, reciprocal, radical, and general piecewise functions.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.20",
+   "domain": "Algebra and Functions",
+   "cluster": "Functions can be represented graphically, and key features of the graphs, including zeros, intercepts, and, when relevant, rate of change and maximum/minimum values, can be associated with and interpreted in terms of the equivalent symbolic representation.",
+   "text": "Graph functions expressed symbolically and show key features of the graph, by hand in simple cases and using technology for more complicated cases. Extend to polynomial, trigonometric (sine and cosine), logarithmic, reciprocal, radical, and general piecewise functions.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Graph polynomial functions expressed symbolically, identifying zeros when suitable factorizations are available, and showing end behavior."
+    },
+    {
+     "l": "b",
+     "text": "Graph sine and cosine functions expressed symbolically, showing period, midline, and amplitude."
+    },
+    {
+     "l": "c",
+     "text": "Graph logarithmic functions expressed symbolically, showing intercepts and end behavior."
+    },
+    {
+     "l": "d",
+     "text": "Graph reciprocal functions expressed symbolically, identifying horizontal and vertical asymptotes."
+    },
+    {
+     "l": "e",
+     "text": "Graph square root and cube root functions expressed symbolically."
+    },
+    {
+     "l": "f",
+     "text": "Compare the graphs of inverse functions and the relationships between their key features, including but not limited to quadratic, square root, exponential, and logarithmic functions."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.21",
+   "domain": "Algebra and Functions",
+   "cluster": "Functions can be represented graphically, and key features of the graphs, including zeros, intercepts, and, when relevant, rate of change and maximum/minimum values, can be associated with and interpreted in terms of the equivalent symbolic representation.",
+   "text": "Explain how the unit circle in the coordinate plane enables the extension of trigonometric functions to all real numbers, interpreted as radian measures of angles traversed counterclockwise around the unit circle, building on work with non-right triangle trigonometry.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.22",
+   "domain": "Algebra and Functions",
+   "cluster": "Functions model a wide variety of real situations and can help students understand the processes of making and changing assumptions, assigning variables, and finding solutions to contextual problems.",
+   "text": "Use the mathematical modeling cycle to solve real-world problems involving polynomial, trigonometric (sine and cosine), logarithmic, radical, and general piecewise functions, from the simplification of the problem through the solving of the simplified problem, the interpretation of its solution, and the checking of the solution’s feasibility.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.23",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "Mathematical and statistical reasoning about data can be used to evaluate conclusions and assess risks.",
+   "text": "Use mathematical and statistical reasoning about normal distributions to draw conclusions and assess risk; limit to informal arguments.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.24",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "Making and defending informed data-based decisions is a characteristic of a quantitatively literate person.",
+   "text": "Design and carry out an experiment or survey to answer a question of interest, and write an informal persuasive argument based on the results.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.25",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "Distributions of quantitative data (continuous or discrete) in one variable should be described in the context of the data with respect to what is typical (the shape, with appropriate measures of center and variability, including standard deviation) and what is not (outliers), and these characteristics can be used to compare two or more subgroups with respect to a variable.",
+   "text": "From a normal distribution, use technology to find the mean and standard deviation and estimate population percentages by applying the empirical rule.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use technology to determine if a given set of data is normal by applying the empirical rule."
+    },
+    {
+     "l": "b",
+     "text": "Estimate areas under a normal curve to solve problems in context, using calculators, spreadsheets, and tables as appropriate."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.26",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "Study designs are of three main types: sample survey, experiment, and observational study.",
+   "text": "Describe the purposes of and differences among sample surveys, experiments, and observational studies; explain how randomization relates to each.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.27",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "The role of randomization is different in randomly selecting samples and in randomly assigning subjects to experimental treatment groups.",
+   "text": "Distinguish between a statistic and a parameter and use statistical processes to make inferences about population parameters based on statistics from random samples from that population.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.28",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "The role of randomization is different in randomly selecting samples and in randomly assigning subjects to experimental treatment groups.",
+   "text": "Describe differences between randomly selecting samples and randomly assigning subjects to experimental treatment groups in terms of inferences drawn regarding a population versus regarding cause and effect.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.29",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "The scope and validity of statistical inferences are dependent on the role of randomization in the study design.",
+   "text": "Explain the consequences, due to uncontrolled variables, of non-randomized assignment of subjects to groups in experiments.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.30",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "Bias, such as sampling, response, or nonresponse bias, may occur in surveys, yielding results that are not representative of the population of interest.",
+   "text": "Evaluate where bias, including sampling, response, or nonresponse bias, may occur in surveys, and whether results are representative of the population of interest.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.31",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "The larger the sample size, the less the expected variability in the sampling distribution of a sample statistic.",
+   "text": "Evaluate the effect of sample size on the expected variability in the sampling distribution of a sample statistic.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Simulate a sampling distribution of sample means from a population with a known distribution, observing the effect of the sample size on the variability."
+    },
+    {
+     "l": "b",
+     "text": "Demonstrate that the standard deviation of each simulated sampling distribution is the known standard deviation of the population divided by the square root of the sample size."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.32",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "The sampling distribution of a sample statistic formed from repeated samples for a given sample size drawn from a population can be used to identify typical behavior for that statistic. Examining several such sampling distributions leads to estimating a set of plausible values for the population parameter, using the margin of error as a measure that describes the sampling variability.",
+   "text": "Produce a sampling distribution by repeatedly selecting samples of the same size from a given population or from a population simulated by bootstrapping (resampling with replacement from an observed sample). Do initial examples by hand, then use technology to generate a large number of samples.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Verify that a sampling distribution is centered at the population mean and approximately normal if the sample size is large enough."
+    },
+    {
+     "l": "b",
+     "text": "Verify that 95% of sample means are within two standard deviations of the sampling distribution from the population mean."
+    },
+    {
+     "l": "c",
+     "text": "Create and interpret a 95% confidence interval based on an observed mean from a sampling distribution."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.33",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "The sampling distribution of a sample statistic formed from repeated samples for a given sample size drawn from a population can be used to identify typical behavior for that statistic. Examining several such sampling distributions leads to estimating a set of plausible values for the population parameter, using the margin of error as a measure that describes the sampling variability.",
+   "text": "Use data from a randomized experiment to compare two treatments; limit to informal use of simulations to decide if an observed difference in the responses of the two treatment groups is unlikely to have occurred due to randomization alone, thus implying that the difference between the treatment groups is meaningful.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.34",
+   "domain": "Geometry and Measurement",
+   "cluster": "When an object is the image of a known object under a similarity transformation, a length, area, or volume on the image can be computed by using proportional relationships.",
+   "text": "Define the radian measure of an angle as the constant of proportionality of the length of an arc it intercepts to the radius of the circle; in particular, it is the length of the arc intercepted on the unit circle.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.35",
+   "domain": "Geometry and Measurement",
+   "cluster": "Recognizing congruence, similarity, symmetry, measurement opportunities, and other geometric ideas, including right triangle trigonometry in real-world contexts, provides a means of building understanding of these concepts and is a powerful tool for solving problems related to the physical world in which we live.",
+   "text": "Choose trigonometric functions (sine and cosine) to model periodic phenomena with specified amplitude, frequency, and midline.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.36",
+   "domain": "Geometry and Measurement",
+   "cluster": "Recognizing congruence, similarity, symmetry, measurement opportunities, and other geometric ideas, including right triangle trigonometry in real-world contexts, provides a means of building understanding of these concepts and is a powerful tool for solving problems related to the physical world in which we live.",
+   "text": "Prove the Pythagorean identity sin^2(θ) + cos^2(θ) = 1 and use it to calculate trigonometric ratios.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.37",
+   "domain": "Geometry and Measurement",
+   "cluster": "Recognizing congruence, similarity, symmetry, measurement opportunities, and other geometric ideas, including right triangle trigonometry in real-world contexts, provides a means of building understanding of these concepts and is a powerful tool for solving problems related to the physical world in which we live.",
+   "text": "Derive and apply the formula A = ½·ab·sin(C) for the area of a triangle by drawing an auxiliary line from a vertex perpendicular to the opposite side, extending the domain of sine to include right and obtuse angles.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "Alg II.38",
+   "domain": "Geometry and Measurement",
+   "cluster": "Recognizing congruence, similarity, symmetry, measurement opportunities, and other geometric ideas, including right triangle trigonometry in real-world contexts, provides a means of building understanding of these concepts and is a powerful tool for solving problems related to the physical world in which we live.",
+   "text": "Derive and apply the Law of Sines and the Law of Cosines to find unknown measurements in right and non-right triangles. Extend the domain of sine and cosine to include right and obtuse angles.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  }
+ ]
+}

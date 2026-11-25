@@ -6,7 +6,7 @@
    Tray shape (kept on this device, per class): { items: [{ code, lv: [1, 2], need: 4, w: 1 }] }
 ========================================== */
 import * as C from "./assignCore.js?v=7";
-import { inClass } from "./stdBank.js?v=5";
+import { inClass } from "./stdBank.js?v=6";
 import { isFoundational, problemsFor, nameOf } from "./foundBank.js?v=2";
 
 export const FLOOR_N = 12;   // problems drawn from a floor (foundational) skill, made from numbers in js/foundBank.js

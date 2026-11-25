@@ -5,8 +5,8 @@
    words (teacher/{uid}/walk/edits), or send it to the board's Show Steps screen through the Remote.
    The math lines are never typed in by hand: they come from js/walk.js, which checks every line before showing it.
 ========================================== */
-import { STANDARDS } from "../data/standards.js?v=59";
-import { inClass, LEVELS } from "./stdBank.js?v=5";
+import { STANDARDS } from "../data/standards.js?v=60";
+import { inClass, LEVELS } from "./stdBank.js?v=6";
 import { loadWalkItems, walkOf, withEdits, cleanOk, cleanEdits } from "./walkBank.js?v=14";
 import { createStepPlayer, drawDT } from "./stepPlayer.js?v=6";
 import { keyDT } from "./walk.js?v=14";
