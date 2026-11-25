@@ -19,25 +19,25 @@
     <link rel="stylesheet" href="css/board.css?v=57">
     <link rel="stylesheet" href="css/console.css?v=64">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/home.css?v=61">
+    <link rel="stylesheet" href="css/home.css?v=62">
     <link rel="stylesheet" href="css/absences.css?v=5">
     <link rel="stylesheet" href="css/footer.css?v=2">
     <link rel="stylesheet" href="css/skin.css?v=2">
     <meta name="theme-color" content="#081B45">
     </head>
 <body class="console page hm-home">
-    <header class="cbar">
-        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Anchor Board</b><small id="who">For teachers</small></span></a>
-        <button class="btn ghost hm-menu" id="sideOpen" type="button" aria-controls="side" aria-expanded="false">Pages</button>
-        <button class="btn ghost hm-gear" id="settingsOpen" type="button" aria-haspopup="dialog">Settings</button>
-        <button class="btn ghost" id="signOut" type="button">Sign out</button>
+    <header class="cbar hb-bar">
+        <!-- Eddie, Nov 25: a simpler bar. Pages is three lines (an X while open), Settings a gear, Sign out an icon that opens one Sign out button. The logo stays; no words. -->
+        <button class="hb-menu" id="sideOpen" type="button" aria-controls="side" aria-expanded="false" aria-label="Pages" data-tip="Pages"><span class="hb-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
+        <a class="cbrand hb-logo" href="index.html" aria-label="Anchor Board home"><img src="brand/logo.svg" alt=""></a>
+        <div class="hb-acts">
+            <button class="hb-ico" id="settingsOpen" type="button" aria-haspopup="dialog" aria-label="Settings" data-tip="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            <button class="hb-ico hb-out" id="signOutOpen" type="button" aria-controls="outPop" aria-expanded="false" aria-label="Sign out" data-tip="Sign out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>
+            <div class="hb-pop" id="outPop" hidden><button class="btn" id="signOut" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span>Sign out</span></button></div>
+        </div>
     </header>
     <aside class="hm-side" id="side" aria-label="Pages">
-        <div class="hm-shead">
-            <span class="hm-stitle">Pages</span>
-            <button class="hm-smin" id="sideMin" type="button" aria-label="Minimize the side panel" aria-expanded="true" title="Minimize"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
-            <button class="hm-sclose" id="sideClose" type="button" aria-label="Close the side panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-        </div>
+        <div class="hm-shead"><button class="hb-menu hb-x" id="sideX" type="button" aria-controls="side" aria-expanded="true" aria-label="Close Pages" data-tip="Close"><span class="hb-lines" aria-hidden="true"><i></i><i></i><i></i></span></button><span class="hm-stitle">Pages</span></div>
         <nav class="hm-snav">
             <p class="hm-sg">Teach</p>
             <a class="hm-sl" href="board.html" title="Open Board"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span class="hm-slt"><b>Open Board</b><small id="st-board">The projected screen</small></span></a>
@@ -333,12 +333,15 @@
             const side = $("side"), scrim = $("sideScrim"), wide = matchMedia("(min-width:1000px)");
             const keepGet = () => { try { return localStorage.getItem("home-side"); } catch { return null; } };
             const keepSet = (v) => { try { localStorage.setItem("home-side", v); } catch {} };
-            const setMin = (m) => { document.body.classList.toggle("hm-min", m); $("sideMin").setAttribute("aria-expanded", String(!m)); $("sideMin").setAttribute("aria-label", m ? "Expand the side panel" : "Minimize the side panel"); $("sideMin").title = m ? "Expand" : "Minimize"; keepSet(m ? "min" : "open"); };
+            const X = $("sideX");
+            const setX = (open, say) => { X.classList.toggle("hb-x", open); X.setAttribute("aria-expanded", String(open)); X.setAttribute("aria-label", say); X.dataset.tip = open ? "Close" : "Pages"; };
+            // Wide screens: the panel stays docked; its X folds it to the icon rail and the three lines open it again.
+            const setMin = (m) => { document.body.classList.toggle("hm-min", m); setX(!m, m ? "Open Pages" : "Fold Pages"); keepSet(m ? "min" : "open"); };
             setMin(keepGet() === "min");
-            $("sideMin").onclick = () => setMin(!document.body.classList.contains("hm-min"));
-            const drawer = (open) => { document.body.classList.toggle("hm-drawer", open); scrim.hidden = !open; $("sideOpen").setAttribute("aria-expanded", String(open)); if (open) side.querySelector("a").focus(); };
+            // Phones and narrow windows: the three lines slide Pages in; the X in the same spot closes it.
+            const drawer = (open) => { document.body.classList.toggle("hm-drawer", open); scrim.hidden = !open; $("sideOpen").setAttribute("aria-expanded", String(open)); if (open) { setX(true, "Close Pages"); side.querySelector("a").focus(); } else if (wide.matches) setMin(document.body.classList.contains("hm-min")); };
             $("sideOpen").onclick = () => drawer(true);
-            $("sideClose").onclick = () => { drawer(false); $("sideOpen").focus(); };
+            X.onclick = () => { if (wide.matches) setMin(!document.body.classList.contains("hm-min")); else { drawer(false); $("sideOpen").focus(); } };
             scrim.onclick = () => drawer(false);
             document.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.body.classList.contains("hm-drawer")) { drawer(false); $("sideOpen").focus(); } });
             wide.addEventListener("change", () => drawer(false));
@@ -445,6 +448,13 @@
             });
         }
         glance(); setInterval(glance, 300000);
+        {   // Sign out: the icon opens one Sign out button, so a stray tap never signs anyone out.
+            const pop = $("outPop"), btn = $("signOutOpen");
+            const show = (on) => { pop.hidden = !on; btn.setAttribute("aria-expanded", String(on)); btn.classList.toggle("on", on); if (on) $("signOut").focus(); };
+            btn.onclick = (e) => { e.stopPropagation(); show(pop.hidden); };
+            document.addEventListener("click", (e) => { if (!pop.hidden && !pop.contains(e.target)) show(false); });
+            document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !pop.hidden) { show(false); btn.focus(); } });
+        }
         $("signOut").onclick = async () => { try { await store.signOut(); } finally { location.replace("login.html"); } };
         const user = await store.ready();
         if (!user) toLoginIfSignedOut();
@@ -460,7 +470,6 @@
                 if (PACK === "starter") hasRealWork().then((real) => { if (real) card("Restore my Calera classes", "This account has your rosters and saved weeks, but it is showing the sample class. Restore your Calera classes, Plan and weeks.", "Restore my Calera classes", async () => { await choosePack("calera", "restored from Home"); location.reload(); }); });
                 else if (info.source === "decided" && /no data found/.test(info.why)) card("New to Anchor Board?", "These are sample Calera lessons. Start with your own classes instead (you can set them up next).", "Start with my own classes", async () => { await choosePack("starter", "chosen on Home"); location.replace("setup.html"); });
             }
-            $("who").textContent = "Signed in as " + (user.name || "teacher");
             if (PACK === "calera") mountWeekFlow(store, $("weekflow"), PUBLISHED, todayIso);
             if (PACK === "calera") import("./js/absenceHome.js?v=6").then((m) => { ABS = m.mountAbsences({ store, host: $("absent"), el, periods: PERIODS, today: todayIso, weeks: WEEKS, classLabel: (c) => ((WEEKS[WEEKS.length - 1] || { classes: {} }).classes[c] || {}).label || c }); }).catch(() => {});   // absences by period (Phase 2B); a failure here never blocks Home
             // Standards mark themselves from approved weeks: Teaching from Monday, Taught the day after the quiz or test.

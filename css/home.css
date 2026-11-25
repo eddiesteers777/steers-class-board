@@ -1,7 +1,4 @@
 /* Home: at-a-glance strip, "Needs you", page launcher and the settings dialog. Class names start hm-. */
-.hm-gear{margin-left:auto}
-.hm-menu+.hm-gear{margin-left:0}
-@media (max-width:999px){.hm-menu{margin-left:auto}}
 .hm-glance{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0 0}
 .hm-gt{background:var(--c-surface);border:1.5px solid var(--c-line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;box-shadow:0 8px 32px rgba(8,27,69,.06)}
 .hm-gt b{font-family:var(--display);font-size:1.45rem;font-weight:800;letter-spacing:-.02em;line-height:1.15}
@@ -49,12 +46,8 @@
 .hm-side{position:fixed;left:0;top:0;bottom:0;z-index:20;width:var(--side-w);display:flex;flex-direction:column;
   background:linear-gradient(180deg,var(--s-mid,#0B2559) 0%,var(--navy,#081B45) 55%,#06142F 100%);color:#F4F7FB;
   box-shadow:1px 0 0 rgba(255,255,255,.06),12px 0 40px rgba(8,27,69,.18);transition:width .28s cubic-bezier(.2,.8,.2,1),transform .28s cubic-bezier(.2,.8,.2,1);overflow:hidden}
-.hm-shead{display:flex;align-items:center;gap:8px;padding:18px 14px 8px 22px;min-height:60px}
+.hm-shead{display:flex;align-items:center;gap:12px;padding:8px 14px;min-height:60px}
 .hm-stitle{font-family:var(--display);font-weight:800;font-size:1.05rem;letter-spacing:-.01em;flex:1;white-space:nowrap}
-.hm-smin,.hm-sclose{width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:12px;border:1px solid rgba(191,211,238,.22);background:rgba(255,255,255,.06);color:#DCE7F5;cursor:pointer;transition:background .2s,transform .28s}
-.hm-smin:hover,.hm-sclose:hover{background:rgba(255,255,255,.14)}
-.hm-smin svg,.hm-sclose svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-.hm-sclose{display:none}
 .hm-snav{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 12px 20px;scrollbar-width:thin}
 .hm-sg{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7FAEDD;margin:16px 10px 6px;white-space:nowrap}
 .hm-sl{display:flex;align-items:center;gap:12px;min-height:52px;padding:8px 10px;border-radius:14px;color:#F4F7FB;text-decoration:none;position:relative;transition:background .2s}
@@ -66,18 +59,14 @@
 .hm-slt b{font-weight:600;font-size:.95rem}
 .hm-slt small{font-size:.76rem;color:#9FB6D6;overflow:hidden;text-overflow:ellipsis}
 .hm-scrim{position:fixed;inset:0;z-index:19;background:rgba(8,27,69,.45);backdrop-filter:blur(2px)}
-.hm-menu{display:none}
 
 @media (min-width:1000px){
   body.hm-home{padding-left:var(--side-w);transition:padding-left .28s cubic-bezier(.2,.8,.2,1)}
   body.hm-home.hm-min{padding-left:var(--side-min)}
   .hm-min .hm-side{width:var(--side-min)}
   .hm-min .hm-stitle,.hm-min .hm-slt{opacity:0;pointer-events:none}
-  .hm-min .hm-shead{padding:18px 0 8px;justify-content:center}
+  .hm-min .hm-shead{padding:8px 0;justify-content:center}
   .hm-min .hm-stitle{display:none}
-  .hm-min .hm-smin{background:#F2B33D;border-color:#F2B33D;color:#081B45}
-  .hm-min .hm-smin:hover{background:#F6C561}
-  .hm-min .hm-smin{transform:rotate(180deg)}
   .hm-min .hm-sg{height:1px;margin:14px 8px;overflow:hidden;color:transparent;background:rgba(191,211,238,.18)}
   .hm-min .hm-snav{padding:4px 10px 20px}
   .hm-stitle,.hm-slt{transition:opacity .18s}
@@ -85,11 +74,54 @@
 @media (max-width:999px){
   .hm-side{transform:translateX(-102%);width:min(300px,86vw)}
   .hm-drawer .hm-side{transform:none}
-  .hm-smin{display:none}
-  .hm-sclose{display:grid}
-  .hm-menu{display:inline-flex}
 }
-@media (prefers-reduced-motion:reduce){.hm-side,body.hm-home,.hm-sl,.hm-sl svg,.hm-smin{transition:none}.hm-wk{transition:none}.hm-wk:hover{transform:none}}
+/* ---------- the top bar (Eddie, Nov 25): Pages as three lines that become an X, the logo, a gear and a sign-out icon ---------- */
+body.hm-home .cbar.hb-bar{flex-wrap:nowrap;justify-content:flex-start;gap:10px;min-height:60px;padding:8px 14px}
+.hb-logo{margin-right:auto;flex:none}
+.hb-logo img{width:40px;height:40px;border-radius:10px;display:block}
+.hb-acts{display:flex;align-items:center;gap:8px;position:relative;flex:none}
+.hb-menu,.hb-ico{position:relative;width:44px;height:44px;flex:none;display:grid;place-items:center;padding:0;margin:0;cursor:pointer;font:inherit;border-radius:13px;transition:background .18s,border-color .18s,box-shadow .18s,color .18s,transform .12s}
+.hb-menu:active,.hb-ico:active{transform:scale(.96)}
+.hb-ico svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.hb-lines{position:relative;width:20px;height:16px;display:block}
+.hb-lines i{position:absolute;left:0;width:20px;height:2.2px;border-radius:2px;background:currentColor;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s,top .28s cubic-bezier(.2,.8,.2,1)}
+.hb-lines i:nth-child(1){top:0}.hb-lines i:nth-child(2){top:6.9px}.hb-lines i:nth-child(3){top:13.8px}
+.hb-x .hb-lines i:nth-child(1){top:6.9px;transform:rotate(45deg)}
+.hb-x .hb-lines i:nth-child(2){opacity:0;transform:scaleX(.2)}
+.hb-x .hb-lines i:nth-child(3){top:6.9px;transform:rotate(-45deg)}
+/* glass chips, one per icon */
+.cbar .hb-menu,.hb-ico{background:rgba(255,255,255,.82);border:1px solid var(--k-line2,#D5DCE8);box-shadow:0 1px 2px rgba(var(--s-rgb,8,27,69),.06),inset 0 1px 0 rgba(255,255,255,.9);color:var(--s-out,#0B2559)}
+.cbar .hb-menu:hover,.hb-ico:hover,.hb-ico.on{background:#fff;border-color:var(--s-edge,#9FB0CC);box-shadow:0 4px 12px -6px rgba(var(--s-rgb,8,27,69),.35)}
+.hb-out{margin-left:6px}
+html[data-mode="dark"] .cbar .hb-menu,html[data-mode="dark"] .hb-ico{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14);color:var(--c-ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+html[data-mode="dark"] .cbar .hb-menu:hover,html[data-mode="dark"] .hb-ico:hover,html[data-mode="dark"] .hb-ico.on{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.24)}
+/* the same button on the Pages panel, at top left */
+.hm-side .hb-menu{border:1px solid rgba(191,211,238,.22);background:rgba(255,255,255,.07);color:#F4F7FB}
+.hm-side .hb-menu:hover{background:rgba(255,255,255,.14)}
+.hm-side .hb-menu:focus-visible,.hb-menu:focus-visible,.hb-ico:focus-visible{outline:3px solid #F2B33D;outline-offset:2px}
+/* a name under each icon when a mouse or pen hovers (screen readers read the aria-label) */
+@media (hover:hover){
+  .hb-menu[data-tip]:hover::after,.hb-ico[data-tip]:hover::after{content:attr(data-tip);position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;font-size:.8rem;font-weight:600;line-height:1;padding:7px 10px;border-radius:9px;background:var(--navy,#081B45);color:#fff;box-shadow:0 8px 20px -8px rgba(8,27,69,.6);pointer-events:none;z-index:3}
+  .hb-out[data-tip]:hover::after{left:auto;right:0;transform:none}
+  .hm-side .hb-menu[data-tip]:hover::after{left:0;transform:none;background:#F2B33D;color:#081B45}
+  .hb-ico.on::after{display:none}
+}
+/* Sign out: the icon opens one Sign out button */
+.hb-pop{position:absolute;top:calc(100% + 10px);right:0;padding:10px;border-radius:16px;background:rgba(255,255,255,.9);-webkit-backdrop-filter:var(--k-glass-blur);backdrop-filter:var(--k-glass-blur);border:1px solid var(--k-line2,#D5DCE8);box-shadow:0 18px 44px -18px rgba(var(--s-rgb,8,27,69),.55);z-index:4}
+.hb-pop[hidden]{display:none}
+html[data-mode="dark"] .hb-pop{background:rgba(20,26,40,.94);border-color:rgba(255,255,255,.12)}
+.hb-pop .btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;white-space:nowrap}
+.hb-pop .btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media (min-width:1000px){
+  body.hm-home .cbar.hb-bar>.hb-menu{display:none}   /* wide screens: the button lives on the docked panel */
+  .hm-min .hm-side .hb-menu{background:#F2B33D;border-color:#F2B33D;color:#081B45}
+  .hm-min .hm-side .hb-menu:hover{background:#F6C561}
+}
+@media (max-width:999px){
+  .hm-side .hm-shead{padding:8px 14px}   /* the X lands where the three lines were */
+}
+
+@media (prefers-reduced-motion:reduce){.hm-side,body.hm-home,.hm-sl,.hm-sl svg,.hb-menu,.hb-lines i,.hb-ico{transition:none}.hm-wk{transition:none}.hm-wk:hover{transform:none}}
 
 /* Bell times: Plan ahead (a date that starts on another schedule) */
 .bpick2 input[type=date]{font:inherit;color:var(--c-ink);border:1.5px solid var(--c-line);border-radius:8px;padding:6px 8px;background:var(--c-surface,#fff);min-height:40px}

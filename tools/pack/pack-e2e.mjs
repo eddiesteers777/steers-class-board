@@ -85,7 +85,7 @@ if (ONLY.includes("5")) { SC = "5";
     const { c, p } = await fresh(); const uid = await signIn(p, "eddie5", brokenSeed);
     await p.goto(BASE + "/index.html"); await homeText(p);
     assert.equal(await p.evaluate((u) => localStorage.getItem("focal-pack:" + u), uid), "calera");
-    await p.click("#signOut"); await p.waitForURL(/login\.html/, { timeout: 15000 });
+    await p.click("#signOutOpen"); await p.click("#signOut"); await p.waitForURL(/login\.html/, { timeout: 15000 });
     assert.deepEqual(await p.evaluate(() => Object.keys(localStorage).filter((k) => /^focal-(pack|setup):/.test(k))), [], "5: no remembered pack or setup after sign-out");
     await c.close();
 }
