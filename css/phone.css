@@ -92,7 +92,7 @@ body.phone:not(.board) .cbar::before{content:"";order:5;flex:0 0 100%;height:0} 
 body.phone .cbrand{order:1;margin:0 auto 0 0;min-width:0}
 body.phone .cbrand span{width:min-content}   /* "Anchor Board" on two short lines */
 body.phone .cbrand span b{font-size:1.05rem}
-body.phone .lsbtn{order:2;flex:1 1 0;max-width:max-content;min-width:0;padding:7px 12px;font-size:.86rem;white-space:nowrap}
+body.phone .lsbtn{order:2;flex:1 1 0;max-width:max-content;min-width:0;padding:3px 12px 3px 3px;font-size:.86rem;white-space:nowrap}
 body.phone .lsbtn #lsBtnText{min-width:0;overflow:hidden;text-overflow:ellipsis}
 body.phone .live{order:3}
 body.phone .live:not([data-long="1"]){font-size:0;gap:0;padding:9px}   /* the dot alone: green when live, amber while connecting */

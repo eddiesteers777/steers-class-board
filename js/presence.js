@@ -100,7 +100,13 @@ export function startPresence(api) {
 function mountSheet(api, host, myId) {
     const btn = document.createElement("button");
     btn.type = "button"; btn.className = "lsbtn"; btn.id = "liveStatusBtn"; btn.setAttribute("aria-expanded", "false");
-    btn.innerHTML = '<i class="lsdot" data-s="wait"></i><span id="lsBtnText">Live status</span>';
+    // The screen badge (Eddie picked option B, Nov 25): a small screen tile in the site colors with a light on its corner.
+    // Off: the screen crossed out and grey. On: green light. Catching up: amber light. css/livestatus.css draws it.
+    btn.dataset.s = "load";
+    btn.innerHTML = '<span class="lsscr" aria-hidden="true">'
+        + '<svg class="lson" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>'
+        + '<svg class="lsoff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17H4a2 2 0 0 1-2-2V5c0-1.5 1-2 1-2"/><path d="M22 15V5a2 2 0 0 0-2-2H9"/><path d="M8 21h8M12 17v4M2 2l20 20"/></svg>'
+        + '<i class="lsdot" data-s="load"></i></span><span id="lsBtnText">Live status</span>';
     host.parentNode.insertBefore(btn, host);
     const sheet = document.createElement("aside");
     sheet.className = "lssheet"; sheet.id = "liveStatus"; sheet.hidden = true; sheet.setAttribute("aria-label", "Live status");
@@ -153,9 +159,11 @@ function mountSheet(api, host, myId) {
         // the button: a count anyone can read at a glance
         const dot = btn.querySelector(".lsdot"), bt = btn.querySelector("#lsBtnText");
         const allGot = boardsOn.length && boardsOn.every(gotIt);
-        dot.dataset.s = !boardsOn.length ? "bad" : allGot ? "ok" : "wait";
-        bt.textContent = !boardsOn.length ? "No board on" : boardsOn.length === 1 ? "1 board on" : boardsOn.length + " boards on";
-        btn.title = bt.textContent + ". Tap for Live status.";   // Slides shows the dot alone (css/slidedit.css), so the words show on hover
+        const s = !boardsOn.length ? "bad" : allGot ? "ok" : "wait";
+        dot.dataset.s = s; btn.dataset.s = s;
+        const n = boardsOn.length;
+        bt.textContent = s === "bad" ? "Board off" : s === "wait" ? "Catching up" : (n === 1 ? "Board on" : n + " boards on");
+        btn.title = (s === "bad" ? "No board is on" : s === "wait" ? "The board doesn't have your latest change yet" : n === 1 ? "The board is on and has your latest change" : "All " + n + " boards are on and have your latest change") + ". Tap for Live status.";   // Slides shows the dot alone (css/slidedit.css), so the words show on hover
         if (sheet.hidden) return;
         // the newest change, and who has it
         let ack = "";

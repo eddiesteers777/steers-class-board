@@ -1,6 +1,25 @@
 /* Live status (js/presence.js): the header button on the Remote and its sheet. */
-.lsbtn{display:inline-flex;align-items:center;gap:8px;background:var(--c-surface);color:var(--c-ink);border:1.5px solid var(--c-line);border-radius:999px;padding:7px 14px;font:inherit;font-weight:600;font-size:.9rem;cursor:pointer}
-.lsbtn[aria-expanded="true"]{border-color:var(--navy)}
+/* The board status button: the screen badge (Eddie picked option B, Nov 25). Frosted chip, a screen tile in the
+   site colors with a light on its corner: green = on and has the latest change, amber = catching up, none = off
+   (the screen crossed out and grey). The dot classes stay for the Live status sheet below. */
+.lsbtn{display:inline-flex;align-items:center;gap:9px;background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(246,249,253,.8));color:var(--c-ink);border:1px solid rgba(var(--s-rgb,23,63,134),.14);border-radius:999px;padding:4px 14px 4px 4px;font:inherit;font-weight:600;font-size:.9rem;cursor:pointer;box-shadow:inset 0 1px 0 #fff,0 6px 18px -10px rgba(var(--s-rgb,23,63,134),.55);transition:box-shadow .18s,border-color .18s,color .18s}
+.lsbtn:hover{border-color:rgba(var(--s-rgb,23,63,134),.3)}
+.lsbtn[aria-expanded="true"]{border-color:var(--s-acc,var(--navy))}
+.lsbtn[data-s="bad"]{color:var(--c-mute)}
+.lsscr{position:relative;width:28px;height:28px;border-radius:9px;display:grid;place-items:center;flex:none;color:#fff;background:linear-gradient(180deg,var(--s-hi,#173F86),var(--s-out,#081B45));box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 4px 10px -4px rgba(var(--s-rgb,23,63,134),.7);transition:background .2s,color .2s}
+.lsscr svg{width:16px;height:16px;display:block;grid-area:1/1}
+.lsscr .lsoff{display:none}
+.lsbtn[data-s="bad"] .lsscr{background:var(--k-sub,#EEF2F8);color:#9AA6BC;box-shadow:inset 0 0 0 1px var(--c-line,#D5DCE9)}
+.lsbtn[data-s="bad"] .lsscr .lson{display:none}
+.lsbtn[data-s="bad"] .lsscr .lsoff{display:block}
+.lsscr .lsdot{position:absolute;right:-3px;bottom:-3px;width:11px;height:11px;border:2px solid #fff;box-shadow:none}
+.lsscr .lsdot[data-s="ok"]{background:#1E9E5A;box-shadow:0 0 8px 0 rgba(30,158,90,.7)}
+.lsscr .lsdot[data-s="wait"]{background:#E0A21C;box-shadow:0 0 8px 0 rgba(224,162,28,.7)}
+.lsscr .lsdot[data-s="bad"],.lsscr .lsdot[data-s="load"]{display:none}
+html[data-mode="dark"] .lsbtn{background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));border-color:rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 8px 20px -10px rgba(0,0,0,.8)}
+html[data-mode="dark"] .lsscr .lsdot{border-color:#1A1F2E}
+html[data-mode="dark"] .lsbtn[data-s="bad"] .lsscr{background:rgba(255,255,255,.06);color:#8A95AB;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+@media (prefers-reduced-motion:reduce){.lsbtn,.lsscr{transition:none}}
 .lsdot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#C98F1F;flex:none}
 .lsdot[data-s="ok"]{background:#1E9E5A;box-shadow:0 0 0 3px rgba(30,158,90,.18)}
 .lsdot[data-s="bad"]{background:#C0392B}
