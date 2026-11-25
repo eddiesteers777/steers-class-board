@@ -2177,7 +2177,7 @@ export async function startApp(opts) {
     }
     writeState = writer("board/state");
     if (!guest && !tvView && !(opts && opts.store)) {   // Live status: check in every 20 s, and answer the Remote's "Check now"
-        import("./presence.js?v=2").then((m) => {
+        import("./presence.js?v=3").then((m) => {
             presence = m.startPresence({ uid: user.uid, page: PAGE, mode, now,
                 snap: () => ({ screen: S.screen, screenName: screenName(S.screen), period: S.period, day: DK[S.day] || "", week: S.week,
                     panels: PANEL_LIST.filter(([k]) => S.tools.on[k]).map((x) => x[1]), look: [S.look.theme, S.look.bg, S.look.fx].join(" "), conn: ($("status") || {}).textContent || "" }) });

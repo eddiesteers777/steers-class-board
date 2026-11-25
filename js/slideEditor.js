@@ -1525,6 +1525,17 @@ function moreMenu(p) {
     item("plan", "Start from my plan", "The day's lesson, your Today screen or the week's agenda as slides", () => setTimeout(() => openPop(b, planMenu, "wide"), 0));
     item("copyto", "Copy to another day or class", "This slide, or all of " + DAYS[lesson.day] + "'s", () => setTimeout(() => openPop(b, copyMenu), 0));
     if (A.goMode) item("board", "Put it on the board, stay here", "The board shows this slide; you keep building", () => showOnBoard());
+    // One menu on Slides (Nov 24, Eddie: "this seems like a lot"): the header's Menu steps aside (css/slidedit.css) and
+    // its links come in here. They are read from that menu, so the two never drift; Sign out presses its own button.
+    const acct = [...document.querySelectorAll(".cbar .menu.acct .pop > a, .cbar .menu.acct .pop > button")];
+    if (!acct.length) return;
+    p.appendChild(el("p", "sph smgo", "Go to"));
+    const go = el("div", "smlinks");
+    acct.forEach((x) => {
+        if (x.tagName === "A") { const a = el("a", "spchip", x.textContent); a.href = x.getAttribute("href"); if (x.target) { a.target = x.target; a.rel = "noopener"; } a.onclick = () => closePop(); go.appendChild(a); }
+        else go.appendChild(btn("spchip", x.textContent, () => { closePop(); x.click(); }));
+    });
+    p.appendChild(go);
 }
 function planMenu(p) {
     const L = classOf(weekObj(), lesson.cls), d = dayOf(), frames = d ? (A.framesFor(lesson.week, lesson.cls, lesson.day) || []) : [];
@@ -1608,7 +1619,7 @@ function build() {
     const teach = A.goMode
         ? btn("btn amber slteach", icon("spot") + "<span>Teach<i> this slide</i></span>", () => toSpotlight(), "Teach this slide: it goes on the board and opens in Spotlight, with panels and drawing")
         : btn("btn amber slteach", icon("board") + "<span>Show on board</span>", () => showOnBoard(), "Send this slide to the board now");
-    const more = btn("btn ghost slmore", icon("more"), (e, bb) => openPop(bb, moreMenu, "wide"), "More: start from my plan, copy to another day, put it on the board"); more.id = "slMore";
+    const more = btn("btn ghost slmore", icon("more"), (e, bb) => openPop(bb, moreMenu, "wide"), "More: start from my plan, copy to another day, put it on the board, go to another page or sign out"); more.id = "slMore";
     b1.append(wk, cf, days, el("span", "slgap"), sv, teach, more);
     ws.onchange = () => setLesson(ws.value, lesson.cls, lesson.day); cs.onchange = () => setLesson(lesson.week, cs.value, lesson.day);
     const slot = document.getElementById("slBarSlot");

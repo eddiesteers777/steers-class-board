@@ -20,6 +20,17 @@ body.slidemode .cbar .smode{margin-right:0}
 body.slidemode .ytpill.inbar .ytp-t,body.slidemode .ytpill.inbar .ytp-ch{display:none}   /* music pill: icon + play only, so the lesson row fits */
 body.slidemode .cbar .smode button{padding:7px 11px}
 #slBarSlot{flex:1;min-width:0}
+/* Slides trims its header (Nov 24, Eddie: "this seems like a lot. what up there is necessary"):
+   one menu, the ⋯ (Menu's links are inside it, js/slideEditor.js moreMenu); the music pill only while music plays, so
+   it can still be paused; the board status as its dot alone (the words show on hover and stay for screen readers). */
+body.slidemode .cbar>details.menu.acct{display:none!important}
+body.slidemode .ytpill.inbar:not(.playing){display:none!important}
+body.slidemode #liveStatusBtn{gap:0;padding:0;width:34px;height:34px;justify-content:center;flex:none}
+body.slidemode #liveStatusBtn #lsBtnText{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+body.slidemode #liveStatusBtn .lsdot{width:12px;height:12px}
+.spop .smgo{margin-top:12px;padding-top:10px;border-top:1px solid var(--c-line)}
+.spop .smlinks{display:flex;flex-wrap:wrap;gap:6px}
+.spop a.spchip{display:inline-flex;align-items:center;text-decoration:none}
 body:not(.slidemode) #slideApp{display:none}
 
 .sapp{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--c-bg);color:var(--c-ink);font-family:var(--ui)}

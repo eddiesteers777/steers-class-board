@@ -155,6 +155,7 @@ function mountSheet(api, host, myId) {
         const allGot = boardsOn.length && boardsOn.every(gotIt);
         dot.dataset.s = !boardsOn.length ? "bad" : allGot ? "ok" : "wait";
         bt.textContent = !boardsOn.length ? "No board on" : boardsOn.length === 1 ? "1 board on" : boardsOn.length + " boards on";
+        btn.title = bt.textContent + ". Tap for Live status.";   // Slides shows the dot alone (css/slidedit.css), so the words show on hover
         if (sheet.hidden) return;
         // the newest change, and who has it
         let ack = "";
