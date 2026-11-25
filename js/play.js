@@ -10,6 +10,7 @@
    own questions and results, never the answers or anyone else's code.
 ========================================== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { firebaseConfig } from "./firebaseConfig.js?v=1";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import * as V from "./vaultCore.js?v=75";
@@ -19,14 +20,7 @@ import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=2";
 
 // Same project as js/firebase.js. A separate app name keeps a teacher signed in on this device signed in.
-const app = initializeApp({
-    apiKey: "AIzaSyA8kAei_AJMU66EePYQyI8nlVJeLes5HLY",
-    authDomain: "steers-class-board.firebaseapp.com",
-    projectId: "steers-class-board",
-    storageBucket: "steers-class-board.firebasestorage.app",
-    messagingSenderId: "997357619072",
-    appId: "1:997357619072:web:8e47464df7c4e329fd2365"
-}, "play");
+const app = initializeApp(firebaseConfig, "play");
 // iPhone and iPad Safari can stall Firestore's streaming connection with no error (seen 2026-11-07 and in the
 // first live test, 2026-11-17: the first question took about 30 seconds). Those devices use plain requests.
 const appleTouch = /iPhone|iPad|iPod/.test(navigator.userAgent || "") || (/Macintosh/.test(navigator.userAgent || "") && navigator.maxTouchPoints > 1);

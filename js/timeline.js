@@ -3,11 +3,14 @@
    Four lanes (nine weeks), one card per Alabama standard. Drag a card by its handle (mouse, touch or pen) to change
    the order; with the keyboard, focus the handle and use the arrow keys. Tap the status to mark it.
    Saves: order -> teacher/{uid}/standards/timeline; marks -> teacher/{uid}/standards/progress (same as the Standards page).
+   Two views (Nov 24): Map (default, js/timelineMap.js) shows the year as a road with a stop per unit, for following
+   along; Cards is the four lanes, for changing the order and marking status. ?view=cards opens the cards.
    ?demo keeps everything on this device only. ?cls=7th opens a class.
 ========================================== */
-import { STANDARDS } from "../data/standards.js?v=58";
-import { SCHOOL_YEAR, today, short, daysLeftInNineWeeks, nineWeeksOf } from "./schoolCal.js?v=57";
-import * as T from "./timelineCore.js?v=2";
+import { STANDARDS } from "../data/standards.js?v=59";
+import { SCHOOL_YEAR, today, short, daysLeftInNineWeeks, nineWeeksOf } from "./schoolCal.js?v=59";
+import * as T from "./timelineCore.js?v=3";
+import { drawMap } from "./timelineMap.js?v=2";
 import { mount as mountPick, bankNow } from "./timelinePick.js?v=4";
 import { counts as bankCounts, has as inTray } from "./timelineTray.js?v=4";
 import * as K from "./timelineLinks.js?v=2";
@@ -28,6 +31,8 @@ const ORDN = ["1st", "2nd", "3rd", "4th"];
 const q0 = new URLSearchParams(location.search);
 let cls = CLASSES.some((c) => c[0] === q0.get("cls")) ? q0.get("cls") : (keep("tl-cls") || keep("std-cls") || "8th");
 if (!STANDARDS[cls]) cls = "8th";
+const VIEWS = ["map", "cards"];
+let view = VIEWS.includes(q0.get("view")) ? q0.get("view") : (VIEWS.includes(keep("tl-view")) ? keep("tl-view") : "map");
 let progress = {}, order = {}, floors = {}, menuFor = "";
 const pending = { p: false, o: false, f: false };
 const timers = { p: 0, o: 0, f: 0 };
@@ -131,10 +136,48 @@ function linksLine(code) {
 }
 function setFloors(next) { floors = next; saveLater("f"); draw(); pick.redraw(); }
 
+/* ---------- the two views ---------- */
+const LEDE = {
+    map: "Your year as a road: each stop is a unit, in your teaching order. Green stops are taught and the amber pin is where you are now. Tap a standard to see its problems.",
+    cards: "Every Alabama standard in teaching order, one lane per nine weeks. Drag a card by its handle to change the order. Tap the status to mark it. Tap a standard to see its problems and add it to an assignment.",
+};
+function setView(v) {
+    if (v === view) return;
+    view = v; keep("tl-view", v); menuFor = ""; draw();
+    const u = new URL(location.href); if (v === "map") u.searchParams.delete("view"); else u.searchParams.set("view", v); history.replaceState(null, "", u);
+    say(v === "map" ? "Map view" : "Cards view");
+}
+document.querySelectorAll("#view button").forEach((b) => { b.onclick = () => setView(b.dataset.view); });
+const md = (s) => short(s, { month: "short", day: "numeric" });
+let marksIn = false;   // the map waits for the marks, so it never shows "You are here" at the wrong stop
+function mapView(L) {
+    if (!marksIn) { $("map").innerHTML = '<div class="tm-skel" aria-hidden="true"><i class="a"></i><i></i><i></i><i></i></div>'; return; }
+    const plan = T.PLAN[cls], nw = nineWeeksOf(today()), nowLane = nw ? nw.n - 1 : -1;
+    const Q = SCHOOL_YEAR.nineWeeks, last = Q[Q.length - 1];
+    drawMap($("map"), {
+        cls, model: T.mapStops(cls, L, progress),
+        dates: Q.map((q) => md(q.start) + " – " + md(q.end)),
+        notes: plan ? plan.notes : null,
+        nowLane, nowLeft: nowLane >= 0 ? daysLeftInNineWeeks(today()) : 0,
+        startLabel: "First day · " + md(Q[0].start),
+        endLabel: plan ? "Then: ACAP spiral review" : "Last day · " + md(last.end),
+        openStd: (code) => pick.open(code),
+        edit: () => setView("cards"),
+    });
+}
+
 /* ---------- lanes ---------- */
 function draw() {
     seg();
+    document.querySelectorAll("#view button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === view)));
+    $("lede").textContent = LEDE[view];
     const C = STANDARDS[cls], L = lanes(), plan = T.PLAN[cls];
+    const isMap = view === "map";
+    $("map").hidden = !isMap; $("lanes").hidden = isMap;
+    const def0 = T.isDefault(cls, L);
+    $("orderNote").textContent = def0 ? (T.isLocked(cls) ? "Locked order v" + T.PLAN[cls].v : "District unit order, split across the year") : "Your order" + (order[cls] && order[cls].at ? " · changed " + new Date(order[cls].at).toLocaleDateString([], { month: "short", day: "numeric" }) : "");
+    if (isMap) { $("reset").hidden = true; $("next").hidden = true; $("lanes").textContent = ""; mapView(L); return; }
+    $("map").textContent = "";
     const box = $("lanes"); box.textContent = "";
     const nw = nineWeeksOf(today()), nowLane = nw ? nw.n - 1 : -1;
     L.forEach((lane, li) => {
@@ -349,8 +392,8 @@ else {
     store.watch("standards/progress", (snap) => {
         if (snap.pending || pending.p) return;
         const d = (snap.exists && snap.data) || {}; progress = d && typeof d === "object" ? d : {};
-        live(); if (!drag) draw();
-    }, (e) => status("Could not load your marks (" + ((e && e.code) || "error") + ")", "bad"));
+        marksIn = true; live(); if (!drag) draw();
+    }, (e) => { status("Could not load your marks (" + ((e && e.code) || "error") + ")", "bad"); if (!marksIn) { marksIn = true; if (!drag) draw(); } });
     store.watch("games/index", (snap) => { if (snap.pending) return; gameSets = ((snap.exists && snap.data && snap.data.sets) || []).filter((x) => x && x.id); }, () => {});
     store.watch("standards/timeline", (snap) => {
         if (snap.pending || pending.o) return;

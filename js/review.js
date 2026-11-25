@@ -6,19 +6,19 @@
    saving (the week carries a "checked" stamp); the page shows that stamp and flags any answer edited after it.
    ?demo keeps everything on this device. ?week=week6 opens a given week.
 ========================================== */
-import { WEEKS as PUBLISHED } from "../data/weeks.js?v=62";
-import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, nineWeeksOf, parse } from "./schoolCal.js?v=58";
+import { WEEKS as PUBLISHED } from "../data/weeks.js?v=63";
+import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, nineWeeksOf, parse } from "./schoolCal.js?v=59";
 import { weekIdFor } from "./weeksLive.js?v=58";
-import { publishWeek, unpublishWeek, classUrl, parentMessage } from "./publish.js?v=60";
+import { publishWeek, unpublishWeek, classUrl, parentMessage } from "./publish.js?v=61";
 import { closeoutItems, drawCloseout } from "./closeout.js?v=3";
 import { repeats, saveBankWeek, extract } from "./bank.js?v=2";
 import { figuresIn, isFunction, stripFigures } from "./figures.js?v=1";
 import { bankFor, openBankPicker } from "./bankPick.js?v=2";
-import { STANDARDS } from "../data/standards.js?v=58";
+import { STANDARDS } from "../data/standards.js?v=59";
 import { allPapers } from "./weekPapers.js?v=1";
 import { printPapers, saveToDrive } from "./weekPack.js?v=1";
 import * as Drive from "./drive.js?v=2";
-import { buildWeekSlides, plannedDecks } from "./weekSlides.js?v=1";
+import { buildWeekSlides, plannedDecks } from "./weekSlides.js?v=2";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");

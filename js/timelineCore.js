@@ -10,7 +10,7 @@
    It never changes data/standards.js or the district unit order the Standards page shows.
    Status marks are the same standards/progress marks the Standards page uses ({ s, d }).
 ========================================== */
-import { STANDARDS } from "../data/standards.js?v=58";
+import { STANDARDS } from "../data/standards.js?v=59";
 
 export const LANES = 4;
 export const LANE_NAMES = ["1st nine weeks", "2nd nine weeks", "3rd nine weeks", "4th nine weeks"];
@@ -171,4 +171,49 @@ export function timelineUnit(cls, lanes, progress) {
 export function laneDone(lane, cls, progress) {
     const p = (progress || {})[cls] || {};
     return { taught: lane.filter((c) => stateOf(p, c) === "taught").length, total: lane.length };
+}
+
+/**
+ * The Timeline as a map (Nov 24): the year as one road, a region per nine weeks, a stop per unit.
+ * A stop is a run of cards that sit together in one lane and come from the same district unit (the same groups
+ * timelineNext uses), so "You are here" is the same place Next up calls current.
+ * Returns { unitWord, regions: [{ lane, name, stops: [stop] }], stops: [stop] (all, in order), here, next, taught, total }
+ * where a stop is { n (1-based), lane, unit, label ("Topic 3" or the domain), name, items: [{ code, text, critical, state }],
+ *   taught, teaching, reteach, total, cont, state } (label is "" for standards in no unit doc; cont = same unit as the stop before) and state is "done" | "here" | "teaching" | "left" | "started" | "ahead".
+ * here = index of the current stop (-1 when every standard is taught), next = the first stop after it not done (-1 if none).
+ */
+export function mapStops(cls, lanes, progress) {
+    const C = classOf(cls); if (!C) return null;
+    const p = (progress || {})[cls] || {}, byCode = new Map(C.standards.map((s) => [s.code, s]));
+    const unitWord = C.unitWord || "Unit";
+    const regions = [0, 1, 2, 3].map((li) => ({ lane: li, name: LANE_NAMES[li], stops: [] }));
+    const stops = [];
+    (lanes || []).forEach((lane, li) => (lane || []).forEach((code) => {
+        const s = byCode.get(code); if (!s || !regions[li]) return;
+        const u = unitOf(cls, code), key = u ? "u" + u.id : "d" + (s.domain || "");
+        const R = regions[li], last = R.stops[R.stops.length - 1];
+        const item = { code, text: s.text, critical: !!s.critical, state: stateOf(p, code) };
+        if (last && last.key === key) { last.items.push(item); return; }
+        const stop = { key, lane: li, unit: u, label: u ? unitWord + " " + u.id : "", name: u ? u.name : (s.domain || code), items: [item] };
+        R.stops.push(stop); stops.push(stop);
+    }));
+    stops.forEach((st, i) => {
+        st.n = i + 1;
+        st.cont = !!(st.unit && i > 0 && stops[i - 1].unit && stops[i - 1].unit.id === st.unit.id);   // the unit carries over from the stop before
+    });
+    stops.forEach((st) => {
+        delete st.key;
+        st.total = st.items.length;
+        st.taught = st.items.filter((x) => x.state === "taught").length;
+        st.teaching = st.items.filter((x) => x.state === "teaching").length;
+        st.reteach = st.items.filter((x) => x.state === "reteach").length;
+    });
+    let here = stops.findIndex((st) => st.teaching > 0);
+    if (here < 0) here = stops.findIndex((st) => st.taught < st.total);
+    stops.forEach((st, i) => {
+        st.state = st.total && st.taught === st.total ? "done" : i === here ? "here" : st.teaching ? "teaching" : here >= 0 && i < here ? "left" : st.taught ? "started" : "ahead";
+    });
+    const next = here < 0 ? -1 : stops.findIndex((st, i) => i > here && st.state !== "done");
+    const all = stops.flatMap((st) => st.items);
+    return { unitWord, regions, stops, here, next, taught: all.filter((x) => x.state === "taught").length, total: all.length };
 }

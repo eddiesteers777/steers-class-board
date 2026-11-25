@@ -79,7 +79,7 @@
 
 /* controls */
 .sp-ctl{display:flex;gap:8px;align-items:center;padding:10px 12px;background:var(--k-sub,#EEF1F6);border-top:1px solid var(--k-bd,#DCE7F5);flex-wrap:wrap}
-.sp-ctl button{min-height:44px;min-width:44px;border:0;border-radius:14px;padding:0 16px;font:600 15px/1 "Instrument Sans",system-ui,sans-serif;cursor:pointer;background:var(--c-surface,#fff);color:var(--sp-navy);box-shadow:inset 0 0 0 1px #D5DCE9;display:inline-flex;align-items:center;gap:8px}
+.sp-ctl button{min-height:44px;min-width:44px;border:0;border-radius:14px;padding:0 16px;font:600 15px/1 "Instrument Sans",system-ui,sans-serif;cursor:pointer;background:#fff;color:var(--sp-navy);box-shadow:inset 0 0 0 1px #D5DCE9;display:inline-flex;align-items:center;gap:8px}
 .sp-ctl button:hover{box-shadow:inset 0 0 0 2px var(--sp-sky)}
 .sp-ctl button:focus-visible{outline:3px solid var(--sp-sky);outline-offset:2px}
 .sp-ctl button:disabled{opacity:.4;cursor:default;box-shadow:inset 0 0 0 1px #D5DCE9}
@@ -98,6 +98,17 @@
 /* on the projected board the player fills its stage */
 .sp.big{border-radius:.6em;box-shadow:none;height:100%}
 .sp.big .sp-why{font-size:clamp(18px,2.2cqi,40px)}
+
+/* the hand-written look (default): marker handwriting, red slashes and a green answer box drawn in the
+   ink layer by js/stepPlayer.js, and a pen tip that moves with the writing */
+.sp.hand .sp-board{font-family:"Sriracha","Patrick Hand","Comic Sans MS",cursive;font-weight:400}
+.sp.hand .sp-row.op,.sp.hand .w-sub,.sp.hand .w-u,.sp.hand .sp-ans{font-weight:400}
+.sp.hand .w-k.x::after{display:none}
+.sp.hand .sp-ans{color:var(--sp-ink)}
+.sp.hand .sp-ans::before{display:none}
+.sp.hand .sp-ink path.sp-slash,.sp.hand .sp-ink path.sp-box{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.sp-pen{position:absolute;left:0;top:0;width:.3em;height:.3em;margin:-.15em 0 0 -.15em;border-radius:50%;background:#fff;border:.06em solid var(--sp-navy);
+    box-shadow:inset 0 0 0 .05em #fff,inset 0 0 0 .1em var(--sp-navy),0 .05em .2em rgba(8,27,69,.25);opacity:0;pointer-events:none;z-index:4;transition:opacity .15s}
 
 @media (prefers-reduced-motion:reduce){
     .sp *,.sp *::after{transition:none !important}
@@ -169,3 +180,26 @@
 .stepcheck{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--k-warn-bg,#FFF6DF);color:#3A2A00;border-radius:12px;padding:10px 14px;font-size:15px}
 .stepcheck p{margin:0;flex:1;min-width:200px}
 .stepcheck .btn{min-height:44px}
+
+/* Show Steps on the board: every step fits on the screen, front and center (Eddie, Nov 24: the why line sat under the
+   bottom of the board). A slim header, a smaller question, the why line right under the step's name, the work in the
+   middle of what is left, and room kept clear for the Spotlight toolbar. */
+#stage .hdr.slim{height:3.1em;gap:.8em}
+#stage .hdr.slim img{width:2.3em;height:2.3em}
+#stage .hdr.slim .ttl h1{font-size:1.55em;line-height:1.1}
+#stage .hdr.slim .ttl p{display:none}
+#stage .hdr.slim .cls{font-size:.85em}
+.stepsbody{padding-top:.6em;padding-bottom:.8em;gap:.45em}
+.stepshost{gap:.4em}
+.stepq{font-size:.98em;padding:.35em .8em;line-height:1.3}
+.stepcheck{padding:6px 12px;font-size:14px}
+.stepcheck .btn{min-height:38px}
+.steppick .btn,.steppicklab select{min-height:38px}
+.sp.big .sp-head{order:0}
+.sp.big .sp-why{order:1;border-top:0;border-bottom:1px solid var(--k-bd,#DCE7F5);min-height:0;padding:.35em .8em .45em;font-size:clamp(17px,2cqi,34px);line-height:1.35}
+.sp.big .sp-board{order:2;min-height:0;font-size:clamp(20px,3.8cqi,52px);padding:.5em .6em .6em;display:flex;flex-direction:column;justify-content:safe center}
+.sp.big .sp-board > .sp-work{flex:none}
+body.spotmode .stepsbody{padding-bottom:84px}
+body.spotmode #stage .hdr.slim{padding-left:190px;padding-right:250px}
+
+.sp-row.gone{display:none}

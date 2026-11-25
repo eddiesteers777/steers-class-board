@@ -8,6 +8,9 @@
    cards or Claude's check stamp, and never any student information (none is in a week file).
    Firestore rules: pub/{uid}/** is readable by anyone and writable only by that teacher.
 ========================================== */
+import { myName, CALERA_NAME } from "./teacherName.js?v=1";
+let ME = CALERA_NAME;   // signs the parent message; the Calera account is Mr. Steers, a new teacher their setup name
+myName().then((n) => { ME = n; }).catch(() => {});
 const DROP = new Set(["a", "ans", "answer", "answers", "work", "wrong", "key", "checked", "orig", "edited", "speedDating", "exitAnswers", "teacher", "teacherNotes"]);
 
 /** A deep copy with every answer-bearing field removed. */
@@ -76,6 +79,6 @@ export function parentMessage(week, cls, plan, link, questions) {
     if (hw) lines.push("Homework: " + hw + ".");
     lines.push("This week's plan and every paper: " + link);
     if (questions) lines.push(questions);
-    lines.push("Thank you, Mr. Steers");
+    lines.push("Thank you, " + (ME || "your teacher"));
     return lines.join("\n\n").replace(/\.\./g, ".");
 }

@@ -4,27 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign in | Anchor Board</title>
-    <meta name="description" content="Anchor Board: the class board, remote and planner for Mr. Steers' math classes. Teacher-only.">
+    <meta name="description" content="Anchor Board: the class board, remote and planner for teachers. Teacher-only.">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
     <meta name="robots" content="noindex">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/signin.css?v=1">
+    <script src="js/scheme.js?v=2"></script>
+    <link rel="stylesheet" href="css/skin.css?v=2">
+    <link rel="stylesheet" href="css/signin.css?v=2">
+    <script src="js/signinMotion.js?v=1" defer></script>
     <meta name="theme-color" content="#0B2559">
 </head>
 <body>
+    <div class="si-sky" aria-hidden="true">
+        <i class="si-dawn"></i><i class="si-glow si-glow-amber"></i><i class="si-glow si-glow-sky"></i><i class="si-glow si-glow-light"></i>
+        <svg class="si-rings" viewBox="0 0 200 200"><circle cx="100" cy="100" r="96" stroke-width="1"/><circle cx="100" cy="100" r="78" stroke-width="6"/><circle cx="100" cy="100" r="58" stroke-width="1"/><circle class="si-arc" cx="100" cy="100" r="78" stroke-width="2.2" pathLength="1" stroke-dasharray=".34 .66" transform="rotate(75 100 100)"/></svg>
+        <svg class="si-rings si-rings-2" viewBox="0 0 200 200"><circle cx="100" cy="100" r="96" stroke-width="1"/><circle cx="100" cy="100" r="78" stroke-width="5"/><circle class="si-arc" cx="100" cy="100" r="78" stroke-width="2" pathLength="1" stroke-dasharray=".26 .74" transform="rotate(-100 100 100)"/></svg>
+    </div>
     <main class="si">
-        <img src="brand/logo.svg" alt="Anchor Board logo">
+      <div class="si-card">
+        <span class="si-logo cbrand"><img src="brand/logo.svg" alt="Anchor Board logo"></span>
         <h1>Sign in</h1>
         <p class="who">Anchor Board · Teacher-only</p>
-        <div class="line" aria-hidden="true"></div>
+        <div class="line" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
         <p>Sign in with Google to open the home screen.</p>
         <div class="acts">
             <button id="loginBtnPage" class="btn go" type="button">Sign In with Google</button>
             <a class="btn ghost" href="home.html">Back</a>
         </div>
         <p id="loginNote" class="note" role="status"></p>
+      </div>
     </main>
     <script type="module">
         import { wireSignIn } from "./js/signInButton.js?v=21";

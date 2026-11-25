@@ -34,3 +34,47 @@ body.board .spotcount{position:fixed;left:auto;right:130px;bottom:22px;z-index:5
 body.board.idle .bnav,body.board.idle .bpanels,body.board.idle #exit{opacity:.12}
 body.board.idle .spotcount{opacity:0}
 body.board.idle .sndtap{opacity:.55;transition:opacity .3s}
+
+/* 4. the drawing rail lies flat at the bottom middle (Eddie, 2026-11-24: "Move it to the bottom middle"), glass like the rest.
+      The whiteboard's page buttons and the math tool tray move up to sit above it, and the lesson card moves to the left edge. */
+body.board .wbrail{left:50%;right:auto;top:auto;bottom:.55em;transform:translateX(-50%);flex-direction:row;gap:.2em;padding:.3em .45em;
+  max-width:calc(100% - 1em);max-height:none;overflow-x:auto;overflow-y:hidden;border-radius:999px}
+body.board .wbrail .rsep{width:.06em;height:1.2em;margin:0 .14em}
+body.board .wbrail .rsw{display:flex;align-items:center;gap:.26em;padding:0 .12em}
+body.board .wbrail .rb{flex:none}
+body.board .wbrail .rb:hover{background:rgba(255,255,255,.16)}
+body.board .wbpages{bottom:3.35em}
+body.board .wbpaper .mathmenu{bottom:6.4em}
+body.board .wbcard,body.board .wbshow{left:.6em}
+body.board .cv .inknote{left:.6em;bottom:3.35em}
+
+/* 5. (Eddie, 2026-11-24, later) "Let's put those glassy buttons at the top left and not top right": on the right they sat on
+      the board's class name. Panels and Show controls now sit top left, with Tap for sound beside them. */
+body.board #exit{right:auto;left:130px}
+body.board .bpanels{right:auto;left:14px}
+body.board .sndtap{top:14px;left:276px}
+/* the board starts just under that row, so the buttons never sit on its header (the photo still fills the screen behind) */
+body.board:not(.phone) .wrap{margin-top:54px}
+
+/* 6. (Eddie, same evening) "I want this panel to be the same one you can see in the spotlight view": the drawing bar takes
+      Spotlight's pen bar look (js/spotlight.js .sppen): deeper navy glass that reads on a white whiteboard, soft white icons,
+      a sky-blue lit tool, round inks with a white ring, and the page buttons as a matching glass pill. */
+body.board .wbrail{background:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.06));background-color:rgba(12,28,66,.78);
+  border:1px solid rgba(255,255,255,.24);box-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 18px 50px rgba(2,8,26,.45),0 2px 8px rgba(2,8,26,.25);padding:.24em .3em;gap:.12em}
+body.board .wbrail .rb{width:1.6em;height:1.6em;border-radius:.52em;color:rgba(226,236,255,.78)}
+body.board .wbrail .rb svg{width:.82em;height:.82em}
+body.board .wbrail .rb:hover{background:rgba(255,255,255,.12);color:#fff}
+body.board .wbrail .rb[aria-pressed="true"]{background:linear-gradient(180deg,rgba(140,200,255,.5),rgba(86,150,230,.32));color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+body.board .wbrail .rb.amber{background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00}
+body.board .wbrail .rb.armed{background:rgba(229,72,77,.85);color:#fff}
+body.board .wbrail .rsep{width:1px;height:1.1em;margin:0 .16em;background:linear-gradient(180deg,transparent,rgba(255,255,255,.28),transparent)}
+body.board .wbrail .rsw{gap:.2em;padding:0 .14em}
+body.board .wbrail .sw{width:.88em;height:.88em;border:.07em solid rgba(255,255,255,.7);box-shadow:inset 0 .06em .1em rgba(255,255,255,.45),0 .1em .28em rgba(0,0,0,.35);transition:transform .15s}
+body.board .wbrail .sw:hover{transform:scale(1.1)}
+body.board .wbrail .sw[aria-pressed="true"]{outline:0;box-shadow:0 0 0 .1em rgba(10,24,56,.9),0 0 0 .17em #fff,0 .1em .35em rgba(0,0,0,.4);transform:scale(1.08)}
+body.board .wbpages{gap:.12em;padding:.14em;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.06));background-color:rgba(12,28,66,.78);
+  border:1px solid rgba(255,255,255,.24);box-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 10px 30px rgba(2,8,26,.35);-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%)}
+body.board .wbpages button{border:0;border-radius:999px;background:transparent;color:rgba(226,236,255,.82);height:2.2em}
+body.board .wbpages button:hover{background:rgba(255,255,255,.12);color:#fff}
+body.board .wbpages button.on{background:linear-gradient(180deg,rgba(140,200,255,.5),rgba(86,150,230,.32));color:#fff}
+body.board .wbpages button.add{background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00;width:2.2em;margin-left:.1em}

@@ -157,3 +157,36 @@ body.board.idle .spotcount,body.spotmode .spotcount{opacity:0}
 #stage:has(.spotx) .float.enter,.float.sppop{animation:spPop .42s cubic-bezier(.18,.9,.22,1.25)}
 @keyframes spPop{0%{opacity:0;transform:scale(.6) translateY(1em)}60%{opacity:1}100%{transform:none}}
 @media (prefers-reduced-motion:reduce){.spot *,#stage:has(.spotx) .float.enter,.float.sppop{animation:none!important;transition:none!important}}
+/* Send to students on the board (js/liveNotes.js): the class's answers with no names, and two students' work side by side */
+.lngroupsb,.lncompare{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(44em,86%);max-height:88%;display:flex;flex-direction:column;gap:.7em;padding:1.1em 1.3em 1.2em;border-radius:1.2em;color:#F4F7FB;background:linear-gradient(160deg,rgba(8,27,69,.96),rgba(23,63,134,.96));box-shadow:0 1em 3em rgba(8,27,69,.4);backdrop-filter:blur(12px);animation:lnrise .35s ease both}
+.lncompare{width:min(60em,94%)}
+.lngbhead,.lncmphead{display:flex;flex-direction:column;gap:.2em}
+.lncmpq{margin:0;font-size:1.05em;font-weight:700;line-height:1.3}
+.lngblist{display:flex;flex-direction:column;gap:.45em}
+.lngbrow{display:grid;grid-template-columns:minmax(5em,30%) 1fr 2.2em;align-items:center;gap:.8em;padding:.35em .6em;border-radius:.7em;background:rgba(255,255,255,.07);animation:lnrise .4s ease both;animation-delay:var(--d,0ms)}
+.lngby{font-size:1.25em;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lngby em{font-style:normal;color:#5FD39A}
+.lngbbar{height:.8em;border-radius:1em;background:rgba(255,255,255,.12);overflow:hidden}
+.lngbbar i{display:block;height:100%;border-radius:1em;background:linear-gradient(90deg,#7FAEDD,#B9D3EE);animation:lngrow .7s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--d,0ms);transform-origin:left}
+.lngbrow b{font-size:1.25em;text-align:right;font-variant-numeric:tabular-nums}
+.lngbrow.right{background:rgba(95,211,154,.18);box-shadow:inset 0 0 0 .12em rgba(95,211,154,.7)}
+.lngbrow.right .lngbbar i{background:linear-gradient(90deg,#3CB57A,#5FD39A)}
+.lngbrow.wrong{opacity:.7}
+.lncmprow{display:grid;grid-template-columns:1fr 1fr;gap:.8em;min-height:0}
+.lncmpcard{margin:0;display:flex;flex-direction:column;gap:.35em;padding:.5em;border-radius:.8em;background:#fff;color:#0E1B3A;min-height:0}
+.lncmpcard figcaption{display:flex;align-items:baseline;justify-content:space-between;gap:.6em;padding:0 .2em}
+.lncmpcard figcaption b{font-size:.95em;color:#10358A;letter-spacing:.04em}
+.lncmpcard figcaption span{font-size:.9em;font-weight:700}
+.lncmpcard img{width:100%;border-radius:.5em;background:#fff;object-fit:contain;max-height:52vh}
+.lncmpask{margin:0;font-size:.85em;opacity:.9;text-align:center}
+.lntoolname{font-size:1.3em}
+@keyframes lnrise{from{opacity:0;transform:translate(-50%,-46%)}to{opacity:1;transform:translate(-50%,-50%)}}
+.lngbrow{animation-name:lnfade}
+@keyframes lnfade{from{opacity:0;transform:translateY(.4em)}to{opacity:1;transform:none}}
+@keyframes lngrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media (prefers-reduced-motion:reduce){.lngroupsb,.lncompare,.lngbrow,.lngbbar i{animation:none}}
+/* Live notes over any other screen (a check-in sent from a panel): above the panels, the ring in the lower left */
+.lnlayer.stage{z-index:5;font-size:.8em}
+.lnlayer.stage .lnci{right:auto;top:auto;left:1em;bottom:1em;width:min(14em,30%)}
+.lnlayer.stage .lnjoin{right:auto;left:1em;bottom:1em}
+.lnlayer.stage .lnci~.lnjoin{display:none}

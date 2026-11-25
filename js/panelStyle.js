@@ -2,7 +2,9 @@
    Anchor Board — panel styles (Eddie, 2026-11-23): each panel's own color, finish and see-through amount,
    picked in the panel's Settings side panel (the gear, or More > Style). Saved in the shared board state
    as tools.sty[panel] = { c: color, f: finish, o: how solid 35-100, r: corners }, so the projected board follows.
-   A panel with no style looks exactly as before.
+   A panel with no style looks exactly as before, except the math tools and calculators: they open in "Match board"
+   (Eddie, 2026-11-24), the board look's own colors, so they read on any board, photo or Spotlight.
+   For those, a teacher who picks the plain paper look on purpose is saved with p: 1, so it is not taken for "no style".
    No imports: boardTools.js cleans the saved value with cleanSty, boardApp.js paints it with applySty.
 ========================================== */
 
@@ -46,13 +48,29 @@ export const PANEL_PRESETS = [
 const COLOR_IDS = new Set(PANEL_COLORS.map((c) => c[0])), FIN_IDS = new Set(PANEL_FINISHES.map((f) => f[0])), CORNER_IDS = new Set(PANEL_CORNERS.map((c) => c[0]));
 export const MIN_SOLID = 35;   // below this a panel stops being readable from the back of the room
 
-/** A saved style, cleaned; null when it is the plain default (so nothing is stored for it). */
+/** The look the math tools and calculators open in: the "Match board" quick look. */
+export const MATCH_BOARD = Object.freeze({ c: "board", f: "grad", o: 92, r: "soft" });
+/** A saved style, cleaned; null when it is the plain default (so nothing is stored for it), unless p: 1 says the plain look was picked on purpose. */
 export function cleanSty(x) {
     if (!x || typeof x !== "object") return null;
     const s = { c: COLOR_IDS.has(x.c) ? x.c : "paper", f: FIN_IDS.has(x.f) ? x.f : "solid",
         o: Math.min(100, Math.max(MIN_SOLID, Math.round(+x.o || 100))), r: CORNER_IDS.has(x.r) ? x.r : "soft" };
-    return s.c === "paper" && s.f === "solid" && s.o === 100 && s.r === "soft" ? null : s;
+    const plain = s.c === "paper" && s.f === "solid" && s.o === 100 && s.r === "soft";
+    if (plain) return x.p === 1 ? Object.assign(s, { p: 1 }) : null;
+    return s;
 }
+const same = (a, b) => !!a && !!b && a.c === b.c && a.f === b.f && a.o === b.o && a.r === b.r;
+/** What to save for panel style x on a panel whose own default is def (MATCH_BOARD for a math tool, null for the rest):
+    null when x is that default, so the panel keeps following it; the plain look on a math tool is kept with p: 1. */
+export function styToSave(x, def) {
+    const base = { c: "paper", f: "solid", o: 100, r: "soft" }, n = cleanSty(Object.assign({}, base, x, { p: 1 }));
+    if (def && same(n, def)) return null;
+    if (!def && n && n.p) return null;
+    if (n && !def) delete n.p;
+    return n;
+}
+/** The style a panel shows: its saved one, or its default. */
+export const styShown = (saved, def) => cleanSty(saved) || def || null;
 const rgb = (h) => { const n = parseInt(h.slice(1), 16); return ((n >> 16) & 255) + " " + ((n >> 8) & 255) + " " + (n & 255); };
 const CLASSES = ["psty", "pdark", "plight"].concat(PANEL_FINISHES.map((f) => "pf-" + f[0]), PANEL_CORNERS.map((c) => "pr-" + c[0]));
 const VARS = ["--pbg", "--pbg2", "--pacc", "--pa"];

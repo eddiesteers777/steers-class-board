@@ -5,15 +5,15 @@
    built from the bank problem itself, and the teacher's part (checked it, reworded a why line) is saved under
    teacher/{uid}/walk/ok and teacher/{uid}/walk/edits.
 ========================================== */
-import { loadStdBank } from "./stdBank.js?v=3";
-import { walkFor } from "./walk.js?v=1";
+import { loadStdBank } from "./stdBank.js?v=5";
+import { walkFor } from "./walk.js?v=14";
 
 let cache = null;
 const built = new Map();
 /** Every bank problem, with its word-problem setup attached when it has one. */
 export function loadWalkItems() {
     if (cache) return cache;
-    cache = Promise.all([loadStdBank(), import("../data/stdbank/walk.js?v=1").then((m) => m.default, () => ({}))])
+    cache = Promise.all([loadStdBank(), import("../data/stdbank/walk.js?v=12").then((m) => m.default, () => ({}))])
         .then(([items, setups]) => items.map((x) => (setups[x.id] ? Object.assign({}, x, { walk: setups[x.id] }) : x)));
     return cache;
 }

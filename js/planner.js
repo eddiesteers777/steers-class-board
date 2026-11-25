@@ -5,11 +5,11 @@
      { days: { "2026-11-18": { note, c: { "8th": "plan" } } }, weeks: { "2026-11-16": { c: { "8th": "unit or focus" } } } }
    ?demo keeps everything on this device only.
 ========================================== */
-import { WEEKS as PUBLISHED } from "../data/weeks.js?v=62";
+import { WEEKS as PUBLISHED } from "../data/weeks.js?v=63";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { LIBRARY } from "../data/library.js?v=57";
-import { timelineUnit, lanesFor } from "./timelineCore.js?v=2";
-import { SCHOOL_YEAR, iso, parse, addDays, today, weekday, mondayOf, eventsOn, isSchoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, schoolDaysBetween, SCHOOL_DAYS, short } from "./schoolCal.js?v=57";
+import { timelineUnit, lanesFor } from "./timelineCore.js?v=3";
+import { SCHOOL_YEAR, iso, parse, addDays, today, weekday, mondayOf, eventsOn, isSchoolDay, dayNumber, nineWeeksOf, daysLeftInNineWeeks, schoolDaysBetween, SCHOOL_DAYS, short } from "./schoolCal.js?v=59";
 
 const demo = new URLSearchParams(location.search).has("demo");
 const store = await import(demo ? "./localStore.js?v=57" : "./boardStore.js?v=58");

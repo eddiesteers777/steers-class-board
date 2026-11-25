@@ -4,15 +4,23 @@
    notes for the teacher underneath. Everything on a slide can be moved, sized, turned, restyled or deleted.
    Slides belong to a lesson (week, class, day); every-day slides show at the start of every lesson.
    It edits saved slides, never the live board, so next week can be built while class runs on this one.
-   "Show on board" is the one button that sends a slide to the board.
+   Slides is where a lesson is built; Spotlight is where it is taught.
+   Nov 24 (Eddie: "Spotlight is the main focus; Slides is a way to quickly edit a lot of panels at one time and get a lot
+   of layouts set up for class"): Select in the slide list ticks several slides (Shift- or Ctrl-click does too); the
+   bar above the list then puts them all in Spotlight, sets their panels, duplicates, copies, hides or deletes them at
+   once (one Undo each), and a layout can be added several times in one go. "Teach this slide" is the one big button across:
+   it puts the lesson on the board and opens this slide in Spotlight. (Nov 24: Present was cut, since Spotlight does it
+   with ink and panels.) The lesson row (week, days, saved, Teach, more) sits in the Board Builder's own header
+   (studio.html #slBarSlot), so the slide gets the room.
    Model: js/slides.js. Drawing: js/slideView.js. The board side: js/boardApp.js (the Slides screen).
 ========================================== */
 import { SW, SH, MAX_SLIDES, MAX_DAILY, DAILY, INDEX, deckKey, newId, cleanDeck, cleanSlide, cleanEl, cleanIndex, newEl, mathBox, LAYOUTS, todaySlide, agendaSlide,
-    fromPlan, liveContext, lessonDate, showList, revealSteps, countShown, sanitizeHtml, textOf, PALETTE, FONTS, SHAPES, GRADS, PATTERNS, LIVE, boxOf, shapePath, inkFor } from "./slides.js?v=1";
-import { renderSlide, renderEl, fitSlide, thumb, imageLoader } from "./slideView.js?v=1";
+    fromPlan, liveContext, lessonDate, showList, revealSteps, countShown, sanitizeHtml, textOf, PALETTE, FONTS, SHAPES, GRADS, PATTERNS, LIVE, boxOf, shapePath, inkFor,
+    PANEL_MINS, cleanPanels, panelWords, bankSlide, walkSlide } from "./slides.js?v=2";
+import { renderSlide, renderEl, fitSlide, thumb, imageLoader } from "./slideView.js?v=2";
 import { newItem, geom, MENU as MATH_MENU, parseStep, compileExpr, PLOT } from "./mathTools.js?v=1";
 import { STICKER_SETS, WORDS, WORD_COLORS, stickerFace } from "./stickers.js?v=1";
-import { gradOf, lookSeal } from "./panels.js?v=16";
+import { gradOf, lookSeal } from "./panels.js?v=44";
 
 const PAGE = Math.random().toString(36).slice(2, 10);
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
@@ -22,7 +30,7 @@ const decks = {};                       // key -> { deck, ready, fresh, since, d
 let idx = cleanIndex(null), idxFresh = false, idxT = 0, idxDirty = false;
 let cur = { key: "", id: "" };          // the open slide: its deck (a lesson key or "daily") and its id
 let sel = [], editing = "", hist = [], fut = [], lastTag = "", lastAt = 0, clip = null;
-let k = 0.5, slideEl = null, drag = null, pop = null, popFor = null, present = null, toastT = 0, notesOpen = false;
+let k = 0.5, slideEl = null, drag = null, pop = null, popFor = null, toastT = 0, notesOpen = false;
 const thumbs = new Map();
 let images = null;
 
@@ -50,7 +58,7 @@ const IC = {
     lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', unlock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/>',
     dup: '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/>', trash: '<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
     spot: '<path d="M12 3v2M5.6 5.6 7 7M3 12h2M18.4 5.6 17 7M21 12h-2"/><path d="M8 16a4 4 0 1 1 8 0"/><path d="M5 20h14"/>',
-    present: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m10 8 4 2-4 2z"/>', board: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="m10 8.5 4 2-4 2z"/>',
+    board: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="m10 8.5 4 2-4 2z"/>',
     plan: '<path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 9h8M8 13h8M8 17h5"/>', copyto: '<rect x="3" y="7" width="12" height="12" rx="2"/><path d="M9 3h10a2 2 0 0 1 2 2v10"/><path d="M13 13l6-6M14 7h5v5"/>',
     al: '<path d="M4 6h16M4 12h10M4 18h13"/>', ac: '<path d="M4 6h16M7 12h10M5.5 18h13"/>', ar: '<path d="M4 6h16M10 12h10M7 18h13"/>', aj: '<path d="M4 6h16M4 12h16M4 18h16"/>',
     vt: '<path d="M4 4h16"/><path d="M8 9h8M8 13h8"/>', vm: '<path d="M8 10h8M8 14h8"/><path d="M4 4h16M4 20h16" opacity=".35"/>', vb: '<path d="M4 20h16"/><path d="M8 11h8M8 15h8"/>',
@@ -63,7 +71,9 @@ const IC = {
     hide: '<path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.9 8.4 2 12 2 12s3.5 7 10 7a9.6 9.6 0 0 0 5.4-1.6"/>',
     head: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18" stroke-width="3"/>', round: '<path d="M4 20V10a6 6 0 0 1 6-6h10"/>', grid: '<path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
     keys: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>', settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
-    notes: '<path d="M4 4h16v12H8l-4 4z"/><path d="M8 8h8M8 12h5"/>', every: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+    notes: '<path d="M4 4h16v12H8l-4 4z"/><path d="M8 8h8M8 12h5"/>',
+    panels: '<circle cx="12" cy="13" r="7"/><path d="M12 9v4l2.5 1.5M10 3h4"/>', bank: '<path d="M4 19V6a2 2 0 0 1 2-2h12v15H6a2 2 0 0 0-2 2z"/><path d="M8 8h6M8 11h4"/>',
+    steps: '<path d="M4 18h4v-4h4v-4h4V6h4"/>', every: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
 };
 const icon = (k) => svg(IC[k] || IC.more);
 
@@ -158,7 +168,8 @@ function status() {
     else if (ds.some((d) => !d.ready || !canEdit(d === decks[DAILY] ? DAILY : lessonKey()))) { t = "Getting your slides…"; st = "wait"; }
     else if (ds.some((d) => d.err)) { t = "Not saved yet (" + ds.find((d) => d.err).err + "). Trying again…"; st = "bad"; }
     else if (ds.some((d) => d.dirty || d.saving)) { t = navigator.onLine ? "Saving…" : "No wifi: saved on this computer"; st = "wait"; }
-    s.textContent = t; s.dataset.state = st; s.title = t;
+    if (s.title !== t || !s.firstChild) { s.textContent = ""; s.appendChild(el("span", null, t)); }   // a span, so a long one ends in "…" on a narrow screen
+    s.dataset.state = st; s.title = t;
 }
 
 /* ---------- loading ---------- */
@@ -182,6 +193,7 @@ function watchDeck(key) {
     setTimeout(() => { if (active) softDraw(); }, 6100);
 }
 function unwatch(key) { const d = decks[key]; if (!d || !d.unsub) return; d.unsub(); d.unsub = null; d.ready = false; d.fresh = false; }
+let picks = new Set(), selMode = false;   // ticked slides ("<deck key>|<slide id>") and the Select switch in the slide list
 let wantSlide = "";   // Spotlight > Edit this slide: open on that slide once its deck has arrived
 function pickFirst() {
     const own = deckOf(lessonKey()), daily = deckOf(DAILY);
@@ -219,6 +231,12 @@ function drawLessonBar() {
     const wl = weeks(), wsig = wl.map((w) => w.id).join();
     if (ws.dataset.sig !== wsig) { ws.textContent = ""; wl.slice().reverse().forEach((w) => { const o = el("option", null, weekName(w)); o.value = w.id; ws.appendChild(o); }); ws.dataset.sig = wsig; }
     ws.value = lesson.week;
+    // the week stepper: "‹ Week 5 / Nov 16–20 ›", with the whole list one tap away (the select sits over the name)
+    const wi = wl.findIndex((x) => x.id === lesson.week), wo = wl[wi] || null, nm = $("slWkName");
+    if (nm && wo) { nm.firstChild.textContent = wo.label || wo.id; nm.lastChild.textContent = wo.dates ? String(wo.dates).replace(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*/g, "$1") : ""; nm.lastChild.hidden = !wo.dates; nm.parentNode.title = weekName(wo); }
+    const pv = $("slWkPrev"), nx = $("slWkNext");
+    if (pv) { pv.disabled = wi <= 0; const w2 = wl[wi - 1]; pv.title = w2 ? "Back to " + weekName(w2) : "No earlier week"; pv.setAttribute("aria-label", pv.title); }
+    if (nx) { nx.disabled = wi < 0 || wi >= wl.length - 1; const w2 = wl[wi + 1]; nx.title = w2 ? "On to " + weekName(w2) : "No later week"; nx.setAttribute("aria-label", nx.title); }
     const w = weekObj(), cl = Object.keys((w && w.classes) || {}), csig = cl.join();
     if (cs.dataset.sig !== csig) { cs.textContent = ""; cl.forEach((c) => { const o = el("option", null, (w.classes[c].label || c)); o.value = c; cs.appendChild(o); }); cs.dataset.sig = csig; }
     cs.value = lesson.cls; cs.parentNode.hidden = cl.length < 2;
@@ -234,10 +252,22 @@ function drawDays() {
     });
 }
 /* The slide list down the left: every-day slides, then this day's. Drag a slide to move it, even from one list to the other. */
+let filmCur = "";   // the open slide the list last scrolled to
+/** A slide showing in the list and where it sits, so a redraw (a tick, the bar growing) can put it back in the same place. */
+function filmAnchor(f) {
+    const across = narrow.matches, fr = f.getBoundingClientRect();
+    const items = [...f.querySelectorAll(".sfi")], vis = items.find((it) => { const r = it.getBoundingClientRect(); return across ? r.right > fr.left + 110 && r.left < fr.right : r.bottom > fr.top + 40 && r.top < fr.bottom; });
+    if (!vis) return null;
+    const r = vis.getBoundingClientRect();
+    return { key: vis.dataset.key, id: vis.dataset.id, off: across ? r.left - fr.left : r.top - fr.top, across };
+}
 function drawFilm() {
     const f = $("slFilm"); if (!f) return;
-    const keep = f.scrollTop; f.textContent = "";
+    // Nov 24 (Eddie: "every time I select one it goes back to the top"): keep the list where it is across the redraw
+    const keepTop = f.scrollTop, keepLeft = f.scrollLeft, anchor = f.childElementCount ? filmAnchor(f) : null;
+    f.textContent = ""; spotIds = inSpot();
     const own = deckOf(lessonKey()), daily = deckOf(DAILY), lk = lessonKey();
+    prunePicks(); f.appendChild(pickBar());
     const section = (key, deck, title, sub) => {
         const h = el("div", "sfh"); h.appendChild(el("b", null, title)); if (sub) h.appendChild(el("small", null, sub)); f.appendChild(h);
         const list = el("div", "sflist"); list.dataset.key = key;
@@ -246,21 +276,39 @@ function drawFilm() {
         return list;
     };
     const dl = section(DAILY, daily, "Every day", "Shows first in every lesson" + ((own && own.nod) ? " (off for " + DAYS[lesson.day] + ")" : ""));
-    if (!daily || !daily.slides.length) dl.appendChild(el("p", "sfempty", "Your own board for the start of class. Make one here once and it fills in each day's plan."));
-    if (daily && daily.slides.length < MAX_DAILY) dl.appendChild(btn("sfadd small", icon("plus") + "<span>Every-day slide</span>", (e, b) => openPop(b, (p) => layoutMenu(p, DAILY)), "Add an every-day slide"));
+    if (daily && daily.slides.length < MAX_DAILY) dl.appendChild(btn("sfadd small", icon("plus") + "<span>Every-day slide</span>", (e, b) => openPop(b, (p) => layoutMenu(p, DAILY)), "Add an every-day slide: your own board for the start of class, made once, filled in from each day's plan"));
     const w = weekObj(), L = classOf(w, lesson.cls);
     const ol = section(lk, own, DAYS[lesson.day] + "'s slides", [(L && L.label) || lesson.cls, (w && w.label) || ""].filter(Boolean).join(" · "));
     const row = el("div", "sfaddrow");
     row.appendChild(btn("sfadd", icon("plus") + "<span>New slide</span>", () => addSlide(lk, LAYOUTS.find((x) => x[0] === "blank")[2]()), "Add a blank slide"));
     row.appendChild(btn("sfadd lay", icon("layout"), (e, b) => openPop(b, (p) => layoutMenu(p, lk)), "Add a slide from a layout"));
     ol.appendChild(row);
-    spotRow(f);
-    f.scrollTop = keep;
-    const on = f.querySelector(".sfi.on"); if (on && (on.offsetTop < f.scrollTop || on.offsetTop + on.offsetHeight > f.scrollTop + f.clientHeight)) on.scrollIntoView({ block: "nearest" });
+    f.scrollTop = keepTop; f.scrollLeft = keepLeft;
+    const back = anchor && [...f.querySelectorAll(".sfi")].find((it) => it.dataset.key === anchor.key && it.dataset.id === anchor.id);
+    if (back) {   // the same slide, back in the same place, however much the bar above it grew or shrank
+        const fr = f.getBoundingClientRect(), r = back.getBoundingClientRect();
+        if (anchor.across) f.scrollLeft += (r.left - fr.left) - anchor.off; else f.scrollTop += (r.top - fr.top) - anchor.off;
+    }
+    // Scroll to the open slide only when a different slide was opened (not on every tick or edit).
+    const sig = cur.key + "|" + cur.id, on = f.querySelector(".sfi.on");
+    if (sig !== filmCur) {
+        filmCur = sig;
+        if (on) {
+            const fr = f.getBoundingClientRect(), r = on.getBoundingClientRect();
+            const out = narrow.matches ? r.left < fr.left + 110 || r.right > fr.right : r.top < fr.top + (picks.size ? 180 : 44) || r.bottom > fr.bottom;
+            if (out) on.scrollIntoView({ block: "nearest", inline: "nearest" });
+        }
+    }
 }
 /** Narrower screens (css/slidedit.css): at 1180px the slide list is thinner; at 860px it runs across under the slide. */
 const narrow = window.matchMedia("(max-width:860px)"), midSize = window.matchMedia("(max-width:1180px)");
 [narrow, midSize].forEach((m) => m.addEventListener("change", () => { thumbs.clear(); if (active) drawFilm(); }));
+/** The slides that already have a Spotlight screen, when the board is on this lesson (a badge on each, not a second list). */
+function inSpot() {
+    if (!A.spotScreens || !A.isLesson || !A.isLesson(lesson.week, lesson.cls, lesson.day)) return new Set();
+    return new Set(A.spotScreens().map((x) => x.sl).filter(Boolean));
+}
+let spotIds = new Set();
 function filmItem(key, s, i) {
     const it = el("div", "sfi" + (cur.key === key && cur.id === s.id ? " on" : "") + (s.hide ? " hid" : "")); it.dataset.key = key; it.dataset.id = s.id;
     it.appendChild(el("span", "sfn", String(i + 1)));
@@ -269,15 +317,23 @@ function filmItem(key, s, i) {
     const tw = narrow.matches ? 120 : midSize.matches ? 150 : 176, sig = JSON.stringify([s, (A.S.look || {}).theme, (A.S.look || {}).bg, lesson, images ? images.version() : 0, tw]);
     let t = thumbs.get(s.id); if (!t || t.sig !== sig) { t = { sig, node: thumb(s, viewOpts({ edit: true, mark: false }), tw) }; thumbs.set(s.id, t); }
     b.appendChild(t.node);
-    b.onclick = () => openSlide(key, s.id);
+    const pk = key + "|" + s.id, ticked = picks.has(pk);
+    if (ticked) it.classList.add("picked");
+    b.onclick = (e) => { if (selMode || e.shiftKey || e.ctrlKey || e.metaKey) togglePick(key, s.id, e.shiftKey); else openSlide(key, s.id); };
     it.appendChild(b);
+    if (selMode || picks.size) {
+        const c = btn("sfpk" + (ticked ? " on" : ""), icon("check"), () => togglePick(key, s.id), (ticked ? "Untick" : "Tick") + " slide " + (i + 1));
+        c.setAttribute("role", "checkbox"); c.setAttribute("aria-checked", String(ticked)); it.appendChild(c);
+    }
     const badges = el("span", "sfb");
     const rv = revealSteps(s); if (rv) badges.appendChild(el("span", "sfrv", rv + " on Next"));
     if (s.hide) badges.appendChild(el("span", "sfhid", "Hidden"));
     if (s.nt) badges.appendChild(el("span", "sfnt", "Notes"));
+    if (s.pn) { const b3 = el("span", "sfpn", panelWords(s.pn)); b3.title = "Spotlight opens these when it reaches this slide"; badges.appendChild(b3); }
+    if (spotIds.has(s.id)) { const b2 = el("span", "sfinsp", "In Spotlight"); b2.title = "This slide has a Spotlight screen, with its own panels and drawing"; badges.appendChild(b2); }
     it.appendChild(badges);
     it.appendChild(btn("sfm", icon("more"), (e, bb) => openPop(bb, (p) => slideMenu(p, key, s.id)), "More for slide " + (i + 1)));
-    it.addEventListener("pointerdown", (e) => filmDrag(e, it, key, s.id));
+    it.addEventListener("pointerdown", (e) => { if (!selMode) filmDrag(e, it, key, s.id); });   // no dragging while ticking
     return it;
 }
 function openSlide(key, id) { if (editing) finishEdit(); cur = { key, id }; sel = []; draw(); }
@@ -357,7 +413,7 @@ function unionBox(list) {
 
 /* ---------- pointer: pick, move, size, turn, draw a box around ---------- */
 function stageDown(ev) {
-    if (present || (ev.pointerType === "mouse" && ev.button !== 0)) return;
+    if (ev.pointerType === "mouse" && ev.button !== 0) return;
     closePop();
     const h = ev.target.closest(".hd");
     if (h) { ev.preventDefault(); return startHandle(ev, h.dataset.h); }
@@ -616,8 +672,8 @@ function slideMenu(p, key, id) {
     if (i < d.slides.length - 1) item("caret", "Move down", () => moveSlide(key, id, key, i + 1));
     item("every", key === DAILY ? "Only on " + DAYS[lesson.day] : "Show every day", () => moveSlide(key, id, other, (deckOf(other) || { slides: [] }).slides.length));
     item(s.hide ? "reveal" : "hide", s.hide ? "Show it on the board" : "Hide it on the board", () => changeDeck(key, (dd) => { const x = dd.slides.find((q) => q.id === id); if (x) { if (x.hide) delete x.hide; else x.hide = true; } }));
-    item("copyto", "Copy to another day…", () => { openSlide(key, id); setTimeout(() => { const b = $("slCopy"); if (b) b.click(); }, 0); });
-    item("board", "Show it on the board", () => { openSlide(key, id); showOnBoard(); });
+    item("copyto", "Copy to another day…", () => { openSlide(key, id); setTimeout(() => { const b = $("slMore"); if (b) openPop(b, copyMenu); }, 0); });
+    item("board", "Put it on the board, stay here", () => { openSlide(key, id); showOnBoard(); });
     item("trash", "Delete slide", () => delSlide(key, id), "danger");
 }
 function dupSlide(key, id) {
@@ -631,6 +687,152 @@ function delSlide(key, id) {
     changeDeck(key, (dd) => { dd.slides.splice(i, 1); });
     if (cur.key === key && cur.id === id) { const n = d.slides[Math.min(i, d.slides.length - 1)]; if (n) cur = { key, id: n.id }; else pickFirst(); }
     sel = []; draw(); toast("Slide deleted. Undo brings it back.");
+}
+/* ---------- several slides at once (Nov 24): tick them, then act on them all ---------- */
+/** The ticked slides in list order (every-day first, then the day's): [{ key, id, s }]. */
+function pickedList() {
+    const out = [];
+    [DAILY, lessonKey()].forEach((key) => { const d = deckOf(key); ((d && d.slides) || []).forEach((s) => { if (picks.has(key + "|" + s.id)) out.push({ key, id: s.id, s }); }); });
+    return out;
+}
+/** Drop ticks for slides that are gone (deleted, another lesson opened). */
+function prunePicks() {
+    const live = new Set(); [DAILY, lessonKey()].forEach((key) => { const d = deckOf(key); ((d && d.slides) || []).forEach((s) => live.add(key + "|" + s.id)); });
+    [...picks].forEach((k) => { if (!live.has(k)) picks.delete(k); });
+}
+let lastPick = "";
+/** Tick or untick one slide. Shift ticks the run from the last one ticked (same list). */
+function togglePick(key, id, run) {
+    const k = key + "|" + id, d = deckOf(key), cut = lastPick.lastIndexOf("|");   // deck keys hold "|" themselves (week|class|day): split at the last one
+    if (run && cut > 0 && lastPick.slice(0, cut) === key && d) {
+        const ids = d.slides.map((x) => x.id), a = ids.indexOf(lastPick.slice(cut + 1)), b = ids.indexOf(id);
+        if (a >= 0 && b >= 0) { ids.slice(Math.min(a, b), Math.max(a, b) + 1).forEach((x) => picks.add(key + "|" + x)); lastPick = k; drawFilm(); return; }
+    }
+    if (picks.has(k)) picks.delete(k); else picks.add(k);
+    lastPick = k; drawFilm();
+}
+function setSelMode(on) { selMode = !!on; if (!selMode) picks.clear(); drawFilm(); }
+/** The bar above the slide list: Select, and when slides are ticked, what to do with all of them. */
+function pickBar() {
+    const bar = el("div", "sfpick" + (picks.size ? " sfpkon" : "")); bar.setAttribute("role", "toolbar"); bar.setAttribute("aria-label", "Several slides at once");
+    const all = [DAILY, lessonKey()].reduce((n, k) => n + (((deckOf(k) || {}).slides || []).length), 0);
+    if (!selMode && !picks.size) {
+        bar.appendChild(btn("sfsel", icon("check") + "<span>Select</span>", () => setSelMode(true), "Tick several slides to put in Spotlight, set panels, copy or delete at once"));
+        return bar;
+    }
+    if (narrow.matches) {   // a phone: the strip is short and scrolls sideways
+        if (picks.size) return pickBarCompact(bar, picks.size, picks.size === 1 ? "slide" : "slides");
+        bar.appendChild(el("b", "sfpkn", "Tick slides")); bar.appendChild(btn("sfpkx", "Done", () => setSelMode(false), "Stop selecting")); return bar;
+    }
+    const top = el("div", "sfpkrow");
+    top.appendChild(el("b", "sfpkn", picks.size ? picks.size + " selected" : "Tick slides"));
+    if (picks.size < all) top.appendChild(btn("sfpkx", "All", () => { [DAILY, lessonKey()].forEach((k) => ((deckOf(k) || {}).slides || []).forEach((s) => picks.add(k + "|" + s.id))); drawFilm(); }, "Tick every slide"));
+    top.appendChild(btn("sfpkx", "Done", () => setSelMode(false), "Stop selecting"));
+    bar.appendChild(top);
+    if (!picks.size) return bar;
+    const n = picks.size, sl = n === 1 ? "slide" : "slides";
+    if (A.goMode && A.spot) bar.appendChild(btn("btn amber sfpkgo", icon("spot") + "<span>Put " + n + " in Spotlight</span>", () => picksToSpotlight(), "Make a Spotlight screen for each ticked slide, in order, and open Spotlight on the first"));
+    const g = el("div", "sfpkacts");
+    g.appendChild(btn("sfpka", icon("panels") + "<span>Panels</span>", (e, b) => openPop(b, picksPanelsMenu), "Timer, learning target or agenda for all " + n + " " + sl));
+    g.appendChild(btn("sfpka", icon("dup") + "<span>Duplicate</span>", () => picksDup(), "Duplicate all " + n + " " + sl));
+    g.appendChild(btn("sfpka", icon("copyto") + "<span>Copy to…</span>", (e, b) => openPop(b, copyMenu), "Copy the " + n + " " + sl + " to another day or class"));
+    const hid = pickedList().every((x) => x.s.hide);
+    g.appendChild(btn("sfpka", icon(hid ? "reveal" : "hide") + "<span>" + (hid ? "Show" : "Hide") + "</span>", () => picksHide(!hid), (hid ? "Show" : "Hide") + " them on the board"));
+    g.appendChild(btn("sfpka danger", icon("trash") + "<span>Delete</span>", () => picksDelete(), "Delete all " + n + " " + sl + " (Undo brings them back)"));
+    bar.appendChild(g);
+    return bar;
+}
+/** The same bar on a phone (the slide strip runs across under the slide): the count, Spotlight, and the rest under ⋯. */
+function pickBarCompact(bar, n, sl) {
+    bar.classList.add("sfpkc");
+    bar.appendChild(el("b", "sfpkn", n + " selected"));
+    if (A.goMode && A.spot) bar.appendChild(btn("btn amber sfpkgo", icon("spot") + "<span>Spotlight</span>", () => picksToSpotlight(), "Put the " + n + " ticked " + sl + " in Spotlight"));
+    bar.appendChild(btn("sfpkx sfpkmore", icon("more") + "<span>More</span>", (e, b) => openPop(b, (p) => {
+        p.appendChild(el("p", "sph", n + " " + sl));
+        const item = (ic, t, fn, cls) => p.appendChild(btn("spi" + (cls ? " " + cls : ""), icon(ic) + "<span>" + t + "</span>", () => { closePop(); fn(b); }));
+        item("panels", "Panels for all", (bb) => setTimeout(() => openPop(bb, picksPanelsMenu), 0));
+        item("dup", "Duplicate", () => picksDup());
+        item("copyto", "Copy to another day or class", (bb) => setTimeout(() => openPop(bb, copyMenu), 0));
+        const hid = pickedList().every((x) => x.s.hide);
+        item(hid ? "reveal" : "hide", hid ? "Show on the board" : "Hide on the board", () => picksHide(!hid));
+        item("check", "Tick all", () => { [DAILY, lessonKey()].forEach((k) => ((deckOf(k) || {}).slides || []).forEach((s) => picks.add(k + "|" + s.id))); drawFilm(); });
+        item("trash", "Delete", () => picksDelete(), "danger");
+        item("caret", "Done selecting", () => setSelMode(false));
+    }), "More for the ticked slides"));
+    return bar;
+}
+/** One Undo step for a change to several slides, across both lists. */
+function changePicked(fn) {
+    const list = pickedList(); if (!list.length) return 0;
+    const keys = [...new Set(list.map((x) => x.key))].filter((k) => canEdit(k)); if (!keys.length) return 0;
+    before(); const n = fn(list.filter((x) => keys.includes(x.key)), keys); keys.forEach((k) => dirty(k)); return n;
+}
+function picksDelete() {
+    const n = changePicked((list) => { list.forEach(({ key, id }) => { const d = deckOf(key), i = d.slides.findIndex((x) => x.id === id); if (i >= 0) d.slides.splice(i, 1); }); return list.length; });
+    if (!n) return;
+    if (picks.has(cur.key + "|" + cur.id)) { picks.clear(); pickFirst(); } else picks.clear();
+    sel = []; selMode = false; draw(); toast(n + (n === 1 ? " slide" : " slides") + " deleted. Undo brings them back.");
+}
+function picksDup() {
+    let full = 0;
+    const n = changePicked((list) => {
+        let made = 0; const fresh = [];
+        list.forEach(({ key, id, s: src }) => {
+            const d = deckOf(key), max = key === DAILY ? MAX_DAILY : MAX_SLIDES; if (d.slides.length >= max) { full++; return; }
+            const c = cleanSlide(JSON.parse(JSON.stringify(src))); c.id = newId("s"); c.els.forEach((e) => { e.id = newId("e"); });
+            d.slides.splice(d.slides.findIndex((x) => x.id === id) + 1, 0, c); fresh.push(key + "|" + c.id); made++;
+        });
+        picks = new Set(fresh); return made;   // the copies are ticked, ready for Panels or Spotlight
+    });
+    draw(); toast(n ? "Duplicated " + n + (n === 1 ? " slide" : " slides") + (full ? ". " + full + " did not fit." : ".") : "No room for more slides here.");
+}
+function picksHide(hide) {
+    const n = changePicked((list) => { list.forEach(({ s: x }) => { if (hide) x.hide = 1; else delete x.hide; }); return list.length; });
+    if (n) { draw(); toast(n + (n === 1 ? " slide" : " slides") + (hide ? " hidden on the board." : " showing on the board again.")); }
+}
+/** Panels for every ticked slide: a pick sets that panel on all of them; a mixed one shows as "Some". */
+function picksPanelsMenu(p) {
+    const list = pickedList(); if (!list.length) return;
+    const all = (f) => list.every((x) => f(x.s.pn || {})), some = (f) => list.some((x) => f(x.s.pn || {}));
+    const set = (fn) => {
+        changePicked((l) => { l.forEach(({ s: x }) => { const o = Object.assign({}, x.pn || {}); fn(o); const c = cleanPanels(o); if (c) x.pn = c; else delete x.pn; }); return l.length; });
+        draw(); setTimeout(() => { const b = document.querySelector(".sfpka[title^='Timer']") || document.querySelector(".sfpkmore"); if (b && !pop) openPop(b, picksPanelsMenu); }, 0);
+    };
+    p.appendChild(el("p", "sph", "For all " + list.length + " slides, when Spotlight reaches each one"));
+    p.appendChild(el("p", "spnote spfirst", "Timer"));
+    const r = el("div", "srow");
+    r.appendChild(btn("spchip" + (all((o) => !o.tm) ? " on" : ""), "Off", () => set((o) => { delete o.tm; })));
+    PANEL_MINS.forEach((m) => r.appendChild(btn("spchip" + (all((o) => o.tm === m * 60) ? " on" : ""), m + " min", () => set((o) => { o.tm = m * 60; }), "A " + m + " minute timer on all of them")));
+    p.appendChild(r);
+    const tog = (k, name, sub) => {
+        const on = all((o) => o[k] === true), mixed = !on && some((o) => o[k] === true);
+        const b = btn("spi smi" + (on ? " on" : ""), icon(on ? "check" : "plus") + "<span><b>" + name + (mixed ? " (some)" : "") + "</b><small>" + sub + "</small></span>", () => set((o) => { if (on) delete o[k]; else o[k] = true; }));
+        b.setAttribute("aria-pressed", on ? "true" : mixed ? "mixed" : "false"); p.appendChild(b);
+    };
+    tog("tg", "Learning target", "The day's \"I can\" from your plan");
+    tog("ag", "Agenda", "The day's agenda from your plan");
+    p.appendChild(el("p", "spnote", "Each slide opens these by itself when Spotlight gets to it."));
+}
+/** Put every ticked slide in Spotlight: the board goes to this lesson, a screen is made for each (in list order, after the
+    screen showing now; slides already in Spotlight keep theirs) and Spotlight opens on the first. */
+function picksToSpotlight() {
+    if (editing) finishEdit();
+    const ids = pickedList().map((x) => x.id); if (!ids.length) return;
+    flush().then(() => {
+        if (!A.goLesson(lesson.week, lesson.cls, lesson.day)) return toast("That lesson is not on the board's list of weeks.");
+        A.goMode("spot");
+        // the board's copy of this lesson's slides arrives a moment after the lesson changes
+        const tryAdd = (n) => {
+            if (!(A.spot.slidesReady && A.spot.slidesReady()) || !ids.every((id) => A.spot.slides().some((x) => x.id === id))) { if (n < 30) return setTimeout(() => tryAdd(n + 1), 150); }
+            const before0 = new Set((A.spotScreens ? A.spotScreens() : []).map((x) => x.sl).filter(Boolean));
+            const added = A.spot.addSlides(ids, "first");
+            if (!added) A.spot.openSlide(ids[0]);
+            const had = ids.filter((id) => before0.has(id)).length;
+            toast(added ? "In Spotlight: " + added + " new " + (added === 1 ? "screen" : "screens") + (had ? ", " + had + " already there" : "") + "." : "Those slides are already in Spotlight.");
+            picks.clear(); selMode = false;
+        };
+        tryAdd(0);
+    });
 }
 function moveSlide(fromKey, id, toKey, at) {
     const a = deckOf(fromKey), b = deckOf(toKey); if (!a || !b || !canEdit(fromKey) || !canEdit(toKey)) return;
@@ -693,11 +895,30 @@ function swatches(p, current, onPick, opts) {
     const inp = el("input"); inp.type = "color"; inp.value = /^#[0-9a-f]{6}$/.test(current || "") ? current : "#10358a"; inp.oninput = () => onPick(inp.value, true); inp.onchange = () => onPick(inp.value);
     row.appendChild(inp); p.appendChild(row);
 }
+let layCount = 1;
+/** Add a layout several times in a row (one Undo step), after the slide that is open; the new ones are ticked. */
+function addMany(key, make, n) {
+    if (n <= 1) return addSlide(key, make());
+    const d = deckOf(key); if (!d) return;
+    const max = key === DAILY ? MAX_DAILY : MAX_SLIDES, room = max - d.slides.length;
+    if (room <= 0) return toast(key === DAILY ? "Up to " + MAX_DAILY + " every-day slides." : "A lesson holds " + MAX_SLIDES + " slides at most.");
+    const made = Array.from({ length: Math.min(n, room) }, () => make());
+    const at = cur.key === key ? d.slides.findIndex((s) => s.id === cur.id) + 1 : d.slides.length;
+    if (!changeDeck(key, (dd) => { dd.slides.splice(at > 0 ? at : dd.slides.length, 0, ...made); })) return;
+    cur = { key, id: made[0].id }; sel = []; picks = new Set(made.map((x) => key + "|" + x.id)); selMode = true; draw();
+    toast("Added " + made.length + " slides" + (made.length < n ? " (" + (n - made.length) + " did not fit)" : "") + ". They are ticked: set their panels or put them in Spotlight.");
+}
 function layoutMenu(p, key) {
     p.classList.add("slay"); p.appendChild(el("p", "sph", key === DAILY ? "New every-day slide" : "New slide"));
+    // How many of the picked layout to add (Nov 24: "get a lot of layouts set up for class")
+    const many = key === DAILY ? [1, 2, 3] : [1, 3, 5, 10];
+    const cnt = el("div", "srow slaycnt"); cnt.appendChild(el("span", "spnote", "How many"));
+    many.forEach((m) => { const c = btn("spchip" + (layCount === m ? " on" : ""), String(m), () => { layCount = m; cnt.querySelectorAll(".spchip").forEach((x) => x.classList.toggle("on", x.textContent === String(m))); }, "Add " + m + " at once"); cnt.appendChild(c); });
+    if (!many.includes(layCount)) layCount = 1;
+    p.appendChild(cnt);
     const g = el("div", "slaygrid");
     LAYOUTS.forEach(([id, name, make]) => {
-        const s = make(), b = btn("slayb", "", () => { closePop(); addSlide(key, make()); }, name);
+        const s = make(), b = btn("slayb", "", () => { closePop(); addMany(key, make, layCount); }, name);
         b.appendChild(thumb(s, viewOpts({ edit: false, mark: false }), 132)); b.appendChild(el("span", null, name)); g.appendChild(b);
     });
     p.appendChild(g);
@@ -705,6 +926,183 @@ function layoutMenu(p, key) {
         const L = classOf(weekObj(), lesson.cls);
         if (L) p.appendChild(btn("spi", icon("plan") + "<span>The week's agenda, as a slide</span>", () => { closePop(); addSlide(key, agendaSlide(L)); }));
     }
+}
+
+/* ---------- panels per slide (Spotlight opens them when it reaches the slide) ---------- */
+function panelsMenu(p) {
+    const s = S0(); if (!s) return;
+    const pn = s.pn || {};
+    const set = (fn) => {
+        change((sl) => { const o = Object.assign({}, sl.pn || {}); fn(o); const c = cleanPanels(o); if (c) sl.pn = c; else delete sl.pn; });
+        setTimeout(() => { const b = $("slPanelsBtn"); if (b && !pop) openPop(b, panelsMenu); }, 0);   // stay open for the next pick
+    };
+    p.appendChild(el("p", "sph", "When Spotlight reaches this slide"));
+    p.appendChild(el("p", "spnote spfirst", "Timer"));
+    const r = el("div", "srow");
+    r.appendChild(btn("spchip" + (!pn.tm ? " on" : ""), "Off", () => set((o) => { delete o.tm; })));
+    PANEL_MINS.forEach((m) => r.appendChild(btn("spchip" + (pn.tm === m * 60 ? " on" : ""), m + " min", () => set((o) => { o.tm = m * 60; }), "Start with a " + m + " minute timer")));
+    p.appendChild(r);
+    const tog = (key, name, sub) => {
+        const on = pn[key] === true;
+        const b = btn("spi smi" + (on ? " on" : ""), icon(on ? "check" : "plus") + "<span><b>" + name + "</b><small>" + sub + "</small></span>", () => set((o) => { if (on) delete o[key]; else o[key] = true; }));
+        b.setAttribute("aria-pressed", String(on)); p.appendChild(b);
+    };
+    tog("tg", "Learning target", "The day's \"I can\" from your plan");
+    tog("ag", "Agenda", "The day's agenda from your plan");
+    p.appendChild(el("p", "spnote", "Spotlight opens these by itself when it gets to this slide. If you close one in class, it stays closed."));
+}
+
+/* ---------- slides from the standards bank: practice problems, or a Show Steps walkthrough ---------- */
+function bankMenu(p) {
+    p.appendChild(el("p", "sph", "From the standards bank"));
+    p.appendChild(btn("spi smi", icon("bank") + "<span><b>Practice problems</b><small>Pick a few. Each gets its own slide, with the answer on Next.</small></span>", () => { closePop(); openBank("prob"); }));
+    p.appendChild(btn("spi smi", icon("steps") + "<span><b>Show Steps</b><small>A worked walkthrough. Next plays it one step at a time.</small></span>", () => { closePop(); openBank("walk"); }));
+}
+const byCode = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true });
+/** The day's standards first (its bellringer problems), then the rest of the week's for this class. */
+function lessonCodes() {
+    const L = classOf(weekObj(), lesson.cls), out = [];
+    const add = (d) => ((d && d.problems) || []).forEach((x) => { if (x && x.std) out.push(String(x.std)); });
+    add(dayOf()); ((L && L.days) || []).forEach(add);
+    return [...new Set(out)];
+}
+let bankDlg = null;
+async function openBank(mode) {
+    if (bankDlg) bankDlg.close();
+    const walk = mode === "walk", cls = lesson.cls, lk = lessonKey();
+    const dlg = el("dialog", "spick"); bankDlg = dlg;
+    dlg.setAttribute("aria-label", walk ? "Show Steps on a slide" : "Practice problems from the bank");
+    const head = el("div", "spk-head"); head.appendChild(el("h2", null, walk ? "Show Steps on a slide" : "Practice problems from the bank"));
+    const x = btn("spk-x", svg('<path d="M6 6l12 12M18 6 6 18"/>'), () => dlg.close(), "Close"); head.appendChild(x);
+    const body = el("div", "spk-body"); body.appendChild(el("p", "spk-wait", "Getting the bank…"));
+    dlg.append(head, body);
+    let player = null;
+    dlg.addEventListener("close", () => { if (player) player.destroy(); dlg.remove(); if (bankDlg === dlg) bankDlg = null; });
+    document.body.appendChild(dlg); dlg.showModal();
+
+    let mods;
+    try {
+        mods = await Promise.all([import("./stdBank.js?v=5"), import("./weekSheets.js?v=60"), import("../data/standards.js?v=59"),
+            walk ? import("./walkBank.js?v=14") : null, walk ? import("./stepPlayer.js?v=6") : null]);
+    } catch (e) { body.textContent = ""; body.appendChild(el("p", "spk-wait", "The bank didn't load. Check the connection and try again.")); return; }
+    const [sb, ws, st, wb, spm] = mods, rich = ws.rich;
+    const every = walk ? await wb.loadWalkItems() : await sb.loadStdBank();
+    let all = every.filter((it) => sb.inClass(it, cls));
+    if (!all.length) all = every;   // a class the bank doesn't know (a new teacher's, the sample): the whole bank, the lesson's standards first
+    if (!dlg.open) return;
+    const stdText = (code) => { for (const c of Object.values(st.STANDARDS || {})) { const f = ((c && c.standards) || []).find((y) => y.code === code); if (f) return f.text || ""; } return ""; };
+    const hasWalk = (it) => !walk || wb.walkOf(it).ok;
+    const count = (code) => all.filter((it) => it.std === code && hasWalk(it)).length;
+    const first = lessonCodes().filter((c) => count(c));
+    const rest = [...new Set(all.map((it) => it.std))].filter((c) => !first.includes(c)).sort(byCode);
+    let cur = first[0] || rest.find((c) => count(c)) || "", lvl = 0;
+    let ok = {}, edits = {}, checksIn = !walk, pick = null;
+    const picked = [];   // problems mode: the ones ticked, in the order ticked
+    if (walk) Promise.all([readOnce("walk/ok"), readOnce("walk/edits")]).then(([o, e]) => { ok = wb.cleanOk(o); edits = wb.cleanEdits(e); checksIn = true; if (dlg.open) { drawList(); drawPick(); } });
+
+    body.textContent = "";
+    const top = el("div", "spk-top"), chips = el("div", "srow spk-chips"), other = el("select", "spk-other"), text = el("p", "spk-std"), lv = el("div", "srow spk-lv");
+    other.setAttribute("aria-label", "Another standard");
+    top.append(chips, other);
+    const main = el("div", "spk-main" + (walk ? " two" : "")), list = el("div", "spk-list"), side = el("div", "spk-side");
+    main.appendChild(list); if (walk) main.appendChild(side);
+    const foot = el("div", "spk-foot");
+    body.append(top, text); if (!walk) body.appendChild(lv); body.append(main, foot);
+    other.onchange = () => { if (other.value) { cur = other.value; pick = null; drawAll(); } };
+
+    function drawTop() {
+        chips.textContent = "";
+        first.slice(0, 8).forEach((c) => { const b = btn("spchip" + (c === cur ? " on" : ""), c + " · " + count(c), () => { cur = c; pick = null; drawAll(); }); b.setAttribute("aria-pressed", String(c === cur)); chips.appendChild(b); });
+        if (!first.length) chips.appendChild(el("span", "spk-none", "No standards on this day's plan yet. Pick one:"));
+        other.textContent = ""; const o0 = el("option", null, first.length ? "Another standard…" : "Pick a standard…"); o0.value = ""; other.appendChild(o0);
+        [...first.slice(8), ...rest].filter((c) => count(c)).forEach((c) => { const op = el("option", null, c + " · " + count(c) + (walk ? " walkthroughs" : " problems")); op.value = c; other.appendChild(op); });
+        other.value = first.slice(0, 8).includes(cur) ? "" : cur;
+        const t = stdText(cur); text.textContent = cur ? cur + (t ? ": " + t : "") : "";
+        text.hidden = !cur;
+        lv.textContent = "";
+        [[0, "All levels"], [1, sb.LEVELS[1]], [2, sb.LEVELS[2]], [3, sb.LEVELS[3]]].forEach(([v, n]) => { const b = btn("spchip" + (v === lvl ? " on" : ""), n, () => { lvl = v; drawList(); drawTop(); }); b.setAttribute("aria-pressed", String(v === lvl)); lv.appendChild(b); });
+    }
+    function drawList() {
+        list.textContent = "";
+        const items = all.filter((it) => it.std === cur && (!lvl || it.lvl === lvl) && hasWalk(it));
+        if (!items.length) { list.appendChild(el("p", "spk-none", cur ? (walk ? "No walkthroughs for " + cur + " yet." : "No bank problems for " + cur + " at this level.") : "Pick a standard.")); return; }
+        items.forEach((it) => {
+            const row = el("button", "spk-row"); row.type = "button";
+            const q = el("div", "spk-q"); q.appendChild(rich(it.q));
+            const meta = el("div", "spk-meta");
+            if (walk) {
+                const w = wb.walkOf(it);
+                meta.appendChild(el("span", null, w.steps.length + " steps"));
+                if (checksIn) meta.appendChild(el("span", ok[it.id] ? "spk-ok" : "spk-un", ok[it.id] ? "Checked" : "Not checked yet"));
+                row.setAttribute("aria-pressed", String(pick === it.id));
+                row.onclick = () => { pick = it.id; drawList(); drawPick(); };
+            } else {
+                const a = el("div", "spk-a"); a.appendChild(el("span", null, "Answer ")); a.appendChild(rich(it.a)); q.appendChild(a);
+                meta.appendChild(el("span", null, sb.LEVELS[it.lvl] || ""));
+                const n = picked.findIndex((y) => y.id === it.id);
+                if (n >= 0) meta.appendChild(el("span", "spk-ok", "Slide " + (n + 1)));
+                row.setAttribute("aria-pressed", String(n >= 0));
+                row.onclick = () => { const i = picked.findIndex((y) => y.id === it.id); if (i >= 0) picked.splice(i, 1); else picked.push(it); drawList(); drawFoot(); };
+            }
+            const tick = el("span", "spk-tick"); tick.innerHTML = svg(IC.check);
+            row.append(tick, q, meta); list.appendChild(row);
+        });
+    }
+    function drawPick() {
+        if (!walk) return;
+        if (player) { player.destroy(); player = null; }
+        side.textContent = "";
+        const it = all.find((y) => y.id === pick);
+        if (!it) { side.appendChild(el("p", "spk-none", "Pick a problem to watch its walkthrough here first.")); drawFoot(); return; }
+        const w = wb.walkOf(it), host = el("div", "spk-player");
+        side.appendChild(host);
+        player = spm.createStepPlayer(host, wb.withEdits(w, edits[it.id]), {});
+        drawFoot();
+        if (narrow.matches) host.scrollIntoView({ block: "start", behavior: "smooth" });   // on a phone the preview sits under the list
+    }
+    function drawFoot() {
+        foot.textContent = "";
+        const d = deckOf(lk), room = d ? MAX_SLIDES - d.slides.length : 0;
+        if (!walk) {
+            foot.appendChild(el("p", "spk-note", picked.length ? picked.length + " picked. Each gets its own slide, with the answer on Next." : "Tap problems to pick them. Each gets its own slide, with the answer on Next."));
+            const add = btn("spk-go", picked.length > 1 ? "Add " + picked.length + " slides" : "Add the slide", () => addBank(), "Add the picked problems as slides");
+            add.disabled = !picked.length || !canEdit(lk) || room < picked.length;
+            if (picked.length > room) foot.appendChild(el("p", "spk-note bad", "A lesson holds " + MAX_SLIDES + " slides. There's room for " + Math.max(0, room) + " more."));
+            foot.appendChild(add); return;
+        }
+        const it = all.find((y) => y.id === pick);
+        const checked = !!(it && ok[it.id]);
+        foot.appendChild(el("p", "spk-note", !it ? "Only walkthroughs you've checked show on the board." : !checksIn ? "Getting your checks…" : checked ? "You've checked this one. Next on the board plays it one step at a time." : "Watch it through. Adding it marks it checked, since only checked walkthroughs show on the board."));
+        const add = btn("spk-go", checked || !it ? "Add the slide" : "Looks right, add it", () => addWalk(it, checked));
+        add.disabled = !it || !checksIn || !canEdit(lk) || room < 1;
+        foot.appendChild(add);
+    }
+    function drawAll() { drawTop(); drawList(); drawPick(); drawFoot(); }
+    function addBank() {
+        const n = picked.length, slides = picked.map((it, i) => bankSlide(it, i, n));
+        if (!insertSlides(lk, slides)) return;
+        dlg.close(); toast(n > 1 ? "Added " + n + " problem slides. Each answer shows on Next." : "Added a problem slide. The answer shows on Next.");
+    }
+    async function addWalk(it, checked) {
+        if (!it) return;
+        const w = wb.walkOf(it); if (!w.ok) return;
+        let warn = "";
+        if (!checked) {
+            const ids = Object.assign({}, ok, { [it.id]: Date.now() }); ok = ids;
+            try { await A.store().save("walk/ok", { ids, at: Date.now() }); } catch (e) { warn = " Your check didn't save (" + ((e && e.code) || "connection") + "), so check it on the Show Steps page before class."; }
+        }
+        if (!insertSlides(lk, [walkSlide(it, w.steps.length)])) return;
+        dlg.close(); toast("Added the Show Steps slide." + warn);
+    }
+    drawAll();
+}
+/** Put new slides into a lesson right after the open slide (or at the end), and open the first. */
+function insertSlides(key, slides) {
+    const d = deckOf(key); if (!d || !slides.length) return false;
+    if (d.slides.length + slides.length > MAX_SLIDES) { toast("A lesson holds " + MAX_SLIDES + " slides at most."); return false; }
+    const at = cur.key === key ? d.slides.findIndex((s) => s.id === cur.id) + 1 : d.slides.length;
+    if (!changeDeck(key, (dd) => { dd.slides.splice(at > 0 ? at : dd.slides.length, 0, ...slides); })) return false;
+    cur = { key, id: slides[0].id }; sel = []; draw(); return true;
 }
 
 /* ---------- the toolbar across the top ---------- */
@@ -732,8 +1130,10 @@ function drawTools() {
     g = grp("slideg");
     tb(g, "bg", "Background of this slide", (e, b) => openPop(b, bgMenu, "wide"), { text: "Background", menu: 1, dis: !ready });
     tb(g, "layout", "New slide from a layout", (e, b) => openPop(b, (p) => layoutMenu(p, cur.key || lessonKey())), { text: "Layout", menu: 1, dis: !canEdit(cur.key || lessonKey()) });
+    tb(g, "panels", s && s.pn ? "Panels for this slide: " + panelWords(s.pn) : "Open a timer, learning target or agenda when Spotlight reaches this slide", (e, b) => openPop(b, panelsMenu), { text: "Panels", menu: 1, on: !!(s && s.pn), dis: !ready }).id = "slPanelsBtn";
+    tb(g, "bank", "Slides from the standards bank: practice problems or a Show Steps walkthrough", (e, b) => openPop(b, bankMenu), { text: "Bank", menu: 1, dis });
     if (!ready) { bar.appendChild(el("span", "thint", s ? "Getting your slides…" : "Add a slide to start.")); return; }
-    if (!list.length) { bar.appendChild(el("span", "thint", "Click a piece to change it. Double-click text to type. Drag a box around pieces to pick several.")); return; }
+    if (!list.length) return;   // nothing picked: the tools alone (the old "click a piece…" hint cost a whole row on a Chromebook)
     const boxes = list.filter((e) => e.k === "bx");
     if (boxes.length) formatText(grp("fmt"), boxes, tb);
     if (one && one.k === "ln") formatLine(grp("fmt"), one, tb);
@@ -1053,15 +1453,15 @@ function notesInput() {
 let thumbT = 0;
 function refreshThumb(badgesOnly) { clearTimeout(thumbT); thumbT = setTimeout(() => { if (!badgesOnly) thumbs.delete(cur.id); drawFilm(); }, 120); }
 
-/* ---------- present here, show on the board, copy to another day ---------- */
+/* ---------- teach it, show on the board, copy to another day ---------- */
 function showOnBoard() {
     const list = showList(deckOf(DAILY), deckOf(lessonKey()));
     if (!list.length) return toast("There are no slides to show for " + DAYS[lesson.day] + " yet.");
     let i = list.findIndex((s) => s.id === cur.id); if (i < 0) i = 0;
     flush().then(() => { A.showSlide(lesson.week, lesson.cls, lesson.day, i); toast("On the board now: slide " + (i + 1) + " of " + list.length + "."); });
 }
-/** Present this slide in Spotlight: the board moves to this lesson, the slide becomes a Spotlight screen (or the one that
-    already shows it opens), and the Spotlight tab opens on it, ready for panels and drawing. */
+/** Teach this slide: the board moves to this lesson, the slide becomes a Spotlight screen (or the one that already shows
+    it opens), and the Spotlight tab opens on it, live on the board, ready for panels and drawing. */
 function toSpotlight() {
     if (editing) finishEdit();
     const list = showList(deckOf(DAILY), deckOf(lessonKey()));
@@ -1074,46 +1474,6 @@ function toSpotlight() {
         const tryOpen = (n) => { if (A.spot.openSlide(s.id)) return; if (n < 20) setTimeout(() => tryOpen(n + 1), 150); };
         tryOpen(0);
     });
-}
-/** The film strip's Spotlight row: this lesson's Spotlight screens, when the board is on this lesson. */
-function spotRow(f) {
-    if (!A.spotScreens || !A.isLesson(lesson.week, lesson.cls, lesson.day)) return;
-    const list = A.spotScreens(); if (!list.length) return;
-    const h = el("div", "sfh sfspot"); h.appendChild(el("b", null, "In Spotlight")); h.appendChild(el("small", null, list.length + (list.length === 1 ? " screen" : " screens") + " · panels and drawing on top")); f.appendChild(h);
-    const row = el("div", "sfspots");
-    list.forEach((x) => {
-        const sl = x.sl ? showList(deckOf(DAILY), deckOf(lessonKey())).find((y) => y.id === x.sl) : null;
-        const b = btn("sfsp" + (x.on ? " on" : ""), "", () => { A.goMode("spot"); setTimeout(() => A.spot.go(x.i), 60); }, "Open Spotlight screen " + (x.i + 1));
-        const pv = el("span", "sfspv"); if (sl) pv.appendChild(thumb(sl, viewOpts(), 120)); else pv.style.background = gradOf((x.look && x.look.theme) || "navy");
-        b.append(pv, el("span", "sfspn", (x.i + 1) + (sl ? " · Slide" : " · Screen") + (x.panels ? " · " + x.panels + (x.panels === 1 ? " panel" : " panels") : "")));
-        row.appendChild(b);
-    });
-    f.appendChild(row);
-}
-function startPresent() {
-    if (editing) finishEdit();
-    const list = showList(deckOf(DAILY), deckOf(lessonKey())); if (!list.length) return toast("Add a slide first.");
-    let i = Math.max(0, list.findIndex((s) => s.id === cur.id)), step = 0;
-    const box = el("div", "spres"), host = el("div", "spreshost"), bar = el("div", "spresbar");
-    const back = btn("spb", "‹ Back", () => go(-1)), next = btn("spb", "Next ›", () => go(1)), count = el("span", "sprc"), done = btn("spb x", "Done (Esc)", () => end());
-    bar.append(back, count, next, done); box.append(host, bar); document.body.appendChild(box);
-    const paint = (fresh) => { host.textContent = ""; const r = renderSlide(list[i], viewOpts({ step, fresh, mark: false })); host.appendChild(r); fitSlide(host, r); count.textContent = (i + 1) + " / " + list.length + (revealSteps(list[i]) ? " · " + step + "/" + revealSteps(list[i]) : ""); };
-    const go = (n) => {
-        if (n > 0) { if (step < revealSteps(list[i])) { step++; return paint(step); } if (i < list.length - 1) { i++; step = 0; return paint(); } }
-        else { if (step > 0) { step--; return paint(); } if (i > 0) { i--; step = revealSteps(list[i]); return paint(); } }
-    };
-    const key = (e) => {
-        e.stopPropagation();   // no key reaches the live board (Next, music, answers) or the board's undo while presenting
-        if (e.altKey || e.ctrlKey || e.metaKey) return;
-        if (["ArrowRight", "ArrowDown", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); go(1); }
-        else if (["ArrowLeft", "ArrowUp", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); go(-1); }
-        else if (e.key === "Escape") { e.preventDefault(); end(); }
-    };
-    const end = () => { window.removeEventListener("keydown", key, true); box.remove(); present = null; try { if (document.fullscreenElement) document.exitFullscreen(); } catch (x) { /* fine */ } const s = list[i]; if (s) { const where = deckOf(DAILY) && deckOf(DAILY).slides.some((x) => x.id === s.id) ? DAILY : lessonKey(); openSlide(where, s.id); } };
-    host.onclick = () => go(1);
-    window.addEventListener("keydown", key, true); present = { end };
-    try { const pr = box.requestFullscreen && box.requestFullscreen(); if (pr && pr.catch) pr.catch(() => {}); } catch (x) { /* a window is fine */ }
-    paint();
 }
 function readOnce(path) {
     return new Promise((res) => {
@@ -1135,12 +1495,12 @@ function copyMenu(p) {
     const go = async (which) => {
         const w = weekObj(ws.value); if (!w) return;
         const classes = cs.value === "*" ? Object.keys(w.classes) : [cs.value], day = +ds.value;
-        const pickSlides = which === "one" ? [s] : (own ? own.slides : []);
+        const pickSlides = which === "picked" ? pickedList().map((x) => x.s) : which === "one" ? [s] : (own ? own.slides : []);
         if (!pickSlides.length || !pickSlides[0]) return;
         closePop(); toast("Copying…"); await flush();
         let n = 0, fail = 0;
         for (const c of classes) {
-            const key = deckKey(w.id, c, day); if (key === cur.key && which === "all") continue;
+            const key = deckKey(w.id, c, day); if (key === cur.key && which === "all") continue;   // ("picked" may copy onto this same day: they go at the end)
             const data = key === lessonKey() ? deckOf(key) : await readOnce("slides/" + key);
             if (data === undefined) { fail++; continue; }
             const d = cleanDeck(data); const room = MAX_SLIDES - d.slides.length; if (room <= 0) { fail++; continue; }
@@ -1152,10 +1512,30 @@ function copyMenu(p) {
         toast(n ? "Copied to " + n + (n === 1 ? " lesson" : " lessons") + (fail ? ". " + fail + " could not be reached; try again." : ".") : "Not copied. Your saved slides could not be reached; try again.");
     };
     const r = el("div", "srow");
-    if (s) r.appendChild(btn("spchip", "Copy this slide", () => go("one")));
+    if (picks.size) r.appendChild(btn("spchip on", "Copy " + picks.size + " selected", () => go("picked")));
+    else if (s) r.appendChild(btn("spchip", "Copy this slide", () => go("one")));
     if (own && own.slides.length > 1) r.appendChild(btn("spchip", "Copy all " + own.slides.length, () => go("all")));
     p.appendChild(r);
     p.appendChild(el("p", "spnote", "Copies go at the end of that day's slides. Live fields fill in with that day's plan."));
+}
+/** The ⋯ on the lesson row: the things that used to be buttons of their own. Each opens its own menu in the same place. */
+function moreMenu(p) {
+    const b = $("slMore"), item = (ic, t, sub, fn) => p.appendChild(btn("spi smi", icon(ic) + "<span><b>" + t + "</b><small>" + sub + "</small></span>", () => { closePop(); fn(); }));
+    p.appendChild(el("p", "sph", DAYS[lesson.day] + "'s slides"));
+    item("plan", "Start from my plan", "The day's lesson, your Today screen or the week's agenda as slides", () => setTimeout(() => openPop(b, planMenu, "wide"), 0));
+    item("copyto", "Copy to another day or class", "This slide, or all of " + DAYS[lesson.day] + "'s", () => setTimeout(() => openPop(b, copyMenu), 0));
+    if (A.goMode) item("board", "Put it on the board, stay here", "The board shows this slide; you keep building", () => showOnBoard());
+    // One menu on Slides (Nov 24, Eddie: "this seems like a lot"): the header's Menu steps aside (css/slidedit.css) and
+    // its links come in here. They are read from that menu, so the two never drift; Sign out presses its own button.
+    const acct = [...document.querySelectorAll(".cbar .menu.acct .pop > a, .cbar .menu.acct .pop > button")];
+    if (!acct.length) return;
+    p.appendChild(el("p", "sph smgo", "Go to"));
+    const go = el("div", "smlinks");
+    acct.forEach((x) => {
+        if (x.tagName === "A") { const a = el("a", "spchip", x.textContent); a.href = x.getAttribute("href"); if (x.target) { a.target = x.target; a.rel = "noopener"; } a.onclick = () => closePop(); go.appendChild(a); }
+        else go.appendChild(btn("spchip", x.textContent, () => { closePop(); x.click(); }));
+    });
+    p.appendChild(go);
 }
 function planMenu(p) {
     const L = classOf(weekObj(), lesson.cls), d = dayOf(), frames = d ? (A.framesFor(lesson.week, lesson.cls, lesson.day) || []) : [];
@@ -1173,7 +1553,7 @@ function planMenu(p) {
 
 /* ---------- keys, copy and paste ---------- */
 function onKey(e) {
-    if (!active || present) return;
+    if (!active) return;
     const t = e.target, inField = t && (/INPUT|SELECT|TEXTAREA/.test(t.tagName) || t.isContentEditable);
     const mod = e.ctrlKey || e.metaKey, key = e.key;
     if (t && t.isContentEditable) {
@@ -1205,14 +1585,14 @@ function onKey(e) {
 function filmOrder() { const out = []; [DAILY, lessonKey()].forEach((key) => ((deckOf(key) || { slides: [] }).slides).forEach((s) => out.push({ key, id: s.id }))); return out; }
 const CLIP = "anchor-board-slide-pieces";
 function onCopy(e, cut) {
-    if (!active || present || editing || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return;
+    if (!active || editing || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return;
     const list = sel.map(byId).filter(Boolean); if (!list.length) return;
     clip = JSON.parse(JSON.stringify(list)); e.preventDefault();
     try { e.clipboardData.setData("text/plain", CLIP + ":" + list.length + "\n" + list.map((x) => (x.html ? textOf(x.html) : "")).filter(Boolean).join("\n")); } catch (x) { /* the copy is kept here anyway */ }
     if (cut) delSel();
 }
 function onPaste(e) {
-    if (!active || present || editing || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return;
+    if (!active || editing || (e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) return;
     const items = [...((e.clipboardData && e.clipboardData.items) || [])], img = items.find((x) => x.kind === "file" && /^image\//.test(x.type));
     if (img) { e.preventDefault(); addPicture(img.getAsFile(), ""); return; }
     const text = (e.clipboardData && e.clipboardData.getData("text/plain")) || "";
@@ -1226,19 +1606,24 @@ function toast(t) { if (!toastEl) { toastEl = el("div", "stoast"); toastEl.setAt
 /* ---------- building the page once ---------- */
 function build() {
     R.textContent = "";
-    const b1 = el("div", "sbar1");
-    const wf = el("label", "field"); wf.appendChild(el("span", null, "Week")); const ws = el("select"); ws.id = "slWeek"; ws.setAttribute("aria-label", "Week"); wf.appendChild(ws);
-    const cf = el("label", "field"); cf.appendChild(el("span", null, "Class")); const cs = el("select"); cs.id = "slClass"; cs.setAttribute("aria-label", "Class"); cf.appendChild(cs);
+    // the lesson row: ‹ week ›, class (only with more than one), Mon–Fri, saved, Teach this slide, ⋯
+    const b1 = el("div", "slrow"); b1.setAttribute("role", "group"); b1.setAttribute("aria-label", "Which lesson's slides");
+    const wk = el("div", "slwk"), wp = btn("slwka", svg('<path d="m15 18-6-6 6-6"/>'), () => stepWeek(-1), "Earlier week"); wp.id = "slWkPrev";
+    const wn = el("label", "slwkn"); const nm = el("span", "slwkt"); nm.id = "slWkName"; nm.append(el("b"), el("small"));
+    const ws = el("select"); ws.id = "slWeek"; ws.setAttribute("aria-label", "Week"); wn.append(nm, ws);
+    const wx = btn("slwka", svg('<path d="m9 18 6-6-6-6"/>'), () => stepWeek(1), "Later week"); wx.id = "slWkNext";
+    wk.append(wp, wn, wx);
+    const cf = el("label", "slcls"); const cs = el("select"); cs.id = "slClass"; cs.setAttribute("aria-label", "Class"); cf.appendChild(cs);
     const days = el("div", "sldays"); days.id = "slDays"; days.setAttribute("role", "group"); days.setAttribute("aria-label", "Day");
     const sv = el("span", "slsave"); sv.id = "slSave"; sv.setAttribute("role", "status");
-    const acts = el("div", "slacts");
-    acts.appendChild(btn("btn ghost sla", icon("plan") + "<span>From my plan</span>", (e, b) => openPop(b, planMenu, "wide"), "Start from my plan"));
-    const cp = btn("btn ghost sla slq", icon("copyto") + "<span>Copy to…</span>", (e, b) => openPop(b, copyMenu), "Copy slides to another day or class"); cp.id = "slCopy"; acts.appendChild(cp);
-    acts.appendChild(btn("btn ghost sla slq", icon("present") + "<span>Present</span>", () => startPresent(), "Show the slides full screen on this computer"));
-    if (A.goMode) acts.appendChild(btn("btn ghost sla slq", icon("spot") + "<span>Spotlight</span>", () => toSpotlight(), "Present this slide in Spotlight: panels and drawing on top of it"));
-    acts.appendChild(btn("btn sla", icon("board") + "<span>Show on board</span>", () => showOnBoard(), "Send this slide to the board now"));
-    b1.append(wf, cf, days, sv, acts);
+    const teach = A.goMode
+        ? btn("btn amber slteach", icon("spot") + "<span>Teach<i> this slide</i></span>", () => toSpotlight(), "Teach this slide: it goes on the board and opens in Spotlight, with panels and drawing")
+        : btn("btn amber slteach", icon("board") + "<span>Show on board</span>", () => showOnBoard(), "Send this slide to the board now");
+    const more = btn("btn ghost slmore", icon("more"), (e, bb) => openPop(bb, moreMenu, "wide"), "More: start from my plan, copy to another day, put it on the board, go to another page or sign out"); more.id = "slMore";
+    b1.append(wk, cf, days, el("span", "slgap"), sv, teach, more);
     ws.onchange = () => setLesson(ws.value, lesson.cls, lesson.day); cs.onchange = () => setLesson(lesson.week, cs.value, lesson.day);
+    const slot = document.getElementById("slBarSlot");
+    if (slot) { slot.textContent = ""; slot.appendChild(b1); } else { const bar = el("div", "sbar1"); bar.appendChild(b1); R.appendChild(bar); }
     const b2 = el("div", "sbar2"); b2.id = "slTools"; b2.setAttribute("role", "toolbar"); b2.setAttribute("aria-label", "Slide tools");
     const main = el("div", "smain"), film = el("aside", "sfilm"); film.id = "slFilm"; film.setAttribute("aria-label", "Slides");
     const right = el("div", "sright"), stage = el("div", "sstage"); stage.id = "slStage";
@@ -1246,7 +1631,7 @@ function build() {
     const nb = el("div", "snotes"); nb.id = "slNotesBox"; const nl = el("label", null, "Notes for me"); nl.htmlFor = "slNotes"; const nh = el("small", null, "Only on the Remote and your phone, never on the board");
     const ta = el("textarea"); ta.id = "slNotes"; ta.rows = 2; ta.maxLength = 3000; ta.placeholder = "What to say, questions to ask, where students get stuck…"; ta.oninput = notesInput; ta.onfocus = () => { if (editing) finishEdit(); };
     const nhd = el("div", "snh"); nhd.append(nl, nh); nb.append(nhd, ta);
-    right.append(stage, nb); main.append(film, right); R.append(b1, b2, main);
+    right.append(stage, nb); main.append(film, right); R.append(b2, main);
     stage.addEventListener("pointerdown", stageDown); stage.addEventListener("pointermove", stageMove); stage.addEventListener("pointerup", stageUp); stage.addEventListener("pointercancel", stageUp);
     stage.addEventListener("dblclick", stageDbl);
     stage.addEventListener("dragover", (e) => { if ([...(e.dataTransfer && e.dataTransfer.items || [])].some((x) => x.kind === "file")) { e.preventDefault(); stage.classList.add("drop"); } });
@@ -1260,6 +1645,12 @@ function build() {
     window.addEventListener("resize", () => closePop());
     window.addEventListener("online", () => status()); window.addEventListener("offline", () => status());
     built = true;
+}
+
+/** ‹ and › on the week: the week before or after, same class and day. */
+function stepWeek(n) {
+    const wl = weeks(), i = wl.findIndex((x) => x.id === lesson.week), w = wl[i + n];
+    if (w) setLesson(w.id, w.classes && w.classes[lesson.cls] ? lesson.cls : "", lesson.day);
 }
 
 /* ---------- what studio.js calls ---------- */

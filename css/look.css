@@ -27,7 +27,7 @@ body[data-bg="glow"] #stageBg,.pv-glow{background:radial-gradient(42em 30em at 8
 .lookth.on .lsw{box-shadow:0 0 0 3px #081B45,0 0 0 5px #F2B33D}
 .lookth .lnm,.lookbg .lnm{font-size:13px;font-weight:600}
 .lookbgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
-.lookbg{display:flex;flex-direction:column;gap:6px;background:transparent;border:0;color:inherit;font:inherit;padding:0;text-align:left;cursor:pointer}
+.lookbg{display:flex;flex-direction:column;align-items:stretch;gap:6px;background:transparent;border:0;color:inherit;font:inherit;padding:0;text-align:left;cursor:pointer}
 .lookbg .lpv{position:relative;display:block;aspect-ratio:16/9;border-radius:10px;overflow:hidden;font-size:4px;isolation:isolate;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);transition:box-shadow .2s}
 .lookbg .lpv .stagebg{z-index:0}
 .lookbg.on .lpv{box-shadow:0 0 0 2px #081B45,0 0 0 4px #F2B33D}
@@ -102,7 +102,7 @@ body[data-fx="confetti"] .stagefx i{opacity:.65}
 @media (prefers-reduced-motion:reduce){.stagefx i{animation:none;top:var(--y)}.stagefx b{animation:none}}
 /* the picker tiles */
 .lookfxs{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
-.lookfx{display:flex;flex-direction:column;gap:6px;background:transparent;border:0;color:inherit;font:inherit;padding:0;text-align:left;cursor:pointer}
+.lookfx{display:flex;flex-direction:column;align-items:stretch;gap:6px;background:transparent;border:0;color:inherit;font:inherit;padding:0;text-align:left;cursor:pointer}
 .lookfx .lfx{display:flex;align-items:center;justify-content:center;aspect-ratio:16/9;border-radius:10px;font-size:18px;font-weight:700;color:#DDEBFA;letter-spacing:.1em;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);transition:box-shadow .2s}
 .lookfx .fx-none::before{content:"\2014";font-size:15px;opacity:.6}
 .lookfx .fx-math{color:#F2B33D}.lookfx .fx-stars{color:#F2B33D}.lookfx .fx-hearts{color:#F28DA6}.lookfx .fx-confetti{color:#7FAEDD}
@@ -213,11 +213,33 @@ body[data-bg^="ph-"] #stageBg,body[data-bg^="my-"] #stageBg,.stagebg[class*="pv-
 body[data-bg^="my-"] #stageBg,.stagebg[class*="pv-my-"]{background-image:var(--ph-veil),var(--ph-mine,none)}
 .stagebg[class*="pv-pd-"]{background-image:var(--ph-veil),var(--ph-day,none)}
 .lookphotos{display:flex;flex-direction:column;gap:8px}
-.lookpg{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
-.lookpgh{font-size:11.5px;font-weight:700;opacity:.65;min-width:92px}
-.lookpgc{border:1px solid rgba(185,211,238,.35);background:transparent;color:inherit;font:inherit;font-size:13px;font-weight:600;padding:5px 12px;border-radius:999px;cursor:pointer}
-.lookpgc.special{border-color:rgba(242,179,61,.6)}
-.lookpgc.on{background:#F2B33D;border-color:#F2B33D;color:#081B45}
+/* The photo group on show: one bar (picture, name, count, Change); Change opens every group as same-size picture tiles */
+.lookpcur{display:flex;align-items:center;gap:12px;width:100%;min-height:58px;padding:7px 8px 7px 7px;border-radius:14px;cursor:pointer;text-align:left;font:inherit;color:inherit;
+  border:1px solid color-mix(in srgb,currentColor 20%,transparent);background:color-mix(in srgb,currentColor 6%,transparent);transition:background .15s,border-color .15s}
+.lookpcur:hover{background:color-mix(in srgb,currentColor 10%,transparent)}
+.lookpcur:focus-visible,.lookcat:focus-visible{outline:3px solid #F2B33D;outline-offset:2px}
+.lookpcur .lpv,.lookcat .lpv{position:relative;display:block;overflow:hidden;isolation:isolate;font-size:3px;background:#0B2559}
+.lookpcur .lpv .stagebg,.lookcat .lpv .stagebg{z-index:0}
+.lookpth{flex:none;width:68px;aspect-ratio:16/10;border-radius:9px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.lookptx{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
+.lookptx b{font-size:15px;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lookptx small{font-size:12px;opacity:.7}
+.lookpchg{flex:none;display:inline-flex;align-items:center;gap:6px;padding:7px 12px 7px 14px;border-radius:999px;background:#F2B33D;color:#081B45;font-size:13px;font-weight:700}
+.lookpchg::after{content:"";width:7px;height:7px;border:solid currentColor;border-width:0 2px 2px 0;transform:translateY(-2px) rotate(45deg)}
+.lookpcur.open .lookpchg::after{transform:translateY(2px) rotate(-135deg)}
+.lookpnone{background:color-mix(in srgb,currentColor 12%,transparent) !important}
+.lookpnone::after{content:"+";position:absolute;inset:0;display:grid;place-items:center;font-size:22px;font-weight:300;opacity:.75}
+.lookcats{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.lookcat{position:relative;display:block;padding:0;border:0;border-radius:12px;overflow:hidden;aspect-ratio:16/10;cursor:pointer;background:none;font:inherit;color:#fff;
+  box-shadow:0 0 0 1px rgba(255,255,255,.14),0 3px 10px rgba(4,12,34,.18);transition:transform .15s,box-shadow .15s}
+.lookcat:hover{transform:translateY(-1px)}
+.lookcat .lookcpv{position:absolute;inset:0}
+.lookcnm{position:absolute;left:0;right:0;bottom:0;z-index:1;padding:16px 8px 6px;font-size:12.5px;font-weight:700;line-height:1.15;text-align:left;
+  background:linear-gradient(180deg,transparent,rgba(4,12,34,.85));text-shadow:0 1px 2px rgba(4,12,34,.6)}
+.lookcat.special .lookcnm{color:#FFD27A}
+.lookcat.on{box-shadow:0 0 0 3px #F2B33D,0 3px 10px rgba(4,12,34,.25)}
+.lookpick.compact .lookcats{grid-template-columns:repeat(3,1fr);gap:6px}
+@media (prefers-reduced-motion:reduce){.lookcat,.lookpcur{transition:none}}
 .lookcred{font-size:12px;opacity:.75;margin:0}
 .lookmsg{font-size:13px;font-weight:600;color:#F2B33D;margin:0}
 .lookbg{position:relative}

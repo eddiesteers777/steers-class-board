@@ -1,9 +1,24 @@
 /* ==========================================
-   Calera Math — school calendar helpers (pure, no page code).
+   Anchor Board — school calendar helpers.
    Dates are "YYYY-MM-DD" strings in local time everywhere.
+
+   Nov 24: the year comes from the teacher (js/myCalendar.js): a year they saved in setup, else
+   data/calendar.js, as before (the Calera account, signed-out pages, a teacher who hasn't saved one). In Node (tests, the connector) and the tools/ pages it is always data/calendar.js.
+   SCHOOL_YEAR keeps its old shape; saved years add termKind and termName ("nine weeks", "semester"…).
 ========================================== */
-import { SCHOOL_YEAR } from "../data/calendar.js?v=57";
-export { SCHOOL_YEAR };
+import { SCHOOL_YEAR as FILE_YEAR } from "../data/calendar.js?v=57";
+
+async function load() {
+    const file = { year: FILE_YEAR, source: "file" };
+    if (typeof window === "undefined" || typeof document === "undefined" || /\/tools\//.test(location.pathname)) return file;
+    try { const m = await import("./myCalendar.js?v=1"); return (await m.myYear(FILE_YEAR)) || file; } catch { return file; }
+}
+const LOADED = await load();
+export const SCHOOL_YEAR = LOADED.year;
+/** Where the year came from: "saved" (the teacher's own) or "file" (data/calendar.js). */
+export const CAL_SOURCE = LOADED.source;
+/** What one grading period is called on this account ("nine weeks" for data/calendar.js). */
+export const TERM_NAME = SCHOOL_YEAR.termName != null ? SCHOOL_YEAR.termName : "nine weeks";
 
 export const iso = (d) => d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
 export const parse = (s) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ""); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; };

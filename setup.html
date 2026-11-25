@@ -40,6 +40,8 @@
         .back { background: transparent; color: var(--muted); margin-top: 0; font-weight: 600; }
         .bt input { min-width: 0; padding: 8px 6px; }
         .cls { display: grid; grid-template-columns: 84px minmax(0, 1fr) 44px; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .cls .course { grid-column: 1 / 3; margin-top: -2px; }
+        .cls + .cls { margin-top: 14px; }
         .cls .rm { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: var(--muted); font-size: 20px; cursor: pointer; }
         .add { width: 100%; font: inherit; font-weight: 700; color: var(--blue); background: transparent; border: 1.5px dashed var(--sky); border-radius: 16px; padding: 12px; min-height: 48px; cursor: pointer; margin-top: 4px; }
         .bt { display: grid; grid-template-columns: 40px minmax(0, 1fr) 18px minmax(0, 1fr); gap: 6px; align-items: center; margin-bottom: 8px; }
@@ -61,6 +63,19 @@
         .todo i.ok { background: var(--green); border-color: var(--green); }
         .todo i.ok::after { content: ""; position: absolute; left: 6px; top: 2px; width: 6px; height: 11px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
         .todo a { color: var(--blue); font-weight: 600; }
+        .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .two label { margin-top: 0; }
+        input[type=date] { width: 100%; font: inherit; font-size: 15px; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; min-height: 46px; }
+        .off { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px; gap: 6px; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+        .off input[type=text] { grid-column: 1 / 3; }
+        .off .rm { grid-row: 1; grid-column: 3; width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: var(--muted); font-size: 20px; cursor: pointer; }
+        .off input[type=date] { font-size: 14px; min-height: 42px; }
+        .tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 150px); gap: 8px; align-items: center; margin-bottom: 8px; font-size: 14px; }
+        .tr span small { display: block; color: var(--muted); font-size: 12px; }
+        .preset { display: flex; align-items: center; gap: 10px; width: 100%; font: inherit; font-weight: 600; font-size: 15px; text-align: left; color: var(--deep); background: #E8F0FB; border: 1px solid #C6D8F0; border-radius: 14px; padding: 12px 14px; min-height: 48px; cursor: pointer; margin-bottom: 4px; }
+        .preset svg { flex: none; }
+        .count { margin: 12px 0 0; font-size: 14px; color: var(--muted); }
+        .count b { color: var(--ink); }
         [hidden] { display: none !important; }
         @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
     </style>
@@ -69,14 +84,15 @@
     <div class="card">
         <header class="hd">
             <div class="brand"><img src="brand/logo.svg" alt="">Anchor Board</div>
-            <div class="bar" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-            <small id="stepNo">Step 1 of 4</small>
+            <div class="bar" aria-hidden="true" id="bar"><i></i><i></i><i></i><i></i><i></i></div>
+            <small id="stepNo">Step 1 of 5</small>
         </header>
         <main class="bd" id="main">
             <section id="s0" hidden>
                 <h1>Your account uses the Calera classes</h1>
                 <p class="sub">This setup is for new teachers. Your classes, periods and weeks stay as they are.</p>
                 <a class="btn go" href="index.html">Go to Home</a>
+                <button class="btn ghost" type="button" id="toYear">Your school year</button>
             </section>
 
             <section id="s1" hidden>
@@ -96,7 +112,7 @@
 
             <section id="s2" hidden>
                 <h1>Your classes</h1>
-                <p class="sub">One row for each period you teach. Same class twice? Add it twice.</p>
+                <p class="sub">One row for each period you teach. Same class twice? Add it twice. Pick the standards each class follows, or choose later.</p>
                 <div id="classRows"></div>
                 <button class="add" type="button" id="addRow">+ Add a period</button>
                 <div class="msg" id="msg2" role="status"></div>
@@ -120,6 +136,33 @@
             </section>
 
             <section id="s4" hidden>
+                <h1>Your school year</h1>
+                <p class="sub">So the board knows which days are school days.</p>
+                <div id="yPresets"></div>
+                <div class="two" style="margin-top:12px">
+                    <label>First day for students<input type="date" id="yFirst"></label>
+                    <label>Last day<input type="date" id="yLast"></label>
+                </div>
+                <span class="lab">Days off</span>
+                <div id="yOff"></div>
+                <button class="add" type="button" id="yAdd">+ Add a day off</button>
+                <details>
+                    <summary>Paste your district's dates</summary>
+                    <textarea id="yPaste" aria-label="Dates to paste" placeholder="Labor Day Sept 7&#10;Thanksgiving Break Nov 23 - 27&#10;Winter Break Dec 21 - Jan 1"></textarea>
+                    <button class="btn" type="button" id="yFill">Add them to the list</button>
+                </details>
+                <span class="lab" id="yKindLab">Grading periods</span>
+                <div class="chips" id="yKind" role="group" aria-labelledby="yKindLab"></div>
+                <div id="yTerms" style="margin-top:10px"></div>
+                <p class="count" id="yCount" role="status"></p>
+                <div class="msg" id="msg4" role="status"></div>
+                <button class="btn go" type="button" id="yNext" data-next="5">Next</button>
+                <button class="btn ghost" type="button" id="ySkip" data-next="5" data-skipyear="1">I'll do this later</button>
+                <button class="btn back" type="button" id="yBack" data-next="3">Back</button>
+                <button class="btn back" type="button" id="yReset" hidden>Go back to the built-in Shelby County calendar</button>
+            </section>
+
+            <section id="s5" hidden>
                 <h1>You're set</h1>
                 <p class="sub">Run the sample lesson with your class names on it.</p>
                 <div class="mini"><b>Two-Step Equations</b><span id="firstClass">Sample week</span></div>
@@ -128,6 +171,7 @@
                 <ul class="todo">
                     <li><i class="ok"></i>Classes and periods</li>
                     <li id="todoBells"><i></i><span>Bell times <a href="#" data-next="3">· finish</a></span></li>
+                    <li id="todoYear"><i></i><span>School year <a href="#" data-next="4">· finish</a></span></li>
                     <li><i></i><span>Add your own questions · <a href="games.html">Game Library</a></span></li>
                     <li><i></i><span>Roster, first names only · <a href="rosters.html">Rosters</a></span></li>
                 </ul>
@@ -138,24 +182,33 @@
     </div>
     <script type="module">
         import * as store from "./js/boardStore.js?v=58";
-        import { PACK, SETUP } from "./data/weeks.js?v=62";
-        import { saveSetup, cleanSetup } from "./js/contentPack.js?v=3";
+        import { PACK, SETUP } from "./data/weeks.js?v=63";
+        import { saveSetup, cleanSetup } from "./js/contentPack.js?v=4";
+        import { COURSES, NO_COURSE, guessCourse } from "./js/courseRules.js?v=1";
         import { showLoader, loaderStep, loaderDone, hideLoader, atLeast } from "./js/anchorLoader.js?v=2";
+        import { SCHOOL_YEAR, CAL_SOURCE } from "./js/schoolCal.js?v=59";
+        import { PRESETS, TERM_KINDS, schoolDays, splitTerms, termsFromEnds, parsePastedDates, guessKind, labelFor, docFromYear, okDate } from "./js/calendarRules.js?v=1";
+        import { saveCalendar, clearCalendar } from "./js/myCalendar.js?v=1";
 
         const $ = (id) => document.getElementById(id);
         const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
         const ORD = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th"];
         const GRADES = ["K-2", "3", "4", "5", "6", "7", "8", "9-12"], SUBJECTS = ["Math", "Science", "ELA", "Social studies", "Other"];
 
+        const Y = { extra: [], preset: "", wired: false };   // school year step: rows that aren't days off, the preset in use
+        const yMsg = (m, bad) => { $("msg4").textContent = m || ""; $("msg4").className = bad ? "msg bad" : "msg"; };
+        let editOnly = false, skipBells = false, bellsHave = false;
         const user = await store.ready();
         if (!user) location.replace("login.html");
-        else if (PACK === "calera") show(0);
+        else if (location.hash === "#year") editYear();
+        else if (PACK === "calera") { show(0); $("toYear").onclick = editYear; }
         else start();
 
         function show(n) {
-            for (let i = 0; i <= 4; i++) $("s" + i).hidden = i !== n;
+            for (let i = 0; i <= 5; i++) $("s" + i).hidden = i !== n;
             document.querySelectorAll(".bar i").forEach((b, i) => b.classList.toggle("on", n > 0 && i < n));
-            $("stepNo").textContent = n ? "Step " + n + " of 4" : "";
+            $("bar").hidden = editOnly;
+            $("stepNo").textContent = editOnly ? "Settings · School year" : n ? "Step " + n + " of 5" : "";
             window.scrollTo(0, 0);
             const first = $("s" + n).querySelector("h1"); if (first) { first.tabIndex = -1; first.focus({ preventScroll: true }); }
         }
@@ -169,10 +222,11 @@
             chips($("subject"), SUBJECTS, s.subject ? [s.subject] : [], false);
             (s.classes.length ? s.classes : [{ p: "1st", label: "" }]).forEach((c) => addRow(c));
             $("addRow").onclick = () => { const used = rows().map((r) => r.p); addRow({ p: ORD.find((o) => !used.includes(o)) || "1st", label: "" }); };
-            document.querySelectorAll("[data-next]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); go(+b.dataset.next, b.dataset.skipbells === "1"); }));
+            document.querySelectorAll("[data-next]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); go(+b.dataset.next, b.dataset.skipbells === "1", b.dataset.skipyear === "1"); }));
             $("skipAll").onclick = async () => { await save(true); location.href = "index.html"; };   // done: Home stops sending them here; its tile offers setup again
             $("bellFill").onclick = fillFromPaste;
-            show(1);
+            yearSetup();
+            show(location.hash === "#classes" ? 2 : 1);   // #classes: from the Standards page, to pick a course
         }
 
         function chips(host, list, on, many) {
@@ -194,10 +248,17 @@
             ORD.forEach((o) => { const op = el("option", null, o); op.value = o; sel.appendChild(op); }); sel.value = ORD.includes(c.p) ? c.p : "1st";
             const inp = el("input"); inp.type = "text"; inp.maxLength = 40; inp.placeholder = "Class name, like Math 6"; inp.value = c.label || ""; inp.setAttribute("aria-label", "Class name");
             const rm = el("button", "rm", "×"); rm.type = "button"; rm.setAttribute("aria-label", "Remove this period"); rm.onclick = () => { if ($("classRows").children.length > 1) r.remove(); else inp.value = ""; };
-            r.append(sel, inp, rm); $("classRows").appendChild(r);
+            // Which standards the class follows (js/courseRules.js). Guessed from the name until the teacher picks one.
+            const crs = el("select", "course"); crs.setAttribute("aria-label", "Standards this class follows");
+            [NO_COURSE].concat(COURSES).forEach((c) => { const op = el("option", null, c.id ? c.label : "Standards: choose later"); op.value = c.id; crs.appendChild(op); });
+            crs.value = c.course || guessCourse(c.label) || "";
+            let touched = !!c.course;
+            crs.onchange = () => { touched = true; };
+            inp.addEventListener("input", () => { if (!touched) crs.value = guessCourse(inp.value) || ""; });
+            r.append(sel, inp, rm, crs); $("classRows").appendChild(r);
             if (!c.label) inp.focus();
         }
-        const rows = () => [...$("classRows").children].map((r) => ({ p: r.querySelector("select").value, label: r.querySelector("input").value.trim() }));
+        const rows = () => [...$("classRows").children].map((r) => ({ p: r.querySelector("select").value, label: r.querySelector("input").value.trim(), course: r.querySelector("select.course").value }));
         const order = (list) => list.slice().sort((a, b) => ORD.indexOf(a.p) - ORD.indexOf(b.p));
 
         function current(done) {
@@ -208,8 +269,8 @@
             catch (e) { return null; }
         }
 
-        async function go(n, skipBells) {
-            const at = [1, 2, 3, 4].find((i) => !$("s" + i).hidden);
+        async function go(n, skipB, skipY) {
+            const at = [1, 2, 3, 4, 5].find((i) => !$("s" + i).hidden);
             if (at === 2 && n > 2) {
                 const r = rows(), named = r.filter((x) => x.label);
                 const dup = r.map((x) => x.p).find((p, i, a) => a.indexOf(p) !== i);
@@ -221,27 +282,161 @@
                 bellRows();
             }
             if (at === 3 && n === 4) {
+                // Bell times save as you leave their step (Nov 24: the school year step now sits between them and the finish).
+                skipBells = !!skipB;
+                if (!skipBells) { const r = await saveBells(); if (r === null) return; bellsHave = r; }
+                else bellsHave = await bellsSet();
+            }
+            if (at === 4 && n === 5) {
+                const year = skipY ? null : collectYear();
+                if (year && year.error) { yMsg(year.error, true); return; }
                 // The finish (2026-11-22): "Building your board", each real step ticking off as it is done.
                 const nClasses = current(true).classes.length;
                 showLoader("This takes a few seconds.", { title: "Building your board", steps: [
-                    "Saving your classes", "Setting your bell times", nClasses > 1 ? "Adding the sample lesson to all " + nClasses + " classes" : "Adding the sample lesson", "Getting the Board ready" ] });
-                const stop = (m) => { hideLoader(); $("msg3").textContent = m; $("msg3").className = "msg bad"; };
+                    "Saving your classes", "Setting your bell times", "Saving your school year", nClasses > 1 ? "Adding the sample lesson to all " + nClasses + " classes" : "Adding the sample lesson", "Getting the Board ready" ] });
+                const stop = (m) => { hideLoader(); yMsg(m, true); };
                 await atLeast(500, Promise.resolve()); loaderStep(0);
-                let have = false;
-                if (!skipBells) { const r = await atLeast(600, saveBells()); if (r === null) { hideLoader(); return; } have = r; }
-                else have = await atLeast(600, bellsSet());
-                loaderStep(1);
-                if (!(await atLeast(700, save(true)))) { stop("Could not save. Check the connection and try again."); return; }
+                const have = bellsHave;
+                await atLeast(400, Promise.resolve()); loaderStep(1);
+                let haveYear = CAL_SOURCE === "saved";
+                if (year) { try { await atLeast(600, saveCalendar(year)); haveYear = true; } catch (e) { stop("Could not save your school year. Check the connection and try again."); return; } }
                 loaderStep(2);
+                if (!(await atLeast(700, save(true)))) { stop("Could not save. Check the connection and try again."); return; }
+                loaderStep(3);
                 // Fetch the Board's page and code now, so it opens at once from the next button.
                 await atLeast(600, Promise.all(["board.html", "remote.html"].map((u) => fetch(u).catch(() => null))));
                 await loaderDone("Put it on your projector and run it from this device.", "Your board is ready");
                 hideLoader();
                 $("todoBells").querySelector("i").className = have ? "ok" : ""; $("todoBells").querySelector("a").hidden = have;
+                $("todoYear").querySelector("i").className = haveYear ? "ok" : ""; $("todoYear").querySelector("a").hidden = haveYear;
                 const c = current(true).classes[0]; $("firstClass").textContent = c ? "Sample week · " + c.p + " period, " + c.label : "Sample week";
             }
             if (n === 3 && at !== 2) bellRows();
             show(n);
+        }
+
+        /* ---------- school year: settings/calendar (js/calendarRules.js, js/myCalendar.js) ----------
+           In setup it is step 4. From Home > Settings > School year (setup.html#year) it is the only screen, for any
+           account: the Calera account starts from the year it uses now (data/calendar.js), and saving makes it its own. */
+        function editYear() {
+            editOnly = true;
+            yearSetup();
+            $("yNext").textContent = "Save"; $("ySkip").textContent = "Cancel"; $("yBack").hidden = true;
+            $("yReset").hidden = !(PACK === "calera" && CAL_SOURCE === "saved");
+            $("yNext").onclick = async (e) => {
+                e.preventDefault();
+                const year = collectYear(); if (year.error) { yMsg(year.error, true); return; }
+                yMsg("Saving…");
+                try { await saveCalendar(year); yMsg("Saved. Opening Home…"); location.href = "index.html"; }
+                catch (err) { yMsg("Could not save. Check the connection and try again.", true); }
+            };
+            $("ySkip").onclick = (e) => { e.preventDefault(); location.href = "index.html"; };
+            $("yReset").onclick = async () => {
+                yMsg("Saving…");
+                try { await clearCalendar(); yMsg("Done. Opening Home…"); location.href = "index.html"; }
+                catch (err) { yMsg("Could not save. Check the connection and try again.", true); }
+            };
+            show(4);
+        }
+        function yearSetup() {
+            if (Y.wired) return; Y.wired = true;
+            PRESETS.forEach((p) => {
+                const b = el("button", "preset"); b.type = "button";
+                b.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>';
+                b.appendChild(document.createTextNode("Use the " + p.label + " calendar"));
+                b.onclick = () => { fillYear(p.year, p.id); yMsg("Filled from the " + p.label + " calendar. Check it, then tap " + $("yNext").textContent + "."); };
+                $("yPresets").appendChild(b);
+            });
+            Object.keys(TERM_KINDS).forEach((k) => {
+                const b = el("button", "chip", TERM_KINDS[k].label); b.type = "button"; b.dataset.v = k; b.setAttribute("aria-pressed", "false");
+                b.onclick = () => { setKind(k); Y.preset = ""; drawTerms(true); };
+                $("yKind").appendChild(b);
+            });
+            ["yFirst", "yLast"].forEach((id) => $(id).addEventListener("change", () => { Y.preset = ""; drawTerms(true); }));
+            $("yAdd").onclick = () => { addOff({ t: "", a: "", b: "" }, true); };
+            $("yFill").onclick = () => {
+                const f = $("yFirst").value, l = $("yLast").value;
+                if (!okDate(f) || !okDate(l)) { yMsg("Add the first and last day first, so the dates get the right year.", true); return; }
+                const rows = parsePastedDates($("yPaste").value, f, l);
+                if (!rows.length) { yMsg("No dates found. Put one break per line, like Thanksgiving Break Nov 23 - 27.", true); return; }
+                const have = new Set(offRows().map((r) => r.a + r.t));
+                rows.filter((r) => !have.has(r.a + r.t)).forEach((r) => addOff(r));
+                $("yPaste").value = ""; Y.preset = ""; drawTerms(false);
+                yMsg("Added " + rows.length + " date" + (rows.length === 1 ? "" : "s") + " to Days off. Check them there.");
+            };
+            // Start from the year this account uses now when it is its own (or the Calera one); a new teacher starts blank.
+            if (CAL_SOURCE === "saved" || PACK === "calera") fillYear(SCHOOL_YEAR, CAL_SOURCE === "saved" ? "" : PRESETS[0].id);
+            else { setKind("nine"); drawTerms(true); }
+        }
+        function setKind(k) { $("yKind").querySelectorAll(".chip").forEach((b) => b.setAttribute("aria-pressed", b.dataset.v === k ? "true" : "false")); }
+        function kindNow() { const b = $("yKind").querySelector('.chip[aria-pressed="true"]'); return (b && b.dataset.v) || "nine"; }
+        function fillYear(y, presetId) {
+            const d = docFromYear(y, presetId);
+            $("yFirst").value = d.first; $("yLast").value = d.last;
+            $("yOff").textContent = "";
+            d.events.filter((e) => e.k === "off" || e.k === "work").forEach((e) => addOff(e));
+            Y.extra = d.events.filter((e) => e.k !== "off" && e.k !== "work");
+            Y.preset = presetId || "";
+            setKind(d.terms.kind);
+            drawTerms(false, d.terms.list);
+        }
+        function addOff(r, focus) {
+            const row = el("div", "off"); if (r.k) row.dataset.k = r.k;
+            const name = el("input"); name.type = "text"; name.maxLength = 60; name.placeholder = "Name, like Fall Break"; name.value = r.t || ""; name.setAttribute("aria-label", "Name of the day off");
+            const a = el("input"); a.type = "date"; a.value = r.a || ""; a.setAttribute("aria-label", "First day off");
+            const b = el("input"); b.type = "date"; b.value = r.b && r.b !== r.a ? r.b : ""; b.setAttribute("aria-label", "Last day off (leave empty for one day)");
+            const rm = el("button", "rm", "×"); rm.type = "button"; rm.setAttribute("aria-label", "Remove this day off");
+            rm.onclick = () => { row.remove(); Y.preset = ""; drawTerms(false); };
+            [name, a, b].forEach((x) => x.addEventListener("change", () => { delete row.dataset.k; Y.preset = ""; drawTerms(false); }));
+            row.append(name, rm, a, b); $("yOff").appendChild(row);
+            if (focus) name.focus();
+        }
+        /** The day-off rows as { a, b, k, t }; rows with no name and no date are ignored. */
+        function offRows() {
+            return [...$("yOff").children].map((row) => {
+                const [name, a, b] = row.querySelectorAll("input");
+                const t = name.value.trim();
+                return { a: a.value, b: b.value || a.value, k: row.dataset.k || guessKind(t), t, blank: !t && !a.value && !b.value };
+            }).filter((r) => !r.blank);
+        }
+        function eventRows() { return offRows().filter((r) => okDate(r.a)).concat(Y.extra).map((e) => [e.a, e.b, e.k, e.t]); }
+        /** Grading period rows: each ends on a date the teacher can change; the last one always ends on the last day. */
+        function drawTerms(recompute, list) {
+            const f = $("yFirst").value, l = $("yLast").value, kind = kindNow(), host = $("yTerms");
+            const ready = okDate(f) && okDate(l) && f < l;
+            if (ready && (recompute || !list)) {
+                const ends = [...host.querySelectorAll("input")].map((i) => i.value);
+                list = !recompute && ends.length === TERM_KINDS[kind].count ? termsFromEnds(f, l, eventRows(), ends) : null;
+                if (!list) list = splitTerms(f, l, eventRows(), kind);
+            }
+            host.textContent = "";
+            (ready ? list || [] : []).forEach((q, i, all) => {
+                const r = el("div", "tr"), lab = el("span", null, ORD[i] + " " + TERM_KINDS[kind].name);
+                const sm = el("small", null, "starts " + new Date(q.start + "T12:00").toLocaleDateString([], { month: "short", day: "numeric" })); lab.appendChild(sm);
+                const inp = el("input"); inp.type = "date"; inp.value = q.end; inp.min = f; inp.max = l; inp.setAttribute("aria-label", ORD[i] + " " + TERM_KINDS[kind].name + " ends");
+                if (i === all.length - 1) { inp.disabled = true; inp.title = "The last one ends on the last day"; }
+                else inp.addEventListener("change", () => { Y.preset = ""; drawTerms(false, null); });
+                r.append(lab, inp); host.appendChild(r);
+            });
+            const n = ready ? schoolDays(f, l, eventRows()).length : 0;
+            $("yCount").innerHTML = "";
+            if (ready) { $("yCount").appendChild(el("b", null, n + " school days")); $("yCount").appendChild(document.createTextNode(" this year, with weekends and days off left out.")); }
+            else $("yCount").textContent = "Add the first and last day to see your grading periods.";
+        }
+        /** The document to save, or { error }. */
+        function collectYear() {
+            const f = $("yFirst").value, l = $("yLast").value;
+            if (!okDate(f) || !okDate(l)) return { error: "Add the first and last day of school." };
+            if (f >= l) return { error: "The last day has to come after the first day." };
+            if ((new Date(l) - new Date(f)) / 864e5 > 400) return { error: "That's more than one school year. Check the dates." };
+            const rows = offRows();
+            const noDate = rows.find((r) => !okDate(r.a)); if (noDate) return { error: "Add a date for " + (noDate.t || "the day off with no name") + "." };
+            const back = rows.find((r) => r.b < r.a); if (back) return { error: (back.t || "A day off") + " ends before it starts." };
+            const ends = [...$("yTerms").querySelectorAll("input")].map((i) => i.value);
+            const list = termsFromEnds(f, l, eventRows(), ends);
+            if (!list) return { error: "Grading periods need end dates in order, inside the school year." };
+            const events = rows.map((r) => ({ a: r.a, b: r.b, k: r.k, t: r.t || (r.k === "work" ? "Teacher workday" : "No school") })).concat(Y.extra.filter((e) => e.a >= f && e.a <= l));
+            return { v: 1, label: labelFor(f, l), first: f, last: l, terms: { kind: kindNow(), list }, events, preset: Y.preset };
         }
 
         /* ---------- bell times: settings/bells { periods, schedules, today }, the same document Home uses ---------- */

@@ -15,8 +15,8 @@ import * as C from "./assignCore.js?v=7";
 import { namesOnly, indexEntry } from "./acapAssign.js?v=4";
 import { sendToProgress, sigOf } from "./asgSync.js?v=2";
 import * as V from "./vaultCore.js?v=75";
-import { loadStdBank, inClass, LEVELS } from "./stdBank.js?v=3";
-import { STANDARDS } from "../data/standards.js?v=58";
+import { loadStdBank, inClass, LEVELS } from "./stdBank.js?v=5";
+import { STANDARDS } from "../data/standards.js?v=59";
 import qrcode from "./vendor/qrcode.js?v=1";
 
 const $ = (id) => document.getElementById(id);
@@ -34,7 +34,7 @@ export async function mountAssign() {
     const demo = new URLSearchParams(location.search).has("demo");
     const store = await import(demo ? "./localStore.js?v=57" : "./boardStore.js?v=58");
     const rooms = demo ? demoRooms() : store.rooms;
-    const PER = demo ? [["1st", "8th"], ["2nd", "8th"], ["5th", "7th"], ["6th", "8th-acc"]] : (await import("../data/weeks.js?v=62")).PERIODS;
+    const PER = demo ? [["1st", "8th"], ["2nd", "8th"], ["5th", "7th"], ["6th", "8th-acc"]] : (await import("../data/weeks.js?v=63")).PERIODS;
     const CLS = Object.fromEntries(PER), classes = [...new Set(PER.map((p) => p[1]))].filter((c) => STANDARDS[c]);
     const clsLabel = (c) => (STANDARDS[c] && STANDARDS[c].label) || c;
     const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };

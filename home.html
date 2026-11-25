@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anchor Board | Sign in</title>
-    <meta name="description" content="Anchor Board: the class board, remote and planner for Mr. Steers' math classes. Teacher-only.">
+    <meta name="description" content="Anchor Board: the class board, remote and planner for teachers. Teacher-only.">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
@@ -15,16 +15,27 @@
     <meta property="og:url" content="https://anchorboard.web.app/home.html">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Instrument+Sans:wght@400..700&display=swap">
-    <link rel="stylesheet" href="css/signin.css?v=1">
+    <script src="js/scheme.js?v=2"></script>
+    <link rel="stylesheet" href="css/skin.css?v=2">
+    <link rel="stylesheet" href="css/signin.css?v=2">
+    <script src="js/signinMotion.js?v=1" defer></script>
     <link rel="stylesheet" href="css/footer.css?v=2">
     <meta name="theme-color" content="#0B2559">
 </head>
 <body class="signin-foot">
+    <div class="si-sky" aria-hidden="true">
+        <i class="si-dawn"></i><i class="si-glow si-glow-amber"></i><i class="si-glow si-glow-sky"></i><i class="si-glow si-glow-light"></i>
+        <svg class="si-rings" viewBox="0 0 200 200"><circle cx="100" cy="100" r="96" stroke-width="1"/><circle cx="100" cy="100" r="78" stroke-width="6"/><circle cx="100" cy="100" r="58" stroke-width="1"/><circle class="si-arc" cx="100" cy="100" r="78" stroke-width="2.2" pathLength="1" stroke-dasharray=".34 .66" transform="rotate(75 100 100)"/></svg>
+        <svg class="si-rings si-rings-2" viewBox="0 0 200 200"><circle cx="100" cy="100" r="96" stroke-width="1"/><circle cx="100" cy="100" r="78" stroke-width="5"/><circle class="si-arc" cx="100" cy="100" r="78" stroke-width="2" pathLength="1" stroke-dasharray=".26 .74" transform="rotate(-100 100 100)"/></svg>
+    </div>
     <main class="si">
-        <img src="brand/logo.svg" alt="Anchor Board logo">
+      <div class="si-card">
+        <span class="si-logo cbrand"><img src="brand/logo.svg" alt="Anchor Board logo"></span>
         <h1>Anchor Board</h1>
-        <p class="who">Mr. Steers · Math</p>
-        <div class="line" aria-hidden="true"></div>
+        <p class="who" id="who">For teachers</p>
+        <script>/* The name this device last signed in as (js/teacherName.js): "Mr. Steers · Math" on the Calera account. */
+            try { const w = JSON.parse(localStorage.getItem("anchor-who") || "null"); if (w && w.name) document.getElementById("who").textContent = w.name + (w.subject ? " · " + w.subject : ""); } catch (e) { /* storage unavailable */ }</script>
+        <div class="line" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
         <p>The class board, remote and planner. Teacher-only: students never sign in.</p>
         <div class="acts">
             <button id="homeSignIn" class="btn go" type="button">Sign In with Google</button>
@@ -32,6 +43,7 @@
         </div>
         <p id="homeSignInNote" class="note" role="status"></p>
         <p class="fine">Trouble signing in? Add <code>?signincheck</code> to this page's address to see the last sign-in steps on this device.</p>
+      </div>
     </main>
     <footer class="pub-footer">
         <div class="pub-footer-top">

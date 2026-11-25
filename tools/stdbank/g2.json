@@ -1,0 +1,4411 @@
+[
+ {
+  "src": "2.1-L1-01",
+  "std": "2.1",
+  "q": "Sam has 24 red marbles and 13 blue marbles. How many marbles does Sam have in all?",
+  "a": "37",
+  "lvl": 1,
+  "choices": [
+   "37",
+   "36",
+   "11",
+   "47"
+  ],
+  "steps": [
+   "Find the total number of red and blue marbles.",
+   "Add the two groups: 24 + 13.",
+   "Find the sum and check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.1-L1-02",
+  "std": "2.1",
+  "q": "There are 48 books on a shelf. Students check out 15 books. How many books are left on the shelf?",
+  "a": "33",
+  "lvl": 1,
+  "choices": [
+   "63",
+   "32",
+   "33",
+   "23"
+  ],
+  "steps": [
+   "Find how many books are left after some are checked out.",
+   "Subtract the books taken away: 48 − 15.",
+   "Find the difference and check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.1-L1-03",
+  "std": "2.1",
+  "q": "Mia has 16 stickers. Her friend gives her some more stickers. Now Mia has 29 stickers. How many stickers did her friend give her?",
+  "a": "13",
+  "lvl": 1,
+  "choices": [
+   "45",
+   "13",
+   "14",
+   "12"
+  ],
+  "steps": [
+   "Find how many stickers Mia got from her friend.",
+   "Subtract what Mia started with from her new total: 29 − 16.",
+   "Find the difference and check that it makes sense."
+  ]
+ },
+ {
+  "src": "2.1-L2-01",
+  "std": "2.1",
+  "q": "Maya has 42 stickers. Leo has 17 fewer stickers than Maya. How many stickers does Leo have?",
+  "a": "25",
+  "lvl": 2,
+  "choices": [
+   "59",
+   "35",
+   "26",
+   "25"
+  ],
+  "steps": [
+   "Fewer means Leo has less than Maya.",
+   "Subtract 17 from Maya's stickers: 42 − 17.",
+   "Solve and check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.1-L2-02",
+  "std": "2.1",
+  "q": "A basket has 28 apples. Noah puts 15 more apples in the basket. Then his family eats 9 apples. How many apples are in the basket now?",
+  "a": "34",
+  "lvl": 2,
+  "choices": [
+   "34",
+   "43",
+   "52",
+   "22"
+  ],
+  "steps": [
+   "This story has two steps: add apples, then take some away.",
+   "First add 28 + 15. Then subtract 9 from that total.",
+   "Finish the subtraction and check that your answer makes sense."
+  ]
+ },
+ {
+  "src": "2.1-L2-03",
+  "std": "2.1",
+  "q": "Some birds were sitting in a tree. Then 14 more birds flew into the tree. Now there are 51 birds in the tree. Which equation matches this story?",
+  "a": "? + 14 = 51",
+  "lvl": 2,
+  "choices": [
+   "51 + 14 = ?",
+   "? − 14 = 51",
+   "? + 14 = 51",
+   "14 − ? = 51"
+  ],
+  "steps": [
+   "Use ? for the birds that started in the tree.",
+   "Show 14 more birds joining to make 51 in all.",
+   "Match your equation to the choices."
+  ]
+ },
+ {
+  "src": "2.1-L3-01",
+  "std": "2.1",
+  "q": "Sam read 36 pages on Monday and 27 pages on Tuesday. Mia read 48 pages in all. How many more pages did Sam read than Mia?",
+  "a": "15",
+  "lvl": 3,
+  "choices": [
+   "63",
+   "15",
+   "25",
+   "11"
+  ],
+  "steps": [
+   "First find Sam's total pages, then compare it to Mia's.",
+   "Add 36 + 27, then subtract 48.",
+   "Solve and check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.1-L3-02",
+  "std": "2.1",
+  "q": "A box had 75 crayons. The class used 28 crayons in the morning and 19 crayons in the afternoon. How many crayons are left in the box?",
+  "a": "28",
+  "lvl": 3,
+  "choices": [
+   "47",
+   "38",
+   "29",
+   "28"
+  ],
+  "steps": [
+   "Find how many crayons are left after both times are used.",
+   "Add 28 + 19, then subtract that total from 75.",
+   "Solve and check that your answer makes sense."
+  ]
+ },
+ {
+  "src": "2.1-L3-03",
+  "std": "2.1",
+  "q": "Ben has 25 red blocks and 18 blue blocks. He needs 60 blocks to build a tower. How many more blocks does Ben need?",
+  "a": "17",
+  "lvl": 3,
+  "choices": [
+   "17",
+   "43",
+   "27",
+   "18"
+  ],
+  "steps": [
+   "Find how many blocks Ben has now, then find what is missing.",
+   "Add 25 + 18, then subtract that sum from 60.",
+   "Solve and check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.2-L1-01",
+  "std": "2.2",
+  "part": "a",
+  "q": "What is 7 + 8?",
+  "a": "15",
+  "lvl": 1,
+  "choices": [
+   "14",
+   "15",
+   "16",
+   "13"
+  ],
+  "steps": [
+   "Add 7 and 8 to find the sum.",
+   "Use a near double: 7 + 7 + 1.",
+   "Find the total and check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.2-L1-02",
+  "std": "2.2",
+  "part": "a",
+  "q": "What is 9 + 5?",
+  "a": "14",
+  "lvl": 1,
+  "choices": [
+   "13",
+   "15",
+   "16",
+   "14"
+  ],
+  "steps": [
+   "Add 9 and 5 to find the sum.",
+   "Make a ten first: 9 + 1 + 4.",
+   "Find the total and check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.2-L1-03",
+  "std": "2.2",
+  "q": "What is 13 − 6?",
+  "a": "7",
+  "lvl": 1,
+  "choices": [
+   "7",
+   "6",
+   "8",
+   "19"
+  ],
+  "steps": [
+   "Subtract 6 from 13 to find the difference.",
+   "Think of a related addition fact: 6 + ? = 13.",
+   "Find the missing number and check the choices."
+  ]
+ },
+ {
+  "src": "2.2-L2-01",
+  "std": "2.2",
+  "q": "Which shows how to make a ten to find 8 + 7?",
+  "a": "8 + 2 + 5",
+  "lvl": 2,
+  "choices": [
+   "8 + 1 + 6",
+   "8 + 3 + 4",
+   "8 + 2 + 5",
+   "8 + 2 + 7"
+  ],
+  "steps": [
+   "Break 7 into two parts so 8 can make 10.",
+   "Find what adds to 8 to make 10, then see what is left of 7.",
+   "Check which choice shows this split."
+  ]
+ },
+ {
+  "src": "2.2-L2-02",
+  "std": "2.2",
+  "q": "Which addition fact helps you solve 16 − 9 = ?",
+  "a": "9 + 7 = 16",
+  "lvl": 2,
+  "choices": [
+   "9 + 6 = 15",
+   "9 + 7 = 16",
+   "9 + 8 = 17",
+   "8 + 8 = 16"
+  ],
+  "steps": [
+   "Addition and subtraction facts use the same three numbers.",
+   "Rewrite 16 − 9 = ? as 9 + ? = 16.",
+   "Find the matching addition fact in the choices."
+  ]
+ },
+ {
+  "src": "2.2-L2-03",
+  "std": "2.2",
+  "part": "a",
+  "q": "Which pair of numbers has a sum of 17?",
+  "a": "8 + 9",
+  "lvl": 2,
+  "choices": [
+   "7 + 9",
+   "8 + 8",
+   "6 + 9",
+   "8 + 9"
+  ],
+  "steps": [
+   "Find which two numbers add up to 17.",
+   "Add each pair of numbers in the choices.",
+   "Check which pair gives a sum of 17."
+  ]
+ },
+ {
+  "src": "2.2-L3-01",
+  "std": "2.2",
+  "q": "Ella wants to solve 14 − 8 by getting to 10 first. She does 14 − 4 = 10. What should she do next?",
+  "a": "Subtract 4 from 10 to get 6",
+  "lvl": 3,
+  "choices": [
+   "Subtract 4 from 10 to get 6",
+   "Subtract 8 from 10 to get 2",
+   "Add 4 to 10 to get 14",
+   "Subtract 2 from 10 to get 8"
+  ],
+  "steps": [
+   "Ella needs to subtract 8 in all, and she already subtracted 4.",
+   "Find how much more she still needs to subtract from 10.",
+   "Match that next step to the choices."
+  ]
+ },
+ {
+  "src": "2.2-L3-02",
+  "std": "2.2",
+  "q": "Which easier fact can help you find 6 + 7?",
+  "a": "6 + 6 + 1 = 13",
+  "lvl": 3,
+  "choices": [
+   "6 + 6 − 1 = 11",
+   "7 + 7 + 1 = 15",
+   "6 + 6 + 1 = 13",
+   "5 + 5 + 1 = 11"
+  ],
+  "steps": [
+   "Use a doubles fact close to 6 + 7.",
+   "Since 7 is 1 more than 6, double 6 and add 1.",
+   "Find the matching fact in the choices."
+  ]
+ },
+ {
+  "src": "2.2-L3-03",
+  "std": "2.2",
+  "q": "What number makes this equation true? 18 − ? = 9 + 4",
+  "a": "5",
+  "lvl": 3,
+  "choices": [
+   "4",
+   "5",
+   "6",
+   "13"
+  ],
+  "steps": [
+   "Both sides of the equal sign must have the same value.",
+   "First find 9 + 4. Then find what subtracts from 18 to match it.",
+   "Solve and check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.3-L1-01",
+  "std": "2.3",
+  "q": "A teacher puts 12 counters into pairs. Every counter has a partner with none left over. Is 12 even or odd?",
+  "a": "Even",
+  "lvl": 1,
+  "choices": [
+   "Odd",
+   "Neither",
+   "Even",
+   "Both"
+  ],
+  "steps": [
+   "Even or odd tells if things pair up with none left over.",
+   "Look at the 12 counters: every counter has a partner.",
+   "Pick even or odd and check the choices."
+  ]
+ },
+ {
+  "src": "2.3-L1-02",
+  "std": "2.3",
+  "q": "Jay puts 9 cubes into pairs. There is 1 cube left over. Is 9 even or odd?",
+  "a": "Odd",
+  "lvl": 1,
+  "choices": [
+   "Odd",
+   "Even",
+   "Both",
+   "Neither"
+  ],
+  "steps": [
+   "Think about what a leftover cube means for pairs.",
+   "Look at the 9 cubes: 1 cube has no partner.",
+   "Pick even or odd and check the choices."
+  ]
+ },
+ {
+  "src": "2.3-L1-03",
+  "std": "2.3",
+  "part": "a",
+  "q": "Which equation shows the even number 10 as a sum of two equal addends?",
+  "a": "5 + 5 = 10",
+  "lvl": 1,
+  "choices": [
+   "6 + 4 = 10",
+   "7 + 3 = 10",
+   "8 + 2 = 10",
+   "5 + 5 = 10"
+  ],
+  "steps": [
+   "Equal addends mean the two numbers being added are the same.",
+   "Look for two of the same number that add to 10.",
+   "Check your equation against the choices."
+  ]
+ },
+ {
+  "src": "2.3-L2-01",
+  "std": "2.3",
+  "q": "Which number is odd?",
+  "a": "17",
+  "lvl": 2,
+  "choices": [
+   "14",
+   "16",
+   "17",
+   "20"
+  ],
+  "steps": [
+   "Odd numbers end in 1, 3, 5, 7, or 9.",
+   "Look at the ones digit of each choice.",
+   "Pick the odd number and check your answer."
+  ]
+ },
+ {
+  "src": "2.3-L2-02",
+  "std": "2.3",
+  "part": "a",
+  "q": "Which equation shows 16 as a sum of two equal addends?",
+  "a": "8 + 8 = 16",
+  "lvl": 2,
+  "choices": [
+   "9 + 7 = 16",
+   "8 + 8 = 16",
+   "10 + 6 = 16",
+   "7 + 7 = 14"
+  ],
+  "steps": [
+   "Find a doubles fact that equals 16.",
+   "Test which number added to itself makes 16.",
+   "Check your equation against the choices."
+  ]
+ },
+ {
+  "src": "2.3-L2-03",
+  "std": "2.3",
+  "q": "Ava tries to split 15 stars into 2 equal groups. What happens?",
+  "a": "There are 7 stars in each group and 1 star left over, so 15 is odd.",
+  "lvl": 2,
+  "choices": [
+   "There are 7 stars in each group and 1 star left over, so 15 is odd.",
+   "There are 7 stars in each group with none left over, so 15 is even.",
+   "There are 8 stars in each group with none left over, so 15 is even.",
+   "There are 6 stars in each group and 1 star left over, so 15 is odd."
+  ],
+  "steps": [
+   "Split 15 into 2 equal groups and see if any are left over.",
+   "Think of the closest doubles fact under 15: 7 + 7.",
+   "Count what is left over and match it to the choices."
+  ]
+ },
+ {
+  "src": "2.3-L3-01",
+  "std": "2.3",
+  "part": "a",
+  "q": "Which number CANNOT be written as the sum of two equal whole numbers?",
+  "a": "15",
+  "lvl": 3,
+  "choices": [
+   "12",
+   "14",
+   "15",
+   "18"
+  ],
+  "steps": [
+   "Only even numbers can be split into two equal whole numbers.",
+   "Look for the number in the choices that is odd.",
+   "Check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.3-L3-02",
+  "std": "2.3",
+  "q": "Liam has 14 toy cars, which is an even number. He gets 1 more toy car. What is true about his new total?",
+  "a": "His new total is 15, which is odd.",
+  "lvl": 3,
+  "choices": [
+   "His new total is 15, which is even.",
+   "His new total is 13, which is odd.",
+   "His new total is 16, which is even.",
+   "His new total is 15, which is odd."
+  ],
+  "steps": [
+   "Find Liam's new total of toy cars.",
+   "Add 14 + 1, then decide if that number is even or odd.",
+   "Match your result to the choices."
+  ]
+ },
+ {
+  "src": "2.3-L3-03",
+  "std": "2.3",
+  "q": "Nora makes 2 equal rows of tiles with 9 tiles in each row. Which statement is true?",
+  "a": "She has 18 tiles in all, and 18 is an even number.",
+  "lvl": 3,
+  "choices": [
+   "She has 18 tiles in all, and 18 is an odd number.",
+   "She has 18 tiles in all, and 18 is an even number.",
+   "She has 11 tiles in all, and 11 is an odd number.",
+   "She has 16 tiles in all, and 16 is an even number."
+  ],
+  "steps": [
+   "Find the total tiles in 2 rows of 9.",
+   "Add 9 + 9, then decide if the total is even or odd.",
+   "Check which statement matches your result."
+  ]
+ },
+ {
+  "src": "2.4-L1-01",
+  "std": "2.4",
+  "q": "A picture shows 2 rows of dots. There are 4 dots in each row. How many dots are there in all?",
+  "a": "8",
+  "lvl": 1,
+  "choices": [
+   "8",
+   "6",
+   "10",
+   "4"
+  ],
+  "steps": [
+   "Find the total dots in 2 equal rows.",
+   "Add the dots in each row: 4 + 4.",
+   "Find the sum and check the choices."
+  ]
+ },
+ {
+  "src": "2.4-L1-02",
+  "std": "2.4",
+  "q": "A grid has 3 rows of stars with 3 stars in each row. How many stars are there in all?",
+  "a": "9",
+  "lvl": 1,
+  "choices": [
+   "6",
+   "12",
+   "8",
+   "9"
+  ],
+  "steps": [
+   "Find the total stars in 3 equal rows.",
+   "Add the stars in each row: 3 + 3 + 3.",
+   "Find the sum and check the choices."
+  ]
+ },
+ {
+  "src": "2.4-L1-03",
+  "std": "2.4",
+  "part": "a",
+  "q": "There are 3 rows of apples with 5 apples in each row. Which equation shows the total number of apples?",
+  "a": "5 + 5 + 5 = 15",
+  "lvl": 1,
+  "choices": [
+   "3 + 5 = 8",
+   "5 + 5 + 5 = 15",
+   "3 + 3 + 3 = 9",
+   "5 + 5 = 10"
+  ],
+  "steps": [
+   "Write an addition equation for 3 rows of 5 apples.",
+   "Add 5 three times, one for each row.",
+   "Match your equation to the choices."
+  ]
+ },
+ {
+  "src": "2.4-L2-01",
+  "std": "2.4",
+  "q": "A tray has 4 rows of muffins. Each row has 3 muffins. How many muffins are on the tray?",
+  "a": "12",
+  "lvl": 2,
+  "choices": [
+   "7",
+   "16",
+   "12",
+   "9"
+  ],
+  "steps": [
+   "Find the total muffins in 4 rows of 3.",
+   "Add 3 four times: 3 + 3 + 3 + 3.",
+   "Find the sum and check the choices."
+  ]
+ },
+ {
+  "src": "2.4-L2-02",
+  "std": "2.4",
+  "part": "a",
+  "q": "A classroom has 4 rows of chairs with 5 chairs in each row. Which equation finds the total number of chairs?",
+  "a": "5 + 5 + 5 + 5 = 20",
+  "lvl": 2,
+  "choices": [
+   "5 + 5 + 5 + 5 = 20",
+   "4 + 5 = 9",
+   "4 + 4 + 4 + 4 = 16",
+   "5 + 5 + 5 = 15"
+  ],
+  "steps": [
+   "Show 4 rows of 5 chairs with repeated addition.",
+   "Add 5 four times, one for each row.",
+   "Check which choice matches your equation."
+  ]
+ },
+ {
+  "src": "2.4-L2-03",
+  "std": "2.4",
+  "q": "A sticker sheet has 5 rows of stickers with 4 stickers in each row. How many stickers are on the sheet?",
+  "a": "20",
+  "lvl": 2,
+  "choices": [
+   "9",
+   "16",
+   "25",
+   "20"
+  ],
+  "steps": [
+   "Find the total stickers in 5 rows of 4.",
+   "Skip-count by 4 five times, or add five 4s.",
+   "Find the total and check the choices."
+  ]
+ },
+ {
+  "src": "2.4-L3-01",
+  "std": "2.4",
+  "part": "a",
+  "q": "An array has 3 rows and 4 columns of blocks. You can add the rows as 4 + 4 + 4 = 12. Which equation adds the columns?",
+  "a": "3 + 3 + 3 + 3 = 12",
+  "lvl": 3,
+  "choices": [
+   "3 + 4 = 7",
+   "3 + 3 + 3 + 3 = 12",
+   "3 + 3 + 3 = 9",
+   "4 + 4 + 4 + 4 = 16"
+  ],
+  "steps": [
+   "There are 4 columns, and each column has 3 blocks.",
+   "Add the number in each column 4 times.",
+   "Match your equation to the choices."
+  ]
+ },
+ {
+  "src": "2.4-L3-02",
+  "std": "2.4",
+  "q": "An array has 5 rows of 5 squares. If you take away 1 full row, how many squares are left?",
+  "a": "20",
+  "lvl": 3,
+  "choices": [
+   "24",
+   "15",
+   "20",
+   "25"
+  ],
+  "steps": [
+   "Taking away 1 row leaves 4 rows of 5 squares.",
+   "Add 5 four times to find how many are left.",
+   "Solve and check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.4-L3-03",
+  "std": "2.4",
+  "q": "Maya makes an array with 15 tiles. She puts them in 3 equal rows. How many tiles are in each row?",
+  "a": "5",
+  "lvl": 3,
+  "choices": [
+   "5",
+   "3",
+   "4",
+   "12"
+  ],
+  "steps": [
+   "Split 15 tiles into 3 equal rows.",
+   "Find what number added 3 times makes 15.",
+   "Check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.5-L1-01",
+  "std": "2.5",
+  "q": "Look at the shape pattern: circle, square, circle, square, circle, ___. What shape comes next?",
+  "a": "square",
+  "lvl": 1,
+  "choices": [
+   "circle",
+   "square",
+   "triangle",
+   "star"
+  ],
+  "steps": [
+   "Look at how the shapes repeat in order.",
+   "The pattern goes circle, square over and over.",
+   "Pick the shape that comes after circle."
+  ]
+ },
+ {
+  "src": "2.5-L1-02",
+  "std": "2.5",
+  "q": "Look at the number pattern: 2, 4, 6, 8, ___. What number comes next?",
+  "a": "10",
+  "lvl": 1,
+  "choices": [
+   "9",
+   "11",
+   "12",
+   "10"
+  ],
+  "steps": [
+   "Find how much the numbers grow each time.",
+   "The pattern counts by 2s, so add 2 to 8.",
+   "Find the next number and check the choices."
+  ]
+ },
+ {
+  "src": "2.5-L1-03",
+  "std": "2.5",
+  "q": "Look at the color pattern: red, red, blue, red, red, blue, red, red, ___. What color comes next?",
+  "a": "blue",
+  "lvl": 1,
+  "choices": [
+   "blue",
+   "red",
+   "green",
+   "yellow"
+  ],
+  "steps": [
+   "Find the repeating group of colors.",
+   "The group is red, red, blue.",
+   "Pick the color that comes after red, red."
+  ]
+ },
+ {
+  "src": "2.5-L2-01",
+  "std": "2.5",
+  "q": "Look at the number pattern: 15, 20, 25, 30, ___. What number comes next?",
+  "a": "35",
+  "lvl": 2,
+  "choices": [
+   "31",
+   "40",
+   "35",
+   "34"
+  ],
+  "steps": [
+   "Find the rule for the number pattern.",
+   "Each number grows by 5, so add 5 to 30.",
+   "Find the next number and check the choices."
+  ]
+ },
+ {
+  "src": "2.5-L2-02",
+  "std": "2.5",
+  "q": "Look at the number pattern: 3, 6, 9, 12, ___. What number comes next?",
+  "a": "15",
+  "lvl": 2,
+  "choices": [
+   "14",
+   "15",
+   "16",
+   "18"
+  ],
+  "steps": [
+   "Find how much is added each time.",
+   "The pattern adds 3 each time, so add 3 to 12.",
+   "Find the next number and check the choices."
+  ]
+ },
+ {
+  "src": "2.5-L2-03",
+  "std": "2.5",
+  "q": "What is the rule for this pattern? 40, 35, 30, 25",
+  "a": "Subtract 5",
+  "lvl": 2,
+  "choices": [
+   "Add 5",
+   "Subtract 10",
+   "Subtract 1",
+   "Subtract 5"
+  ],
+  "steps": [
+   "See if the numbers go up or down.",
+   "Find how much each number drops from 40 to 35 to 30.",
+   "Match the rule to the choices."
+  ]
+ },
+ {
+  "src": "2.5-L3-01",
+  "std": "2.5",
+  "q": "What number is missing from this pattern? 12, 16, ___, 24, 28",
+  "a": "20",
+  "lvl": 3,
+  "choices": [
+   "20",
+   "18",
+   "22",
+   "19"
+  ],
+  "steps": [
+   "Find the pattern rule from the numbers next to each other.",
+   "Add that same amount to 16, and test it up to 24.",
+   "Check your missing number against the choices."
+  ]
+ },
+ {
+  "src": "2.5-L3-02",
+  "std": "2.5",
+  "q": "A pattern repeats like this: triangle, circle, square, triangle, circle, square. What will the 10th shape be?",
+  "a": "triangle",
+  "lvl": 3,
+  "choices": [
+   "circle",
+   "square",
+   "triangle",
+   "star"
+  ],
+  "steps": [
+   "The pattern repeats every 3 shapes.",
+   "Keep listing the shapes up to the 10th spot.",
+   "Check which shape lands in the 10th spot."
+  ]
+ },
+ {
+  "src": "2.5-L3-03",
+  "std": "2.5",
+  "q": "Owen builds block towers in a pattern. Tower 1 has 2 blocks. Tower 2 has 5 blocks. Tower 3 has 8 blocks. How many blocks will Tower 5 have?",
+  "a": "14",
+  "lvl": 3,
+  "choices": [
+   "11",
+   "14",
+   "13",
+   "15"
+  ],
+  "steps": [
+   "Find how many blocks are added for each new tower.",
+   "Add 3 to Tower 3 for Tower 4, then add 3 again for Tower 5.",
+   "Check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.6-L1-01",
+  "std": "2.6",
+  "q": "In the number 347, which digit is in the tens place?",
+  "a": "4",
+  "lvl": 1,
+  "choices": [
+   "3",
+   "7",
+   "40",
+   "4"
+  ],
+  "steps": [
+   "Look at the place value of each digit in 347.",
+   "The middle digit is in the tens place.",
+   "Pick that digit and check the choices."
+  ]
+ },
+ {
+  "src": "2.6-L1-02",
+  "std": "2.6",
+  "q": "What number has 2 hundreds, 5 tens, and 6 ones?",
+  "a": "256",
+  "lvl": 1,
+  "choices": [
+   "256",
+   "265",
+   "526",
+   "652"
+  ],
+  "steps": [
+   "Put the digits in order: hundreds, tens, ones.",
+   "Write 2, then 5, then 6.",
+   "Check your number against the choices."
+  ]
+ },
+ {
+  "src": "2.6-L1-03",
+  "std": "2.6",
+  "part": "a",
+  "q": "How many tens make 1 hundred (100)?",
+  "a": "10",
+  "lvl": 1,
+  "choices": [
+   "1",
+   "100",
+   "10",
+   "5"
+  ],
+  "steps": [
+   "Count by tens: 10, 20, 30, and keep going to 100.",
+   "Count how many tens you said.",
+   "Check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.6-L2-01",
+  "std": "2.6",
+  "q": "What is the value of the digit 7 in the number 782?",
+  "a": "700",
+  "lvl": 2,
+  "choices": [
+   "7",
+   "700",
+   "70",
+   "78"
+  ],
+  "steps": [
+   "Find which place the digit 7 is in for 782.",
+   "The 7 is in the hundreds place, so it means 7 hundreds.",
+   "Write its value and check the choices."
+  ]
+ },
+ {
+  "src": "2.6-L2-02",
+  "std": "2.6",
+  "part": "a",
+  "q": "Which describes the number 600?",
+  "a": "6 hundreds, 0 tens, and 0 ones",
+  "lvl": 2,
+  "choices": [
+   "6 tens and 0 ones",
+   "60 hundreds, 0 tens, and 0 ones",
+   "6 hundreds, 6 tens, and 0 ones",
+   "6 hundreds, 0 tens, and 0 ones"
+  ],
+  "steps": [
+   "Look at each place value in 600.",
+   "Count the hundreds, tens, and ones digits.",
+   "Match your description to the choices."
+  ]
+ },
+ {
+  "src": "2.6-L2-03",
+  "std": "2.6",
+  "q": "What number has 4 hundreds, 0 tens, and 9 ones?",
+  "a": "409",
+  "lvl": 2,
+  "choices": [
+   "409",
+   "490",
+   "49",
+   "904"
+  ],
+  "steps": [
+   "Put hundreds, tens, and ones in order.",
+   "Use 0 as a placeholder for the tens place.",
+   "Check your three-digit number against the choices."
+  ]
+ },
+ {
+  "src": "2.6-L3-01",
+  "std": "2.6",
+  "part": "a",
+  "q": "How many tens are in 400?",
+  "a": "40",
+  "lvl": 3,
+  "choices": [
+   "4",
+   "400",
+   "40",
+   "14"
+  ],
+  "steps": [
+   "Remember that 1 hundred equals 10 tens.",
+   "Count 10 tens for each of the 4 hundreds.",
+   "Check your total against the choices."
+  ]
+ },
+ {
+  "src": "2.6-L3-02",
+  "std": "2.6",
+  "q": "A model shows 3 hundreds blocks, 12 tens rods, and 5 ones cubes. What number does the model show?",
+  "a": "425",
+  "lvl": 3,
+  "choices": [
+   "3125",
+   "425",
+   "325",
+   "415"
+  ],
+  "steps": [
+   "Trade 10 tens rods for 1 hundred block.",
+   "Add that new hundred to 3 hundreds, with 2 tens and 5 ones left.",
+   "Write the number and check the choices."
+  ]
+ },
+ {
+  "src": "2.6-L3-03",
+  "std": "2.6",
+  "q": "I am a three-digit number. I have 5 hundreds. My tens digit is 4. My ones digit is 3 more than my tens digit. What number am I?",
+  "a": "547",
+  "lvl": 3,
+  "choices": [
+   "543",
+   "574",
+   "534",
+   "547"
+  ],
+  "steps": [
+   "Use the clues to find each digit in order.",
+   "Hundreds is 5, tens is 4, and ones is 4 + 3.",
+   "Put the digits together and check the choices."
+  ]
+ },
+ {
+  "src": "2.7-L1-01",
+  "std": "2.7",
+  "q": "Count by ones: 128, 129, ___. What number comes next?",
+  "a": "130",
+  "lvl": 1,
+  "choices": [
+   "130",
+   "131",
+   "120",
+   "200"
+  ],
+  "steps": [
+   "Count forward by 1 from 129.",
+   "Adding 1 to 9 ones makes a new ten.",
+   "Find the next number and check the choices."
+  ]
+ },
+ {
+  "src": "2.7-L1-02",
+  "std": "2.7",
+  "q": "Count by tens: 240, 250, 260, ___. What number comes next?",
+  "a": "270",
+  "lvl": 1,
+  "choices": [
+   "261",
+   "265",
+   "270",
+   "360"
+  ],
+  "steps": [
+   "Count forward by 10 from 260.",
+   "Add 1 to the tens digit of 260.",
+   "Find the next number and check the choices."
+  ]
+ },
+ {
+  "src": "2.7-L1-03",
+  "std": "2.7",
+  "q": "Count by hundreds: 300, 400, 500, ___. What number comes next?",
+  "a": "600",
+  "lvl": 1,
+  "choices": [
+   "510",
+   "600",
+   "501",
+   "700"
+  ],
+  "steps": [
+   "Count forward by 100 from 500.",
+   "Add 1 to the hundreds digit of 500.",
+   "Find the next number and check the choices."
+  ]
+ },
+ {
+  "src": "2.7-L2-01",
+  "std": "2.7",
+  "q": "Count by fives: 485, 490, 495, ___. What number comes next?",
+  "a": "500",
+  "lvl": 2,
+  "choices": [
+   "496",
+   "505",
+   "490",
+   "500"
+  ],
+  "steps": [
+   "Count forward by 5 from 495.",
+   "Add 5 to 495 to reach the next hundred.",
+   "Check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.7-L2-02",
+  "std": "2.7",
+  "q": "Count by tens: 380, 390, ___, 410. What number is missing?",
+  "a": "400",
+  "lvl": 2,
+  "choices": [
+   "400",
+   "395",
+   "405",
+   "300"
+  ],
+  "steps": [
+   "Count forward by 10 from 390.",
+   "Adding 10 to 390 makes a new hundred.",
+   "Check that 10 more lands on 410."
+  ]
+ },
+ {
+  "src": "2.7-L2-03",
+  "std": "2.7",
+  "q": "Count by ones: 698, 699, ___. What number comes next?",
+  "a": "700",
+  "lvl": 2,
+  "choices": [
+   "6100",
+   "701",
+   "700",
+   "690"
+  ],
+  "steps": [
+   "Count forward by 1 from 699.",
+   "Adding 1 to 99 makes the next hundred.",
+   "Check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.7-L3-01",
+  "std": "2.7",
+  "q": "Start at 235 and count forward by tens 4 times. What number do you land on?",
+  "a": "275",
+  "lvl": 3,
+  "choices": [
+   "265",
+   "275",
+   "245",
+   "285"
+  ],
+  "steps": [
+   "Count forward by tens 4 times from 235.",
+   "Add 4 to the tens digit while keeping hundreds and ones.",
+   "Check your final number against the choices."
+  ]
+ },
+ {
+  "src": "2.7-L3-02",
+  "std": "2.7",
+  "q": "Start at 585 and count forward by fives 4 times. What number do you land on?",
+  "a": "605",
+  "lvl": 3,
+  "choices": [
+   "600",
+   "595",
+   "610",
+   "605"
+  ],
+  "steps": [
+   "Count forward by 5s four times from 585.",
+   "Say each jump: 590, 595, then two more jumps of 5.",
+   "Check where you land against the choices."
+  ]
+ },
+ {
+  "src": "2.7-L3-03",
+  "std": "2.7",
+  "q": "Which way of counting goes from 470 to 510 in 4 steps?",
+  "a": "Counting by tens",
+  "lvl": 3,
+  "choices": [
+   "Counting by tens",
+   "Counting by fives",
+   "Counting by ones",
+   "Counting by hundreds"
+  ],
+  "steps": [
+   "Find the total jump from 470 to 510.",
+   "Split that jump into 4 equal steps.",
+   "Match the size of each step to the choices."
+  ]
+ },
+ {
+  "src": "2.8-L1-01",
+  "std": "2.8",
+  "q": "Which number is three hundred twenty-four?",
+  "a": "324",
+  "lvl": 1,
+  "choices": [
+   "342",
+   "234",
+   "324",
+   "3024"
+  ],
+  "steps": [
+   "Read the words to find hundreds, tens, and ones.",
+   "Three hundred is 3, twenty is 2 tens, and four is 4 ones.",
+   "Put the digits together and check the choices."
+  ]
+ },
+ {
+  "src": "2.8-L1-02",
+  "std": "2.8",
+  "q": "Which shows 518 in expanded form?",
+  "a": "500 + 10 + 8",
+  "lvl": 1,
+  "choices": [
+   "500 + 80 + 1",
+   "500 + 10 + 8",
+   "50 + 10 + 8",
+   "5 + 1 + 8"
+  ],
+  "steps": [
+   "Expanded form shows the value of each digit.",
+   "Break 518 into hundreds, tens, and ones.",
+   "Match your sum to the choices."
+  ]
+ },
+ {
+  "src": "2.8-L1-03",
+  "std": "2.8",
+  "q": "What is the number name for 460?",
+  "a": "four hundred sixty",
+  "lvl": 1,
+  "choices": [
+   "four hundred six",
+   "four hundred sixteen",
+   "six hundred forty",
+   "four hundred sixty"
+  ],
+  "steps": [
+   "Read 460 out loud using place values.",
+   "4 is four hundred, and 60 is sixty.",
+   "Match the words to the choices."
+  ]
+ },
+ {
+  "src": "2.8-L2-01",
+  "std": "2.8",
+  "q": "What number is 700 + 40 + 9?",
+  "a": "749",
+  "lvl": 2,
+  "choices": [
+   "749",
+   "794",
+   "7409",
+   "479"
+  ],
+  "steps": [
+   "Combine the hundreds, tens, and ones.",
+   "Put 7 in hundreds, 4 in tens, and 9 in ones.",
+   "Check your number against the choices."
+  ]
+ },
+ {
+  "src": "2.8-L2-02",
+  "std": "2.8",
+  "q": "Which number is eight hundred five?",
+  "a": "805",
+  "lvl": 2,
+  "choices": [
+   "850",
+   "85",
+   "805",
+   "8005"
+  ],
+  "steps": [
+   "Find the hundreds, tens, and ones in eight hundred five.",
+   "There are 0 tens, so put a 0 in the middle.",
+   "Check your number against the choices."
+  ]
+ },
+ {
+  "src": "2.8-L2-03",
+  "std": "2.8",
+  "q": "Which shows 603 in expanded form?",
+  "a": "600 + 3",
+  "lvl": 2,
+  "choices": [
+   "600 + 30",
+   "600 + 3",
+   "60 + 3",
+   "600 + 30 + 3"
+  ],
+  "steps": [
+   "Write the value of each non-zero digit in 603.",
+   "6 is 600, tens is 0, and 3 is 3.",
+   "Match your expanded form to the choices."
+  ]
+ },
+ {
+  "src": "2.8-L3-01",
+  "std": "2.8",
+  "q": "Which number is the same as 90 + 4 + 300?",
+  "a": "394",
+  "lvl": 3,
+  "choices": [
+   "943",
+   "934",
+   "349",
+   "394"
+  ],
+  "steps": [
+   "Put the values in order: hundreds, tens, ones.",
+   "Rearrange 90 + 4 + 300 into 300 + 90 + 4.",
+   "Write the standard number and check the choices."
+  ]
+ },
+ {
+  "src": "2.8-L3-02",
+  "std": "2.8",
+  "q": "Which group shows the same number in all three ways?",
+  "a": "572, five hundred seventy-two, 500 + 70 + 2",
+  "lvl": 3,
+  "choices": [
+   "572, five hundred seventy-two, 500 + 70 + 2",
+   "572, five hundred twenty-seven, 500 + 70 + 2",
+   "527, five hundred seventy-two, 500 + 20 + 7",
+   "572, five hundred seventy-two, 500 + 20 + 7"
+  ],
+  "steps": [
+   "Check that all three forms show the exact same number.",
+   "Compare the tens and ones in the digits, words, and sum.",
+   "Pick the group where all three match."
+  ]
+ },
+ {
+  "src": "2.8-L3-03",
+  "std": "2.8",
+  "q": "Mia wrote 400 + 8 for the number four hundred eighty. What mistake did she make?",
+  "a": "She wrote 8 instead of 80.",
+  "lvl": 3,
+  "choices": [
+   "She wrote 400 instead of 40.",
+   "She forgot to add 4.",
+   "She wrote 8 instead of 80.",
+   "She did not make a mistake."
+  ],
+  "steps": [
+   "Write four hundred eighty in expanded form yourself.",
+   "Compare your tens value to what Mia wrote.",
+   "Pick the choice that explains her mistake."
+  ]
+ },
+ {
+  "src": "2.9-L1-01",
+  "std": "2.9",
+  "q": "Which symbol makes this statement true? 345 ___ 512",
+  "a": "<",
+  "lvl": 1,
+  "choices": [
+   ">",
+   "<",
+   "=",
+   "+"
+  ],
+  "steps": [
+   "Compare 345 and 512 starting at the hundreds place.",
+   "Compare 3 hundreds to 5 hundreds.",
+   "Pick the symbol that points to the smaller number."
+  ]
+ },
+ {
+  "src": "2.9-L1-02",
+  "std": "2.9",
+  "q": "Which symbol makes this statement true? 680 ___ 620",
+  "a": ">",
+  "lvl": 1,
+  "choices": [
+   "<",
+   "=",
+   "-",
+   ">"
+  ],
+  "steps": [
+   "The hundreds are equal, so compare the tens place.",
+   "Compare 8 tens in 680 to 2 tens in 620.",
+   "Pick the symbol that opens to the bigger number."
+  ]
+ },
+ {
+  "src": "2.9-L1-03",
+  "std": "2.9",
+  "q": "Which symbol makes this statement true? 419 ___ 419",
+  "a": "=",
+  "lvl": 1,
+  "choices": [
+   "=",
+   "<",
+   ">",
+   "+"
+  ],
+  "steps": [
+   "Compare each digit in 419 and 419.",
+   "All three digits are the same.",
+   "Pick the symbol that means equal."
+  ]
+ },
+ {
+  "src": "2.9-L2-01",
+  "std": "2.9",
+  "q": "Which sentence is true?",
+  "a": "734 is less than 743.",
+  "lvl": 2,
+  "choices": [
+   "734 is greater than 743.",
+   "734 is equal to 743.",
+   "734 is less than 743.",
+   "743 is less than 734."
+  ],
+  "steps": [
+   "Compare 734 and 743 starting with the hundreds.",
+   "The hundreds match, so compare 3 tens and 4 tens.",
+   "Pick the sentence that matches your comparison."
+  ]
+ },
+ {
+  "src": "2.9-L2-02",
+  "std": "2.9",
+  "q": "Which comparison is true?",
+  "a": "508 < 580",
+  "lvl": 2,
+  "choices": [
+   "508 > 580",
+   "508 < 580",
+   "508 = 580",
+   "580 < 508"
+  ],
+  "steps": [
+   "Compare 508 and 580 using the tens place.",
+   "0 tens is less than 8 tens.",
+   "Pick the comparison that shows this."
+  ]
+ },
+ {
+  "src": "2.9-L2-03",
+  "std": "2.9",
+  "q": "Which number is greater than 465?",
+  "a": "471",
+  "lvl": 2,
+  "choices": [
+   "456",
+   "462",
+   "399",
+   "471"
+  ],
+  "steps": [
+   "Look for a number bigger than 465.",
+   "Compare hundreds first, then tens, for each choice.",
+   "Check which choice is greater than 465."
+  ]
+ },
+ {
+  "src": "2.9-L3-01",
+  "std": "2.9",
+  "q": "Which digit can go in the blank to make this true? 6_4 > 674",
+  "a": "8",
+  "lvl": 3,
+  "choices": [
+   "8",
+   "7",
+   "6",
+   "5"
+  ],
+  "steps": [
+   "Both numbers have 6 hundreds and 4 ones.",
+   "The missing tens digit must be greater than 7.",
+   "Check which choice is greater than 7."
+  ]
+ },
+ {
+  "src": "2.9-L3-02",
+  "std": "2.9",
+  "q": "Compare 300 + 50 + 2 and 325. Which statement is true?",
+  "a": "352 > 325",
+  "lvl": 3,
+  "choices": [
+   "352 < 325",
+   "352 = 325",
+   "352 > 325",
+   "325 > 352"
+  ],
+  "steps": [
+   "First write 300 + 50 + 2 as a standard number.",
+   "Compare its tens digit to the tens digit in 325.",
+   "Pick the true statement from the choices."
+  ]
+ },
+ {
+  "src": "2.9-L3-03",
+  "std": "2.9",
+  "q": "Which list puts these numbers in order from least to greatest? 482, 428, 480",
+  "a": "428, 480, 482",
+  "lvl": 3,
+  "choices": [
+   "482, 480, 428",
+   "428, 480, 482",
+   "428, 482, 480",
+   "480, 428, 482"
+  ],
+  "steps": [
+   "Put 482, 428, and 480 in order from smallest to biggest.",
+   "Compare the tens first, then the ones for the two 480s.",
+   "Match your ordered list to the choices."
+  ]
+ },
+ {
+  "src": "2.10-L1-01",
+  "std": "2.10",
+  "q": "What is 34 + 25?",
+  "a": "59",
+  "lvl": 1,
+  "choices": [
+   "59",
+   "58",
+   "69",
+   "49"
+  ],
+  "steps": [
+   "Add the tens and ones separately to find 34 + 25.",
+   "Add 30 + 20, then add 4 + 5.",
+   "Combine both totals and check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.10-L1-02",
+  "std": "2.10",
+  "q": "What is 67 − 24?",
+  "a": "43",
+  "lvl": 1,
+  "choices": [
+   "42",
+   "43",
+   "53",
+   "91"
+  ],
+  "steps": [
+   "Subtract the tens and ones separately for 67 − 24.",
+   "Find 60 − 20, then find 7 − 4.",
+   "Put the tens and ones together and check the choices."
+  ]
+ },
+ {
+  "src": "2.10-L1-03",
+  "std": "2.10",
+  "q": "What is 40 + 38?",
+  "a": "78",
+  "lvl": 1,
+  "choices": [
+   "68",
+   "88",
+   "78",
+   "70"
+  ],
+  "steps": [
+   "Add 4 tens to 38 to find 40 + 38.",
+   "Add 40 + 30, then keep the 8 ones.",
+   "Check your sum against the choices."
+  ]
+ },
+ {
+  "src": "2.10-L2-01",
+  "std": "2.10",
+  "q": "What is 46 + 27?",
+  "a": "73",
+  "lvl": 2,
+  "choices": [
+   "63",
+   "73",
+   "72",
+   "83"
+  ],
+  "steps": [
+   "Add the tens and ones, and watch for regrouping in 46 + 27.",
+   "Add 40 + 20, then add 6 + 7.",
+   "Combine your two sums and check the choices."
+  ]
+ },
+ {
+  "src": "2.10-L2-02",
+  "std": "2.10",
+  "q": "What is 72 − 38?",
+  "a": "34",
+  "lvl": 2,
+  "choices": [
+   "44",
+   "36",
+   "46",
+   "34"
+  ],
+  "steps": [
+   "You cannot take 8 ones from 2 ones, so regroup a ten.",
+   "Trade 1 ten from 70 to make 60 + 12, then subtract 38.",
+   "Find the difference and check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.10-L2-03",
+  "std": "2.10",
+  "q": "Which strategy correctly finds 58 + 26?",
+  "a": "Add 50 + 20 = 70, add 8 + 6 = 14, then add 70 + 14 = 84",
+  "lvl": 2,
+  "choices": [
+   "Add 50 + 20 = 70, add 8 + 6 = 14, then add 70 + 14 = 84",
+   "Add 50 + 20 = 70, add 8 + 6 = 14, then subtract 70 − 14 = 56",
+   "Add 50 + 26 = 76, then subtract 8 to get 68",
+   "Add 58 + 20 = 78, then add 6 to get 82"
+  ],
+  "steps": [
+   "Break 58 and 26 into tens and ones.",
+   "Add the tens together, add the ones together, then add both.",
+   "Match your steps to the choices."
+  ]
+ },
+ {
+  "src": "2.10-L3-01",
+  "std": "2.10",
+  "q": "What number makes this equation true? 37 + ? = 82",
+  "a": "45",
+  "lvl": 3,
+  "choices": [
+   "55",
+   "45",
+   "44",
+   "35"
+  ],
+  "steps": [
+   "Find the missing number that adds to 37 to make 82.",
+   "Subtract 37 from 82, or count up from 37 to 82.",
+   "Check that your number makes the equation true."
+  ]
+ },
+ {
+  "src": "2.10-L3-02",
+  "std": "2.10",
+  "q": "Noah wants to solve 83 − 29. First he subtracts 30 from 83 to get 53. What should he do next?",
+  "a": "Add 1 to 53 to get 54",
+  "lvl": 3,
+  "choices": [
+   "Subtract 1 from 53 to get 52",
+   "Add 10 to 53 to get 63",
+   "Add 1 to 53 to get 54",
+   "Subtract 9 from 53 to get 44"
+  ],
+  "steps": [
+   "Noah subtracted 30, which is 1 more than 29.",
+   "Give back the 1 extra that he took away from 53.",
+   "Match that next step to the choices."
+  ]
+ },
+ {
+  "src": "2.10-L3-03",
+  "std": "2.10",
+  "q": "Which expression has the same value as 64 − 28?",
+  "a": "66 − 30",
+  "lvl": 3,
+  "choices": [
+   "64 − 20 + 8",
+   "62 − 30",
+   "60 − 28",
+   "66 − 30"
+  ],
+  "steps": [
+   "Adding the same number to both parts keeps the difference equal.",
+   "Add 2 to 28 to make 30, and also add 2 to 64.",
+   "Match your new expression to the choices."
+  ]
+ },
+ {
+  "src": "2.11-L1-01",
+  "std": "2.11",
+  "q": "What is 12 + 15 + 10?",
+  "a": "37",
+  "lvl": 1,
+  "choices": [
+   "37",
+   "27",
+   "36",
+   "47"
+  ],
+  "steps": [
+   "Add the three numbers two at a time.",
+   "First add 12 + 15, then add 10 to that sum.",
+   "Find the total and check the choices."
+  ]
+ },
+ {
+  "src": "2.11-L1-02",
+  "std": "2.11",
+  "q": "What is 20 + 30 + 14?",
+  "a": "64",
+  "lvl": 1,
+  "choices": [
+   "54",
+   "64",
+   "74",
+   "60"
+  ],
+  "steps": [
+   "Start by adding the friendly tens first.",
+   "Add 20 + 30, then add 14 to that sum.",
+   "Find the total and check the choices."
+  ]
+ },
+ {
+  "src": "2.11-L1-03",
+  "std": "2.11",
+  "q": "What is 11 + 22 + 13?",
+  "a": "46",
+  "lvl": 1,
+  "choices": [
+   "45",
+   "56",
+   "46",
+   "36"
+  ],
+  "steps": [
+   "Add the tens together and the ones together.",
+   "Add 10 + 20 + 10, then add 1 + 2 + 3.",
+   "Combine both totals and check the choices."
+  ]
+ },
+ {
+  "src": "2.11-L2-01",
+  "std": "2.11",
+  "q": "What is 24 + 18 + 32?",
+  "a": "74",
+  "lvl": 2,
+  "choices": [
+   "64",
+   "74",
+   "72",
+   "84"
+  ],
+  "steps": [
+   "Look for ones digits that make a ten first.",
+   "Add 18 + 32 to make a friendly ten, then add 24.",
+   "Find the total and check the choices."
+  ]
+ },
+ {
+  "src": "2.11-L2-02",
+  "std": "2.11",
+  "q": "What is 15 + 23 + 17 + 25?",
+  "a": "80",
+  "lvl": 2,
+  "choices": [
+   "70",
+   "85",
+   "78",
+   "80"
+  ],
+  "steps": [
+   "Pair up numbers whose ones digits make 10.",
+   "Add 15 + 25 and add 23 + 17.",
+   "Add those two sums together and check the choices."
+  ]
+ },
+ {
+  "src": "2.11-L2-03",
+  "std": "2.11",
+  "q": "Maya collected 16 shells on Monday, 24 shells on Tuesday, and 19 shells on Wednesday. How many shells did she collect in all?",
+  "a": "59",
+  "lvl": 2,
+  "choices": [
+   "59",
+   "49",
+   "58",
+   "69"
+  ],
+  "steps": [
+   "Add all three groups of shells to find the total.",
+   "Start with 16 + 24 to make a ten, then add 19.",
+   "Find the sum and check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.11-L3-01",
+  "std": "2.11",
+  "q": "Which grouping makes it easiest to add 27 + 16 + 23 + 14 by making tens?",
+  "a": "(27 + 23) + (16 + 14)",
+  "lvl": 3,
+  "choices": [
+   "(27 + 16) + (23 + 14)",
+   "(27 + 14) + (16 + 23)",
+   "(27 + 23) + (16 + 14)",
+   "(27 + 10) + (23 + 16)"
+  ],
+  "steps": [
+   "Look for pairs of numbers whose ones digits add to 10.",
+   "Check which number pairs with 27 and which pairs with 16.",
+   "Match those pairs to the choices."
+  ]
+ },
+ {
+  "src": "2.11-L3-02",
+  "std": "2.11",
+  "q": "Four classes collected cans for a food drive: 22 cans, 18 cans, 25 cans, and 19 cans. How many cans did they collect in all?",
+  "a": "84",
+  "lvl": 3,
+  "choices": [
+   "74",
+   "84",
+   "82",
+   "94"
+  ],
+  "steps": [
+   "Add all four classes' cans to find the total.",
+   "Pair 22 + 18 first to make a ten, then add 25 + 19.",
+   "Combine both totals and check the choices."
+  ]
+ },
+ {
+  "src": "2.11-L3-03",
+  "std": "2.11",
+  "q": "The sum of three two-digit numbers is 75. Two of the numbers are 24 and 19. What is the third number?",
+  "a": "32",
+  "lvl": 3,
+  "choices": [
+   "42",
+   "33",
+   "22",
+   "32"
+  ],
+  "steps": [
+   "First find the sum of the two numbers you know.",
+   "Add 24 + 19, then subtract that sum from 75.",
+   "Check that all three numbers add up to 75."
+  ]
+ },
+ {
+  "src": "2.12-L1-01",
+  "std": "2.12",
+  "q": "What is 230 + 140?",
+  "a": "370",
+  "lvl": 1,
+  "choices": [
+   "370",
+   "360",
+   "270",
+   "470"
+  ],
+  "steps": [
+   "Add the hundreds and tens separately.",
+   "Add 200 + 100, then add 30 + 40.",
+   "Combine your sums and check the choices."
+  ]
+ },
+ {
+  "src": "2.12-L1-02",
+  "std": "2.12",
+  "q": "What is 560 − 210?",
+  "a": "350",
+  "lvl": 1,
+  "choices": [
+   "340",
+   "350",
+   "450",
+   "770"
+  ],
+  "steps": [
+   "Subtract the hundreds and tens separately.",
+   "Find 500 − 200, then find 60 − 10.",
+   "Put the parts together and check the choices."
+  ]
+ },
+ {
+  "src": "2.12-L1-03",
+  "std": "2.12",
+  "q": "What is 324 + 153?",
+  "a": "477",
+  "lvl": 1,
+  "choices": [
+   "467",
+   "487",
+   "477",
+   "377"
+  ],
+  "steps": [
+   "Add each place value: hundreds, tens, and ones.",
+   "Add 300 + 100, 20 + 50, and 4 + 3.",
+   "Combine all three parts and check the choices."
+  ]
+ },
+ {
+  "src": "2.12-L2-01",
+  "std": "2.12",
+  "q": "What is 348 + 236?",
+  "a": "584",
+  "lvl": 2,
+  "choices": [
+   "574",
+   "584",
+   "594",
+   "684"
+  ],
+  "steps": [
+   "Add ones, tens, and hundreds, and regroup if needed.",
+   "Add 8 + 6 first, then carry the new ten to 40 + 30.",
+   "Add the hundreds and check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.12-L2-02",
+  "std": "2.12",
+  "q": "What is 642 − 218?",
+  "a": "424",
+  "lvl": 2,
+  "choices": [
+   "434",
+   "426",
+   "436",
+   "424"
+  ],
+  "steps": [
+   "Start with the ones: you need to regroup to subtract 8 from 2.",
+   "Trade 1 ten from 40 to make 12 − 8, then subtract tens and hundreds.",
+   "Find the difference and check the choices."
+  ]
+ },
+ {
+  "src": "2.12-L2-03",
+  "std": "2.12",
+  "q": "What is 475 + 263?",
+  "a": "738",
+  "lvl": 2,
+  "choices": [
+   "638",
+   "738",
+   "748",
+   "648"
+  ],
+  "steps": [
+   "Add each place value and watch for regrouping in the tens.",
+   "Add 5 + 3, then add 70 + 60 and regroup 100.",
+   "Add all the hundreds and check the choices."
+  ]
+ },
+ {
+  "src": "2.12-L3-01",
+  "std": "2.12",
+  "q": "What is 500 − 247?",
+  "a": "253",
+  "lvl": 3,
+  "choices": [
+   "253",
+   "353",
+   "263",
+   "347"
+  ],
+  "steps": [
+   "Subtract 247 from 500 by counting up or regrouping.",
+   "Try counting up from 247 to 250, then from 250 to 500.",
+   "Add your jumps together and check the choices."
+  ]
+ },
+ {
+  "src": "2.12-L3-02",
+  "std": "2.12",
+  "q": "A museum had 368 visitors in the morning and 275 visitors in the afternoon. How many visitors did the museum have in all?",
+  "a": "643",
+  "lvl": 3,
+  "choices": [
+   "543",
+   "633",
+   "643",
+   "653"
+  ],
+  "steps": [
+   "Add the morning and afternoon visitors together.",
+   "Add 368 + 275 by regrouping both the ones and the tens.",
+   "Find the total and check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.12-L3-03",
+  "std": "2.12",
+  "q": "When adding 456 + 278, which place values need regrouping?",
+  "a": "Both the ones and the tens",
+  "lvl": 3,
+  "choices": [
+   "Only the ones",
+   "Only the tens",
+   "Neither the ones nor the tens",
+   "Both the ones and the tens"
+  ],
+  "steps": [
+   "Check if the ones add to 10 or more, and check the tens too.",
+   "Test 6 + 8 in the ones, then test 5 + 7 in the tens.",
+   "Match what you found to the choices."
+  ]
+ },
+ {
+  "src": "2.13-L1-01",
+  "std": "2.13",
+  "q": "What is 10 more than 345?",
+  "a": "355",
+  "lvl": 1,
+  "choices": [
+   "355",
+   "335",
+   "445",
+   "346"
+  ],
+  "steps": [
+   "Adding 10 changes the tens digit by 1.",
+   "Increase the 4 in the tens place of 345 by 1.",
+   "Check your new number against the choices."
+  ]
+ },
+ {
+  "src": "2.13-L1-02",
+  "std": "2.13",
+  "q": "What is 100 more than 520?",
+  "a": "620",
+  "lvl": 1,
+  "choices": [
+   "530",
+   "620",
+   "420",
+   "600"
+  ],
+  "steps": [
+   "Adding 100 changes the hundreds digit by 1.",
+   "Increase the 5 in the hundreds place of 520 by 1.",
+   "Check your new number against the choices."
+  ]
+ },
+ {
+  "src": "2.13-L1-03",
+  "std": "2.13",
+  "q": "What is 10 less than 478?",
+  "a": "468",
+  "lvl": 1,
+  "choices": [
+   "488",
+   "378",
+   "468",
+   "477"
+  ],
+  "steps": [
+   "Subtracting 10 lowers the tens digit by 1.",
+   "Lower the 7 in the tens place of 478 by 1.",
+   "Check your new number against the choices."
+  ]
+ },
+ {
+  "src": "2.13-L2-01",
+  "std": "2.13",
+  "q": "What is 100 less than 706?",
+  "a": "606",
+  "lvl": 2,
+  "choices": [
+   "696",
+   "606",
+   "806",
+   "600"
+  ],
+  "steps": [
+   "Subtracting 100 lowers the hundreds digit by 1.",
+   "Lower the 7 in the hundreds place of 706 by 1.",
+   "Check your new number against the choices."
+  ]
+ },
+ {
+  "src": "2.13-L2-02",
+  "std": "2.13",
+  "q": "What is 10 more than 294?",
+  "a": "304",
+  "lvl": 2,
+  "choices": [
+   "284",
+   "394",
+   "314",
+   "304"
+  ],
+  "steps": [
+   "Adding 10 to 9 tens makes a new hundred.",
+   "Think of 29 tens plus 1 ten, and keep the 4 ones.",
+   "Check your new number against the choices."
+  ]
+ },
+ {
+  "src": "2.13-L2-03",
+  "std": "2.13",
+  "q": "What is 10 less than 502?",
+  "a": "492",
+  "lvl": 2,
+  "choices": [
+   "492",
+   "512",
+   "402",
+   "490"
+  ],
+  "steps": [
+   "Think of 502 as 50 tens and 2 ones.",
+   "Take away 1 ten from 50 tens, and keep the 2 ones.",
+   "Check your new number against the choices."
+  ]
+ },
+ {
+  "src": "2.13-L3-01",
+  "std": "2.13",
+  "q": "Start at 685. Mentally add 100, then subtract 10. What number do you get?",
+  "a": "775",
+  "lvl": 3,
+  "choices": [
+   "795",
+   "775",
+   "575",
+   "695"
+  ],
+  "steps": [
+   "Do one mental math step at a time from 685.",
+   "First add 100 to the hundreds, then subtract 10 from the tens.",
+   "Check your final number against the choices."
+  ]
+ },
+ {
+  "src": "2.13-L3-02",
+  "std": "2.13",
+  "q": "Start at 405. Mentally subtract 100, then subtract 10. What number do you get?",
+  "a": "295",
+  "lvl": 3,
+  "choices": [
+   "305",
+   "395",
+   "295",
+   "315"
+  ],
+  "steps": [
+   "Do one step at a time starting at 405.",
+   "First subtract 100, then subtract 10 from that number.",
+   "Check your final number against the choices."
+  ]
+ },
+ {
+  "src": "2.13-L3-03",
+  "std": "2.13",
+  "q": "Which statement is true when you mentally add 10 to 398?",
+  "a": "The tens digit changes to 0 and the hundreds digit changes to 4, giving 408.",
+  "lvl": 3,
+  "choices": [
+   "Only the tens digit changes, giving 308.",
+   "Only the ones digit changes, giving 399.",
+   "The hundreds digit changes to 4 and the tens digit stays 9, giving 498.",
+   "The tens digit changes to 0 and the hundreds digit changes to 4, giving 408."
+  ],
+  "steps": [
+   "See what happens when you add 1 ten to 398.",
+   "9 tens plus 1 ten makes 10 tens, which becomes 1 new hundred.",
+   "Match this change to the choices."
+  ]
+ },
+ {
+  "src": "2.14-L1-01",
+  "std": "2.14",
+  "q": "Why does 23 + 15 give the same answer as 15 + 23?",
+  "a": "You can add numbers in any order and get the same sum.",
+  "lvl": 1,
+  "choices": [
+   "You can add numbers in any order and get the same sum.",
+   "Both numbers end in the same digit.",
+   "You can only add the bigger number first.",
+   "Subtracting them gives the same answer too."
+  ],
+  "steps": [
+   "Notice that the two numbers just traded places.",
+   "Think about the rule for changing the order in addition.",
+   "Pick the choice that explains this rule."
+  ]
+ },
+ {
+  "src": "2.14-L1-02",
+  "std": "2.14",
+  "q": "To solve 42 + 35, Sam added 40 + 30 = 70 and 2 + 5 = 7, then 70 + 7 = 77. Why does this work?",
+  "a": "He broke both numbers into tens and ones and added each place value.",
+  "lvl": 1,
+  "choices": [
+   "He rounded both numbers to the nearest hundred.",
+   "He broke both numbers into tens and ones and added each place value.",
+   "He subtracted the ones from the tens.",
+   "He only added the tens digits."
+  ],
+  "steps": [
+   "Look at how Sam split 42 into 40 + 2 and 35 into 30 + 5.",
+   "He added tens with tens and ones with ones.",
+   "Pick the choice that describes this strategy."
+  ]
+ },
+ {
+  "src": "2.14-L1-03",
+  "std": "2.14",
+  "q": "Why can you check 54 − 21 = 33 by solving 33 + 21 = 54?",
+  "a": "Addition and subtraction are opposite operations.",
+  "lvl": 1,
+  "choices": [
+   "All numbers in the problem are even.",
+   "You can subtract in any order.",
+   "Addition and subtraction are opposite operations.",
+   "33 and 21 are equal addends."
+  ],
+  "steps": [
+   "Think about how addition and subtraction are related.",
+   "Adding back what you subtracted brings you back to the start.",
+   "Pick the choice that explains why this check works."
+  ]
+ },
+ {
+  "src": "2.14-L2-01",
+  "std": "2.14",
+  "q": "Leo solved 64 − 27 by rewriting 64 as 50 + 14. Why did he do that?",
+  "a": "He traded 1 ten for 10 ones so he could subtract 7 ones from 14 ones.",
+  "lvl": 2,
+  "choices": [
+   "He wanted to make 64 larger by 10.",
+   "He traded 1 ten for 10 ones so he could subtract 7 ones from 14 ones.",
+   "He forgot how many tens are in 64.",
+   "He traded 1 hundred for 10 tens."
+  ],
+  "steps": [
+   "Compare 60 + 4 with 50 + 14.",
+   "Leo moved 1 ten into the ones place so he could subtract 7.",
+   "Pick the choice that explains this trade."
+  ]
+ },
+ {
+  "src": "2.14-L2-02",
+  "std": "2.14",
+  "q": "Mia solved 39 + 25 by changing it to 40 + 24 = 64. Why does her strategy work?",
+  "a": "She moved 1 from 25 to 39, so the total stayed the same.",
+  "lvl": 2,
+  "choices": [
+   "She added 1 to both numbers.",
+   "She subtracted 1 from both numbers.",
+   "She moved 1 from 25 to 39, so the total stayed the same.",
+   "She changed 39 to 40 and left 25 alone."
+  ],
+  "steps": [
+   "Look at how 39 changed to 40 and 25 changed to 24.",
+   "One number went up by 1 and the other went down by 1.",
+   "Pick the choice that explains why the total stayed equal."
+  ]
+ },
+ {
+  "src": "2.14-L2-03",
+  "std": "2.14",
+  "q": "To solve 73 − 48, Eli counted up from 48 to 50 (+2) and from 50 to 73 (+23), then added 2 + 23 = 25. Why does this work?",
+  "a": "Subtraction finds the difference between two numbers, so counting up gives the answer.",
+  "lvl": 2,
+  "choices": [
+   "Counting up only works when both numbers are odd.",
+   "Adding 48 and 73 gives 25.",
+   "You always add 2 to any subtraction problem.",
+   "Subtraction finds the difference between two numbers, so counting up gives the answer."
+  ],
+  "steps": [
+   "Think about what subtraction measures between 48 and 73.",
+   "Counting up finds the distance between the two numbers.",
+   "Pick the choice that explains why counting up works."
+  ]
+ },
+ {
+  "src": "2.14-L3-01",
+  "std": "2.14",
+  "q": "Ava solved 52 − 19 by doing 52 − 20 = 32, and then 32 − 1 = 31. What mistake did she make?",
+  "a": "She subtracted 1 too many instead of adding 1 back; the answer should be 33.",
+  "lvl": 3,
+  "choices": [
+   "She subtracted 1 too many instead of adding 1 back; the answer should be 33.",
+   "She should have subtracted 10 instead of 20.",
+   "She should have added 20 to 52.",
+   "She did not make a mistake."
+  ],
+  "steps": [
+   "Ava subtracted 20 instead of 19, so she took away 1 too many.",
+   "To fix taking away 1 extra, she should add 1 back, not subtract.",
+   "Pick the choice that explains her mistake."
+  ]
+ },
+ {
+  "src": "2.14-L3-02",
+  "std": "2.14",
+  "q": "To find 248 + 135, Ben added 200 + 100 = 300, 40 + 30 = 70, and 8 + 5 = 13. What must he do next to get the final sum?",
+  "a": "Regroup 13 as 1 ten and 3 ones, making 300 + 80 + 3 = 383.",
+  "lvl": 3,
+  "choices": [
+   "Ignore the 10 in 13 and write 373.",
+   "Regroup 13 as 1 ten and 3 ones, making 300 + 80 + 3 = 383.",
+   "Add 13 to 300 only, making 313.",
+   "Subtract 13 from 370, making 357."
+  ],
+  "steps": [
+   "Ben has 300, 70, and 13 from adding each place value.",
+   "Break 13 into 10 + 3 and add the 10 to 70.",
+   "Match that next step to the choices."
+  ]
+ },
+ {
+  "src": "2.14-L3-03",
+  "std": "2.14",
+  "q": "Why does 81 − 36 have the same answer as 85 − 40?",
+  "a": "Adding 4 to both numbers keeps the difference between them the same.",
+  "lvl": 3,
+  "choices": [
+   "Adding 4 to both numbers makes the answer 4 greater.",
+   "Subtracting 4 from both numbers makes the answer 0.",
+   "Adding 4 to both numbers keeps the difference between them the same.",
+   "81 and 85 have the same ones digit."
+  ],
+  "steps": [
+   "See how 81 changed to 85 and 36 changed to 40.",
+   "Both numbers grew by 4, so the space between them stayed equal.",
+   "Pick the choice that explains this."
+  ]
+ },
+ {
+  "src": "2.23-L1-01",
+  "std": "2.15",
+  "part": "a",
+  "q": "A line plot shows the lengths of pencils in inches: 4 in (2 X's), 5 in (4 X's), 6 in (3 X's). How many pencils are 5 inches long?",
+  "a": "4",
+  "lvl": 1,
+  "choices": [
+   "4",
+   "5",
+   "2",
+   "3"
+  ],
+  "steps": [
+   "Each X stands for 1 pencil of that length.",
+   "Look at the number of X's above 5 inches.",
+   "Match that count to the choices."
+  ]
+ },
+ {
+  "src": "2.23-L1-02",
+  "std": "2.15",
+  "part": "a",
+  "q": "A line plot shows leaf lengths in centimeters: 3 cm (1 X), 4 cm (3 X's), 5 cm (2 X's), 7 cm (1 X). What is the length of the longest leaf?",
+  "a": "7 centimeters",
+  "lvl": 1,
+  "choices": [
+   "4 centimeters",
+   "7 centimeters",
+   "3 centimeters",
+   "5 centimeters"
+  ],
+  "steps": [
+   "Longest means the greatest length number with an X.",
+   "Compare the lengths: 3 cm, 4 cm, 5 cm, and 7 cm.",
+   "Pick the greatest length from the choices."
+  ]
+ },
+ {
+  "src": "2.23-L1-03",
+  "std": "2.15",
+  "part": "a",
+  "q": "A line plot shows ribbon lengths: 6 in (2 X's), 7 in (5 X's), 8 in (1 X), 9 in (2 X's). Which length appears most often?",
+  "a": "7 inches",
+  "lvl": 1,
+  "choices": [
+   "6 inches",
+   "9 inches",
+   "7 inches",
+   "8 inches"
+  ],
+  "steps": [
+   "Most often means the length with the most X's.",
+   "Compare the X counts: 2, 5, 1, and 2.",
+   "Pick the length with the highest count."
+  ]
+ },
+ {
+  "src": "2.23-L2-01",
+  "std": "2.15",
+  "part": "a",
+  "q": "A line plot shows crayon lengths: 2 in (2 X's), 3 in (4 X's), 4 in (3 X's), 5 in (1 X). How many crayons were measured in all?",
+  "a": "10",
+  "lvl": 2,
+  "choices": [
+   "4",
+   "9",
+   "14",
+   "10"
+  ],
+  "steps": [
+   "Count all the X's on the line plot to find the total.",
+   "Add 2 + 4 + 3 + 1.",
+   "Find the total and check the choices."
+  ]
+ },
+ {
+  "src": "2.23-L2-02",
+  "std": "2.15",
+  "part": "a",
+  "q": "A line plot shows stick lengths: 5 in (3 X's), 6 in (2 X's), 7 in (4 X's), 8 in (1 X). How many sticks are 6 inches or longer?",
+  "a": "7",
+  "lvl": 2,
+  "choices": [
+   "7",
+   "2",
+   "5",
+   "10"
+  ],
+  "steps": [
+   "6 inches or longer includes 6 in, 7 in, and 8 in.",
+   "Add the X's for those three lengths: 2 + 4 + 1.",
+   "Find the total and check the choices."
+  ]
+ },
+ {
+  "src": "2.23-L2-03",
+  "std": "2.15",
+  "part": "a",
+  "q": "A line plot shows shell lengths: 3 cm (2 X's), 5 cm (3 X's), 6 cm (2 X's), 9 cm (1 X). What is the difference between the longest shell and the shortest shell?",
+  "a": "6 centimeters",
+  "lvl": 2,
+  "choices": [
+   "3 centimeters",
+   "6 centimeters",
+   "12 centimeters",
+   "4 centimeters"
+  ],
+  "steps": [
+   "Find the longest shell (9 cm) and shortest shell (3 cm).",
+   "Subtract the shortest from the longest: 9 − 3.",
+   "Check the difference against the choices."
+  ]
+ },
+ {
+  "src": "2.23-L3-01",
+  "std": "2.15",
+  "part": "a",
+  "q": "A line plot shows marker lengths: 4 cm (5 X's), 5 cm (3 X's), 6 cm (4 X's), 7 cm (2 X's). How many more markers are 4 cm long than 7 cm long?",
+  "a": "3",
+  "lvl": 3,
+  "choices": [
+   "7",
+   "2",
+   "3",
+   "4"
+  ],
+  "steps": [
+   "Find how many X's are at 4 cm (5) and at 7 cm (2).",
+   "Subtract to find how many more: 5 − 2.",
+   "Check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.23-L3-02",
+  "std": "2.15",
+  "part": "a",
+  "q": "A line plot shows 8 measured strings with lengths from 4 inches to 7 inches. Maya measures one more string that is 8 inches long and adds it to the plot. What changes?",
+  "a": "There is now 1 X above 8, and the total number of strings is 9.",
+  "lvl": 3,
+  "choices": [
+   "There is now 1 X above 7, and the total number of strings is 9.",
+   "The total number of strings stays 8.",
+   "All the other X's move to the right.",
+   "There is now 1 X above 8, and the total number of strings is 9."
+  ],
+  "steps": [
+   "Adding one 8-inch string puts 1 new X above 8.",
+   "It also increases the total number of strings by 1.",
+   "Pick the choice that matches both changes."
+  ]
+ },
+ {
+  "src": "2.23-L3-03",
+  "std": "2.15",
+  "part": "a",
+  "q": "A line plot shows worm lengths: 4 cm (2 X's), 5 cm (3 X's), 6 cm (1 X). What is the combined length of the two shortest worms?",
+  "a": "8 centimeters",
+  "lvl": 3,
+  "choices": [
+   "8 centimeters",
+   "9 centimeters",
+   "4 centimeters",
+   "10 centimeters"
+  ],
+  "steps": [
+   "The shortest length is 4 cm, and there are 2 X's there.",
+   "Add the lengths of those two shortest worms: 4 + 4.",
+   "Find the combined length and check the choices."
+  ]
+ },
+ {
+  "src": "2.24-L1-01",
+  "std": "2.16",
+  "q": "A bar graph shows favorite fruits: Apples (6), Bananas (4), Grapes (8), Oranges (3). How many students chose Grapes?",
+  "a": "8",
+  "lvl": 1,
+  "choices": [
+   "8",
+   "6",
+   "4",
+   "3"
+  ],
+  "steps": [
+   "Find Grapes in the list of favorite fruits.",
+   "Read the number shown for Grapes.",
+   "Match that number to the choices."
+  ]
+ },
+ {
+  "src": "2.24-L1-02",
+  "std": "2.16",
+  "q": "A picture graph (where 1 smiley = 1 student) shows favorite pets: Dogs (7), Cats (5), Fish (2), Birds (4). Which pet is the most popular?",
+  "a": "Dogs",
+  "lvl": 1,
+  "choices": [
+   "Cats",
+   "Dogs",
+   "Fish",
+   "Birds"
+  ],
+  "steps": [
+   "Most popular means the pet with the greatest number.",
+   "Compare 7, 5, 2, and 4.",
+   "Pick the pet with the largest number."
+  ]
+ },
+ {
+  "src": "2.24-L1-03",
+  "std": "2.16",
+  "q": "A bar graph shows books read: Sam (5), Mia (9), Leo (3), Ava (7). Who read the fewest books?",
+  "a": "Leo",
+  "lvl": 1,
+  "choices": [
+   "Sam",
+   "Mia",
+   "Leo",
+   "Ava"
+  ],
+  "steps": [
+   "Fewest means the smallest number of books read.",
+   "Compare 5, 9, 3, and 7.",
+   "Pick the student with the smallest number."
+  ]
+ },
+ {
+  "src": "2.24-L2-01",
+  "std": "2.16",
+  "part": "a",
+  "q": "A bar graph shows favorite sports: Soccer (9), Basketball (6), Baseball (5), Swimming (4). How many students chose Soccer and Basketball altogether?",
+  "a": "15",
+  "lvl": 2,
+  "choices": [
+   "3",
+   "14",
+   "24",
+   "15"
+  ],
+  "steps": [
+   "Altogether means add Soccer and Basketball.",
+   "Add 9 + 6.",
+   "Find the sum and check the choices."
+  ]
+ },
+ {
+  "src": "2.24-L2-02",
+  "std": "2.16",
+  "part": "a",
+  "q": "A bar graph shows favorite colors: Blue (11), Red (7), Green (5), Yellow (4). How many more students chose Blue than Yellow?",
+  "a": "7",
+  "lvl": 2,
+  "choices": [
+   "7",
+   "15",
+   "6",
+   "4"
+  ],
+  "steps": [
+   "How many more means subtract Yellow from Blue.",
+   "Solve 11 − 4.",
+   "Find the difference and check the choices."
+  ]
+ },
+ {
+  "src": "2.24-L2-03",
+  "std": "2.16",
+  "q": "A picture graph (1 star = 1 vote) shows favorite seasons: Spring (5), Summer (8), Fall (6), Winter (3). How many students voted in all?",
+  "a": "22",
+  "lvl": 2,
+  "choices": [
+   "21",
+   "22",
+   "19",
+   "24"
+  ],
+  "steps": [
+   "In all means add the votes for all four seasons.",
+   "Add 5 + 8 + 6 + 3.",
+   "Find the total and check the choices."
+  ]
+ },
+ {
+  "src": "2.24-L3-01",
+  "std": "2.16",
+  "part": "a",
+  "q": "A bar graph shows snacks sold: Pretzels (12), Apples (7), Popcorn (9), Crackers (5). How many fewer Crackers were sold than Apples and Popcorn combined?",
+  "a": "11",
+  "lvl": 3,
+  "choices": [
+   "16",
+   "4",
+   "11",
+   "10"
+  ],
+  "steps": [
+   "First combine Apples and Popcorn: 7 + 9.",
+   "Then subtract Crackers (5) from that sum.",
+   "Find the difference and check the choices."
+  ]
+ },
+ {
+  "src": "2.24-L3-02",
+  "std": "2.16",
+  "part": "a",
+  "q": "A class of 25 students voted on a bar graph for a field trip: Zoo (9), Museum (6), Park (4), and Aquarium (?). How many students voted for the Aquarium?",
+  "a": "6",
+  "lvl": 3,
+  "choices": [
+   "5",
+   "7",
+   "19",
+   "6"
+  ],
+  "steps": [
+   "First add the votes you already know: 9 + 6 + 4.",
+   "Then subtract that sum from the 25 students in the class.",
+   "Find the Aquarium votes and check the choices."
+  ]
+ },
+ {
+  "src": "2.24-L3-03",
+  "std": "2.16",
+  "part": "a",
+  "q": "A bar graph shows votes for class mascot: Bear (8), Eagle (10), Tiger (6). If 3 more students vote for Bear, how many more votes will Bear have than Eagle?",
+  "a": "1",
+  "lvl": 3,
+  "choices": [
+   "1",
+   "2",
+   "11",
+   "3"
+  ],
+  "steps": [
+   "First add 3 new votes to Bear: 8 + 3.",
+   "Then compare Bear's new total to Eagle's 10 votes.",
+   "Find how many more Bear has and check the choices."
+  ]
+ },
+ {
+  "src": "2.15-L1-01",
+  "std": "2.17",
+  "q": "Which tool is best for measuring the length of a crayon?",
+  "a": "A ruler",
+  "lvl": 1,
+  "choices": [
+   "A ruler",
+   "A balance scale",
+   "A clock",
+   "A measuring cup"
+  ],
+  "steps": [
+   "Think about which tool measures how long something is.",
+   "A crayon is short and straight.",
+   "Pick the length tool from the choices."
+  ]
+ },
+ {
+  "src": "2.15-L1-02",
+  "std": "2.17",
+  "q": "Where should you line up the start of a pencil when measuring it with a ruler?",
+  "a": "At the 0 mark",
+  "lvl": 1,
+  "choices": [
+   "At the 1 mark",
+   "At the 0 mark",
+   "At the middle of the ruler",
+   "At the 12 mark"
+  ],
+  "steps": [
+   "Measurement starts where the length is zero.",
+   "Find the very start of the scale on a ruler.",
+   "Match that mark to the choices."
+  ]
+ },
+ {
+  "src": "2.15-L1-03",
+  "std": "2.17",
+  "q": "A marker starts at 0 inches and ends at 6 inches on a ruler. How long is the marker?",
+  "a": "6 inches",
+  "lvl": 1,
+  "choices": [
+   "5 inches",
+   "7 inches",
+   "6 inches",
+   "12 inches"
+  ],
+  "steps": [
+   "The marker starts right at the 0 mark.",
+   "Read the number where the other end of the marker stops.",
+   "Check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.15-L2-01",
+  "std": "2.17",
+  "q": "Which tool is best for measuring the distance around a round pumpkin?",
+  "a": "A measuring tape",
+  "lvl": 2,
+  "choices": [
+   "A wooden ruler",
+   "A yardstick",
+   "A meter stick",
+   "A measuring tape"
+  ],
+  "steps": [
+   "A pumpkin is round, so the tool needs to bend.",
+   "Think about which tool can wrap around a curved shape.",
+   "Pick that tool from the choices."
+  ]
+ },
+ {
+  "src": "2.15-L2-02",
+  "std": "2.17",
+  "q": "A ribbon starts at the 2-inch mark and ends at the 9-inch mark on a ruler. How long is the ribbon?",
+  "a": "7 inches",
+  "lvl": 2,
+  "choices": [
+   "7 inches",
+   "9 inches",
+   "11 inches",
+   "6 inches"
+  ],
+  "steps": [
+   "The ribbon does not start at 0, so find the distance between marks.",
+   "Subtract the starting mark from the ending mark: 9 − 2.",
+   "Find the length and check the choices."
+  ]
+ },
+ {
+  "src": "2.15-L2-03",
+  "std": "2.17",
+  "q": "Which tool is best for measuring the length of a long classroom whiteboard in meters?",
+  "a": "A meter stick",
+  "lvl": 2,
+  "choices": [
+   "A 6-inch ruler",
+   "A meter stick",
+   "A paper clip",
+   "A thermometer"
+  ],
+  "steps": [
+   "Look at the unit asked for: meters.",
+   "A whiteboard is long, so pick a tool that measures in meters.",
+   "Match the best tool to the choices."
+  ]
+ },
+ {
+  "src": "2.15-L3-01",
+  "std": "2.17",
+  "q": "A leaf starts at the 4-centimeter mark and ends at the 15-centimeter mark on a ruler. How long is the leaf?",
+  "a": "11 centimeters",
+  "lvl": 3,
+  "choices": [
+   "15 centimeters",
+   "19 centimeters",
+   "11 centimeters",
+   "10 centimeters"
+  ],
+  "steps": [
+   "Find the distance from the 4-cm mark to the 15-cm mark.",
+   "Subtract the start from the end: 15 − 4.",
+   "Find the length and check the choices."
+  ]
+ },
+ {
+  "src": "2.15-L3-02",
+  "std": "2.17",
+  "q": "Sam lined up a toy car at the 1-inch mark on a ruler. The other end reached the 6-inch mark. Sam said the car is 6 inches long. What mistake did he make?",
+  "a": "He did not start at 0, so the car is actually 5 inches long.",
+  "lvl": 3,
+  "choices": [
+   "He did not start at 0, so the car is actually 7 inches long.",
+   "He did not start at 0, so the car is actually 5 inches long.",
+   "He used centimeters instead of inches.",
+   "He did not make a mistake."
+  ],
+  "steps": [
+   "Look at where Sam started the car on the ruler.",
+   "Subtract the starting mark from the ending mark: 6 − 1.",
+   "Pick the choice that explains Sam's mistake."
+  ]
+ },
+ {
+  "src": "2.15-L3-03",
+  "std": "2.17",
+  "q": "A craft stick is 14 centimeters long. If you line up one end at the 5-centimeter mark on a ruler, where will the other end land?",
+  "a": "At the 19-centimeter mark",
+  "lvl": 3,
+  "choices": [
+   "At the 9-centimeter mark",
+   "At the 14-centimeter mark",
+   "At the 20-centimeter mark",
+   "At the 19-centimeter mark"
+  ],
+  "steps": [
+   "Start at the 5-cm mark and go forward 14 centimeters.",
+   "Add the starting mark and the length: 5 + 14.",
+   "Find the ending mark and check the choices."
+  ]
+ },
+ {
+  "src": "2.16-L1-01",
+  "std": "2.18",
+  "q": "Which unit of length is longer: 1 inch or 1 centimeter?",
+  "a": "1 inch",
+  "lvl": 1,
+  "choices": [
+   "1 inch",
+   "1 centimeter",
+   "They are the same length",
+   "Neither"
+  ],
+  "steps": [
+   "Think about how big 1 inch and 1 centimeter are on a ruler.",
+   "Compare which of those two units is longer.",
+   "Pick the longer unit from the choices."
+  ]
+ },
+ {
+  "src": "2.16-L1-02",
+  "std": "2.18",
+  "q": "Which unit of length is longer: 1 foot or 1 inch?",
+  "a": "1 foot",
+  "lvl": 1,
+  "choices": [
+   "1 inch",
+   "1 foot",
+   "They are the same length",
+   "Neither"
+  ],
+  "steps": [
+   "Think about how many inches fit in 1 foot.",
+   "Compare 1 foot to 1 inch.",
+   "Pick the longer unit from the choices."
+  ]
+ },
+ {
+  "src": "2.16-L1-03",
+  "std": "2.18",
+  "q": "If you measure a desk in inches and then in feet, which measurement will have a greater number of units?",
+  "a": "Inches",
+  "lvl": 1,
+  "choices": [
+   "Feet",
+   "Both will have the exact same number",
+   "Inches",
+   "Neither"
+  ],
+  "steps": [
+   "Smaller units take more copies to cover the same length.",
+   "Decide which is smaller: an inch or a foot.",
+   "Pick the unit that will have the greater number."
+  ]
+ },
+ {
+  "src": "2.16-L2-01",
+  "std": "2.18",
+  "q": "A bookshelf is 3 feet long and 36 inches long. Why is the number of inches greater than the number of feet?",
+  "a": "Inches are smaller than feet, so it takes more inches to measure the same length.",
+  "lvl": 2,
+  "choices": [
+   "Inches are larger than feet, so it takes more inches.",
+   "The bookshelf grew longer when measured in inches.",
+   "Feet are smaller than inches.",
+   "Inches are smaller than feet, so it takes more inches to measure the same length."
+  ],
+  "steps": [
+   "Compare the size of 1 inch and 1 foot.",
+   "Because inches are shorter, you need more of them.",
+   "Pick the statement that explains this."
+  ]
+ },
+ {
+  "src": "2.16-L2-02",
+  "std": "2.18",
+  "q": "A pencil is 7 inches long and about 18 centimeters long. Which statement explains why?",
+  "a": "Centimeters are smaller than inches, so it takes more centimeters than inches.",
+  "lvl": 2,
+  "choices": [
+   "Centimeters are smaller than inches, so it takes more centimeters than inches.",
+   "Centimeters are larger than inches, so it takes more centimeters than inches.",
+   "Inches are smaller than centimeters.",
+   "The pencil is longer in centimeters than in inches."
+  ],
+  "steps": [
+   "Compare the size of 1 centimeter and 1 inch.",
+   "Smaller units always give a bigger count for the same object.",
+   "Match this idea to the choices."
+  ]
+ },
+ {
+  "src": "2.16-L2-03",
+  "std": "2.18",
+  "q": "A classroom rug is 2 meters long. If you measure the same rug in centimeters, how will the number of centimeters compare to 2?",
+  "a": "It will be much greater than 2 because centimeters are much smaller than meters.",
+  "lvl": 2,
+  "choices": [
+   "It will be less than 2 because centimeters are larger than meters.",
+   "It will be much greater than 2 because centimeters are much smaller than meters.",
+   "It will be equal to 2.",
+   "It will be 1 because meters are smaller than centimeters."
+  ],
+  "steps": [
+   "Compare 1 centimeter to 1 meter.",
+   "Since centimeters are much smaller, it takes many more of them.",
+   "Pick the choice that matches this comparison."
+  ]
+ },
+ {
+  "src": "2.16-L3-01",
+  "std": "2.18",
+  "q": "Maya measured a hallway in feet and in yards. She got 12 for one measurement and 4 for the other. Which measurement is in yards?",
+  "a": "4 yards, because yards are longer than feet so fewer units are needed.",
+  "lvl": 3,
+  "choices": [
+   "12 yards, because yards are longer than feet.",
+   "12 yards, because yards are shorter than feet.",
+   "4 yards, because yards are longer than feet so fewer units are needed.",
+   "4 yards, because yards are shorter than feet."
+  ],
+  "steps": [
+   "Compare the size of 1 yard and 1 foot.",
+   "A longer unit needs fewer copies to measure the same hallway.",
+   "Pick the choice that matches the smaller number to yards."
+  ]
+ },
+ {
+  "src": "2.16-L3-02",
+  "std": "2.18",
+  "q": "Liam measured a book with Unit A and got 10. He measured the exact same book with Unit B and got 25. What must be true?",
+  "a": "Unit A is longer than Unit B.",
+  "lvl": 3,
+  "choices": [
+   "Unit B is longer than Unit A.",
+   "Unit A and Unit B are the same length.",
+   "Unit A is longer than Unit B.",
+   "Liam measured two different books."
+  ],
+  "steps": [
+   "Unit A needed fewer copies (10) than Unit B (25).",
+   "Fewer units means each unit must be longer.",
+   "Pick the true statement from the choices."
+  ]
+ },
+ {
+  "src": "2.16-L3-03",
+  "std": "2.18",
+  "q": "A table is 6 feet long. Since 1 yard equals 3 feet, how many yards long is the table?",
+  "a": "2 yards",
+  "lvl": 3,
+  "choices": [
+   "18 yards",
+   "3 yards",
+   "9 yards",
+   "2 yards"
+  ],
+  "steps": [
+   "Group the 6 feet into sets of 3 feet.",
+   "Count how many groups of 3 feet make 6 feet.",
+   "Check your number of yards against the choices."
+  ]
+ },
+ {
+  "src": "2.17-L1-01",
+  "std": "2.19",
+  "q": "About how long is a standard small paper clip?",
+  "a": "About 1 inch",
+  "lvl": 1,
+  "choices": [
+   "About 1 inch",
+   "About 1 foot",
+   "About 1 meter",
+   "About 10 inches"
+  ],
+  "steps": [
+   "Picture a small paper clip in your hand.",
+   "Compare its length to an inch, a foot, and a meter.",
+   "Pick the closest estimate from the choices."
+  ]
+ },
+ {
+  "src": "2.17-L1-02",
+  "std": "2.19",
+  "q": "About how wide is a child's fingernail?",
+  "a": "About 1 centimeter",
+  "lvl": 1,
+  "choices": [
+   "About 1 meter",
+   "About 1 centimeter",
+   "About 1 foot",
+   "About 10 centimeters"
+  ],
+  "steps": [
+   "Look at the width of a child's fingernail.",
+   "It is very small, much smaller than an inch or a foot.",
+   "Pick the closest estimate from the choices."
+  ]
+ },
+ {
+  "src": "2.17-L1-03",
+  "std": "2.19",
+  "q": "About how long is a standard school ruler?",
+  "a": "About 1 foot",
+  "lvl": 1,
+  "choices": [
+   "About 1 inch",
+   "About 1 centimeter",
+   "About 1 foot",
+   "About 10 meters"
+  ],
+  "steps": [
+   "Picture a standard 12-inch school ruler.",
+   "Remember what 12 inches is called.",
+   "Pick the matching estimate from the choices."
+  ]
+ },
+ {
+  "src": "2.17-L2-01",
+  "std": "2.19",
+  "q": "Which is the best estimate for the height of a classroom door?",
+  "a": "About 2 meters",
+  "lvl": 2,
+  "choices": [
+   "About 2 centimeters",
+   "About 2 inches",
+   "About 20 meters",
+   "About 2 meters"
+  ],
+  "steps": [
+   "A meter is about the width of a doorway.",
+   "Think about how many meters tall a classroom door is.",
+   "Pick the best estimate from the choices."
+  ]
+ },
+ {
+  "src": "2.17-L2-02",
+  "std": "2.19",
+  "q": "Which is the best estimate for the length of a new unsharpened pencil?",
+  "a": "About 7 inches",
+  "lvl": 2,
+  "choices": [
+   "About 7 inches",
+   "About 7 feet",
+   "About 7 meters",
+   "About 1 centimeter"
+  ],
+  "steps": [
+   "A new pencil is shorter than a 12-inch ruler.",
+   "Rule out feet and meters because those are way too long.",
+   "Pick the best estimate from the choices."
+  ]
+ },
+ {
+  "src": "2.17-L2-03",
+  "std": "2.19",
+  "q": "Which is the best estimate for the length of a second-grader's shoe?",
+  "a": "About 20 centimeters",
+  "lvl": 2,
+  "choices": [
+   "About 2 centimeters",
+   "About 20 centimeters",
+   "About 20 inches",
+   "About 20 meters"
+  ],
+  "steps": [
+   "A shoe is shorter than a 12-inch ruler, and 1 cm is tiny.",
+   "Rule out 2 cm (too small) and 20 inches or meters (too big).",
+   "Pick the best estimate from the choices."
+  ]
+ },
+ {
+  "src": "2.17-L3-01",
+  "std": "2.19",
+  "q": "A teacher's desk is about 5 feet long. Which other object is closest to 5 feet long?",
+  "a": "A bicycle",
+  "lvl": 3,
+  "choices": [
+   "A crayon",
+   "A textbook",
+   "A bicycle",
+   "A school bus"
+  ],
+  "steps": [
+   "Think about how long 5 feet is—about the length of a desk.",
+   "Compare each object to a teacher's desk.",
+   "Pick the object closest in length."
+  ]
+ },
+ {
+  "src": "2.17-L3-02",
+  "std": "2.19",
+  "q": "Noah estimated that his lunchbox is 10 meters long. Why is his estimate unreasonable?",
+  "a": "A meter is about the width of a doorway, so 10 meters is way too long for a lunchbox.",
+  "lvl": 3,
+  "choices": [
+   "A meter is very tiny, so 10 meters is too short for a lunchbox.",
+   "A meter is about the width of a doorway, so 10 meters is way too long for a lunchbox.",
+   "Meters cannot be used to measure length.",
+   "His estimate is reasonable."
+  ],
+  "steps": [
+   "Picture how long 1 meter is (about a doorway's width).",
+   "Think about how huge 10 meters would be for a lunchbox.",
+   "Pick the choice that explains why 10 meters is unreasonable."
+  ]
+ },
+ {
+  "src": "2.17-L3-03",
+  "std": "2.19",
+  "q": "Which unit and estimate best match the length of a real school bus?",
+  "a": "About 10 meters",
+  "lvl": 3,
+  "choices": [
+   "About 10 inches",
+   "About 10 centimeters",
+   "About 10 feet",
+   "About 10 meters"
+  ],
+  "steps": [
+   "A real school bus is very long—much longer than 10 feet.",
+   "Compare 10 inches, 10 cm, 10 feet, and 10 meters.",
+   "Pick the best match for a school bus."
+  ]
+ },
+ {
+  "src": "2.18-L1-01",
+  "std": "2.20",
+  "q": "A red crayon is 9 centimeters long. A blue crayon is 5 centimeters long. How much longer is the red crayon than the blue crayon?",
+  "a": "4 centimeters",
+  "lvl": 1,
+  "choices": [
+   "4 centimeters",
+   "14 centimeters",
+   "5 centimeters",
+   "3 centimeters"
+  ],
+  "steps": [
+   "Find how much longer means find the difference.",
+   "Subtract the shorter crayon from the longer one: 9 − 5.",
+   "Find the difference and check the choices."
+  ]
+ },
+ {
+  "src": "2.18-L1-02",
+  "std": "2.20",
+  "q": "A toy train is 12 inches long. A toy car is 4 inches long. How much longer is the toy train than the toy car?",
+  "a": "8 inches",
+  "lvl": 1,
+  "choices": [
+   "16 inches",
+   "8 inches",
+   "6 inches",
+   "9 inches"
+  ],
+  "steps": [
+   "Compare the two lengths by subtracting.",
+   "Subtract the toy car from the toy train: 12 − 4.",
+   "Find the difference and check the choices."
+  ]
+ },
+ {
+  "src": "2.18-L1-03",
+  "std": "2.20",
+  "q": "Rope A is 15 feet long. Rope B is 10 feet long. How much shorter is Rope B than Rope A?",
+  "a": "5 feet",
+  "lvl": 1,
+  "choices": [
+   "25 feet",
+   "10 feet",
+   "5 feet",
+   "4 feet"
+  ],
+  "steps": [
+   "Find how much shorter means find the difference.",
+   "Subtract Rope B from Rope A: 15 − 10.",
+   "Find the difference and check the choices."
+  ]
+ },
+ {
+  "src": "2.18-L2-01",
+  "std": "2.20",
+  "q": "A paintbrush is 18 centimeters long. A pencil is 11 centimeters long. How many centimeters longer is the paintbrush than the pencil?",
+  "a": "7 centimeters",
+  "lvl": 2,
+  "choices": [
+   "29 centimeters",
+   "8 centimeters",
+   "6 centimeters",
+   "7 centimeters"
+  ],
+  "steps": [
+   "Compare the paintbrush and pencil by subtracting.",
+   "Find 18 − 11.",
+   "Check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.18-L2-02",
+  "std": "2.20",
+  "q": "A jump rope is 72 inches long. A ribbon is 45 inches long. How much longer is the jump rope than the ribbon?",
+  "a": "27 inches",
+  "lvl": 2,
+  "choices": [
+   "27 inches",
+   "37 inches",
+   "33 inches",
+   "117 inches"
+  ],
+  "steps": [
+   "Subtract the ribbon's length from the jump rope's length.",
+   "Solve 72 − 45 by regrouping a ten.",
+   "Find the difference and check the choices."
+  ]
+ },
+ {
+  "src": "2.18-L2-03",
+  "std": "2.20",
+  "q": "One park bench is 64 inches long and another bench is 49 inches long. What is the difference in their lengths?",
+  "a": "15 inches",
+  "lvl": 2,
+  "choices": [
+   "25 inches",
+   "15 inches",
+   "14 inches",
+   "113 inches"
+  ],
+  "steps": [
+   "Difference means subtract the smaller length from the larger.",
+   "Solve 64 − 49 by regrouping or counting up from 49.",
+   "Check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.18-L3-01",
+  "std": "2.20",
+  "q": "Stick A starts at 2 cm and ends at 14 cm on a ruler. Stick B starts at 0 cm and ends at 9 cm. How much longer is Stick A than Stick B?",
+  "a": "3 centimeters",
+  "lvl": 3,
+  "choices": [
+   "5 centimeters",
+   "2 centimeters",
+   "3 centimeters",
+   "12 centimeters"
+  ],
+  "steps": [
+   "First find Stick A's true length: 14 − 2.",
+   "Then subtract Stick B's length (9) from Stick A's length.",
+   "Find the difference and check the choices."
+  ]
+ },
+ {
+  "src": "2.18-L3-02",
+  "std": "2.20",
+  "q": "A green string is 34 centimeters long. A yellow string is 18 centimeters shorter than the green string. How long is the yellow string?",
+  "a": "16 centimeters",
+  "lvl": 3,
+  "choices": [
+   "52 centimeters",
+   "26 centimeters",
+   "18 centimeters",
+   "16 centimeters"
+  ],
+  "steps": [
+   "Shorter means the yellow string has less length than the green.",
+   "Subtract 18 from 34: 34 − 18.",
+   "Solve and check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.18-L3-03",
+  "std": "2.20",
+  "q": "Board A is 48 inches long. Board B is 29 inches long. Board C is 15 inches long. How much longer is Board A than Board B and Board C put together?",
+  "a": "4 inches",
+  "lvl": 3,
+  "choices": [
+   "4 inches",
+   "19 inches",
+   "44 inches",
+   "14 inches"
+  ],
+  "steps": [
+   "First find the combined length of Board B and Board C.",
+   "Add 29 + 15, then subtract that total from 48.",
+   "Solve and check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.19-L1-01",
+  "std": "2.21",
+  "q": "A red ribbon is 24 inches long. A blue ribbon is 15 inches long. How long are the two ribbons altogether?",
+  "a": "39 inches",
+  "lvl": 1,
+  "choices": [
+   "39 inches",
+   "38 inches",
+   "9 inches",
+   "49 inches"
+  ],
+  "steps": [
+   "Altogether means add the two ribbon lengths.",
+   "Add 24 + 15 by adding tens and ones.",
+   "Find the total length and check the choices."
+  ]
+ },
+ {
+  "src": "2.19-L1-02",
+  "std": "2.21",
+  "q": "A piece of yarn is 48 centimeters long. Mia cuts off 16 centimeters. How much yarn is left?",
+  "a": "32 centimeters",
+  "lvl": 1,
+  "choices": [
+   "64 centimeters",
+   "32 centimeters",
+   "34 centimeters",
+   "22 centimeters"
+  ],
+  "steps": [
+   "Cutting off yarn means you need to subtract.",
+   "Subtract 16 from 48: 48 − 16.",
+   "Find how much yarn is left and check the choices."
+  ]
+ },
+ {
+  "src": "2.19-L1-03",
+  "std": "2.21",
+  "q": "A frog jumped 32 inches on its first jump and 25 inches on its second jump. How far did the frog jump in all?",
+  "a": "57 inches",
+  "lvl": 1,
+  "choices": [
+   "7 inches",
+   "47 inches",
+   "57 inches",
+   "67 inches"
+  ],
+  "steps": [
+   "In all means add both jumps together.",
+   "Add 32 + 25 by adding tens and ones.",
+   "Find the total distance and check the choices."
+  ]
+ },
+ {
+  "src": "2.19-L2-01",
+  "std": "2.21",
+  "q": "A plant was 18 centimeters tall in April. By June, it grew to 45 centimeters tall. How many centimeters did the plant grow?",
+  "a": "27 centimeters",
+  "lvl": 2,
+  "choices": [
+   "63 centimeters",
+   "37 centimeters",
+   "28 centimeters",
+   "27 centimeters"
+  ],
+  "steps": [
+   "Find how much the plant grew from 18 cm to 45 cm.",
+   "Subtract 45 − 18, or count up from 18 to 45.",
+   "Check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.19-L2-02",
+  "std": "2.21",
+  "q": "A garden hose is 53 feet long. A rope is 19 feet shorter than the hose. How long is the rope?",
+  "a": "34 feet",
+  "lvl": 2,
+  "choices": [
+   "34 feet",
+   "44 feet",
+   "72 feet",
+   "36 feet"
+  ],
+  "steps": [
+   "Shorter means the rope has less length than the hose.",
+   "Subtract 19 from 53: 53 − 19.",
+   "Find the rope's length and check the choices."
+  ]
+ },
+ {
+  "src": "2.19-L2-03",
+  "std": "2.21",
+  "q": "Noah had a roll of tape. He used 14 inches of tape, and now 38 inches are left. Which equation matches this problem?",
+  "a": "? − 14 = 38",
+  "lvl": 2,
+  "choices": [
+   "38 − 14 = ?",
+   "? − 14 = 38",
+   "14 − ? = 38",
+   "? + 14 = 38"
+  ],
+  "steps": [
+   "Use ? for the starting length of the roll of tape.",
+   "Using 14 inches means subtract 14, leaving 38 inches.",
+   "Match that equation to the choices."
+  ]
+ },
+ {
+  "src": "2.19-L3-01",
+  "std": "2.21",
+  "q": "A board is 70 inches long. Sam cuts off a 26-inch piece and a 19-inch piece. How many inches of the board are left?",
+  "a": "25 inches",
+  "lvl": 3,
+  "choices": [
+   "45 inches",
+   "35 inches",
+   "25 inches",
+   "26 inches"
+  ],
+  "steps": [
+   "First find how much Sam cut off in all: 26 + 19.",
+   "Next subtract that total from the 70-inch board.",
+   "Find what is left and check the choices."
+  ]
+ },
+ {
+  "src": "2.19-L3-02",
+  "std": "2.21",
+  "q": "A scarf was 64 centimeters long. Ava undid 28 centimeters, then knitted 17 more centimeters. How long is the scarf now?",
+  "a": "53 centimeters",
+  "lvl": 3,
+  "choices": [
+   "36 centimeters",
+   "43 centimeters",
+   "63 centimeters",
+   "53 centimeters"
+  ],
+  "steps": [
+   "Follow the story in order, starting at 64 cm.",
+   "First subtract 28 from 64, then add 17 to that result.",
+   "Find the final length and check the choices."
+  ]
+ },
+ {
+  "src": "2.19-L3-03",
+  "std": "2.21",
+  "q": "A green string is 28 cm long and a yellow string is 24 cm long. A red string is 39 cm long. How much longer are the green and yellow strings combined than the red string?",
+  "a": "13 cm",
+  "lvl": 3,
+  "choices": [
+   "13 cm",
+   "52 cm",
+   "23 cm",
+   "11 cm"
+  ],
+  "steps": [
+   "First combine the green and yellow strings: 28 + 24.",
+   "Then subtract the red string (39) from that total.",
+   "Find the difference and check the choices."
+  ]
+ },
+ {
+  "src": "2.20-L1-01",
+  "std": "2.22",
+  "q": "On a number line, you start at 0 and move right to 15. What length does this represent?",
+  "a": "15",
+  "lvl": 1,
+  "choices": [
+   "15",
+   "14",
+   "16",
+   "0"
+  ],
+  "steps": [
+   "Look at where the jump starts and where it stops.",
+   "Count the spaces from 0 to 15.",
+   "Match that length to the choices."
+  ]
+ },
+ {
+  "src": "2.20-L1-02",
+  "std": "2.22",
+  "q": "On a number line, you start at 20 and jump forward 10. Where do you land?",
+  "a": "30",
+  "lvl": 1,
+  "choices": [
+   "10",
+   "30",
+   "21",
+   "40"
+  ],
+  "steps": [
+   "Jumping forward on a number line means adding.",
+   "Start at 20 and add 10.",
+   "Find where you land and check the choices."
+  ]
+ },
+ {
+  "src": "2.20-L1-03",
+  "std": "2.22",
+  "q": "On a number line, you start at 45 and jump backward 5. Where do you land?",
+  "a": "40",
+  "lvl": 1,
+  "choices": [
+   "50",
+   "44",
+   "40",
+   "35"
+  ],
+  "steps": [
+   "Jumping backward on a number line means subtracting.",
+   "Start at 45 and subtract 5.",
+   "Find where you land and check the choices."
+  ]
+ },
+ {
+  "src": "2.20-L2-01",
+  "std": "2.22",
+  "q": "On a number line, Mia starts at 34. She jumps forward 20 and then jumps forward 5 more. What number does she land on?",
+  "a": "59",
+  "lvl": 2,
+  "choices": [
+   "54",
+   "49",
+   "69",
+   "59"
+  ],
+  "steps": [
+   "Jumping forward means add each jump to 34.",
+   "First add 34 + 20, then add 5 more.",
+   "Find the landing spot and check the choices."
+  ]
+ },
+ {
+  "src": "2.20-L2-02",
+  "std": "2.22",
+  "q": "On a number line, Leo starts at 62. He jumps backward 20 and then jumps backward 4 more. What number does he land on?",
+  "a": "38",
+  "lvl": 2,
+  "choices": [
+   "38",
+   "42",
+   "46",
+   "86"
+  ],
+  "steps": [
+   "Jumping backward means subtract each jump from 62.",
+   "First subtract 62 − 20, then subtract 4 more.",
+   "Find the landing spot and check the choices."
+  ]
+ },
+ {
+  "src": "2.20-L2-03",
+  "std": "2.22",
+  "q": "A number line shows a jump starting at 28 and moving forward 15 spaces to land on 43. Which equation matches this number line?",
+  "a": "28 + 15 = 43",
+  "lvl": 2,
+  "choices": [
+   "43 + 15 = 58",
+   "28 + 15 = 43",
+   "28 − 15 = 13",
+   "43 − 28 = 25"
+  ],
+  "steps": [
+   "Moving forward 15 spaces from 28 shows addition.",
+   "Write the start, plus the jump, equals the landing spot.",
+   "Match your equation to the choices."
+  ]
+ },
+ {
+  "src": "2.20-L3-01",
+  "std": "2.22",
+  "q": "On a number line, Ben starts at 37 and jumps forward to 65. How many units did he jump?",
+  "a": "28",
+  "lvl": 3,
+  "choices": [
+   "38",
+   "32",
+   "28",
+   "27"
+  ],
+  "steps": [
+   "Find the distance from 37 to 65 on the number line.",
+   "Subtract 65 − 37, or count up from 37 to 65.",
+   "Check your jump size against the choices."
+  ]
+ },
+ {
+  "src": "2.20-L3-02",
+  "std": "2.22",
+  "q": "On a number line, Ella starts at 81 and jumps backward to 54. Which subtraction equation does her jump show?",
+  "a": "81 − 27 = 54",
+  "lvl": 3,
+  "choices": [
+   "81 − 37 = 54",
+   "81 − 23 = 54",
+   "81 − 33 = 54",
+   "81 − 27 = 54"
+  ],
+  "steps": [
+   "Jumping backward from 81 to 54 shows subtraction.",
+   "Find how far back Ella jumped: 81 − 54.",
+   "Match the complete subtraction equation to the choices."
+  ]
+ },
+ {
+  "src": "2.20-L3-03",
+  "std": "2.22",
+  "q": "On a number line, you start at 46, jump forward 28, and then jump backward 15. Where do you land?",
+  "a": "59",
+  "lvl": 3,
+  "choices": [
+   "59",
+   "74",
+   "69",
+   "49"
+  ],
+  "steps": [
+   "Do one jump at a time starting at 46.",
+   "First add 46 + 28, then subtract 15 from that number.",
+   "Find the final landing spot and check the choices."
+  ]
+ },
+ {
+  "src": "2.21-L1-01",
+  "std": "2.23",
+  "q": "On an analog clock, the hour hand points to 3 and the minute hand points to 12. What time is it?",
+  "a": "3:00",
+  "lvl": 1,
+  "choices": [
+   "3:00",
+   "12:03",
+   "3:12",
+   "12:15"
+  ],
+  "steps": [
+   "The short hand tells the hour, and the long hand tells minutes.",
+   "When the minute hand points to 12, it is :00 (o'clock).",
+   "Put the hour and minutes together and check the choices."
+  ]
+ },
+ {
+  "src": "2.21-L1-02",
+  "std": "2.23",
+  "q": "On an analog clock, the hour hand is halfway between 4 and 5, and the minute hand points to 6. What time is it?",
+  "a": "4:30",
+  "lvl": 1,
+  "choices": [
+   "5:30",
+   "4:30",
+   "4:06",
+   "6:20"
+  ],
+  "steps": [
+   "Between 4 and 5 means the hour is still 4.",
+   "Count by 5s to the 6 to find the minutes.",
+   "Put the hour and minutes together and check the choices."
+  ]
+ },
+ {
+  "src": "2.21-L1-03",
+  "std": "2.23",
+  "q": "Sam eats breakfast at 7:15 before going to school. Should he write a.m. or p.m.?",
+  "a": "7:15 a.m.",
+  "lvl": 1,
+  "choices": [
+   "7:15 p.m.",
+   "7:15 noon",
+   "7:15 a.m.",
+   "7:15 midnight"
+  ],
+  "steps": [
+   "Think about when breakfast before school happens.",
+   "Morning times use a.m., and afternoon or evening use p.m.",
+   "Pick the matching time from the choices."
+  ]
+ },
+ {
+  "src": "2.21-L2-01",
+  "std": "2.23",
+  "q": "On an analog clock, the hour hand is just past 8 and the minute hand points to 3. What time does the clock show?",
+  "a": "8:15",
+  "lvl": 2,
+  "choices": [
+   "8:03",
+   "3:40",
+   "8:30",
+   "8:15"
+  ],
+  "steps": [
+   "Just past 8 means the hour is 8.",
+   "Count by 5s from 12 to 3 for the minute hand.",
+   "Put the hour and minutes together and check the choices."
+  ]
+ },
+ {
+  "src": "2.21-L2-02",
+  "std": "2.23",
+  "q": "On an analog clock, the hour hand is between 2 and 3, and the minute hand points to 9. What time is it?",
+  "a": "2:45",
+  "lvl": 2,
+  "choices": [
+   "2:45",
+   "3:45",
+   "2:09",
+   "9:10"
+  ],
+  "steps": [
+   "Between 2 and 3 means the hour is still 2.",
+   "Count by 5s from 12 to 9 for the minute hand.",
+   "Put the hour and minutes together and check the choices."
+  ]
+ },
+ {
+  "src": "2.21-L2-03",
+  "std": "2.23",
+  "q": "Maya's family eats dinner at 6:20 in the evening. How should she write this time?",
+  "a": "6:20 p.m.",
+  "lvl": 2,
+  "choices": [
+   "6:20 a.m.",
+   "6:20 p.m.",
+   "6:04 p.m.",
+   "6:20 noon"
+  ],
+  "steps": [
+   "Look at the time of day: dinner in the evening.",
+   "Evening times use p.m., not a.m.",
+   "Pick the matching time from the choices."
+  ]
+ },
+ {
+  "src": "2.21-L3-01",
+  "std": "2.23",
+  "q": "On an analog clock, the hour hand is very close to 10 (just before 10), and the minute hand points to 11. What time is it?",
+  "a": "9:55",
+  "lvl": 3,
+  "choices": [
+   "10:55",
+   "9:11",
+   "9:55",
+   "11:50"
+  ],
+  "steps": [
+   "Just before 10 means the hour hand has not reached 10 yet.",
+   "Count by 5s to the 11 to find the minutes.",
+   "Put the hour and minutes together and check the choices."
+  ]
+ },
+ {
+  "src": "2.21-L3-02",
+  "std": "2.23",
+  "q": "Soccer practice starts at 4:10 p.m. and lasts 25 minutes. What time does soccer practice end?",
+  "a": "4:35 p.m.",
+  "lvl": 3,
+  "choices": [
+   "4:35 a.m.",
+   "4:25 p.m.",
+   "4:45 p.m.",
+   "4:35 p.m."
+  ],
+  "steps": [
+   "Start at 4:10 p.m. and add 25 minutes.",
+   "Add 10 + 25 for the minutes, and keep the hour and p.m.",
+   "Check your end time against the choices."
+  ]
+ },
+ {
+  "src": "2.21-L3-03",
+  "std": "2.23",
+  "q": "On an analog clock, the minute hand moves from the 4 to the 9. How many minutes have passed?",
+  "a": "25 minutes",
+  "lvl": 3,
+  "choices": [
+   "25 minutes",
+   "5 minutes",
+   "20 minutes",
+   "30 minutes"
+  ],
+  "steps": [
+   "Each number on a clock stands for 5 minutes.",
+   "Count by 5s as you move from 4 to 9.",
+   "Check your total minutes against the choices."
+  ]
+ },
+ {
+  "src": "2.22-L1-01",
+  "std": "2.24",
+  "part": "b",
+  "q": "Jay has 2 dimes and 1 nickel. How much money does he have?",
+  "a": "25¢",
+  "lvl": 1,
+  "choices": [
+   "25¢",
+   "15¢",
+   "30¢",
+   "21¢"
+  ],
+  "steps": [
+   "Remember: a dime is 10¢ and a nickel is 5¢.",
+   "Count 2 dimes (10 + 10), then add 5 for the nickel.",
+   "Find the total and check the choices."
+  ]
+ },
+ {
+  "src": "2.22-L1-02",
+  "std": "2.24",
+  "part": "b",
+  "q": "Ava has 1 quarter and 3 pennies. How much money does she have?",
+  "a": "28¢",
+  "lvl": 1,
+  "choices": [
+   "13¢",
+   "28¢",
+   "38¢",
+   "23¢"
+  ],
+  "steps": [
+   "Remember: a quarter is 25¢ and a penny is 1¢.",
+   "Start at 25 and count on 3 more for the pennies.",
+   "Find the total and check the choices."
+  ]
+ },
+ {
+  "src": "2.22-L1-03",
+  "std": "2.24",
+  "part": "a",
+  "q": "What is the value of 1 nickel?",
+  "a": "5¢",
+  "lvl": 1,
+  "choices": [
+   "1¢",
+   "5¢",
+   "10¢",
+   "25¢"
+  ],
+  "steps": [
+   "A nickel is a silver coin that is bigger than a dime.",
+   "Remember how many cents one nickel is worth.",
+   "Check that it is worth more than a penny and less than a dime."
+  ]
+ },
+ {
+  "src": "2.22-L2-01",
+  "std": "2.24",
+  "part": "b",
+  "q": "Nora has 2 quarters, 1 dime, and 1 nickel. How much money does she have in all?",
+  "a": "65¢",
+  "lvl": 2,
+  "choices": [
+   "55¢",
+   "60¢",
+   "75¢",
+   "65¢"
+  ],
+  "steps": [
+   "Count from the biggest coin to the smallest.",
+   "2 quarters make 50¢, then add 10¢, then add 5¢.",
+   "Find the total and check the choices."
+  ]
+ },
+ {
+  "src": "2.22-L2-02",
+  "std": "2.24",
+  "part": "c",
+  "q": "Mia has 75¢. She buys an eraser for 35¢. How much money does she have left?",
+  "a": "40¢",
+  "lvl": 2,
+  "choices": [
+   "40¢",
+   "30¢",
+   "45¢",
+   "110¢"
+  ],
+  "steps": [
+   "Buying something means you subtract the cost.",
+   "Subtract 35¢ from 75¢: 75 − 35.",
+   "Find how much is left and check the choices."
+  ]
+ },
+ {
+  "src": "2.22-L2-03",
+  "std": "2.24",
+  "part": "c",
+  "q": "Ben has 46¢. He finds 38¢ more. How much money does Ben have now?",
+  "a": "84¢",
+  "lvl": 2,
+  "choices": [
+   "74¢",
+   "84¢",
+   "8¢",
+   "94¢"
+  ],
+  "steps": [
+   "Finding more money means you add.",
+   "Add the tens, then the ones: 40 + 30 and 6 + 8.",
+   "Put the tens and ones together and check the choices."
+  ]
+ },
+ {
+  "src": "2.22-L3-01",
+  "std": "2.24",
+  "part": "b",
+  "q": "Owen has 3 quarters, 2 dimes, and 4 pennies. How much money does Owen have?",
+  "a": "99¢",
+  "lvl": 3,
+  "choices": [
+   "89¢",
+   "94¢",
+   "99¢",
+   "79¢"
+  ],
+  "steps": [
+   "Count by coin values from largest to smallest.",
+   "3 quarters = 75¢, 2 dimes = 20¢, and 4 pennies = 4¢.",
+   "Add all three amounts and check the choices."
+  ]
+ },
+ {
+  "src": "2.22-L3-02",
+  "std": "2.24",
+  "part": "c",
+  "q": "Sam buys a toy car for 48¢ and a sticker for 25¢. He pays with 100¢ (one dollar). How much change should he get back?",
+  "a": "27¢",
+  "lvl": 3,
+  "choices": [
+   "73¢",
+   "37¢",
+   "23¢",
+   "27¢"
+  ],
+  "steps": [
+   "First find the total cost of both items: 48¢ + 25¢.",
+   "Then subtract that total from 100¢ to find the change.",
+   "Check your change against the choices."
+  ]
+ },
+ {
+  "src": "2.22-L3-03",
+  "std": "2.24",
+  "part": "c",
+  "q": "Ella has 3 quarters. She buys a pencil for 49¢. How much money does she have left?",
+  "a": "26¢",
+  "lvl": 3,
+  "choices": [
+   "26¢",
+   "34¢",
+   "24¢",
+   "36¢"
+  ],
+  "steps": [
+   "First find how much 3 quarters are worth.",
+   "Subtract the 49¢ pencil from that amount.",
+   "Check: add your answer to 49¢ to get back to the start."
+  ]
+ },
+ {
+  "src": "2.25-L1-01",
+  "std": "2.25",
+  "q": "Which shape has 3 straight sides and 3 angles?",
+  "a": "Triangle",
+  "lvl": 1,
+  "choices": [
+   "Triangle",
+   "Quadrilateral",
+   "Pentagon",
+   "Hexagon"
+  ],
+  "steps": [
+   "Think of the prefix 'tri-', which means 3.",
+   "Match 3 straight sides and 3 angles to its shape name.",
+   "Pick that shape from the choices."
+  ]
+ },
+ {
+  "src": "2.25-L1-02",
+  "std": "2.25",
+  "q": "Which shape has 6 straight sides and 6 angles?",
+  "a": "Hexagon",
+  "lvl": 1,
+  "choices": [
+   "Pentagon",
+   "Hexagon",
+   "Quadrilateral",
+   "Triangle"
+  ],
+  "steps": [
+   "Think of the prefix 'hex-', which means 6.",
+   "Match 6 straight sides and 6 angles to its shape name.",
+   "Pick that shape from the choices."
+  ]
+ },
+ {
+  "src": "2.25-L1-03",
+  "std": "2.25",
+  "q": "Which shape has 5 straight sides and 5 angles?",
+  "a": "Pentagon",
+  "lvl": 1,
+  "choices": [
+   "Hexagon",
+   "Triangle",
+   "Pentagon",
+   "Cube"
+  ],
+  "steps": [
+   "Think of the prefix 'pent-', which means 5.",
+   "Match 5 straight sides and 5 angles to its shape name.",
+   "Pick that shape from the choices."
+  ]
+ },
+ {
+  "src": "2.25-L2-01",
+  "std": "2.25",
+  "q": "Which attributes describe every quadrilateral?",
+  "a": "4 straight sides and 4 angles",
+  "lvl": 2,
+  "choices": [
+   "3 straight sides and 3 angles",
+   "5 straight sides and 5 angles",
+   "6 equal square faces",
+   "4 straight sides and 4 angles"
+  ],
+  "steps": [
+   "The prefix 'quad-' means 4.",
+   "Every quadrilateral is a flat shape with 4 sides and 4 angles.",
+   "Match that description to the choices."
+  ]
+ },
+ {
+  "src": "2.25-L2-02",
+  "std": "2.25",
+  "q": "How many equal square faces does a cube have?",
+  "a": "6",
+  "lvl": 2,
+  "choices": [
+   "6",
+   "4",
+   "8",
+   "12"
+  ],
+  "steps": [
+   "Picture a number cube (die) in your hand.",
+   "Count its flat square faces: top, bottom, and 4 sides.",
+   "Match that number to the choices."
+  ]
+ },
+ {
+  "src": "2.25-L2-03",
+  "std": "2.25",
+  "q": "Maya draws a closed shape with 5 angles and 5 straight sides. What shape did she draw?",
+  "a": "Pentagon",
+  "lvl": 2,
+  "choices": [
+   "Hexagon",
+   "Pentagon",
+   "Quadrilateral",
+   "Triangle"
+  ],
+  "steps": [
+   "Count the sides and angles Maya drew: 5.",
+   "Remember the name for a 5-sided closed shape.",
+   "Pick that shape from the choices."
+  ]
+ },
+ {
+  "src": "2.25-L3-01",
+  "std": "2.25",
+  "q": "Which shape is NOT a quadrilateral?",
+  "a": "Pentagon",
+  "lvl": 3,
+  "choices": [
+   "Square",
+   "Rectangle",
+   "Pentagon",
+   "Trapezoid"
+  ],
+  "steps": [
+   "A quadrilateral must have exactly 4 straight sides.",
+   "Check how many sides each shape in the choices has.",
+   "Pick the shape that does NOT have 4 sides."
+  ]
+ },
+ {
+  "src": "2.25-L3-02",
+  "std": "2.25",
+  "q": "How many more sides does a hexagon have than a quadrilateral?",
+  "a": "2",
+  "lvl": 3,
+  "choices": [
+   "1",
+   "3",
+   "4",
+   "2"
+  ],
+  "steps": [
+   "A hexagon has 6 sides, and a quadrilateral has 4 sides.",
+   "Subtract to find how many more: 6 − 4.",
+   "Check your answer against the choices."
+  ]
+ },
+ {
+  "src": "2.25-L3-03",
+  "std": "2.25",
+  "q": "Which statement about a cube is true?",
+  "a": "A cube is a 3D shape with 6 equal square faces.",
+  "lvl": 3,
+  "choices": [
+   "A cube is a 3D shape with 6 equal square faces.",
+   "A cube is a flat 2D shape with 4 sides.",
+   "A cube has 6 triangular faces.",
+   "A cube has 4 equal square faces."
+  ],
+  "steps": [
+   "Think about a cube: is it 2D (flat) or 3D (solid)?",
+   "Check the shape and number of its faces (6 squares).",
+   "Pick the true statement from the choices."
+  ]
+ },
+ {
+  "src": "2.26-L1-01",
+  "std": "2.26",
+  "q": "A rectangle is partitioned into 2 rows and 3 columns of same-size squares. How many squares are there in all?",
+  "a": "6",
+  "lvl": 1,
+  "choices": [
+   "6",
+   "5",
+   "8",
+   "4"
+  ],
+  "steps": [
+   "Each of the 2 rows has 3 squares.",
+   "Add 3 + 3 to count all the squares.",
+   "Find the total and check the choices."
+  ]
+ },
+ {
+  "src": "2.26-L1-02",
+  "std": "2.26",
+  "q": "A rectangle is partitioned into 3 rows and 3 columns of same-size squares. How many squares are there in all?",
+  "a": "9",
+  "lvl": 1,
+  "choices": [
+   "6",
+   "9",
+   "12",
+   "8"
+  ],
+  "steps": [
+   "Each of the 3 rows has 3 squares.",
+   "Add 3 + 3 + 3 to count all the squares.",
+   "Find the total and check the choices."
+  ]
+ },
+ {
+  "src": "2.26-L1-03",
+  "std": "2.26",
+  "q": "A rectangle is partitioned into 2 rows and 5 columns of same-size squares. How many squares are there in all?",
+  "a": "10",
+  "lvl": 1,
+  "choices": [
+   "7",
+   "8",
+   "10",
+   "12"
+  ],
+  "steps": [
+   "Each of the 2 rows has 5 squares.",
+   "Add 5 + 5 to count all the squares.",
+   "Find the total and check the choices."
+  ]
+ },
+ {
+  "src": "2.26-L2-01",
+  "std": "2.26",
+  "q": "A rectangle is partitioned into 4 rows and 3 columns of same-size squares. How many squares are there in all?",
+  "a": "12",
+  "lvl": 2,
+  "choices": [
+   "7",
+   "16",
+   "9",
+   "12"
+  ],
+  "steps": [
+   "Each of the 4 rows has 3 squares.",
+   "Skip-count by 3s four times: 3 + 3 + 3 + 3.",
+   "Find the total and check the choices."
+  ]
+ },
+ {
+  "src": "2.26-L2-02",
+  "std": "2.26",
+  "q": "A rectangle is partitioned into 3 rows and 5 columns of same-size squares. How many squares are there in all?",
+  "a": "15",
+  "lvl": 2,
+  "choices": [
+   "15",
+   "8",
+   "12",
+   "20"
+  ],
+  "steps": [
+   "Each of the 3 rows has 5 squares.",
+   "Skip-count by 5s three times: 5 + 5 + 5.",
+   "Find the total and check the choices."
+  ]
+ },
+ {
+  "src": "2.26-L2-03",
+  "std": "2.26",
+  "q": "Which equation finds the total number of squares in a rectangle with 4 rows and 4 columns?",
+  "a": "4 + 4 + 4 + 4 = 16",
+  "lvl": 2,
+  "choices": [
+   "4 + 4 = 8",
+   "4 + 4 + 4 + 4 = 16",
+   "4 + 4 + 4 = 12",
+   "2 + 2 + 2 + 2 = 8"
+  ],
+  "steps": [
+   "There are 4 rows, and each row has 4 squares.",
+   "Write a repeated addition equation with four 4s.",
+   "Match your equation to the choices."
+  ]
+ },
+ {
+  "src": "2.26-L3-01",
+  "std": "2.26",
+  "q": "A rectangle is partitioned into 20 same-size squares. There are 4 equal rows. How many columns are there?",
+  "a": "5",
+  "lvl": 3,
+  "choices": [
+   "4",
+   "6",
+   "5",
+   "16"
+  ],
+  "steps": [
+   "Find what number added 4 times makes 20.",
+   "Test adding a number four times until the sum is 20.",
+   "Check your number of columns against the choices."
+  ]
+ },
+ {
+  "src": "2.26-L3-02",
+  "std": "2.26",
+  "q": "A rectangle has 5 rows and 4 columns of same-size squares. Noah shades 1 full row. How many squares are NOT shaded?",
+  "a": "16",
+  "lvl": 3,
+  "choices": [
+   "20",
+   "15",
+   "19",
+   "16"
+  ],
+  "steps": [
+   "If 1 of the 5 rows is shaded, 4 rows are NOT shaded.",
+   "Each row has 4 squares, so add 4 + 4 + 4 + 4.",
+   "Find the unshaded total and check the choices."
+  ]
+ },
+ {
+  "src": "2.26-L3-03",
+  "std": "2.26",
+  "q": "Rectangle A has 2 rows and 6 columns of same-size squares. Which rectangle has the exact same total number of squares?",
+  "a": "A rectangle with 3 rows and 4 columns",
+  "lvl": 3,
+  "choices": [
+   "A rectangle with 3 rows and 4 columns",
+   "A rectangle with 3 rows and 3 columns",
+   "A rectangle with 4 rows and 4 columns",
+   "A rectangle with 2 rows and 5 columns"
+  ],
+  "steps": [
+   "First find Rectangle A's total: 6 + 6.",
+   "Check each choice to see which one has that same total.",
+   "Pick the matching rectangle."
+  ]
+ },
+ {
+  "src": "2.27-L1-01",
+  "std": "2.27",
+  "q": "A circle is cut into 2 equal shares. What are the shares called?",
+  "a": "Halves",
+  "lvl": 1,
+  "choices": [
+   "Halves",
+   "Thirds",
+   "Fourths",
+   "Wholes"
+  ],
+  "steps": [
+   "Count how many equal shares the circle has: 2.",
+   "Remember the fraction name for 2 equal shares.",
+   "Pick that name from the choices."
+  ]
+ },
+ {
+  "src": "2.27-L1-02",
+  "std": "2.27",
+  "q": "A rectangle is cut into 4 equal shares. What are the shares called?",
+  "a": "Fourths",
+  "lvl": 1,
+  "choices": [
+   "Halves",
+   "Fourths",
+   "Thirds",
+   "Sixths"
+  ],
+  "steps": [
+   "Count how many equal shares the rectangle has: 4.",
+   "Remember the fraction name for 4 equal shares.",
+   "Pick that name from the choices."
+  ]
+ },
+ {
+  "src": "2.27-L1-03",
+  "std": "2.27",
+  "q": "A pie is cut into 3 equal shares. What are the shares called?",
+  "a": "Thirds",
+  "lvl": 1,
+  "choices": [
+   "Halves",
+   "Fourths",
+   "Thirds",
+   "Wholes"
+  ],
+  "steps": [
+   "Count how many equal shares the pie has: 3.",
+   "Remember the fraction name for 3 equal shares.",
+   "Pick that name from the choices."
+  ]
+ },
+ {
+  "src": "2.27-L2-01",
+  "std": "2.27",
+  "q": "How many thirds make 1 whole circle?",
+  "a": "3 thirds",
+  "lvl": 2,
+  "choices": [
+   "2 thirds",
+   "4 thirds",
+   "1 third",
+   "3 thirds"
+  ],
+  "steps": [
+   "Thirds means a whole is cut into 3 equal shares.",
+   "To make 1 whole circle, you need all of those shares.",
+   "Match that number of thirds to the choices."
+  ]
+ },
+ {
+  "src": "2.27-L2-02",
+  "std": "2.27",
+  "q": "A rectangle is partitioned into 4 equal shares, and 1 share is shaded. How much of the rectangle is shaded?",
+  "a": "A fourth of the rectangle",
+  "lvl": 2,
+  "choices": [
+   "A fourth of the rectangle",
+   "A third of the rectangle",
+   "Half of the rectangle",
+   "Four fourths of the rectangle"
+  ],
+  "steps": [
+   "4 equal shares are called fourths.",
+   "Only 1 of those 4 equal shares is shaded.",
+   "Pick the matching description from the choices."
+  ]
+ },
+ {
+  "src": "2.27-L2-03",
+  "std": "2.27",
+  "q": "Which describes a whole sandwich cut into equal halves?",
+  "a": "2 equal shares, or two halves",
+  "lvl": 2,
+  "choices": [
+   "2 unequal shares",
+   "2 equal shares, or two halves",
+   "3 equal shares, or three thirds",
+   "4 equal shares, or four fourths"
+  ],
+  "steps": [
+   "Halves always means 2 shares that are the exact same size.",
+   "Check each choice for 2 equal shares.",
+   "Pick the matching description."
+  ]
+ },
+ {
+  "src": "2.27-L3-01",
+  "std": "2.27",
+  "q": "Sam cuts a square brownie into 4 equal vertical strips. Mia cuts an identical square brownie into 4 equal smaller squares. Which statement is true?",
+  "a": "Each share is one fourth of a brownie, even though the shares have different shapes.",
+  "lvl": 3,
+  "choices": [
+   "Sam's shares are larger because they are longer.",
+   "Mia's shares are not fourths because they are squares.",
+   "Each share is one fourth of a brownie, even though the shares have different shapes.",
+   "Equal shares of identical wholes must always have the same shape."
+  ],
+  "steps": [
+   "Both identical brownies are cut into 4 equal shares.",
+   "Equal shares of the same-size whole do not need the same shape.",
+   "Pick the true statement from the choices."
+  ]
+ },
+ {
+  "src": "2.27-L3-02",
+  "std": "2.27",
+  "q": "A pizza is cut into four fourths. Leo eats one fourth of the pizza. How much of the pizza is left?",
+  "a": "Three fourths",
+  "lvl": 3,
+  "choices": [
+   "One fourth",
+   "Two fourths",
+   "Four fourths",
+   "Three fourths"
+  ],
+  "steps": [
+   "The whole pizza starts with 4 fourths.",
+   "Take away the 1 fourth that Leo eats: 4 − 1.",
+   "Match the remaining fourths to the choices."
+  ]
+ },
+ {
+  "src": "2.27-L3-03",
+  "std": "2.27",
+  "q": "Two identical cakes are cut into equal shares. Cake A is cut into halves. Cake B is cut into fourths. Which cake has larger slices?",
+  "a": "Cake A, because cutting a whole into fewer equal shares makes each share larger.",
+  "lvl": 3,
+  "choices": [
+   "Cake A, because cutting a whole into fewer equal shares makes each share larger.",
+   "Cake B, because 4 is greater than 2.",
+   "Both cakes have the exact same size slices.",
+   "Cake B, because fourths are larger than halves."
+  ],
+  "steps": [
+   "Compare sharing a cake among 2 people versus 4 people.",
+   "Fewer equal shares means each slice is bigger.",
+   "Pick the choice that explains which cake has larger slices."
+  ]
+ }
+]

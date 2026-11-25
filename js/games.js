@@ -18,6 +18,12 @@
 import { shortNames } from "./vaultCore.js?v=75";
 import * as PC from "./profileCore.js?v=2";
 import { credit as creditProfiles } from "./profiles.js?v=2";
+
+// The teacher's name on the board in Class vs. Teacher (js/teacherName.js): this device's last one at once, then the
+// signed-in account's ("Mr. Steers" on the Calera account, the setup name for a new teacher). "Teacher" when unknown.
+let ME = (() => { try { return (JSON.parse(localStorage.getItem("anchor-who") || "null") || {}).name || ""; } catch { return ""; } })();
+if (typeof window !== "undefined" && typeof document !== "undefined") import("./teacherName.js?v=1").then((m) => m.myName()).then((n) => { if (n) ME = n; }).catch(() => {});
+const teacherName = () => (ME || "Teacher").slice(0, 16);
 export const LIMITS = { cats: 6, clues: 6, q: 400, a: 200, title: 80, cat: 60, teams: 6 };
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "button"; if (fn) b.onclick = fn; return b; };
@@ -246,7 +252,7 @@ function codeGuess(g) {
 const VS_GOALS = [5, 7, 10, 15], VS_RULES = ["Every board right", "Almost every board right", "Most boards right"];
 function newVersus(set, teacher) {
     return { v: 1, kind: "versus", id: set.id, title: set.title, cats: set.cats, final: null, qs: questionsOf(set), qi: 0,
-        teams: [{ n: "Class", s: 0 }, { n: (teacher || "Mr. Steers").slice(0, 16), s: 0 }], cp: "q", show: false, won: -1, streak: 0,
+        teams: [{ n: "Class", s: 0 }, { n: (teacher || teacherName()).slice(0, 16), s: 0 }], cp: "q", show: false, won: -1, streak: 0,
         opts: { secs: 60, goal: 7, rule: 1 }, timer: blankTimer(), snap: [], phase: "play", at: Date.now() };
 }
 function cleanVersus(d) {
@@ -1360,7 +1366,7 @@ function optionsBox() {
     const pick = (label, list, cur, fn) => { const l = el("label", "gpchk"), sel = el("select"); list.forEach(([v, t]) => { const o = el("option", null, t); o.value = v; sel.append(o); }); sel.value = String(cur); sel.onchange = () => fn(sel.value); l.append(document.createTextNode(label + " "), sel); return l; };
     if (G.kind === "versus") {
         const l = el("label", "gpchk"), inp = el("input", "gpname"); inp.type = "text"; inp.maxLength = 16; inp.value = G.teams[1].n; inp.setAttribute("aria-label", "Teacher name on the board");
-        inp.oninput = () => { G.teams[1].n = inp.value.slice(0, 16) || "Mr. Steers"; changed({ quiet: true }); }; l.append(document.createTextNode("Your name on the board "), inp); opt.append(l);
+        inp.oninput = () => { G.teams[1].n = inp.value.slice(0, 16) || teacherName(); changed({ quiet: true }); }; l.append(document.createTextNode("Your name on the board "), inp); opt.append(l);
         opt.append(pick("First to", VS_GOALS.map((n) => [n, n + " points"]), G.opts.goal, (v) => { G.opts.goal = +v; if (G.teams.some((t) => t.s >= G.opts.goal)) G.phase = "done"; changed(); }));
         opt.append(pick("The class scores when", VS_RULES.map((t, i) => [i, t]), G.opts.rule, (v) => { G.opts.rule = +v; changed(); }));
     }

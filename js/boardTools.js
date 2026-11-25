@@ -7,12 +7,19 @@
 ========================================== */
 
 import { cleanStickers } from "./stickers.js?v=1";
-import { cleanSty } from "./panelStyle.js?v=1";
+import { cleanSty } from "./panelStyle.js?v=3";
+import { cleanFinds } from "./findCore.js?v=2";
+import { cleanMt } from "./manipCore.js?v=14";
 
-export const TOOL_LIST = [["traffic", "Traffic light"], ["work", "Voice level"], ["clock", "Clock"], ["stopwatch", "Stopwatch"], ["text", "Message"], ["dice", "Dice"], ["score", "Scoreboard"], ["goal", "Class goal"], ["pick", "Name picker"], ["groups", "Group maker"], ["cam", "Webcam"], ["slide", "Slide"]];
+export const TOOL_LIST = [["traffic", "Traffic light"], ["work", "Voice level"], ["clock", "Clock"], ["stopwatch", "Stopwatch"], ["text", "Message"], ["dice", "Dice"], ["score", "Scoreboard"], ["goal", "Class goal"], ["pick", "Name picker"], ["groups", "Group maker"], ["cam", "Webcam"], ["slide", "Slide"], ["find", "Find a problem"]];
 /* Lesson panels (js/panels.js builds them) sit in the same panel system as the tools. */
 export const LESSON_PANELS = [["ptimer", "Timer"], ["target", "Learning target"], ["agenda", "Agenda"], ["period", "Period clock"]];
-export const PANEL_LIST = LESSON_PANELS.concat(TOOL_LIST);
+/* More Find panels: they come from a Find panel's "New panel" button, never from the switches, so they are not in TOOL_LIST. */
+export const FIND_MORE = [["find2", "Find a problem 2"], ["find3", "Find a problem 3"], ["find4", "Find a problem 4"]];
+/* Math manipulatives (js/manipPanels.js, Eddie 2026-11-24): their own group in the panel switches. */
+export const MATH_LIST = [["balance", "Equation balance"], ["chance", "Chance lab"], ["line", "Line explorer"], ["xform", "Transformations"], ["pyth", "Pythagorean squares"], ["counters", "Integer counters"], ["angle", "Angle explorer"], ["fn", "Function machine"], ["area", "Expression area model"], ["nl", "Rational number line"], ["sys", "Systems graph"], ["scat", "Scatter plot"], ["tape", "Tape diagram"], ["vol", "Volume shapes"]];
+export const CALC_LIST = [["calc", "Basic calculator"], ["sci", "Scientific calculator"], ["graph", "Graphing calculator"]];
+export const PANEL_LIST = LESSON_PANELS.concat(CALC_LIST, TOOL_LIST, MATH_LIST, FIND_MORE);
 export const PERIOD_KEYS = ["1st", "2nd", "4th", "5th", "6th"];
 export const MAX_SCENES = 12;   // saved layouts and boards (was 6 before the Board Builder, Nov 21)
 export const MAX_DAYB = 60;     // day boards kept (about 4 weeks of 3 classes); the oldest go first
@@ -32,7 +39,8 @@ export function defaultTools() {
         sw: { running: false, t0: 0, elapsed: 0 },
         pick: { period: "", cur: -1, used: [] }, groups: { period: "", size: 3, order: [] }, absent: { day: "", periods: {} },
         palert: { on: true, at: [5, 1], sound: true },   // Period clock alerts: minutes before the end of class (0 = the bell)
-        pin: {}, lock: {}, zo: [], sty: {}, slp: "" };   // panels shown on every screen, panels locked in place, the stacking order (back to front), each panel's own style (js/panelStyle.js)
+        pin: {}, lock: {}, zo: [], sty: {}, slp: "",
+        find: {}, mt: {}, lns: { k: "", at: 0 } };   // mt: the math manipulatives, one entry per panel that was used (js/manipCore.js); find: the Find panel: which bank problem is up, and whether its answer and hints show (js/findPanel.js)   // panels shown on every screen, panels locked in place, the stacking order (back to front), each panel's own style (js/panelStyle.js); lns: a Send to students tapped on a screen that can't run live notes (the board), for the Remote to pick up (js/liveNotes.js)
 }
 export const PALERT_MINS = [15, 10, 5, 2, 1, 0];
 export function mergeTools(d) {
@@ -68,6 +76,9 @@ export function mergeTools(d) {
     if (d.pick) t.pick = { period: PERIOD_KEYS.includes(d.pick.period) ? d.pick.period : "", cur: Number.isInteger(d.pick.cur) ? d.pick.cur : -1, used: idx(d.pick.used) };
     if (d.groups) t.groups = { period: PERIOD_KEYS.includes(d.groups.period) ? d.groups.period : "", size: Math.min(6, Math.max(2, +d.groups.size || 3)), order: idx(d.groups.order) };
     if (d.absent && typeof d.absent.day === "string" && d.absent.periods) { t.absent.day = d.absent.day.slice(0, 10); PERIOD_KEYS.forEach((k) => { if (Array.isArray(d.absent.periods[k])) t.absent.periods[k] = idx(d.absent.periods[k]); }); }
+    t.find = cleanFinds(d.find);
+    t.mt = cleanMt(d.mt);
+    if (d.lns && typeof d.lns.k === "string" && /^[a-z0-9]{1,12}$/.test(d.lns.k) && Number.isFinite(+d.lns.at)) t.lns = { k: d.lns.k, at: Math.max(0, Math.floor(+d.lns.at)) };
     if (d.sw) t.sw = { running: !!d.sw.running, t0: +d.sw.t0 || 0, elapsed: +d.sw.elapsed || 0 };
     return t;
 }

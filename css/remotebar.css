@@ -1,0 +1,61 @@
+/* Anchor Board — the Remote's layout (remote.html only, loaded last). Eddie, 2026-11-24:
+   1. "I want the panels at the very top to all appear on one line": logo, Period, Week, connection, music, Board view
+      and Menu share one row. The menus and the music name get narrower on a small screen instead of wrapping.
+   2. The music pill's play button is the one music switch, so the "Music on" button stays off the top bar
+      (it still lives in the phone's menu, where the pill doesn't show).
+   3. "Push those days right under the board view and expand the panel": the day picker and Back/Next sit at the top of
+      the board area, right under the top bar, so the board picture runs down to the bottom of the screen.
+   4. The left rail is a little wider and its buttons never squash: a long label like "Live notes (Chromebooks)" wraps
+      inside its button, and the rail scrolls when it is full. Later the same day: the rail can be dragged wider or
+      narrower and hidden to a slim strip (js/railSize.js), and the days line up with the board's left edge.
+   The phone keeps its own two-row layout (css/phone.css); every rule here is for body:not(.phone). */
+
+/* 1. one row */
+body.console:not(.phone) .cbar{flex-wrap:nowrap;gap:12px;padding:8px 16px;min-width:0}
+body.console:not(.phone) .cbar>*{flex:none}
+body.console:not(.phone) .cbar .cbrand{flex:0 1 auto;min-width:44px;overflow:hidden}
+body.console:not(.phone) .cbar .cbrand span{min-width:0;overflow:hidden}
+body.console:not(.phone) .cbar .cbrand b,body.console:not(.phone) .cbar .cbrand small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.console:not(.phone) .cbar .field{flex:0 1 auto;min-width:118px}
+body.console:not(.phone) .cbar .field select{min-width:0;width:100%;max-width:320px;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
+body.console:not(.phone) .cbar .ytpill.inbar{flex:0 1 auto;min-width:96px;max-width:230px}
+body.console:not(.phone) .cbar .btn,body.console:not(.phone) .cbar .acct>summary{white-space:nowrap}
+body.console:not(.phone) .cbar #musicBtn{display:none}
+/* narrower screens: drop the words that can go, keep every control */
+@media (max-width:1280px){
+  body.console:not(.phone) .cbar .cbrand small{display:none}
+  body.console:not(.phone) .cbar .live{font-size:0;gap:0;padding:6px}          /* just the coloured dot; the words return on hover */
+  body.console:not(.phone) .cbar .live:hover{font-size:.82rem;gap:7px;padding:5px 12px}
+  body.console:not(.phone) .cbar .live[data-state="bad"]{font-size:.82rem;gap:7px;padding:5px 12px}   /* a problem always shows its words */
+}
+@media (max-width:1100px){
+  body.console:not(.phone) .cbar .cbrand b{display:none}
+  body.console:not(.phone) .cbar .field>span{display:none}
+}
+
+/* 3. days and Back/Next at the top of the board area, lined up with the board's own edges
+   (js/railSize.js measures the board and sets --fbl and --fbr) */
+body.console:not(.phone):not(.board) .deck .flowbar{order:-1;padding:10px var(--fbr,16px) 0 var(--fbl,16px)}
+body.console:not(.phone):not(.board) .wrap{padding:8px 16px 12px;align-items:flex-start}   /* the picture sits right under the days */
+
+/* 4. the rail: wider to start, drag its edge to resize, « hides it to a slim strip (js/railSize.js) */
+@media (min-width:861px){
+  body.console:not(.phone) .rail{width:var(--railw,280px);transition:width .18s ease}
+  body.raildrag .rail{transition:none}
+  body.raildrag,body.raildrag *{cursor:col-resize!important;user-select:none}
+  body.console:not(.phone) .railtoggle{display:flex}
+  body.console:not(.phone):not(.board) .railgrip{display:block}
+  body.console.railmin:not(.phone) .rail{width:56px;padding:12px 8px;overflow:hidden}
+  body.console.railmin:not(.phone) .rail>*:not(.railtoggle){display:none!important}
+  body.console.railmin:not(.phone) .railtoggle{margin:0 auto}
+  body.console.railmin:not(.phone) .railgrip{display:none}
+}
+.railtoggle{display:none;position:sticky;top:0;z-index:2;align-self:flex-end;align-items:center;justify-content:center;width:28px;height:28px;margin:-8px -6px -24px 0;border-radius:8px;border:1.5px solid var(--c-line);background:var(--c-surface,#fff);color:var(--c-ink);cursor:pointer}
+.railtoggle:hover{background:var(--c-bg)}
+.railgrip{display:none;flex:none;width:10px;margin:0 -5px;position:relative;z-index:6;cursor:col-resize;touch-action:none}
+.railgrip::after{content:"";position:absolute;top:0;bottom:0;left:4px;width:2px;border-radius:2px;background:transparent;transition:background .15s}
+.railgrip:hover::after,.railgrip:focus-visible::after,body.raildrag .railgrip::after{background:var(--s-acc,#1B4FBF)}
+.railgrip:focus-visible{outline:none}
+body.console:not(.phone) .rail>*{flex-shrink:0}
+body.console:not(.phone) .rail .btn.tallyopen{height:auto;white-space:normal;line-height:1.25;padding-top:9px;padding-bottom:9px}
+body.console:not(.phone):not(.board) .toolshelf{align-self:flex-start}

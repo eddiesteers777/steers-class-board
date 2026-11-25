@@ -7,15 +7,19 @@
    set the screen and the panels in one tap. All of it lives in S.tools
    inside the shared board state, so the board and the Remote always match.
 ========================================== */
-import { buildWidget, PANEL_LIST, LESSON_PANELS, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=63";
+import { buildWidget, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST, WORK, cleanScene, PALERT_MINS, MAX_SCENES } from "./boardTools.js?v=80";
 import { meterEl, setVoice, camBody, tooLoud } from "./roomSense.js?v=1";
 import { MARKS, markUrl } from "./marks.js?v=1";
 import { EFFECTS, FX_AMOUNTS, applyEffect, effectSample } from "./effects.js?v=3";
 import { isMine, mineList, mineSrc, onMine, addMine, removeMine, MY_MAX } from "./myPhotos.js?v=1";
 import { cleanStickers } from "./stickers.js?v=1";
+import { findBody, findChip, findTitle } from "./findPanel.js?v=15";
+import { isFind, FIND_KEYS } from "./findCore.js?v=2";
+import { mtBody } from "./manipPanels.js?v=14";
+import { isMt, mtChip } from "./manipCore.js?v=14";
 export { MARKS, EFFECTS, FX_AMOUNTS };
 
-const LESSON = new Set(LESSON_PANELS.map((x) => x[0]));
+const LESSON = new Set(LESSON_PANELS.map((x) => x[0])), MATH = new Set(MATH_LIST.concat(CALC_LIST).map((x) => x[0]));
 export const labelOf = (k) => (PANEL_LIST.find((x) => x[0] === k) || [k, k])[1];
 
 /* Small 24×24 stroke icons (currentColor). */
@@ -36,8 +40,27 @@ const IC = {
     groups: '<circle cx="8" cy="9" r="3"/><circle cx="16.5" cy="9" r="3"/><path d="M2.5 19a5.5 5.5 0 0111 0M11 19a5.5 5.5 0 0111 0"/>',
     layout: '<rect x="3" y="4" width="12" height="16" rx="2"/><rect x="17" y="4" width="4" height="7" rx="1.5"/><rect x="17" y="13" width="4" height="7" rx="1.5"/>',
     slide: '<rect x="3" y="5" width="13" height="10" rx="2"/><path d="M7 19h13a1 1 0 0 0 1-1V9"/>',
+    find: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M8 10.5h5M10.5 8v5"/>',
     cam: '<rect x="2.5" y="6" width="13.5" height="12" rx="2.5"/><path d="M16 10.5l5.5-3v9l-5.5-3z"/>',
     gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+    calc: '<rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="8" y="5.5" width="8" height="3.5" rx=".8"/><path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01" stroke-width="2.4"/>',
+    sci: '<rect x="3.5" y="2.5" width="17" height="19" rx="2.5"/><path d="M7 7h10"/><path d="M7 12.5l2 3 2-5h2.5M15 13l3 3M18 13l-3 3"/>',
+    graph: '<path d="M4 3v17h17"/><path d="M6 17c3-9 6-11 8-6s4 2 6-6"/><path d="M6 13l13-6" stroke-dasharray="2 2.2"/>',
+    balance: '<path d="M12 4v16M8 20h8M4 8h16"/><path d="M4 8l-2.5 6h5zM20 8l-2.5 6h5z"/><path d="M1.5 14a2.5 1.6 0 0 0 5 0M17.5 14a2.5 1.6 0 0 0 5 0"/>',
+    chance: '<circle cx="12" cy="13" r="8.5"/><path d="M12 13V4.5M12 13l6.5 5M12 13l-7.5 3.5"/><path d="M10 2h4l-2 3z"/>',
+    line: '<path d="M3 21h18M3 21V3"/><path d="M5 18L20 5"/><circle cx="8" cy="15.5" r="1.6"/><circle cx="16.5" cy="8" r="1.6"/>',
+    xform: '<path d="M3 12h18M12 3v18"/><path d="M5 9l3-5 3 5zM13 15l3 5 3-5z"/>',
+    pyth: '<path d="M6 18V9l8 9z"/><rect x="6" y="18" width="8" height="4" rx=".5"/><path d="M6 9H2v9h4"/><path d="M6 9l4.5-4 8 9-4.5 4"/>',
+    angle: '<path d="M2 8h20M2 17h20M7 22L17 3"/><path d="M13.6 8a3 3 0 0 0 1.6 2.4"/>',
+    area: '<rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M14 5v14M3 12h18"/>',
+    nl: '<path d="M2 16h20M5 13v6M12 13v6M19 13v6"/><path d="M6 10q6-8 12 0"/><path d="M15.5 8.5L18 10l.4-2.8"/>',
+    sys: '<path d="M3 3v18h18"/><path d="M5 18L20 6"/><path d="M5 8l15 9"/><circle cx="12.6" cy="12.4" r="1.8" fill="currentColor"/>',
+    scat: '<path d="M3 3v18h18"/><path d="M6 17L20 7" stroke-dasharray="2 2.4"/><circle cx="7.5" cy="14" r="1.4" fill="currentColor"/><circle cx="11" cy="14.5" r="1.4" fill="currentColor"/><circle cx="12.5" cy="10.5" r="1.4" fill="currentColor"/><circle cx="16" cy="11" r="1.4" fill="currentColor"/><circle cx="18" cy="7" r="1.4" fill="currentColor"/>',
+    vol: '<ellipse cx="8" cy="6" rx="5" ry="1.8"/><path d="M3 6v12a5 1.8 0 0 0 10 0V6"/><path d="M17.5 6l-4 12.2a4 1.6 0 0 0 8 0z"/>',
+    tape: '<rect x="2.5" y="5" width="19" height="6" rx="1"/><path d="M7.3 5v6M12 5v6M16.7 5v6"/><rect x="2.5" y="14" width="11" height="6" rx="1"/><path d="M7.3 14v6"/><path d="M2.5 11h9.5" stroke-width="3"/>',
+    fn: '<rect x="6" y="7" width="12" height="10" rx="2"/><path d="M12 2v5M12 17v5M9 12h6"/><path d="M10 4.5L12 7l2-2.5"/>',
+    counters: '<circle cx="7" cy="8" r="4"/><circle cx="17" cy="16" r="4"/><path d="M5.5 8h3M7 6.5v3M15.5 16h3"/>',
+    send: '<path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5L3 9.5z"/>',
     more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
     trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
     lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
@@ -51,7 +74,7 @@ const IC = {
     min: '<path d="M6 12h12"/>', float: '<path d="M14 4h6v6M20 4l-8 8"/><path d="M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/>',
     dock: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>',
 };
-export const icon = (k) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (IC[k] || IC.layout) + "</svg>";
+export const icon = (k) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (IC[k] || (/^find\d$/.test(k) ? IC.find : IC.layout)) + "</svg>";
 
 export const PANEL_INFO = {
     ptimer: "A countdown the whole room can see", target: "Today's learning target", agenda: "Today's plan, and where we are in it", period: "The time, and when class ends",
@@ -59,6 +82,19 @@ export const PANEL_INFO = {
     dice: "Roll one to three dice", score: "Points for teams or periods", goal: "Class points toward a reward", pick: "A random name, no repeats", groups: "Random groups from the roster",
     cam: "The camera, live, and recording to this device",
     slide: "One of this lesson's slides, as a panel you can move and size",
+    find: "Search the problem bank by standard or topic and put one on the board",
+    calc: "Plus, minus, times, divide and percent, with the order of operations", sci: "Powers, roots, trig in degrees or radians, logs, Ans and fraction answers",
+    graph: "Type equations and see them graphed live, with sliders, zoom and tap-to-trace",
+    balance: "x and unit tiles on a scale that tips until both sides match", chance: "Spinner, coin and dice, with a tally beside the expected results",
+    line: "Drag two points: slope triangle and y = mx + b", xform: "Slide, flip, turn and dilate a shape on the grid", pyth: "A right triangle with a square on each side",
+    counters: "Two-colour counters and zero pairs", angle: "Parallel lines cut by a transversal, and a triangle's angles",
+    fn: "Inputs in, outputs out: mystery rules, and function or not",
+    area: "Expand and factor expressions with tiles or an area box",
+    nl: "Add, subtract and find distance with fractions and decimals on a number line",
+    sys: "Two lines on a grid: where they cross, parallel or the same line, and test a point",
+    scat: "Data on a graph: the trend, outliers, your own trend line and a prediction",
+    tape: "Bar models for percent and ratio problems, solved one step at a time",
+    vol: "Cylinders, cones and spheres: volume or a missing size, in π or 3.14",
 };
 
 /* ---------- layouts ---------- */
@@ -126,7 +162,17 @@ export function panelOn(T, k, opts) {
     if (fresh && !(opts && opts.dock) && floatAt && !T.pos[k]) { const p = floatAt(k, T); if (p) T.pos[k] = p; }
 }
 export function panelOff(T, k) { delete T.on[k]; delete T.min[k]; delete T.pos[k]; T.order = T.order.filter((x) => x !== k); }
-export function panelToggle(T, k) { if (T.on[k] && !T.min[k]) panelOff(T, k); else panelOn(T, k); }
+export function panelToggle(T, k) {
+    if (k === "find") {   // one switch for every Find panel: off turns them all off, on shows them all again (or opens the first)
+        const open = FIND_KEYS.filter((x) => T.on[x]);
+        if (!open.length) panelOn(T, "find"); else if (open.some((x) => !T.min[x])) open.forEach((x) => panelOff(T, x)); else open.forEach((x) => panelOn(T, x));
+        return;
+    }
+    if (T.on[k] && !T.min[k]) panelOff(T, k); else panelOn(T, k);
+}
+/** Is panel k on? The Find switch is on while any Find panel is. */
+export const isOn = (T, k) => (k === "find" ? FIND_KEYS.some((x) => T.on[x]) : !!T.on[k]);
+const allMin = (T, k) => (k === "find" ? FIND_KEYS.filter((x) => T.on[x]).every((x) => T.min[x]) : !!T.min[k]);
 /** Shelf order: the saved order first, then any other panels in list order. */
 export function ordered(T, keys) { const o = T.order; return keys.slice().sort((a, b) => { const ia = o.indexOf(a), ib = o.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); }); }
 
@@ -149,6 +195,8 @@ function slidePanel(api) {
 }
 export function buildPanel(k, api) {
     if (k === "slide") return slidePanel(api);
+    if (MATH.has(k)) { const c = api.card(labelOf(k), "tool panel tool-mt tool-" + k); c.i.appendChild(mtBody(api, k)); return c.c; }
+    if (isFind(k)) { const c = api.card(findTitle(k, api.S.tools) || labelOf(k), "tool panel tool-find"); c.i.appendChild(findBody(api, k)); return c.c; }
     if (k === "cam") { const c = api.card(labelOf(k), "tool tool-cam"); c.i.appendChild(camBody(api.el)); return c.c; }
     if (k === "work") {   // the voice level, and the room's microphone against it (js/roomSense.js, this device only)
         const w = buildWidget(k, api); setVoice(api.S.tools.work); const inn = w.querySelector(".in") || w; inn.appendChild(meterEl(api.el)); return w;
@@ -247,6 +295,8 @@ export function chipValue(k, api) {
     if (k === "traffic") return { v: { red: "Stop", yellow: "Slow down", green: "Go" }[T.traffic], tone: T.traffic === "yellow" ? "amber" : T.traffic };
     if (k === "work") { const w = WORK.find((x) => x[0] === T.work) || WORK[0]; return tooLoud() ? { v: "Too loud!", tone: "red" } : { v: w[1], tone: "v-" + w[0] }; }
     if (k === "cam") return { v: "Camera" };
+    if (isFind(k)) return findChip(k, T);
+    if (isMt(k)) return mtChip(k, T);
     if (k === "slide") { const l = api.slideList ? api.slideList() : [], i = Math.max(0, l.findIndex((x) => x.id === T.slp)); return { v: l.length ? "Slide " + (i + 1) + " of " + l.length : "No slides" }; }
     if (k === "text") return { v: (T.text || "No message").slice(0, 28) + ((T.text || "").length > 28 ? "…" : "") };
     if (k === "dice") { const vals = T.dice.vals.slice(0, T.dice.n); return { v: vals.join(" · ") + (vals.length > 1 ? " = " + vals.reduce((a, x) => a + x, 0) : "") }; }
@@ -348,11 +398,11 @@ function refreshSheetNow() {
     sv.onsubmit = (e) => { e.preventDefault(); const n = inp.value.trim(); if (!n) { inp.focus(); return; } saveScene(S, n); inp.value = ""; api.push(); refreshSheet(); };
     sv.append(inp, sb); box.appendChild(sv);
 
-    [["Lesson", LESSON_PANELS], ["Classroom", PANEL_LIST.filter((p) => !LESSON.has(p[0]))]].forEach(([title, list]) => {
+    [["Lesson", LESSON_PANELS], ["Calculators", CALC_LIST], ["Classroom", PANEL_LIST.filter((p) => !LESSON.has(p[0]) && !MATH.has(p[0]) && !/^find\d/.test(p[0]))], ["Math tools", MATH_LIST]].forEach(([title, list]) => {
         box.appendChild(el("p", "psec", title));
         const g = el("div", "pgrid");
         list.filter(([k]) => api.panelOk(k)).forEach(([k, label]) => {
-            const st = !T.on[k] ? "off" : T.min[k] ? "min" : T.pos[k] ? "float" : "on";
+            const st = !isOn(T, k) ? "off" : allMin(T, k) ? "min" : T.pos[k] ? "float" : "on";
             const b = el("button", "ptile " + st); b.type = "button"; b.setAttribute("aria-pressed", String(st !== "off"));
             const ic = el("span", "pti"); ic.innerHTML = icon(k); b.appendChild(ic);
             const tx = el("span", "ptt"); tx.appendChild(el("b", null, label)); tx.appendChild(el("span", null, PANEL_INFO[k] || "")); b.appendChild(tx);
@@ -515,29 +565,52 @@ export function presetTile(api, p, after) {
     b.onclick = () => { S.look = presetLook(p, S.look.fxn); api.push(); if (after) after(); };
     return b;
 }
-/** The photo backgrounds: chips for each group (in sections), then that group's tiles. pick(id) sets the background;
+/** The photo backgrounds. One bar names the group on show (its picture, name and count) with Change; Change opens a tidy grid of
+    every group as picture tiles, and picking one folds the grid away and shows that group's photos. pick(id) sets the background;
     after() redraws. "day" shows the photo-of-the-day choices, "mine" the teacher's own pictures. */
-let photoGroup = "", mineMsg = "", pickerAfter = null;
+let photoGroup = "", photoBrowse = false, mineMsg = "", pickerAfter = null;
 onMine(() => { if (pickerAfter) pickerAfter(); });
-/** What the photo picker shows (so a redraw check can see a chip change or a new picture). */
-export const photoGroupNow = () => photoGroup + "|" + mineMsg + "|" + mineList().map((x) => x.id).join(",");
+/** What the photo picker shows (so a redraw check can see a group change, the grid opening or a new picture). */
+export const photoGroupNow = () => photoGroup + "|" + (photoBrowse ? "b" : "") + "|" + mineMsg + "|" + mineList().map((x) => x.id).join(",");
 const groupOf = (bg) => { if (/^pd-/.test(bg)) return "day"; if (isMine(bg)) return "mine"; const f = LOOK_PHOTOS.find((x) => x[0] === bg); return f ? f[2] : "day"; };
+/** A group's name, a short line under it, and its picture (a class for .stagebg, or the teacher's own picture). */
+function groupCard(k) {
+    if (k === "day") return { name: "Photo of the day", sub: "A new one every day", pv: "pd-all" };
+    if (k === "mine") { const m = mineList(); return { name: "My pictures", sub: m.length ? m.length + " of " + MY_MAX : "Add your own", pv: "", img: m.length ? m[0].t : "" }; }
+    const list = LOOK_PHOTOS.filter((x) => x[2] === k);
+    return { name: PHOTO_GROUP.get(k) || k, sub: list.length + " photos", pv: list.length ? list[0][0] : "pd-" + k };   // one photo stands for the group
+}
+function groupThumb(el, c, cls) {
+    const pv = el("span", "lpv " + cls), sb = el("span", "stagebg" + (c.pv ? " pv-" + c.pv : ""));
+    if (c.img) Object.assign(sb.style, { backgroundImage: 'url("' + c.img + '")', backgroundSize: "cover", backgroundPosition: "center", opacity: "1" }); else if (!c.pv) pv.classList.add("lookpnone");
+    pv.appendChild(sb); return pv;
+}
 export function photoPicker(el, look, pick, after, opts) {
     const o = opts || {};
     pickerAfter = after || null;
     if (!photoGroup) photoGroup = groupOf(look.bg);
     const box = el("div", "lookphotos");
-    const chip = (key, name, row, extra) => {
-        const c = el("button", "lookpgc" + (extra ? " " + extra : "") + (key === photoGroup ? " on" : ""), name); c.type = "button"; c.setAttribute("aria-pressed", String(key === photoGroup));
-        c.onclick = () => { photoGroup = key; mineMsg = ""; if (after) after(); }; row.appendChild(c);
-    };
-    const top = el("div", "lookpg"); top.setAttribute("role", "group"); top.setAttribute("aria-label", "Photo choices");
-    chip("day", "\u2605 Photo of the day", top, "special"); if (!o.guest) chip("mine", "My pictures", top, "special");
-    box.appendChild(top);
-    PHOTO_SECTIONS.forEach(([sec, groups]) => {
-        const row = el("div", "lookpg"); row.setAttribute("role", "group"); row.setAttribute("aria-label", sec);
-        row.appendChild(el("span", "lookpgh", sec)); groups.forEach(([k, n]) => chip(k, n, row)); box.appendChild(row);
-    });
+    // The bar: what is on show now, and Change / Done for the grid of groups
+    const c = groupCard(photoGroup), bar = el("button", "lookpcur" + (photoBrowse ? " open" : "")); bar.type = "button";
+    bar.setAttribute("aria-expanded", String(photoBrowse)); bar.title = photoBrowse ? "Close the list of photo groups" : "Pick another group of photos";
+    const tx = el("span", "lookptx"); tx.append(el("b", null, c.name), el("small", null, c.sub));
+    const chg = el("span", "lookpchg", photoBrowse ? "Done" : "Change");
+    bar.append(groupThumb(el, c, "lookpth"), tx, chg);
+    bar.onclick = () => { photoBrowse = !photoBrowse; mineMsg = ""; if (after) after(); };
+    box.appendChild(bar);
+    if (photoBrowse) {   // every group as a picture tile, all the same size
+        const cats = el("div", "lookcats"); cats.setAttribute("role", "group"); cats.setAttribute("aria-label", "Photo groups");
+        const keys = ["day"].concat(o.guest ? [] : ["mine"], PHOTO_SECTIONS.flatMap((s) => s[1].map((g) => g[0])));
+        keys.forEach((k) => {
+            const g = groupCard(k), on = k === photoGroup, b = el("button", "lookcat" + (on ? " on" : "") + (k === "day" || k === "mine" ? " special" : ""));
+            b.type = "button"; b.setAttribute("aria-pressed", String(on)); b.title = g.name + ", " + g.sub.toLowerCase();
+            b.append(groupThumb(el, g, "lookcpv"), el("span", "lookcnm", g.name));
+            b.onclick = () => { photoGroup = k; photoBrowse = false; mineMsg = ""; if (after) after(); };
+            cats.appendChild(b);
+        });
+        box.appendChild(cats);
+        return box;
+    }
     const grid = el("div", "lookbgs"); grid.setAttribute("role", "group");
     const tile = (id, name, sub, title, fill) => {
         const on = look.bg === id, b = el("button", "lookbg" + (on ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(on)); if (title) b.title = title;
@@ -547,7 +620,6 @@ export function photoPicker(el, look, pick, after, opts) {
     };
     if (photoGroup === "day") {
         grid.setAttribute("aria-label", "Photo of the day");
-        box.appendChild(el("p", "lookcred", "The board shows a different photo each day, the same one on every screen, and turns over at midnight."));
         tile("pd-all", "Photo of the day", "From all " + LOOK_PHOTOS.length + " photos");
         PHOTO_SECTIONS.forEach(([, groups]) => groups.forEach(([k, n]) => tile("pd-" + k, n, LOOK_PHOTOS.filter((x) => x[2] === k).length + " photos, one a day")));
     } else if (photoGroup === "mine") {
@@ -580,6 +652,7 @@ export function photoPicker(el, look, pick, after, opts) {
         LOOK_PHOTOS.filter((x) => x[2] === photoGroup).forEach(([id, name, , who]) => tile(id, name, who, name + ". Photo: " + who + " on Unsplash"));
     }
     box.appendChild(grid);
+    if (photoGroup === "day") box.appendChild(el("p", "lookcred", "A different photo each day, the same one on every screen. It turns over at midnight."));
     if (photoGroup !== "mine") box.appendChild(el("p", "lookcred", "Photos from Unsplash, free to use. The name under each one is the photographer."));
     return box;
 }
@@ -594,10 +667,10 @@ export function lookPicker(api, compact) {
         LOOK_PRESETS.forEach((p) => pr.appendChild(presetTile(api, p, () => refreshSheet())));
         box.appendChild(pr);
         // The Remote's rail keeps just the Quick looks; every color, background, effect, logo and sticker is in the Board Builder.
-        const more = el("a", "lookmore", compact ? "More looks and stickers in the Board Builder" : "Open the Board Builder: every look, panels and stickers in one place");
+        const more = el("a", "lookmore", "More looks and stickers in the Board Builder");
         more.href = "studio.html"; if (api.guest && api.guest()) more.hidden = true;
         if (compact) { box.appendChild(more); return box; }
-        box.appendChild(more); box.appendChild(el("p", "lookh", "Colors"));
+        box.appendChild(el("p", "lookh", "Colors"));   // Eddie, 2026-11-24: no Board Builder link in the full Background panel
     }
     LOOK_THEMES.forEach(([id, name]) => {
         const b = el("button", "lookth" + (XMAS.has(id) ? " xmas" : "") + (S.look.theme === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(S.look.theme === id)); b.title = name;

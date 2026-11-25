@@ -37,7 +37,7 @@ form.addEventListener("submit", async (e) => {
     const L = await import("../js/anchorLoader.js?v=2").catch(() => null);   // the anchor while it saves (2026-11-22)
     if (L) L.showLoader("Saving your spot…");
     try {
-        const { saveSignup } = await import("./waitlist.js?v=1");
+        const { saveSignup } = await import("./waitlist.js?v=2");
         await saveSignup({
             grades: picked("grades"), subject: val("subject").slice(0, 60), board: picked("board"), device: picked("device"),
             email: val("email").slice(0, 120).toLowerCase(), name: val("name").slice(0, 40), note: val("note").slice(0, 500)

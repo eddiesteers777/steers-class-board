@@ -53,6 +53,26 @@ simpler, one less thing.
   - Pictures are the teacher's own, shrunk on the device (1600 px, under 720 KB) and kept in the teacher's own saved
     data (`slideimg/<id>`): not in Firebase Storage, which needs a paid plan, and never in the repo. With no wifi a
     picture still goes on the slide and goes up when the wifi is back.
+  - **One job each (Nov 24, Eddie: "what place should Slides serve?").** Slides is where a lesson is built, ahead of
+    time; Spotlight is where it is taught. So Slides does not present: Present was cut, and its one big amber button is
+    **Teach this slide** (the board goes to that lesson and Spotlight opens on the slide, live). Slides keeps one bar of
+    its own: the lesson row (‹ week ›, class when there is more than one, Mon–Fri, saved, Teach this slide, ⋯) sits in
+    the Board Builder header (`#slBarSlot`), with the tools under it. The ⋯ holds Start from my plan, Copy to another day
+    or class, and Put it on the board, stay here. A slide that has a Spotlight screen gets an "In Spotlight" badge.
+  - **Panels, bank problems and Show Steps on a slide (Nov 24, Eddie: "finish slides").** A slide can carry panels
+    (`pn`: timer seconds, target, agenda); Spotlight opens them once when it reaches that slide's screen (`pa` on the
+    screen remembers it), so one closed in class stays closed. Bank > Practice problems makes one slide per picked
+    standards-bank problem with its answer on Next. Bank > Show Steps puts a walkthrough (`k:"wk"`) on a slide; it
+    counts as (steps - 1) Next presses, and the board only plays it once the teacher has checked it (adding it from
+    Slides with "Looks right, add it" checks it). Spotlight's Next shows a slide's on-Next pieces before the next screen.
+  - **Slides builds Spotlight, several at a time (Nov 24, Eddie: "the spotlight is the main focus and the slides panel is
+    just a way to quickly edit a lot of panels at one time and get a lot of layouts set up for class").** Select at the
+    top of the slide list ticks slides (tap while selecting; Shift- or Ctrl-click any time; Shift ticks a run). The bar
+    then has one amber button, **Put N in Spotlight** (a Spotlight screen for each, in list order; ones already there
+    keep theirs), and Panels (timer, target, agenda for all, "(some)" when mixed), Duplicate, Copy to… ("Copy N
+    selected"), Hide/Show and Delete. Each is one Undo step across both lists. The layout menu adds 1, 3, 5 or 10 of a
+    layout at once, and the new slides come in ticked, ready for Panels or Spotlight. On a phone the bar is pinned at
+    the left of the slide strip: the count, Spotlight, and the rest under More.
   - **Screens list (Nov 21, Eddie: "get rid of some of those tabs"; Slides is the main one).** Slides comes first as
     a card ("6 slides for Monday", "Slide 2 of 6 on the board"). Tapping it puts the slides on the board and opens a
     list of that day's slides as small pictures (every-day ones tagged); tapping one shows it. Then the screens used

@@ -13,6 +13,7 @@
    Every attempt is written to the student's own entry (asg/{code}/p/{guest}), so the teacher sees who is trying.
 ========================================== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { firebaseConfig } from "./firebaseConfig.js?v=1";
 import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, onSnapshot, setDoc, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import * as V from "./vaultCore.js?v=75";
@@ -20,14 +21,7 @@ import * as C from "./assignCore.js?v=7";
 import { answerBox } from "./answerBox.js?v=5";
 
 // Same project and app name as the Vault Raid page, so a Chromebook is the same guest in both.
-const app = initializeApp({
-    apiKey: "AIzaSyA8kAei_AJMU66EePYQyI8nlVJeLes5HLY",
-    authDomain: "steers-class-board.firebaseapp.com",
-    projectId: "steers-class-board",
-    storageBucket: "steers-class-board.firebasestorage.app",
-    messagingSenderId: "997357619072",
-    appId: "1:997357619072:web:8e47464df7c4e329fd2365"
-}, "play");
+const app = initializeApp(firebaseConfig, "play");
 const appleTouch = /iPhone|iPad|iPod/.test(navigator.userAgent || "") || (/Macintosh/.test(navigator.userAgent || "") && navigator.maxTouchPoints > 1);
 const auth = getAuth(app), db = initializeFirestore(app, appleTouch ? { experimentalForceLongPolling: true } : { experimentalAutoDetectLongPolling: true });
 if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {   // local testing with the emulators only

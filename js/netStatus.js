@@ -8,7 +8,7 @@
      back online    "Back online. Syncing your changes…", then "Synced"
                     once cloud sync (js/cloudSync.js) and any Firestore
                     writes kept on the phone (js/offlineWrite.js) are sent.
-     new version    "A new version of Calera Math is available." + Refresh
+     new version    "A new version of Anchor Board is available." + Refresh
                     (the service worker has it ready; js/registerSW.js).
    A write kept on the phone that syncs later, or is refused, gets a toast.
    Loaded by js/registerSW.js on every page that registers the worker.
@@ -111,14 +111,14 @@ async function backOnline() {
     const ok = await syncNow();
     if (navigator.onLine === false) return showOffline();
     if (ok) show("synced", "Synced", { hideAfter: 2500 });
-    else show("syncing", "Couldn't sync everything yet. Calera Math will keep trying.", { hideAfter: 6000, closable: true });
+    else show("syncing", "Couldn't sync everything yet. Anchor Board will keep trying.", { hideAfter: 6000, closable: true });
 }
 
 // ---- New version ----
 let updateWaiting = null;
 function showUpdate() {
     if (!updateWaiting || (mode && mode !== "update")) return;
-    show("update", "A new version of Calera Math is available.", {
+    show("update", "A new version of Anchor Board is available.", {
         action: {
             label: "Refresh",
             onClick: () => {

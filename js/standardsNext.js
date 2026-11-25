@@ -8,12 +8,12 @@
    in the order the district units list them. Standards left open in units before the current one
    are reported separately as "left open", so they are not mistaken for the next lesson.
 ========================================== */
-import { STANDARDS } from "../data/standards.js?v=58";
+import { STANDARDS } from "../data/standards.js?v=59";
 
 const stateOf = (p, code) => ((p || {})[code] || {}).s || "";
 
-export function nextUp(cls, progress) {
-    const C = STANDARDS[cls]; if (!C) return null;
+export function nextUp(cls, progress, course) {
+    const C = course || STANDARDS[cls]; if (!C || !(C.units || []).length) return null;   // a teacher's own pasted list has no district order
     const p = (progress || {})[cls] || {}, byCode = new Map(C.standards.map((s) => [s.code, s]));
     const units = C.units.filter((u) => u.standards.length);
     let at = units.findIndex((u) => u.standards.some((x) => stateOf(p, x.code) === "teaching"));

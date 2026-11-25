@@ -1,0 +1,398 @@
+{
+ "source": "2019 Alabama Course of Study: Mathematics, Grade 6 (6.1-6.28). Standard wording, domains (content areas) and clusters checked Nov 24, 2026 against the official ALSDE PDF (https://www.alabamaachieves.org/wp-content/uploads/2022/09/AS_2022923_2019-Alabama-Mathematics-COS_V1.0.pdf), printed pages 62-66.",
+ "standards": [
+  {
+   "code": "6.1",
+   "domain": "Proportional Reasoning",
+   "cluster": "Develop an understanding of ratio concepts and use reasoning about ratios to solve problems.",
+   "text": "Use appropriate notations [a/b, a to b, a:b] to represent a proportional relationship between quantities and use ratio language to describe the relationship between quantities.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.2",
+   "domain": "Proportional Reasoning",
+   "cluster": "Develop an understanding of ratio concepts and use reasoning about ratios to solve problems.",
+   "text": "Use unit rates to represent and describe ratio relationships.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.3",
+   "domain": "Proportional Reasoning",
+   "cluster": "Develop an understanding of ratio concepts and use reasoning about ratios to solve problems.",
+   "text": "Use ratio and rate reasoning to solve mathematical and real-world problems (including but not limited to percent, measurement conversion, and equivalent ratios) using a variety of models, including tables of equivalent ratios, tape diagrams, double number lines, and equations.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.4",
+   "domain": "Number Systems and Operations",
+   "cluster": "Use prior knowledge of multiplication and division to divide fractions.",
+   "text": "Interpret and compute quotients of fractions using visual models and equations to represent problems.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use quotients of fractions to analyze and solve problems."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.5",
+   "domain": "Number Systems and Operations",
+   "cluster": "Compute multi-digit numbers fluently and determine common factors and multiples.",
+   "text": "Fluently divide multi-digit whole numbers using a standard algorithm to solve real-world and mathematical problems.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.6",
+   "domain": "Number Systems and Operations",
+   "cluster": "Compute multi-digit numbers fluently and determine common factors and multiples.",
+   "text": "Add, subtract, multiply, and divide decimals using a standard algorithm.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.7",
+   "domain": "Number Systems and Operations",
+   "cluster": "Compute multi-digit numbers fluently and determine common factors and multiples.",
+   "text": "Use the distributive property to express the sum of two whole numbers with a common factor as a multiple of a sum of two whole numbers with no common factor.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.8",
+   "domain": "Number Systems and Operations",
+   "cluster": "Compute multi-digit numbers fluently and determine common factors and multiples.",
+   "text": "Find the greatest common factor (GCF) and least common multiple (LCM) of two or more whole numbers.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use factors and multiples to determine prime factorization."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.9",
+   "domain": "Number Systems and Operations",
+   "cluster": "Apply knowledge of the number system to represent and use rational numbers in a variety of forms.",
+   "text": "Use signed numbers to describe quantities that have opposite directions or values and to represent quantities in real-world contexts.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.10",
+   "domain": "Number Systems and Operations",
+   "cluster": "Apply knowledge of the number system to represent and use rational numbers in a variety of forms.",
+   "text": "Locate integers and other rational numbers on a horizontal or vertical line diagram.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Define opposites as numbers located on opposite sides of 0 and the same distance from 0 on a number line."
+    },
+    {
+     "l": "b",
+     "text": "Use rational numbers in real-world and mathematical situations, explaining the meaning of 0 in each situation."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.11",
+   "domain": "Number Systems and Operations",
+   "cluster": "Apply knowledge of the number system to represent and use rational numbers in a variety of forms.",
+   "text": "Find the position of pairs of integers and other rational numbers on the coordinate plane.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Identify quadrant locations of ordered pairs on the coordinate plane based on the signs of the x and y coordinates."
+    },
+    {
+     "l": "b",
+     "text": "Identify (a,b) and (a,-b) as reflections across the x-axis."
+    },
+    {
+     "l": "c",
+     "text": "Identify (a,b) and (-a,b) as reflections across the y-axis."
+    },
+    {
+     "l": "d",
+     "text": "Solve real-world and mathematical problems by graphing points in all four quadrants of the coordinate plane, including finding distances between points with the same first or second coordinate."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.12",
+   "domain": "Number Systems and Operations",
+   "cluster": "Apply knowledge of the number system to represent and use rational numbers in a variety of forms.",
+   "text": "Explain the meaning of absolute value and determine the absolute value of rational numbers in real-world contexts.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.13",
+   "domain": "Number Systems and Operations",
+   "cluster": "Apply knowledge of the number system to represent and use rational numbers in a variety of forms.",
+   "text": "Compare and order rational numbers and absolute value of rational numbers with and without a number line in order to solve real-world and mathematical problems.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.14",
+   "domain": "Algebra and Functions",
+   "cluster": "Apply knowledge of arithmetic to read, write, and evaluate algebraic expressions.",
+   "text": "Write, evaluate, and compare expressions involving whole number exponents.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.15",
+   "domain": "Algebra and Functions",
+   "cluster": "Apply knowledge of arithmetic to read, write, and evaluate algebraic expressions.",
+   "text": "Write, read, and evaluate expressions in which letters represent numbers in real-world contexts.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Interpret a variable as an unknown value for any number in a specified set, depending on the context."
+    },
+    {
+     "l": "b",
+     "text": "Write expressions to represent verbal statements and real-world scenarios."
+    },
+    {
+     "l": "c",
+     "text": "Identify parts of an expression using mathematical terms such as sum, term, product, factor, quotient, and coefficient."
+    },
+    {
+     "l": "d",
+     "text": "Evaluate expressions (which may include absolute value and whole number exponents) with respect to order of operations."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.16",
+   "domain": "Algebra and Functions",
+   "cluster": "Apply knowledge of arithmetic to read, write, and evaluate algebraic expressions.",
+   "text": "Generate equivalent algebraic expressions using the properties of operations, including inverse, identity, commutative, associative, and distributive.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.17",
+   "domain": "Algebra and Functions",
+   "cluster": "Apply knowledge of arithmetic to read, write, and evaluate algebraic expressions.",
+   "text": "Determine whether two expressions are equivalent and justify the reasoning.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.18",
+   "domain": "Algebra and Functions",
+   "cluster": "Use equations and inequalities to represent and solve real-world or mathematical problems.",
+   "text": "Determine whether a value is a solution to an equation or inequality by using substitution to conclude whether a given value makes the equation or inequality true.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.19",
+   "domain": "Algebra and Functions",
+   "cluster": "Use equations and inequalities to represent and solve real-world or mathematical problems.",
+   "text": "Write and solve an equation in the form of x+p=q or px=q for cases in which p, q, and x are all non-negative rational numbers to solve real-world and mathematical problems.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Interpret the solution of an equation in the context of the problem."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.20",
+   "domain": "Algebra and Functions",
+   "cluster": "Use equations and inequalities to represent and solve real-world or mathematical problems.",
+   "text": "Write and solve inequalities in the form of x>c, x<c, x>=c, or x<=c to represent a constraint or condition in a real-world or mathematical problem.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Interpret the solution of an inequality in the context of a problem."
+    },
+    {
+     "l": "b",
+     "text": "Represent the solutions of inequalities on a number line and explain that the solution set may contain infinitely many solutions."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.21",
+   "domain": "Algebra and Functions",
+   "cluster": "Identify and analyze relationships between independent and dependent variables.",
+   "text": "Identify, represent, and analyze two quantities that change in relationship to one another in real-world or mathematical situations.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use tables, graphs, and equations to represent the relationship between independent and dependent variables."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.22",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "Use real-world and mathematical problems to analyze data and demonstrate an understanding of statistical variability and measures of center.",
+   "text": "Write examples and non-examples of statistical questions, explaining that a statistical question anticipates variability in the data related to the question.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.23",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "Use real-world and mathematical problems to analyze data and demonstrate an understanding of statistical variability and measures of center.",
+   "text": "Calculate, interpret, and compare measures of center (mean, median, mode) and variability (range and interquartile range) in real-world data sets.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Determine which measure of center best represents a real-world data set."
+    },
+    {
+     "l": "b",
+     "text": "Interpret the measures of center and variability in the context of a problem."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.24",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "Use real-world and mathematical problems to analyze data and demonstrate an understanding of statistical variability and measures of center.",
+   "text": "Represent numerical data graphically, using dot plots, line plots, histograms, stem and leaf plots, and box plots.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Analyze the graphical representation of data by describing the center, spread, shape (including approximately symmetric or skewed), and unusual features (including gaps, peaks, clusters, and extreme values)."
+    },
+    {
+     "l": "b",
+     "text": "Use graphical representations of real-world data to describe the context from which they were collected."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.25",
+   "domain": "Geometry and Measurement",
+   "cluster": "Graph polygons in the coordinate plane to solve real-world and mathematical problems.",
+   "text": "Graph polygons in the coordinate plane given coordinates of the vertices to solve real-world and mathematical problems.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Determine missing vertices of a rectangle with the same x-coordinate or the same y-coordinate when graphed in the coordinate plane."
+    },
+    {
+     "l": "b",
+     "text": "Use coordinates to find the length of a side between points having the same x-coordinate or the same y-coordinate."
+    },
+    {
+     "l": "c",
+     "text": "Calculate perimeter and area of a polygon graphed in the coordinate plane (limiting to polygons in which consecutive vertices have the same x-coordinate or the same y-coordinate)."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.26",
+   "domain": "Geometry and Measurement",
+   "cluster": "Solve real-world and mathematical problems to determine area, surface area, and volume.",
+   "text": "Calculate the area of triangles, special quadrilaterals, and other polygons by composing and decomposing them into known shapes.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Apply the techniques of composing and decomposing polygons to find area in the context of solving real-world and mathematical problems."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.27",
+   "domain": "Geometry and Measurement",
+   "cluster": "Solve real-world and mathematical problems to determine area, surface area, and volume.",
+   "text": "Determine the surface area of three-dimensional figures by representing them with nets composed of rectangles and triangles to solve real-world and mathematical problems.",
+   "critical": false,
+   "parts": [],
+   "objectives": [],
+   "prior": []
+  },
+  {
+   "code": "6.28",
+   "domain": "Geometry and Measurement",
+   "cluster": "Solve real-world and mathematical problems to determine area, surface area, and volume.",
+   "text": "Apply previous understanding of volume of right rectangular prisms to those with fractional edge lengths to solve real-world and mathematical problems.",
+   "critical": false,
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use models (cubes or drawings) and the volume formulas (V = lwh and V = Bh) to find and compare volumes of right rectangular prisms."
+    }
+   ],
+   "objectives": [],
+   "prior": []
+  }
+ ]
+}

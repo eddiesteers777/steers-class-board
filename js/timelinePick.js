@@ -5,8 +5,8 @@
    The tray (bottom of the page) keeps your picks in order with a live time estimate, and opens them in
    Assignments as a practice draft. The tray lives on this device only (it holds problem picks, no student data).
 ========================================== */
-import { STANDARDS } from "../data/standards.js?v=58";
-import { loadStdBank, LEVELS } from "./stdBank.js?v=3";
+import { STANDARDS } from "../data/standards.js?v=59";
+import { loadStdBank, LEVELS } from "./stdBank.js?v=5";
 import * as C from "./assignCore.js?v=7";
 import { mathText } from "./vaultCore.js?v=75";
 import * as Tr from "./timelineTray.js?v=4";

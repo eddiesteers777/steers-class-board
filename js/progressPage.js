@@ -5,10 +5,10 @@
    "Work on next" card (ACAP readiness, js/readiness.js + js/acapAssign.js): that saves one Practice assignment.
    ?demo fills a this-tab store with made-up students (js/progressDemo.js) and saves nothing.
 ========================================== */
-import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=5";
+import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=6";
 import { buildProgress, distribution, standardOverTime, needGroups, missedOn, heatmap, engagement, fidelity, studentSummary, stdIn, BAND_WORD } from "./progress.js?v=4";
 import { lineChart, sparkline, bandBar, meter } from "./charts.js?v=1";
-import { STANDARDS } from "../data/standards.js?v=58";
+import { STANDARDS } from "../data/standards.js?v=59";
 import * as R from "./readiness.js?v=1";
 import * as AA from "./acapAssign.js?v=4";
 import * as K from "./checks.js?v=1";
@@ -34,7 +34,7 @@ export async function mountProgress() {
     const demo = new URLSearchParams(location.search).has("demo");
     const store = await import(demo ? "./localStore.js?v=57" : "./boardStore.js?v=58");
     // This teacher's periods and the class each one is (Mr. Steers' five, or a new teacher's own from Setup).
-    const PER = demo ? DEMO_PERIODS : (await import("../data/weeks.js?v=62")).PERIODS;
+    const PER = demo ? DEMO_PERIODS : (await import("../data/weeks.js?v=63")).PERIODS;
     const CLS = Object.fromEntries(PER), PERIODS = PER.map(([p, c]) => [p, (STANDARDS[c] && STANDARDS[c].label) || c]);
     const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
 
@@ -91,7 +91,7 @@ export async function mountProgress() {
             un = rooms.watchAll("asg/" + code + "/p", (list) => { last = list; clearTimeout(t); t = setTimeout(end, list.length ? 1200 : 4000); }, end); setTimeout(end, 6000); });
         catchUp({ save: (p, x) => store.save(p, x), get }, D.asg, D.rosters, entriesOf).then((n) => { if (n) status("Live · " + n + (n === 1 ? " assignment's" : " assignments'") + " new results added", "ok"); }).catch(() => {});
     };
-    const bank = () => (D.bank ? Promise.resolve(D.bank) : import("./stdBank.js?v=3").then((m) => m.loadStdBank()).then((b) => (D.bank = b)));
+    const bank = () => (D.bank ? Promise.resolve(D.bank) : import("./stdBank.js?v=5").then((m) => m.loadStdBank()).then((b) => (D.bank = b)));
     // The class tally for the last 45 days (one document per day).
     for (let i = 0; i < 45; i++) { const d = new Date(); d.setDate(d.getDate() - i); const k = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); once("tally/" + k, (t) => { if (t && t.periods) { D.tally.set(k, t); soon(); } }); }
     // The Class Tracker (Nov 21) keeps the same behaviour line, one document per day at track/{day}.

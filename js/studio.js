@@ -12,9 +12,9 @@
    Slides (the switch in the header): the teacher's own slides for each lesson, Google Slides-style (js/slideEditor.js).
    Spotlight (the third tab): the board full screen, with a glass toolbar to pop panels on and draw on the background (js/spotlight.js).
 ========================================== */
-import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MAX_SCENES, MAX_DAYB } from "./boardTools.js?v=63";
+import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MATH_LIST, CALC_LIST, MAX_SCENES, MAX_DAYB } from "./boardTools.js?v=80";
 import { SCENES, sceneActive, applyScene, saveScene, panelOn, panelOff, panelToggle, PANEL_INFO, labelOf, icon, LOOK_THEMES, LOOK_BGS, LOOK_PHOTOS, bgName, LOOK_PRESETS,
-    presetTile, photoPicker, photoGroupNow, gradOf, themeCols, MARKS, EFFECTS, FX_AMOUNTS } from "./panels.js?v=16";
+    presetTile, photoPicker, photoGroupNow, gradOf, themeCols, MARKS, EFFECTS, FX_AMOUNTS } from "./panels.js?v=44";
 import { markUrl } from "./marks.js?v=1";
 import { addStepAndEdit } from "./bellPlan.js?v=6";
 import { effectSample } from "./effects.js?v=3";
@@ -63,7 +63,7 @@ function setMode(m, at) {
         const app = $("slideApp"); if (app) app.hidden = true; wantSlides = null; if (editor) editor.closeEditor();
         if (/^#slides/.test(location.hash)) { try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* the address is a convenience */ } }
         if (!A.synced()) { wantSpot = true; return; }   // open on the saved board, once it has arrived
-        import("./spotlight.js?v=7").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
+        import("./spotlight.js?v=38").then((mod) => { spot = mod; if (mode === "spot") mod.openSpot(A, $("spotApp"), () => setMode("board")); })
             .catch(() => { setMode("board"); note("saveNote", "Spotlight did not load. Check the connection and reload the page."); });
         return;
     }
@@ -71,7 +71,7 @@ function setMode(m, at) {
     if (mode === "slides") {
         app.hidden = false;
         if (!A.synced()) { wantSlides = at || {}; return; }   // open on the lesson the board is on, once that has arrived
-        import("./slideEditor.js?v=7").then((mod) => { editor = mod; if (mode === "slides") mod.openEditor(A, app, at && at.week ? at : null); })
+        import("./slideEditor.js?v=41").then((mod) => { editor = mod; if (mode === "slides") mod.openEditor(A, app, at && at.week ? at : null); })
             .catch(() => { app.textContent = "The slide editor did not load. Check the connection and reload the page."; });
     } else {
         app.hidden = true; wantSlides = null;
@@ -95,6 +95,7 @@ export const studio = {
         drawSteps(); showStep(step);
         $("saveForm").onsubmit = (e) => { e.preventDefault(); saveBoard(); };
         $("undoBtn").onclick = () => undo();
+        saveFold();
         document.addEventListener("keydown", (e) => {
             if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === "z" || e.key === "Z") && !/INPUT|SELECT|TEXTAREA/.test((e.target && e.target.tagName) || "")) { e.preventDefault(); undo(); }
         });
@@ -260,7 +261,7 @@ function posFor(k) { const T = A.S.tools; return T.pos[k] ? Object.assign({}, T.
 function drawPanels() {
     const p = $("pane-panels"), S = A.S, T = S.tools, f = document.createDocumentFragment();
     f.appendChild(head("Add panels", "Tap a panel to put it on the board. Drag it by its title bar: it snaps into line with the grid and the other panels. Drag a corner to size it."));
-    [["Lesson", LESSON_PANELS], ["Classroom", TOOL_LIST]].forEach(([title, list]) => {
+    [["Lesson", LESSON_PANELS], ["Calculators", CALC_LIST], ["Classroom", TOOL_LIST], ["Math tools", MATH_LIST]].forEach(([title, list]) => {
         f.appendChild(el("p", "lookh", title));
         const g = el("div", "stiles");
         list.filter(([k]) => A.panelOk(k)).forEach(([k, label]) => {
@@ -349,7 +350,7 @@ function addSticker(t, v) {
     const spot = freeSpot(st); if (spot) { st.x = spot.x; st.y = spot.y; }
     S.stickers = S.stickers.concat([st]); pick = { kind: "sticker", id: st.id }; pushNow();
 }
-function note(id, t) { const n = $(id); if (n) n.textContent = t; }
+function note(id, t) { const n = $(id); if (n) n.textContent = t; if (t && id === "saveNote" && !saveIsOpen) setSaveOpen(true, false); }   // a message under Save opens it
 function drawStickers() {
     const p = $("pane-stickers"), S = A.S, f = document.createDocumentFragment();
     f.appendChild(head("Add stickers", "Tap one to put it on the board, in an open spot. Drag it to move it, the round handle on its corner to size it and the one on top to turn it."));
@@ -559,6 +560,19 @@ function drawLesson() {
 }
 
 /* ---------- Save this board ---------- */
+/** Save this board folds down to one line (name and Undo). It starts folded and remembers how the teacher left it on this device. */
+const FOLD_KEY = "ab.studio.saveOpen";
+let saveIsOpen = false;
+function setSaveOpen(on, keep) {
+    const tog = $("saveTog"), body = $("saveBody"); if (!tog || !body) return;
+    saveIsOpen = on; body.hidden = !on; tog.setAttribute("aria-expanded", String(on)); $("saveForm").classList.toggle("folded", !on);
+    if (keep) try { localStorage.setItem(FOLD_KEY, on ? "1" : "0"); } catch (e) { /* not kept: fine */ }
+}
+function saveFold() {
+    let open = false; try { open = localStorage.getItem(FOLD_KEY) === "1"; } catch (e) { /* private window: start folded */ }
+    setSaveOpen(open, false);
+    if ($("saveTog")) $("saveTog").onclick = () => { setSaveOpen(!saveIsOpen, true); if (saveIsOpen) $("saveName").focus(); };
+}
 function saveBoard() {
     const S = A.S, T = S.tools, inp = $("saveName"), n = inp.value.trim();
     if (!n) { inp.focus(); note("saveNote", "Give the board a name first."); return; }

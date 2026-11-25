@@ -6,32 +6,35 @@
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
 import { parseFigure, figureEl } from "./figures.js?v=1";
-import { WEEKS as ALL_WEEKS, PERIODS as PACK_PERIODS } from "../data/weeks.js?v=62";
+import { WEEKS as ALL_WEEKS, PERIODS as PACK_PERIODS } from "../data/weeks.js?v=63";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 // The public demo page passes its own sample week and periods (opts.weeks, opts.periods).
 let WEEKS = ALL_WEEKS;
 let store = null; // the signed-in Firestore store, or a this-device-only store for the sub page
 import { trail } from "./signInTrail.js";
-import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS } from "./boardTools.js?v=63";
+import { tickTools, defaultTools, mergeTools, cleanScene, TOOL_LIST, PANEL_LIST, LESSON_PANELS, MATH_LIST, CALC_LIST } from "./boardTools.js?v=80";
+import { FIND_KEYS } from "./findCore.js?v=2";
 import { setPhotoStore } from "./myPhotos.js?v=1";
-import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=16";
+import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, isOn, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=44";
 import { cleanStickers, renderStickers } from "./stickers.js?v=1";
-import * as snd from "./sound.js?v=61";
+import * as snd from "./sound.js?v=62";
+import { mountYt, cleanYt, cleanRecent } from "./ytMusic.js?v=4";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
 import { senseIdle } from "./roomSense.js?v=1";
-import { openSettings, closeSettings, refreshSettings, psOpen } from "./panelSettings.js?v=2";
-import { applySty } from "./panelStyle.js?v=1";
-import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=62";
+import { openSettings, closeSettings, refreshSettings, psOpen } from "./panelSettings.js?v=30";
+import { applySty, styShown, MATCH_BOARD } from "./panelStyle.js?v=3";
+import { mountGames, syncGames, gameSig, drawStage as drawGame, drawPanel as drawGamePanel, tickGames, gameFlow, gameFlowLabel } from "./games.js?v=63";
 import { mountLive, syncLive, liveSig, drawLiveStage, drawLivePanel, tickLive, liveReview, goReview, reviewBody, liveSound } from "./liveRoom.js?v=90";
-import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes } from "./liveNotes.js?v=11";
+import { mountNotes, syncNotes, drawNotesOverlay, drawNotesPanel, tickNotes, sendPanel, canSend, mountStageLayer } from "./liveNotes.js?v=20";
+import { findItem } from "./findPanel.js?v=15";
 import { cleanPdf, pageUrl } from "./pdfNotes.js?v=1";
 import { notesFrames } from "./notesFrames.js?v=1";
 import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=6";
-import { mountAttendance, syncAttendance } from "./attendanceRemote.js?v=1";
+import { mountAttendance, syncAttendance } from "./attendanceRemote.js?v=18";
 import { cleanChart, cleanPeriod, cleanView, seatCount, drawRoom } from "./seats.js?v=7";
-import { DAILY as SL_DAILY, INDEX as SL_INDEX, MAX_DAILY as SL_MAX_DAILY, cleanDeck, cleanIndex, showList, revealSteps, indexHas, liveContext, lessonDate, textOf } from "./slides.js?v=1";
-import { renderSlide, fitSlide, imageLoader, thumb } from "./slideView.js?v=1";
+import { DAILY as SL_DAILY, INDEX as SL_INDEX, MAX_DAILY as SL_MAX_DAILY, cleanDeck, cleanIndex, showList, revealSteps, indexHas, liveContext, lessonDate, textOf } from "./slides.js?v=2";
+import { renderSlide, fitSlide, imageLoader, thumb } from "./slideView.js?v=2";
 import { markSvg, ensureCss } from "./anchorLoader.js?v=2";
 
 const $ = (id) => document.getElementById(id);
@@ -102,11 +105,11 @@ const spotId = () => "s" + Date.now().toString(36).slice(-6) + Math.random().toS
 const blankSpot = () => cleanScene({ id: spotId(), n: "Spotlight", screen: "canvas" });
 /** A screen can show one of the lesson's slides under its panels and ink: sl is that slide's id (it follows edits made in Slides). */
 const SL_ID = /^[\w-]{1,40}$/;
-function withSl(sc, sl) { if (typeof sl === "string" && SL_ID.test(sl)) sc.sl = sl; return sc; }
+function withSl(sc, sl, pa) { if (typeof sl === "string" && SL_ID.test(sl)) { sc.sl = sl; if (typeof pa === "string" && pa.length < 120) sc.pa = pa; } return sc; }   // pa: the slide's own panels, once opened here
 function cleanSpot(o) {
     const out = {}; if (!o || typeof o !== "object") return out;
     Object.keys(o).filter((k) => /^[\w.-]{1,40}_[\w.-]{1,20}_d[0-4]$/.test(k)).slice(-MAX_SPOT_LESSONS).forEach((k) => {
-        const v = o[k] || {}, s = Array.isArray(v.s) ? v.s.slice(0, MAX_SPOT).map((x) => (x && typeof x === "object" ? withSl(cleanScene(Object.assign({}, x, { id: /^s[a-z0-9]{1,14}$/.test(x.id) ? x.id : spotId(), n: "Spotlight", screen: "canvas" })), x.sl) : blankSpot())) : [];
+        const v = o[k] || {}, s = Array.isArray(v.s) ? v.s.slice(0, MAX_SPOT).map((x) => (x && typeof x === "object" ? withSl(cleanScene(Object.assign({}, x, { id: /^s[a-z0-9]{1,14}$/.test(x.id) ? x.id : spotId(), n: "Spotlight", screen: "canvas" })), x.sl, x.pa) : blankSpot())) : [];
         if (!s.length) return;
         out[k] = { n: Math.max(0, Math.min(s.length - 1, Math.floor(+v.n || 0))), s };
     });
@@ -122,7 +125,7 @@ function cleanWb(o) {
 }
 const S = { week: defaultWeek(), period: "1st", cls: "8th", day: (wd >= 1 && wd <= 5) ? wd - 1 : 0, screen: "today", prob: 0, show: false, note: 0, step: 0, slide: 0, sstep: 0,
     timers: { bell: blankTimer(), round: blankTimer(), check: blankTimer(), free: Object.assign(blankTimer(), { dur: 300 }) }, speedMode: "round", fix: null, tools: defaultTools(), wb: defaultWb(),
-    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true }, look: defaultLook(), stickers: [], seatHi: null, seatView: cleanView(null), bplan: cleanBplan(null), walk: { id: "", step: 0 } };
+    sound: { fx: true, fxv: 0.7, music: false, mv: 0.35, style: "focus", at: "", game: true, src: "gen", yt: null, ytr: [], ytl: true }, look: defaultLook(), stickers: [], seatHi: null, seatView: cleanView(null), bplan: cleanBplan(null), walk: { id: "", step: 0 } };
 
 // This page's own mark on what it saves, so a change from another tab of the same browser can be shown
 // before the server confirms it (those tabs share one offline copy, where it first arrives as "pending").
@@ -244,6 +247,12 @@ const toolApi = { S, el, push, quiet, now, card, rosters: () => ROSTERS, cue: (n
     timerSet: (sec) => { S.timers.free = Object.assign(blankTimer(), { dur: sec }); },
     // the Slide panel (js/panels.js slidePanel): this lesson's slides, drawn to fit the panel
     slideList: () => slList(), slidesReady: () => !slOn || slLoaded(),
+    // the Find panel (js/findPanel.js): Show Steps for a bank problem that has a worked example. The board itself only
+    // plays one the teacher has checked; the Remote and the Board Builder can open any, and check it there.
+    find: { mode: () => mode + (studio ? "+studio" : ""), stepsOk: (id) => !!WALKOK[id],
+        canSteps: (id) => mode !== "sub" && (!!WALKOK[id] || mode === "remote" || !!studio),
+        showSteps: (id) => { S.walk = { id, step: 0 }; S.screen = "steps"; S.show = false; push(); },
+        open: (k, from) => { if (!FIND_KEYS.includes(k)) return; const p = findSpot(from); panelOn(S.tools, k); if (p) S.tools.pos[k] = p; push(); } },   // "New panel": the next Find panel, beside the one it came from
     slideInto: (host, sl) => { host.textContent = ""; const r = renderSlide(sl, { step: revealSteps(sl), fresh: 0, live: slLive(), img: slImg().src, logo: lookSeal(), scale: (host.clientWidth || 640) / 1600 }); r.setAttribute("role", "img"); r.setAttribute("aria-label", "Slide"); host.appendChild(r); fitSlide(host, r); } };
 function toolSig() { const t = Object.assign({}, S.tools); delete t.text; t.goal = Object.assign({}, t.goal); delete t.goal.text; const f = S.timers.free; return JSON.stringify([t, S.period, Object.keys(ROSTERS).map((k) => k + ROSTERS[k].length), f.running, f.dur, f.t0, f.elapsed, S.week, S.cls, S.day, !!BELLS, S.tools.on.agenda ? [S.screen, S.screen === "notes" ? S.note : 0] : 0]); }
 const panelOk = (k) => !(mode === "sub" && (k === "pick" || k === "groups" || (k === "cam" && !studio)));   // a sub never gets the camera (the Board Builder demo does)
@@ -283,7 +292,7 @@ function slWatch() {
     SL.key = k; SL.lesson = null; SL.ver++; if (slUnsub) { slUnsub(); slUnsub = null; }
     slUnsub = store.watch("slides/" + k, (snap) => { if (snap.pending || SL.key !== k) return; SL.lesson = cleanDeck(snap.exists ? snap.data : null); SL.ver++; slChanged(); }, () => { if (SL.key === k) { SL.lesson = cleanDeck(null); SL.ver++; slChanged(); } });
 }
-function slChanged() { if (!synced) return; if (S.screen === "deck") sig = ""; if (S.tools.on.slide) layerSig = ""; render(); }
+function slChanged() { if (!synced) return; if (S.screen === "deck") sig = ""; if (S.tools.on.slide) layerSig = ""; if (S.screen === "canvas" && spotPanels()) { push(); return; } render(); }
 const slLoaded = () => slOn && SL.key === lessonKeyNow() && !!SL.lesson && !!SL.daily;
 const slList = () => (slLoaded() ? showList(SL.daily, SL.lesson) : []);
 /** Whether a lesson has slides to show: its own list once loaded, else the index. */
@@ -313,7 +322,7 @@ function drawDeck(st) {
     }
     const steps = revealSteps(dn.s), at = Math.min(S.sstep, steps), k2 = dn.s.id + ":" + at, was = slLast.split(":");
     const fresh = at && was[0] === dn.s.id && +was[1] === at - 1 ? at : 0; slLast = k2;
-    const r = renderSlide(dn.s, { step: at, fresh, live: slLive(), img: slImg().src, logo: lookSeal(), scale: (st.clientWidth || 1280) / 1600 });
+    const r = renderSlide(dn.s, { step: at, fresh, live: slLive(), img: slImg().src, logo: lookSeal(), scale: (st.clientWidth || 1280) / 1600, walk: slWalk });
     r.setAttribute("role", "img"); r.setAttribute("aria-label", "Slide " + (dn.i + 1) + " of " + dn.list.length);
     host.appendChild(r); fitSlide(host, r);
     const cv = makeCv(); cv.classList.add("deckink"); cv.classList.toggle("drawoff", !slPen); box.appendChild(cv);
@@ -337,6 +346,7 @@ function studioApi() {
     return { S, el, push, toolApi, planApi, rich, screens: () => SCREENS.filter((x) => screenOrder().includes(x[0])), screenOk, panelOk,
         day: () => D(), lesson: () => L(), week: () => W(), classLabel: () => { const l = L(); return (l && l.label) || S.cls; }, dayName: () => FULL[S.day] || "",
         synced: () => synced, guest: () => mode === "sub", rosters: () => ROSTERS, bells: () => BELLS,
+        music: () => yt,   // the YouTube music panel (js/ytMusic.js): Spotlight opens it from its toolbar
         lessonKey: () => lessonKeyNow(), dayNames: () => FULL.slice(), goDay: (i) => { S.day = i; resetPos(); push(); },
         // Slides (js/slideEditor.js): the store, every week (published and private), a day's notes frames, and "Show on board"
         store: () => store, allWeeks: () => WEEKS, framesFor: (w, c, i) => { const wk = WEEKS.find((x) => x.id === w), l = wk && wk.classes[c], d = l && l.days && l.days[i]; return d ? notesFrames(d) : []; },
@@ -750,7 +760,11 @@ const unlockSound = () => snd.unlock();
    Settings are shared, so the Remote turns music on and the board plays it. */
 const DEVICE = (() => { try { let id = localStorage.getItem("anchorboard-device-id"); if (!id) { id = Math.random().toString(36).slice(2, 10); localStorage.setItem("anchorboard-device-id", id); } return id; } catch (e) { return Math.random().toString(36).slice(2, 10); } })();
 function playsHere() { return mode === "sub" || (S.sound.at ? S.sound.at === DEVICE : document.body.classList.contains("board")); }
-function soundSync() { snd.set(S.sound, playsHere()); soundControls(); }
+// YouTube music (js/ytMusic.js) uses the same switch, volume and speaker; while a YouTube pick is the music,
+// the built-in music stays quiet.
+let yt = null, ytTapWas = false;
+function soundSync() { snd.set(S.sound.src === "yt" ? Object.assign({}, S.sound, { music: false }) : S.sound, playsHere()); if (yt) yt.sync(); soundControls(); }
+const ytWantsTap = () => !!yt && yt.wantsTap();
 /* Every timer, every quarter second, whatever screen is showing. */
 function soundTick() {
     const sec = (t) => Math.max(0, Math.floor((t.running ? now() - t.t0 : t.elapsed) / 1000));
@@ -758,6 +772,7 @@ function soundTick() {
     const r = S.timers.round; snd.watchTimer({ kind: "round", running: r.running, secs: sec(r), round: { len: ROUND, gap: GAP } });
     // Vault Raid: the theme song follows the game, and each big moment has its own sound.
     const g = liveSound(); snd.gameSong(g.song); snd.gamePhase(g.phase); g.cues.forEach((c) => snd.cue(c));
+    { const w = ytWantsTap(); if (w !== ytTapWas) { ytTapWas = w; soundControls(); } }
 }
 let musicGroup = "";   // which group of music styles the Sound menu is showing
 function soundPanel() {
@@ -767,7 +782,8 @@ function soundPanel() {
     const b = el("div", "sndbox"); box.appendChild(b);
     const toggle = (id, label) => { const x = el("button", "sndtog"); x.type = "button"; x.id = id; x.appendChild(el("span", null, label)); x.appendChild(el("i")); b.appendChild(x); return x; };
     const slider = (id, label) => { const w = el("label", "sndvol"); w.appendChild(el("span", null, label)); const r = el("input"); r.type = "range"; r.min = "0"; r.max = "100"; r.step = "5"; r.id = id; w.appendChild(r); b.appendChild(w); return r; };
-    toggle("sndMusic", "Music").onclick = () => { S.sound.music = !S.sound.music; snd.unlock(); push(); };
+    toggle("sndMusic", "Music").onclick = () => { S.sound.music = !S.sound.music; snd.unlock(); if (yt) yt.unlock(); push(); };
+    { const yb = el("button", "btn ghost ytopen"); yb.id = "sndYt"; yb.type = "button"; yb.textContent = "YouTube music\u2026"; yb.onclick = () => { if (yt) yt.open(); }; b.appendChild(yb); }
     // Music styles in groups: a row of group chips, then the styles in that group (js/genres.js has the list).
     const grp = el("div", "seg sndgrp"); grp.id = "sndGroup"; grp.setAttribute("role", "group"); grp.setAttribute("aria-label", "Kind of music"); b.appendChild(grp);
     const sty = el("div", "seg sndsty"); sty.id = "sndStyle"; sty.setAttribute("role", "group"); sty.setAttribute("aria-label", "Music style"); b.appendChild(sty);
@@ -789,7 +805,7 @@ function soundPanel() {
     if (host) { box.open = true; host.appendChild(box); } else { const anchor = $("filesMenu") || $("toolsMenu"); anchor.after(box); }
     // The quick switch in the top bar, so music goes on and off without scrolling the rail.
     const q = el("button", "btn ghost musicbtn"); q.id = "musicBtn"; q.type = "button"; q.title = "Background music (M key)";
-    q.onclick = () => { S.sound.music = !S.sound.music; snd.unlock(); push(); };
+    q.onclick = () => { S.sound.music = !S.sound.music; snd.unlock(); if (yt) yt.unlock(); push(); };
     $("boardBtn").before(q);
     snd.onChange(soundControls);
 }
@@ -833,8 +849,8 @@ function phoneHeader() {
 function soundControls() {
     const box = $("soundMenu");
     let tap = $("sndTap");   // a screen that should play but has not been tapped yet (browsers need one tap first)
-    if (!tap) { tap = el("button", "sndtap", "Tap for sound"); tap.id = "sndTap"; tap.type = "button"; tap.onclick = (e) => { e.stopPropagation(); snd.unlock(); }; document.body.appendChild(tap); }
-    tap.hidden = !(synced && snd.wanted() && !snd.running());
+    if (!tap) { tap = el("button", "sndtap", "Tap for sound"); tap.id = "sndTap"; tap.type = "button"; tap.onclick = (e) => { e.stopPropagation(); snd.unlock(); if (yt) yt.unlock(); }; document.body.appendChild(tap); }
+    tap.hidden = !(synced && ((snd.wanted() && !snd.running()) || ytWantsTap()));
     if (!box) return;
     const so = S.sound, here = playsHere();
     const on = (id, v) => { const x = $(id); x.setAttribute("aria-pressed", String(v)); x.querySelector("i").textContent = v ? "On" : "Off"; };
@@ -843,14 +859,16 @@ function soundControls() {
     if (!musicGroup || !groups.some((g) => g[0] === musicGroup)) musicGroup = mine ? mine[0] : groups[0][0];
     if ($("sndGroup")) seg($("sndGroup"), groups.map((g) => [g[0], g[0] + (mine && mine[0] === g[0] ? " \u2022" : "")]), musicGroup, (v) => { musicGroup = v; soundControls(); });
     const shown = (groups.find((g) => g[0] === musicGroup) || groups[0])[1];
-    seg($("sndStyle"), shown, so.style, (v) => { S.sound.style = v; S.sound.music = true; snd.unlock(); push(); });
+    seg($("sndStyle"), shown, so.style, (v) => { S.sound.style = v; S.sound.src = "gen"; S.sound.music = true; snd.unlock(); push(); });
     [["sndMv", so.mv], ["sndFv", so.fxv]].forEach(([id, v]) => { const r = $(id); if (document.activeElement !== r) r.value = String(Math.round(v * 100)); });
     if ($("sndAt")) seg($("sndAt"), [["board", "The board"], ["here", "This device"]], so.at && so.at === DEVICE ? "here" : (so.at ? "other" : "board"), (v) => { S.sound.at = v === "here" ? DEVICE : ""; snd.unlock(); push(); });
-    $("soundCount").textContent = so.music ? "Music on" : "";
+    const ytOn = so.src === "yt" && !!so.yt;
+    $("soundCount").textContent = so.music ? (ytOn ? "YouTube on" : "Music on") : "";
+    if ($("sndYt")) $("sndYt").textContent = ytOn ? "YouTube: " + (so.yt.t || "video") : "YouTube music\u2026";
     const q = $("musicBtn"); if (q) { q.textContent = so.music ? "Music on" : "Music off"; q.setAttribute("aria-pressed", String(so.music)); }
     let note;
     if (!so.music && !so.fx && !so.game) note = "Sound is off.";
-    else if (here) note = snd.running() ? "Playing on this device." : "Tap this screen once to let it play sound.";
+    else if (here) note = snd.running() && !ytWantsTap() ? "Playing on this device." : "Tap this screen once to let it play sound.";
     else if (so.at) note = "Playing on another device.";
     else note = "Playing on the board. If it stays quiet, tap the board once.";
     $("sndNote").textContent = note;
@@ -882,13 +900,14 @@ function render() {
     if (!synced) { const st = $("screenHost"); if (!st.querySelector(".skel")) { st.textContent = ""; st.appendChild(skeleton()); } return; }
     slWatch(); syncGames(); syncLive(); syncNotes(); syncAttendance(); buildControls(); soundSync(); applyLook(S.look); renderLookFold(); renderEditLink(); drawStickers(); deckNotes();
     if (studio && studio.render) studio.render();
-    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : "", S.screen === "seats" ? seatSig() : "", S.screen === "steps" ? stepsSig() : "", S.screen === "deck" ? JSON.stringify([SL.ver, S.slide, S.sstep, slPen, S.look.mark, inkBase()]) : "", S.screen === "canvas" ? JSON.stringify([inkBase(), pageNow(), pageCount(), spotDraw, (spotDeck() || { s: [] }).s.map((x) => x.sl || "").join(","), (spotDeck() || { n: 0 }).n, SL.ver]) : ""]);
+    const l = L(), d = D(), ns = JSON.stringify([S.week, S.period, S.cls, S.day, S.screen, S.prob, S.show, S.note, S.step, S.timers.free.dur, S.speedMode, !!speedFix, signedIn, S.screen === "game" ? gameSig() : "", S.screen === "live" ? liveSig() : "", S.screen === "fix" ? JSON.stringify([S.fix, !!sdSet()]) : "", wbKind() ? JSON.stringify([S.wb.card.w, S.wb.card.hide, inkBase(), pageNow(), pageCount()]) : "", S.screen === "seats" ? seatSig() : "", S.screen === "steps" ? stepsSig() : "", S.screen === "deck" ? JSON.stringify([SL.ver, S.slide, S.sstep, slPen, S.look.mark, inkBase()]) : "", S.screen === "canvas" ? JSON.stringify([inkBase(), pageNow(), pageCount(), spotDraw, (spotDeck() || { s: [] }).s.map((x) => x.sl || "").join(","), (spotDeck() || { n: 0 }).n, SL.ver, S.sstep, walkIn, WALKOK]) : "", S.screen === "deck" ? JSON.stringify([walkIn, WALKOK]) : ""]);
     renderDock(); drawGamePanel(); drawLivePanel(); drawNotesPanel(); refreshSettings();
     if (sheetOpen()) refreshSheet();
     if (ns === sig) { if (S.screen === "steps") stepsSync(); renderLayer(); tick(); tickTools(toolApi); placeCard(); return; }
     sig = ns;
     if (S.screen !== "seats") seatLast = "";
     if (stepPlayer) { stepPlayer.destroy(); stepPlayer = null; stepFor = ""; }
+    slPlayers.splice(0).forEach((p) => { try { p.destroy(); } catch (e) { /* gone */ } });
     const st = $("screenHost"); st.textContent = ""; canvas = null; ctx = null; pad = null;
     if (S.screen === "seats") { drawSeats(st); renderLayer(); watchInk(); return; }
     if (S.screen === "steps") { drawSteps(st); renderLayer(); watchInk(); return; }
@@ -944,8 +963,26 @@ function render() {
    Only walkthroughs the teacher has checked (walk.html, or "Looks right" here on the Remote) are ever shown on the board. */
 let walkMods = null, WALKITEMS = null, WALKOK = {}, WALKED = {}, walkIn = false, stepPlayer = null, stepFor = "", stepReady = false;
 function stepsLoad() {
-    if (!walkMods) walkMods = Promise.all([import("./walkBank.js?v=1"), import("./stepPlayer.js?v=1"), import("./walk.js?v=1")]).then(async ([wb, sp, wk]) => { WALKITEMS = await wb.loadWalkItems(); return { wb, sp, wk }; });
+    if (!walkMods) walkMods = Promise.all([import("./walkBank.js?v=14"), import("./stepPlayer.js?v=6"), import("./walk.js?v=14")]).then(async ([wb, sp, wk]) => { WALKITEMS = await wb.loadWalkItems(); return { wb, sp, wk }; });
     return walkMods;
+}
+/* Show Steps on a slide (Board Builder > Slides > Show Steps): the same player, inside the slide, one step per Next.
+   Only a walkthrough the teacher has checked plays (adding one in Slides checks it); the slide redraws on each step,
+   so the player is laid down at the step before and animates the one move. */
+const slPlayers = [];
+function slWalk(node, e, i, animate) {
+    const box = el("div", "slwkhost"); node.appendChild(box);
+    const wait = (t) => { box.textContent = ""; box.appendChild(el("p", "slwkwait", t)); };
+    if (!walkIn && !guestMode()) { wait("Getting the walkthrough…"); return; }
+    if (!WALKOK[e.wid] && !guestMode()) { wait("Check this walkthrough in Slides before it shows here."); return; }
+    stepsLoad().then(({ wb, sp }) => {
+        if (!box.isConnected) return;
+        const item = WALKITEMS.find((x) => x.id === e.wid), w = item && wb.walkOf(item);
+        if (!w || !w.ok) { wait("That walkthrough is not available."); return; }
+        const p = sp.createStepPlayer(box, wb.withEdits(w, WALKED[e.wid]), { big: true, controls: false }); slPlayers.push(p);
+        const j = Math.min(i, w.steps.length - 1);
+        if (animate && j > 0) { p.go(j - 1, false); p.go(j, true); } else p.go(j, false);
+    });
 }
 function stepsSig() { return JSON.stringify([S.walk.id, !!WALKOK[S.walk.id], walkIn, WALKED[S.walk.id] || null, mode === "remote" ? S.cls : ""]); }
 function stepsSync() {
@@ -955,7 +992,7 @@ function stepsSync() {
 }
 function drawSteps(st) {
     const remote = mode === "remote", id = S.walk.id;
-    st.appendChild(header("Show Steps", "Watch each move, then try the next one yourself"));
+    const hd = header("Show Steps", ""); hd.classList.add("slim"); st.appendChild(hd);   // a slim header, so the step itself gets the room (Eddie, Nov 24)
     const body = el("div", "body stepsbody"); st.appendChild(body);
     const pick = remote ? el("div", "steppick") : null;
     if (pick) body.appendChild(pick);
@@ -1248,19 +1285,33 @@ function blanked(text, reveal) {
 }
 
 /* ---------- floating tools (shown over every screen) ---------- */
-const DEFAULT_POS = { slide: [2, 2], cam: [56, 34], pick: [34, 30], groups: [10, 24],  traffic: [2, 23], work: [10, 55], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40], goal: [60, 30], ptimer: [66, 18], target: [24, 8], agenda: [4, 18], period: [66, 6] };
+const DEFAULT_POS = { calc: [62, 8], sci: [38, 6], graph: [4, 4], balance: [6, 6], chance: [10, 6], line: [8, 6], xform: [6, 4], pyth: [12, 6], counters: [14, 10], angle: [10, 5], fn: [10, 5], area: [10, 5], nl: [10, 5], sys: [10, 5], scat: [10, 5], tape: [10, 5], vol: [10, 5], find: [44, 4], find2: [4, 30], find3: [36, 30], find4: [68, 30], slide: [2, 2], cam: [56, 34], pick: [34, 30], groups: [10, 24],  traffic: [2, 23], work: [10, 55], text: [48, 23], stopwatch: [72, 60], dice: [46, 60], clock: [20, 66], score: [28, 40], goal: [60, 30], ptimer: [66, 18], target: [24, 8], agenda: [4, 18], period: [66, 6] };
 let topZ = 1;
 let layerSig = "", dragging = false;
+/** Where a new Find panel goes: beside the Find panel it was opened from (right, left, then below), clear of the other
+    Find panels, so a row of them reads like anchor charts. Null when there's no room: the usual open spot then. */
+function findSpot(from) {
+    const stage = $("stage"), sr = stage && stage.getBoundingClientRect(), src = from && document.querySelector('#toolLayer .float[data-panel="' + from + '"]');
+    if (!sr || !sr.width || !src) return null;
+    const pct = (b) => ({ l: (b.left - sr.left) / sr.width * 100, t: (b.top - sr.top) / sr.height * 100, w: b.width / sr.width * 100, h: b.height / sr.height * 100 });
+    const a = pct(src.getBoundingClientRect()), gap = 1.2;
+    const others = FIND_KEYS.map((x) => S.tools.on[x] && !S.tools.min[x] && document.querySelector('#toolLayer .float[data-panel="' + x + '"]')).filter(Boolean).map((e) => pct(e.getBoundingClientRect()));
+    const free = (x, y) => x >= 0 && y >= 0 && x + a.w <= 100 && y + a.h <= 100 && !others.some((o) => x < o.l + o.w + gap / 2 && x + a.w + gap / 2 > o.l && y < o.t + o.h + gap / 2 && y + a.h + gap / 2 > o.t);
+    const tries = [[a.l + a.w + gap, a.t], [a.l - a.w - gap, a.t], [a.l, a.t + a.h + gap], [a.l, a.t - a.h - gap]];
+    for (let y = 2; y <= 96; y += 4) for (let x = 2; x <= 96; x += 4) tries.push([x, y]);
+    const hit = tries.find(([x, y]) => free(x, y)); if (!hit) return null;
+    return { x: Math.round(hit[0] * 10) / 10, y: Math.round(hit[1] * 10) / 10, s: posOf(from).s || 1 };
+}
 function posOf(k) { const p = S.tools.pos[k]; if (p) return p; const d = DEFAULT_POS[k] || [10, 30]; return { x: d[0], y: d[1], s: 1 }; }
 /* The Remote's rail: every panel as a switch. */
 function renderDock() {
     const dock = $("dock"); if (!dock) return; const T = S.tools;
     { const n = Object.keys(T.on).length, tc = $("toolCount"); if (tc) tc.textContent = n ? n + " on" : ""; }
     // Same switches as last time: update them in place, so a flipped switch slides instead of being redrawn already on.
-    const keys = LESSON_PANELS.concat(TOOL_LIST).filter(([k]) => panelOk(k)).map(([k]) => k).join(",") + "|" + mode + "|" + studio;
+    const keys = LESSON_PANELS.concat(CALC_LIST, TOOL_LIST, MATH_LIST).filter(([k]) => panelOk(k)).map(([k]) => k).join(",") + "|" + mode + "|" + studio;
     if (dock.dataset.keys === keys && dock.firstChild) {
         dock.querySelectorAll("button.psw").forEach((b) => {
-            const k = b.dataset.k, on = !!T.on[k], small = on && !!T.min[k];
+            const k = b.dataset.k, on = isOn(T, k), small = on && (k === "find" ? FIND_KEYS.filter((x) => T.on[x]).every((x) => T.min[x]) : !!T.min[k]);
             if (b.getAttribute("aria-pressed") !== String(on)) b.setAttribute("aria-pressed", String(on));
             const d = b.querySelector(".dmin"); if (small && !d) b.insertBefore(el("small", "dmin", "small"), b.querySelector(".swk")); else if (!small && d) d.remove();
             b.title = small ? "Show it again" : "";
@@ -1271,12 +1322,12 @@ function renderDock() {
     dock.textContent = ""; dock.dataset.keys = keys;
     // No layout chips here (Eddie, 2026-11-23: "get rid of these layouts in the panel view"). Layouts still live in
     // "All panels and layouts" and in bell steps.
-    [["Lesson", LESSON_PANELS], ["Classroom", TOOL_LIST]].forEach(([h, list]) => {
+    [["Lesson", LESSON_PANELS], ["Calculators", CALC_LIST], ["Classroom", TOOL_LIST], ["Math tools", MATH_LIST]].forEach(([h, list]) => {
         dock.appendChild(el("p", "dockh", h));
         list.filter(([k]) => panelOk(k)).forEach(([k, label]) => {
             // An on/off slider for each panel (Eddie, 2026-11-20: "toggle on and off sliders").
-            const b = el("button", "psw"); b.type = "button"; b.dataset.k = k; b.setAttribute("aria-pressed", String(!!T.on[k])); b.appendChild(el("span", "pswl", label));
-            if (T.on[k] && T.min[k]) { b.appendChild(el("small", "dmin", "small")); b.title = "Show it again"; }
+            const b = el("button", "psw"); b.type = "button"; b.dataset.k = k; b.setAttribute("aria-pressed", String(isOn(T, k))); b.appendChild(el("span", "pswl", label));
+            if (isOn(T, k) && (k === "find" ? FIND_KEYS.filter((x) => T.on[x]).every((x) => T.min[x]) : T.min[k])) { b.appendChild(el("small", "dmin", "small")); b.title = "Show it again"; }
             b.appendChild(el("i", "swk"));
             b.onclick = () => { panelToggle(T, k); push(); }; dock.appendChild(b);
         });
@@ -1350,6 +1401,8 @@ function panelHead(k, w, docked, canDock) {
     const g = hbtn("gear", "Settings for " + labelOf(k), () => { closeMenu(); openSettings(k, psApi()); }, psOpen() === k ? "on" : "");
     const m = hbtn("more", "More for " + labelOf(k), () => openMenu(k), pmenu.k === k ? "on" : "");
     const x = hbtn("trash", "Remove " + labelOf(k), () => { closeMenu(); panelOps.remove(k); });
+    // Send to students (js/liveNotes.js): a tool, or a Find panel's problem, to every Chromebook in live notes
+    if (!guestMode() && !studio && !tvView && canSend(k, S.tools)) tail.appendChild(hbtn("send", (/^find\d?$/.test(k) ? "Send this problem" : "Send the " + labelOf(k).toLowerCase()) + " to students' Chromebooks", () => { closeMenu(); sendPanel(k); }, "sendbtn"));
     tail.append(g, m, x);
     if (pmenu.k === k) w.appendChild(panelMenu(k, docked, canDock));
     return tail;
@@ -1398,12 +1451,13 @@ const inside = (r, e) => e.clientX >= r.left && e.clientX <= r.right && e.client
 /** Where a panel dropped on the shelf goes: before the first docked panel whose middle is below the pointer. */
 function shelfSlot(shelf, y, skip) { for (const c of shelf.querySelectorAll(".docked")) { if (c === skip) continue; const r = c.getBoundingClientRect(); if (y < r.top + r.height / 2) return c; } return shelf.querySelector(".ptray"); }
 /** A panel's own style (js/panelStyle.js): color, finish, how see-through. "Match board" takes the board look's colors. */
-function styOf(w, k) { const st = (S.tools.sty || {})[k]; if (st) applySty(w, st, themeCols(S.look.theme)); }
+const STY_MATCH = new Set(MATH_LIST.concat(CALC_LIST).map((x) => x[0]));   // math tools and calculators open in "Match board"
+function styOf(w, k) { const st = styShown((S.tools.sty || {})[k], STY_MATCH.has(k) ? MATCH_BOARD : null); if (st) applySty(w, st, themeCols(S.look.theme)); }
 let placed = {};   // where each panel was last drawn, so only a panel that just arrived animates in
 function renderLayer() {
     const layer = $("toolLayer"); if (!layer || dragging) return;
     const ns = toolSig(); if (ns === layerSig) return; layerSig = ns;
-    const typingId = document.activeElement && ["toolMsgIn", "toolGoalIn"].includes(document.activeElement.id) ? document.activeElement.id : "", typing = !!typingId, caret = typing ? document.activeElement.selectionStart : 0;
+    const typingId = document.activeElement && (["toolMsgIn", "toolGoalIn"].includes(document.activeElement.id) || /^(findIn|mtIn)/.test(document.activeElement.id)) ? document.activeElement.id : "", typing = !!typingId, caret = typing ? document.activeElement.selectionStart : 0;
     layer.textContent = ""; const shelf = shelfEl(), docked = shelfKeys(), chips = chipKeys(), canDock = !narrowWrap(), stage = $("stage"); shelf.textContent = "";
     const T = S.tools, minimize = (k) => { T.min[k] = true; push(); }, now2 = {};
     docked.forEach((k) => {   // on the shelf: beside the lesson, never over it
@@ -1517,7 +1571,7 @@ function spotSnap(id) {
     const T = S.tools, on = {}, min = {}, pos = {};
     Object.keys(T.on).forEach((k) => { on[k] = true; if (T.min[k]) min[k] = true; if (T.pos[k]) pos[k] = T.pos[k]; });
     const was = id && spotDeck() ? spotDeck().s.find((x) => x.id === id) : null;
-    return withSl(cleanScene({ id: id || spotId(), n: "Spotlight", screen: "canvas", on, min, pos, order: T.order.slice(), work: T.on.work ? T.work : "", look: S.look, stk: S.stickers || [] }), was && was.sl);
+    return withSl(cleanScene({ id: id || spotId(), n: "Spotlight", screen: "canvas", on, min, pos, order: T.order.slice(), work: T.on.work ? T.work : "", look: S.look, stk: S.stickers || [] }), was && was.sl, was && was.pa);
 }
 /** The slide a Spotlight screen shows, or null (a plain screen, or a slide since deleted in Slides). */
 function spotSlide(sc) { if (!sc || !sc.sl) return null; return slList().find((x) => x.id === sc.sl) || null; }
@@ -1529,7 +1583,7 @@ function spotAddSlides(ids, go) {
         if (d.s.length >= MAX_SPOT) return;
         const sc = withSl(blankSpot(), id); sc.look = JSON.parse(JSON.stringify(S.look)); d.s.splice(at++, 0, sc); n++;
     });
-    if (go !== undefined && go >= 0) { d.n = Math.min(go, d.s.length - 1); applyScene(S, d.s[d.n], Object.assign({}, toolApi, { push: () => {} })); }
+    if (go !== undefined && go >= 0) { d.n = Math.min(go, d.s.length - 1); applyScene(S, d.s[d.n], Object.assign({}, toolApi, { push: () => {} })); S.sstep = 0; spotPanels(); }
     S.screen = "canvas"; push(); return n;
 }
 /** The lesson's Spotlight screens, made the first time with what the board shows now as screen 1. */
@@ -1538,16 +1592,47 @@ function spotEnsure() {
     if (!d) { const ks = Object.keys(S.wb.spot); if (ks.length >= MAX_SPOT_LESSONS) delete S.wb.spot[ks[0]]; d = S.wb.spot[k] = { n: 0, s: [spotSnap("s0")] }; }
     return d;
 }
-/** Leave screen d.n (keeping its panels, look and stickers) and open screen i with its own. */
-function spotGo(i) {
+/** Leave screen d.n (keeping its panels, look and stickers) and open screen i with its own.
+    A slide screen opens with its "on Next" pieces held back (back: everything showing), and with the slide's own panels. */
+function spotGo(i, back) {
     const d = spotEnsure(); i = Math.max(0, Math.min(d.s.length - 1, i));
     d.s[d.n] = spotSnap(d.s[d.n].id); d.n = i; S.screen = "canvas"; S.show = false;
-    applyScene(S, d.s[i], Object.assign({}, toolApi, { push: () => {} })); push();
+    applyScene(S, d.s[i], Object.assign({}, toolApi, { push: () => {} }));
+    const sl = spotSlide(d.s[i]); S.sstep = back && sl ? revealSteps(sl) : 0;
+    spotPanels(); push();
+}
+/** Next and Back in Spotlight: a slide's pieces set to appear on Next (an answer, each step of a Show Steps) come first,
+    then the next screen. Returns false when there is nowhere to go. */
+function spotStep(n) {
+    const d = spotDeck(); if (!d) return false;
+    const sl = spotSlide(d.s[d.n]), steps = sl ? revealSteps(sl) : 0, at = Math.min(S.sstep, steps);
+    if (n > 0 && at < steps) { S.sstep = at + 1; push(); return true; }
+    if (n < 0 && at > 0) { S.sstep = at - 1; push(); return true; }
+    if (d.n + n < 0 || d.n + n >= d.s.length) return false;
+    spotGo(d.n + n, n < 0); return true;
+}
+/** A slide can carry panels for Spotlight to open (Slides > Panels: a timer, the learning target, the agenda). They open the
+    first time Spotlight reaches the slide, and again only if the slide's panels change, so a panel closed in class stays closed.
+    Only the device that is teaching does this (the Board Builder or the Remote); the board follows. */
+function spotPanels() {
+    if (mode === "board") return false;   // the board only shows; a Remote, a sub or the Board Builder opens them
+    const d = spotDeck(), sc = d && d.s[d.n], sl = spotSlide(sc); if (!sl) return false;
+    const want = sl.pn ? JSON.stringify(sl.pn) : ""; if ((sc.pa || "") === want) return false;
+    sc.pa = want; if (!sl.pn) return true;
+    const T = S.tools;
+    if (sl.pn.tm) { panelOn(T, "ptimer"); S.timers.free = Object.assign(blankTimer(), { dur: sl.pn.tm }); }
+    if (sl.pn.tg) panelOn(T, "target");
+    if (sl.pn.ag) panelOn(T, "agenda");
+    return true;
 }
 const spotApi = {
     open() { const d = spotEnsure(); if (S.screen !== "canvas") { S.screen = "canvas"; S.show = false; } d.n = Math.min(d.n, d.s.length - 1); push(); },
     pages: () => { const d = spotDeck(); return d ? { n: d.n, count: d.s.length, max: MAX_SPOT } : { n: 0, count: 1, max: MAX_SPOT }; },
     go: (i) => spotGo(i),
+    /** Next (1) or Back (-1): the slide's next piece first, then the next screen. */
+    step: (n) => spotStep(n),
+    /** How far this screen's slide has been revealed: { at, steps } (steps 0: nothing waits for Next). */
+    reveal: () => { const d = spotDeck(), sl = d ? spotSlide(d.s[d.n]) : null, steps = sl ? revealSteps(sl) : 0; return { at: Math.min(S.sstep, steps), steps }; },
     /** A new screen right after this one: the same look, no panels and no drawing yet. */
     add() {
         const d = spotEnsure(); if (d.s.length >= MAX_SPOT) return false;
@@ -1586,13 +1671,15 @@ function drawSpot(st) {
     const box = el("div", "spotx"), dd = spotDeck(), sc = dd && dd.s[dd.n], sl = spotSlide(sc);
     if (sl) {   // a slide screen: the slide fills the board, everything showing, with the panels and ink over it
         const host = el("div", "deckhost spotslide"); box.appendChild(host); box.classList.add("hasslide");
-        const r = renderSlide(sl, { step: revealSteps(sl), fresh: 0, live: slLive(), img: slImg().src, logo: lookSeal(), scale: (st.clientWidth || 1280) / 1600 });
+        const steps = revealSteps(sl), at = Math.min(S.sstep, steps), was = slLast.split(":"), fresh = at && was[0] === sl.id && +was[1] === at - 1 ? at : 0; slLast = sl.id + ":" + at;
+        const r = renderSlide(sl, { step: at, fresh, live: slLive(), img: slImg().src, logo: lookSeal(), scale: (st.clientWidth || 1280) / 1600, walk: slWalk });
         r.setAttribute("role", "img"); r.setAttribute("aria-label", "Slide"); host.appendChild(r); fitSlide(host, r);
     } else if (sc && sc.sl && slLoaded()) { const g = el("p", "spotgone", "This slide was deleted in Slides. The screen keeps its panels and drawing."); box.appendChild(g); }
     const cv = makeCv(); cv.classList.add("spotink");
     if (studio && !spotDraw) cv.classList.add("drawoff");
     box.appendChild(cv);
-    const d = spotDeck(); if (d && d.s.length > 1) { const c = el("p", "spotcount", (d.n + 1) + " / " + d.s.length); box.appendChild(c); }
+    const d = spotDeck(), rv = sl ? revealSteps(sl) : 0;
+    if (d && (d.s.length > 1 || rv)) { const c = el("p", "spotcount", (d.s.length > 1 ? (d.n + 1) + " / " + d.s.length : "") + (rv ? (d.s.length > 1 ? " \u00b7 " : "") + (Math.min(S.sstep, rv) < rv ? "more on Next" : "all shown") : "")); box.appendChild(c); }
     st.appendChild(box); bindCanvas(); sizeCanvas();
 }
 
@@ -1814,14 +1901,16 @@ function applyState(d) {
     S.seatHi = d.seatHi && typeof d.seatHi.n === "string" && typeof d.seatHi.at === "number" ? { n: d.seatHi.n.slice(0, 60), at: d.seatHi.at } : null;
     S.walk = d.walk && typeof d.walk.id === "string" ? { id: d.walk.id.slice(0, 40), step: Math.max(0, Math.min(40, Math.floor(+d.walk.step || 0))) } : { id: "", step: 0 };
     { const o = d.sound || {}, v = (x, def) => (typeof x === "number" && x >= 0 && x <= 1 ? x : def);
-        S.sound = { fx: o.fx !== false, fxv: v(o.fxv, 0.7), music: !!o.music, mv: v(o.mv, 0.35), style: snd.STYLES.some((x) => x[0] === o.style) ? o.style : "focus", at: typeof o.at === "string" ? o.at.slice(0, 20) : "", game: o.game !== false }; }
+        S.sound = { fx: o.fx !== false, fxv: v(o.fxv, 0.7), music: !!o.music, mv: v(o.mv, 0.35), style: snd.STYLES.some((x) => x[0] === o.style) ? o.style : "focus", at: typeof o.at === "string" ? o.at.slice(0, 20) : "", game: o.game !== false,
+            yt: cleanYt(o.yt), ytr: cleanRecent(o.ytr), ytl: o.ytl !== false };
+        S.sound.src = o.src === "yt" && S.sound.yt ? "yt" : "gen"; }
     ["bell", "round", "check", "free"].forEach((k) => { const t = d.timers && d.timers[k]; if (t) { S.timers[k] = { running: !!t.running, t0: +t.t0 || 0, elapsed: +t.elapsed || 0 }; if (k === "free") S.timers.free.dur = +t.dur || 300; } });
 }
 /* One-tap lesson flow: Weekly Agenda -> Today -> each bellringer problem and its answer -> the day's activity. */
 function isSpeedDay() { const d = D(); return !!d && /speed dating/i.test((d.agendaLine || "") + " " + (d.agenda || []).join(" ")); }
 function flow(n) {
     if (S.screen === "game") { gameFlow(n); return; }
-    if (S.screen === "canvas") { const d = spotDeck(); if (d && d.n + n >= 0 && d.n + n < d.s.length) spotGo(d.n + n); return; }   // Spotlight: its own screens
+    if (S.screen === "canvas") { spotStep(n); return; }   // Spotlight: the slide's pieces, then its own screens
     if (S.screen === "deck") {   // Next shows the next piece set to appear, then the next slide; past either end, the screen changes
         const dn = deckNow(); if (!dn) return;
         const steps = revealSteps(dn.s), at = Math.min(S.sstep, steps);
@@ -1885,10 +1974,10 @@ function step(n) {
     push();
 }
 function stepLabel() { const l = flowLabel(); if (l !== "Next") return l; const t = nextScreen(1); return t ? "Next: " + screenName(t) : "Next"; }
-function backLabel() { if (["today", "bell", "notes", "speed", "fix"].includes(S.screen) || (S.screen === "steps" && S.walk.step > 0) || (S.screen === "deck" && (S.slide > 0 || S.sstep > 0)) || (S.screen === "canvas" && (spotDeck() || { n: 0 }).n > 0)) return "Back"; const t = nextScreen(-1); return t ? "Back: " + screenName(t) : "Back"; }
+function backLabel() { if (["today", "bell", "notes", "speed", "fix"].includes(S.screen) || (S.screen === "steps" && S.walk.step > 0) || (S.screen === "deck" && (S.slide > 0 || S.sstep > 0)) || (S.screen === "canvas" && ((spotDeck() || { n: 0 }).n > 0 || spotApi.reveal().at > 0))) return "Back"; const t = nextScreen(-1); return t ? "Back: " + screenName(t) : "Back"; }
 function flowLabel() {
     if (S.screen === "game") return gameFlowLabel();
-    if (S.screen === "canvas") { const d = spotDeck(); return d && d.n < d.s.length - 1 ? "Next: Screen " + (d.n + 2) : "Next"; }
+    if (S.screen === "canvas") { const r = spotApi.reveal(); if (r.at < r.steps) return "Next: Show more"; const d = spotDeck(); return d && d.n < d.s.length - 1 ? "Next: Screen " + (d.n + 2) : "Next"; }
     if (S.screen === "deck") { const dn = deckNow(); if (!dn) return "Next"; if (Math.min(S.sstep, revealSteps(dn.s)) < revealSteps(dn.s)) return "Next: Show more"; return dn.i < dn.list.length - 1 ? "Next: Slide " + (dn.i + 2) : "Next"; }
     if (S.screen === "steps") return stepPlayer && stepFor === S.walk.id && S.walk.step < stepPlayer.count - 1 ? "Next: Step " + (S.walk.step + 2) : "Next";
     const d = D(), len = (d && d.problems && d.problems.length) || 0, frames = notesFrames(d), hasNotes = frames.length > 0;
@@ -1945,10 +2034,11 @@ export async function startApp(opts) {
     const guest = mode === "sub";
     mountGames({ S, header, store: () => store, writer, now, beep: () => snd.cue("done"), unlockSound, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
     mountLive({ S, header, store: () => store, rosters: () => ROSTERS, redraw: () => { sig = ""; render(); }, mode: () => mode, signedIn: () => signedIn });
-    mountNotes({ S, store: () => store, rosters: () => ROSTERS, redraw: () => render(), mode: () => mode, signedIn: () => signedIn, frames: () => notesFrames(D()), day: D, lesson: L, push });
+    mountNotes({ S, store: () => store, rosters: () => ROSTERS, redraw: () => render(), mode: () => mode, signedIn: () => signedIn, frames: () => notesFrames(D()), day: D, lesson: L, push, findItem, walkEdits: (id) => WALKED[id] || null });
     document.body.classList.toggle("board", mode === "board");
     { const bg = el("div", "stagebg"); bg.id = "stageBg"; bg.setAttribute("aria-hidden", "true"); $("stage").prepend(bg); }   // the board's background pattern (Board look)
     { const sl = el("div", "stickerlayer"); sl.id = "stickerLayer"; const tl = $("toolLayer"); if (tl) tl.before(sl); else $("stage").appendChild(sl); }   // stickers: over the lesson, under the panels
+    mountStageLayer($("stage"));   // live notes: a check-in sent from a panel shows over any screen (js/liveNotes.js)
     {   // On the projected board the rail, pages and arrows fade after 4 s with nobody touching it, and come back on any touch.
         let idleT = 0; const wake = () => { document.body.classList.remove("idle"); clearTimeout(idleT); idleT = setTimeout(() => { if (document.body.classList.contains("board") && !document.querySelector(".mathmenu,.mathpanel")) document.body.classList.add("idle"); }, 4000); };
         ["pointermove", "pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, wake, true)); wake();
@@ -1957,12 +2047,20 @@ export async function startApp(opts) {
     document.addEventListener("click", (e) => { document.querySelectorAll("details.acct[open]").forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });
     $("weekSel").onchange = function () { autoWeekUntil = 0; S.week = this.value; resetPos(); push(); };
     $("boardBtn").onclick = () => { document.body.classList.add("board"); unlockSound(); try { const p = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ok */ } fit(); soundSync(); };
-    $("exit").onclick = () => { document.body.classList.remove("board"); soundSync(); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* ok */ } fit(); };
+    /* One controls screen (Eddie, Nov 24): Show controls on Open Board (board.html) goes to the Remote, the same place as the
+       Remote's own Board view > Show controls. Both pages read the same board state, so the Remote opens on the same lesson.
+       The browser's Back button returns to the board. A linked TV never shows the button. */
+    $("exit").onclick = (mode === "board" && !studio) ? () => { if (!tvView) location.href = "remote.html"; } : () => { document.body.classList.remove("board"); soundSync(); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* ok */ } fit(); };
     $("signOut").onclick = async () => { try { await store.signOut(); } finally { location.replace("login.html"); } };
     window.addEventListener("resize", fit); window.addEventListener("pageshow", () => fit());   // pageshow: back to a page the phone kept
     if (window.ResizeObserver) new ResizeObserver(fit).observe($("wrap")); document.addEventListener("fullscreenchange", () => setTimeout(fit, 60));
     document.addEventListener("pointerdown", unlockSound); document.addEventListener("keydown", unlockSound);
     soundPanel();
+    yt = mountYt({ S, push, quiet, guest, store: () => store, playsHere, readOnly: () => tvView, slot: () => $("boardBtn"),
+        periods: () => PERIODS.filter((p) => W().classes[p[1]]).map((p) => p[0]),
+        unlock: () => snd.unlock(), refresh: () => soundControls(), genName: () => { const x = snd.STYLES && snd.STYLES.find((t) => t[0] === S.sound.style); return x ? x[1] : ""; } });
+    snd.onDuck((secs) => yt.duck(secs));
+    document.addEventListener("pointerdown", () => yt.unlock()); document.addEventListener("keydown", () => yt.unlock());
     phoneHeadReady = true; phoneHeader();
     if (mode === "remote" && !guest && !studio && !tvView && $("screens")) mountAttendance({ el, S, push: () => push(), mode: () => mode, signedIn: () => signedIn, store: () => store, rosters: () => ROSTERS, periods: () => PERIODS, today: () => localIso() }, $("screens"));   // Who's out (Remote only, Phase 2)
     if (!guest) planFold = mountPlanFold(planApi, $("planAnchor") || $("soundMenu") || $("toolsMenu"));
@@ -2005,7 +2103,7 @@ export async function startApp(opts) {
         const pb = el("button", "bpanels"); pb.id = "panelBtn"; pb.type = "button"; pb.innerHTML = pIcon("layout") + "<span>Panels</span>"; pb.onclick = () => openSheet(toolApi); document.body.appendChild(pb);
     }
     keepAwake(); document.addEventListener("visibilitychange", keepAwake); document.addEventListener("pointerdown", keepAwake);
-    document.addEventListener("keydown", (e) => { if (tvView) return; if (e.target && (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.target.isContentEditable)) return; if (e.altKey || e.ctrlKey || e.metaKey) return; if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); step(1); } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); step(-1); } else if (e.key === "m" || e.key === "M") { S.sound.music = !S.sound.music; push(); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
+    document.addEventListener("keydown", (e) => { if (tvView) return; if (e.target && (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.target.isContentEditable)) return; if (e.altKey || e.ctrlKey || e.metaKey) return; if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); step(1); } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); step(-1); } else if (e.key === "m" || e.key === "M") { S.sound.music = !S.sound.music; if (yt) yt.unlock(); push(); } else if (e.key === "a" || e.key === "A") { if (S.screen === "bell" || S.screen === "notes") { S.show = !S.show; push(); } } });
     let seatWas = "";
     setInterval(() => { if (!synced) return; if (S.screen === "seats") { const h = seatHiNow(); if (h !== seatWas) { seatWas = h; render(); } } tick(); tickTools(toolApi); tickPanels(toolApi); tickGames(); tickLive(); tickNotes(); soundTick(); quickTick(); if (!guest && !tvView && stateIn) { planTick(planApi); if (planFold) planFold.tick(); } }, 250);
     { const p = el("div", "connpill"); p.id = "connPill"; p.setAttribute("role", "status"); p.hidden = true; document.body.appendChild(p); }
@@ -2079,7 +2177,7 @@ export async function startApp(opts) {
     }
     writeState = writer("board/state");
     if (!guest && !tvView && !(opts && opts.store)) {   // Live status: check in every 20 s, and answer the Remote's "Check now"
-        import("./presence.js?v=2").then((m) => {
+        import("./presence.js?v=4").then((m) => {
             presence = m.startPresence({ uid: user.uid, page: PAGE, mode, now,
                 snap: () => ({ screen: S.screen, screenName: screenName(S.screen), period: S.period, day: DK[S.day] || "", week: S.week,
                     panels: PANEL_LIST.filter(([k]) => S.tools.on[k]).map((x) => x[1]), look: [S.look.theme, S.look.bg, S.look.fx].join(" "), conn: ($("status") || {}).textContent || "" }) });
@@ -2099,8 +2197,8 @@ export async function startApp(opts) {
     }); }
     store.watch("rosters/all", (snap) => { const p = (snap.exists && snap.data && snap.data.periods) || {}; ROSTERS = {}; Object.keys(p).forEach((k) => { if (Array.isArray(p[k])) ROSTERS[k] = p[k].map((n) => String(n).slice(0, 60)); }); renderLayer(); }, () => {});
     if (!guest) {
-        store.watch("walk/ok", (snap) => { if (snap.pending) return; import("./walkBank.js?v=1").then((wb) => { WALKOK = wb.cleanOk(snap.exists ? snap.data : null); walkIn = true; if (synced && S.screen === "steps") render(); }); }, () => { walkIn = true; });
-        store.watch("walk/edits", (snap) => { if (snap.pending) return; import("./walkBank.js?v=1").then((wb) => { WALKED = wb.cleanEdits(snap.exists ? snap.data : null); if (synced && S.screen === "steps") render(); }); }, () => {});
+        store.watch("walk/ok", (snap) => { if (snap.pending) return; import("./walkBank.js?v=14").then((wb) => { WALKOK = wb.cleanOk(snap.exists ? snap.data : null); walkIn = true; if (synced && ["steps", "deck", "canvas"].includes(S.screen)) render(); if (synced && FIND_KEYS.some((k) => S.tools.on[k])) { layerSig = ""; renderLayer(); } }); }, () => { walkIn = true; });
+        store.watch("walk/edits", (snap) => { if (snap.pending) return; import("./walkBank.js?v=14").then((wb) => { WALKED = wb.cleanEdits(snap.exists ? snap.data : null); if (synced && ["steps", "deck", "canvas"].includes(S.screen)) { sig = ""; render(); } }); }, () => {});
     } else walkIn = true;
     if (!guest) store.watch("seats/chart", (snap) => { if (snap.pending) return; SEATS = cleanChart(snap.exists ? snap.data : null); seatsIn = true; if (synced && S.screen === "seats") render(); }, () => { seatsIn = true; });
     else seatsIn = true;

@@ -8,18 +8,8 @@ import {
   getFirestore, initializeFirestore, persistentLocalCache, persistentSingleTabManager, memoryLocalCache,
   terminate, clearIndexedDbPersistence, connectFirestoreEmulator
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { firebaseConfig } from "./firebaseConfig.js?v=1";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA8kAei_AJMU66EePYQyI8nlVJeLes5HLY",
-  // Rolled back 2026-10-26: a custom auth domain broke Google sign-in.
-  // Start on the default *.firebaseapp.com auth domain.
-  authDomain: "steers-class-board.firebaseapp.com",
-  projectId: "steers-class-board",
-  storageBucket: "steers-class-board.firebasestorage.app",
-  messagingSenderId: "997357619072",
-  appId: "1:997357619072:web:8e47464df7c4e329fd2365"
-  // No measurementId: Google Analytics is OFF for this project.
-};
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

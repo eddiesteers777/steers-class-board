@@ -14,11 +14,12 @@
    Each Spotlight screen keeps its own panels, look and drawing (boardApp.js spotApi; state in wb.spot).
    Frosted glass: translucent layers with a backdrop blur, a light top edge and a soft shadow.
 ========================================== */
-import { PANEL_LIST, LESSON_PANELS, TOOL_LIST } from "./boardTools.js?v=63";
-import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker, photoGroupNow, gradOf } from "./panels.js?v=16";
+import { PANEL_LIST, LESSON_PANELS, TOOL_LIST, MATH_LIST, CALC_LIST } from "./boardTools.js?v=80";
+import { panelOn, panelOff, icon, labelOf, PANEL_INFO, lookPicker, photoGroupNow, gradOf } from "./panels.js?v=44";
 import { wbIcon } from "./wbIcons.js?v=1";
+import { FIND_KEYS } from "./findCore.js?v=2";
 
-let A = null, host = null, onBack = null, tucked = false, sheet = "", picked = "", built = false, lastSig = "";
+let A = null, host = null, onBack = null, tucked = false, sheet = "", picked = "", built = false, lastSig = "", musicHooked = false;
 const PREF = "anchorboard-spot-tucked";
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -36,6 +37,7 @@ const IC = {
     grid: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
     edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
     spot: '<path d="M12 3v2M5.6 5.6 7 7M3 12h2M18.4 5.6 17 7M21 12h-2"/><path d="M8 16a4 4 0 1 1 8 0"/><path d="M5 20h14"/>',
+    music: '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
 };
 function button(cls, html, label, fn) {
     const b = el("button", cls); b.type = "button"; b.innerHTML = html; if (label) { b.title = label; b.setAttribute("aria-label", label); }
@@ -58,6 +60,7 @@ export function openSpot(api, hostEl, back) {
     host.hidden = false; document.body.classList.add("spotmode");
     A.spot.open(); A.spot.draw(false);
     window.addEventListener("keydown", keys, true);
+    hookMusic(); { const m = A.music && A.music(); if (m) m.draw(); }   // the music panel moves above the toolbar
     document.addEventListener("fullscreenchange", paintFull);
     lastSig = ""; paint();
     setTimeout(() => { A.fit(); A.redraw(); }, 0);
@@ -70,6 +73,7 @@ export function closeSpot() {
     window.removeEventListener("keydown", keys, true);
     document.removeEventListener("fullscreenchange", paintFull);
     if (isFull()) toggleFull();
+    { const m = A.music && A.music(); if (m) m.draw(); }   // the music panel goes back under the top bar
     setTimeout(() => { A.fit(); A.redraw(); }, 0);
 }
 /** The board changed (here or on another device): bring the buttons up to date. Never rebuilds a button under a finger. */
@@ -102,6 +106,9 @@ function build() {
         el("i", "spsep"), button("spb spadd", svg(IC.plus, 2.2) + "<span>Screen</span>", "Add a screen after this one", () => { if (A.spot.add()) flash("New screen"); }),
         button("spb spdel", svg(IC.trash), "Remove this screen", removeScreen));
     host.appendChild(scr);
+    // the toolbar keeps clear of this pill whatever its width (the count grows with slides and steps): --scrw feeds .spdock's max-width (css/spotlight.css)
+    const fitScr = () => { const w = scr.offsetWidth; if (w) host.style.setProperty("--scrw", w + "px"); };
+    if (window.ResizeObserver) new ResizeObserver(fitScr).observe(scr); else addEventListener("resize", fitScr);
 
     // the sheet over the toolbar (Background, or the panel that was tapped)
     const sh = el("div", "spg spsheet"); sh.id = "spSheet"; sh.hidden = true; host.appendChild(sh);
@@ -121,9 +128,14 @@ function build() {
     const bgb = button("spt sptbg", svg(IC.bg) + "<span>Background</span>", "Background, colors and effects", () => openSheet(sheet === "look" ? "" : "look")); bgb.dataset.k = "look"; full.appendChild(bgb);
     // Eddie, 2026-11-23: saved slides right from the toolbar (they come in as screens: js/boardApp.js spotApi)
     const slb = button("spt sptsl", svg(IC.slides) + "<span>Slides</span>", "Bring in your saved slides", () => openSheet(sheet === "slides" ? "" : "slides")); slb.dataset.k = "slides"; full.appendChild(slb);
+    // Eddie, 2026-11-24: YouTube music from the toolbar. The same panel, player and library as the board and the top bar
+    // (js/ytMusic.js), so the music never restarts when the teacher switches tabs.
+    if (A.music && A.music()) {
+        const mub = button("spt sptmu", svg(IC.music) + "<i class=\"spmudot\"></i><span>Music</span>", "YouTube music: search, play and your saved videos", () => music("toggle")); full.appendChild(mub);
+    }
     full.appendChild(el("i", "spsep"));
     const rack = el("div", "sprack");
-    [LESSON_PANELS, TOOL_LIST].forEach((list, li) => {
+    [LESSON_PANELS, CALC_LIST, TOOL_LIST, MATH_LIST].forEach((list, li) => {
         if (li) rack.appendChild(el("i", "spsep thin"));
         list.filter(([k]) => k !== "slide").forEach(([k, label]) => {
             const b = button("spt", icon(k) + "<span>" + shortName(k, label) + "</span>", (PANEL_INFO[k] || label), () => togglePanel(k));
@@ -144,6 +156,15 @@ const shortName = (k, label) => SHORT[k] || label;
 /* ---------- doing things ---------- */
 function togglePanel(k) {
     const T = A.S.tools;
+    if (k === "find") {   // one button for every Find panel (up to four): off takes them all off, on brings them all back
+        const open = FIND_KEYS.filter((x) => T.on[x]);
+        if (open.some((x) => !T.min[x] && T.pos[x])) { open.forEach((x) => panelOff(T, x)); if (FIND_KEYS.includes(picked)) { picked = ""; sheet = ""; } A.push(); return; }
+        if (open.length && !(open.length === 1 && open[0] === "find")) {
+            open.forEach((x) => { delete T.min[x]; if (!T.pos[x]) T.pos[x] = A.defaultPos(x); }); A.push();
+            open.forEach((x) => { const w = document.querySelector('#toolLayer [data-panel="' + x + '"]'); if (w) { w.classList.remove("sppop"); void w.offsetWidth; w.classList.add("sppop"); } });
+            return;
+        }
+    }
     if (T.on[k] && !T.min[k] && T.pos[k]) { panelOff(T, k); if (picked === k) { picked = ""; sheet = ""; } A.push(); return; }
     // on, small or on the side: bring it onto the screen, floating, right away
     if (T.on[k]) { delete T.min[k]; if (!T.pos[k]) T.pos[k] = A.defaultPos(k); }
@@ -191,14 +212,30 @@ function setTucked(on) {
     if (tucked) sheet = "";
     lastSig = ""; paint();
 }
-function go(n) { const p = A.spot.pages(), i = p.n + n; if (i < 0 || i >= p.count) return; A.spot.go(i); }
+/** The arrows and the arrow keys: a slide's pieces set to appear on Next come first (an answer, each step of a Show Steps), then the next screen. */
+function go(n) { if (A.spot.step) { A.spot.step(n); return; } const p = A.spot.pages(), i = p.n + n; if (i < 0 || i >= p.count) return; A.spot.go(i); }
 let delArm = 0;
 function removeScreen() {
     if (A.spot.pages().count < 2) { flash("This is the only screen"); return; }
     if (Date.now() - delArm > 3000) { delArm = Date.now(); flash("Tap the trash again to remove this screen"); lastSig = ""; paint(); setTimeout(() => { lastSig = ""; paint(); }, 3100); return; }
     delArm = 0; A.spot.remove(); flash("Screen removed");
 }
-function openSheet(which) { sheet = which; if (which !== "panel") picked = ""; lastSig = ""; paint(); }
+function openSheet(which) { sheet = which; if (which !== "panel") picked = ""; if (which) music("close"); lastSig = ""; paint(); }
+/* The music panel and Spotlight's own sheets pop up in the same place, so one closes the other. */
+function music(what) {
+    const m = A && A.music && A.music(); if (!m) return;
+    if (what === "close") { if (m.isOpen()) m.close(); return; }
+    if (!m.isOpen() && sheet) { sheet = ""; picked = ""; lastSig = ""; paint(); }
+    m.toggle();
+}
+function hookMusic() {
+    const m = A.music && A.music(); if (!m || musicHooked) return; musicHooked = true;
+    m.listen((st) => {
+        const b = host && host.querySelector(".sptmu"); if (!b) return;
+        const on = st.open && !host.hidden; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("on", on); b.classList.toggle("playing", !!st.playing);
+        b.title = st.playing && st.name ? "Playing: " + st.name + ". Tap for the music panel." : "YouTube music: search, play and your saved videos"; b.setAttribute("aria-label", b.title);
+    });
+}
 let toastT = 0;
 function flash(t) { const n = $("spToast"); if (!n) return; n.textContent = t; n.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => n.classList.remove("on"), 1800); }
 function keys(e) {
@@ -217,7 +254,7 @@ function keys(e) {
 function paintFull() { const b = host && host.querySelector(".spfull"); if (!b) return; const f = isFull(); b.innerHTML = svg(f ? IC.unfull : IC.full); b.title = f ? "Leave full screen" : "Full screen"; b.setAttribute("aria-label", b.title); b.setAttribute("aria-pressed", String(f)); setTimeout(() => A && A.fit(), 80); }
 function paint() {
     const S = A.S, T = S.tools, drawing = A.spot.draw(), p = A.spot.pages();
-    const sig = JSON.stringify([S.screen, T.on, T.min, Object.keys(T.pos), drawing, tucked, sheet, picked, p, photoGroupNow(), sheet === "screens" || sheet === "slides" ? String(T.slp) + A.spot.slides().map((x) => x.id).join(",") + A.spot.slidesReady() + JSON.stringify(A.S.wb.spot) : "", A.spot.slideIdOf(p.n), A.spot.tool(), A.spot.pen(), A.spot.size(), S.look, Date.now() - delArm < 3000, picked && T.pos[picked] ? T.pos[picked].s : 0]);
+    const sig = JSON.stringify([S.screen, T.on, T.min, Object.keys(T.pos), drawing, tucked, sheet, picked, p, photoGroupNow(), sheet === "screens" || sheet === "slides" ? String(T.slp) + A.spot.slides().map((x) => x.id).join(",") + A.spot.slidesReady() + JSON.stringify(A.S.wb.spot) : "", A.spot.slideIdOf(p.n), A.spot.reveal ? A.spot.reveal() : 0, A.spot.tool(), A.spot.pen(), A.spot.size(), S.look, Date.now() - delArm < 3000, picked && T.pos[picked] ? T.pos[picked].s : 0]);
     if (sig === lastSig) return; lastSig = sig;
     host.classList.toggle("tucked", tucked); document.body.classList.toggle("spotdraw", drawing);
     // a photo background runs edge to edge behind the board, with no frame around it
@@ -228,7 +265,8 @@ function paint() {
     host.querySelectorAll(".spm").forEach((b) => { const on = (b.dataset.m === "draw") === drawing; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("on", on); });
     host.querySelectorAll(".sprack .spt").forEach((b) => {
         const k = b.dataset.k, ok = A.panelOk(k); b.hidden = !ok;
-        const st = !T.on[k] ? "off" : T.min[k] ? "min" : "on"; b.dataset.st = st; b.setAttribute("aria-pressed", String(st !== "off"));
+        const fk = k === "find" ? FIND_KEYS.filter((x) => T.on[x]) : null;   // the Find button stands for every Find panel
+        const st = fk ? (!fk.length ? "off" : fk.every((x) => T.min[x]) ? "min" : "on") : !T.on[k] ? "off" : T.min[k] ? "min" : "on"; b.dataset.st = st; b.setAttribute("aria-pressed", String(st !== "off"));
         b.title = (st === "off" ? "Add " : st === "min" ? "Bring back " : "Take off ") + labelOf(k).toLowerCase();
     });
     { const b = host.querySelector(".sptbg"); b.setAttribute("aria-pressed", String(sheet === "look")); b.classList.toggle("on", sheet === "look"); }
@@ -236,9 +274,11 @@ function paint() {
     { const t = host.querySelector(".sptuck"); t.innerHTML = svg(tucked ? IC.up : IC.down, 2.2); t.title = tucked ? "Show the whole toolbar" : "Make the toolbar small"; t.setAttribute("aria-label", t.title); t.setAttribute("aria-expanded", String(!tucked)); }
     // screens
     { const c = host.querySelector(".spcount"), isSl = !!A.spot.slideIdOf(p.n);
-        c.innerHTML = (isSl ? '<i class="spslb">' + svg(IC.slides) + "</i>" : "") + "<b>" + (p.n + 1) + " / " + p.count + "</b>"; c.setAttribute("aria-pressed", String(sheet === "screens"));
+        const rv = A.spot.reveal ? A.spot.reveal() : { at: 0, steps: 0 }, more = rv.at < rv.steps;
+        c.innerHTML = (isSl ? '<i class="spslb">' + svg(IC.slides) + "</i>" : "") + "<b>" + (p.n + 1) + " / " + p.count + "</b>" + (rv.steps ? '<small class="sprv">' + (more ? "more on Next" : "all shown") + "</small>" : ""); c.setAttribute("aria-pressed", String(sheet === "screens"));
         c.classList.toggle("on", sheet === "screens"); c.title = isSl ? "This screen shows a slide. Tap to see every screen and slide." : "All screens and slides";
-        const ar = host.querySelectorAll(".sparrow"); ar[0].disabled = p.n <= 0; ar[1].disabled = p.n >= p.count - 1;
+        const ar = host.querySelectorAll(".sparrow"); ar[0].disabled = p.n <= 0 && rv.at <= 0; ar[1].disabled = p.n >= p.count - 1 && !more;
+        ar[1].title = more ? "Show the next piece of this slide" : "Next screen"; ar[1].setAttribute("aria-label", ar[1].title);
         host.querySelector(".spadd").disabled = p.count >= p.max;
         const del = host.querySelector(".spdel"); del.hidden = p.count < 2; del.classList.toggle("armed", Date.now() - delArm < 3000); }
     { const b = host.querySelector(".splivebtn"), on = S.screen === "canvas"; b.classList.toggle("onair", on);

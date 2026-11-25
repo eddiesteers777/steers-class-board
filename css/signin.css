@@ -1,23 +1,141 @@
-/* Anchor Board sign-in pages (home.html, login.html). Same palette and fonts as the rest of the site. */
+/* ==========================================
+   Anchor Board sign-in pages (home.html, login.html). Redone Nov 24, 2026
+   (Eddie: "add some of the glassy premium look and add those dynamic moving pieces like the public facing website has").
+
+   - Colours come from the Settings scheme (js/scheme.js + css/skin.css tokens --s-*), so a teacher who picked Plum
+     signs in on Plum. A device that never picked one gets Anchor navy, exactly the old colours. Night mode darkens it.
+   - The moving pieces are the public site's own (site/story.css): the school-day sky with amber dawn light,
+     the drifting glows, the rings with the amber arc drawing in, the headline arriving a letter at a time,
+     the colour bar filling in. Same easing and timings.
+   - The card is frosted glass, the same recipe as the board's glass (css/boardglass.css).
+   - Only transform and opacity move after the first two seconds, so a Chromebook keeps up.
+   - Reduced motion: nothing moves, everything is simply there. Reduced transparency: a solid card.
+========================================== */
 *{box-sizing:border-box;margin:0}
 html,body{min-height:100%}
-body{background:linear-gradient(135deg,#173F86 0%,#0B2559 55%,#081B45 100%);background-attachment:fixed;color:#F4F7FB;
-  font-family:'Instrument Sans',system-ui,'Segoe UI',sans-serif;font-size:16px;line-height:1.6;min-height:100vh;
-  display:flex;align-items:center;justify-content:center;padding:32px 16px;position:relative;overflow-x:hidden}
-body::before{content:"";position:fixed;right:-160px;bottom:-200px;width:620px;height:620px;background:url("../brand/logo.svg") center/contain no-repeat;opacity:.07;pointer-events:none}
-.si{position:relative;width:100%;max-width:440px;text-align:center}
-.si img{width:96px;height:96px;border-radius:22px;box-shadow:0 12px 36px rgba(4,12,32,.45)}
-.si h1{font-family:'Bricolage Grotesque','Instrument Sans',sans-serif;font-weight:800;font-size:44px;line-height:1.1;letter-spacing:-.02em;margin-top:20px}
-.si .who{color:#7FAEDD;font-weight:600;font-size:15px;letter-spacing:.04em;margin-top:6px}
-.si .line{height:4px;width:120px;margin:22px auto;border-radius:4px;background:linear-gradient(90deg,#F6F9FD 0 25%,#B9D3EE 25% 50%,#7FAEDD 50% 75%,#F2B33D 75% 100%)}
-.si p{color:#B9D3EE;font-size:15px}
+:root{
+  --si-hi:var(--s-hi,#173F86);--si-mid:var(--s-mid,#0B2559);--si-out:var(--s-out,#081B45);
+  --si-sky:var(--s-sky,#7FAEDD);--si-light:var(--s-light,#B9D3EE);--si-rgb:var(--s-rgb,8,27,69);
+  --si-amber:#F2B33D;--si-ink:#F4F7FB;--si-mute:#C7D3E8;
+  --si-ease:cubic-bezier(.2,.7,.2,1);
+  --si-grad:linear-gradient(135deg,var(--si-hi) 0%,var(--si-mid) 55%,var(--si-out) 100%);
+}
+/* Night: the same scheme, the lights turned down. */
+html[data-mode="dark"]{
+  --si-grad:linear-gradient(135deg,color-mix(in srgb,var(--si-hi) 62%,#05070D) 0%,color-mix(in srgb,var(--si-mid) 52%,#05070D) 55%,color-mix(in srgb,var(--si-out) 40%,#04050A) 100%);
+}
+body{background:var(--si-out);color:var(--si-ink);
+  font-family:'Instrument Sans',system-ui,'Segoe UI',sans-serif;font-size:16px;line-height:1.6;min-height:100vh;min-height:100svh;
+  display:flex;align-items:center;justify-content:center;padding:32px 16px;position:relative;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* ---------- the sky behind everything (site/story.css .ab-sky) ---------- */
+.si-sky{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:var(--si-grad)}
+.si-sky i,.si-sky svg{position:absolute;pointer-events:none}
+.si-dawn{inset:0;background:
+  radial-gradient(70% 55% at 50% 108%,rgba(242,179,61,.26),transparent 70%),
+  radial-gradient(60% 55% at 88% 8%,color-mix(in srgb,var(--si-sky) 30%,transparent),transparent 70%),
+  radial-gradient(55% 50% at 4% 96%,color-mix(in srgb,var(--si-hi) 80%,transparent),transparent 70%)}
+.si-glow{width:46vmax;height:46vmax;border-radius:50%;will-change:transform}
+.si-glow-amber{left:-12vmax;bottom:-18vmax;background:radial-gradient(circle,rgba(242,179,61,.16),transparent 65%)}
+.si-glow-sky{right:-8vmax;top:12vh;background:radial-gradient(circle,color-mix(in srgb,var(--si-sky) 20%,transparent),transparent 65%)}
+.si-glow-light{left:28%;top:-20vmax;background:radial-gradient(circle,color-mix(in srgb,var(--si-light) 13%,transparent),transparent 65%)}
+.si-rings{right:-24vmax;top:-22vmax;width:78vmax;height:78vmax;will-change:transform}
+.si-rings-2{right:auto;top:auto;left:-20vmax;bottom:-30vmax;width:56vmax;height:56vmax;opacity:.7}
+.si-rings circle{fill:none;stroke:color-mix(in srgb,var(--si-sky) 11%,transparent)}
+.si-rings .si-arc{stroke:rgba(242,179,61,.3);stroke-linecap:round;stroke-dashoffset:0}
+.si-rings-2 .si-arc{stroke:color-mix(in srgb,var(--si-light) 24%,transparent)}
+html[data-mode="dark"] .si-dawn{opacity:.75}
+
+/* ---------- the glass card ---------- */
+.si{position:relative;z-index:1;width:100%;max-width:clamp(440px,32vw,560px);text-align:center}
+.si-card{position:relative;overflow:hidden;padding:clamp(30px,3.2vw,44px) clamp(22px,3vw,40px) clamp(26px,2.6vw,36px);border-radius:28px;
+  background:linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,.05));background-color:rgba(var(--si-rgb),.36);
+  -webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 30px 80px -20px rgba(2,8,26,.6),0 2px 10px rgba(2,8,26,.22)}
+/* the projector light along the top of the card (site/story.css .ab-flare) */
+.si-card::before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:radial-gradient(70% 45% at 50% 0%,rgba(255,255,255,.16),transparent 70%)}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+  .si-card{background:rgba(var(--si-rgb),.9)}}
+.si-card>*{position:relative}
+
+.si-logo{display:inline-block;position:relative;width:clamp(84px,6.4vw,112px);height:clamp(84px,6.4vw,112px)}
+.si-logo img{display:block;width:100%;height:100%;border-radius:24%;box-shadow:0 14px 36px rgba(2,8,26,.5),0 0 0 1px rgba(255,255,255,.14)}
+.si-logo::after{content:"";position:absolute;inset:-10px;border-radius:30%;border:2px solid rgba(242,179,61,.55);opacity:0;pointer-events:none}
+.si h1{font-family:'Bricolage Grotesque','Instrument Sans',sans-serif;font-weight:800;font-size:clamp(40px,3.4vw,58px);line-height:1.08;letter-spacing:-.025em;margin-top:20px}
+.si .who{color:var(--si-sky);font-weight:600;font-size:clamp(15px,1.05vw,18px);letter-spacing:.04em;margin-top:6px}
+html[data-mode="dark"] .si .who{color:color-mix(in srgb,var(--si-sky) 80%,#fff)}
+.si .line{display:flex;height:4px;width:132px;margin:22px auto;border-radius:4px;overflow:hidden}
+.si .line i{flex:1;transform-origin:0 50%}
+.si .line i:nth-child(1){background:#F6F9FD}.si .line i:nth-child(2){background:var(--si-light)}
+.si .line i:nth-child(3){background:var(--si-sky)}.si .line i:nth-child(4){background:var(--si-amber)}
+.si p{text-wrap:balance;color:var(--si-mute);font-size:clamp(15px,1.05vw,18px)}
 .si .acts{display:flex;flex-direction:column;gap:12px;margin-top:26px}
-.si .btn{display:flex;align-items:center;justify-content:center;min-height:48px;border-radius:16px;font:600 16px/1 'Instrument Sans',sans-serif;cursor:pointer;text-decoration:none;border:0}
-.si .btn.go{background:#F2B33D;color:#3A2A00;box-shadow:0 3px 0 #C98F1F}
-.si .btn.go:disabled{opacity:.7;cursor:wait}
-.si .btn.ghost{background:transparent;color:#F4F7FB;border:1.5px solid rgba(185,211,238,.45)}
-.si .btn:focus-visible{outline:3px solid #7FAEDD;outline-offset:3px}
-.si .note{min-height:24px;margin-top:14px;color:#F4F7FB}
-.si .fine{margin-top:28px;font-size:13px;color:#7FAEDD}
-.si code{font-size:12px;color:#B9D3EE}
-@media (prefers-reduced-motion:no-preference){.si{animation:si-in .26s ease-out}@keyframes si-in{from{opacity:0;transform:translateY(8px)}}}
+.si .btn{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:16px;
+  font:600 clamp(16px,1.1vw,19px)/1 'Instrument Sans',sans-serif;cursor:pointer;text-decoration:none;border:0;transition:transform .16s var(--si-ease),box-shadow .16s var(--si-ease),background-color .16s}
+.si .btn.go{background:linear-gradient(180deg,#FFCB63,#F2B33D 55%,#E9A52C);color:#2E2200;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 3px 0 #C98F1F,0 14px 30px -12px rgba(242,179,61,.75)}
+/* a light passes across the button on hover, like the toolbar buttons in Spotlight */
+.si .btn.go::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:45%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-18deg);opacity:0}
+.si .btn.go:hover:not(:disabled){transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 4px 0 #C98F1F,0 18px 36px -12px rgba(242,179,61,.85)}
+.si .btn.go:active:not(:disabled){transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 1px 0 #C98F1F,0 8px 18px -10px rgba(242,179,61,.7)}
+.si .btn.go:disabled{opacity:.72;cursor:wait}
+.si .btn.ghost{color:var(--si-ink);background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04));
+  border:1px solid rgba(255,255,255,.26);box-shadow:inset 0 1px 0 rgba(255,255,255,.22)}
+.si .btn.ghost:hover{background-color:rgba(255,255,255,.08);border-color:rgba(255,255,255,.4)}
+.si .btn:focus-visible{outline:3px solid var(--si-sky);outline-offset:3px}
+.si .note{min-height:24px;margin-top:14px;color:var(--si-ink)}
+.si .fine{margin-top:22px;font-size:13px;color:color-mix(in srgb,var(--si-sky) 85%,#fff)}
+.si code{font-size:12px;color:var(--si-light);background:rgba(255,255,255,.08);padding:1px 6px;border-radius:6px}
+
+/* The footer (home.html) sits on the sky as a darker glass band instead of a flat navy block. */
+body.signin-foot .pub-footer{position:relative;z-index:1;background:linear-gradient(180deg,rgba(var(--si-rgb),.72),rgba(var(--si-rgb),.92));
+  border-top:1px solid rgba(255,255,255,.16)}
+html[data-mode="dark"] body.signin-foot .pub-footer{background:rgba(5,7,13,.82)}
+
+@media (max-width:520px){
+  body:not(.signin-foot){padding:20px 14px}
+  .si-card{border-radius:24px}
+  .si-rings{width:120vmax;height:120vmax;right:-60vmax;top:-50vmax}
+}
+
+/* ---------- the moving pieces ---------- */
+@media (prefers-reduced-motion:no-preference){
+  /* the sky warms up, then drifts */
+  .si-dawn{animation:si-fade 1.4s ease-out both}
+  .si-glow{animation:si-fade 1.6s ease-out both,si-drift 26s ease-in-out 1.6s infinite alternate}
+  .si-glow-sky{animation-duration:1.6s,32s;animation-delay:.2s,1.8s}
+  .si-glow-light{animation-duration:1.6s,38s;animation-delay:.4s,2s}
+  .si-rings{animation:si-fade 1.2s ease-out both,si-turn 140s linear infinite}
+  .si-rings-2{animation:si-fade 1.2s ease-out .3s both,si-turn 180s linear infinite reverse}
+  .si-rings .si-arc{animation:si-arc 1.8s var(--si-ease) .35s both}
+  /* the card rises, the light comes on, the logo rings once */
+  .si-card{animation:si-rise .6s var(--si-ease) .05s both}
+  .si-card::before{animation:si-fade 1.4s ease-out .3s both}
+  .si-logo{animation:si-rise .55s var(--si-ease) .15s both}
+  .si-logo::after{animation:si-ripple 1.4s ease-out .7s 2}
+  /* headline a letter at a time (letters are added by js/signinMotion.js) */
+  .si-ch{display:inline-block;animation:si-ch .8s var(--si-ease) both;animation-delay:calc(var(--i) * 22ms + 260ms)}
+  .si .line i{animation:si-bar .5s var(--si-ease) both}
+  .si .line i:nth-child(1){animation-delay:.55s}.si .line i:nth-child(2){animation-delay:.65s}
+  .si .line i:nth-child(3){animation-delay:.75s}.si .line i:nth-child(4){animation-delay:.85s}
+  .si .who,.si .si-card>p:not(.note),.si .acts{animation:si-rise .5s var(--si-ease) both}
+  .si .who{animation-delay:.45s}.si .si-card>p:not(.note){animation-delay:.6s}.si .acts{animation-delay:.72s}.si .si-card>p.fine{animation-delay:.84s}
+  .si .btn.go:hover:not(:disabled)::after{animation:si-shine .8s var(--si-ease)}
+  body.signin-foot .pub-footer{animation:si-fade .8s ease-out .5s both}
+}
+@keyframes si-fade{from{opacity:0}}
+@keyframes si-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes si-ch{from{transform:translateY(.6em);opacity:0}to{transform:none;opacity:1}}
+@keyframes si-bar{from{transform:scaleX(0)}to{transform:none}}
+@keyframes si-arc{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes si-turn{to{transform:rotate(360deg)}}
+@keyframes si-drift{0%{transform:translate3d(0,0,0)}50%{transform:translate3d(6vmax,-4vmax,0) scale(1.08)}100%{transform:translate3d(-4vmax,3vmax,0) scale(.96)}}
+@keyframes si-ripple{0%{opacity:.9;transform:scale(.92)}100%{opacity:0;transform:scale(1.22)}}
+@keyframes si-shine{from{opacity:1;transform:skewX(-18deg) translateX(0)}to{opacity:1;transform:skewX(-18deg) translateX(420%)}}
+
+@media (prefers-reduced-transparency:reduce){
+  .si-card{background:rgba(var(--si-rgb),.94);-webkit-backdrop-filter:none;backdrop-filter:none}
+}

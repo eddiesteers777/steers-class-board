@@ -4,12 +4,12 @@
    and the roster, and shows each student's level, XP, banked coins, badges and every topic's
    accuracy over time. ?demo shows made-up students in this tab and saves nothing.
 ========================================== */
-import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=5";
+import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=6";
 import { shortNames } from "./vaultCore.js?v=75";
 import * as PC from "./profileCore.js?v=2";
 import * as F from "./factCore.js?v=1";
 import * as TC from "./trackCore.js?v=2";
-import { SCHOOL_YEAR, SCHOOL_DAYS } from "./schoolCal.js?v=58";
+import { SCHOOL_YEAR, SCHOOL_DAYS } from "./schoolCal.js?v=59";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -20,7 +20,7 @@ const DEMO_PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7
 export async function mountProfiles() {
     const demo = new URLSearchParams(location.search).has("demo");
     const store = await import(demo ? "./localStore.js?v=57" : "./boardStore.js?v=58");
-    const PER = demo ? DEMO_PERIODS : (await import("../data/weeks.js?v=62")).PERIODS;
+    const PER = demo ? DEMO_PERIODS : (await import("../data/weeks.js?v=63")).PERIODS;
     const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
     const S = { period: [sharedPeriod(""), remember("period")].find((p) => p && PER.some((x) => x[0] === p)) || PER[0][0], view: remember("view") || "students" };
     const D = { rosters: {}, kids: {}, got: {} };
