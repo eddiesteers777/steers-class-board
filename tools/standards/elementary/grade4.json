@@ -158,7 +158,7 @@
    "parts": [
     {
      "l": "a",
-     "text": "Apply principles of fraction equivalence to recognize and generate equivalent fractions. Example: a/b is equivalent to (n x a)/(n x b)."
+     "text": "Apply principles of fraction equivalence to recognize and generate equivalent fractions. Example: a/b is equivalent to (n × a)/(n × b)."
     }
    ],
    "prior": [],
@@ -211,15 +211,15 @@
    "parts": [
     {
      "l": "a",
-     "text": "Model and explain how a non-unit fraction can be represented by a whole number times the unit fraction. Example: 9/8 = 9 x 1/8."
+     "text": "Model and explain how a non-unit fraction can be represented by a whole number times the unit fraction. Example: 9/8 = 9 × 1/8."
     },
     {
      "l": "b",
-     "text": "Extend previous understanding of multiplication to multiply a whole number times any fraction less than one. Example: 4 x 2/3 = (4 x 2)/3 = 8/3."
+     "text": "Extend previous understanding of multiplication to multiply a whole number times any fraction less than one. Example: 4 × 2/3 = (4 × 2)/3 = 8/3."
     },
     {
      "l": "c",
-     "text": "Solve word problems involving multiplying a whole number times a fraction using visual fraction models and equations to represent the problem. Examples: 3 x 1/2, 6 x 1/8."
+     "text": "Solve word problems involving multiplying a whole number times a fraction using visual fraction models and equations to represent the problem. Examples: 3 × 1/2, 6 × 1/8."
     }
    ],
    "prior": [],

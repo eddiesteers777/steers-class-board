@@ -1,10 +1,10 @@
 {
- "source": "2019 Alabama Course of Study: Mathematics, Grade 6 (6.1-6.28), standard text verified Nov 24, 2026 against the ALSDE text as reproduced at goblins.com/standards/math/alabama. Domains/clusters are the standard Alabama groupings. No DIGS critical flags exist for 6th grade in Eddie's files, so critical is false for all — do not treat that as a DIGS marking.",
+ "source": "2019 Alabama Course of Study: Mathematics, Grade 6 (6.1-6.28). Standard wording, domains (content areas) and clusters checked Nov 24, 2026 against the official ALSDE PDF (https://www.alabamaachieves.org/wp-content/uploads/2022/09/AS_2022923_2019-Alabama-Mathematics-COS_V1.0.pdf), printed pages 62-66.",
  "standards": [
   {
    "code": "6.1",
-   "domain": "Ratios and Proportions",
-   "cluster": "Understand ratio concepts and use ratio reasoning to solve problems.",
+   "domain": "Proportional Reasoning",
+   "cluster": "Develop an understanding of ratio concepts and use reasoning about ratios to solve problems.",
    "text": "Use appropriate notations [a/b, a to b, a:b] to represent a proportional relationship between quantities and use ratio language to describe the relationship between quantities.",
    "critical": false,
    "parts": [],
@@ -13,8 +13,8 @@
   },
   {
    "code": "6.2",
-   "domain": "Ratios and Proportions",
-   "cluster": "Understand ratio concepts and use ratio reasoning to solve problems.",
+   "domain": "Proportional Reasoning",
+   "cluster": "Develop an understanding of ratio concepts and use reasoning about ratios to solve problems.",
    "text": "Use unit rates to represent and describe ratio relationships.",
    "critical": false,
    "parts": [],
@@ -23,8 +23,8 @@
   },
   {
    "code": "6.3",
-   "domain": "Ratios and Proportions",
-   "cluster": "Understand ratio concepts and use ratio reasoning to solve problems.",
+   "domain": "Proportional Reasoning",
+   "cluster": "Develop an understanding of ratio concepts and use reasoning about ratios to solve problems.",
    "text": "Use ratio and rate reasoning to solve mathematical and real-world problems (including but not limited to percent, measurement conversion, and equivalent ratios) using a variety of models, including tables of equivalent ratios, tape diagrams, double number lines, and equations.",
    "critical": false,
    "parts": [],
@@ -33,8 +33,8 @@
   },
   {
    "code": "6.4",
-   "domain": "The Number System",
-   "cluster": "Apply and extend previous understandings of multiplication and division to divide fractions by fractions.",
+   "domain": "Number Systems and Operations",
+   "cluster": "Use prior knowledge of multiplication and division to divide fractions.",
    "text": "Interpret and compute quotients of fractions using visual models and equations to represent problems.",
    "critical": false,
    "parts": [
@@ -48,8 +48,8 @@
   },
   {
    "code": "6.5",
-   "domain": "The Number System",
-   "cluster": "Compute fluently with multi-digit numbers and find common factors and multiples.",
+   "domain": "Number Systems and Operations",
+   "cluster": "Compute multi-digit numbers fluently and determine common factors and multiples.",
    "text": "Fluently divide multi-digit whole numbers using a standard algorithm to solve real-world and mathematical problems.",
    "critical": false,
    "parts": [],
@@ -58,8 +58,8 @@
   },
   {
    "code": "6.6",
-   "domain": "The Number System",
-   "cluster": "Compute fluently with multi-digit numbers and find common factors and multiples.",
+   "domain": "Number Systems and Operations",
+   "cluster": "Compute multi-digit numbers fluently and determine common factors and multiples.",
    "text": "Add, subtract, multiply, and divide decimals using a standard algorithm.",
    "critical": false,
    "parts": [],
@@ -68,8 +68,8 @@
   },
   {
    "code": "6.7",
-   "domain": "The Number System",
-   "cluster": "Compute fluently with multi-digit numbers and find common factors and multiples.",
+   "domain": "Number Systems and Operations",
+   "cluster": "Compute multi-digit numbers fluently and determine common factors and multiples.",
    "text": "Use the distributive property to express the sum of two whole numbers with a common factor as a multiple of a sum of two whole numbers with no common factor.",
    "critical": false,
    "parts": [],
@@ -78,8 +78,8 @@
   },
   {
    "code": "6.8",
-   "domain": "The Number System",
-   "cluster": "Compute fluently with multi-digit numbers and find common factors and multiples.",
+   "domain": "Number Systems and Operations",
+   "cluster": "Compute multi-digit numbers fluently and determine common factors and multiples.",
    "text": "Find the greatest common factor (GCF) and least common multiple (LCM) of two or more whole numbers.",
    "critical": false,
    "parts": [
@@ -93,8 +93,8 @@
   },
   {
    "code": "6.9",
-   "domain": "The Number System",
-   "cluster": "Apply and extend previous understandings of numbers to the system of rational numbers.",
+   "domain": "Number Systems and Operations",
+   "cluster": "Apply knowledge of the number system to represent and use rational numbers in a variety of forms.",
    "text": "Use signed numbers to describe quantities that have opposite directions or values and to represent quantities in real-world contexts.",
    "critical": false,
    "parts": [],
@@ -103,8 +103,8 @@
   },
   {
    "code": "6.10",
-   "domain": "The Number System",
-   "cluster": "Apply and extend previous understandings of numbers to the system of rational numbers.",
+   "domain": "Number Systems and Operations",
+   "cluster": "Apply knowledge of the number system to represent and use rational numbers in a variety of forms.",
    "text": "Locate integers and other rational numbers on a horizontal or vertical line diagram.",
    "critical": false,
    "parts": [
@@ -122,8 +122,8 @@
   },
   {
    "code": "6.11",
-   "domain": "The Number System",
-   "cluster": "Apply and extend previous understandings of numbers to the system of rational numbers.",
+   "domain": "Number Systems and Operations",
+   "cluster": "Apply knowledge of the number system to represent and use rational numbers in a variety of forms.",
    "text": "Find the position of pairs of integers and other rational numbers on the coordinate plane.",
    "critical": false,
    "parts": [
@@ -149,8 +149,8 @@
   },
   {
    "code": "6.12",
-   "domain": "The Number System",
-   "cluster": "Apply and extend previous understandings of numbers to the system of rational numbers.",
+   "domain": "Number Systems and Operations",
+   "cluster": "Apply knowledge of the number system to represent and use rational numbers in a variety of forms.",
    "text": "Explain the meaning of absolute value and determine the absolute value of rational numbers in real-world contexts.",
    "critical": false,
    "parts": [],
@@ -159,8 +159,8 @@
   },
   {
    "code": "6.13",
-   "domain": "The Number System",
-   "cluster": "Apply and extend previous understandings of numbers to the system of rational numbers.",
+   "domain": "Number Systems and Operations",
+   "cluster": "Apply knowledge of the number system to represent and use rational numbers in a variety of forms.",
    "text": "Compare and order rational numbers and absolute value of rational numbers with and without a number line in order to solve real-world and mathematical problems.",
    "critical": false,
    "parts": [],
@@ -169,8 +169,8 @@
   },
   {
    "code": "6.14",
-   "domain": "Expressions and Equations",
-   "cluster": "Apply and extend previous understandings of arithmetic to algebraic expressions.",
+   "domain": "Algebra and Functions",
+   "cluster": "Apply knowledge of arithmetic to read, write, and evaluate algebraic expressions.",
    "text": "Write, evaluate, and compare expressions involving whole number exponents.",
    "critical": false,
    "parts": [],
@@ -179,8 +179,8 @@
   },
   {
    "code": "6.15",
-   "domain": "Expressions and Equations",
-   "cluster": "Apply and extend previous understandings of arithmetic to algebraic expressions.",
+   "domain": "Algebra and Functions",
+   "cluster": "Apply knowledge of arithmetic to read, write, and evaluate algebraic expressions.",
    "text": "Write, read, and evaluate expressions in which letters represent numbers in real-world contexts.",
    "critical": false,
    "parts": [
@@ -206,8 +206,8 @@
   },
   {
    "code": "6.16",
-   "domain": "Expressions and Equations",
-   "cluster": "Apply and extend previous understandings of arithmetic to algebraic expressions.",
+   "domain": "Algebra and Functions",
+   "cluster": "Apply knowledge of arithmetic to read, write, and evaluate algebraic expressions.",
    "text": "Generate equivalent algebraic expressions using the properties of operations, including inverse, identity, commutative, associative, and distributive.",
    "critical": false,
    "parts": [],
@@ -216,8 +216,8 @@
   },
   {
    "code": "6.17",
-   "domain": "Expressions and Equations",
-   "cluster": "Apply and extend previous understandings of arithmetic to algebraic expressions.",
+   "domain": "Algebra and Functions",
+   "cluster": "Apply knowledge of arithmetic to read, write, and evaluate algebraic expressions.",
    "text": "Determine whether two expressions are equivalent and justify the reasoning.",
    "critical": false,
    "parts": [],
@@ -226,8 +226,8 @@
   },
   {
    "code": "6.18",
-   "domain": "Expressions and Equations",
-   "cluster": "Reason about and solve one-variable equations and inequalities.",
+   "domain": "Algebra and Functions",
+   "cluster": "Use equations and inequalities to represent and solve real-world or mathematical problems.",
    "text": "Determine whether a value is a solution to an equation or inequality by using substitution to conclude whether a given value makes the equation or inequality true.",
    "critical": false,
    "parts": [],
@@ -236,8 +236,8 @@
   },
   {
    "code": "6.19",
-   "domain": "Expressions and Equations",
-   "cluster": "Reason about and solve one-variable equations and inequalities.",
+   "domain": "Algebra and Functions",
+   "cluster": "Use equations and inequalities to represent and solve real-world or mathematical problems.",
    "text": "Write and solve an equation in the form of x+p=q or px=q for cases in which p, q, and x are all non-negative rational numbers to solve real-world and mathematical problems.",
    "critical": false,
    "parts": [
@@ -251,8 +251,8 @@
   },
   {
    "code": "6.20",
-   "domain": "Expressions and Equations",
-   "cluster": "Reason about and solve one-variable equations and inequalities.",
+   "domain": "Algebra and Functions",
+   "cluster": "Use equations and inequalities to represent and solve real-world or mathematical problems.",
    "text": "Write and solve inequalities in the form of x>c, x<c, x>=c, or x<=c to represent a constraint or condition in a real-world or mathematical problem.",
    "critical": false,
    "parts": [
@@ -270,8 +270,8 @@
   },
   {
    "code": "6.21",
-   "domain": "Expressions and Equations",
-   "cluster": "Represent and analyze quantitative relationships between dependent and independent variables.",
+   "domain": "Algebra and Functions",
+   "cluster": "Identify and analyze relationships between independent and dependent variables.",
    "text": "Identify, represent, and analyze two quantities that change in relationship to one another in real-world or mathematical situations.",
    "critical": false,
    "parts": [
@@ -285,8 +285,8 @@
   },
   {
    "code": "6.22",
-   "domain": "Statistics and Probability",
-   "cluster": "Develop understanding of statistical variability.",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "Use real-world and mathematical problems to analyze data and demonstrate an understanding of statistical variability and measures of center.",
    "text": "Write examples and non-examples of statistical questions, explaining that a statistical question anticipates variability in the data related to the question.",
    "critical": false,
    "parts": [],
@@ -295,8 +295,8 @@
   },
   {
    "code": "6.23",
-   "domain": "Statistics and Probability",
-   "cluster": "Summarize and describe distributions.",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "Use real-world and mathematical problems to analyze data and demonstrate an understanding of statistical variability and measures of center.",
    "text": "Calculate, interpret, and compare measures of center (mean, median, mode) and variability (range and interquartile range) in real-world data sets.",
    "critical": false,
    "parts": [
@@ -314,8 +314,8 @@
   },
   {
    "code": "6.24",
-   "domain": "Statistics and Probability",
-   "cluster": "Summarize and describe distributions.",
+   "domain": "Data Analysis, Statistics, and Probability",
+   "cluster": "Use real-world and mathematical problems to analyze data and demonstrate an understanding of statistical variability and measures of center.",
    "text": "Represent numerical data graphically, using dot plots, line plots, histograms, stem and leaf plots, and box plots.",
    "critical": false,
    "parts": [
@@ -333,8 +333,8 @@
   },
   {
    "code": "6.25",
-   "domain": "Geometry",
-   "cluster": "Solve real-world and mathematical problems involving area, surface area, and volume.",
+   "domain": "Geometry and Measurement",
+   "cluster": "Graph polygons in the coordinate plane to solve real-world and mathematical problems.",
    "text": "Graph polygons in the coordinate plane given coordinates of the vertices to solve real-world and mathematical problems.",
    "critical": false,
    "parts": [
@@ -356,8 +356,8 @@
   },
   {
    "code": "6.26",
-   "domain": "Geometry",
-   "cluster": "Solve real-world and mathematical problems involving area, surface area, and volume.",
+   "domain": "Geometry and Measurement",
+   "cluster": "Solve real-world and mathematical problems to determine area, surface area, and volume.",
    "text": "Calculate the area of triangles, special quadrilaterals, and other polygons by composing and decomposing them into known shapes.",
    "critical": false,
    "parts": [
@@ -371,8 +371,8 @@
   },
   {
    "code": "6.27",
-   "domain": "Geometry",
-   "cluster": "Solve real-world and mathematical problems involving area, surface area, and volume.",
+   "domain": "Geometry and Measurement",
+   "cluster": "Solve real-world and mathematical problems to determine area, surface area, and volume.",
    "text": "Determine the surface area of three-dimensional figures by representing them with nets composed of rectangles and triangles to solve real-world and mathematical problems.",
    "critical": false,
    "parts": [],
@@ -381,8 +381,8 @@
   },
   {
    "code": "6.28",
-   "domain": "Geometry",
-   "cluster": "Solve real-world and mathematical problems involving area, surface area, and volume.",
+   "domain": "Geometry and Measurement",
+   "cluster": "Solve real-world and mathematical problems to determine area, surface area, and volume.",
    "text": "Apply previous understanding of volume of right rectangular prisms to those with fractional edge lengths to solve real-world and mathematical problems.",
    "critical": false,
    "parts": [

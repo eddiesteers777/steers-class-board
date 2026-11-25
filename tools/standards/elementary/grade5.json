@@ -1,5 +1,5 @@
 {
- "source": "2019 Alabama Course of Study: Mathematics, Grade 5 (5.1-5.23), standard text verified Nov 24, 2026 against the ALSDE text as reproduced at goblins.com/standards/math/alabama. Domains/clusters are the standard Alabama groupings. No DIGS critical flags exist for 5th grade in Eddie's files, so critical is false for all.",
+ "source": "2019 Alabama Course of Study: Mathematics, Grade 5 (5.1-5.23). Standard wording, domains (content areas) and clusters checked Nov 24, 2026 against the official ALSDE PDF (https://www.alabamaachieves.org/wp-content/uploads/2022/09/AS_2022923_2019-Alabama-Mathematics-COS_V1.0.pdf), printed pages 52-56. Fractions written a/b. The official 5.9 reads \"real-word\"; kept as \"real-world\".",
  "standards": [
   {
    "code": "5.1",
@@ -36,7 +36,7 @@
   },
   {
    "code": "5.3",
-   "domain": "Number and Operations in Base Ten",
+   "domain": "Operations with Numbers: Base Ten",
    "cluster": "Understand the place value system.",
    "text": "Using models and quantitative reasoning, explain that in a multi-digit number, including decimals, a digit in any place represents ten times what it represents in the place to its right and 1/10 of what it represents in the place to its left.",
    "critical": false,
@@ -55,14 +55,14 @@
   },
   {
    "code": "5.4",
-   "domain": "Number and Operations in Base Ten",
+   "domain": "Operations with Numbers: Base Ten",
    "cluster": "Understand the place value system.",
    "text": "Read, write, and compare decimals to thousandths.",
    "critical": false,
    "parts": [
     {
      "l": "a",
-     "text": "Read and write decimals to thousandths using base-ten numerals, number names, and expanded form."
+     "text": "Read and write decimals to thousandths using base-ten numerals, number names, and expanded form. Example: 347.392 = 3 × 100 + 4 × 10 + 7 × 1 + 3 × (1/10) + 9 × (1/100) + 2 × (1/1000)."
     },
     {
      "l": "b",
@@ -74,7 +74,7 @@
   },
   {
    "code": "5.5",
-   "domain": "Number and Operations in Base Ten",
+   "domain": "Operations with Numbers: Base Ten",
    "cluster": "Understand the place value system.",
    "text": "Use place value understanding to round decimals to thousandths.",
    "critical": false,
@@ -84,8 +84,8 @@
   },
   {
    "code": "5.6",
-   "domain": "Number and Operations in Base Ten",
-   "cluster": "Perform operations with multi-digit whole numbers and with decimals to hundredths.",
+   "domain": "Operations with Numbers: Base Ten",
+   "cluster": "Perform operations with multi-digit whole numbers and decimals to hundredths.",
    "text": "Fluently multiply multi-digit whole numbers using the standard algorithm.",
    "critical": false,
    "parts": [],
@@ -94,8 +94,8 @@
   },
   {
    "code": "5.7",
-   "domain": "Number and Operations in Base Ten",
-   "cluster": "Perform operations with multi-digit whole numbers and with decimals to hundredths.",
+   "domain": "Operations with Numbers: Base Ten",
+   "cluster": "Perform operations with multi-digit whole numbers and decimals to hundredths.",
    "text": "Use strategies based on place value, properties of operations, and/or the relationship between multiplication and division to find whole-number quotients and remainders with up to four-digit dividends and two-digit divisors. Illustrate and explain the calculation by using equations, rectangular arrays, and/or area models.",
    "critical": false,
    "parts": [],
@@ -104,8 +104,8 @@
   },
   {
    "code": "5.8",
-   "domain": "Number and Operations in Base Ten",
-   "cluster": "Perform operations with multi-digit whole numbers and with decimals to hundredths.",
+   "domain": "Operations with Numbers: Base Ten",
+   "cluster": "Perform operations with multi-digit whole numbers and decimals to hundredths.",
    "text": "Add, subtract, multiply, and divide decimals to hundredths using strategies based on place value, properties of operations, and/or the relationships between addition/subtraction and multiplication/division; relate the strategy to a written method, and explain the reasoning used.",
    "critical": false,
    "parts": [
@@ -123,9 +123,9 @@
   },
   {
    "code": "5.9",
-   "domain": "Number and Operations - Fractions",
+   "domain": "Operations with Numbers: Fractions",
    "cluster": "Use equivalent fractions as a strategy to add and subtract fractions.",
-   "text": "Model and solve real-world problems involving addition and subtraction of fractions referring to the same whole, including cases of unlike denominators, using visual fraction models or equations to represent the problem. Use benchmark fractions and number sense of fractions to estimate mentally, and assess the reasonableness of answers.",
+   "text": "Model and solve real-world problems involving addition and subtraction of fractions referring to the same whole, including cases of unlike denominators, using visual fraction models or equations to represent the problem. Use benchmark fractions and number sense of fractions to estimate mentally, and assess the reasonableness of answers. Example: Recognize an incorrect result 2/5 + 1/2 = 3/7 by observing that 3/7 < 1/2.",
    "critical": false,
    "parts": [],
    "objectives": [],
@@ -133,7 +133,7 @@
   },
   {
    "code": "5.10",
-   "domain": "Number and Operations - Fractions",
+   "domain": "Operations with Numbers: Fractions",
    "cluster": "Use equivalent fractions as a strategy to add and subtract fractions.",
    "text": "Add and subtract fractions and mixed numbers with unlike denominators, using fraction equivalence to calculate a sum or difference of fractions or mixed numbers with like denominators.",
    "critical": false,
@@ -143,7 +143,7 @@
   },
   {
    "code": "5.11",
-   "domain": "Number and Operations - Fractions",
+   "domain": "Operations with Numbers: Fractions",
    "cluster": "Apply and extend previous understandings of multiplication and division to multiply and divide fractions.",
    "text": "Solve word problems involving division of whole numbers leading to answers in the form of fractions or mixed numbers.",
    "critical": false,
@@ -162,18 +162,18 @@
   },
   {
    "code": "5.12",
-   "domain": "Number and Operations - Fractions",
+   "domain": "Operations with Numbers: Fractions",
    "cluster": "Apply and extend previous understandings of multiplication and division to multiply and divide fractions.",
    "text": "Apply and extend previous understandings of multiplication to find the product of a fraction times a whole number or a fraction times a fraction.",
    "critical": false,
    "parts": [
     {
      "l": "a",
-     "text": "Use a visual fraction model (area model, set model, or linear model) to show (a/b) x q and create a story context for this equation to interpret the product as a parts of a partition of q into b equal parts."
+     "text": "Use a visual fraction model (area model, set model, or linear model) to show (a/b) × q and create a story context for this equation to interpret the product as a parts of a partition of q into b equal parts."
     },
     {
      "l": "b",
-     "text": "Use a visual fraction model (area model, set model, or linear model) to show (a/b) x (c/d) and create a story context for this equation to interpret the product."
+     "text": "Use a visual fraction model (area model, set model, or linear model) to show (a/b) × (c/d) and create a story context for this equation to interpret the product."
     },
     {
      "l": "c",
@@ -189,14 +189,14 @@
   },
   {
    "code": "5.13",
-   "domain": "Number and Operations - Fractions",
+   "domain": "Operations with Numbers: Fractions",
    "cluster": "Apply and extend previous understandings of multiplication and division to multiply and divide fractions.",
    "text": "Interpret multiplication as scaling (resizing).",
    "critical": false,
    "parts": [
     {
      "l": "a",
-     "text": "Compare the size of a product to the size of one factor on the basis of the size of the other factor, without performing the indicated multiplication."
+     "text": "Compare the size of a product to the size of one factor on the basis of the size of the other factor, without performing the indicated multiplication. Example: Use reasoning to determine which expression is greater? 225 or 3/4 × 225; 11/50 or 3/2 × 11/50"
     },
     {
      "l": "b",
@@ -212,7 +212,7 @@
   },
   {
    "code": "5.14",
-   "domain": "Number and Operations - Fractions",
+   "domain": "Operations with Numbers: Fractions",
    "cluster": "Apply and extend previous understandings of multiplication and division to multiply and divide fractions.",
    "text": "Model and solve real-world problems involving multiplication of fractions and mixed numbers using visual fraction models, drawings, or equations to represent the problem.",
    "critical": false,
@@ -222,7 +222,7 @@
   },
   {
    "code": "5.15",
-   "domain": "Number and Operations - Fractions",
+   "domain": "Operations with Numbers: Fractions",
    "cluster": "Apply and extend previous understandings of multiplication and division to multiply and divide fractions.",
    "text": "Apply and extend previous understandings of division to divide unit fractions by whole numbers and whole numbers by unit fractions.",
    "critical": false,
@@ -245,14 +245,14 @@
   },
   {
    "code": "5.16",
-   "domain": "Measurement and Data",
+   "domain": "Data Analysis",
    "cluster": "Represent and interpret data.",
    "text": "Make a line plot to display a data set of measurements in fractions of a unit (1/2, 1/4, 1/8).",
    "critical": false,
    "parts": [
     {
      "l": "a",
-     "text": "Add, subtract, multiply, and divide fractions to solve problems involving information presented in line plots."
+     "text": "Add, subtract, multiply, and divide fractions to solve problems involving information presented in line plots. Note: Division is limited to unit fractions by whole numbers and whole numbers by unit fractions."
     }
    ],
    "objectives": [],
@@ -260,7 +260,7 @@
   },
   {
    "code": "5.17",
-   "domain": "Measurement and Data",
+   "domain": "Measurement",
    "cluster": "Convert like measurement units within a given measurement system.",
    "text": "Convert among different-sized standard measurement units within a given measurement system and use these conversions in solving multi-step, real-world problems.",
    "critical": false,
@@ -270,8 +270,8 @@
   },
   {
    "code": "5.18",
-   "domain": "Measurement and Data",
-   "cluster": "Geometric measurement: understand concepts of volume.",
+   "domain": "Measurement",
+   "cluster": "Geometric measurement: understand concepts of volume and relate volume to multiplication and to addition.",
    "text": "Identify volume as an attribute of solid figures, and measure volumes by counting unit cubes, using cubic cm, cubic in, cubic ft, and improvised (non-standard) units.",
    "critical": false,
    "parts": [
@@ -285,8 +285,8 @@
   },
   {
    "code": "5.19",
-   "domain": "Measurement and Data",
-   "cluster": "Geometric measurement: understand concepts of volume.",
+   "domain": "Measurement",
+   "cluster": "Geometric measurement: understand concepts of volume and relate volume to multiplication and to addition.",
    "text": "Relate volume to the operations of multiplication and addition, and solve real-world and mathematical problems involving volume.",
    "critical": false,
    "parts": [
@@ -296,7 +296,7 @@
     },
     {
      "l": "b",
-     "text": "Apply the formulas V = l x w x h and V = B x h for rectangular prisms to find volumes of right rectangular prisms with whole-number edge lengths in the context of solving real-world and mathematical problems."
+     "text": "Apply the formulas V = l × w × h and V = B × h for rectangular prisms to find volumes of right rectangular prisms with whole-number edge lengths in the context of solving real-world and mathematical problems."
     },
     {
      "l": "c",
@@ -340,7 +340,7 @@
    "code": "5.23",
    "domain": "Geometry",
    "cluster": "Classify two-dimensional figures into categories based on their properties.",
-   "text": "Explain that attributes belonging to a category of two-dimensional figures also belong to all subcategories of that category.",
+   "text": "Explain that attributes belonging to a category of two-dimensional figures also belong to all subcategories of that category. Example: All rectangles have four right angles, and squares have four right angles, so squares are rectangles.",
    "critical": false,
    "parts": [],
    "objectives": [],
