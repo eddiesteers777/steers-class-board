@@ -5,7 +5,7 @@
    built from the bank problem itself, and the teacher's part (checked it, reworded a why line) is saved under
    teacher/{uid}/walk/ok and teacher/{uid}/walk/edits.
 ========================================== */
-import { loadStdBank } from "./stdBank.js?v=4";
+import { loadStdBank } from "./stdBank.js?v=5";
 import { walkFor } from "./walk.js?v=14";
 
 let cache = null;

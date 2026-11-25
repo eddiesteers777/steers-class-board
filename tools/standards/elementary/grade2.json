@@ -1,0 +1,342 @@
+{
+ "source": "2019 Alabama Course of Study: Mathematics, Grade 2 (2.1-2.27), standard text verified Nov 24, 2026 against the official ALSDE 2019 Course of Study PDF. Domains/clusters are the standard Alabama groupings. No DIGS critical flags exist for 2nd grade in Eddie's files, so critical is false for all — do not treat that as a DIGS marking.",
+ "standards": [
+  {
+   "cluster": "Represent and solve problems involving addition and subtraction.",
+   "code": "2.1",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Use addition and subtraction within 100 to solve one- and two-step word problems by using drawings and equations with a symbol for the unknown number to represent the problem."
+  },
+  {
+   "cluster": "Add and subtract within 20.",
+   "code": "2.2",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "State automatically all sums of two one-digit numbers."
+    }
+   ],
+   "prior": [],
+   "text": "Fluently add and subtract within 20 using mental strategies such as counting on, making ten, decomposing a number leading to ten, using the relationship between addition and subtraction, and creating equivalent but easier or known sums."
+  },
+  {
+   "cluster": "Work with equal groups of objects to gain foundations for multiplication.",
+   "code": "2.3",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Write an equation to express an even number as a sum of two equal addends."
+    }
+   ],
+   "prior": [],
+   "text": "Use concrete objects to determine whether a group of up to 20 objects is even or odd."
+  },
+  {
+   "cluster": "Work with equal groups of objects to gain foundations for multiplication.",
+   "code": "2.4",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Write an equation to express the total number of objects in a rectangular array with up to 5 rows and up to 5 columns as a sum of equal addends."
+    }
+   ],
+   "prior": [],
+   "text": "Using concrete and pictorial representations and repeated addition, determine the total number of objects in a rectangular array with up to 5 rows and up to 5 columns."
+  },
+  {
+   "cluster": "Understand simple patterns.",
+   "code": "2.5",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Reproduce, extend, create, and describe patterns and sequences using a variety of materials."
+  },
+  {
+   "cluster": "Understand place value.",
+   "code": "2.6",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Explain the following three-digit numbers as special cases: 100 can be thought of as a bundle of ten tens, called a 'hundred,' and the numbers 100, 200, 300, 400, 500, 600, 700, 800, 900 refer to one, two, three, four, five, six, seven, eight, or nine hundreds (and 0 tens and 0 ones)."
+    }
+   ],
+   "prior": [],
+   "text": "Explain that the three digits of a three-digit number represent amounts of hundreds, tens, and ones."
+  },
+  {
+   "cluster": "Understand place value.",
+   "code": "2.7",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Count within 1000 by ones, fives, tens, and hundreds."
+  },
+  {
+   "cluster": "Understand place value.",
+   "code": "2.8",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Read and write numbers to 1000 using base-ten numerals, number names, and expanded form."
+  },
+  {
+   "cluster": "Understand place value.",
+   "code": "2.9",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Compare two three-digit numbers based on the value of the hundreds, tens, and ones digits, recording the results of comparisons with the symbols >, =, and < and orally with the words 'is greater than,' 'is equal to,' and 'is less than.'"
+  },
+  {
+   "cluster": "Use place value understanding and properties of operations to add and subtract.",
+   "code": "2.10",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Fluently add and subtract within 100, using strategies based on place value, properties of operations, and/or the relationship between addition and subtraction."
+  },
+  {
+   "cluster": "Use place value understanding and properties of operations to add and subtract.",
+   "code": "2.11",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Use a variety of strategies to add up to four two-digit numbers."
+  },
+  {
+   "cluster": "Use place value understanding and properties of operations to add and subtract.",
+   "code": "2.12",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Explain that in adding or subtracting three-digit numbers, one adds or subtracts hundreds and hundreds, tens and tens, ones and ones; and sometimes it is necessary to compose or decompose tens or hundreds."
+    }
+   ],
+   "prior": [],
+   "text": "Add and subtract within 1000 using concrete models or drawings and strategies based on place value, properties of operations, and/or the relationship between addition and subtraction; relate the strategy to a written method."
+  },
+  {
+   "cluster": "Use place value understanding and properties of operations to add and subtract.",
+   "code": "2.13",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Mentally add and subtract 10 or 100 to a given number between 100 and 900."
+  },
+  {
+   "cluster": "Use place value understanding and properties of operations to add and subtract.",
+   "code": "2.14",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Explain why addition and subtraction strategies work, using place value and the properties of operations. Note: Explanations may be supported by drawings or objects."
+  },
+  {
+   "cluster": "Collect and analyze data and interpret results.",
+   "code": "2.15",
+   "critical": false,
+   "domain": "Data Analysis",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Create a line plot where the horizontal scale is marked off in whole-number units to show the lengths of several measured objects."
+    }
+   ],
+   "prior": [],
+   "text": "Measure lengths of several objects to the nearest whole unit."
+  },
+  {
+   "cluster": "Collect and analyze data and interpret results.",
+   "code": "2.16",
+   "critical": false,
+   "domain": "Data Analysis",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Using information presented in a bar graph, solve simple 'put-together,' 'take-apart,' and 'compare' problems."
+    },
+    {
+     "l": "b",
+     "text": "Using Venn diagrams, pictographs, and 'yes-no' charts, analyze data to predict an outcome."
+    }
+   ],
+   "prior": [],
+   "text": "Create a picture graph and bar graph to represent data with up to four categories."
+  },
+  {
+   "cluster": "Measure and estimate lengths in standard units.",
+   "code": "2.17",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Measure the length of an object by selecting and using standard units of measurement shown on rulers, yardsticks, meter sticks, or measuring tapes."
+  },
+  {
+   "cluster": "Measure and estimate lengths in standard units.",
+   "code": "2.18",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Measure objects with two different units, and describe how the two measurements relate to each other and the size of the unit chosen."
+  },
+  {
+   "cluster": "Measure and estimate lengths in standard units.",
+   "code": "2.19",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Estimate lengths using the following standard units of measurement: inches, feet, centimeters, and meters."
+  },
+  {
+   "cluster": "Measure and estimate lengths in standard units.",
+   "code": "2.20",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Measure to determine how much longer one object is than another, expressing the length difference of the two objects using standard units of length."
+  },
+  {
+   "cluster": "Relate addition and subtraction to length.",
+   "code": "2.21",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Use addition and subtraction within 100 to solve word problems involving same units of length, representing the problem with drawings (such as drawings of rulers) and/or equations with a symbol for the unknown number."
+  },
+  {
+   "cluster": "Relate addition and subtraction to length.",
+   "code": "2.22",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Create a number line diagram using whole numbers and use it to represent whole-number sums and differences within 100."
+  },
+  {
+   "cluster": "Work with time and money.",
+   "code": "2.23",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Express an understanding of common terms such as, but not limited to, quarter past, half past, and quarter to."
+    }
+   ],
+   "prior": [],
+   "text": "Tell and write time from analog and digital clocks to the nearest five minutes, using a.m. and p.m."
+  },
+  {
+   "cluster": "Work with time and money.",
+   "code": "2.24",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Identify nickels and quarters by name and value."
+    },
+    {
+     "l": "b",
+     "text": "Find the value of a collection of quarters, dimes, nickels, and pennies."
+    },
+    {
+     "l": "c",
+     "text": "Solve word problems by adding and subtracting within one dollar, using the $ and ¢ symbols appropriately (not including decimal notation). Example: 24¢ + 26¢ = 50¢"
+    }
+   ],
+   "prior": [],
+   "text": "Solve problems with money."
+  },
+  {
+   "cluster": "Reason with shapes and their attributes.",
+   "code": "2.25",
+   "critical": false,
+   "domain": "Geometry",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Recognize and draw shapes having specified attributes. Examples: a given number of angles or a given number of equal faces."
+    }
+   ],
+   "prior": [],
+   "text": "Identify triangles, quadrilaterals, pentagons, hexagons, and cubes."
+  },
+  {
+   "cluster": "Reason with shapes and their attributes.",
+   "code": "2.26",
+   "critical": false,
+   "domain": "Geometry",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Partition a rectangle into rows and columns of same-size squares, and count to find the total number of squares."
+  },
+  {
+   "cluster": "Reason with shapes and their attributes.",
+   "code": "2.27",
+   "critical": false,
+   "domain": "Geometry",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Explain that equal shares of identical wholes need not have the same shape."
+    }
+   ],
+   "prior": [],
+   "text": "Partition circles and rectangles into two, three, or four equal shares. Describe the shares using such terms as halves, thirds, half of, or a third of, and describe the whole as two halves, three thirds, or four fourths."
+  }
+ ]
+}

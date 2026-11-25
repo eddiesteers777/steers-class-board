@@ -5,7 +5,7 @@ import * as T from "../../js/timelineCore.js";
 import { nextUp } from "../../js/standardsNext.js";
 
 // Every standard of each class is one card, exactly once, and the locked plans use only real codes.
-for (const cls of Object.keys(STANDARDS)) {
+for (const cls of Object.keys(STANDARDS).filter((c) => STANDARDS[c].units.length)) {   // classes with district units (not the g2..g6 bank grades)
     const codes = STANDARDS[cls].standards.map((s) => s.code).sort();
     const lanes = T.defaultLanes(cls), flat = lanes.flat();
     assert.equal(lanes.length, 4, cls);

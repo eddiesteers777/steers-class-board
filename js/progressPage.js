@@ -8,7 +8,7 @@
 import { sharedPeriod, saveSharedPeriod } from "./studentsNav.js?v=6";
 import { buildProgress, distribution, standardOverTime, needGroups, missedOn, heatmap, engagement, fidelity, studentSummary, stdIn, BAND_WORD } from "./progress.js?v=4";
 import { lineChart, sparkline, bandBar, meter } from "./charts.js?v=1";
-import { STANDARDS } from "../data/standards.js?v=58";
+import { STANDARDS } from "../data/standards.js?v=59";
 import * as R from "./readiness.js?v=1";
 import * as AA from "./acapAssign.js?v=4";
 import * as K from "./checks.js?v=1";
@@ -76,7 +76,7 @@ export async function mountProgress() {
     const watchFound = (per) => { if (D.found.has(per)) return; D.found.set(per, null); store.watch("found/" + perKey(per), (s) => { if (s.pending) return; D.found.set(per, s.exists ? s.data : false); soon(); }, () => D.found.set(per, false)); };
     const watchProf = (per) => { if (D.prof.has(per)) return; D.prof.set(per, null); store.watch("profiles/" + perKey(per), (s) => { if (s.pending) return; D.prof.set(per, s.exists ? s.data : false); soon(); }, () => D.prof.set(per, false)); };
     const rooms = demo ? memRooms() : store.rooms;
-    const bank = () => (D.bank ? Promise.resolve(D.bank) : import("./stdBank.js?v=4").then((m) => m.loadStdBank()).then((b) => (D.bank = b)));
+    const bank = () => (D.bank ? Promise.resolve(D.bank) : import("./stdBank.js?v=5").then((m) => m.loadStdBank()).then((b) => (D.bank = b)));
     // The class tally for the last 45 days (one document per day).
     for (let i = 0; i < 45; i++) { const d = new Date(); d.setDate(d.getDate() - i); const k = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); once("tally/" + k, (t) => { if (t && t.periods) { D.tally.set(k, t); soon(); } }); }
     // The Class Tracker (Nov 21) keeps the same behaviour line, one document per day at track/{day}.

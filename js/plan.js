@@ -7,7 +7,7 @@
    (dates, classes, topics, standards with their exact wording, quiz or test, roster COUNTS only, last week).
    ?demo keeps everything on this device. ?week=week6 opens a given week.
 ========================================== */
-import { STANDARDS } from "../data/standards.js?v=58";
+import { STANDARDS } from "../data/standards.js?v=59";
 import { WEEKS as PUBLISHED } from "../data/weeks.js?v=63";
 import { toLoginIfSignedOut } from "./signedOut.js?v=1";
 import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, eventsOn, nineWeeksOf, daysLeftInNineWeeks, short, parse } from "./schoolCal.js?v=59";
@@ -16,7 +16,7 @@ import { watchPrivateWeeks, weekIdFor } from "./weeksLive.js?v=58";
 import { watchEvidence, classEvidence, evidenceForBrief, weekStandards } from "./planEvidence.js?v=3";
 import { openBankPicker, bankFor } from "./bankPick.js?v=2";
 import { rich } from "./weekSheets.js?v=60";
-import { loadStdBank } from "./stdBank.js?v=4";
+import { loadStdBank } from "./stdBank.js?v=5";
 import { bellWeek } from "./acapFormats.js?v=2";
 const bellMsg = {};   // the last "Fill every day" result, per class
 

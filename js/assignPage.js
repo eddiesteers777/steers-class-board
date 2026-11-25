@@ -14,8 +14,8 @@
 import * as C from "./assignCore.js?v=7";
 import { namesOnly, indexEntry } from "./acapAssign.js?v=4";
 import * as V from "./vaultCore.js?v=75";
-import { loadStdBank, inClass, LEVELS } from "./stdBank.js?v=4";
-import { STANDARDS } from "../data/standards.js?v=58";
+import { loadStdBank, inClass, LEVELS } from "./stdBank.js?v=5";
+import { STANDARDS } from "../data/standards.js?v=59";
 import qrcode from "./vendor/qrcode.js?v=1";
 
 const $ = (id) => document.getElementById(id);

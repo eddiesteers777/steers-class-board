@@ -11,7 +11,7 @@ import * as G from "./gradeCore.js?v=4";
 import { shortNames } from "./vaultCore.js?v=75";
 import { buildProgress, BAND_WORD } from "./progress.js?v=4";
 import { lineChart } from "./charts.js?v=1";
-import { STANDARDS } from "../data/standards.js?v=58";
+import { STANDARDS } from "../data/standards.js?v=59";
 import { SCHOOL_YEAR } from "./schoolCal.js?v=59";
 
 const $ = (id) => document.getElementById(id);

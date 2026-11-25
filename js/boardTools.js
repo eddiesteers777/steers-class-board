@@ -8,7 +8,7 @@
 
 import { cleanStickers } from "./stickers.js?v=1";
 import { cleanSty } from "./panelStyle.js?v=3";
-import { cleanFinds } from "./findCore.js?v=1";
+import { cleanFinds } from "./findCore.js?v=2";
 import { cleanMt } from "./manipCore.js?v=14";
 
 export const TOOL_LIST = [["traffic", "Traffic light"], ["work", "Voice level"], ["clock", "Clock"], ["stopwatch", "Stopwatch"], ["text", "Message"], ["dice", "Dice"], ["score", "Scoreboard"], ["goal", "Class goal"], ["pick", "Name picker"], ["groups", "Group maker"], ["cam", "Webcam"], ["slide", "Slide"], ["find", "Find a problem"]];

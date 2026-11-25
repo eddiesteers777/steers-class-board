@@ -1,0 +1,3676 @@
+[
+ {
+  "src": "5.1-L1-01",
+  "std": "5.1",
+  "q": "Evaluate the expression: 3 × (7 + 5).",
+  "a": "36",
+  "lvl": 1,
+  "choices": [
+   "26",
+   "15",
+   "36",
+   "35"
+  ],
+  "steps": [
+   "Always simplify the operation inside the parentheses first.",
+   "Add 7 + 5 inside the parentheses, then keep the 3 × in front.",
+   "Multiply 3 by your sum to get the final value."
+  ]
+ },
+ {
+  "src": "5.1-L1-02",
+  "std": "5.1",
+  "q": "Which numerical expression represents 'subtract 4 from 19, then divide by 3'?",
+  "a": "(19 − 4) ÷ 3",
+  "lvl": 1,
+  "choices": [
+   "19 − 4 ÷ 3",
+   "(19 − 4) ÷ 3",
+   "(4 − 19) ÷ 3",
+   "19 ÷ (4 − 3)"
+  ],
+  "steps": [
+   "Identify which operation happens first: subtracting 4 from 19.",
+   "Write 19 − 4 inside parentheses so it is done before dividing.",
+   "Add ÷ 3 after the parentheses and match to the choices."
+  ]
+ },
+ {
+  "src": "5.1-L1-03",
+  "std": "5.1",
+  "q": "Evaluate the expression: (32 ÷ 8) + 9.",
+  "a": "13",
+  "lvl": 1,
+  "choices": [
+   "2",
+   "12",
+   "13",
+   "17"
+  ],
+  "steps": [
+   "Start by evaluating the division inside the parentheses.",
+   "Divide 32 ÷ 8 first, then bring down the + 9.",
+   "Add 9 to your quotient to find the final value."
+  ]
+ },
+ {
+  "src": "5.1-L2-01",
+  "std": "5.1",
+  "q": "Evaluate the expression: 4 × [25 − (8 + 9)].",
+  "a": "32",
+  "lvl": 2,
+  "choices": [
+   "104",
+   "68",
+   "32",
+   "24"
+  ],
+  "steps": [
+   "Work from the innermost grouping symbols outward.",
+   "Add 8 + 9 first, then subtract that sum from 25 inside the brackets.",
+   "Multiply 4 by the bracket result to finish."
+  ]
+ },
+ {
+  "src": "5.1-L2-02",
+  "std": "5.1",
+  "q": "Which expression uses the distributive property to rewrite 7 × (20 + 6)?",
+  "a": "(7 × 20) + (7 × 6)",
+  "lvl": 2,
+  "choices": [
+   "(7 × 20) + 6",
+   "(7 + 20) × (7 + 6)",
+   "(7 × 20) + (7 × 6)",
+   "7 × 20 × 6"
+  ],
+  "steps": [
+   "Distributing multiplies the outside factor by each term inside.",
+   "Multiply 7 by 20 and multiply 7 by 6 as two separate products.",
+   "Join the two products with a plus sign and match the choice."
+  ]
+ },
+ {
+  "src": "5.1-L2-03",
+  "std": "5.1",
+  "q": "Elena bought 4 packs of 15 stickers and gave 11 stickers to her friend. Which expression shows how many stickers Elena has left?",
+  "a": "(4 × 15) − 11",
+  "lvl": 2,
+  "choices": [
+   "4 × (15 − 11)",
+   "(4 + 15) − 11",
+   "(4 × 15) − 11",
+   "15 − (4 × 11)"
+  ],
+  "steps": [
+   "Find the total stickers bought first, then subtract what she gave away.",
+   "Write 4 × 15 in parentheses for the total stickers in 4 packs.",
+   "Subtract 11 from that product and match the expression."
+  ]
+ },
+ {
+  "src": "5.1-L3-01",
+  "std": "5.1",
+  "q": "Evaluate the expression: 3 × {[14 + (18 ÷ 6)] − 5}.",
+  "a": "36",
+  "lvl": 3,
+  "choices": [
+   "24",
+   "36",
+   "42",
+   "16"
+  ],
+  "steps": [
+   "Evaluate from innermost parentheses to brackets, then braces.",
+   "Compute 18 ÷ 6, add 14, then subtract 5 inside the braces.",
+   "Multiply the result inside the braces by 3."
+  ]
+ },
+ {
+  "src": "5.1-L3-02",
+  "std": "5.1",
+  "q": "Where should parentheses be placed in 36 ÷ 4 + 2 × 5 so that the value of the expression is 30?",
+  "a": "36 ÷ (4 + 2) × 5",
+  "lvl": 3,
+  "choices": [
+   "(36 ÷ 4) + (2 × 5)",
+   "36 ÷ (4 + 2 × 5)",
+   "(36 ÷ 4 + 2) × 5",
+   "36 ÷ (4 + 2) × 5"
+  ],
+  "steps": [
+   "Test where parentheses change the order of operations to reach 30.",
+   "Try grouping 4 + 2 so 36 is divided by that sum before multiplying.",
+   "Evaluate your choice from left to right to check it equals 30."
+  ]
+ },
+ {
+  "src": "5.1-L3-03",
+  "std": "5.1",
+  "q": "Evaluate the expression: 2 × [(30 − 12) ÷ 3] + 7.",
+  "a": "19",
+  "lvl": 3,
+  "steps": [
+   "Simplify inside the parentheses, then the brackets, then multiply.",
+   "Subtract 30 − 12, divide that result by 3, then multiply by 2.",
+   "Add 7 last to get the final value."
+  ]
+ },
+ {
+  "src": "5.2-L1-01",
+  "std": "5.2",
+  "q": "Pattern M starts at 0 and uses the rule 'add 6.' What are the first four terms of Pattern M?",
+  "a": "0, 6, 12, 18",
+  "lvl": 1,
+  "choices": [
+   "6, 12, 18, 24",
+   "0, 6, 36, 216",
+   "1, 7, 13, 19",
+   "0, 6, 12, 18"
+  ],
+  "steps": [
+   "Start with 0 as the first term, then repeatedly add 6.",
+   "Find the 2nd term (0 + 6), 3rd term, and 4th term by adding 6 each time.",
+   "List all four terms in order starting with 0."
+  ]
+ },
+ {
+  "src": "5.2-L1-02",
+  "std": "5.2",
+  "part": "a",
+  "q": "In an input/output table, the inputs 1, 2, 3, and 4 give the outputs 5, 10, 15, and 20. What rule relates each input to its output?",
+  "a": "Multiply by 5",
+  "lvl": 1,
+  "choices": [
+   "Multiply by 5",
+   "Add 4",
+   "Multiply by 4",
+   "Add 5"
+  ],
+  "steps": [
+   "Look at how each input changes to become its matching output.",
+   "Test a rule on 1 → 5, then test that same rule on 2 → 10 and 3 → 15.",
+   "Pick the single operation that works for every row in the table."
+  ]
+ },
+ {
+  "src": "5.2-L1-03",
+  "std": "5.2",
+  "part": "b",
+  "q": "Pattern A starts at 0 and adds 3. Pattern B starts at 0 and adds 4. Which ordered pair represents the third term of Pattern A and the third term of Pattern B?",
+  "a": "(6, 8)",
+  "lvl": 1,
+  "choices": [
+   "(6, 8)",
+   "(3, 4)",
+   "(9, 12)",
+   "(8, 6)"
+  ],
+  "steps": [
+   "List the first three terms of Pattern A and Pattern B starting at 0.",
+   "For A, add 3 twice from 0; for B, add 4 twice from 0.",
+   "Write the 3rd term of A first and 3rd term of B second as (A, B)."
+  ]
+ },
+ {
+  "src": "5.2-L2-01",
+  "std": "5.2",
+  "part": "a",
+  "q": "Pattern X starts at 0 and adds 2. Pattern Y starts at 0 and adds 8. How does each term in Pattern Y compare to the corresponding term in Pattern X?",
+  "a": "Each term in Pattern Y is 4 times the corresponding term in Pattern X.",
+  "lvl": 2,
+  "choices": [
+   "Each term in Pattern Y is 6 more than the corresponding term in Pattern X.",
+   "Each term in Pattern Y is 4 times the corresponding term in Pattern X.",
+   "Each term in Pattern X is 4 times the corresponding term in Pattern Y.",
+   "Each term in Pattern Y is 2 times the corresponding term in Pattern X."
+  ],
+  "steps": [
+   "Generate the first few terms of Pattern X and Pattern Y.",
+   "Compare matching terms: 0 and 0, 2 and 8, 4 and 16.",
+   "Find the constant factor that turns each X term into its Y term."
+  ]
+ },
+ {
+  "src": "5.2-L2-02",
+  "std": "5.2",
+  "part": "b",
+  "q": "An input/output table uses the rule 'output = input + 9'. Which ordered pair belongs in this table?",
+  "a": "(6, 15)",
+  "lvl": 2,
+  "choices": [
+   "(6, 54)",
+   "(15, 6)",
+   "(9, 9)",
+   "(6, 15)"
+  ],
+  "steps": [
+   "In an ordered pair (x, y), x is the input and y is the output.",
+   "Add 9 to the first number in each choice to see if it equals the second.",
+   "Select the ordered pair where output equals input + 9."
+  ]
+ },
+ {
+  "src": "5.2-L2-03",
+  "std": "5.2",
+  "part": "c",
+  "q": "A table produces the ordered pairs (0, 0), (1, 3), (2, 6), and (3, 9). If you graph these points on a coordinate plane and continue the pattern, which point also lies on the line?",
+  "a": "(6, 18)",
+  "lvl": 2,
+  "choices": [
+   "(4, 15)",
+   "(18, 6)",
+   "(5, 12)",
+   "(6, 18)"
+  ],
+  "steps": [
+   "Find the rule connecting each x-coordinate to its y-coordinate.",
+   "Notice each y-value is 3 times its x-value in (1, 3), (2, 6), (3, 9).",
+   "Test each choice to see which pair follows y = 3 × x."
+  ]
+ },
+ {
+  "src": "5.2-L3-01",
+  "std": "5.2",
+  "part": "a",
+  "q": "Pattern P starts at 3 and adds 5. Pattern Q starts at 6 and adds 10. Which statement is true about corresponding terms?",
+  "a": "Every term in Pattern Q is 2 times the corresponding term in Pattern P.",
+  "lvl": 3,
+  "choices": [
+   "Every term in Pattern Q is 3 more than the corresponding term in Pattern P.",
+   "Every term in Pattern Q is 5 more than the corresponding term in Pattern P.",
+   "Every term in Pattern Q is 2 times the corresponding term in Pattern P.",
+   "Every term in Pattern P is 2 times the corresponding term in Pattern Q."
+  ],
+  "steps": [
+   "Write the first three terms of Pattern P and Pattern Q side by side.",
+   "Compare each term in Q to the matching term in P.",
+   "Identify the relationship that holds for every pair of terms."
+  ]
+ },
+ {
+  "src": "5.2-L3-02",
+  "std": "5.2",
+  "part": "c",
+  "q": "Pattern X starts at 2 and adds 3. Pattern Y starts at 5 and adds 5. What is the fourth ordered pair (x, y) plotted on a coordinate plane?",
+  "a": "(11, 20)",
+  "lvl": 3,
+  "choices": [
+   "(8, 15)",
+   "(14, 25)",
+   "(11, 20)",
+   "(20, 11)"
+  ],
+  "steps": [
+   "List the first four terms of Pattern X and Pattern Y.",
+   "Start X at 2 adding 3 each step; start Y at 5 adding 5 each step.",
+   "Pair the 4th term of X with the 4th term of Y as (x, y)."
+  ]
+ },
+ {
+  "src": "5.2-L3-03",
+  "std": "5.2",
+  "q": "An input/output table has inputs 1, 2, 3, and 4 with outputs 5, 8, 11, and 14. What is the output when the input is 8?",
+  "a": "26",
+  "lvl": 3,
+  "steps": [
+   "Find how much the output grows each time the input increases by 1.",
+   "Use the pattern (output = 3 × input + 2) or extend the table to 8.",
+   "Calculate the output when input is 8 and verify with earlier rows."
+  ]
+ },
+ {
+  "src": "5.3-L1-01",
+  "std": "5.3",
+  "q": "In the number 6,600, how does the value of the 6 in the thousands place compare to the value of the 6 in the hundreds place?",
+  "a": "It is 10 times as great.",
+  "lvl": 1,
+  "choices": [
+   "It is 100 times as great.",
+   "It is {1/10} as great.",
+   "It is 10 times as great.",
+   "It has the same value."
+  ],
+  "steps": [
+   "Find the place value of each 6: one is 6,000 and the other is 600.",
+   "Remember each place to the left is 10 times the place to its right.",
+   "Compare 6,000 to 600 to choose the correct statement."
+  ]
+ },
+ {
+  "src": "5.3-L1-02",
+  "std": "5.3",
+  "part": "a",
+  "q": "What is the value of 10⁴?",
+  "a": "10,000",
+  "lvl": 1,
+  "choices": [
+   "40",
+   "1,000",
+   "10,000",
+   "100,000"
+  ],
+  "steps": [
+   "The exponent 4 tells how many times to multiply 10 by itself.",
+   "Write 10 × 10 × 10 × 10, which is 1 followed by 4 zeros.",
+   "Match that standard-form number to the choices."
+  ]
+ },
+ {
+  "src": "5.3-L1-03",
+  "std": "5.3",
+  "part": "b",
+  "q": "What is 5.28 × 10²?",
+  "a": "528",
+  "lvl": 1,
+  "choices": [
+   "52.8",
+   "5,280",
+   "0.0528",
+   "528"
+  ],
+  "steps": [
+   "Multiplying by 10² shifts the decimal point 2 places to the right.",
+   "Start with 5.28 and move the decimal point right past the 2 and the 8.",
+   "Write the resulting whole number and confirm it is larger than 5.28."
+  ]
+ },
+ {
+  "src": "5.3-L2-01",
+  "std": "5.3",
+  "q": "In the number 9.94, the value of the 9 in the tenths place is what fraction of the value of the 9 in the ones place?",
+  "a": "{1/10}",
+  "lvl": 2,
+  "choices": [
+   "{1/10}",
+   "10",
+   "{1/100}",
+   "9"
+  ],
+  "steps": [
+   "Identify the place of each 9: ones place and tenths place.",
+   "Moving one place to the right divides the value by 10.",
+   "Write that relationship as a fraction comparing tenths to ones."
+  ]
+ },
+ {
+  "src": "5.3-L2-02",
+  "std": "5.3",
+  "part": "a",
+  "q": "How many zeros are in the product of 40 × 10³?",
+  "a": "4",
+  "lvl": 2,
+  "choices": [
+   "3",
+   "5",
+   "4",
+   "7"
+  ],
+  "steps": [
+   "Notice 40 already has one zero, and 10³ adds three more zeros.",
+   "Multiply 40 × 1,000 to write the full product.",
+   "Count the total number of zeros in the product."
+  ]
+ },
+ {
+  "src": "5.3-L2-03",
+  "std": "5.3",
+  "part": "b",
+  "q": "What is 73.6 ÷ 10²?",
+  "a": "0.736",
+  "lvl": 2,
+  "choices": [
+   "7.36",
+   "0.736",
+   "7,360",
+   "0.0736"
+  ],
+  "steps": [
+   "Dividing by 10² shifts the decimal point 2 places to the left.",
+   "Start at 73.6 and move the decimal point left past the 3 and the 7.",
+   "Place a leading 0 before the decimal point and verify it is smaller."
+  ]
+ },
+ {
+  "src": "5.3-L3-01",
+  "std": "5.3",
+  "q": "In the number 341.38, how many times as great is the value of the 3 in the hundreds place as the value of the 3 in the tenths place?",
+  "a": "1,000 times as great",
+  "lvl": 3,
+  "choices": [
+   "10 times as great",
+   "100 times as great",
+   "{1/1},000 as great",
+   "1,000 times as great"
+  ],
+  "steps": [
+   "Count how many place-value steps separate tenths from hundreds.",
+   "Move left: tenths → ones → tens → hundreds is 3 steps.",
+   "Each step multiplies by 10, so compute 10³."
+  ]
+ },
+ {
+  "src": "5.3-L3-02",
+  "std": "5.3",
+  "part": "b",
+  "q": "A number was divided by 10³ and the result was 0.062. What was the original number?",
+  "a": "62",
+  "lvl": 3,
+  "choices": [
+   "62",
+   "0.62",
+   "6.2",
+   "620"
+  ],
+  "steps": [
+   "Undo dividing by 10³ with the inverse operation.",
+   "Shift the decimal point in 0.062 three places to the right.",
+   "Verify by dividing your result by 1,000 to see if you get 0.062."
+  ]
+ },
+ {
+  "src": "5.3-L3-03",
+  "std": "5.3",
+  "part": "a",
+  "q": "If 18 × 10^{n} = 180,000, what is the value of the exponent n?",
+  "a": "4",
+  "lvl": 3,
+  "steps": [
+   "Compare 18 to 180,000 to see how many zeros were appended.",
+   "Count the number of times 18 was multiplied by 10 to reach 180,000.",
+   "That count is the value of the exponent n."
+  ]
+ },
+ {
+  "src": "5.4-L1-01",
+  "std": "5.4",
+  "part": "a",
+  "q": "Which decimal represents 'six and thirty-four hundredths'?",
+  "a": "6.34",
+  "lvl": 1,
+  "choices": [
+   "6.034",
+   "6.34",
+   "63.4",
+   "6.304"
+  ],
+  "steps": [
+   "'And' marks the decimal point; 'six' goes to the left of it.",
+   "'Thirty-four hundredths' means 34 ending in the hundredths place.",
+   "Write the digits in the tenths and hundredths places and match."
+  ]
+ },
+ {
+  "src": "5.4-L1-02",
+  "std": "5.4",
+  "part": "b",
+  "q": "Which symbol makes the comparison true: 0.48 ___ 0.408?",
+  "a": ">",
+  "lvl": 1,
+  "choices": [
+   ">",
+   "<",
+   "=",
+   "+"
+  ],
+  "steps": [
+   "Line up the decimal points and annex a zero so both have 3 decimal places.",
+   "Compare 0.480 and 0.408 place by place from left to right.",
+   "Look at the hundredths digits (8 vs. 0) to pick the right symbol."
+  ]
+ },
+ {
+  "src": "5.4-L1-03",
+  "std": "5.4",
+  "part": "a",
+  "q": "What is the standard form of 5 + 0.2 + 0.007?",
+  "a": "5.207",
+  "lvl": 1,
+  "choices": [
+   "5.27",
+   "5.207",
+   "5.027",
+   "52.7"
+  ],
+  "steps": [
+   "Identify the place of each addend: 5 ones, 2 tenths, 7 thousandths.",
+   "Notice there are 0 hundredths, so use 0 as a placeholder.",
+   "Combine the digits in order after the decimal point."
+  ]
+ },
+ {
+  "src": "5.4-L2-01",
+  "std": "5.4",
+  "part": "a",
+  "q": "Which expanded form represents 14.506?",
+  "a": "1 × 10 + 4 × 1 + 5 × ({1/10}) + 6 × ({1/1},000)",
+  "lvl": 2,
+  "choices": [
+   "1 × 10 + 4 × 1 + 5 × ({1/10}) + 6 × ({1/100})",
+   "14 × 1 + 5 × ({1/100}) + 6 × ({1/1},000)",
+   "1 × 10 + 4 × 1 + 5 × ({1/10}) + 6 × ({1/1},000)",
+   "1 × 10 + 4 × 1 + 506 × ({1/100})"
+  ],
+  "steps": [
+   "Break 14.506 into each nonzero digit times its place value.",
+   "Match 1 to tens, 4 to ones, 5 to {1/10}, and 6 to {1/1,000}.",
+   "Skip the 0 in hundredths and find the matching expanded form."
+  ]
+ },
+ {
+  "src": "5.4-L2-02",
+  "std": "5.4",
+  "part": "b",
+  "q": "Which list orders the decimals from least to greatest?",
+  "a": "3.049, 3.05, 3.4, 3.409",
+  "lvl": 2,
+  "choices": [
+   "3.049, 3.05, 3.4, 3.409",
+   "3.4, 3.05, 3.049, 3.409",
+   "3.05, 3.049, 3.409, 3.4",
+   "3.409, 3.4, 3.05, 3.049"
+  ],
+  "steps": [
+   "Rewrite each decimal with three digits after the point.",
+   "Compare the tenths place first, then hundredths, then thousandths.",
+   "Order them from smallest to largest and match the choice."
+  ]
+ },
+ {
+  "src": "5.4-L2-03",
+  "std": "5.4",
+  "part": "b",
+  "q": "Four swimmers finished a race in these times: Sam: 28.45 s, Chloe: 28.409 s, Eli: 28.39 s, Maya: 28.5 s. Who had the fastest (lowest) time?",
+  "a": "Eli",
+  "lvl": 2,
+  "choices": [
+   "Eli",
+   "Sam",
+   "Chloe",
+   "Maya"
+  ],
+  "steps": [
+   "Fastest time means the smallest decimal number.",
+   "Write all times to thousandths: 28.450, 28.409, 28.390, 28.500.",
+   "Compare the tenths digits to find the lowest time and its swimmer."
+  ]
+ },
+ {
+  "src": "5.4-L3-01",
+  "std": "5.4",
+  "part": "b",
+  "q": "Which digit can replace the blank in 8.3_7 > 8.358 to make the inequality true?",
+  "a": "6",
+  "lvl": 3,
+  "choices": [
+   "6",
+   "4",
+   "5",
+   "0"
+  ],
+  "steps": [
+   "Compare 8.3_7 and 8.358 from left to right; ones and tenths match.",
+   "If the blank is 5, then 8.357 < 8.358, which is false.",
+   "Pick a digit greater than 5 so the left number is larger."
+  ]
+ },
+ {
+  "src": "5.4-L3-02",
+  "std": "5.4",
+  "part": "a",
+  "q": "Write 'ninety-two and fifteen thousandths' as a base-ten numeral.",
+  "a": "92.015",
+  "lvl": 3,
+  "choices": [
+   "92.15",
+   "92.105",
+   "92.015",
+   "902.015"
+  ],
+  "steps": [
+   "Write 92 before the decimal point for 'ninety-two and'.",
+   "Place 15 so the 5 lands in the thousandths (3rd decimal) place.",
+   "Use a 0 in the tenths place as a placeholder."
+  ]
+ },
+ {
+  "src": "5.4-L3-03",
+  "std": "5.4",
+  "part": "b",
+  "q": "Write a decimal to thousandths that is greater than 7.26 and less than 7.264.",
+  "a": "7.262",
+  "lvl": 3,
+  "steps": [
+   "Rewrite 7.26 as 7.260 so both endpoints have thousandths.",
+   "Look for any thousandths number strictly between 7.260 and 7.264.",
+   "Choose one valid decimal and verify it sits between both bounds."
+  ]
+ },
+ {
+  "src": "5.5-L1-01",
+  "std": "5.5",
+  "q": "Round 8.46 to the nearest tenth.",
+  "a": "8.5",
+  "lvl": 1,
+  "choices": [
+   "8.4",
+   "8.0",
+   "9.0",
+   "8.5"
+  ],
+  "steps": [
+   "Underline the tenths digit (4) and look at the hundredths digit (6).",
+   "Since 6 is 5 or greater, round the tenths digit up by 1.",
+   "Drop the digits to the right of the tenths place."
+  ]
+ },
+ {
+  "src": "5.5-L1-02",
+  "std": "5.5",
+  "q": "Round 19.38 to the nearest whole number.",
+  "a": "19",
+  "lvl": 1,
+  "choices": [
+   "19",
+   "19.4",
+   "20",
+   "10"
+  ],
+  "steps": [
+   "Underline the ones digit (9) and look at the tenths digit (3).",
+   "Since 3 is less than 5, keep the ones digit the same.",
+   "Drop the decimal part to get the rounded whole number."
+  ]
+ },
+ {
+  "src": "5.5-L1-03",
+  "std": "5.5",
+  "q": "Round 4.723 to the nearest hundredth.",
+  "a": "4.72",
+  "lvl": 1,
+  "choices": [
+   "4.73",
+   "4.72",
+   "4.7",
+   "4.8"
+  ],
+  "steps": [
+   "Underline the hundredths digit (2) and look at the thousandths digit (3).",
+   "Since 3 is less than 5, leave the hundredths digit unchanged.",
+   "Drop the thousandths digit to finish."
+  ]
+ },
+ {
+  "src": "5.5-L2-01",
+  "std": "5.5",
+  "q": "Round 6.962 to the nearest tenth.",
+  "a": "7.0",
+  "lvl": 2,
+  "choices": [
+   "7.0",
+   "6.9",
+   "6.96",
+   "6.0"
+  ],
+  "steps": [
+   "Look at the tenths digit (9) and the hundredths digit (6).",
+   "Since 6 ≥ 5, rounding 9 up gives 10 tenths, which regroups to the ones.",
+   "Write the result to the tenths place (including .0)."
+  ]
+ },
+ {
+  "src": "5.5-L2-02",
+  "std": "5.5",
+  "q": "A silver coin weighs 15.638 grams. What is its weight rounded to the nearest hundredth of a gram?",
+  "a": "15.64 grams",
+  "lvl": 2,
+  "choices": [
+   "15.63 grams",
+   "15.6 grams",
+   "16 grams",
+   "15.64 grams"
+  ],
+  "steps": [
+   "Find the hundredths digit (3) and look right at the thousandths (8).",
+   "Since 8 is 5 or greater, round the hundredths digit up by 1.",
+   "Drop the thousandths digit and include the unit (grams)."
+  ]
+ },
+ {
+  "src": "5.5-L2-03",
+  "std": "5.5",
+  "q": "Round 0.0746 to the nearest thousandth.",
+  "a": "0.075",
+  "lvl": 2,
+  "choices": [
+   "0.07",
+   "0.074",
+   "0.08",
+   "0.075"
+  ],
+  "steps": [
+   "Locate the thousandths digit (4) and inspect the digit to its right (6).",
+   "Since 6 ≥ 5, increase the thousandths digit by 1.",
+   "Drop the ten-thousandths digit to get the rounded decimal."
+  ]
+ },
+ {
+  "src": "5.5-L3-01",
+  "std": "5.5",
+  "q": "Which number rounds to 5.3 when rounded to the nearest tenth AND rounds to 5.27 when rounded to the nearest hundredth?",
+  "a": "5.273",
+  "lvl": 3,
+  "choices": [
+   "5.264",
+   "5.276",
+   "5.312",
+   "5.273"
+  ],
+  "steps": [
+   "Test each choice by rounding it to the nearest hundredth first.",
+   "Keep only choices that round to 5.27 at the hundredths place.",
+   "Round those remaining choices to the nearest tenth to verify 5.3."
+  ]
+ },
+ {
+  "src": "5.5-L3-02",
+  "std": "5.5",
+  "q": "A number rounded to the nearest hundredth is 8.40. Which could be the original number?",
+  "a": "8.397",
+  "lvl": 3,
+  "choices": [
+   "8.392",
+   "8.406",
+   "8.411",
+   "8.397"
+  ],
+  "steps": [
+   "Numbers that round to 8.40 lie from 8.395 up to 8.404.",
+   "Round each answer choice to the nearest hundredth.",
+   "Select the choice that rounds to 8.40."
+  ]
+ },
+ {
+  "src": "5.5-L3-03",
+  "std": "5.5",
+  "q": "Round 39.997 to the nearest hundredth.",
+  "a": "40.00",
+  "lvl": 3,
+  "steps": [
+   "Look at the thousandths digit (7) to decide how to round hundredths.",
+   "Since 7 ≥ 5, add 0.01 to 39.99, regrouping across the 9s.",
+   "Keep two decimal places to show rounding to the nearest hundredth."
+  ]
+ },
+ {
+  "src": "5.6-L1-01",
+  "std": "5.6",
+  "q": "Compute 26 × 14.",
+  "a": "364",
+  "lvl": 1,
+  "choices": [
+   "344",
+   "354",
+   "130",
+   "364"
+  ],
+  "steps": [
+   "Multiply 26 by the ones digit (4) and by the tens value (10).",
+   "Compute 26 × 4 and 26 × 10 as two partial products.",
+   "Add the two partial products together to get the total."
+  ]
+ },
+ {
+  "src": "5.6-L1-02",
+  "std": "5.6",
+  "q": "Compute 148 × 7.",
+  "a": "1,036",
+  "lvl": 1,
+  "choices": [
+   "986",
+   "1,026",
+   "1,056",
+   "1,036"
+  ],
+  "steps": [
+   "Multiply each place value of 148 by 7, starting from the ones.",
+   "Compute 8 × 7, then 40 × 7, then 100 × 7 (or regroup as you go).",
+   "Add the partial products and check with an estimate (150 × 7)."
+  ]
+ },
+ {
+  "src": "5.6-L1-03",
+  "std": "5.6",
+  "q": "A theater has 22 rows with 19 seats in each row. How many seats are in the theater?",
+  "a": "418",
+  "lvl": 1,
+  "choices": [
+   "398",
+   "428",
+   "418",
+   "408"
+  ],
+  "steps": [
+   "Multiply the number of rows (22) by the seats per row (19).",
+   "Compute 22 × 9 and 22 × 10 as partial products.",
+   "Add the partial products to find the total number of seats."
+  ]
+ },
+ {
+  "src": "5.6-L2-01",
+  "std": "5.6",
+  "q": "Compute 354 × 27.",
+  "a": "9,558",
+  "lvl": 2,
+  "choices": [
+   "9,458",
+   "3,186",
+   "8,558",
+   "9,558"
+  ],
+  "steps": [
+   "Use the standard algorithm to multiply 354 × 7, then 354 × 20.",
+   "Remember to place a 0 in the ones place for the second partial product.",
+   "Add both partial products and estimate (350 × 30) to check."
+  ]
+ },
+ {
+  "src": "5.6-L2-02",
+  "std": "5.6",
+  "q": "A factory produces 185 toys each day. How many toys does it produce in 26 days?",
+  "a": "4,810",
+  "lvl": 2,
+  "choices": [
+   "4,810",
+   "4,710",
+   "1,480",
+   "4,910"
+  ],
+  "steps": [
+   "Multiply daily toys (185) by the number of days (26).",
+   "Find the two partial products: 185 × 6 and 185 × 20.",
+   "Add the partial products to find the total toys produced."
+  ]
+ },
+ {
+  "src": "5.6-L2-03",
+  "std": "5.6",
+  "q": "Compute 508 × 34.",
+  "a": "17,272",
+  "lvl": 2,
+  "choices": [
+   "3,556",
+   "17,072",
+   "17,272",
+   "15,272"
+  ],
+  "steps": [
+   "Multiply 508 by 4, then multiply 508 by 30.",
+   "Watch the 0 in the tens place of 508 when regrouping.",
+   "Add the two partial products and check with 500 × 34."
+  ]
+ },
+ {
+  "src": "5.6-L3-01",
+  "std": "5.6",
+  "q": "Compute 1,326 × 42.",
+  "a": "55,692",
+  "lvl": 3,
+  "choices": [
+   "54,692",
+   "55,692",
+   "7,956",
+   "55,592"
+  ],
+  "steps": [
+   "Compute the partial products 1,326 × 2 and 1,326 × 40.",
+   "Align place values carefully before adding the two rows.",
+   "Verify the size of your answer with 1,300 × 40."
+  ]
+ },
+ {
+  "src": "5.6-L3-02",
+  "std": "5.6",
+  "q": "A library orders 136 boxes of books with 18 books in each box. If 420 books are placed on display, how many books remain in the boxes?",
+  "a": "2,028",
+  "lvl": 3,
+  "choices": [
+   "2,448",
+   "2,868",
+   "2,028",
+   "1,928"
+  ],
+  "steps": [
+   "First find the total books ordered by multiplying 136 × 18.",
+   "Then subtract the 420 display books from that total.",
+   "Check that your final answer is less than the total ordered."
+  ]
+ },
+ {
+  "src": "5.6-L3-03",
+  "std": "5.6",
+  "q": "Compute 738 × 56.",
+  "a": "41,328",
+  "lvl": 3,
+  "steps": [
+   "Find the partial products 738 × 6 and 738 × 50.",
+   "Add both partial products carefully, watching all regrouping.",
+   "Check reasonableness against 700 × 60."
+  ]
+ },
+ {
+  "src": "5.7-L1-01",
+  "std": "5.7",
+  "q": "Compute 384 ÷ 12.",
+  "a": "32",
+  "lvl": 1,
+  "choices": [
+   "30",
+   "34",
+   "32",
+   "28"
+  ],
+  "steps": [
+   "Find how many groups of 12 fit into 384.",
+   "First divide 38 tens by 12 (3 tens), then bring down the 4.",
+   "Divide the remaining 24 by 12 and combine the digits."
+  ]
+ },
+ {
+  "src": "5.7-L1-02",
+  "std": "5.7",
+  "q": "Compute 540 ÷ 18.",
+  "a": "30",
+  "lvl": 1,
+  "choices": [
+   "30",
+   "3",
+   "25",
+   "35"
+  ],
+  "steps": [
+   "Look for a basic fact: how many times does 18 go into 54?",
+   "Since 18 × 3 = 54, use place value to scale up to 540.",
+   "Check your quotient by multiplying it back by 18."
+  ]
+ },
+ {
+  "src": "5.7-L1-03",
+  "std": "5.7",
+  "q": "An area model for 322 ÷ 14 splits 322 into 280 + 42. What are the two partial quotients?",
+  "a": "20 and 3",
+  "lvl": 1,
+  "choices": [
+   "20 and 3",
+   "2 and 3",
+   "20 and 42",
+   "14 and 23"
+  ],
+  "steps": [
+   "Each partial quotient is found by dividing each part of 322 by 14.",
+   "Divide 280 ÷ 14 for the first part, and 42 ÷ 14 for the second.",
+   "Match the pair of partial quotients to the choices."
+  ]
+ },
+ {
+  "src": "5.7-L2-01",
+  "std": "5.7",
+  "q": "Compute 1,632 ÷ 24.",
+  "a": "68",
+  "lvl": 2,
+  "choices": [
+   "58",
+   "72",
+   "64",
+   "68"
+  ],
+  "steps": [
+   "Estimate how many 24s fit into 163 tens (try 6 tens = 144 tens).",
+   "Subtract 1,440 from 1,632 to find what remains.",
+   "Divide the remainder by 24 and add your partial quotients."
+  ]
+ },
+ {
+  "src": "5.7-L2-02",
+  "std": "5.7",
+  "q": "A baker packs 925 cookies into boxes that hold 16 cookies each. How many full boxes can she fill, and how many cookies are left over?",
+  "a": "57 boxes with 13 cookies left over",
+  "lvl": 2,
+  "choices": [
+   "57 boxes with 13 cookies left over",
+   "56 boxes with 29 cookies left over",
+   "57 boxes with 11 cookies left over",
+   "58 boxes with 3 cookies left over"
+  ],
+  "steps": [
+   "Divide 925 by 16 to find full boxes (quotient) and leftovers (remainder).",
+   "Find how many 16s fit into 92, subtract, bring down 5, and divide again.",
+   "Make sure your remainder is less than 16 and match the choice."
+  ]
+ },
+ {
+  "src": "5.7-L2-03",
+  "std": "5.7",
+  "q": "Compute 2,848 ÷ 32.",
+  "a": "89",
+  "lvl": 2,
+  "choices": [
+   "79",
+   "89",
+   "88",
+   "91"
+  ],
+  "steps": [
+   "Estimate how many 32s fit into 284 tens (try 8 tens = 256 tens).",
+   "Subtract 2,560 from 2,848, then divide the remainder by 32.",
+   "Add the partial quotients and check by multiplying by 32."
+  ]
+ },
+ {
+  "src": "5.7-L3-01",
+  "std": "5.7",
+  "q": "A camp has 1,210 campers traveling by bus. Each bus holds 45 campers. What is the minimum number of buses needed so every camper has a seat?",
+  "a": "27",
+  "lvl": 3,
+  "choices": [
+   "26",
+   "27",
+   "28",
+   "25"
+  ],
+  "steps": [
+   "Divide 1,210 by 45 to see how many full buses are filled.",
+   "Check whether there is a remainder of leftover campers.",
+   "If any campers remain, add 1 more bus so everyone gets a seat."
+  ]
+ },
+ {
+  "src": "5.7-L3-02",
+  "std": "5.7",
+  "q": "When a four-digit number is divided by 28, the quotient is 134 with a remainder of 15. What is the four-digit dividend?",
+  "a": "3,767",
+  "lvl": 3,
+  "choices": [
+   "3,752",
+   "3,767",
+   "3,737",
+   "4,172"
+  ],
+  "steps": [
+   "Use the division check formula: dividend = divisor × quotient + remainder.",
+   "Multiply 28 × 134 first.",
+   "Add the remainder 15 to that product to find the dividend."
+  ]
+ },
+ {
+  "src": "5.7-L3-03",
+  "std": "5.7",
+  "q": "Compute 6,336 ÷ 36.",
+  "a": "176",
+  "lvl": 3,
+  "steps": [
+   "Divide 6,336 by 36 using long division or partial quotients.",
+   "Take out 100 groups of 36 (3,600), then 70 groups, then the rest.",
+   "Add your partial quotients and verify by multiplying by 36."
+  ]
+ },
+ {
+  "src": "5.8-L1-01",
+  "std": "5.8",
+  "q": "Compute 5.47 + 3.28.",
+  "a": "8.75",
+  "lvl": 1,
+  "choices": [
+   "8.65",
+   "8.75",
+   "9.75",
+   "8.615"
+  ],
+  "steps": [
+   "Line up the decimal points vertically before adding.",
+   "Add hundredths (7 + 8), regroup 1 tenth, then add tenths and ones.",
+   "Bring the decimal point straight down into your sum."
+  ]
+ },
+ {
+  "src": "5.8-L1-02",
+  "std": "5.8",
+  "q": "Compute 9.4 − 4.18.",
+  "a": "5.22",
+  "lvl": 1,
+  "choices": [
+   "5.38",
+   "5.32",
+   "5.22",
+   "13.58"
+  ],
+  "steps": [
+   "Line up the decimal points and write 9.4 as 9.40.",
+   "Regroup 1 tenth as 10 hundredths so you can subtract 8 from 10.",
+   "Subtract tenths and ones, bringing the decimal point straight down."
+  ]
+ },
+ {
+  "src": "5.8-L1-03",
+  "std": "5.8",
+  "part": "a",
+  "q": "On a 10 × 10 hundredths grid, 4 columns are shaded green and 18 small squares are shaded orange. What decimal represents the total shaded area?",
+  "a": "0.58",
+  "lvl": 1,
+  "choices": [
+   "0.22",
+   "5.8",
+   "0.418",
+   "0.58"
+  ],
+  "steps": [
+   "Each full column on a 10 × 10 grid is 10 hundredths (0.10).",
+   "Convert 4 columns to 0.40 and 18 small squares to 0.18.",
+   "Add 0.40 + 0.18 to find the total shaded decimal."
+  ]
+ },
+ {
+  "src": "5.8-L2-01",
+  "std": "5.8",
+  "q": "Compute 3.2 × 1.5.",
+  "a": "4.8",
+  "lvl": 2,
+  "choices": [
+   "0.48",
+   "48",
+   "4.7",
+   "4.8"
+  ],
+  "steps": [
+   "Multiply as whole numbers first: compute 32 × 15.",
+   "Count the total decimal places in both factors (1 + 1 = 2).",
+   "Place the decimal point 2 places from the right and drop trailing 0."
+  ]
+ },
+ {
+  "src": "5.8-L2-02",
+  "std": "5.8",
+  "q": "Compute 8.64 ÷ 1.2.",
+  "a": "7.2",
+  "lvl": 2,
+  "choices": [
+   "0.72",
+   "7.2",
+   "72",
+   "7.4"
+  ],
+  "steps": [
+   "Multiply both 8.64 and 1.2 by 10 to make the divisor a whole number.",
+   "Now divide 86.4 ÷ 12.",
+   "Place the decimal point in the quotient directly above the dividend's."
+  ]
+ },
+ {
+  "src": "5.8-L2-03",
+  "std": "5.8",
+  "part": "b",
+  "q": "Jordan buys a binder for §4.85 and two highlighters for §1.35 each. How much does Jordan spend in total?",
+  "a": "§7.55",
+  "lvl": 2,
+  "choices": [
+   "§6.20",
+   "§7.55",
+   "§7.45",
+   "§11.05"
+  ],
+  "steps": [
+   "Find the cost of two highlighters by computing 2 × §1.35.",
+   "Line up the decimal points and add the binder cost (§4.85) to that.",
+   "Check your total with a quick estimate (§5 + §2.70)."
+  ]
+ },
+ {
+  "src": "5.8-L3-01",
+  "std": "5.8",
+  "part": "a",
+  "q": "An area model for 1.6 × 2.4 has four partial products: 1 × 2, 1 × 0.4, 0.6 × 2, and 0.6 × 0.4. What is the total product?",
+  "a": "3.84",
+  "lvl": 3,
+  "choices": [
+   "3.64",
+   "4.0",
+   "38.4",
+   "3.84"
+  ],
+  "steps": [
+   "Compute each of the four partial products carefully.",
+   "Line up the decimal points for 2, 0.4, 1.2, and 0.24.",
+   "Add all four values to get the total product."
+  ]
+ },
+ {
+  "src": "5.8-L3-02",
+  "std": "5.8",
+  "part": "b",
+  "q": "A 16.8-meter rope is cut into 7 equal pieces. If 0.65 meter is trimmed off one piece, how long is that piece now?",
+  "a": "1.75 meters",
+  "lvl": 3,
+  "choices": [
+   "2.4 meters",
+   "1.85 meters",
+   "1.65 meters",
+   "1.75 meters"
+  ],
+  "steps": [
+   "First find the length of one equal piece by dividing 16.8 ÷ 7.",
+   "Then subtract 0.65 from that length, annexing a 0 if needed.",
+   "Check that your answer is shorter than one full piece."
+  ]
+ },
+ {
+  "src": "5.8-L3-03",
+  "std": "5.8",
+  "part": "b",
+  "q": "Priya pays with a §20.00 bill for 2.5 pounds of grapes at §3.40 per pound. How much change should she receive?",
+  "a": "§11.50",
+  "lvl": 3,
+  "steps": [
+   "Multiply 2.5 × §3.40 to find the total cost of the grapes.",
+   "Subtract that total cost from §20.00.",
+   "Verify by adding your change back to the grape cost to get §20.00."
+  ]
+ },
+ {
+  "src": "5.9-L1-01",
+  "std": "5.9",
+  "q": "Elena walked {1/3} mile to the park and {1/6} mile to the library. How far did she walk in all?",
+  "a": "{1/2} mile",
+  "lvl": 1,
+  "choices": [
+   "{1/2} mile",
+   "{2/9} mile",
+   "{2/6} mile",
+   "{5/6} mile"
+  ],
+  "steps": [
+   "Add {1/3} and {1/6} by finding a common denominator of 6.",
+   "Rewrite {1/3} as {2/6}, then add {2/6} + {1/6}.",
+   "Simplify the resulting fraction to lowest terms."
+  ]
+ },
+ {
+  "src": "5.9-L1-02",
+  "std": "5.9",
+  "q": "A pitcher held {7/8} liter of lemonade. Marcus poured out {1/4} liter. How much lemonade is left?",
+  "a": "{5/8} liter",
+  "lvl": 1,
+  "choices": [
+   "{5/8} liter",
+   "{6/4} liters",
+   "{3/4} liter",
+   "{6/8} liter"
+  ],
+  "steps": [
+   "Subtract {1/4} from {7/8} using a common denominator of 8.",
+   "Rewrite {1/4} as {2/8}, then subtract {7/8} − {2/8}.",
+   "Check if the difference can be simplified."
+  ]
+ },
+ {
+  "src": "5.9-L1-03",
+  "std": "5.9",
+  "q": "Using benchmark fractions, which whole number is closest to the sum {11/12} + {9/10}?",
+  "a": "2",
+  "lvl": 1,
+  "choices": [
+   "1",
+   "3",
+   "2",
+   "0"
+  ],
+  "steps": [
+   "Compare each fraction to the benchmarks 0, {1/2}, and 1.",
+   "Notice {11/12} is very close to 1, and {9/10} is also very close to 1.",
+   "Add the two benchmark whole numbers to estimate the sum."
+  ]
+ },
+ {
+  "src": "5.9-L2-01",
+  "std": "5.9",
+  "q": "A recipe calls for {3/5} cup of brown sugar and {1/2} cup of white sugar. How much sugar does the recipe use in all?",
+  "a": "1{1/10} cups",
+  "lvl": 2,
+  "choices": [
+   "{4/7} cup",
+   "{9/10} cup",
+   "1{1/5} cups",
+   "1{1/10} cups"
+  ],
+  "steps": [
+   "Find a common denominator for 5 and 2 (use 10).",
+   "Rewrite {3/5} as {6/10} and {1/2} as {5/10}, then add.",
+   "Convert the improper fraction to a mixed number."
+  ]
+ },
+ {
+  "src": "5.9-L2-02",
+  "std": "5.9",
+  "q": "A carpenter has a board that is 1{1/3} yards long. He cuts off {3/4} yard. How much of the board remains?",
+  "a": "{7/12} yard",
+  "lvl": 2,
+  "choices": [
+   "{7/12} yard",
+   "1{1/12} yards",
+   "{5/12} yard",
+   "{2/3} yard"
+  ],
+  "steps": [
+   "Rewrite 1{1/3} and {3/4} with a common denominator of 12.",
+   "Regroup 1{4/12} as {16/12} so you can subtract {9/12}.",
+   "Subtract the numerators and keep the denominator 12."
+  ]
+ },
+ {
+  "src": "5.9-L2-03",
+  "std": "5.9",
+  "q": "Priya says {5/6} + {4/5} = {9/11}. Why is her answer NOT reasonable?",
+  "a": "Both fractions are greater than {1/2}, so their sum must be greater than 1.",
+  "lvl": 2,
+  "choices": [
+   "The sum of two fractions is always greater than 2.",
+   "Both fractions are less than {1/2}, so their sum must be less than {1/2}.",
+   "The denominator of the sum should be 11, not 30.",
+   "Both fractions are greater than {1/2}, so their sum must be greater than 1."
+  ],
+  "steps": [
+   "Compare both {5/6} and {4/5} to the benchmark {1/2}.",
+   "Since each fraction is greater than {1/2}, their sum must exceed 1.",
+   "Compare that to {9/11}, which is less than 1, and pick the match."
+  ]
+ },
+ {
+  "src": "5.9-L3-01",
+  "std": "5.9",
+  "q": "A farmer planted {1/4} of his field with corn and {2/7} of his field with soybeans. What fraction of the field is NOT planted with corn or soybeans?",
+  "a": "{13/28}",
+  "lvl": 3,
+  "choices": [
+   "{15/28}",
+   "{3/11}",
+   "{13/28}",
+   "{8/11}"
+  ],
+  "steps": [
+   "Add {1/4} and {2/7} using the common denominator 28.",
+   "Find the total planted fraction: {7/28} + {8/28}.",
+   "Subtract that planted fraction from 1 ({28/28}) to find what is left."
+  ]
+ },
+ {
+  "src": "5.9-L3-02",
+  "std": "5.9",
+  "q": "A tank contained 3 gallons of paint. Workers used 1{2/5} gallons on Monday and {3/4} gallon on Tuesday. How much paint is left in the tank?",
+  "a": "{17/20} gallon",
+  "lvl": 3,
+  "choices": [
+   "1{3/20} gallons",
+   "2{3/20} gallons",
+   "{17/20} gallon",
+   "{13/20} gallon"
+  ],
+  "steps": [
+   "Add the paint used: 1{2/5} + {3/4} with common denominator 20.",
+   "Convert the total used to a mixed number.",
+   "Subtract the total used from 3 gallons (regrouping 3 as 2{20/20})."
+  ]
+ },
+ {
+  "src": "5.9-L3-03",
+  "std": "5.9",
+  "q": "Sofia hiked 1{2/3} miles before lunch, {5/6} mile after lunch, and 1{1/4} miles back to camp. How many miles did she hike in total?",
+  "a": "3{3/4} miles",
+  "lvl": 3,
+  "steps": [
+   "Find a common denominator for 3, 6, and 4 (use 12).",
+   "Rewrite all three distances in twelfths, then add wholes and fractions.",
+   "Convert any improper fraction part and simplify to lowest terms."
+  ]
+ },
+ {
+  "src": "5.10-L1-01",
+  "std": "5.10",
+  "q": "Compute {1/4} + {3/8}.",
+  "a": "{5/8}",
+  "lvl": 1,
+  "choices": [
+   "{4/12}",
+   "{1/2}",
+   "{5/8}",
+   "{4/8}"
+  ],
+  "steps": [
+   "Find a common denominator for 4 and 8 (use 8).",
+   "Rewrite {1/4} as {2/8}, then add {2/8} + {3/8}.",
+   "Keep the denominator 8 and check if it simplifies."
+  ]
+ },
+ {
+  "src": "5.10-L1-02",
+  "std": "5.10",
+  "q": "Compute {5/6} − {1/2}.",
+  "a": "{1/3}",
+  "lvl": 1,
+  "choices": [
+   "{4/4}",
+   "{1/3}",
+   "{2/3}",
+   "{1/6}"
+  ],
+  "steps": [
+   "Find a common denominator for 6 and 2 (use 6).",
+   "Rewrite {1/2} as {3/6}, then subtract {5/6} − {3/6}.",
+   "Simplify the resulting fraction to lowest terms."
+  ]
+ },
+ {
+  "src": "5.10-L1-03",
+  "std": "5.10",
+  "q": "Compute {3/5} − {1/10}.",
+  "a": "{1/2}",
+  "lvl": 1,
+  "choices": [
+   "{2/5}",
+   "{1/2}",
+   "{2/10}",
+   "{7/10}"
+  ],
+  "steps": [
+   "Find a common denominator for 5 and 10 (use 10).",
+   "Rewrite {3/5} as {6/10}, then subtract {6/10} − {1/10}.",
+   "Simplify your fraction by dividing top and bottom by 5."
+  ]
+ },
+ {
+  "src": "5.10-L2-01",
+  "std": "5.10",
+  "q": "Compute {2/3} + {4/5}.",
+  "a": "1{7/15}",
+  "lvl": 2,
+  "choices": [
+   "{6/8}",
+   "1{7/15}",
+   "1{2/15}",
+   "{14/15}"
+  ],
+  "steps": [
+   "Use 15 as the common denominator for 3 and 5.",
+   "Rewrite {2/3} as {10/15} and {4/5} as {12/15}, then add.",
+   "Rewrite the improper fraction as a mixed number."
+  ]
+ },
+ {
+  "src": "5.10-L2-02",
+  "std": "5.10",
+  "q": "Compute 2{3/4} + 1{1/6}.",
+  "a": "3{11/12}",
+  "lvl": 2,
+  "choices": [
+   "3{4/10}",
+   "3{11/12}",
+   "4{1/12}",
+   "3{7/12}"
+  ],
+  "steps": [
+   "Find the least common denominator for 4 and 6 (use 12).",
+   "Rewrite 2{3/4} as 2{9/12} and 1{1/6} as 1{2/12}.",
+   "Add the whole numbers and add the fractions."
+  ]
+ },
+ {
+  "src": "5.10-L2-03",
+  "std": "5.10",
+  "q": "Compute 5{7/8} − 2{1/3}.",
+  "a": "3{13/24}",
+  "lvl": 2,
+  "choices": [
+   "3{6/5}",
+   "3{13/24}",
+   "3{5/24}",
+   "3{11/24}"
+  ],
+  "steps": [
+   "Use 24 as the common denominator for 8 and 3.",
+   "Rewrite 5{7/8} as 5{21/24} and 2{1/3} as 2{8/24}.",
+   "Subtract the whole numbers and subtract the fractions."
+  ]
+ },
+ {
+  "src": "5.10-L3-01",
+  "std": "5.10",
+  "q": "Compute 4{1/5} − 1{3/4}.",
+  "a": "2{9/20}",
+  "lvl": 3,
+  "choices": [
+   "2{9/20}",
+   "3{11/20}",
+   "2{11/20}",
+   "3{9/20}"
+  ],
+  "steps": [
+   "Rewrite both mixed numbers using the common denominator 20.",
+   "Regroup 4{4/20} as 3{24/20} so you can subtract 1{15/20}.",
+   "Subtract the whole numbers and fractions separately."
+  ]
+ },
+ {
+  "src": "5.10-L3-02",
+  "std": "5.10",
+  "q": "Compute 3{5/6} + 2{4/9}.",
+  "a": "6{5/18}",
+  "lvl": 3,
+  "choices": [
+   "6{5/18}",
+   "5{9/15}",
+   "6{1/18}",
+   "5{13/18}"
+  ],
+  "steps": [
+   "Rewrite both mixed numbers using the common denominator 18.",
+   "Add the whole numbers and add {15/18} + {8/18}.",
+   "Convert the improper fraction part and add the extra 1 to the wholes."
+  ]
+ },
+ {
+  "src": "5.10-L3-03",
+  "std": "5.10",
+  "q": "Compute 7{1/8} − 4{5/6}.",
+  "a": "2{7/24}",
+  "lvl": 3,
+  "steps": [
+   "Rewrite both mixed numbers using the common denominator 24.",
+   "Regroup 7{3/24} as 6{27/24} so you can subtract 4{20/24}.",
+   "Subtract the whole numbers and fractions to finish."
+  ]
+ },
+ {
+  "src": "5.11-L1-01",
+  "std": "5.11",
+  "part": "a",
+  "q": "Which division expression is equivalent to {5/9}?",
+  "a": "5 ÷ 9",
+  "lvl": 1,
+  "choices": [
+   "9 ÷ 5",
+   "5 ÷ 9",
+   "5 × 9",
+   "9 − 5"
+  ],
+  "steps": [
+   "A fraction bar means division: numerator divided by denominator.",
+   "Put the top number (5) first and the bottom number (9) second.",
+   "Match that division expression to the choices."
+  ]
+ },
+ {
+  "src": "5.11-L1-02",
+  "std": "5.11",
+  "part": "b",
+  "q": "Four friends share 3 sandwiches equally. How much of a sandwich does each friend get?",
+  "a": "{3/4}",
+  "lvl": 1,
+  "choices": [
+   "1{1/3}",
+   "{1/4}",
+   "{3/4}",
+   "{4/7}"
+  ],
+  "steps": [
+   "Divide what is being shared (3 sandwiches) by the number of friends (4).",
+   "Write 3 ÷ 4 as a fraction.",
+   "Check that each friend gets less than 1 whole sandwich."
+  ]
+ },
+ {
+  "src": "5.11-L1-03",
+  "std": "5.11",
+  "part": "a",
+  "q": "Write 9 ÷ 5 as a mixed number.",
+  "a": "1{4/5}",
+  "lvl": 1,
+  "choices": [
+   "{5/9}",
+   "1{1/5}",
+   "2{1/5}",
+   "1{4/5}"
+  ],
+  "steps": [
+   "Write 9 ÷ 5 as the improper fraction {9/5}.",
+   "Find how many times 5 goes into 9 and what the remainder is.",
+   "Write the quotient as the whole number and remainder over 5."
+  ]
+ },
+ {
+  "src": "5.11-L2-01",
+  "std": "5.11",
+  "part": "b",
+  "q": "Six campers share 5 gallons of water equally. How much water does each camper receive?",
+  "a": "{5/6} gallon",
+  "lvl": 2,
+  "choices": [
+   "1{1/5} gallons",
+   "{5/6} gallon",
+   "{1/6} gallon",
+   "{5/11} gallon"
+  ],
+  "steps": [
+   "Divide the total water (5 gallons) by the 6 campers.",
+   "Write 5 ÷ 6 as a fraction.",
+   "Check that each camper receives less than 1 gallon."
+  ]
+ },
+ {
+  "src": "5.11-L2-02",
+  "std": "5.11",
+  "part": "b",
+  "q": "A 13-meter rope is cut into 5 equal pieces. How long is each piece?",
+  "a": "2{3/5} meters",
+  "lvl": 2,
+  "choices": [
+   "{5/13} meter",
+   "2{1/5} meters",
+   "3{2/5} meters",
+   "2{3/5} meters"
+  ],
+  "steps": [
+   "Divide the rope length (13 meters) by 5 equal pieces.",
+   "Write {13/5} and divide 13 by 5 to find the whole number and remainder.",
+   "Express the result as a mixed number in meters."
+  ]
+ },
+ {
+  "src": "5.11-L2-03",
+  "std": "5.11",
+  "part": "a",
+  "q": "Between which two consecutive whole numbers does the quotient 23 ÷ 6 lie?",
+  "a": "3 and 4",
+  "lvl": 2,
+  "choices": [
+   "2 and 3",
+   "4 and 5",
+   "5 and 6",
+   "3 and 4"
+  ],
+  "steps": [
+   "Divide 23 by 6 to find the whole-number part of the quotient.",
+   "Since 6 × 3 = 18 and 6 × 4 = 24, 23 lies between 18 and 24.",
+   "Name the two consecutive whole numbers the quotient falls between."
+  ]
+ },
+ {
+  "src": "5.11-L3-01",
+  "std": "5.11",
+  "part": "b",
+  "q": "Eight artists share 20 ounces of clay equally. How many ounces of clay does each artist get in simplest form?",
+  "a": "2{1/2} ounces",
+  "lvl": 3,
+  "choices": [
+   "{2/5} ounce",
+   "2{1/2} ounces",
+   "2{1/4} ounces",
+   "3{1/2} ounces"
+  ],
+  "steps": [
+   "Divide 20 ounces by 8 artists to get {20/8}.",
+   "Convert {20/8} to a mixed number.",
+   "Simplify the fractional part to lowest terms."
+  ]
+ },
+ {
+  "src": "5.11-L3-02",
+  "std": "5.11",
+  "part": "b",
+  "q": "Nine students share 7 boxes of markers equally. Each box holds 12 markers. What fraction of a box does each student get?",
+  "a": "{7/9} of a box",
+  "lvl": 3,
+  "choices": [
+   "{7/9} of a box",
+   "1{2/7} boxes",
+   "{1/9} of a box",
+   "{7/12} of a box"
+  ],
+  "steps": [
+   "Notice the question asks for a fraction of a box, so 12 markers is extra.",
+   "Divide the 7 boxes by the 9 students.",
+   "Write 7 ÷ 9 as a fraction of a box."
+  ]
+ },
+ {
+  "src": "5.11-L3-03",
+  "std": "5.11",
+  "part": "b",
+  "q": "A chef divides 19 pounds of rice equally into 6 bags. How many pounds of rice are in each bag?",
+  "a": "3{1/6}",
+  "lvl": 3,
+  "steps": [
+   "Divide 19 pounds of rice by 6 bags to write {19/6}.",
+   "Find how many 6s fit into 19 and what remains.",
+   "Write your answer as a mixed number."
+  ]
+ },
+ {
+  "src": "5.12-L1-01",
+  "std": "5.12",
+  "part": "a",
+  "q": "Compute {1/4} × 20.",
+  "a": "5",
+  "lvl": 1,
+  "choices": [
+   "4",
+   "16",
+   "5",
+   "80"
+  ],
+  "steps": [
+   "Finding {1/4} × 20 means dividing 20 into 4 equal groups.",
+   "Multiply numerators (1 × 20) and divide by the denominator (4).",
+   "Simplify {20/4} to a whole number."
+  ]
+ },
+ {
+  "src": "5.12-L1-02",
+  "std": "5.12",
+  "part": "b",
+  "q": "Compute {1/3} × {1/5}.",
+  "a": "{1/15}",
+  "lvl": 1,
+  "choices": [
+   "{1/15}",
+   "{1/8}",
+   "{2/8}",
+   "{3/5}"
+  ],
+  "steps": [
+   "To multiply fractions, multiply numerators together and denominators together.",
+   "Compute 1 × 1 for the top and 3 × 5 for the bottom.",
+   "Write the resulting unit fraction."
+  ]
+ },
+ {
+  "src": "5.12-L1-03",
+  "std": "5.12",
+  "part": "c",
+  "q": "A rectangle has a length of {2/5} foot and a width of {1/3} foot. What is its area?",
+  "a": "{2/15} square foot",
+  "lvl": 1,
+  "choices": [
+   "{3/8} square foot",
+   "{2/15} square foot",
+   "{2/8} square foot",
+   "{3/15} square foot"
+  ],
+  "steps": [
+   "Area of a rectangle equals length × width.",
+   "Multiply {2/5} × {1/3} by multiplying tops and bottoms.",
+   "Include square feet as your unit."
+  ]
+ },
+ {
+  "src": "5.12-L2-01",
+  "std": "5.12",
+  "part": "a",
+  "q": "There are 24 apples in a crate, and {3/8} of them are green. How many apples are green?",
+  "a": "9",
+  "lvl": 2,
+  "choices": [
+   "3",
+   "8",
+   "9",
+   "12"
+  ],
+  "steps": [
+   "Multiply {3/8} × 24 to find how many apples are green.",
+   "Find {1/8} of 24 first (24 ÷ 8), then multiply by 3.",
+   "Check that your answer is less than half of 24."
+  ]
+ },
+ {
+  "src": "5.12-L2-02",
+  "std": "5.12",
+  "part": "b",
+  "q": "Compute {3/4} × {5/7}.",
+  "a": "{15/28}",
+  "lvl": 2,
+  "choices": [
+   "{8/11}",
+   "{21/20}",
+   "{15/11}",
+   "{15/28}"
+  ],
+  "steps": [
+   "Multiply the numerators (3 × 5) and the denominators (4 × 7).",
+   "Write the product as a single fraction.",
+   "Check whether the numerator and denominator share any common factor."
+  ]
+ },
+ {
+  "src": "5.12-L2-03",
+  "std": "5.12",
+  "part": "d",
+  "q": "A rectangle is tiled with 18 unit squares, each having side length {1/3} inch. What is the total area of the rectangle?",
+  "a": "2 square inches",
+  "lvl": 2,
+  "choices": [
+   "6 square inches",
+   "9 square inches",
+   "18 square inches",
+   "2 square inches"
+  ],
+  "steps": [
+   "First find the area of one small square: {1/3} × {1/3} = {1/9} sq in.",
+   "Multiply the area of one square by 18 squares: 18 × {1/9}.",
+   "Simplify the fraction to a whole number of square inches."
+  ]
+ },
+ {
+  "src": "5.12-L3-01",
+  "std": "5.12",
+  "part": "c",
+  "q": "A rectangular ceramic tile measures {4/5} meter by {5/8} meter. What is its area in simplest form?",
+  "a": "{1/2} square meter",
+  "lvl": 3,
+  "choices": [
+   "{9/13} square meter",
+   "{1/2} square meter",
+   "{5/12} square meter",
+   "{3/4} square meter"
+  ],
+  "steps": [
+   "Multiply length × width: {4/5} × {5/8}.",
+   "Multiply numerators and denominators (or simplify common factors first).",
+   "Reduce the resulting fraction to simplest form."
+  ]
+ },
+ {
+  "src": "5.12-L3-02",
+  "std": "5.12",
+  "part": "d",
+  "q": "A rectangle has length {3/5} unit and width {1/2} unit. If it is tiled with squares of side length {1/10} unit, how many of those small squares cover the rectangle?",
+  "a": "30",
+  "lvl": 3,
+  "choices": [
+   "11",
+   "15",
+   "60",
+   "30"
+  ],
+  "steps": [
+   "Find how many {1/10}-unit lengths fit along {3/5} ({6/10}) and {1/2} ({5/10}).",
+   "That gives 6 squares along the length and 5 squares along the width.",
+   "Multiply 6 × 5 to find the total number of small squares."
+  ]
+ },
+ {
+  "src": "5.12-L3-03",
+  "std": "5.12",
+  "part": "b",
+  "q": "Compute {5/6} × {9/10} in simplest form.",
+  "a": "{3/4}",
+  "lvl": 3,
+  "steps": [
+   "Multiply numerators (5 × 9) and denominators (6 × 10).",
+   "Divide both numerator and denominator by their greatest common factor.",
+   "Verify the fraction is in simplest form."
+  ]
+ },
+ {
+  "src": "5.13-L1-01",
+  "std": "5.13",
+  "part": "a",
+  "q": "Without multiplying, compare the product 8 × {2/5} to 8.",
+  "a": "8 × {2/5} is less than 8.",
+  "lvl": 1,
+  "choices": [
+   "8 × {2/5} is less than 8.",
+   "8 × {2/5} is greater than 8.",
+   "8 × {2/5} is equal to 8.",
+   "8 × {2/5} is greater than 10."
+  ],
+  "steps": [
+   "Compare the second factor ({2/5}) to 1.",
+   "Multiplying a positive number by a fraction less than 1 makes it smaller.",
+   "Choose the statement that compares 8 × {2/5} to 8."
+  ]
+ },
+ {
+  "src": "5.13-L1-02",
+  "std": "5.13",
+  "part": "a",
+  "q": "Without multiplying, compare the product 5 × 1{2/3} to 5.",
+  "a": "5 × 1{2/3} is greater than 5.",
+  "lvl": 1,
+  "choices": [
+   "5 × 1{2/3} is greater than 5.",
+   "5 × 1{2/3} is less than 5.",
+   "5 × 1{2/3} is equal to 5.",
+   "5 × 1{2/3} is less than 1."
+  ],
+  "steps": [
+   "Compare the second factor (1{2/3}) to 1.",
+   "Multiplying a positive number by a number greater than 1 makes it larger.",
+   "Select the statement that correctly compares the product to 5."
+  ]
+ },
+ {
+  "src": "5.13-L1-03",
+  "std": "5.13",
+  "part": "a",
+  "q": "Which product is equal to 11?",
+  "a": "11 × {4/4}",
+  "lvl": 1,
+  "choices": [
+   "11 × {3/4}",
+   "11 × {4/4}",
+   "11 × {5/4}",
+   "11 × {1/4}"
+  ],
+  "steps": [
+   "A number stays the same when multiplied by 1.",
+   "Look for the fraction in the choices that is equivalent to 1.",
+   "Select the expression multiplying 11 by that fraction."
+  ]
+ },
+ {
+  "src": "5.13-L2-01",
+  "std": "5.13",
+  "part": "c",
+  "q": "Why is the product {3/7} × {4/5} smaller than {3/7}?",
+  "a": "Because {3/7} is multiplied by a fraction less than 1.",
+  "lvl": 2,
+  "choices": [
+   "Because {3/7} is multiplied by a fraction less than 1.",
+   "Because {4/5} is greater than {3/7}.",
+   "Because multiplying two fractions always gives a smaller product.",
+   "Because {4/5} is greater than 1."
+  ],
+  "steps": [
+   "Look at the factor {4/5} that multiplies {3/7}.",
+   "Since 4 < 5, the fraction {4/5} is less than 1.",
+   "Pick the reason that explains scaling by a factor less than 1."
+  ]
+ },
+ {
+  "src": "5.13-L2-02",
+  "std": "5.13",
+  "part": "b",
+  "q": "Which fraction can replace the blank so that 14 × ___ is greater than 14?",
+  "a": "{8/7}",
+  "lvl": 2,
+  "choices": [
+   "{8/7}",
+   "{6/7}",
+   "{7/7}",
+   "{2/3}"
+  ],
+  "steps": [
+   "For 14 × ___ to be greater than 14, the missing factor must be > 1.",
+   "Check which choice has a numerator greater than its denominator.",
+   "Select that improper fraction."
+  ]
+ },
+ {
+  "src": "5.13-L2-03",
+  "std": "5.13",
+  "part": "a",
+  "q": "Order these expressions from least to greatest without multiplying: 6 × 1{1/4}, 6 × {3/5}, 6 × {6/6}.",
+  "a": "6 × {3/5}, 6 × {6/6}, 6 × 1{1/4}",
+  "lvl": 2,
+  "choices": [
+   "6 × 1{1/4}, 6 × {6/6}, 6 × {3/5}",
+   "6 × {3/5}, 6 × {6/6}, 6 × 1{1/4}",
+   "6 × {6/6}, 6 × {3/5}, 6 × 1{1/4}",
+   "6 × {3/5}, 6 × 1{1/4}, 6 × {6/6}"
+  ],
+  "steps": [
+   "All three expressions multiply 6 by a different scaling factor.",
+   "Compare the factors to 1: {3/5} < 1, {6/6} = 1, and 1{1/4} > 1.",
+   "Order the expressions from smallest factor to largest factor."
+  ]
+ },
+ {
+  "src": "5.13-L3-01",
+  "std": "5.13",
+  "part": "b",
+  "q": "Diego multiplies a positive number k by {7/3}. Which statement explains why the product is greater than k?",
+  "a": "Since {7/3} = 2{1/3} > 1, the product is 2{1/3} copies of k, which is greater than 1 copy of k.",
+  "lvl": 3,
+  "choices": [
+   "Since {7/3} = 2{1/3} > 1, the product is 2{1/3} copies of k, which is greater than 1 copy of k.",
+   "Since {7/3} has a numerator of 7, any product with 7 is larger.",
+   "Since k is multiplied by 3, the result is 3 times larger.",
+   "Multiplying any number by a fraction always increases its value."
+  ],
+  "steps": [
+   "Compare {7/3} to 1: is the top number greater than the bottom?",
+   "Think of multiplying by a number > 1 as taking more than 1 copy of k.",
+   "Match that explanation to the choices."
+  ]
+ },
+ {
+  "src": "5.13-L3-02",
+  "std": "5.13",
+  "part": "a",
+  "q": "If m and n are positive whole numbers with m > n, how does the product 9 × {m/n} compare to 9?",
+  "a": "It is greater than 9 because {m/n} > 1.",
+  "lvl": 3,
+  "choices": [
+   "It is less than 9 because {m/n} < 1.",
+   "It is equal to 9 because {m/n} = 1.",
+   "It cannot be compared without knowing m and n.",
+   "It is greater than 9 because {m/n} > 1."
+  ],
+  "steps": [
+   "Since m > n, the numerator of {m/n} is greater than its denominator.",
+   "That means {m/n} is greater than 1.",
+   "Think: is 9 × 2 more or less than 9? Then pick the match."
+  ]
+ },
+ {
+  "src": "5.13-L3-03",
+  "std": "5.13",
+  "part": "a",
+  "q": "Which symbol makes the comparison true without calculating: {7/9} × {5/6} ___ {7/9}?",
+  "a": "<",
+  "lvl": 3,
+  "steps": [
+   "Compare the scaling factor {5/6} to 1.",
+   "Multiplying {7/9} by a fraction less than 1 makes the product smaller.",
+   "Write the inequality symbol that makes the statement true."
+  ]
+ },
+ {
+  "src": "5.14-L1-01",
+  "std": "5.14",
+  "q": "A pancake recipe uses {3/5} cup of flour per batch. How much flour is needed for 5 batches?",
+  "a": "3 cups",
+  "lvl": 1,
+  "choices": [
+   "{3/25} cup",
+   "3 cups",
+   "1{3/5} cups",
+   "5{3/5} cups"
+  ],
+  "steps": [
+   "Multiply the flour per batch ({3/5}) by 5 batches.",
+   "Compute {3/5} × 5 = {15/5}.",
+   "Simplify the fraction to a whole number of cups."
+  ]
+ },
+ {
+  "src": "5.14-L1-02",
+  "std": "5.14",
+  "q": "Owen biked {2/3} mile each day for 6 days. How many miles did he bike in all?",
+  "a": "4 miles",
+  "lvl": 1,
+  "choices": [
+   "4 miles",
+   "2 miles",
+   "6{2/3} miles",
+   "{2/18} mile"
+  ],
+  "steps": [
+   "Multiply daily distance ({2/3} mile) by 6 days.",
+   "Compute {2/3} × 6 = {12/3}.",
+   "Simplify to a whole number of miles."
+  ]
+ },
+ {
+  "src": "5.14-L1-03",
+  "std": "5.14",
+  "q": "A cat eats {1/3} can of food at each meal. How many cans of food does the cat eat in 7 meals?",
+  "a": "2{1/3} cans",
+  "lvl": 1,
+  "choices": [
+   "7{1/3} cans",
+   "2{1/3} cans",
+   "{1/21} can",
+   "3 cans"
+  ],
+  "steps": [
+   "Multiply {1/3} can per meal by 7 meals.",
+   "Compute {1/3} × 7 = {7/3}.",
+   "Convert {7/3} to a mixed number."
+  ]
+ },
+ {
+  "src": "5.14-L2-01",
+  "std": "5.14",
+  "q": "A rectangular rug is 2{1/4} yards long and 1{1/3} yards wide. What is the area of the rug?",
+  "a": "3 square yards",
+  "lvl": 2,
+  "choices": [
+   "2{1/12} square yards",
+   "3{7/12} square yards",
+   "2{7/12} square yards",
+   "3 square yards"
+  ],
+  "steps": [
+   "Convert both mixed numbers to improper fractions: {9/4} and {4/3}.",
+   "Multiply length × width: {9/4} × {4/3}.",
+   "Simplify the product to get the area in square yards."
+  ]
+ },
+ {
+  "src": "5.14-L2-02",
+  "std": "5.14",
+  "q": "Tessa read for 1{2/3} hours on Saturday. Her sister read for {3/5} as much time. How long did her sister read?",
+  "a": "1 hour",
+  "lvl": 2,
+  "choices": [
+   "1 hour",
+   "1{2/15} hours",
+   "2{4/15} hours",
+   "{3/5} hour"
+  ],
+  "steps": [
+   "Convert 1{2/3} to the improper fraction {5/3}.",
+   "Multiply {5/3} × {3/5} to find how long her sister read.",
+   "Simplify the product to a whole number of hours."
+  ]
+ },
+ {
+  "src": "5.14-L2-03",
+  "std": "5.14",
+  "q": "One lap of a nature trail is 1{1/2} miles. If Kai walks 2{3/4} laps, how many miles does he walk?",
+  "a": "4{1/8} miles",
+  "lvl": 2,
+  "choices": [
+   "2{3/8} miles",
+   "4{1/8} miles",
+   "4{1/4} miles",
+   "3{3/8} miles"
+  ],
+  "steps": [
+   "Convert 1{1/2} to {3/2} and 2{3/4} to {11/4}.",
+   "Multiply {3/2} × {11/4} to get an improper fraction.",
+   "Convert your product back to a mixed number."
+  ]
+ },
+ {
+  "src": "5.14-L3-01",
+  "std": "5.14",
+  "q": "A trail mix recipe uses 1{1/2} cups of oats per batch. Ben makes 2{1/3} batches and already has 1{1/4} cups of oats. How many more cups of oats does he need?",
+  "a": "2{1/4} cups",
+  "lvl": 3,
+  "choices": [
+   "3{1/2} cups",
+   "2{3/4} cups",
+   "1{3/4} cups",
+   "2{1/4} cups"
+  ],
+  "steps": [
+   "Find total oats needed: convert 1{1/2} × 2{1/3} to {3/2} × {7/3} and multiply.",
+   "Subtract the 1{1/4} cups Ben already has from that total.",
+   "Use a common denominator of 4 to finish the subtraction."
+  ]
+ },
+ {
+  "src": "5.14-L3-02",
+  "std": "5.14",
+  "q": "A rectangular banner is 3{1/3} feet long and 2{1/4} feet wide. What is the area of the banner?",
+  "a": "7{1/2} square feet",
+  "lvl": 3,
+  "choices": [
+   "6{1/12} square feet",
+   "7{1/2} square feet",
+   "5{7/12} square feet",
+   "8{1/4} square feet"
+  ],
+  "steps": [
+   "Convert 3{1/3} to {10/3} and 2{1/4} to {9/4}.",
+   "Multiply {10/3} × {9/4} to find the area.",
+   "Simplify and write the result as a mixed number."
+  ]
+ },
+ {
+  "src": "5.14-L3-03",
+  "std": "5.14",
+  "q": "A hose fills a pool at a rate of 2{2/5} gallons per minute. How many gallons of water flow into the pool in 3{3/4} minutes?",
+  "a": "9",
+  "lvl": 3,
+  "steps": [
+   "Convert 2{2/5} to {12/5} and 3{3/4} to {15/4}.",
+   "Multiply {12/5} × {15/4} to find total gallons.",
+   "Simplify the fraction to a whole number."
+  ]
+ },
+ {
+  "src": "5.15-L1-01",
+  "std": "5.15",
+  "part": "a",
+  "q": "Compute {1/5} ÷ 3.",
+  "a": "{1/15}",
+  "lvl": 1,
+  "choices": [
+   "{3/5}",
+   "15",
+   "{1/15}",
+   "{1/8}"
+  ],
+  "steps": [
+   "Dividing {1/5} by 3 splits each fifth into 3 smaller equal parts.",
+   "Multiply {1/5} × {1/3} to find the size of one part.",
+   "Check that the quotient is smaller than {1/5}."
+  ]
+ },
+ {
+  "src": "5.15-L1-02",
+  "std": "5.15",
+  "part": "a",
+  "q": "Compute 6 ÷ {1/3}.",
+  "a": "18",
+  "lvl": 1,
+  "choices": [
+   "18",
+   "2",
+   "{1/18}",
+   "9"
+  ],
+  "steps": [
+   "Find how many {1/3}-size pieces fit inside 6 wholes.",
+   "Since 1 whole has 3 thirds, multiply 6 × 3.",
+   "Check that your answer is larger than 6."
+  ]
+ },
+ {
+  "src": "5.15-L1-03",
+  "std": "5.15",
+  "part": "a",
+  "q": "How many {1/5}-cup scoops are in 4 cups of flour?",
+  "a": "20",
+  "lvl": 1,
+  "choices": [
+   "{4/5}",
+   "9",
+   "20",
+   "{1/20}"
+  ],
+  "steps": [
+   "Set up the division 4 ÷ {1/5} to find how many scoops fit in 4 cups.",
+   "Each cup holds 5 scoops, so multiply 4 × 5.",
+   "Confirm the total number of scoops."
+  ]
+ },
+ {
+  "src": "5.15-L2-01",
+  "std": "5.15",
+  "part": "b",
+  "q": "One-third of a watermelon ({1/3} watermelon) is shared equally among 4 friends. What fraction of the whole watermelon does each friend get?",
+  "a": "{1/12}",
+  "lvl": 2,
+  "choices": [
+   "{1/12}",
+   "1{1/3}",
+   "{1/7}",
+   "12"
+  ],
+  "steps": [
+   "Set up the division {1/3} ÷ 4 for sharing {1/3} among 4 friends.",
+   "Rewrite as {1/3} × {1/4} and multiply.",
+   "Verify each friend gets a smaller piece than {1/3}."
+  ]
+ },
+ {
+  "src": "5.15-L2-02",
+  "std": "5.15",
+  "part": "c",
+  "q": "Which story problem can be solved by computing 5 ÷ {1/4}?",
+  "a": "How many {1/4}-pound bags can be filled from 5 pounds of nuts?",
+  "lvl": 2,
+  "choices": [
+   "Five friends share {1/4} of a cake equally. How much does each get?",
+   "A recipe uses {1/4} cup of oil. How much is needed for 5 batches?",
+   "How many {1/4}-pound bags can be filled from 5 pounds of nuts?",
+   "Zoe had 5 oranges and ate {1/4} of an orange. How much is left?"
+  ],
+  "steps": [
+   "5 ÷ {1/4} asks how many {1/4}-sized groups fit into 5 wholes.",
+   "Read each story to see which one starts with 5 and splits into {1/4}s.",
+   "Match that story to the choices."
+  ]
+ },
+ {
+  "src": "5.15-L2-03",
+  "std": "5.15",
+  "part": "b",
+  "q": "Which equation matches this story: 'One-sixth of a liter of juice is poured equally into 3 glasses'?",
+  "a": "{1/6} ÷ 3 = {1/18}",
+  "lvl": 2,
+  "choices": [
+   "3 ÷ {1/6} = 18",
+   "{1/6} × 3 = {1/2}",
+   "{1/6} ÷ 3 = {1/18}",
+   "3 − {1/6} = 2{5/6}"
+  ],
+  "steps": [
+   "Decide what is being shared and how many groups share it.",
+   "Write {1/6} ÷ 3 and compute {1/6} × {1/3}.",
+   "Match the complete equation to the choices."
+  ]
+ },
+ {
+  "src": "5.15-L3-01",
+  "std": "5.15",
+  "part": "a",
+  "q": "A snail crawls {1/4} meter in 6 minutes at a steady speed. How far does the snail crawl in 1 minute?",
+  "a": "{1/24} meter",
+  "lvl": 3,
+  "choices": [
+   "1{1/2} meters",
+   "24 meters",
+   "{1/24} meter",
+   "{1/10} meter"
+  ],
+  "steps": [
+   "Divide total distance ({1/4} meter) by total time (6 minutes).",
+   "Compute {1/4} ÷ 6 by multiplying {1/4} × {1/6}.",
+   "Include meters as the unit."
+  ]
+ },
+ {
+  "src": "5.15-L3-02",
+  "std": "5.15",
+  "part": "c",
+  "q": "A chef has 5 pounds of cheese. Each pizza uses {1/6} pound of cheese. If the pizzas are packed into delivery bags that hold 5 pizzas each, how many full bags can the chef pack?",
+  "a": "6",
+  "lvl": 3,
+  "choices": [
+   "30",
+   "6",
+   "5",
+   "10"
+  ],
+  "steps": [
+   "First find how many pizzas can be made: compute 5 ÷ {1/6}.",
+   "Then divide the total number of pizzas by 5 pizzas per bag.",
+   "Verify your answer makes sense with the cheese amount."
+  ]
+ },
+ {
+  "src": "5.15-L3-03",
+  "std": "5.15",
+  "part": "a",
+  "q": "An 8-gallon cooler of lemonade is poured into pitchers that each hold {1/5} gallon. How many pitchers can be filled?",
+  "a": "40",
+  "lvl": 3,
+  "steps": [
+   "Divide 8 gallons by {1/5} gallon per pitcher: 8 ÷ {1/5}.",
+   "Multiply 8 × 5 since each gallon fills 5 pitchers.",
+   "Confirm the total number of pitchers."
+  ]
+ },
+ {
+  "src": "5.16-L1-01",
+  "std": "5.16",
+  "q": "A line plot shows the lengths of 5 ribbons: {1/4} ft, {1/4} ft, {1/2} ft, {3/4} ft, and {3/4} ft. How many ribbons are {3/4} ft long?",
+  "a": "2",
+  "lvl": 1,
+  "choices": [
+   "1",
+   "3",
+   "5",
+   "2"
+  ],
+  "steps": [
+   "Scan the list of 5 ribbon lengths carefully.",
+   "Count how many times {3/4} ft appears in the data.",
+   "Match that count to the choices."
+  ]
+ },
+ {
+  "src": "5.16-L1-02",
+  "std": "5.16",
+  "part": "a",
+  "q": "A line plot shows the weights of 4 pebbles: {1/8} lb, {3/8} lb, {3/8} lb, and {5/8} lb. What is the difference between the heaviest and lightest pebble?",
+  "a": "{1/2} lb",
+  "lvl": 1,
+  "choices": [
+   "{1/4} lb",
+   "{3/8} lb",
+   "{3/4} lb",
+   "{1/2} lb"
+  ],
+  "steps": [
+   "Identify the heaviest pebble ({5/8} lb) and lightest pebble ({1/8} lb).",
+   "Subtract {5/8} − {1/8}.",
+   "Simplify the resulting fraction to lowest terms."
+  ]
+ },
+ {
+  "src": "5.16-L1-03",
+  "std": "5.16",
+  "part": "a",
+  "q": "A line plot displays three pencils with lengths {1/2} ft, {1/4} ft, and {1/4} ft. What is the total length of all three pencils?",
+  "a": "1 ft",
+  "lvl": 1,
+  "choices": [
+   "{3/4} ft",
+   "1{1/4} ft",
+   "{3/10} ft",
+   "1 ft"
+  ],
+  "steps": [
+   "Add the three lengths: {1/2} + {1/4} + {1/4}.",
+   "Notice {1/4} + {1/4} = {2/4} = {1/2}.",
+   "Add {1/2} + {1/2} to get the total length."
+  ]
+ },
+ {
+  "src": "5.16-L2-01",
+  "std": "5.16",
+  "part": "a",
+  "q": "A line plot shows the daily rainfall in inches over 5 days: {1/4}, {1/4}, {1/2}, {3/4}, and {3/4}. What is the total rainfall for the 5 days?",
+  "a": "2{1/2} inches",
+  "lvl": 2,
+  "choices": [
+   "2 inches",
+   "2{1/2} inches",
+   "2{1/4} inches",
+   "3 inches"
+  ],
+  "steps": [
+   "Rewrite {1/2} as {2/4} so all five rainfall amounts are in fourths.",
+   "Add the numerators: 1 + 1 + 2 + 3 + 3 over 4.",
+   "Convert the improper fraction to a mixed number and simplify."
+  ]
+ },
+ {
+  "src": "5.16-L2-02",
+  "std": "5.16",
+  "part": "a",
+  "q": "A line plot shows the weights of 6 bags of trail mix: two bags at {1/4} lb, three bags at {1/2} lb, and one bag at {3/4} lb. What is the combined weight of all 6 bags?",
+  "a": "2{3/4} lb",
+  "lvl": 2,
+  "choices": [
+   "2{3/4} lb",
+   "1{1/2} lb",
+   "2{1/4} lb",
+   "3{1/4} lb"
+  ],
+  "steps": [
+   "Multiply each weight by its count: 2 × {1/4}, 3 × {1/2}, and 1 × {3/4}.",
+   "Convert all three subtotals to fourths.",
+   "Add them together and write the sum as a mixed number."
+  ]
+ },
+ {
+  "src": "5.16-L2-03",
+  "std": "5.16",
+  "part": "a",
+  "q": "A line plot shows the lengths of 4 earthworms: {5/8} in., {7/8} in., 1{1/8} in., and 1{3/8} in. How much longer is the longest earthworm than the shortest?",
+  "a": "{3/4} inch",
+  "lvl": 2,
+  "choices": [
+   "{1/2} inch",
+   "{5/8} inch",
+   "{3/4} inch",
+   "1 inch"
+  ],
+  "steps": [
+   "Identify the longest (1{3/8}) and shortest ({5/8}) earthworms.",
+   "Regroup 1{3/8} as {11/8} and subtract {11/8} − {5/8}.",
+   "Simplify the difference to lowest terms."
+  ]
+ },
+ {
+  "src": "5.16-L3-01",
+  "std": "5.16",
+  "part": "a",
+  "q": "A line plot shows the amounts of juice in 4 beakers: {1/4} cup, {1/2} cup, {1/2} cup, and {3/4} cup. If all the juice is combined and poured equally into the 4 beakers, how much juice will be in each beaker?",
+  "a": "{1/2} cup",
+  "lvl": 3,
+  "choices": [
+   "{1/2} cup",
+   "{1/4} cup",
+   "{3/4} cup",
+   "2 cups"
+  ],
+  "steps": [
+   "Add all four amounts: {1/4} + {1/2} + {1/2} + {3/4}.",
+   "Combine {1/4} + {3/4} = 1 and {1/2} + {1/2} = 1 to get the total.",
+   "Divide the total cups equally among the 4 beakers."
+  ]
+ },
+ {
+  "src": "5.16-L3-02",
+  "std": "5.16",
+  "part": "a",
+  "q": "A line plot shows the lengths of 5 pieces of wire: three pieces are {3/8} meter and two pieces are {5/8} meter. If all the wire is laid end-to-end, how much shorter is the total length than 3 meters?",
+  "a": "{5/8} meter",
+  "lvl": 3,
+  "choices": [
+   "{3/8} meter",
+   "{5/8} meter",
+   "1{1/8} meters",
+   "2{3/8} meters"
+  ],
+  "steps": [
+   "Find the total wire length: (3 × {3/8}) + (2 × {5/8}).",
+   "Convert that total ({19/8}) to a mixed number.",
+   "Subtract your total from 3 meters (regrouping 3 as 2{8/8})."
+  ]
+ },
+ {
+  "src": "5.16-L3-03",
+  "std": "5.16",
+  "part": "a",
+  "q": "A line plot shows the weights of 6 berries: two weigh {1/8} oz, three weigh {1/4} oz, and one weighs {3/8} oz. What is the total weight of all 6 berries in ounces?",
+  "a": "1{3/8} oz",
+  "lvl": 3,
+  "steps": [
+   "Find each group's weight in eighths: 2 × {1/8}, 3 × {2/8}, and 1 × {3/8}.",
+   "Add all the eighths together.",
+   "Convert the improper fraction to a mixed number."
+  ]
+ },
+ {
+  "src": "5.17-L1-01",
+  "std": "5.17",
+  "q": "Convert 4 feet to inches. (1 foot = 12 inches)",
+  "a": "48 inches",
+  "lvl": 1,
+  "choices": [
+   "16 inches",
+   "48 inches",
+   "36 inches",
+   "60 inches"
+  ],
+  "steps": [
+   "Converting from a larger unit (feet) to a smaller unit (inches) multiplies.",
+   "Multiply 4 feet by 12 inches per foot.",
+   "Include inches as your unit."
+  ]
+ },
+ {
+  "src": "5.17-L1-02",
+  "std": "5.17",
+  "q": "Convert 3,500 milliliters to liters. (1 liter = 1,000 milliliters)",
+  "a": "3.5 liters",
+  "lvl": 1,
+  "choices": [
+   "0.35 liter",
+   "35 liters",
+   "350 liters",
+   "3.5 liters"
+  ],
+  "steps": [
+   "Converting milliliters to liters divides by 1,000.",
+   "Divide 3,500 ÷ 1,000 by shifting the decimal point 3 places left.",
+   "Write the result in liters."
+  ]
+ },
+ {
+  "src": "5.17-L1-03",
+  "std": "5.17",
+  "q": "Convert 5 yards to feet. (1 yard = 3 feet)",
+  "a": "15 feet",
+  "lvl": 1,
+  "choices": [
+   "8 feet",
+   "12 feet",
+   "15 feet",
+   "60 feet"
+  ],
+  "steps": [
+   "Each yard equals 3 feet, so multiply to convert yards to feet.",
+   "Compute 5 × 3.",
+   "Include feet as your unit."
+  ]
+ },
+ {
+  "src": "5.17-L2-01",
+  "std": "5.17",
+  "q": "A rope is 4 yards 2 feet long. How many inches long is the rope?",
+  "a": "168 inches",
+  "lvl": 2,
+  "choices": [
+   "72 inches",
+   "144 inches",
+   "168 inches",
+   "192 inches"
+  ],
+  "steps": [
+   "Convert 4 yards to feet (4 × 3), then add the extra 2 feet.",
+   "Convert the total feet to inches by multiplying by 12.",
+   "Check that your answer is greater than 144 inches."
+  ]
+ },
+ {
+  "src": "5.17-L2-02",
+  "std": "5.17",
+  "q": "A pitcher holds 2.4 liters of water. Maya pours 350 milliliters into each of 4 glasses. How many milliliters of water remain in the pitcher?",
+  "a": "1,000 milliliters",
+  "lvl": 2,
+  "choices": [
+   "1,400 milliliters",
+   "2,050 milliliters",
+   "100 milliliters",
+   "1,000 milliliters"
+  ],
+  "steps": [
+   "Convert 2.4 liters to milliliters by multiplying by 1,000.",
+   "Find total water poured: 4 × 350 milliliters.",
+   "Subtract the poured amount from the starting milliliters."
+  ]
+ },
+ {
+  "src": "5.17-L2-03",
+  "std": "5.17",
+  "q": "A baker buys 3 pounds of butter and uses 20 ounces for frosting. How many ounces of butter does she have left? (1 pound = 16 ounces)",
+  "a": "28 ounces",
+  "lvl": 2,
+  "choices": [
+   "28 ounces",
+   "17 ounces",
+   "32 ounces",
+   "48 ounces"
+  ],
+  "steps": [
+   "Convert 3 pounds to ounces by multiplying 3 × 16.",
+   "Subtract the 20 ounces used from the total ounces.",
+   "Verify by adding 20 back to your answer."
+  ]
+ },
+ {
+  "src": "5.17-L3-01",
+  "std": "5.17",
+  "q": "A runner jogs 1.6 kilometers on Monday and 2,450 meters on Tuesday. How many meters farther did she jog on Tuesday than on Monday?",
+  "a": "850 meters",
+  "lvl": 3,
+  "choices": [
+   "850 meters",
+   "85 meters",
+   "1,850 meters",
+   "4,050 meters"
+  ],
+  "steps": [
+   "Convert 1.6 kilometers to meters by multiplying by 1,000.",
+   "Subtract Monday's meters from Tuesday's 2,450 meters.",
+   "Check that the difference is less than 1,000 meters."
+  ]
+ },
+ {
+  "src": "5.17-L3-02",
+  "std": "5.17",
+  "q": "A container holds 3 gallons of punch. Guests drink 14 cups of punch. How many cups of punch are left in the container? (1 gallon = 16 cups)",
+  "a": "34 cups",
+  "lvl": 3,
+  "choices": [
+   "34 cups",
+   "2 cups",
+   "30 cups",
+   "48 cups"
+  ],
+  "steps": [
+   "Convert 3 gallons to cups by multiplying 3 × 16.",
+   "Subtract the 14 cups drunk from the total cups.",
+   "Confirm your answer is in cups."
+  ]
+ },
+ {
+  "src": "5.17-L3-03",
+  "std": "5.17",
+  "q": "A wooden plank is 2.5 meters long. A carpenter cuts off three pieces, each 65 centimeters long. How many centimeters of the plank remain?",
+  "a": "55",
+  "lvl": 3,
+  "steps": [
+   "Convert 2.5 meters to centimeters by multiplying by 100.",
+   "Find the total cut off: 3 × 65 centimeters.",
+   "Subtract the cut length from the starting centimeters."
+  ]
+ },
+ {
+  "src": "5.18-L1-01",
+  "std": "5.18",
+  "q": "A solid figure is made of 18 unit cubes with no gaps or overlaps. What is its volume?",
+  "a": "18 cubic units",
+  "lvl": 1,
+  "choices": [
+   "18 units",
+   "18 square units",
+   "18 cubic units",
+   "36 cubic units"
+  ],
+  "steps": [
+   "Volume counts how many unit cubes fill a 3D figure with no gaps.",
+   "Use the count of 18 unit cubes and pair it with cubic units.",
+   "Avoid linear units or square units, which measure length or area."
+  ]
+ },
+ {
+  "src": "5.18-L1-02",
+  "std": "5.18",
+  "q": "Which unit is best used to measure the volume of a shoebox?",
+  "a": "cubic inches",
+  "lvl": 1,
+  "choices": [
+   "cubic inches",
+   "inches",
+   "square inches",
+   "pounds"
+  ],
+  "steps": [
+   "Volume measures 3D space, so it always uses cubic units.",
+   "Eliminate length (inches), area (square inches), and weight (pounds).",
+   "Select the cubic unit choice."
+  ]
+ },
+ {
+  "src": "5.18-L1-03",
+  "std": "5.18",
+  "part": "a",
+  "q": "A rectangular prism is packed with 2 layers of unit cubes. Each layer has 6 unit cubes. What is the volume of the prism?",
+  "a": "12 cubic units",
+  "lvl": 1,
+  "choices": [
+   "8 cubic units",
+   "12 cubic units",
+   "18 cubic units",
+   "36 cubic units"
+  ],
+  "steps": [
+   "Multiply the number of cubes in 1 layer by the number of layers.",
+   "Compute 6 × 2.",
+   "Label your answer in cubic units."
+  ]
+ },
+ {
+  "src": "5.18-L2-01",
+  "std": "5.18",
+  "part": "a",
+  "q": "A box is packed with 1-inch cubes without gaps or overlaps. The bottom layer holds 4 rows of 3 cubes, and there are 5 layers in all. What is the volume of the box?",
+  "a": "60 cubic inches",
+  "lvl": 2,
+  "choices": [
+   "12 cubic inches",
+   "20 cubic inches",
+   "35 cubic inches",
+   "60 cubic inches"
+  ],
+  "steps": [
+   "Find the cubes in the bottom layer: 4 × 3.",
+   "Multiply that layer count by 5 layers.",
+   "Label the volume in cubic inches."
+  ]
+ },
+ {
+  "src": "5.18-L2-02",
+  "std": "5.18",
+  "part": "a",
+  "q": "Why must unit cubes be packed with no gaps and no overlaps when measuring the volume of a solid figure?",
+  "a": "Gaps or overlaps would make the count of unit cubes inaccurate.",
+  "lvl": 2,
+  "choices": [
+   "Unit cubes can only be stacked in single rows.",
+   "Gaps or overlaps would make the count of unit cubes inaccurate.",
+   "Overlapping cubes change the shape from 3D to 2D.",
+   "Gaps increase the weight of the solid figure."
+  ],
+  "steps": [
+   "Volume is the exact number of unit cubes that fill a solid.",
+   "Think about what gaps or overlaps do to that cube count.",
+   "Select the statement about keeping the count accurate."
+  ]
+ },
+ {
+  "src": "5.18-L2-03",
+  "std": "5.18",
+  "part": "a",
+  "q": "A rectangular prism is built from 36 unit cubes. If the bottom layer has 9 unit cubes, how many layers tall is the prism?",
+  "a": "4 layers",
+  "lvl": 2,
+  "choices": [
+   "3 layers",
+   "4 layers",
+   "6 layers",
+   "27 layers"
+  ],
+  "steps": [
+   "Divide the total volume (36 cubes) by the cubes per layer (9).",
+   "Compute 36 ÷ 9.",
+   "Check by multiplying your layers by 9 to get 36."
+  ]
+ },
+ {
+  "src": "5.18-L3-01",
+  "std": "5.18",
+  "part": "a",
+  "q": "A student packs a rectangular box using 1-centimeter cubes. She fits 6 cubes along the length, 4 cubes along the width, and stacks 3 layers, leaving room for 1 more empty layer at the top. What is the total volume of the box?",
+  "a": "96 cubic centimeters",
+  "lvl": 3,
+  "choices": [
+   "72 cubic centimeters",
+   "84 cubic centimeters",
+   "96 cubic centimeters",
+   "120 cubic centimeters"
+  ],
+  "steps": [
+   "Find the cubes in one layer: 6 × 4.",
+   "Count the total layers the box can hold: 3 filled + 1 empty = 4 layers.",
+   "Multiply one layer by 4 total layers for the box's volume."
+  ]
+ },
+ {
+  "src": "5.18-L3-02",
+  "std": "5.18",
+  "q": "A rectangular prism has a volume of 48 cubic units. If it is built from 4 equal layers of unit cubes, how many unit cubes are in each layer?",
+  "a": "12 unit cubes",
+  "lvl": 3,
+  "choices": [
+   "8 unit cubes",
+   "12 unit cubes",
+   "16 unit cubes",
+   "44 unit cubes"
+  ],
+  "steps": [
+   "Divide total volume (48) by the number of equal layers (4).",
+   "Compute 48 ÷ 4.",
+   "Verify by multiplying your answer by 4."
+  ]
+ },
+ {
+  "src": "5.18-L3-03",
+  "std": "5.18",
+  "part": "a",
+  "q": "A crate is packed completely with 1-foot cubes. The bottom layer is a 5-by-3 rectangle of cubes, and the crate is 4 cubes high. How many 1-foot cubes fill the crate?",
+  "a": "60",
+  "lvl": 3,
+  "steps": [
+   "Find the cubes in the bottom layer: 5 × 3.",
+   "Multiply that base layer by the height of 4 cubes.",
+   "State the total number of 1-foot cubes."
+  ]
+ },
+ {
+  "src": "5.19-L1-01",
+  "std": "5.19",
+  "part": "b",
+  "q": "Find the volume of a right rectangular prism with a length of 5 cm, a width of 3 cm, and a height of 4 cm.",
+  "a": "60 cubic centimeters",
+  "lvl": 1,
+  "choices": [
+   "60 cubic centimeters",
+   "12 cubic centimeters",
+   "30 cubic centimeters",
+   "120 cubic centimeters"
+  ],
+  "steps": [
+   "Use the volume formula V = l × w × h.",
+   "Multiply 5 × 3 first, then multiply that result by 4.",
+   "Include cubic centimeters as your unit."
+  ]
+ },
+ {
+  "src": "5.19-L1-02",
+  "std": "5.19",
+  "part": "b",
+  "q": "A rectangular prism has a base area of 24 square inches and a height of 5 inches. What is its volume?",
+  "a": "120 cubic inches",
+  "lvl": 1,
+  "choices": [
+   "29 cubic inches",
+   "96 cubic inches",
+   "144 cubic inches",
+   "120 cubic inches"
+  ],
+  "steps": [
+   "Use the formula V = B × h, where B is the base area.",
+   "Multiply 24 × 5.",
+   "Label your answer in cubic inches."
+  ]
+ },
+ {
+  "src": "5.19-L1-03",
+  "std": "5.19",
+  "part": "a",
+  "q": "Which expression uses the associative property of multiplication to show another way to calculate the volume (4 × 3) × 6?",
+  "a": "4 × (3 × 6)",
+  "lvl": 1,
+  "choices": [
+   "4 + (3 × 6)",
+   "(4 + 3) × 6",
+   "4 × (3 × 6)",
+   "(4 × 3) + 6"
+  ],
+  "steps": [
+   "The associative property regroups factors without changing operations.",
+   "Keep all multiplication signs and move parentheses around 3 × 6.",
+   "Match that expression to the choices."
+  ]
+ },
+ {
+  "src": "5.19-L2-01",
+  "std": "5.19",
+  "part": "b",
+  "q": "A fish tank is 12 inches long, 8 inches wide, and 10 inches tall. What is the volume of the fish tank?",
+  "a": "960 cubic inches",
+  "lvl": 2,
+  "choices": [
+   "30 cubic inches",
+   "96 cubic inches",
+   "960 cubic inches",
+   "1,200 cubic inches"
+  ],
+  "steps": [
+   "Use V = l × w × h with 12, 8, and 10.",
+   "Multiply 12 × 8 first, then multiply by 10.",
+   "Label the volume in cubic inches."
+  ]
+ },
+ {
+  "src": "5.19-L2-02",
+  "std": "5.19",
+  "part": "b",
+  "q": "A storage bin has a volume of 180 cubic feet. Its length is 9 feet and its width is 4 feet. What is its height?",
+  "a": "5 feet",
+  "lvl": 2,
+  "choices": [
+   "4 feet",
+   "6 feet",
+   "5 feet",
+   "20 feet"
+  ],
+  "steps": [
+   "First find the base area: 9 × 4.",
+   "Divide the volume (180) by that base area to find the height.",
+   "Check by multiplying 9 × 4 × your height."
+  ]
+ },
+ {
+  "src": "5.19-L2-03",
+  "std": "5.19",
+  "part": "c",
+  "q": "A solid figure is made of two non-overlapping rectangular prisms. Prism A measures 4 in. by 3 in. by 2 in. Prism B measures 5 in. by 3 in. by 4 in. What is the total volume?",
+  "a": "84 cubic inches",
+  "lvl": 2,
+  "choices": [
+   "84 cubic inches",
+   "24 cubic inches",
+   "60 cubic inches",
+   "96 cubic inches"
+  ],
+  "steps": [
+   "Find Prism A's volume (4 × 3 × 2) and Prism B's volume (5 × 3 × 4).",
+   "Add the two volumes together since they do not overlap.",
+   "Label the total in cubic inches."
+  ]
+ },
+ {
+  "src": "5.19-L3-01",
+  "std": "5.19",
+  "part": "c",
+  "q": "An L-shaped planter is made of two non-overlapping rectangular prisms. The first prism is 6 ft long, 2 ft wide, and 3 ft tall. The second prism is 4 ft long, 2 ft wide, and 3 ft tall. How many cubic feet of soil fill the planter?",
+  "a": "60 cubic feet",
+  "lvl": 3,
+  "choices": [
+   "36 cubic feet",
+   "48 cubic feet",
+   "60 cubic feet",
+   "72 cubic feet"
+  ],
+  "steps": [
+   "Compute the first prism's volume (6 × 2 × 3) and second's (4 × 2 × 3).",
+   "Add both volumes together.",
+   "Label your final answer in cubic feet."
+  ]
+ },
+ {
+  "src": "5.19-L3-02",
+  "std": "5.19",
+  "part": "b",
+  "q": "A shipping box is 15 inches long, 10 inches wide, and 8 inches tall. If it is filled halfway with packing peanuts, what is the volume of the packing peanuts?",
+  "a": "600 cubic inches",
+  "lvl": 3,
+  "choices": [
+   "300 cubic inches",
+   "600 cubic inches",
+   "1,200 cubic inches",
+   "150 cubic inches"
+  ],
+  "steps": [
+   "Find the full box volume: 15 × 10 × 8.",
+   "Divide the full volume by 2 since it is filled halfway.",
+   "Label the result in cubic inches."
+  ]
+ },
+ {
+  "src": "5.19-L3-03",
+  "std": "5.19",
+  "part": "c",
+  "q": "A step stool is formed by two non-overlapping rectangular prisms. The bottom prism measures 10 in. by 6 in. by 4 in., and the top prism measures 10 in. by 3 in. by 5 in. What is the total volume in cubic inches?",
+  "a": "390",
+  "lvl": 3,
+  "steps": [
+   "Find the bottom prism volume (10 × 6 × 4) and top prism volume (10 × 3 × 5).",
+   "Add both volumes together.",
+   "Verify each product before finalizing the sum."
+  ]
+ },
+ {
+  "src": "5.20-L1-01",
+  "std": "5.20",
+  "q": "In the ordered pair (4, 7), what does the 4 represent?",
+  "a": "The horizontal distance from the origin along the x-axis",
+  "lvl": 1,
+  "choices": [
+   "The vertical distance from the origin along the y-axis",
+   "The horizontal distance from the origin along the x-axis",
+   "The total distance from the origin",
+   "The difference between the two coordinates"
+  ],
+  "steps": [
+   "In an ordered pair (x, y), the first number is the x-coordinate.",
+   "The x-coordinate tells how far to move horizontally along the x-axis.",
+   "Match that description to the choices."
+  ]
+ },
+ {
+  "src": "5.20-L1-02",
+  "std": "5.20",
+  "q": "Starting at the origin (0, 0), how do you plot the point (3, 5) on a coordinate plane?",
+  "a": "Move 3 units right and 5 units up.",
+  "lvl": 1,
+  "choices": [
+   "Move 3 units up and 5 units right.",
+   "Move 5 units right and 3 units up.",
+   "Move 8 units right.",
+   "Move 3 units right and 5 units up."
+  ],
+  "steps": [
+   "For (3, 5), the first number (3) is right along the x-axis.",
+   "The second number (5) is up along the y-axis.",
+   "Pick the choice that moves right 3, then up 5."
+  ]
+ },
+ {
+  "src": "5.20-L1-03",
+  "std": "5.20",
+  "q": "What are the coordinates of the origin on a coordinate plane?",
+  "a": "(0, 0)",
+  "lvl": 1,
+  "choices": [
+   "(0, 0)",
+   "(1, 1)",
+   "(0, 1)",
+   "(1, 0)"
+  ],
+  "steps": [
+   "The origin is where the x-axis and y-axis intersect.",
+   "At that point, both the horizontal and vertical distances are 0.",
+   "Write that as an ordered pair."
+  ]
+ },
+ {
+  "src": "5.20-L2-01",
+  "std": "5.20",
+  "q": "On a map grid, the library is located at (2, 6) and the park is located at (7, 6). How many units apart are the library and the park?",
+  "a": "5 units",
+  "lvl": 2,
+  "choices": [
+   "4 units",
+   "6 units",
+   "5 units",
+   "9 units"
+  ],
+  "steps": [
+   "Notice both points have the same y-coordinate (6), so they are horizontal.",
+   "Subtract the smaller x-coordinate from the larger: 7 − 2.",
+   "State the distance in units."
+  ]
+ },
+ {
+  "src": "5.20-L2-02",
+  "std": "5.20",
+  "q": "Point A is located at (3, 2). Point B is 4 units to the right and 3 units up from Point A. What are the coordinates of Point B?",
+  "a": "(7, 5)",
+  "lvl": 2,
+  "choices": [
+   "(7, 5)",
+   "(6, 6)",
+   "(5, 7)",
+   "(1, 5)"
+  ],
+  "steps": [
+   "Moving right adds to the x-coordinate; moving up adds to the y-coordinate.",
+   "Compute new x: 3 + 4, and new y: 2 + 3.",
+   "Write Point B as (x, y)."
+  ]
+ },
+ {
+  "src": "5.20-L2-03",
+  "std": "5.20",
+  "q": "On a coordinate plane, the x-axis represents hours worked and the y-axis represents dollars earned. What does the point (4, 36) represent?",
+  "a": "Earning §36 for working 4 hours",
+  "lvl": 2,
+  "choices": [
+   "Earning §4 for working 36 hours",
+   "Earning §40 in total",
+   "Earning §36 for working 4 hours",
+   "Working 4 hours at §36 per hour"
+  ],
+  "steps": [
+   "Match 4 to the x-axis (hours worked) and 36 to the y-axis (dollars earned).",
+   "Read the point as 4 hours worked and §36 earned.",
+   "Select the choice that states this accurately."
+  ]
+ },
+ {
+  "src": "5.20-L3-01",
+  "std": "5.20",
+  "q": "Three vertices of a rectangle are at (1, 2), (1, 6), and (5, 6). What are the coordinates of the fourth vertex?",
+  "a": "(5, 2)",
+  "lvl": 3,
+  "choices": [
+   "(2, 5)",
+   "(6, 5)",
+   "(5, 2)",
+   "(5, 1)"
+  ],
+  "steps": [
+   "Opposite vertices of a rectangle share x- and y-coordinates with neighbors.",
+   "Pair the unused x-value (5) with the unused y-value (2).",
+   "Verify all four corners form horizontal and vertical sides."
+  ]
+ },
+ {
+  "src": "5.20-L3-02",
+  "std": "5.20",
+  "q": "A delivery drone starts at (2, 1), flies 5 units east (right), then 4 units north (up), and finally 2 units west (left). What are its final coordinates?",
+  "a": "(5, 5)",
+  "lvl": 3,
+  "choices": [
+   "(9, 5)",
+   "(5, 3)",
+   "(5, 5)",
+   "(7, 5)"
+  ],
+  "steps": [
+   "Track x-moves (east adds, west subtracts): 2 + 5 − 2.",
+   "Track y-moves (north adds): 1 + 4.",
+   "Write the final position as (x, y)."
+  ]
+ },
+ {
+  "src": "5.20-L3-03",
+  "std": "5.20",
+  "q": "Point P is at (3, 8) and Point Q is at (3, 2). What is the distance in units between Point P and Point Q?",
+  "a": "6",
+  "lvl": 3,
+  "steps": [
+   "Both points share x = 3, so they lie on the same vertical line.",
+   "Subtract the y-coordinates: 8 − 2.",
+   "State the distance in units."
+  ]
+ },
+ {
+  "src": "5.21-L1-01",
+  "std": "5.21",
+  "q": "A triangle has side lengths of 5 cm, 5 cm, and 5 cm. How is it classified by its side lengths?",
+  "a": "Equilateral",
+  "lvl": 1,
+  "choices": [
+   "Scalene",
+   "Isosceles only",
+   "Equilateral",
+   "Right"
+  ],
+  "steps": [
+   "Count how many sides have the exact same length (all 3 are 5 cm).",
+   "Recall: equilateral = 3 equal, isosceles = 2+ equal, scalene = 0 equal.",
+   "Select the matching classification."
+  ]
+ },
+ {
+  "src": "5.21-L1-02",
+  "std": "5.21",
+  "q": "A triangle has one angle measuring 90°. How is it classified by its angle measures?",
+  "a": "Right triangle",
+  "lvl": 1,
+  "choices": [
+   "Acute triangle",
+   "Obtuse triangle",
+   "Right triangle",
+   "Equiangular triangle"
+  ],
+  "steps": [
+   "A 90° angle is called a right angle.",
+   "A triangle with one 90° angle is named after that angle.",
+   "Select the matching triangle type."
+  ]
+ },
+ {
+  "src": "5.21-L1-03",
+  "std": "5.21",
+  "q": "A triangle has side lengths of 4 in., 6 in., and 9 in. How is it classified by its side lengths?",
+  "a": "Scalene",
+  "lvl": 1,
+  "choices": [
+   "Equilateral",
+   "Isosceles",
+   "Obtuse",
+   "Scalene"
+  ],
+  "steps": [
+   "Compare the three side lengths: 4 in., 6 in., and 9 in.",
+   "None of the sides are equal in length.",
+   "Pick the side classification for a triangle with no equal sides."
+  ]
+ },
+ {
+  "src": "5.21-L2-01",
+  "std": "5.21",
+  "q": "A triangle has angles measuring 35°, 45°, and 100°. How is it classified by its angle measures?",
+  "a": "Obtuse triangle",
+  "lvl": 2,
+  "choices": [
+   "Obtuse triangle",
+   "Acute triangle",
+   "Right triangle",
+   "Equiangular triangle"
+  ],
+  "steps": [
+   "Look at the largest angle in the triangle (100°).",
+   "An angle greater than 90° is an obtuse angle.",
+   "Classify the triangle based on that obtuse angle."
+  ]
+ },
+ {
+  "src": "5.21-L2-02",
+  "std": "5.21",
+  "q": "A triangle has two sides of equal length and one angle measuring 92°. How is it classified by both its sides and angles?",
+  "a": "Obtuse isosceles",
+  "lvl": 2,
+  "choices": [
+   "Acute isosceles",
+   "Obtuse scalene",
+   "Obtuse isosceles",
+   "Right isosceles"
+  ],
+  "steps": [
+   "Name the triangle by its sides: how many are equal?",
+   "Name it by its angle: compare 92° to 90°.",
+   "Combine both names and match the choice."
+  ]
+ },
+ {
+  "src": "5.21-L2-03",
+  "std": "5.21",
+  "q": "Every equilateral triangle has three angles that each measure 60°. How is it classified by its angle measures?",
+  "a": "Equiangular and acute",
+  "lvl": 2,
+  "choices": [
+   "Right and acute",
+   "Equiangular and obtuse",
+   "Obtuse and scalene",
+   "Equiangular and acute"
+  ],
+  "steps": [
+   "All three angles are equal (60°), so it is equiangular.",
+   "Every 60° angle is less than 90°, so it is also acute.",
+   "Select the choice with both angle classifications."
+  ]
+ },
+ {
+  "src": "5.21-L3-01",
+  "std": "5.21",
+  "q": "Can a triangle be both a right triangle and an obtuse triangle?",
+  "a": "No, because a 90° angle and an obtuse angle already sum to more than 180°.",
+  "lvl": 3,
+  "choices": [
+   "Yes, if all three sides have different lengths.",
+   "No, because a 90° angle and an obtuse angle already sum to more than 180°.",
+   "Yes, if the third angle is acute.",
+   "No, because right triangles must be equilateral."
+  ],
+  "steps": [
+   "Recall that the three angles of any triangle must sum to 180°.",
+   "Add a 90° right angle and an obtuse angle (> 90°).",
+   "Decide if any degrees are left over for a third angle."
+  ]
+ },
+ {
+  "src": "5.21-L3-02",
+  "std": "5.21",
+  "q": "A triangle has two sides of length 8 cm and a third side of length 5 cm. All three angles are less than 90°. Which classification best describes this triangle?",
+  "a": "Acute isosceles",
+  "lvl": 3,
+  "choices": [
+   "Acute equilateral",
+   "Acute isosceles",
+   "Acute scalene",
+   "Obtuse isosceles"
+  ],
+  "steps": [
+   "Two equal sides (8 cm, 8 cm) give the side classification.",
+   "All three angles less than 90° give the angle classification.",
+   "Combine both terms and match the choice."
+  ]
+ },
+ {
+  "src": "5.21-L3-03",
+  "std": "5.21",
+  "q": "A triangle has side lengths 6 cm, 8 cm, and 10 cm, and one 90° angle. Classify this triangle by both its side lengths and its angle measure.",
+  "a": "Right scalene",
+  "lvl": 3,
+  "steps": [
+   "Check the sides (6, 8, 10): all different means scalene.",
+   "Check the angle (90°): one right angle means right.",
+   "Combine both words to classify the triangle."
+  ]
+ },
+ {
+  "src": "5.22-L1-01",
+  "std": "5.22",
+  "q": "Which quadrilateral has 4 right angles and 4 sides of equal length?",
+  "a": "Square",
+  "lvl": 1,
+  "choices": [
+   "Trapezoid",
+   "Kite",
+   "Scalene triangle",
+   "Square"
+  ],
+  "steps": [
+   "Look for a 4-sided shape with 4 right angles AND 4 equal sides.",
+   "Eliminate shapes that lack right angles or equal sides.",
+   "Select the quadrilateral that has both attributes."
+  ]
+ },
+ {
+  "src": "5.22-L1-02",
+  "std": "5.22",
+  "q": "A quadrilateral has two pairs of parallel sides. What is the most general name for this figure?",
+  "a": "Parallelogram",
+  "lvl": 1,
+  "choices": [
+   "Square",
+   "Rectangle",
+   "Rhombus",
+   "Parallelogram"
+  ],
+  "steps": [
+   "Identify the category defined only by having two pairs of parallel sides.",
+   "Rectangles, rhombuses, and squares are more specific subcategories.",
+   "Pick the most general name."
+  ]
+ },
+ {
+  "src": "5.22-L1-03",
+  "std": "5.22",
+  "q": "Which quadrilateral always has 4 equal sides, even if its angles are not 90°?",
+  "a": "Rhombus",
+  "lvl": 1,
+  "choices": [
+   "Rectangle",
+   "Rhombus",
+   "Trapezoid",
+   "Parallelogram"
+  ],
+  "steps": [
+   "A quadrilateral with 4 equal sides does not need 90° angles.",
+   "Compare rhombus, rectangle, trapezoid, and parallelogram definitions.",
+   "Select the shape defined by 4 equal sides."
+  ]
+ },
+ {
+  "src": "5.22-L2-01",
+  "std": "5.22",
+  "q": "Which statement about quadrilaterals is ALWAYS true?",
+  "a": "Every square is a rectangle.",
+  "lvl": 2,
+  "choices": [
+   "Every square is a rectangle.",
+   "Every rectangle is a square.",
+   "Every parallelogram is a rhombus.",
+   "Every trapezoid is a parallelogram."
+  ],
+  "steps": [
+   "Test each statement by checking if all attributes of the second apply.",
+   "A square has 4 right angles, which is all a rectangle requires.",
+   "Select the statement that has no counterexample."
+  ]
+ },
+ {
+  "src": "5.22-L2-02",
+  "std": "5.22",
+  "q": "A quadrilateral has opposite sides parallel, 4 right angles, and side lengths of 6 cm, 4 cm, 6 cm, and 4 cm. Which names apply to this figure?",
+  "a": "Parallelogram and rectangle",
+  "lvl": 2,
+  "choices": [
+   "Parallelogram and rectangle",
+   "Square and rhombus",
+   "Rhombus and rectangle",
+   "Trapezoid only"
+  ],
+  "steps": [
+   "Name what opposite parallel sides and 4 right angles each make it.",
+   "Since sides are 6 and 4 (not all equal), it is not a square or rhombus.",
+   "Select the pair of names that both apply."
+  ]
+ },
+ {
+  "src": "5.22-L2-03",
+  "std": "5.22",
+  "q": "In a quadrilateral hierarchy, which category is a subcategory of both rectangles and rhombuses?",
+  "a": "Squares",
+  "lvl": 2,
+  "choices": [
+   "Parallelograms",
+   "Squares",
+   "Trapezoids",
+   "Kites"
+  ],
+  "steps": [
+   "A shape in both categories must have 4 right angles AND 4 equal sides.",
+   "Identify which quadrilateral combines rectangle and rhombus attributes.",
+   "Match that category to the choices."
+  ]
+ },
+ {
+  "src": "5.22-L3-01",
+  "std": "5.22",
+  "q": "Which statement is FALSE?",
+  "a": "Every rhombus is a square.",
+  "lvl": 3,
+  "choices": [
+   "Every square is a rhombus.",
+   "Every rhombus is a square.",
+   "Every rectangle is a parallelogram.",
+   "Every square is a parallelogram."
+  ],
+  "steps": [
+   "Check each statement for a counterexample.",
+   "A rhombus can have slanted (non-90°) angles, so it need not be a square.",
+   "Select the false statement."
+  ]
+ },
+ {
+  "src": "5.22-L3-02",
+  "std": "5.22",
+  "q": "A figure is a parallelogram with four congruent sides and no right angles. What is the most specific name for this figure?",
+  "a": "Rhombus",
+  "lvl": 3,
+  "choices": [
+   "Square",
+   "Rectangle",
+   "Trapezoid",
+   "Rhombus"
+  ],
+  "steps": [
+   "Four congruent sides narrow it to a rhombus or square.",
+   "No right angles rules out a square and rectangle.",
+   "Select the most specific name."
+  ]
+ },
+ {
+  "src": "5.22-L3-03",
+  "std": "5.22",
+  "q": "Name a quadrilateral that is ALWAYS a parallelogram, a rectangle, and a rhombus.",
+  "a": "Square",
+  "lvl": 3,
+  "steps": [
+   "Combine all three: parallel opposite sides, 4 right angles, 4 equal sides.",
+   "Identify the single quadrilateral that always meets all three definitions.",
+   "Write its name."
+  ]
+ },
+ {
+  "src": "5.23-L1-01",
+  "std": "5.23",
+  "q": "All rectangles have 4 right angles. Since squares are a subcategory of rectangles, what must be true about every square?",
+  "a": "Every square has 4 right angles.",
+  "lvl": 1,
+  "choices": [
+   "Every square has 2 obtuse angles.",
+   "Every square has unequal sides.",
+   "Squares do not have right angles.",
+   "Every square has 4 right angles."
+  ],
+  "steps": [
+   "A subcategory inherits every attribute of its parent category.",
+   "Since squares are rectangles, they must have all rectangle attributes.",
+   "Match the attribute given for rectangles."
+  ]
+ },
+ {
+  "src": "5.23-L1-02",
+  "std": "5.23",
+  "q": "All parallelograms have opposite sides that are equal in length. Since a rhombus is a parallelogram, what must be true about its opposite sides?",
+  "a": "Its opposite sides are equal in length.",
+  "lvl": 1,
+  "choices": [
+   "Its opposite sides are perpendicular.",
+   "Its opposite sides are different lengths.",
+   "It has only one pair of opposite sides.",
+   "Its opposite sides are equal in length."
+  ],
+  "steps": [
+   "A rhombus is a subcategory of parallelograms.",
+   "Therefore, every rhombus inherits the opposite-side attribute of parallelograms.",
+   "Select the matching statement."
+  ]
+ },
+ {
+  "src": "5.23-L1-03",
+  "std": "5.23",
+  "q": "All polygons are closed figures with straight sides. Since triangles are a subcategory of polygons, what must be true about all triangles?",
+  "a": "All triangles are closed figures with straight sides.",
+  "lvl": 1,
+  "choices": [
+   "All triangles have 4 sides.",
+   "All triangles are closed figures with straight sides.",
+   "All triangles have curved edges.",
+   "All triangles have equal side lengths."
+  ],
+  "steps": [
+   "Because triangles belong to polygons, they inherit all polygon attributes.",
+   "Apply 'closed figures with straight sides' to all triangles.",
+   "Select the matching choice."
+  ]
+ },
+ {
+  "src": "5.23-L2-01",
+  "std": "5.23",
+  "q": "All rhombuses have two pairs of parallel sides and four equal sides. Because squares are a subcategory of rhombuses, which attributes must every square have?",
+  "a": "Two pairs of parallel sides and four equal sides",
+  "lvl": 2,
+  "choices": [
+   "Only one pair of parallel sides",
+   "Four acute angles",
+   "Two pairs of parallel sides and four equal sides",
+   "Two pairs of unequal sides"
+  ],
+  "steps": [
+   "Squares are a subcategory of rhombuses, so they inherit all rhombus traits.",
+   "Read the two attributes listed for all rhombuses in the prompt.",
+   "Select the choice that repeats both attributes."
+  ]
+ },
+ {
+  "src": "5.23-L2-02",
+  "std": "5.23",
+  "q": "All parallelograms have opposite angles that are congruent. Which group of figures must ALL have congruent opposite angles?",
+  "a": "Rectangles, rhombuses, and squares",
+  "lvl": 2,
+  "choices": [
+   "Triangles, trapezoids, and kites",
+   "Pentagons, hexagons, and octagons",
+   "Scalene triangles and trapezoids",
+   "Rectangles, rhombuses, and squares"
+  ],
+  "steps": [
+   "Any subcategory of parallelograms must have congruent opposite angles.",
+   "Identify which group contains ONLY subcategories of parallelograms.",
+   "Select that group of figures."
+  ]
+ },
+ {
+  "src": "5.23-L2-03",
+  "std": "5.23",
+  "q": "Using the definition of an isosceles triangle as a triangle with at least two equal sides, why is every equilateral triangle also an isosceles triangle?",
+  "a": "An equilateral triangle has three equal sides, which means it has at least two equal sides.",
+  "lvl": 2,
+  "choices": [
+   "An equilateral triangle has three equal sides, which means it has at least two equal sides.",
+   "An equilateral triangle has a 90° angle.",
+   "All triangles are isosceles triangles.",
+   "Isosceles triangles must have three equal sides."
+  ],
+  "steps": [
+   "Check the requirement: 'at least two equal sides' means 2 or 3 equal sides.",
+   "An equilateral triangle has 3 equal sides, which satisfies 'at least two'.",
+   "Select the choice that states this logic."
+  ]
+ },
+ {
+  "src": "5.23-L3-01",
+  "std": "5.23",
+  "q": "Category A is 'quadrilaterals with at least one pair of parallel sides.' Category B is 'parallelograms.' Since Category B is a subcategory of Category A, which statement is true?",
+  "a": "Every attribute of Category A also belongs to every figure in Category B.",
+  "lvl": 3,
+  "choices": [
+   "Every attribute of Category A also belongs to every figure in Category B.",
+   "Every figure in Category A must also be in Category B.",
+   "Category A and Category B share no attributes.",
+   "Attributes of Category B must belong to every figure in Category A."
+  ],
+  "steps": [
+   "In a hierarchy, attributes flow downward from a category to its subcategory.",
+   "Category B (subcategory) gets every attribute of Category A (parent).",
+   "Match that rule to the choices."
+  ]
+ },
+ {
+  "src": "5.23-L3-02",
+  "std": "5.23",
+  "q": "Every rectangle has diagonals that are equal in length. Since a square is a subcategory of rectangles, what must be true about the diagonals of any square?",
+  "a": "The diagonals of any square are equal in length.",
+  "lvl": 3,
+  "choices": [
+   "The diagonals of any square are equal in length.",
+   "One diagonal of a square is longer than the other.",
+   "Squares do not have diagonals.",
+   "The diagonals of a square never intersect."
+  ],
+  "steps": [
+   "Squares are a subcategory of rectangles, so rectangle properties apply.",
+   "Apply the equal-diagonals property of rectangles to any square.",
+   "Select the statement that matches."
+  ]
+ },
+ {
+  "src": "5.23-L3-03",
+  "std": "5.23",
+  "q": "All quadrilaterals have interior angles that sum to 360°. Because rhombuses are a subcategory of quadrilaterals, what is the sum of the interior angles of any rhombus?",
+  "a": "360°",
+  "lvl": 3,
+  "steps": [
+   "A subcategory inherits every attribute of its parent category.",
+   "Apply the quadrilateral interior-angle sum rule to any rhombus.",
+   "State the total angle measure with the ° symbol and verify."
+  ]
+ }
+]

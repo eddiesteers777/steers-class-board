@@ -4,7 +4,7 @@
      { "8th": { "8.25": ["F:eq2", "F:intAdd"] }, … }   (an empty list means "no floor skill" on purpose)
    Tested by tools/timeline/links.test.mjs.
 ========================================== */
-import { STANDARDS } from "../data/standards.js?v=58";
+import { STANDARDS } from "../data/standards.js?v=59";
 import { LINKS } from "../data/stdLinks.js?v=2";
 import { LADDER, stepOf } from "./foundBank.js?v=2";
 

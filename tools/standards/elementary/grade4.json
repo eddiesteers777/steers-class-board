@@ -1,0 +1,406 @@
+{
+ "source": "2019 Alabama Course of Study: Mathematics, Grade 4 (4.1-4.29), standard text verified Nov 24, 2026 against the official ALSDE 2019 Course of Study PDF. Domains/clusters are the standard Alabama groupings. No DIGS critical flags exist for 4th grade in Eddie's files, so critical is false for all — do not treat that as a DIGS marking.",
+ "standards": [
+  {
+   "cluster": "Solve problems with whole numbers using the four operations.",
+   "code": "4.1",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Interpret and write equations for multiplicative comparisons."
+  },
+  {
+   "cluster": "Solve problems with whole numbers using the four operations.",
+   "code": "4.2",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Solve word problems involving multiplicative comparison using drawings and write equations to represent the problem, using a symbol for the unknown number."
+  },
+  {
+   "cluster": "Solve problems with whole numbers using the four operations.",
+   "code": "4.3",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Write equations to show solutions for multi-step word problems with a letter standing for the unknown quantity."
+    },
+    {
+     "l": "b",
+     "text": "Determine reasonableness of answers for multi-step word problems, using mental computation and estimation strategies including rounding."
+    }
+   ],
+   "prior": [],
+   "text": "Determine and justify solutions for multi-step word problems, including problems where remainders must be interpreted."
+  },
+  {
+   "cluster": "Gain familiarity with factors and multiples.",
+   "code": "4.4",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Determine whether a whole number in the range 1 to 100 is a multiple of a given one-digit number."
+    },
+    {
+     "l": "b",
+     "text": "Determine whether a whole number in the range 1 to 100 is prime or composite."
+    }
+   ],
+   "prior": [],
+   "text": "For whole numbers in the range 1 to 100, find all factor pairs, identifying a number as a multiple of each of its factors."
+  },
+  {
+   "cluster": "Generate and analyze patterns.",
+   "code": "4.5",
+   "critical": false,
+   "domain": "Operations and Algebraic Thinking",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Generate and analyze a number or shape pattern that follows a given rule."
+  },
+  {
+   "cluster": "Generalize place value understanding for multi-digit whole numbers.",
+   "code": "4.6",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Using models and quantitative reasoning, explain that in a multi-digit whole number, a digit in any place represents ten times what it represents in the place to its right."
+  },
+  {
+   "cluster": "Generalize place value understanding for multi-digit whole numbers.",
+   "code": "4.7",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Read and write multi-digit whole numbers using standard form, word form, and expanded form."
+  },
+  {
+   "cluster": "Generalize place value understanding for multi-digit whole numbers.",
+   "code": "4.8",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Use place value understanding to compare two multi-digit numbers using >, =, and < symbols."
+  },
+  {
+   "cluster": "Generalize place value understanding for multi-digit whole numbers.",
+   "code": "4.9",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Round multi-digit whole numbers to any place using place value understanding."
+  },
+  {
+   "cluster": "Use place value understanding and properties of operations to perform multi-digit arithmetic with whole numbers.",
+   "code": "4.10",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Use place value strategies to fluently add and subtract multi-digit whole numbers and connect strategies to the standard algorithm."
+  },
+  {
+   "cluster": "Use place value understanding and properties of operations to perform multi-digit arithmetic with whole numbers.",
+   "code": "4.11",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Illustrate and explain the product of two factors using equations, rectangular arrays, and area models."
+    }
+   ],
+   "prior": [],
+   "text": "Find the product of two factors (up to four digits by a one-digit number and two two-digit numbers), using strategies based on place value and the properties of operations."
+  },
+  {
+   "cluster": "Use place value understanding and properties of operations to perform multi-digit arithmetic with whole numbers.",
+   "code": "4.12",
+   "critical": false,
+   "domain": "Operations with Numbers: Base Ten",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Illustrate and/or explain quotients using equations, rectangular arrays, and/or area models."
+    }
+   ],
+   "prior": [],
+   "text": "Use strategies based on place value, properties of operations, and/or the relationship between multiplication and division to find whole-number quotients and remainders with one-digit divisors and up to four-digit dividends."
+  },
+  {
+   "cluster": "Extend understanding of fraction equivalence and ordering.",
+   "code": "4.13",
+   "critical": false,
+   "domain": "Operations with Numbers: Fractions",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Apply principles of fraction equivalence to recognize and generate equivalent fractions. Example: a/b is equivalent to (n × a)/(n × b)."
+    }
+   ],
+   "prior": [],
+   "text": "Using area and length fraction models, explain why one fraction is equivalent to another, taking into account that the number and size of the parts differ even though the two fractions themselves are the same size."
+  },
+  {
+   "cluster": "Extend understanding of fraction equivalence and ordering.",
+   "code": "4.14",
+   "critical": false,
+   "domain": "Operations with Numbers: Fractions",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Explain that comparison of two fractions is valid only when the two fractions refer to the same whole."
+    }
+   ],
+   "prior": [],
+   "text": "Compare two fractions with different numerators and different denominators using concrete models, benchmarks (0, 1/2, 1), common denominators, and/or common numerators, recording the comparisons with symbols >, =, or <, and justifying the conclusions."
+  },
+  {
+   "cluster": "Build fractions from unit fractions by applying and extending previous understandings of operations on whole numbers.",
+   "code": "4.15",
+   "critical": false,
+   "domain": "Operations with Numbers: Fractions",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Decompose a fraction as a sum of unit fractions and as a sum of fractions with the same denominator in more than one way using area models, length models, and equations."
+    },
+    {
+     "l": "b",
+     "text": "Add and subtract fractions and mixed numbers with like denominators using fraction equivalence, properties of operations, and the relationship between addition and subtraction."
+    },
+    {
+     "l": "c",
+     "text": "Solve word problems involving addition and subtraction of fractions and mixed numbers having like denominators, using drawings, visual fraction models, and equations to represent the problem."
+    }
+   ],
+   "prior": [],
+   "text": "Model and justify decompositions of fractions and explain addition and subtraction of fractions as joining or separating parts referring to the same whole."
+  },
+  {
+   "cluster": "Build fractions from unit fractions by applying and extending previous understandings of operations on whole numbers.",
+   "code": "4.16",
+   "critical": false,
+   "domain": "Operations with Numbers: Fractions",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Model and explain how a non-unit fraction can be represented by a whole number times the unit fraction. Example: 9/8 = 9 × 1/8."
+    },
+    {
+     "l": "b",
+     "text": "Extend previous understanding of multiplication to multiply a whole number times any fraction less than one. Example: 4 × 2/3 = (4 × 2)/3 = 8/3."
+    },
+    {
+     "l": "c",
+     "text": "Solve word problems involving multiplying a whole number times a fraction using visual fraction models and equations to represent the problem. Examples: 3 × 1/2, 6 × 1/8."
+    }
+   ],
+   "prior": [],
+   "text": "Apply and extend previous understandings of multiplication to multiply a whole number times a fraction."
+  },
+  {
+   "cluster": "Understand decimal notation for fractions, and compare decimal fractions.",
+   "code": "4.17",
+   "critical": false,
+   "domain": "Operations with Numbers: Fractions",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Use fraction equivalency to add two fractions with denominators of 10 and 100."
+    }
+   ],
+   "prior": [],
+   "text": "Express, model, and explain the equivalence between fractions with denominators of 10 and 100."
+  },
+  {
+   "cluster": "Understand decimal notation for fractions, and compare decimal fractions.",
+   "code": "4.18",
+   "critical": false,
+   "domain": "Operations with Numbers: Fractions",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Use models and decimal notation to represent fractions with denominators of 10 and 100."
+  },
+  {
+   "cluster": "Understand decimal notation for fractions, and compare decimal fractions.",
+   "code": "4.19",
+   "critical": false,
+   "domain": "Operations with Numbers: Fractions",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Use visual models and reasoning to compare two decimals to hundredths (referring to the same whole), recording comparisons using symbols >, =, or <, and justifying the conclusions."
+  },
+  {
+   "cluster": "Represent and interpret data.",
+   "code": "4.20",
+   "critical": false,
+   "domain": "Data Analysis",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Create a line plot to display a data set of measurements in fractions of a unit (1/2, 1/4, 1/8)."
+    },
+    {
+     "l": "b",
+     "text": "Solve problems involving addition and subtraction of fractions using information presented in line plots."
+    }
+   ],
+   "prior": [],
+   "text": "Interpret data in graphs (picture, bar, and line plots) to solve problems using numbers and operations."
+  },
+  {
+   "cluster": "Solve problems involving measurement and conversion of measurements from a larger unit to a smaller unit.",
+   "code": "4.21",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Within one system of units, express measurements of a larger unit in terms of a smaller unit. Record measurement equivalents in a two-column table."
+    }
+   ],
+   "prior": [],
+   "text": "Select and use an appropriate unit of measurement for a given attribute (length, mass, liquid volume, time) within one system of units: metric - km, m, cm; kg, g, l, ml; customary - lb, oz; time - hr, min, sec."
+  },
+  {
+   "cluster": "Solve problems involving measurement and conversion of measurements from a larger unit to a smaller unit.",
+   "code": "4.22",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Solve measurement problems involving simple fractions or decimals."
+    },
+    {
+     "l": "b",
+     "text": "Solve measurement problems that require expressing measurements given in a larger unit in terms of a smaller unit."
+    },
+    {
+     "l": "c",
+     "text": "Represent measurement quantities using diagrams such as number line diagrams that feature a measurement scale."
+    }
+   ],
+   "prior": [],
+   "text": "Use the four operations to solve measurement word problems with distance, intervals of time, liquid volume, mass of objects, and money."
+  },
+  {
+   "cluster": "Solve problems involving measurement and conversion of measurements from a larger unit to a smaller unit.",
+   "code": "4.23",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Apply area and perimeter formulas for rectangles in real-world and mathematical situations."
+  },
+  {
+   "cluster": "Geometric measurement: understand concepts of angle and measure angles.",
+   "code": "4.24",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Identify an angle as a geometric shape formed wherever two rays share a common endpoint."
+  },
+  {
+   "cluster": "Geometric measurement: understand concepts of angle and measure angles.",
+   "code": "4.25",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Use a protractor to measure angles in whole-number degrees and sketch angles of specified measure."
+  },
+  {
+   "cluster": "Geometric measurement: understand concepts of angle and measure angles.",
+   "code": "4.26",
+   "critical": false,
+   "domain": "Measurement",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Solve addition and subtraction problems on a diagram to find unknown angles in real-world or mathematical problems."
+    }
+   ],
+   "prior": [],
+   "text": "Decompose an angle into non-overlapping parts to demonstrate that the angle measure of the whole is the sum of the angle measures of the parts."
+  },
+  {
+   "cluster": "Draw and identify lines and angles, and identify shapes by properties of their lines and angles.",
+   "code": "4.27",
+   "critical": false,
+   "domain": "Geometry",
+   "objectives": [],
+   "parts": [],
+   "prior": [],
+   "text": "Draw points, lines, line segments, rays, angles (right, acute, obtuse), and perpendicular and parallel lines, and identify these in two-dimensional figures."
+  },
+  {
+   "cluster": "Draw and identify lines and angles, and identify shapes by properties of their lines and angles.",
+   "code": "4.28",
+   "critical": false,
+   "domain": "Geometry",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Describe right triangles as a category, and identify right triangles."
+    }
+   ],
+   "prior": [],
+   "text": "Identify two-dimensional figures based on the presence or absence of parallel or perpendicular lines or the presence or absence of angles of a specified size."
+  },
+  {
+   "cluster": "Draw and identify lines and angles, and identify shapes by properties of their lines and angles.",
+   "code": "4.29",
+   "critical": false,
+   "domain": "Geometry",
+   "objectives": [],
+   "parts": [
+    {
+     "l": "a",
+     "text": "Identify line-symmetric figures and draw lines of symmetry."
+    }
+   ],
+   "prior": [],
+   "text": "Define a line of symmetry for a two-dimensional figure as a line across the figure such that the figure can be folded along the line into matching parts."
+  }
+ ]
+}

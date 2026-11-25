@@ -15,7 +15,7 @@ import * as F from "./acapFormats.js?v=1";
 import { WEEKS as PUBLISHED } from "../data/weeks.js?v=63";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { extract, norm as bnorm, KINDS } from "./bank.js?v=2";
-import { loadStdBank, inClass, KIND as SB_KIND, WEEK_ID as SB_WEEK, WEEK_LABEL as SB_LABEL } from "./stdBank.js?v=4";
+import { loadStdBank, inClass, KIND as SB_KIND, WEEK_ID as SB_WEEK, WEEK_LABEL as SB_LABEL } from "./stdBank.js?v=5";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -28,7 +28,7 @@ const store_ = (k, v) => { try { if (v == null) localStorage.removeItem(k); else
 const load_ = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
 
 const PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7th"], ["6th", "8th-acc"]];
-const CLS = { "8th": "8th Grade", "7th": "7th Grade", "8th-acc": "8th Accelerated" };
+const CLS = { "8th": "8th Grade", "7th": "7th Grade", "8th-acc": "8th Accelerated", "g2": "2nd Grade", "g3": "3rd Grade", "g4": "4th Grade", "g5": "5th Grade", "g6": "6th Grade" };
 const LET = "ABCDE";
 const DRAFT = "anchorboard-maker-draft", INBOX = "anchorboard-maker-inbox";
 const BOXNAME = { "": "Plain answer box", frac: "Fraction boxes", mixed: "Mixed number boxes", pow: "Base and exponent", sci: "Scientific notation", sol: "How many solutions (tap)", mc: "Multiple choice (tap)", list2: "2 answer boxes", list3: "3 answer boxes", list4: "4 answer boxes" };

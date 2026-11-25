@@ -162,7 +162,11 @@ data = {
     "8th": {"label": "8th Grade", "course": "Grade 8", "standards": g8, "units": u8, "unitWord": "Topic"},
     "8th-acc": {"label": "8th Accelerated", "course": "Grade 8 Accelerated", "standards": g8 + a1, "units": uacc, "unitWord": "Unit"},
 }
+sys.path.insert(0, HERE)
+from elementary import elementary   # grades 2-6, from tools/standards/elementary/ (no Drive docs needed)
+data.update(elementary())
 head = """// Alabama Course of Study math standards for each class, grouped by the district's units.
+// Grades 2-6 (g2..g6) come from tools/standards/elementary/ and have no district units.
 // GENERATED from Eddie's Drive docs (Critical Standards "DIGS" docs and the unit/topic docs). Do not hand-edit;
 // rebuild instead. Standard wording is copied as written. A * in the DIGS docs marks a critical standard.
 // Links, Schoology codes and district teacher notes are left out on purpose: this repo is public.
