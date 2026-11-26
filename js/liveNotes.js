@@ -306,7 +306,7 @@ function stepsFor(ci) {
     stpCache[n] = (async () => {
         let item = null, w = null;
         try {
-            const wb = await import("./walkBank.js?v=14");
+            const wb = await import("./walkBank.js?v=15");
             if (ci.id) { const items = await wb.loadWalkItems(); item = items.find((x) => x.id === ci.id) || null; }
             if (item) { w = wb.walkOf(item); if (w && w.ok && A.walkEdits) w = wb.withEdits(w, A.walkEdits(item.id)); }
             if (!(w && w.ok) && ci.a) { const wk = await import("./walk.js?v=14"); w = wk.walkFor({ id: "ln" + n, q: ci.q, a: ci.a, std: item ? item.std : "" }); }

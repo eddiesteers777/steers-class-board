@@ -373,6 +373,7 @@ const pics = {
             }
             if (p.ends) pts.forEach((q) => svg.appendChild(sv("circle", { cx: X(q[0]), cy: Y(q[1]), r: 6, fill: PEN.blue })));
         }
+        if (p.line2) for (let i = 1; i < p.line2.length; i++) svg.appendChild(sv("line", { x1: X(p.line2[i - 1][0]), y1: Y(p.line2[i - 1][1]), x2: X(p.line2[i][0]), y2: Y(p.line2[i][1]), stroke: "#2E9E6A", "stroke-width": 5, "stroke-linecap": "round" }));
         (p.pts || []).forEach((q, i) => {
             const hi = (p.hlp || []).includes(i);
             const c = sv("circle", { cx: X(q[0]), cy: Y(q[1]), r: hi ? 13 : 9, fill: hi ? PEN.amber : PEN.blue, stroke: hi ? "#B7791F" : "none", "stroke-width": 3 });
@@ -389,15 +390,15 @@ const pics = {
     scale(p) {
         // a number line from lo to hi (0 to 1 for probability) with labeled ticks, words under it, and marked values above;
         // the values in hl are drawn in amber
-        const lo = p.lo != null ? p.lo : 0, hi = p.hi != null ? p.hi : 1, words = p.words || [], W = 640, H = words.length ? 170 : 140, pad = 44, y = 86;
+        const lo = p.lo != null ? p.lo : 0, hi = p.hi != null ? p.hi : 1, words = p.words || [], fr = (p.ticks || []).some((k) => /\{/.test(k[1])), W = 640, H = (words.length ? 172 : 140) + (fr ? 16 : 0), pad = 44, y = 86;
         const X = (v) => pad + ((v - lo) / (hi - lo)) * (W - 2 * pad);
-        const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, class: "sp-pic", width: W, role: "img", "aria-label": p.label || "A number line with " + (p.marks || []).map((m) => m[1]).join(", ") + " marked" });
+        const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, class: "sp-pic sp-wide", width: W, role: "img", "aria-label": p.label || "A number line with " + (p.marks || []).map((m) => m[1]).join(", ") + " marked" });
         svg.appendChild(sv("line", { x1: pad - 10, y1: y, x2: W - pad + 10, y2: y, stroke: PEN.ink, "stroke-width": 3, "stroke-linecap": "round" }));
         (p.ticks || [[lo, String(lo)], [hi, String(hi)]]).forEach(([v, s]) => {
             svg.appendChild(sv("line", { x1: X(v), y1: y - 9, x2: X(v), y2: y + 9, stroke: PEN.ink, "stroke-width": 2 }));
-            svg.appendChild(svText(X(v), y + 33 + (/\{/.test(s) ? 6 : 0), String(s).replace(/-/g, MINUS), { "font-size": 20 }));
+            svg.appendChild(svText(X(v), y + 33 + (/\{/.test(s) ? 8 : 0), String(s).replace(/-/g, MINUS), { "font-size": 20 }));
         });
-        words.forEach(([v, s]) => { const t = sv("text", { x: X(v), y: y + 62, "text-anchor": "middle", "font-size": 17, fill: "#5A6B85" }); t.textContent = s; svg.appendChild(t); });
+        words.forEach(([v, s]) => { const t = sv("text", { x: X(v), y: y + (fr ? 80 : 62), "text-anchor": "middle", "font-size": 17, fill: "#5A6B85" }); t.textContent = s; svg.appendChild(t); });
         const marks = [];
         (p.marks || []).forEach(([v, s], i) => {
             const hi2 = (p.hl || []).includes(i), g = sv("g");

@@ -7,8 +7,8 @@
 ========================================== */
 import { STANDARDS } from "../data/standards.js?v=60";
 import { inClass, LEVELS } from "./stdBank.js?v=6";
-import { loadWalkItems, walkOf, withEdits, cleanOk, cleanEdits } from "./walkBank.js?v=14";
-import { createStepPlayer, drawDT } from "./stepPlayer.js?v=6";
+import { loadWalkItems, walkOf, withEdits, cleanOk, cleanEdits } from "./walkBank.js?v=15";
+import { createStepPlayer, drawDT } from "./stepPlayer.js?v=7";
 import { keyDT } from "./walk.js?v=14";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");

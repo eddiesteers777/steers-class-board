@@ -13,7 +13,7 @@ const built = new Map();
 /** Every bank problem, with its word-problem setup attached when it has one. */
 export function loadWalkItems() {
     if (cache) return cache;
-    cache = Promise.all([loadStdBank(), import("../data/stdbank/walk.js?v=12").then((m) => m.default, () => ({}))])
+    cache = Promise.all([loadStdBank(), import("../data/stdbank/walk.js?v=13").then((m) => m.default, () => ({}))])
         .then(([items, setups]) => items.map((x) => (setups[x.id] ? Object.assign({}, x, { walk: setups[x.id] }) : x)));
     return cache;
 }

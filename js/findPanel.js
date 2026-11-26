@@ -47,7 +47,7 @@ const changed = () => listeners.forEach((f) => f());
 /** Start reading the bank now (quietly, when the board has a moment), so the first search is instant. */
 export function preloadFind() {
     if (loading) return loading;
-    loading = Promise.all([import("./walkBank.js?v=14"), import("../data/standards.js?v=60")]).then(([wb, sd]) => wb.loadWalkItems().then((every) => {
+    loading = Promise.all([import("./walkBank.js?v=15"), import("../data/standards.js?v=60")]).then(([wb, sd]) => wb.loadWalkItems().then((every) => {
         const items = every.filter((x) => inFind(x.std));   // 7th, 8th and Algebra I; the 2nd-6th grade bank stays out of Find
         const walkOf = wb.walkOf;
         ITEMS = items; BYID = new Map(items.map((x) => [x.id, x])); IX = buildIndex(items, sd.STANDARDS); changed();
