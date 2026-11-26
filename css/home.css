@@ -170,3 +170,122 @@ html[data-mode="dark"] .hb-pop{background:rgba(20,26,40,.94);border-color:rgba(2
 @media (max-width:480px){.wf-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .hm-auto{margin:10px 0 0;padding:8px 12px;border-radius:12px;background:var(--k-ok-bg,#EAF4EE);color:var(--k-ok-ink,#1d4a30);font-size:.92rem}
 .hm-auto a{margin-left:4px;font-weight:700;color:inherit}
+
+/* ---------- Settings card (Eddie, Nov 26, pick 3 with gear A): a glass card that drops from the gear like the phone Pages card,
+   sections fold open one at a time, the gear turns into an X while it is open ---------- */
+.st{position:fixed;z-index:24;top:74px;right:12px;width:min(380px,calc(100vw - 24px));max-height:calc(100vh - 92px);max-height:calc(100dvh - 92px);display:flex;flex-direction:column;border-radius:24px;color:#fff;
+  background:linear-gradient(165deg,color-mix(in srgb,var(--s-hi,#173F86) 88%,transparent),color-mix(in srgb,var(--s-out,#081B45) 94%,transparent));
+  -webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5);border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 30px 60px -20px rgba(var(--s-rgb,8,27,69),.55),0 10px 24px -12px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12);
+  transform-origin:var(--cx,340px) -14px;transform:scale(.55) translateY(-10px);opacity:0;visibility:hidden;
+  transition:transform .2s ease-in,opacity .16s ease-in,visibility 0s .2s}
+.st-open .st{transform:none;opacity:1;visibility:visible;transition:transform .52s cubic-bezier(.2,1.25,.35,1),opacity .2s ease-out,visibility 0s}
+.st::before{content:"";position:absolute;top:-7px;left:var(--cx,340px);margin-left:-7px;width:14px;height:14px;transform:rotate(45deg);border-radius:3px 0 0 0;
+  background:color-mix(in srgb,var(--s-hi,#173F86) 88%,transparent);border:1px solid rgba(255,255,255,.14);border-right:0;border-bottom:0}
+.st-in{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:10px 10px 10px;border-radius:24px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.25) transparent}
+@media (min-width:1000px){ .st{width:410px} }
+@media (min-width:1600px){ .st{width:440px;font-size:1.04rem} }
+.st-scrim{z-index:22;background:rgba(var(--s-rgb,8,27,69),.18)}
+body.hm-home.st-open .cbar.hb-bar{z-index:23}   /* the X stays sharp above the dimmed page */
+.st-open .st-acc{animation:stRow .35s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(110ms + var(--i,0)*30ms)}
+.st-acc:nth-child(2){--i:1}.st-acc:nth-child(3){--i:2}.st-acc:nth-child(4){--i:3}.st-acc:nth-child(5){--i:4}
+@keyframes stRow{from{opacity:0;transform:translateY(-6px)}}
+
+.st-acc{margin:0 0 8px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09)}
+.st-acc:last-child{margin-bottom:0}
+.st-acc.open{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.13)}
+.st-row{display:grid;grid-template-columns:32px minmax(0,1fr) 18px;align-items:center;gap:12px;width:100%;min-height:58px;padding:8px 12px;margin:0;border:0;border-radius:16px;background:transparent;color:#fff;font:inherit;text-align:left;text-decoration:none;cursor:pointer}
+.st-row:hover{background:rgba(255,255,255,.05)}
+.st-row:focus-visible{outline:3px solid #F2B33D;outline-offset:-3px}
+.st-ic{width:32px;height:32px;display:grid;place-items:center;border-radius:10px;background:rgba(255,255,255,.1)}
+.st-ic svg,.st-chev{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.st-ic svg{width:18px;height:18px}
+.st-t{min-width:0}
+.st-t b{display:block;font-size:.98rem;font-weight:650;line-height:1.2}
+.st-t small{display:block;margin-top:2px;font-size:.8rem;line-height:1.25;color:rgba(255,255,255,.64);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-chev{width:18px;height:18px;color:rgba(255,255,255,.55);transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+.st-acc.open>.st-head .st-chev{transform:rotate(90deg)}
+.st-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.2,.8,.2,1)}
+.st-acc.open>.st-body{grid-template-rows:1fr}
+.st-bi{min-height:0;overflow:hidden;padding:0 12px}
+.st-acc.open .st-bi{padding-bottom:14px}
+.st-link{min-height:52px;padding:6px 0}
+.st-link+.st-link{box-shadow:0 -1px 0 rgba(255,255,255,.08)}
+.st-link .st-ic{background:rgba(255,255,255,.07)}
+
+.st-hint{margin:8px 2px 0;font-size:.8rem;line-height:1.4;color:rgba(255,255,255,.62)}
+.st-note{margin:8px 2px 0;font-size:.82rem;color:var(--s-light,#B9D3EE)}
+.st-note:empty{display:none}
+.st-sub{margin:16px 2px 0;font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--s-sky,#7FAEDD)}
+
+/* colors: one row of dots, the name and mode under it */
+.st .sk-sw{display:flex;justify-content:space-between;gap:4px;margin:4px 0 0;padding:6px 2px}
+.st .sk-s{position:relative;padding:0;gap:0;border:0;border-radius:50%;background:transparent!important;width:30px;height:30px;flex:none}
+.st .sk-s i{width:26px;height:26px;margin:2px;box-shadow:inset 0 1px 1px rgba(255,255,255,.35),0 2px 6px rgba(0,0,0,.35)}
+.st .sk-s span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.st .sk-s:hover i{transform:scale(1.1)}
+.st .sk-s[aria-pressed="true"] i{box-shadow:0 0 0 2px var(--s-out,#081B45),0 0 0 4px #fff}
+.st .sk-s[aria-pressed="true"] i::before{content:"";position:absolute;z-index:1;left:9.5px;top:6px;width:5px;height:10px;border:solid #fff;border-width:0 2.2px 2.2px 0;transform:rotate(45deg)}
+.st .sk-s:focus-visible{outline:3px solid #F2B33D;outline-offset:2px}
+.st .sk-modes{display:grid;grid-template-columns:repeat(3,1fr);width:100%;margin:12px 0 0;gap:2px;padding:3px;border-radius:13px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);box-shadow:none}
+.st .sk-modes button{justify-content:center;min-height:38px;padding:0 6px;color:rgba(255,255,255,.8);font-size:.86rem;white-space:nowrap}
+.st .sk-modes button[aria-pressed="true"]{background:#fff;color:var(--s-out,#081B45);box-shadow:0 2px 8px rgba(0,0,0,.25)}
+
+/* fields and buttons inside the card */
+.st-field{display:flex;flex-direction:column;gap:4px;margin:0}
+.st-field>span{font-size:.72rem;font-weight:650;color:rgba(255,255,255,.62);padding-left:2px}
+.st-grow{flex:1;min-width:0}
+.st select,.st input[type=text],.st input[type=date],.st input[type=time]{box-sizing:border-box;height:40px;width:100%;min-width:0;padding:0 10px;font:inherit;font-size:.92rem;color:#fff;color-scheme:dark;
+  border:1px solid rgba(255,255,255,.16);border-radius:11px;background-color:rgba(255,255,255,.09);font-variant-numeric:tabular-nums}
+.st select{appearance:none;padding-right:30px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
+.st select option{color:#0E1B3A}
+.st input:disabled{opacity:.55}
+.st select:focus-visible,.st input:focus-visible{outline:3px solid #F2B33D;outline-offset:1px}
+.st-pick{display:flex;align-items:flex-end;gap:8px;margin:10px 0 0}
+.st-pick .st-field:first-child{flex:1;min-width:0}
+.st-btn{height:40px;padding:0 14px;border-radius:11px;font:inherit;font-size:.88rem;font-weight:650;cursor:pointer;white-space:nowrap;border:1px solid transparent}
+.st-btn.ghost{background:rgba(255,255,255,.06);border:1px dashed rgba(255,255,255,.3);color:#fff}
+.st-btn.ghost:hover{background:rgba(255,255,255,.12)}
+.st-btn.st-wide{display:block;width:100%;margin-top:10px}
+.st-btn[hidden]{display:none}
+.st-save{display:block;width:100%;height:46px;margin-top:14px;background:#fff;color:var(--s-out,#081B45);font-size:.95rem;font-weight:700;box-shadow:0 6px 16px -6px rgba(0,0,0,.4)}
+.st-btn:focus-visible{outline:3px solid #F2B33D;outline-offset:2px}
+
+/* bell rows: period, starts, ends in lined-up columns */
+.st-bh,.st .st-bells .bellrow{display:grid;grid-template-columns:40px minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:center}
+.st-bh{margin:14px 0 6px}
+.st-bh span{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.55);padding-left:4px}
+.st .belltable{gap:6px}
+.st .bellrow b{width:auto;font-size:.92rem;font-weight:650;color:#fff}
+.st .bellrow label{display:block;min-width:0;color:inherit}
+.st .bellrow label>span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.st .st-extra{gap:10px}
+.st .st-extra .bellrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 32px;gap:6px 8px;align-items:center;padding:8px;border-radius:13px;background:rgba(255,255,255,.05)}
+.st .st-extra .bellname{grid-column:1 / 3;width:100%}
+.st .st-extra .bx{grid-column:3;grid-row:1}
+.st .bellrow .bx{width:32px;height:32px;padding:0;border:0;border-radius:9px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);font-weight:700}
+.st .bellrow .bx:hover{background:rgba(255,255,255,.16);color:#fff}
+.st .belltable>.sub{margin:4px 2px 0;font-size:.82rem;color:rgba(255,255,255,.6)}
+.st .st-ahead{margin-top:10px}
+.st .aheadrow{display:grid;grid-template-columns:minmax(0,1fr) auto 32px;gap:10px;align-items:center;min-height:40px;padding:0 2px}
+.st .aheadrow+.aheadrow{box-shadow:0 -1px 0 rgba(255,255,255,.08)}
+.st .aheadrow .aheaddate{min-width:0;font-weight:650}
+.st .aheadrow .aheadname{color:rgba(255,255,255,.7);font-weight:600}
+
+/* the gear turns into an X while Settings is open */
+#settingsOpen .hb-gx{display:none}
+#settingsOpen.hb-x .hb-gear{display:none}
+#settingsOpen.hb-x .hb-gx{display:block;stroke-width:2.1;animation:stX .32s cubic-bezier(.2,1.25,.35,1)}
+@keyframes stX{from{transform:rotate(-90deg) scale(.5);opacity:0}}
+@media (prefers-reduced-motion:reduce){
+  .st,.st-open .st{transform:none!important;transition:opacity .01s,visibility 0s}
+  .st-open .st-acc,#settingsOpen.hb-x .hb-gx{animation:none}
+  .st-body,.st-chev{transition:none}
+}
+html[data-mode="dark"] .st .sk-modes button[aria-pressed="true"]{background:#fff;color:var(--s-out,#081B45)}
+html[data-mode="dark"] .st .sk-s[aria-pressed="true"]{background:transparent}
+@media (max-width:400px){   /* narrow phones: room for "8:10 AM" in each time box */
+  .st input[type=time]{padding:0 8px}
+  .st input[type=time]::-webkit-calendar-picker-indicator{display:none}
+  .st-bh,.st .st-bells .bellrow{grid-template-columns:34px minmax(0,1fr) minmax(0,1fr)}
+}

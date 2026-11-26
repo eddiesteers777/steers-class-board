@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="css/board.css?v=57">
     <link rel="stylesheet" href="css/console.css?v=64">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/home.css?v=68">
+    <link rel="stylesheet" href="css/home.css?v=69">
     <link rel="stylesheet" href="css/absences.css?v=5">
     <link rel="stylesheet" href="css/footer.css?v=2">
     <link rel="stylesheet" href="css/skin.css?v=2">
@@ -87,45 +87,62 @@
         <h2>The week</h2>
         <div class="gridwrap"><table class="weekgrid" id="grid"></table></div>
 
-        <dialog class="hm-dialog" id="settings" aria-labelledby="settingsTitle">
-          <div class="hm-dhead"><h2 id="settingsTitle">Settings</h2><button class="btn ghost" id="settingsClose" type="button">Done</button></div>
-          <section class="sk-colors" aria-labelledby="skTitle">
-            <h3 class="bellh" id="skTitle">Site colors</h3>
-            <p class="sub">Pick the colors for your teacher pages on this device and your others. The projected board keeps its own Board look.</p>
-            <div class="sk-sw" id="skSw" role="group" aria-label="Color scheme"></div>
-            <div class="sk-modes" id="skModes" role="group" aria-label="Light or Night"></div>
-            <p class="sk-note" id="skNote" role="status"></p>
+        <!-- Settings (Eddie, Nov 26, pick 3 with gear A): a glass card that drops from the gear, like the phone Pages card.
+             Sections fold open one at a time; the gear turns into an X while it is open. -->
+        <div class="hm-scrim st-scrim" id="setScrim" hidden></div>
+        <div class="st" id="settings" role="dialog" aria-label="Settings" inert>
+          <div class="st-in">
+          <section class="st-acc open" data-k="look">
+            <button class="st-row st-head" type="button" id="stH-look" aria-expanded="true" aria-controls="stB-look"><span class="st-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="13.5" cy="6.5" r="1"/><circle cx="17.5" cy="10.5" r="1"/><circle cx="8.5" cy="7.5" r="1"/><circle cx="6.5" cy="12.5" r="1"/><path d="M12 2a10 10 0 0 0 0 20c1 0 1.7-.8 1.7-1.7 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-1 .8-1.7 1.7-1.7H17a5 5 0 0 0 5-5C22 6 17.5 2 12 2z"/></svg></span><span class="st-t"><b>Look</b><small id="stSumLook">Colors and Light or Night</small></span><svg class="st-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+            <div class="st-body" id="stB-look" role="region" aria-labelledby="stH-look"><div class="st-bi">
+              <div class="sk-sw" id="skSw" role="group" aria-label="Color scheme"></div>
+              <div class="sk-modes" id="skModes" role="group" aria-label="Light or Night"></div>
+              <p class="st-hint">These colors follow you to your other devices. The projected board keeps its own Board look.</p>
+              <p class="sk-note st-note" id="skNote" role="status"></p>
+            </div></div>
           </section>
-          <div class="bells" id="bells">
-            <h3 class="bellh">Bell times</h3>
-            <p class="sub">Enter when each period starts and ends. The top panel then follows the clock and shows the class you are teaching. Keep more than one schedule (activity days, early dismissal) and pick which one runs today. Tomorrow goes back to Regular on its own.</p>
-            <div class="bpick2">
-                <label class="field"><span>Today's schedule</span><select id="todaySel" aria-label="Today's schedule"></select></label>
-                <label class="field"><span>Edit schedule</span><select id="editSel" aria-label="Schedule to edit"></select></label>
-                <label class="field"><span>Name</span><input type="text" id="schedName" maxlength="40" aria-label="Schedule name"></label>
-                <button class="btn ghost" id="schedNew" type="button">New schedule</button>
-                <button class="btn ghost" id="schedDel" type="button">Delete this schedule</button>
-            </div>
-            <div class="belltable" id="bellRows"></div>
-            <h3 class="bellh">Other times in this schedule</h3>
-            <p class="sub">Lunch blocks, gym dismissal, dismissal, anything with a time. They show under Today on this page.</p>
-            <div class="belltable" id="extraRows"></div>
-            <div class="rowx"><button class="btn ghost" id="extraAdd" type="button">Add a time</button></div>
-            <div class="rowx"><button class="btn" id="bellSave" type="button">Save bell times</button><span class="count2" id="bellNote"></span></div>
-            <h3 class="bellh">Plan ahead</h3>
-            <p class="sub">Activity day or early dismissal coming up? Pick the date and its schedule. That day starts on it by itself, and the board's period clock and bell timeline use it.</p>
-            <div class="bpick2">
-                <label class="field"><span>Date</span><input type="date" id="aheadDate" aria-label="Date to plan"></label>
-                <label class="field"><span>Schedule</span><select id="aheadSel" aria-label="Schedule for that date"></select></label>
-                <button class="btn ghost" id="aheadSet" type="button">Set this day</button>
-            </div>
-            <div class="belltable" id="aheadRows"></div>
-            <p class="count2" id="aheadNote" role="status"></p>
+          <section class="st-acc" data-k="today">
+            <button class="st-row st-head" type="button" id="stH-today" aria-expanded="false" aria-controls="stB-today"><span class="st-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="st-t"><b>Today runs on</b><small id="stSumToday">Regular</small></span><svg class="st-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+            <div class="st-body" id="stB-today" role="region" aria-labelledby="stH-today"><div class="st-bi">
+              <label class="st-field"><span>Today's schedule</span><select id="todaySel" aria-label="Today's schedule"></select></label>
+              <p class="st-hint">Tomorrow goes back to Regular on its own.</p>
+            </div></div>
+          </section>
+          <section class="st-acc" data-k="bells">
+            <button class="st-row st-head" type="button" id="stH-bells" aria-expanded="false" aria-controls="stB-bells"><span class="st-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg></span><span class="st-t"><b>Bell times</b><small id="stSumBells">Not set yet</small></span><svg class="st-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+            <div class="st-body" id="stB-bells" role="region" aria-labelledby="stH-bells"><div class="st-bi">
+              <div class="st-pick"><label class="st-field"><span>Edit schedule</span><select id="editSel" aria-label="Schedule to edit"></select></label><button class="st-btn ghost" id="schedNew" type="button">+ New</button></div>
+              <div class="st-pick"><label class="st-field st-grow"><span>Name</span><input type="text" id="schedName" maxlength="40" aria-label="Schedule name"></label><button class="st-btn ghost" id="schedDel" type="button">Delete</button></div>
+              <div class="st-bh" aria-hidden="true"><span></span><span>Starts</span><span>Ends</span></div>
+              <div class="belltable st-bells" id="bellRows"></div>
+              <p class="st-sub">Other times</p>
+              <p class="st-hint">Lunch blocks, dismissal, anything with a time. They show under Today.</p>
+              <div class="belltable st-extra" id="extraRows"></div>
+              <button class="st-btn ghost st-wide" id="extraAdd" type="button">Add a time</button>
+              <button class="st-btn st-save" id="bellSave" type="button">Save bell times</button>
+              <p class="st-note" id="bellNote" role="status"></p>
+            </div></div>
+          </section>
+          <section class="st-acc" data-k="ahead">
+            <button class="st-row st-head" type="button" id="stH-ahead" aria-expanded="false" aria-controls="stB-ahead"><span class="st-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 15h3"/></svg></span><span class="st-t"><b>Plan ahead</b><small id="stSumAhead">No days planned</small></span><svg class="st-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+            <div class="st-body" id="stB-ahead" role="region" aria-labelledby="stH-ahead"><div class="st-bi">
+              <p class="st-hint">Activity day or early dismissal coming up? That day starts on its schedule by itself.</p>
+              <div class="st-pick"><label class="st-field st-grow"><span>Date</span><input type="date" id="aheadDate" aria-label="Date to plan"></label><label class="st-field st-grow"><span>Schedule</span><select id="aheadSel" aria-label="Schedule for that date"></select></label></div>
+              <button class="st-btn ghost st-wide" id="aheadSet" type="button">Set this day</button>
+              <div class="belltable st-ahead" id="aheadRows"></div>
+              <p class="st-note" id="aheadNote" role="status"></p>
+            </div></div>
+          </section>
+          <section class="st-acc" data-k="acct">
+            <button class="st-row st-head" type="button" id="stH-acct" aria-expanded="false" aria-controls="stB-acct"><span class="st-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span><span class="st-t"><b>Classes, school year and data</b><small id="stSumAcct">Your classes, dates and backup</small></span><svg class="st-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+            <div class="st-body" id="stB-acct" role="region" aria-labelledby="stH-acct"><div class="st-bi">
+              <a class="st-row st-link" href="setup.html" id="setupLink"><span class="st-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span><span class="st-t"><b>Your classes</b><small>Classes and periods</small></span><svg class="st-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+              <a class="st-row st-link" href="setup.html#year" id="yearLink"><span class="st-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M8 7h8M8 11h6"/></svg></span><span class="st-t"><b>School year</b><small>First and last day</small></span><svg class="st-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+              <a class="st-row st-link" href="account.html"><span class="st-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span><span class="st-t"><b>Your data and backup</b><small>See, download or delete</small></span><svg class="st-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+            </div></div>
+          </section>
           </div>
-          <h3 class="bellh">Your classes and your data</h3>
-          <p class="sub">Change your classes, periods and school year, see everything your account has saved, or delete it all.</p>
-          <div class="rowx"><a class="btn ghost" href="setup.html" id="setupLink" style="text-decoration:none">Your classes</a><a class="btn ghost" href="setup.html#year" id="yearLink" style="text-decoration:none">School year</a><a class="btn ghost" href="account.html" style="text-decoration:none">Your data and backup</a></div>
-        </dialog>
+        </div>
     </main>
     <!-- Eddie, Nov 24: no footer on Home. It stays in the page source, hidden, so the page still links Privacy and Terms
          for Google's sign-in review; people never see it (signed-out visitors go to the sign-in page). -->
@@ -221,7 +238,7 @@
             $("nowRem").textContent = (d.reminders || []).join(". ");
             fileLinks($("nowFiles"), c.links); $("nowFilesBox").hidden = !(c.links && c.links.length);
             if (cur.p) { $("nowStart").textContent = "Start " + cur.p + " period"; $("nowStart").href = startUrl(cur.p); $("nowStart").onclick = null; }
-            else { $("nowStart").textContent = cur.go[0]; $("nowStart").href = cur.go[1]; $("nowStart").onclick = cur.go[1] === "#bells" ? (e) => { e.preventDefault(); openSettings(); } : null; }
+            else { $("nowStart").textContent = cur.go[0]; $("nowStart").href = cur.go[1]; $("nowStart").onclick = cur.go[1] === "#bells" ? (e) => { e.preventDefault(); openSettings("bells"); } : null; }
             $("todayTitle").textContent = HD.planned ? d.name + (d.date ? ", " + d.date : "") + ", period by period" : (HD.planDay ? longDay(HD.planDay) + " isn't planned yet" : "Period by period");
             $("periods").hidden = !HD.planned;
             { const sc = schedOf(todayId()), ex = (sc.extra || []).filter((x) => x.label && mins(x.start) != null).sort((a, b) => mins(a.start) - mins(b.start)), bits = [];
@@ -264,7 +281,7 @@
             $("todaySel").replaceChildren(...list.map(opt)); $("todaySel").value = todayId();
             $("editSel").replaceChildren(...list.map(opt)); if (!schedOf(editId)) editId = "regular"; $("editSel").value = editId;
             $("aheadSel").replaceChildren(...list.map(opt)); if (!$("aheadDate").value) $("aheadDate").value = todayIso; $("aheadDate").min = todayIso;
-            aheadList();
+            aheadList(); stSums();
         }
         // Planned days: a list of dates that start on a schedule other than Regular.
         function aheadList() {
@@ -310,6 +327,7 @@
             const cur = SK.get();
             $("skSw").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.c === cur.c)));
             $("skModes").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.m === cur.m)));
+            stSumLook();
         }
         function skPick(o) {
             const cur = SK.set(o); skPaint();
@@ -321,12 +339,53 @@
             SK.modes.forEach(([id, name]) => { const b = document.createElement("button"); b.type = "button"; b.dataset.m = id; b.innerHTML = MODE_ICON[id] + "<span></span>"; b.lastChild.textContent = name; b.onclick = () => skPick({ m: id }); $("skModes").appendChild(b); });
             skPaint();
         } else $("skSw").closest("section").hidden = true;
-        /* ---------- settings dialog ---------- */
-        const dlg = $("settings");
-        function openSettings() { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", ""); }
-        $("settingsOpen").onclick = openSettings;
-        $("settingsClose").onclick = () => dlg.close ? dlg.close() : dlg.removeAttribute("open");
-        dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+        /* ---------- settings card (Eddie, Nov 26): drops from the gear, sections fold open one at a time, the gear turns into an X ---------- */
+        const dlg = $("settings"), setScrim = $("setScrim"), gear = $("settingsOpen");
+        gear.insertAdjacentHTML("beforeend", '<svg class="hb-gx" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>');
+        gear.querySelector("svg").classList.add("hb-gear");
+        const stSecs = [...dlg.querySelectorAll(".st-acc")];
+        function stFold(k) {   // open one section (or none), close the rest
+            stSecs.forEach((sec) => { const on = sec.dataset.k === k; sec.classList.toggle("open", on); sec.querySelector(".st-head").setAttribute("aria-expanded", String(on)); sec.querySelector(".st-body").inert = !on; });
+        }
+        stSecs.forEach((sec) => { sec.querySelector(".st-head").onclick = () => { stFold(sec.classList.contains("open") ? null : sec.dataset.k); }; });
+        function stPlace() {   // under the gear, with the point aimed at it
+            const r = gear.getBoundingClientRect(), bar = gear.closest(".cbar").getBoundingClientRect(), wide = innerWidth >= 1000;
+            const w = dlg.offsetWidth, right = wide ? Math.max(12, Math.round(innerWidth - r.right - 8)) : 12, left = innerWidth - right - w;
+            dlg.style.top = Math.round(bar.bottom + 14) + "px"; dlg.style.right = right + "px";
+            dlg.style.setProperty("--cx", Math.round(Math.min(w - 24, Math.max(24, r.left + r.width / 2 - left))) + "px");
+        }
+        let stOpen = false;
+        function openSettings(k) {
+            if (document.body.classList.contains("hm-drawer")) $("sideOpen").click();   // one card at a time on phones
+            stFold(typeof k === "string" ? k : "look");
+            stPlace(); stOpen = true; dlg.inert = false; setScrim.hidden = false; document.body.classList.add("st-open");
+            gear.classList.add("hb-x"); gear.setAttribute("aria-expanded", "true"); gear.setAttribute("aria-label", "Close Settings"); gear.dataset.tip = "Close";
+            const h = dlg.querySelector(".st-acc.open .st-head") || dlg.querySelector(".st-head"); if (h) setTimeout(() => h.focus({ preventScroll: true }), 60);
+        }
+        function closeSettings(back) {
+            if (!stOpen) return; stOpen = false; dlg.inert = true; setScrim.hidden = true; document.body.classList.remove("st-open");
+            gear.classList.remove("hb-x"); gear.setAttribute("aria-expanded", "false"); gear.setAttribute("aria-label", "Settings"); gear.dataset.tip = "Settings";
+            if (back) gear.focus();
+        }
+        gear.setAttribute("aria-expanded", "false"); gear.setAttribute("aria-controls", "settings");
+        gear.onclick = () => (stOpen ? closeSettings(true) : openSettings());
+        setScrim.onclick = () => closeSettings(false);
+        document.addEventListener("keydown", (e) => { if (e.key === "Escape" && stOpen) { e.preventDefault(); closeSettings(true); } });
+        addEventListener("resize", () => { if (stOpen) stPlace(); });
+        $("sideOpen").addEventListener("click", () => { if (stOpen && document.body.classList.contains("hm-drawer")) closeSettings(false); });
+        // one-line summaries on the closed sections
+        const hm12 = (t) => { const m = /^(\d{1,2}):(\d{2})/.exec(t || ""); return m ? ((+m[1] % 12) || 12) + ":" + m[2] : ""; };
+        function stSumLook() {
+            if (SK) { const cur = SK.get(), it = SK.list.find((x) => x[0] === cur.c), md = (SK.modes.find((x) => x[0] === cur.m) || [, ""])[1]; $("stSumLook").textContent = (it ? it[1] : "Colors") + ", " + md; }
+        }
+        function stSums() {
+            stSumLook(); if (!bellsLoaded) return;
+            const tid = todayId(), sc = schedOf(tid); $("stSumToday").textContent = (sc && sc.name) || "Regular";
+            const ps = Object.values(doc.periods || {}).filter((x) => x && x.start && x.end).sort((x, y) => x.start.localeCompare(y.start));
+            $("stSumBells").textContent = ps.length ? ps.length + " period" + (ps.length === 1 ? "" : "s") + ", " + hm12(ps[0].start) + " to " + hm12(ps[ps.length - 1].end) : "Not set yet";
+            const nd = Object.entries(doc.days || {}).filter(([d, id]) => d >= todayIso && id !== "regular" && schedOf(id)).length;
+            $("stSumAhead").textContent = nd ? nd + " day" + (nd === 1 ? "" : "s") + " planned" : "No days planned";
+        }
         /* ---------- side panel: minimizes to an icon rail on wide screens, slides over on phones ---------- */
         {
             const side = $("side"), scrim = $("sideScrim"), wide = matchMedia("(min-width:1000px)");
@@ -416,7 +475,7 @@
             if (days != null) ($("st-planner") || {}).textContent = days ? days + " day" + (days === 1 ? "" : "s") + " planned ahead" : "Nothing planned ahead yet";
             // Needs you
             const needs = [];
-            if (bellsLoaded && !Object.keys(doc.periods || {}).length) needs.push(["Bell times are not set, so the Today panel cannot follow the clock.", "Set bell times", openSettings]);
+            if (bellsLoaded && !Object.keys(doc.periods || {}).length) needs.push(["Bell times are not set, so the Today panel cannot follow the clock.", "Set bell times", () => openSettings("bells")]);
             if (PACK === "calera" && nm && !have) needs.push(["Next week (" + short(nm, { month: "short", day: "numeric" }) + ") is not built yet.", "Plan the Week", "plan.html"]);
             coNeeds.forEach((n) => needs.push(n));
             if (driveDue) needs.push(["Your weekly Google Drive backup is due.", "Back up now", "account.html?backup=go#backup"]);
