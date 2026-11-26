@@ -70,9 +70,21 @@ simpler, one less thing.
     top of the slide list ticks slides (tap while selecting; Shift- or Ctrl-click any time; Shift ticks a run). The bar
     then has one amber button, **Put N in Spotlight** (a Spotlight screen for each, in list order; ones already there
     keep theirs), and Panels (timer, target, agenda for all, "(some)" when mixed), Duplicate, Copy to… ("Copy N
-    selected"), Hide/Show and Delete. Each is one Undo step across both lists. The layout menu adds 1, 3, 5 or 10 of a
-    layout at once, and the new slides come in ticked, ready for Panels or Spotlight. On a phone the bar is pinned at
+    selected"), Hide/Show and Delete. Each is one Undo step across both lists. The Grid menu adds 1, 3, 5 or 10 of a
+    grid at once, and the new slides come in ticked, ready for Panels or Spotlight. On a phone the bar is pinned at
     the left of the slide strip: the count, Spotlight, and the rest under More.
+  - **Grid, glass blocks and themes (Nov 26, Eddie: "the layouts aren't the premium panel looks ... make it fit and look
+    good on the Spotlight view"; "a lot of premium options that are easily dynamic").** The old layouts are gone. A
+    slide is built on a **Grid** (One, Two, Three, Big + side, Side + big, Title + two, Title + three, Question + answer,
+    Four) inside one frame (`FRAME` in js/slides.js: x 40, y 90, 1520 x 693, gap 24) that stays clear of Spotlight's top
+    corners and its bottom dock; the editor shows that frame faintly ("Spotlight keeps this clear"). Grid has New slide
+    and This slide (re-fits the slide's blocks into the new grid). The slide's pieces are **glass blocks** (`gl: 1`,
+    `gl: 2` for the amber-edged answer, target or missing word), drawn with the same finishes as the panels
+    (js/panelStyle.js), so a slide in Spotlight reads like its panels. Blocks snap to the grid and frame (Alt frees
+    one). **Look** is one menu with two tabs, Theme and Background (one place per job): 18 ready-made themes, each
+    shown as a picture of the slide, plus Make your own (any panel color, finish, corners, how solid) and Use on every
+    slide of this day. A slide's theme is `th` {c, f, o, r}; none means Match my panels (Spotlight's frosted glass),
+    and "My board colors" follows the teacher's color scheme. Themes add no new colors, finishes or corners.
   - **Screens list (Nov 21, Eddie: "get rid of some of those tabs"; Slides is the main one).** Slides comes first as
     a card ("6 slides for Monday", "Slide 2 of 6 on the board"). Tapping it puts the slides on the board and opens a
     list of that day's slides as small pictures (every-day ones tagged); tapping one shows it. Then the screens used

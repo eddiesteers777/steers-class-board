@@ -6,7 +6,7 @@
    changes, the other follows. Lesson content comes from data/weeks.js.
 ========================================== */
 import { parseFigure, figureEl } from "./figures.js?v=1";
-import { WEEKS as ALL_WEEKS, PERIODS as PACK_PERIODS } from "../data/weeks.js?v=63";
+import { WEEKS as ALL_WEEKS, PERIODS as PACK_PERIODS } from "../data/weeks.js?v=64";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 // The public demo page passes its own sample week and periods (opts.weeks, opts.periods).
 let WEEKS = ALL_WEEKS;
@@ -33,8 +33,8 @@ import { notesFrames } from "./notesFrames.js?v=1";
 import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=6";
 import { mountAttendance, syncAttendance } from "./attendanceRemote.js?v=18";
 import { cleanChart, cleanPeriod, cleanView, seatCount, drawRoom } from "./seats.js?v=7";
-import { DAILY as SL_DAILY, INDEX as SL_INDEX, MAX_DAILY as SL_MAX_DAILY, cleanDeck, cleanIndex, showList, revealSteps, indexHas, liveContext, lessonDate, textOf } from "./slides.js?v=2";
-import { renderSlide, fitSlide, imageLoader, thumb } from "./slideView.js?v=2";
+import { DAILY as SL_DAILY, INDEX as SL_INDEX, MAX_DAILY as SL_MAX_DAILY, cleanDeck, cleanIndex, showList, revealSteps, indexHas, liveContext, lessonDate, textOf } from "./slides.js?v=3";
+import { renderSlide, fitSlide, imageLoader, thumb } from "./slideView.js?v=3";
 import { markSvg, ensureCss } from "./anchorLoader.js?v=2";
 
 const $ = (id) => document.getElementById(id);
@@ -253,7 +253,7 @@ const toolApi = { S, el, push, quiet, now, card, rosters: () => ROSTERS, cue: (n
         canSteps: (id) => mode !== "sub" && (!!WALKOK[id] || mode === "remote" || !!studio),
         showSteps: (id) => { S.walk = { id, step: 0 }; S.screen = "steps"; S.show = false; push(); },
         open: (k, from) => { if (!FIND_KEYS.includes(k)) return; const p = findSpot(from); panelOn(S.tools, k); if (p) S.tools.pos[k] = p; push(); } },   // "New panel": the next Find panel, beside the one it came from
-    slideInto: (host, sl) => { host.textContent = ""; const r = renderSlide(sl, { step: revealSteps(sl), fresh: 0, live: slLive(), img: slImg().src, logo: lookSeal(), scale: (host.clientWidth || 640) / 1600 }); r.setAttribute("role", "img"); r.setAttribute("aria-label", "Slide"); host.appendChild(r); fitSlide(host, r); } };
+    slideInto: (host, sl) => { host.textContent = ""; const r = renderSlide(sl, { step: revealSteps(sl), fresh: 0, live: slLive(), img: slImg().src, logo: lookSeal(), look: themeCols(S.look.theme), scale: (host.clientWidth || 640) / 1600 }); r.setAttribute("role", "img"); r.setAttribute("aria-label", "Slide"); host.appendChild(r); fitSlide(host, r); } };
 function toolSig() { const t = Object.assign({}, S.tools); delete t.text; t.goal = Object.assign({}, t.goal); delete t.goal.text; const f = S.timers.free; return JSON.stringify([t, S.period, Object.keys(ROSTERS).map((k) => k + ROSTERS[k].length), f.running, f.dur, f.t0, f.elapsed, S.week, S.cls, S.day, !!BELLS, S.tools.on.agenda ? [S.screen, S.screen === "notes" ? S.note : 0] : 0]); }
 const panelOk = (k) => !(mode === "sub" && (k === "pick" || k === "groups" || (k === "cam" && !studio)));   // a sub never gets the camera (the Board Builder demo does)
 function screenOk(id) { if (!screenOrder().includes(id)) return false; if (id === "notes") return notesFrames(D()).length > 0; if (id === "speed") return isSpeedDay(); return true; }
@@ -322,7 +322,7 @@ function drawDeck(st) {
     }
     const steps = revealSteps(dn.s), at = Math.min(S.sstep, steps), k2 = dn.s.id + ":" + at, was = slLast.split(":");
     const fresh = at && was[0] === dn.s.id && +was[1] === at - 1 ? at : 0; slLast = k2;
-    const r = renderSlide(dn.s, { step: at, fresh, live: slLive(), img: slImg().src, logo: lookSeal(), scale: (st.clientWidth || 1280) / 1600, walk: slWalk });
+    const r = renderSlide(dn.s, { step: at, fresh, live: slLive(), img: slImg().src, logo: lookSeal(), look: themeCols(S.look.theme), scale: (st.clientWidth || 1280) / 1600, walk: slWalk });
     r.setAttribute("role", "img"); r.setAttribute("aria-label", "Slide " + (dn.i + 1) + " of " + dn.list.length);
     host.appendChild(r); fitSlide(host, r);
     const cv = makeCv(); cv.classList.add("deckink"); cv.classList.toggle("drawoff", !slPen); box.appendChild(cv);
@@ -484,7 +484,7 @@ function slidesPick(host) {
         else if (!n) dr.appendChild(el("p", "sdnote", "No slides for " + day + " yet. Make them in the Board Builder: from your plan, a layout or a blank slide."));
         else {
             const g = el("div", "sdgrid"); g.style.gridTemplateColumns = "repeat(" + cols + ",minmax(0,1fr))";
-            const opt = { live, img: slImg().src, logo: lookSeal(), board: { grad: gradOf(look.theme || "navy"), cls: "stagebg pv-" + (look.bg || "anchor") } };
+            const opt = { live, img: slImg().src, logo: lookSeal(), look: themeCols(look.theme), board: { grad: gradOf(look.theme || "navy"), cls: "stagebg pv-" + (look.bg || "anchor") } };
             list.forEach((s, i) => {
                 const b = el("button", "sdi"), t = slideTitle(s, live), th = thumb(s, opt, tw); b.type = "button"; b.dataset.i = i;
                 th.appendChild(el("span", "sdn", String(i + 1)));
@@ -1672,7 +1672,7 @@ function drawSpot(st) {
     if (sl) {   // a slide screen: the slide fills the board, everything showing, with the panels and ink over it
         const host = el("div", "deckhost spotslide"); box.appendChild(host); box.classList.add("hasslide");
         const steps = revealSteps(sl), at = Math.min(S.sstep, steps), was = slLast.split(":"), fresh = at && was[0] === sl.id && +was[1] === at - 1 ? at : 0; slLast = sl.id + ":" + at;
-        const r = renderSlide(sl, { step: at, fresh, live: slLive(), img: slImg().src, logo: lookSeal(), scale: (st.clientWidth || 1280) / 1600, walk: slWalk });
+        const r = renderSlide(sl, { step: at, fresh, live: slLive(), img: slImg().src, logo: lookSeal(), look: themeCols(S.look.theme), scale: (st.clientWidth || 1280) / 1600, walk: slWalk });
         r.setAttribute("role", "img"); r.setAttribute("aria-label", "Slide"); host.appendChild(r); fitSlide(host, r);
     } else if (sc && sc.sl && slLoaded()) { const g = el("p", "spotgone", "This slide was deleted in Slides. The screen keeps its panels and drawing."); box.appendChild(g); }
     const cv = makeCv(); cv.classList.add("spotink");

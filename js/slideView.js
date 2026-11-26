@@ -3,7 +3,8 @@
    One drawing for every place a slide shows: the board, the Remote's picture, the Board Builder's
    canvas and its little slide pictures. A slide is drawn at 1600 x 900 and scaled to fit (fitSlide).
 ========================================== */
-import { SW, SH, shapePath, textInset, fontOf, fillLive, sanitizeHtml, inkFor, inkOn, GRADS, boxOf, walkStep } from "./slides.js?v=2";
+import { SW, SH, shapePath, textInset, fontOf, fillLive, sanitizeHtml, inkFor, inkOn, GRADS, boxOf, walkStep, cleanTheme } from "./slides.js?v=3";
+import { PANEL_COLORS } from "./panelStyle.js?v=3";
 import { drawItem, geom } from "./mathTools.js?v=1";
 import { stickerFace } from "./stickers.js?v=1";
 import { parseFigure, figureEl } from "./figures.js?v=1";
@@ -73,7 +74,47 @@ export function paintBg(host, bg, o) {
 
 /* ---------- one element ---------- */
 function dashOf(d, lw) { return d === "d" ? (lw * 3) + " " + (lw * 2) : d === "o" ? "0.1 " + (lw * 2.2) : ""; }
+/** The words inside a box: placed, sized and colored; live fields filled in (or as typed while editing). */
+function textIn(d, e, o, x, ink, empty) {
+    const t = div("sltx va-" + e.va);
+    t.style.left = x.l + "px"; t.style.right = x.r + "px"; t.style.top = x.t + "px"; t.style.bottom = x.b + "px";
+    t.style.fontSize = e.fs + "px"; t.style.fontFamily = fontOf(e.ff); t.style.color = ink; t.style.lineHeight = String(e.lh || 1.2);
+    t.style.textAlign = { l: "left", c: "center", r: "right", j: "justify" }[e.al] || "left";
+    const inner = div("sltxi");
+    if (o.editing === e.id) inner.appendChild(richNodes(e.html, null, false, true));
+    else inner.appendChild(richNodes(e.html, o.live, o.mark));
+    if (o.edit && !e.html && o.editing !== e.id && empty) { inner.classList.add("slph"); inner.textContent = empty; }
+    t.appendChild(inner); d.appendChild(t);
+}
+const rgb = (h) => { const n = parseInt(h.slice(1), 16); return ((n >> 16) & 255) + " " + ((n >> 8) & 255) + " " + (n & 255); };
+/** Paint a node in a slide theme (js/slides.js THEMES): the panel finishes of js/panelStyle.js, drawn in slide units.
+    th null: Match my panels, Spotlight's own frosted glass. look: [hi, mid, out] of the board's colors, for "My board colors". Returns dark. */
+export function paintTheme(n, th, look) {
+    const t = cleanTheme(th);
+    if (!t) { n.classList.add("slth", "slth-def"); return false; }
+    const col = PANEL_COLORS.find((c) => c[0] === t.c) || PANEL_COLORS[0];
+    let fill = col[2], deep = col[3], acc = col[4];
+    if (t.c === "board") { const L = look && look.length === 3 ? look : ["#173F86", "#0B2559", "#081B45"]; fill = L[1]; deep = L[2]; acc = "#B9D3EE"; }
+    n.classList.add("slth", col[5] ? "sldark" : "sllight", "slf-" + t.f, "slr-" + t.r);
+    n.style.setProperty("--pbg", rgb(fill)); n.style.setProperty("--pbg2", rgb(deep)); n.style.setProperty("--pacc", rgb(acc)); n.style.setProperty("--pa", String(t.o / 100));
+    return !!col[5];
+}
+/** A glass block (gl): a panel-look card in the slide's theme, its heading in the panel's own style. */
+function drawGlass(e, o) {
+    const d = div("sle slbx slgl" + (e.gl === 2 ? " slacc" : "")), dark = paintTheme(d, o.th, o.look);
+    const ink = e.fc || (dark ? "#f4f7fb" : "#14213d");
+    let top = 0;
+    const hs = Math.max(24, Math.min(56, Math.round(e.fs * 0.72)));
+    if (e.hd) {
+        const h = div("slhd slglh"); h.textContent = e.hd; h.style.fontSize = hs + "px";
+        top = Math.round(hs * 1.9); h.style.height = top + "px"; d.appendChild(h);
+    }
+    const pad = e.pad, side = Math.round(pad + 6);
+    textIn(d, e, o, { l: side, r: side, t: (e.hd ? top - Math.round(pad * 0.35) : pad), b: pad }, ink, "Double-click to type");
+    return d;
+}
 function drawBox(e, o, ink) {
+    if (e.gl) return drawGlass(e, o);
     const d = div("sle slbx sh-" + e.sh);
     const hasShape = e.fill || (e.ln && e.lw);
     if (hasShape) {
@@ -93,16 +134,9 @@ function drawBox(e, o, ink) {
         top = Math.round(hs * 1.7); h.style.height = top + "px";
         d.appendChild(h);
     }
-    const ins = textInset(e.sh), t = div("sltx va-" + e.va);
-    t.style.left = Math.round(e.w * ins[0] + e.pad) + "px"; t.style.right = Math.round(e.w * ins[0] + e.pad) + "px";
-    t.style.top = Math.round(top + e.h * ins[1] + e.pad) + "px"; t.style.bottom = Math.round(e.h * ins[1] + e.pad) + "px";
-    t.style.fontSize = e.fs + "px"; t.style.fontFamily = fontOf(e.ff); t.style.color = textInk; t.style.lineHeight = String(e.lh || 1.2);
-    t.style.textAlign = { l: "left", c: "center", r: "right", j: "justify" }[e.al] || "left";
-    const inner = div("sltxi");
-    if (o.editing === e.id) inner.appendChild(richNodes(e.html, null, false, true));
-    else inner.appendChild(richNodes(e.html, o.live, o.mark));
-    if (o.edit && !e.html && o.editing !== e.id) { inner.classList.add("slph"); inner.textContent = e.hd ? "Double-click to type" : (hasShape ? "" : "Double-click to type"); }
-    t.appendChild(inner); d.appendChild(t);
+    const ins = textInset(e.sh);
+    textIn(d, e, o, { l: Math.round(e.w * ins[0] + e.pad), r: Math.round(e.w * ins[0] + e.pad), t: Math.round(top + e.h * ins[1] + e.pad), b: Math.round(e.h * ins[1] + e.pad) }, textInk,
+        e.hd ? "Double-click to type" : (hasShape ? "" : "Double-click to type"));
     return d;
 }
 function drawLine(e) {
@@ -203,9 +237,10 @@ export function renderEl(e, o, ink, step) {
  * o.img(id): a picture's address ("" while loading, "x" when missing) · o.logo: the board's logo · o.board: { grad, cls } a stand-in for the board's look
  * o.edit: the Board Builder (ids, reveal badges) · o.editing: the element being typed in · o.scale: screen pixels per slide unit (sharp math tools)
  * o.walk(node, el, stepIndex, animate): plays a Show Steps piece in its box (the board and Spotlight); without it the piece is a card
+ * o.look: [hi, mid, out] of the board's color scheme, for the "My board colors" theme. The slide's own theme (slide.th) dresses its glass blocks.
  */
 export function renderSlide(slide, o) {
-    const opt = o || {}, root = div("sl" + (opt.edit ? " sledit" : "")), bg = div("slbg"), layer = div("slels");
+    const opt = Object.assign({}, o || {}, { th: slide && slide.th }), root = div("sl" + (opt.edit ? " sledit" : "")), bg = div("slbg"), layer = div("slels");
     root.style.width = SW + "px"; root.style.height = SH + "px";
     paintBg(bg, slide && slide.bg, opt); root.append(bg, layer);
     const ink = inkFor(slide && slide.bg); root.style.color = ink; root.dataset.ink = ink;

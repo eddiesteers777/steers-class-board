@@ -218,3 +218,14 @@ html.sc-ready body.console,html.sc-ready .cbar,html.sc-ready .nowcard,html.sc-re
 @media (prefers-reduced-transparency:reduce){
   body.console.page .cbar,.acct .pop,.hm-dialog,.hm-dhead{background:var(--c-surface)!important;-webkit-backdrop-filter:none;backdrop-filter:none}
 }
+
+/* ---------- iPhone and iPad date and time boxes (Eddie, Nov 26) ----------
+   Safari on iOS gives date and time boxes a fixed width of its own and ignores width:100% and min-width:0,
+   so two boxes side by side overlapped and ran past the card's edge. Dropping Safari's own look lets
+   them fit their column; the value stays on the left and an empty box keeps its height.
+   @supports (-webkit-touch-callout:none) matches iOS Safari only, so Chromebooks and the Promethean
+   panel are unchanged. */
+@supports (-webkit-touch-callout:none) {
+  input[type=date],input[type=time],input[type=datetime-local],input[type=month]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;box-sizing:border-box}
+  input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and-time-value,input[type=datetime-local]::-webkit-date-and-time-value,input[type=month]::-webkit-date-and-time-value{text-align:left;margin:0;min-height:1.2em}
+}

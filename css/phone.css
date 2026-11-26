@@ -37,6 +37,8 @@ body.phone .live{padding:5px 10px}
 body.phone:not(.board) .cbody{display:flex;flex-direction:column;overflow:visible}
 body.phone:not(.board) .deck{order:-1;position:sticky;top:0;z-index:7;background:var(--c-bg);box-shadow:0 8px 18px rgba(14,27,58,.10);flex:none}
 body.phone:not(.mirror) .deck{position:static;box-shadow:none}
+/* Spotlight on a phone (Nov 26): the board strip lets Spotlight's background show through, so glass slides and panels read as glass, not gray */
+body.phone.spotmode .deck{background:transparent;box-shadow:none;padding-top:62px}
 body.phone .console .wrap,body.phone .wrap{padding:4px 8px 0}
 body.phone.mirror .wrap{margin:6px 8px 0}
 body.phone:not(.board) .flowbar{flex-direction:column;align-items:stretch;gap:8px;padding:8px 10px 10px}

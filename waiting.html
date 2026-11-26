@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Not on the list yet | Anchor Board</title>
+    <meta name="description" content="Anchor Board is in early access and opens to teachers a few at a time.">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Instrument+Sans:wght@400..700&display=swap">
+    <script src="js/scheme.js?v=2"></script>
+    <link rel="stylesheet" href="css/skin.css?v=3">
+    <link rel="stylesheet" href="css/signin.css?v=2">
+    <script src="js/signinMotion.js?v=1" defer></script>
+    <meta name="theme-color" content="#0B2559">
+    <style>
+        .si .wt-mail{overflow-wrap:anywhere;word-break:break-word;color:var(--si-ink);font-weight:600}
+        .si h1.wt-h{font-size:clamp(34px,3vw,50px)}
+    </style>
+</head>
+<body>
+    <!-- Early access (js/access.js): a Google account that isn't on the approved list lands here. -->
+    <div class="si-sky" aria-hidden="true">
+        <i class="si-dawn"></i><i class="si-glow si-glow-amber"></i><i class="si-glow si-glow-sky"></i><i class="si-glow si-glow-light"></i>
+        <svg class="si-rings" viewBox="0 0 200 200"><circle cx="100" cy="100" r="96" stroke-width="1"/><circle cx="100" cy="100" r="78" stroke-width="6"/><circle cx="100" cy="100" r="58" stroke-width="1"/><circle class="si-arc" cx="100" cy="100" r="78" stroke-width="2.2" pathLength="1" stroke-dasharray=".34 .66" transform="rotate(75 100 100)"/></svg>
+        <svg class="si-rings si-rings-2" viewBox="0 0 200 200"><circle cx="100" cy="100" r="96" stroke-width="1"/><circle cx="100" cy="100" r="78" stroke-width="5"/><circle class="si-arc" cx="100" cy="100" r="78" stroke-width="2" pathLength="1" stroke-dasharray=".26 .74" transform="rotate(-100 100 100)"/></svg>
+    </div>
+    <main class="si">
+      <div class="si-card">
+        <span class="si-logo cbrand"><img src="brand/logo.svg" alt="Anchor Board logo"></span>
+        <h1 class="wt-h">Not on the list yet</h1>
+        <p class="who">Anchor Board · Early access</p>
+        <div class="line" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <p>Anchor Board opens to teachers a few at a time. You're signed in as <span class="wt-mail" id="mail">this account</span>, and it isn't on the list yet.</p>
+        <p>Join early access and you'll hear when there's a spot. If you've been let in, sign in with the email you were let in with.</p>
+        <div class="acts">
+            <a class="btn go" href="site/join.html">Join early access</a>
+            <button class="btn ghost" type="button" id="other">Use another account</button>
+        </div>
+        <p id="note" class="note" role="status"></p>
+      </div>
+    </main>
+    <script type="module">
+        import { waitForUser, logout } from "./js/auth.js";
+        import { checkAccess } from "./js/access.js?v=1";
+        const $ = (id) => document.getElementById(id);
+        $("other").onclick = async () => { $("other").disabled = true; await logout(); location.replace("login.html"); };
+        waitForUser().then(async (u) => {
+            if (!u || u.isAnonymous) { location.replace("login.html"); return; }
+            if (u.email) $("mail").textContent = u.email;
+            // Let in since this page opened (or the list was only slow): go on to Home.
+            const a = await checkAccess(u);
+            if (a === "owner" || a === "approved") location.replace("index.html");
+        }).catch(() => {});
+    </script>
+</body>
+</html>

@@ -207,7 +207,7 @@ body.hm-home.st-open .cbar.hb-bar{z-index:23}   /* the X stays sharp above the d
 .st-acc.open>.st-head .st-chev{transform:rotate(90deg)}
 .st-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.2,.8,.2,1)}
 .st-acc.open>.st-body{grid-template-rows:1fr}
-.st-bi{min-height:0;overflow:hidden;padding:0 12px}
+.st-bi{position:relative;min-height:0;overflow:hidden;padding:0 12px}   /* relative: hidden labels in a closed section stay inside it, so the card cannot scroll past its last row */
 .st-acc.open .st-bi{padding-bottom:14px}
 .st-link{min-height:52px;padding:6px 0}
 .st-link+.st-link{box-shadow:0 -1px 0 rgba(255,255,255,.08)}

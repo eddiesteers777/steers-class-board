@@ -27,4 +27,14 @@ for (let m = 0; m < 1 << keys.length; m++) {
     for (const saved of [null, eddie, { pack: "calera", how: "existing account" }]) assert.equal(inferPack(saved, f).pack, "calera");
     if (!m) assert.equal(inferPack(null, f).save, false); else assert.equal(inferPack(null, f).save, true);
 }
+// Early access: a teacher the owner let in, with every check run and nothing found, starts on their own setup
+const empty = Object.fromEntries(keys.map((k) => [k, false]));
+assert.deepEqual(inferPack(null, empty, "approved"), { pack: "starter", save: true, why: "new teacher on the approved list" });
+assert.equal(trusted({ pack: "starter", how: "new teacher (approved list)" }), true);
+// ...but never the owner, never when unsure, never with any real data, never over a saved choice
+for (const a of ["owner", "unknown", "waiting", "guest", undefined]) assert.equal(inferPack(null, empty, a).pack, "calera", String(a));
+assert.equal(inferPack(eddie, empty, "owner").pack, "calera");
+assert.equal(inferPack(null, null, "approved").pack, "calera");
+for (const k of keys) assert.equal(inferPack(null, { ...empty, [k]: true }, "approved").pack, "calera", k);
+assert.equal(inferPack({ pack: "calera", how: "existing account" }, empty, "approved").pack, "calera");
 console.log("pack rules: all checks passed");

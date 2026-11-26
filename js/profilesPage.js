@@ -20,7 +20,7 @@ const DEMO_PERIODS = [["1st", "8th"], ["2nd", "8th"], ["4th", "8th"], ["5th", "7
 export async function mountProfiles() {
     const demo = new URLSearchParams(location.search).has("demo");
     const store = await import(demo ? "./localStore.js?v=57" : "./boardStore.js?v=58");
-    const PER = demo ? DEMO_PERIODS : (await import("../data/weeks.js?v=63")).PERIODS;
+    const PER = demo ? DEMO_PERIODS : (await import("../data/weeks.js?v=64")).PERIODS;
     const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
     const S = { period: [sharedPeriod(""), remember("period")].find((p) => p && PER.some((x) => x[0] === p)) || PER[0][0], view: remember("view") || "students" };
     const D = { rosters: {}, kids: {}, got: {} };

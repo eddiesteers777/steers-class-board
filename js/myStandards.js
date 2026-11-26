@@ -7,7 +7,7 @@
    "My own standards" reads its pasted list from teacher/{uid}/settings/standards.
 ========================================== */
 import { STANDARDS } from "../data/standards.js?v=60";
-import { PACK, PERIODS, WEEKS, SETUP } from "../data/weeks.js?v=63";
+import { PACK, PERIODS, WEEKS, SETUP } from "../data/weeks.js?v=64";
 import { classesFor, cleanLists, ownCourse, listKey } from "./courseRules.js?v=1";
 
 export const CALERA_CLASSES = [["8th", "8th Grade"], ["7th", "7th Grade"], ["8th-acc", "8th Accelerated"]];

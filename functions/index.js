@@ -14,6 +14,21 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import Anthropic from "@anthropic-ai/sdk";
+import { initializeApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
+import { createHash } from "node:crypto";
+
+initializeApp();
+
+// Early access: only the site owner and teachers on the approved list (access/{email}) may use readNames,
+// the same check as firestore.rules. Keep OWNER_HASHES the same as js/accessRules.js and firestore.rules.
+const OWNER_HASHES = ["f7765647c872fc9185968a516a7f6cefb0d9cd969eafa480429a37b9f3243e08"];
+async function approvedTeacher(token) {
+    const email = String(token.email || "").trim().toLowerCase();
+    if (!email || token.email_verified !== true) return false;
+    if (OWNER_HASHES.includes(createHash("sha256").update(email).digest("hex"))) return true;
+    return (await getFirestore().doc("access/" + email).get()).exists;
+}
 
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 const MAX_STRIPS = 45, MAX_STRIP_CHARS = 200000, MAX_ROSTER = 60;
@@ -49,6 +64,7 @@ export const readNames = onCall({ secrets: [ANTHROPIC_API_KEY], region: "us-cent
     // the teacher's own Google sign-in only: never a student (anonymous) or a stranger
     const auth = req.auth;
     if (!auth || !auth.token || auth.token.firebase?.sign_in_provider === "anonymous") throw new HttpsError("permission-denied", "Teacher sign-in needed.");
+    if (!(await approvedTeacher(auth.token))) throw new HttpsError("permission-denied", "This account isn't on the Anchor Board early access list yet.");
     const roster = Array.isArray(req.data?.roster) ? req.data.roster.filter((s) => typeof s === "string" && s.trim()).map((s) => s.trim().slice(0, 60)).slice(0, MAX_ROSTER) : [];
     const strips = Array.isArray(req.data?.strips) ? req.data.strips : [];
     if (!roster.length) throw new HttpsError("invalid-argument", "No roster for this period.");
