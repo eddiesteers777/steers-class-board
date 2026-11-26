@@ -373,6 +373,10 @@
         document.addEventListener("keydown", (e) => { if (e.key === "Escape" && stOpen) { e.preventDefault(); closeSettings(true); } });
         addEventListener("resize", () => { if (stOpen) stPlace(); });
         $("sideOpen").addEventListener("click", () => { if (stOpen && document.body.classList.contains("hm-drawer")) closeSettings(false); });
+        {   // index.html?settings=bells (the phone Settings card on other pages, js/topbar.js) opens that section here
+            const k = new URLSearchParams(location.search).get("settings");
+            if (/^(look|today|bells|ahead|acct)$/.test(k || "")) { history.replaceState(null, "", location.pathname + location.hash); requestAnimationFrame(() => openSettings(k)); }
+        }
         // one-line summaries on the closed sections
         const hm12 = (t) => { const m = /^(\d{1,2}):(\d{2})/.exec(t || ""); return m ? ((+m[1] % 12) || 12) + ":" + m[2] : ""; };
         function stSumLook() {
