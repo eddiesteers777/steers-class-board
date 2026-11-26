@@ -52,6 +52,19 @@ function arrowHead(svg, id, color) {
     const defs = sv("defs"), m = sv("marker", { id, viewBox: "0 0 10 10", refX: "7", refY: "5", markerWidth: "5", markerHeight: "5", orient: "auto-start-reverse" });
     m.appendChild(sv("path", { d: "M0 0L10 5L0 10z", fill: color })); defs.appendChild(m); svg.appendChild(defs);
 }
+// SVG text that can hold one stacked fraction written {a/b} (anything before or after it stays on the line)
+function svText(x, y, s, attrs) {
+    const g = sv("g"), m = String(s).match(/^(.*?)\{([^{}/]+)\/([^{}/]+)\}(.*)$/), fs = attrs["font-size"] || 20;
+    if (!m) { const t = sv("text", Object.assign({ x, y, "text-anchor": "middle" }, attrs)); t.textContent = s; g.appendChild(t); return g; }
+    const pre = m[1], post = m[4], cw = fs * 0.55, fw = Math.max(m[2].length, m[3].length) * cw + 6, pw = pre.length * cw, qw = post.length * cw;
+    const x0 = x - (pw + fw + qw) / 2, cx = x0 + pw + fw / 2, a = Object.assign({}, attrs, { "font-size": fs * 0.85 });
+    const T = (tx, ty, str, anc, at) => { const t = sv("text", Object.assign({ x: tx, y: ty, "text-anchor": anc }, at)); t.textContent = str; g.appendChild(t); };
+    if (pre) T(x0, y - fs * 0.3, pre, "start", attrs);
+    T(cx, y - fs * 0.62, m[2], "middle", a); T(cx, y + fs * 0.42, m[3], "middle", a);
+    g.appendChild(sv("line", { x1: cx - fw / 2 + 2, y1: y - fs * 0.38, x2: cx + fw / 2 - 2, y2: y - fs * 0.38, stroke: attrs.fill || PEN.ink, "stroke-width": 2 }));
+    if (post) T(x0 + pw + fw, y - fs * 0.3, post, "start", attrs);
+    return g;
+}
 let uid = 0;
 const pics = {
     numline(p) {
@@ -371,6 +384,31 @@ const pics = {
             marks.forEach((m) => (m.style.opacity = 0)); await wait(400);
             marks.forEach((m) => (m.style.opacity = 1));
             await Promise.all(marks.map((m) => m.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450 }).finished.catch(() => {})));
+        } };
+    },
+    scale(p) {
+        // a number line from lo to hi (0 to 1 for probability) with labeled ticks, words under it, and marked values above;
+        // the values in hl are drawn in amber
+        const lo = p.lo != null ? p.lo : 0, hi = p.hi != null ? p.hi : 1, words = p.words || [], W = 640, H = words.length ? 170 : 140, pad = 44, y = 86;
+        const X = (v) => pad + ((v - lo) / (hi - lo)) * (W - 2 * pad);
+        const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, class: "sp-pic", width: W, role: "img", "aria-label": p.label || "A number line with " + (p.marks || []).map((m) => m[1]).join(", ") + " marked" });
+        svg.appendChild(sv("line", { x1: pad - 10, y1: y, x2: W - pad + 10, y2: y, stroke: PEN.ink, "stroke-width": 3, "stroke-linecap": "round" }));
+        (p.ticks || [[lo, String(lo)], [hi, String(hi)]]).forEach(([v, s]) => {
+            svg.appendChild(sv("line", { x1: X(v), y1: y - 9, x2: X(v), y2: y + 9, stroke: PEN.ink, "stroke-width": 2 }));
+            svg.appendChild(svText(X(v), y + 33 + (/\{/.test(s) ? 6 : 0), String(s).replace(/-/g, MINUS), { "font-size": 20 }));
+        });
+        words.forEach(([v, s]) => { const t = sv("text", { x: X(v), y: y + 62, "text-anchor": "middle", "font-size": 17, fill: "#5A6B85" }); t.textContent = s; svg.appendChild(t); });
+        const marks = [];
+        (p.marks || []).forEach(([v, s], i) => {
+            const hi2 = (p.hl || []).includes(i), g = sv("g");
+            g.appendChild(sv("circle", { cx: X(v), cy: y, r: hi2 ? 12 : 9, fill: hi2 ? PEN.amber : PEN.blue, stroke: hi2 ? "#B7791F" : "none", "stroke-width": 3 }));
+            const up = (i % 2 && (p.marks || []).length > 1 ? 50 : 22) + (/\{/.test(s) ? 12 : 0);
+            g.appendChild(svText(X(v), y - up, s, { "font-size": 20, "font-weight": 700, fill: hi2 ? "#B7791F" : PEN.blue })); svg.appendChild(g); marks.push(g);
+        });
+        return { node: svg, async play(fast) {
+            if (fast || !marks.length) return;
+            marks.forEach((m) => (m.style.opacity = 0)); await wait(250);
+            for (const m of marks) { m.style.opacity = 1; m.animate([{ opacity: 0, transform: "translateY(-8px)" }, { opacity: 1, transform: "none" }], { duration: 320 }); await wait(260); }
         } };
     },
     verdict(p) {
