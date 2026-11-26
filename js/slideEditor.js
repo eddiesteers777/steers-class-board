@@ -16,8 +16,8 @@
 ========================================== */
 import { SW, SH, MAX_SLIDES, MAX_DAILY, DAILY, INDEX, deckKey, newId, cleanDeck, cleanSlide, cleanEl, cleanIndex, newEl, mathBox, LAYOUTS, todaySlide, agendaSlide,
     fromPlan, liveContext, lessonDate, showList, revealSteps, countShown, sanitizeHtml, textOf, PALETTE, FONTS, SHAPES, GRADS, PATTERNS, LIVE, boxOf, shapePath, inkFor,
-    PANEL_MINS, cleanPanels, panelWords, bankSlide, walkSlide, FRAME, GRIDS, gridCells, gridSlide, snapToGrid, THEMES, themeId, cleanTheme, BLOCKS, newBlock, freeSpot } from "./slides.js?v=3";
-import { renderSlide, renderEl, fitSlide, thumb, imageLoader } from "./slideView.js?v=3";
+    PANEL_MINS, cleanPanels, panelWords, bankSlide, walkSlide, FRAME, GRIDS, gridCells, gridSlide, snapToGrid, THEMES, themeId, cleanTheme, BLOCKS, newBlock, freeSpot } from "./slides.js?v=4";
+import { renderSlide, renderEl, fitSlide, thumb, imageLoader } from "./slideView.js?v=4";
 import { PANEL_COLORS, PANEL_FINISHES, PANEL_CORNERS, MIN_SOLID, swatchBg } from "./panelStyle.js?v=3";
 import { newItem, geom, MENU as MATH_MENU, parseStep, compileExpr, PLOT } from "./mathTools.js?v=1";
 import { STICKER_SETS, WORDS, WORD_COLORS, stickerFace } from "./stickers.js?v=1";

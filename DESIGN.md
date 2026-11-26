@@ -75,8 +75,9 @@ simpler, one less thing.
     the left of the slide strip: the count, Spotlight, and the rest under More.
   - **Grid, glass blocks and themes (Nov 26, Eddie: "the layouts aren't the premium panel looks ... make it fit and look
     good on the Spotlight view"; "a lot of premium options that are easily dynamic").** The old layouts are gone. A
-    slide is built on a **Grid** (One, Two, Three, Big + side, Side + big, Title + two, Title + three, Question + answer,
-    Four) inside one frame (`FRAME` in js/slides.js: x 40, y 90, 1520 x 693, gap 24) that stays clear of Spotlight's top
+    slide is built on a **Grid** (15, Nov 26 "could we add more layouts?": One, Two, Three, Four, Six, Four across,
+    Big + side, Side + big, Big + three, Two over one, One over two, Question + answer, Title + two, Title + three,
+    Title + big; tools/board/slides.test.mjs checks every grid stays in the frame with no overlaps) inside one frame (`FRAME` in js/slides.js: x 40, y 90, 1520 x 693, gap 24) that stays clear of Spotlight's top
     corners and its bottom dock; the editor shows that frame faintly ("Spotlight keeps this clear"). Grid has New slide
     and This slide (re-fits the slide's blocks into the new grid). The slide's pieces are **glass blocks** (`gl: 1`,
     `gl: 2` for the amber-edged answer, target or missing word), drawn with the same finishes as the panels

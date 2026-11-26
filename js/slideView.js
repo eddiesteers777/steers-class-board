@@ -3,7 +3,7 @@
    One drawing for every place a slide shows: the board, the Remote's picture, the Board Builder's
    canvas and its little slide pictures. A slide is drawn at 1600 x 900 and scaled to fit (fitSlide).
 ========================================== */
-import { SW, SH, shapePath, textInset, fontOf, fillLive, sanitizeHtml, inkFor, inkOn, GRADS, boxOf, walkStep, cleanTheme } from "./slides.js?v=3";
+import { SW, SH, shapePath, textInset, fontOf, fillLive, sanitizeHtml, inkFor, inkOn, GRADS, boxOf, walkStep, cleanTheme } from "./slides.js?v=4";
 import { PANEL_COLORS } from "./panelStyle.js?v=3";
 import { drawItem, geom } from "./mathTools.js?v=1";
 import { stickerFace } from "./stickers.js?v=1";

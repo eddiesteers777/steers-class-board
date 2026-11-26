@@ -18,7 +18,7 @@ import { STANDARDS } from "../data/standards.js?v=60";
 import { allPapers } from "./weekPapers.js?v=1";
 import { printPapers, saveToDrive } from "./weekPack.js?v=1";
 import * as Drive from "./drive.js?v=2";
-import { buildWeekSlides, plannedDecks } from "./weekSlides.js?v=3";
+import { buildWeekSlides, plannedDecks } from "./weekSlides.js?v=4";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
