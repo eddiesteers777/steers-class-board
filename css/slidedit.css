@@ -459,3 +459,62 @@ dialog.spick::backdrop{background:rgba(8,27,69,.45)}
 .spop .sthsolid{display:flex;align-items:center;gap:8px;margin-left:auto;font:600 .8rem var(--ui);color:var(--c-mute)}
 .spop .sthsolid input{width:110px}
 @media (max-width:700px){.spop .sthgrid{grid-template-columns:repeat(3,1fr)}.spop .sthsolid{margin-left:0}}
+
+/* ---------- Slides on a phone (Nov 26, Eddie: "make the slides page more phone friendly and easy to use") ----------
+   Phones only (body.phone, or under 860px for the parts that only exist there); Chromebook and Promethean are unchanged. */
+.sfh .sfhs,.sbar2 .tgrp.tdone{display:none}
+/* The header in two rows, not three: Teach, ⋯ and the saved dot go up beside the Board / Slides / Spotlight switch,
+   and the week sits beside the days. */
+body.phone.slidemode .cbar .slrow{flex-wrap:nowrap;gap:6px}
+body.phone.slidemode .cbar .slgap{display:none}
+body.phone.slidemode .cbar .slteach,body.phone.slidemode .cbar .slmore{position:absolute;top:max(10px,env(safe-area-inset-top));width:44px;min-width:44px;height:40px;min-height:40px;padding:0}
+body.phone.slidemode .cbar #slBarSlot{margin-top:6px}
+body.phone.slidemode .cbar .slmore{right:12px}
+body.phone.slidemode .cbar .slteach{right:64px}
+body.phone.slidemode .cbar .slsave{position:absolute;top:max(20px,calc(env(safe-area-inset-top) + 10px));right:118px}
+body.phone.slidemode .cbar .slwk{flex:0 1 auto;min-width:0}
+body.phone.slidemode .cbar .slwkn{min-width:0}
+body.phone.slidemode .cbar .slwkt{max-width:96px;padding:0 4px}
+body.phone.slidemode .cbar .slwkt small{display:none}
+body.phone.slidemode .cbar .sldays{order:0;flex:1 1 0;width:auto;min-width:0}
+body.phone.slidemode .cbar .slday{padding:3px 2px}
+body.phone.slidemode .cbar .slday small{display:none}
+@media (max-width:379px){body.phone.slidemode .cbar .slwka{width:22px}body.phone.slidemode .cbar .slwkt{max-width:72px}}
+@media (max-width:860px){
+  /* The tool bar: a picked block shows its own tools, with Done first; the add tools come back when nothing is picked */
+  .sbar2.hassel .tgrp.ins,.sbar2.hassel .tgrp.slideg{display:none}
+  .sbar2.hassel .tgrp.tdone{display:flex;order:-1}
+  .sbar2 .tb.tdoneb{background:var(--navy,#0B2559);color:#fff;padding:0 12px}
+  .sbar2 .tb.tdoneb:hover:not(:disabled){background:var(--navy,#0B2559)}
+  .sbar2.fr{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
+  .sbar2.fl{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}
+  .sbar2.fl.fr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
+  .sapp .sbar2 .tb{height:40px;min-width:40px}
+  /* The slide strip: a small Select, one-word headings, so the slides themselves show */
+  .sfpick.sfidle{width:60px}
+  .sfpick.sfidle .sfsel{min-height:60px;font-size:.74rem;padding:0}
+  .sfh{width:40px}
+  .sfh b{display:none}
+  .sfh .sfhs{display:block;font-size:.66rem;line-height:1.25;overflow-wrap:normal;word-break:normal}
+  .sfh:has(+ .sflist > .sfadd:first-child){display:none}   /* no every-day slides yet: the + tile says it alone */
+  .sfh:has(+ .sflist > .sfadd:first-child) + .sflist .sfadd.small{margin-left:0}
+  .sfadd.small{width:76px;font-size:.74rem}
+  /* An empty day: the three ways to start stack in a column the page can scroll, nothing cut off */
+  .sstage.blank{aspect-ratio:auto;max-height:none;min-height:0;overflow:visible}
+  .sstage.blank .scanvas{position:static}
+  .sstage.blank .sempty{position:static;padding:18px 12px 20px;gap:8px}
+  .sstage.blank .sempty h2{font-size:1.35rem}
+  .sstage.blank .sempty p{font-size:.86rem}
+  .sstage.blank .semrow{flex-direction:column;align-items:stretch;width:100%;gap:8px;margin-top:4px}
+  .sstage.blank .sembig{display:grid;grid-template-columns:28px 1fr;column-gap:12px;row-gap:2px;align-items:center;width:100%;min-height:64px;padding:12px 14px;box-sizing:border-box}
+  .sstage.blank .sembig .ic{grid-row:1/3;align-self:center}
+  .sstage.blank .sembig b{font-size:.98rem}
+  .sstage.blank .sembig small{font-size:.78rem}
+  /* Notes: label over its hint, and 16px so an iPhone does not zoom in on a tap */
+  .snh{flex-direction:column;gap:0}
+  .snotes textarea{font-size:16px}
+  /* The toast clears the sound pill at the bottom */
+  .stoast{bottom:calc(88px + env(safe-area-inset-bottom))}
+}
+/* Menus come up from the bottom as a sheet, so the slide stays in view above (Look: tap a theme and see it) */
+body.phone .spop{left:8px!important;right:8px;top:auto!important;bottom:calc(8px + env(safe-area-inset-bottom));max-width:none!important;max-height:min(50vh,460px);border-radius:18px;box-shadow:0 -12px 40px rgba(14,27,58,.28)}

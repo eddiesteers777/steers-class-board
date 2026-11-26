@@ -274,7 +274,9 @@ function drawFilm() {
     const own = deckOf(lessonKey()), daily = deckOf(DAILY), lk = lessonKey();
     prunePicks(); f.appendChild(pickBar());
     const section = (key, deck, title, sub) => {
-        const h = el("div", "sfh"); h.appendChild(el("b", null, title)); if (sub) h.appendChild(el("small", null, sub)); f.appendChild(h);
+        const h = el("div", "sfh"); h.appendChild(el("b", null, title)); if (sub) h.appendChild(el("small", null, sub));
+        h.appendChild(el("b", "sfhs", key === DAILY ? "Every day" : DK[lesson.day]));   // the strip on a phone has room for a word, not a phrase
+        f.appendChild(h);
         const list = el("div", "sflist"); list.dataset.key = key;
         ((deck && deck.slides) || []).forEach((s, i) => list.appendChild(filmItem(key, s, i)));
         f.appendChild(list);
@@ -307,6 +309,8 @@ function drawFilm() {
 }
 /** Narrower screens (css/slidedit.css): at 1180px the slide list is thinner; at 860px it runs across under the slide. */
 const narrow = window.matchMedia("(max-width:860px)"), midSize = window.matchMedia("(max-width:1180px)");
+/** A finger, not a mouse (Nov 26, Slides on a phone): a second tap on the picked block types, since phones do not double-click. */
+const coarse = window.matchMedia("(pointer:coarse)");
 [narrow, midSize].forEach((m) => m.addEventListener("change", () => { thumbs.clear(); if (active) drawFilm(); }));
 /** The slides that already have a Spotlight screen, when the board is on this lesson (a badge on each, not a second list). */
 function inSpot() {
@@ -491,7 +495,8 @@ function stageMove(ev) {
         drawSel(); return;
     }
     let dx = p.x - drag.p0.x, dy = p.y - drag.p0.y;
-    if (!drag.moved) { if (Math.hypot(dx, dy) * k < 3) return; drag.moved = true; before(); document.body.classList.add("sldragging"); }
+    if (!drag.moved) { if (Math.hypot(dx, dy) * k < (ev.pointerType === "mouse" ? 3 : 8)) return;   // a finger wobbles more than a mouse
+        drag.moved = true; before(); document.body.classList.add("sldragging"); }
     if (drag.kind === "move") {
         if (ev.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
         const sn = snapMove(dx, dy, drag.orig, ev.altKey || ev.shiftKey); dx = sn.dx; dy = sn.dy;
@@ -545,6 +550,11 @@ function stageUp(ev) {
     if (d.kind === "box") { drawSel(); drawTools(); return; }
     if (!d.moved) {
         if (d.kind === "move" && d.wasSel && sel.length > 1 && !ev.shiftKey) { sel = [d.id]; drawSel(); drawTools(); }
+        // Phones (Nov 26): tap a block to pick it, tap it again to type. The stage holds the pointer, so find what is under the finger.
+        else if (d.kind === "move" && d.wasSel && sel.length === 1 && ev.pointerType !== "mouse" && !editing) {
+            const under = document.elementFromPoint(ev.clientX, ev.clientY);
+            if (under) stageDbl({ target: under, clientX: ev.clientX, clientY: ev.clientY });
+        }
         return;
     }
     const s = S0(); if (s) s.els.forEach((e) => { const c = cleanEl(e); if (c) Object.keys(c).forEach((key) => { e[key] = c[key]; }); });
@@ -635,7 +645,7 @@ function addPlan() {
     const room = MAX_SLIDES - d.slides.length; if (room <= 0) return toast("This lesson already has " + MAX_SLIDES + " slides.");
     if (!changeDeck(lessonKey(), (dd) => { dd.slides = dd.slides.concat(list.slice(0, room)); })) return;
     cur = { key: lessonKey(), id: list[0].id }; sel = []; draw();
-    toast("Added " + Math.min(room, list.length) + " slides from your plan. Change anything: double-click text to type.");
+    toast("Added " + Math.min(room, list.length) + " slides from your plan. Change anything: " + (coarse.matches ? "tap a block, then tap it again to type." : "double-click text to type."));
 }
 function addTable(nr, nc) { addEl(newEl("table", { nr, nc })); }
 function addMath(key) {
@@ -753,6 +763,7 @@ function pickBar() {
     const bar = el("div", "sfpick" + (picks.size ? " sfpkon" : "")); bar.setAttribute("role", "toolbar"); bar.setAttribute("aria-label", "Several slides at once");
     const all = [DAILY, lessonKey()].reduce((n, k) => n + (((deckOf(k) || {}).slides || []).length), 0);
     if (!selMode && !picks.size) {
+        bar.classList.add("sfidle");
         bar.appendChild(btn("sfsel", icon("check") + "<span>Select</span>", () => setSelMode(true), "Tick several slides to put in Spotlight, set panels, copy or delete at once"));
         return bar;
     }
@@ -1236,6 +1247,10 @@ function drawTools() {
     const bar = $("slTools"); if (!bar) return;
     closePop(); bar.textContent = "";
     const s = S0(), ready = !!s && canEdit(cur.key), list = sel.map(byId).filter(Boolean), one = list.length === 1 ? list[0] : null;
+    // A phone (Nov 26): with a block picked, the bar shows that block's tools (the add tools step aside, css/slidedit.css) and starts at the left
+    bar.classList.toggle("hassel", !!list.length && ready);
+    const selSig = sel.join(","); if (selSig !== toolsSig) { toolsSig = selSig; bar.scrollLeft = 0; }
+    requestAnimationFrame(() => toolsFade(bar));
     const grp = (cls) => { const g = el("div", "tgrp" + (cls ? " " + cls : "")); bar.appendChild(g); return g; };
     const tb = (g, ic, label, fn, opts) => { const o = opts || {}; const b = btn("tb" + (o.cls ? " " + o.cls : "") + (o.on ? " on" : "") + (o.text ? " txt" : ""), (ic ? icon(ic) : "") + (o.text ? "<span>" + o.text + "</span>" : "") + (o.menu ? svg(IC.caret, "icc") : ""), fn, label); if (o.on != null) b.setAttribute("aria-pressed", String(!!o.on)); if (o.dis) b.disabled = true; g.appendChild(b); return b; };
     let g = grp();
@@ -1259,6 +1274,7 @@ function drawTools() {
     tb(g, "bank", "Slides from the standards bank: practice problems or a Show Steps walkthrough", (e, b) => openPop(b, bankMenu), { text: "Bank", menu: 1, dis });
     if (!ready) { bar.appendChild(el("span", "thint", s ? "Getting your slides…" : "Add a slide to start.")); return; }
     if (!list.length) return;   // nothing picked: the tools alone (the old "click a piece…" hint cost a whole row on a Chromebook)
+    tb(grp("tdone"), "check", "Done with this block", () => { if (editing) finishEdit(); sel = []; drawSel(); drawTools(); }, { text: "Done", cls: "tdoneb" });
     const boxes = list.filter((e) => e.k === "bx");
     if (boxes.length) formatText(grp("fmt"), boxes, tb);
     if (one && one.k === "ln") formatLine(grp("fmt"), one, tb);
@@ -1274,6 +1290,13 @@ function drawTools() {
     tb(c, list.some((x) => x.lk) ? "lock" : "unlock", list.some((x) => x.lk) ? "Unlock" : "Lock it in place", () => change((sl) => { const lk = !list.some((x) => x.lk); sl.els.forEach((e) => { if (sel.includes(e.id)) { if (lk) e.lk = true; else delete e.lk; } }); }), { on: list.some((x) => x.lk) });
     tb(c, "more", "See-through", (e, b) => openPop(b, (p) => opacityMenu(p, list)));
     tb(c, "trash", "Delete (Del)", () => delSel(), { cls: "danger" });
+}
+let toolsSig = "";
+/** The tool bar scrolls sideways on a phone: a soft edge shows there is more that way. */
+function toolsFade(bar) {
+    const more = bar.scrollWidth - bar.clientWidth > 2;
+    bar.classList.toggle("fl", more && bar.scrollLeft > 2);
+    bar.classList.toggle("fr", more && bar.scrollLeft < bar.scrollWidth - bar.clientWidth - 2);
 }
 function setEls(fn, tag) { change((s) => { s.els.forEach((e) => { if (sel.includes(e.id)) fn(e); }); }, tag); }
 function formatText(g, boxes, tb) {
@@ -1749,6 +1772,7 @@ function build() {
     const slot = document.getElementById("slBarSlot");
     if (slot) { slot.textContent = ""; slot.appendChild(b1); } else { const bar = el("div", "sbar1"); bar.appendChild(b1); R.appendChild(bar); }
     const b2 = el("div", "sbar2"); b2.id = "slTools"; b2.setAttribute("role", "toolbar"); b2.setAttribute("aria-label", "Slide tools");
+    b2.addEventListener("scroll", () => toolsFade(b2), { passive: true });
     const main = el("div", "smain"), film = el("aside", "sfilm"); film.id = "slFilm"; film.setAttribute("aria-label", "Slides");
     const right = el("div", "sright"), stage = el("div", "sstage"); stage.id = "slStage";
     const canvas = el("div", "scanvas"); canvas.id = "slCanvas"; const over = el("div", "sover"); over.id = "slOver"; stage.append(canvas, over);
