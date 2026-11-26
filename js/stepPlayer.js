@@ -46,6 +46,16 @@ function draw(d) {
     return n;
 }
 
+// words with math in them: {a/b} becomes a stacked fraction and ^{n} an exponent (why lines and step titles)
+function richText(node, s) {
+    node.textContent = "";
+    String(s).split(/(\{[^{}/]+\/[^{}/]+\}|\^\{[^{}]+\})/).forEach((part) => {
+        let m;
+        if ((m = part.match(/^\{([^{}/]+)\/([^{}/]+)\}$/))) node.appendChild(draw({ f: [m[1], m[2]] }));
+        else if ((m = part.match(/^\^\{([^{}]+)\}$/))) node.appendChild(draw({ sup: m[1] }));
+        else if (part) node.appendChild(document.createTextNode(part));
+    });
+}
 /* ---------- pictures ---------- */
 const PEN = { ink: "#14213D", blue: "#1552D6", red: "#C62828", green: "#1B7F3B", amber: "#F2B33D", sky: "#7FAEDD", grid: "#DCE7F5", board: "#FBFCFE" };
 function arrowHead(svg, id, color) {
@@ -412,6 +422,32 @@ const pics = {
             for (const m of marks) { m.style.opacity = 1; m.animate([{ opacity: 0, transform: "translateY(-8px)" }, { opacity: 1, transform: "none" }], { duration: 320 }); await wait(260); }
         } };
     },
+    grid(p) {
+        // a coordinate grid with the axes through (0, 0); shapes (polygons, or one point) drawn in order, the last in amber
+        const xr = p.xr || [-(p.r || 8), p.r || 8], yr = p.yr || xr, W = 440, pad = 24, sc = (W - 2 * pad) / Math.max(xr[1] - xr[0], yr[1] - yr[0]);
+        const H = Math.round(2 * pad + (yr[1] - yr[0]) * sc), X = (v) => pad + (v - xr[0]) * sc, Y = (v) => H - pad - (v - yr[0]) * sc;
+        const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, class: "sp-pic sp-grid", width: W, role: "img", "aria-label": p.label || "A coordinate grid" });
+        for (let v = Math.ceil(xr[0]); v <= xr[1]; v++) svg.appendChild(sv("line", { x1: X(v), y1: Y(yr[0]), x2: X(v), y2: Y(yr[1]), stroke: v === 0 ? PEN.ink : PEN.grid, "stroke-width": v === 0 ? 2.5 : 1 }));
+        for (let v = Math.ceil(yr[0]); v <= yr[1]; v++) svg.appendChild(sv("line", { x1: X(xr[0]), y1: Y(v), x2: X(xr[1]), y2: Y(v), stroke: v === 0 ? PEN.ink : PEN.grid, "stroke-width": v === 0 ? 2.5 : 1 }));
+        const lab = (x, y, s, fill) => { const t = sv("text", { x, y, "text-anchor": "middle", "font-size": 16, "font-weight": 700, fill }); t.textContent = String(s).replace(/-(?=\d)/g, MINUS); return t; };
+        svg.append(lab(X(xr[1]) - 8, Y(0) - 8, "x", PEN.ink), lab(X(0) + 12, Y(yr[1]) + 14, "y", PEN.ink));
+        const cols = ["#9AA8BF", PEN.blue, "#D9901A"], fills = ["rgba(154,168,191,.18)", "rgba(21,82,214,.12)", "rgba(242,179,61,.35)"];
+        const groups = (p.shapes || []).map((s, i, all) => {
+            const k = s.c != null ? s.c : i === all.length - 1 ? 2 : all.length > 2 && i === 0 ? 0 : 1, g = sv("g"), pts = s.pts, mx = pts.reduce((a, q) => a + q[0], 0) / pts.length, my = pts.reduce((a, q) => a + q[1], 0) / pts.length;
+            if (pts.length > 1) g.appendChild(sv("polygon", { points: pts.map((q) => X(q[0]) + "," + Y(q[1])).join(" "), fill: fills[k], stroke: cols[k], "stroke-width": 3, "stroke-linejoin": "round" }));
+            pts.forEach((q, j) => {
+                g.appendChild(sv("circle", { cx: X(q[0]), cy: Y(q[1]), r: pts.length > 1 ? 4.5 : 7, fill: cols[k] }));
+                const nm = s.names ? s.names[j] : null; if (nm) { const dx = pts.length > 1 ? (q[0] >= mx ? 1 : -1) : 1, dy = pts.length > 1 ? (q[1] >= my ? -1 : 1) : -1; g.appendChild(lab(X(q[0]) + dx * 14, Y(q[1]) + dy * 12 + 5, nm, cols[k])); }
+            });
+            return g;
+        });
+        groups.forEach((g) => svg.appendChild(g));
+        return { node: svg, async play(fast) {
+            if (fast || groups.length < 2) return;
+            groups.slice(1).forEach((g) => (g.style.opacity = 0)); await wait(350);
+            for (const g of groups.slice(1)) { g.style.opacity = 1; g.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450 }); await wait(500); }
+        } };
+    },
     verdict(p) {
         const b = el("span", "sp-verdict " + (p.ok ? "yes" : "no"), (p.ok ? "✓ " : "✗ ") + p.text);
         return { node: b, async play(fast) { if (!fast) await b.animate([{ opacity: 0, transform: "scale(.9)" }, { opacity: 1, transform: "none" }], { duration: 300 }).finished.catch(() => {}); } };
@@ -554,10 +590,10 @@ export function createStepPlayer(host, walk, opts) {
     }
     function header(i) {
         const s = steps[Math.max(0, i)];
-        mv.innerHTML = ""; mv.appendChild(document.createTextNode(i < 0 ? "Walkthrough" : s.title));
+        mv.innerHTML = ""; richText(mv, i < 0 ? "Walkthrough" : s.title);
         count.textContent = "Step " + (i + 1) + " of " + N;
         [...dots.children].forEach((d, j) => { d.className = j < i ? "done" : j === i ? "now" : ""; });
-        why.textContent = i < 0 ? "" : String(s.why).replace(/§/g, "$");
+        richText(why, i < 0 ? "" : String(s.why).replace(/§/g, "$"));
         bBack.disabled = i <= 0; bNext.disabled = i >= N - 1;
         bPlay.innerHTML = (playing ? ICON.pause : ICON.play) + '<span class="lbl">' + (playing ? "Pause" : i >= N - 1 ? "Play again" : "Play") + "</span>";
         bPlay.setAttribute("aria-label", playing ? "Pause" : "Play");

@@ -287,8 +287,8 @@ function stepsView(card, stp) {
     if (stepPlayerNow) { try { stepPlayerNow.destroy(); } catch (e) { /* gone */ } stepPlayerNow = null; }
     if (stp.w && stp.w.ok) {
         const host = el("div", "lnstephost"); host.append(el("p", "lntoolwait", "Opening…")); card.append(host);
-        cssOnce("css/steps.css?v=5");
-        if (!stepMods) stepMods = import("./stepPlayer.js?v=7");
+        cssOnce("css/steps.css?v=7");
+        if (!stepMods) stepMods = import("./stepPlayer.js?v=8");
         stepMods.then((sp) => { if (!host.isConnected) return; host.textContent = ""; stepPlayerNow = sp.createStepPlayer(host, stp.w, {}); }, () => { host.textContent = "Show Steps didn't load. Check the Wi-Fi."; });
     } else if (stp.h && stp.h.length) {
         const ol = el("ol", "lnhints"); card.append(ol);

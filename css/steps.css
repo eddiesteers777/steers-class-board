@@ -65,6 +65,7 @@
 
 /* pictures */
 .sp-pic{display:block;margin:0 auto;width:min(100%,13em);max-width:100%;height:auto;overflow:visible}
+.sp-pic.sp-grid{width:min(100%,19em)}
 .sp-pic.sp-wide{width:min(100%,24em)}
 .sp-pic text{font-family:"Instrument Sans",system-ui,sans-serif;fill:var(--sp-ink)}
 .sp-story{font-size:.62em;line-height:1.55;text-align:left;max-width:30em;margin:0 auto;white-space:normal;padding:.3em .2em}
