@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="css/board.css?v=57">
     <link rel="stylesheet" href="css/console.css?v=64">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/home.css?v=67">
+    <link rel="stylesheet" href="css/home.css?v=68">
     <link rel="stylesheet" href="css/absences.css?v=5">
     <link rel="stylesheet" href="css/footer.css?v=2">
     <link rel="stylesheet" href="css/skin.css?v=2">
@@ -39,7 +39,7 @@
         <div class="hm-shead"><button class="hb-menu hb-x" id="sideX" type="button" aria-controls="side" aria-expanded="true" aria-label="Close Pages" data-tip="Close"><span class="hb-lines" aria-hidden="true"><i></i><i></i><i></i></span></button><span class="hm-stitle">Pages</span></div>
         <nav class="hm-snav">
             <p class="hm-sg">Teach</p>
-            <a class="hm-sl" href="board.html" title="Open Board"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span class="hm-slt"><b>Open Board</b><small id="st-board">The projected screen</small></span></a>
+            <a class="hm-sl hm-sl-board" href="board.html" title="Open Board"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span class="hm-slt"><b>Open Board</b><small id="st-board">The projected screen</small></span></a>
             <a class="hm-sl" href="remote.html" title="Remote"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg><span class="hm-slt"><b>Remote</b><small>Run class, timer and tally</small></span></a>
             <a class="hm-sl" href="studio.html" title="Board Builder"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M6 13l3-3 2 2 4-4 3 3"/><path d="M8 21h8M12 17v4"/></svg><span class="hm-slt"><b>Board Builder</b><small>Look, panels, stickers and the lesson</small></span></a>
             <a class="hm-sl" href="tracker.html" title="Class Tracker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.9L22 9.3l-5.5 4.7L18.2 21 12 17.3 5.8 21l1.7-7L2 9.3l7.1-.4z"/></svg><span class="hm-slt"><b>Class Tracker</b><small>Positives, redirects, restroom, notes, picker</small></span></a>
@@ -338,7 +338,7 @@
             const setMin = (m) => { document.body.classList.toggle("hm-min", m); setX(!m, m ? "Open Pages" : "Fold Pages"); keepSet(m ? "min" : "open"); };
             setMin(keepGet() === "min");
             // Phones and narrow windows: the three lines slide Pages in; the X in the same spot closes it.
-            const drawer = (open) => { document.body.classList.toggle("hm-drawer", open); scrim.hidden = !open; const mb = $("sideOpen"); mb.setAttribute("aria-expanded", String(open)); mb.classList.toggle("hb-x", open); mb.setAttribute("aria-label", open ? "Close Pages" : "Pages"); mb.dataset.tip = open ? "Close" : "Pages"; if (open) { setX(true, "Close Pages"); side.querySelector("a").focus(); } else if (wide.matches) setMin(document.body.classList.contains("hm-min")); };
+            const drawer = (open) => { document.body.classList.toggle("hm-drawer", open); scrim.hidden = !open; const mb = $("sideOpen"); mb.setAttribute("aria-expanded", String(open)); mb.classList.toggle("hb-x", open); mb.setAttribute("aria-label", open ? "Close Pages" : "Pages"); mb.dataset.tip = open ? "Close" : "Pages"; if (open) { setX(true, "Close Pages"); [...side.querySelectorAll("a")].find(a => a.offsetParent)?.focus(); } else if (wide.matches) setMin(document.body.classList.contains("hm-min")); };
             $("sideOpen").onclick = () => { const open = !document.body.classList.contains("hm-drawer"); drawer(open); if (!open) $("sideOpen").focus(); };   // phones: the lines open the card and, as an X, close it
             side.querySelectorAll(".hm-sg,.hm-sl").forEach((el, i) => el.style.setProperty("--i", i));   // rows come in one after another
             X.onclick = () => { if (wide.matches) setMin(!document.body.classList.contains("hm-min")); else { drawer(false); $("sideOpen").focus(); } };

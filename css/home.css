@@ -87,6 +87,7 @@
   .hm-side .hm-sl svg{width:32px;height:32px;padding:7px;border-radius:10px}
   .hm-side .hm-slt small{display:none}
   .hm-side .hm-sg{margin:12px 10px 4px}
+  .hm-side .hm-sl-board{display:none}   /* Eddie, Nov 26: the projected board is for the classroom screen, not phones */
   .hm-drawer .hm-side .hm-sl,.hm-drawer .hm-side .hm-sg{animation:hmRow .35s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(110ms + var(--i,0)*18ms)}
   .hm-scrim{background:rgba(var(--s-rgb,8,27,69),.18)}
   body.hm-home.hm-drawer .cbar.hb-bar{z-index:21}   /* the X stays sharp above the dimmed page */
