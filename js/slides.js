@@ -10,11 +10,15 @@
      slides/index                  how many slides each lesson has       { v, n: { key: count } }
      slideimg/<id>                 a picture, shrunk on the device        { d: data URL, w, h }
 
-   A slide: { id, bg: { t, c, g, p }, els: [El], nt (notes for the teacher, never on the board), hide, pn }
+   A slide: { id, bg: { t, c, g, p }, els: [El], nt (notes for the teacher, never on the board), hide, pn, th, gd }
+     th  the theme its glass blocks wear: { c, f, o, r } from js/panelStyle.js (color, finish, how solid, corners).
+         None: "Match my panels", the frosted glass of Spotlight's own panels (Nov 26)
+     gd  the grid it was made from (GRIDS), so the Grid menu can show it
      pn  panels Spotlight opens when it reaches this slide: { tm: timer seconds, tg: learning target, ag: agenda } (Nov 24)
      bg.t  "board" (the board's own look) | "color" (c) | "grad" (g); bg.p a paper pattern over a color or gradient
    An element: { id, k, x, y, w, h, r, ap, lk, op, ...its own settings }, in slide units (1600 x 900)
-     k   "bx" a box: text, a card (hd = its heading), a shape (sh) or a sticky note
+     k   "bx" a box: text, a card (hd = its heading), a shape (sh) or a sticky note.
+              gl 1 makes it a glass block in the slide's theme (fill and line are not used); gl 2 is the same with an amber edge (answers, targets)
          "ln" a line or arrow (x1, y1, x2, y2 instead of x, y, w, h)
          "tb" a table of short texts     "pc" a picture (img = its id)
          "mt" a math tool (js/mathTools.js item)   "st" a sticker (js/stickers.js)   "lg" the board's logo
@@ -26,6 +30,7 @@
 ========================================== */
 import { cleanItems, NAMES as MATH_NAMES } from "./mathTools.js?v=1";
 import { cleanSticker } from "./stickers.js?v=1";
+import { PANEL_COLORS, PANEL_FINISHES, PANEL_CORNERS, MIN_SOLID } from "./panelStyle.js?v=3";
 
 export const SW = 1600, SH = 900;
 export const MAX_SLIDES = 40, MAX_ELS = 80, MAX_HTML = 6000, MAX_NOTES = 3000, MAX_DAILY = 6;
@@ -262,6 +267,70 @@ export function textInset(sh) {
 }
 
 /* ---------- cleaning what comes back from the database ---------- */
+/* ---------- glass blocks: the snap grid and its themes (Nov 26, Eddie: "the premium panel looks", fits Spotlight) ----------
+   Spotlight puts Back and Live along the top and its toolbar and screens along the bottom, over the slide.
+   FRAME is the part of the slide nothing covers: 2.5% in from the sides, 10% down from the top, 13% up from the bottom. */
+export const FRAME = { x: 40, y: 90, w: 1520, h: 693 };
+export const GAP = 24;
+/* [id, name, cells as parts of the frame [x, y, w, h], what each cell starts as] */
+const TS = 0.19;   // a title strip, as part of the frame's height
+const C = (hd, html, x) => Object.assign({ hd, html }, x || {});
+const TITLE = (t) => C("", "<b>" + t + "</b>", { fs: 64, ff: "display", va: "m", pad: 18 });
+const CENTER = (t) => '<div style="text-align:center">' + t + "</div>";
+export const GRIDS = [
+    ["one", "One", [[0, 0, 1, 1]], [C("Notes", "<ul><li>First point</li><li>Second point</li><li>Third point</li></ul>", { fs: 48 })]],
+    ["two", "Two", [[0, 0, 0.5, 1], [0.5, 0, 0.5, 1]], [C("Example", "Type here"), C("Try it", "Type here")]],
+    ["three", "Three", [[0, 0, 1 / 3, 1], [1 / 3, 0, 1 / 3, 1], [2 / 3, 0, 1 / 3, 1]], [C("I do", "Watch me solve one."), C("We do", "Let's solve one together.", { ap: 1 }), C("You do", "Your turn. Show every step.", { ap: 2 })]],
+    ["bigside", "Big + side", [[0, 0, 0.63, 1], [0.63, 0, 0.37, 0.5], [0.63, 0.5, 0.37, 0.5]], [C("Warm-up", "Type the problem here", { fs: 52 }), C("Hint", "Type a hint"), C("Answer", CENTER("The answer shows on Next"), { gl: 2, ap: 1, va: "m", fs: 48 })]],
+    ["sidebig", "Side + big", [[0, 0, 0.37, 1], [0.37, 0, 0.63, 1]], [C("Word", CENTER("<b>word</b>"), { fs: 64, va: "m" }), C("What it means", "Type the meaning, then an example", { ap: 1 })]],
+    ["titletwo", "Title + two", [[0, 0, 1, TS], [0, TS, 0.5, 1 - TS], [0.5, TS, 0.5, 1 - TS]], [TITLE("Title"), C("Left", "Type here"), C("Right", "Type here")]],
+    ["titlethree", "Title + three", [[0, 0, 1, TS], [0, TS, 1 / 3, 1 - TS], [1 / 3, TS, 1 / 3, 1 - TS], [2 / 3, TS, 1 / 3, 1 - TS]], [TITLE("Today we practice"), C("I do", "Watch me solve one."), C("We do", "Let's solve one together.", { ap: 1 }), C("You do", "Your turn. Show every step.", { ap: 2 })]],
+    ["qa", "Question + answer", [[0, 0, 1, 0.66], [0, 0.66, 1, 0.34]], [C("Question", CENTER("Type the question here"), { fs: 72, va: "m" }), C("Answer", CENTER("The answer shows when you press Next"), { gl: 2, ap: 1, fs: 56, va: "m" })]],
+    ["four", "Four", [[0, 0, 0.5, 0.5], [0.5, 0, 0.5, 0.5], [0, 0.5, 0.5, 0.5], [0.5, 0.5, 0.5, 0.5]], [C("1", "Type a problem", { fs: 48, va: "m" }), C("2", "Type a problem", { fs: 48, va: "m" }), C("3", "Type a problem", { fs: 48, va: "m" }), C("4", "Type a problem", { fs: 48, va: "m" })]],
+];
+/** A grid's cells in slide units, with a gap between them and none at the frame's edge. */
+export function gridCells(id) {
+    const g = GRIDS.find((x) => x[0] === id) || GRIDS[0], F = FRAME, W = F.w + GAP, H = F.h + GAP;
+    return g[2].map(([fx, fy, fw, fh]) => {
+        const x0 = F.x + fx * W, x1 = F.x + (fx + fw) * W - GAP, y0 = F.y + fy * H, y1 = F.y + (fy + fh) * H - GAP;
+        return { x: r1(x0), y: r1(y0), w: r1(x1 - x0), h: r1(y1 - y0) };
+    });
+}
+/* Ready-made themes: [id, name, { c, f, o, r }]. Built only from the panel colors and finishes Eddie already has. "panels" is the default (no th). */
+export const THEMES = [
+    ["panels", "Match my panels", null],
+    ["board", "My board colors", { c: "board", f: "glass", o: 82, r: "soft" }],
+    ["frost", "Frosted glass", { c: "paper", f: "glass", o: 55, r: "soft" }],
+    ["night", "Night glass", { c: "night", f: "glass", o: 62, r: "soft" }],
+    ["ocean", "Ocean glass", { c: "ocean", f: "glass", o: 64, r: "soft" }],
+    ["forest", "Forest glass", { c: "forest", f: "glass", o: 64, r: "soft" }],
+    ["plum", "Plum glass", { c: "plum", f: "glass", o: 64, r: "soft" }],
+    ["navy", "Navy fade", { c: "navy", f: "grad", o: 94, r: "soft" }],
+    ["berry", "Berry fade", { c: "berry", f: "grad", o: 94, r: "soft" }],
+    ["lilac", "Lilac fade", { c: "lilac", f: "grad", o: 96, r: "round" }],
+    ["candy", "Glossy candy", { c: "sky", f: "glossy", o: 100, r: "soft" }],
+    ["mint", "Glossy mint", { c: "mint", f: "glossy", o: 100, r: "round" }],
+    ["neon", "Neon", { c: "night", f: "glow", o: 88, r: "soft" }],
+    ["neonberry", "Neon berry", { c: "berry", f: "glow", o: 88, r: "soft" }],
+    ["sunny", "Sunny paper", { c: "sun", f: "grain", o: 100, r: "soft" }],
+    ["rose", "Rose paper", { c: "rose", f: "grain", o: 100, r: "soft" }],
+    ["outline", "Bold outline", { c: "slate", f: "frame", o: 70, r: "soft" }],
+    ["charcoal", "Charcoal", { c: "slate", f: "solid", o: 96, r: "square" }],
+];
+const COLOR_IDS = PANEL_COLORS.map((c) => c[0]), FIN_IDS = PANEL_FINISHES.map((f) => f[0]), CORNER_IDS = PANEL_CORNERS.map((c) => c[0]);
+/** A slide's theme, cleaned; null means the default (Match my panels). */
+export function cleanTheme(o) {
+    if (!o || typeof o !== "object" || !COLOR_IDS.includes(o.c)) return null;
+    return { c: o.c, f: pick(o.f, FIN_IDS, "glass"), o: int(o.o, MIN_SOLID, 100, 80), r: pick(o.r, CORNER_IDS, "soft") };
+}
+/** Which ready-made theme a slide's theme is, or "" when it is one of the teacher's own. */
+export function themeId(th) {
+    const t = cleanTheme(th); if (!t) return "panels";
+    const m = THEMES.find((x) => x[2] && x[2].c === t.c && x[2].f === t.f && x[2].o === t.o && x[2].r === t.r); return m ? m[0] : "";
+}
+/** Whether a theme is dark (light words on it). null: the frosted default, which is light. */
+export const themeDark = (th) => { const t = cleanTheme(th); return !!t && !!(PANEL_COLORS.find((c) => c[0] === t.c) || [])[5]; };
+
 const FIELDS_BOX = ["sh", "fill", "ln", "lw", "dash", "rd", "sd", "html", "fs", "ff", "fc", "al", "va", "pad", "lh", "hd", "hf", "hc"];
 export function cleanEl(o) {
     if (!o || typeof o !== "object") return null;
@@ -284,6 +353,7 @@ export function cleanEl(o) {
         e.html = sanitizeHtml(o.html); e.fs = r1(num(o.fs, 8, 400, 44)); e.ff = pick(o.ff, FONTS, "sans"); e.fc = color(o.fc, "");
         e.al = pick(o.al, ALIGN, "l"); e.va = pick(o.va, VALIGN, "t"); e.pad = r1(num(o.pad, 0, 200, 16)); e.lh = r2(num(o.lh, 0.8, 3, 1.2));
         const hd = str(o.hd, 80).trim(); if (hd) { e.hd = hd; e.hf = color(o.hf, "#10358a"); e.hc = color(o.hc, ""); }
+        if (o.gl === 1 || o.gl === 2) e.gl = o.gl;
     } else if (k === "tb") {
         const src = Array.isArray(o.rows) && o.rows.length ? o.rows.slice(0, 12) : [["", ""], ["", ""]];
         let cols = 1; src.forEach((rw) => { if (Array.isArray(rw)) cols = Math.max(cols, Math.min(8, rw.length)); });
@@ -324,6 +394,8 @@ export function cleanSlide(o) {
     const nt = str(o.nt, MAX_NOTES); if (nt.trim()) s.nt = nt;
     if (o.hide === true) s.hide = true;
     const pn = cleanPanels(o.pn); if (pn) s.pn = pn;
+    const th = cleanTheme(o.th); if (th) s.th = th;
+    if (GRIDS.some((g) => g[0] === o.gd)) s.gd = o.gd;
     return s;
 }
 export function cleanDeck(o, max) {
@@ -372,12 +444,56 @@ export const countShown = (deck) => ((deck && deck.slides) || []).filter((s) => 
 
 /* ---------- new elements ---------- */
 const TEXT = { k: "bx", sh: "rect", fill: "", ln: "", lw: 0, html: "", fs: 44, ff: "sans", fc: "", al: "l", va: "t", pad: 16, lh: 1.2 };
+/** A glass block: words in the slide's theme, sized by the snap grid. */
+const GLASS = Object.assign({}, TEXT, { gl: 1, pad: 24, fs: 40 });
+/* What the Block menu adds: [id, name, one line, the block] */
+export const BLOCKS = [
+    ["notes", "Notes", "A glass block with a heading", () => ({ hd: "Notes", html: "" })],
+    ["question", "Question", "Big words in the middle", () => ({ hd: "Question", html: "", fs: 64, al: "c", va: "m" })],
+    ["answer", "Answer on Next", "Hidden until you press Next", () => ({ hd: "Answer", html: "", gl: 2, fs: 52, al: "c", va: "m", ap: 1 })],
+    ["steps", "Steps", "A numbered list, one step per line", () => ({ hd: "Steps", html: "<ol><li>First step</li><li>Next step</li></ol>", fs: 40 })],
+    ["target", "Learning target", "Today's \"I can\" from your plan", () => ({ hd: "Learning target", html: "{{lt}}", gl: 2, fs: 40 })],
+    ["agenda", "Agenda", "Today's agenda from your plan", () => ({ hd: "Agenda", html: "{{agenda}}", fs: 40 })],
+    ["title", "Title strip", "A wide strip for the slide's title", () => ({ hd: "", html: "<b>Title</b>", fs: 64, ff: "display", va: "m", pad: 18 })],
+];
+/** A glass block from the Block menu, at x (its box in slide units). */
+export function newBlock(kind, box) {
+    const b = BLOCKS.find((x) => x[0] === kind) || BLOCKS[0];
+    return cleanEl(Object.assign({ id: newId("e") }, GLASS, b[3](), box || { x: 400, y: 236, w: 800, h: 400 }));
+}
+/** Where a new block goes on a slide: the first cell of the slide's grid nothing covers yet, else the frame's free middle. */
+export function freeSpot(slide, kind) {
+    const els = (slide && slide.els) || [], over = (c) => els.some((e) => { const b = boxOf(e); return b.x < c.x + c.w - 8 && b.x + b.w > c.x + 8 && b.y < c.y + c.h - 8 && b.y + b.h > c.y + 8; });
+    const order = [slide && slide.gd, "bigside", "four", "two", "titletwo"].filter(Boolean);
+    for (const g of order) { const free = gridCells(g).find((c) => !over(c)); if (free && !(kind === "title" && free.h > 300)) return free; }
+    if (kind === "title") return { x: FRAME.x, y: FRAME.y, w: FRAME.w, h: r1(FRAME.h * TS - GAP / 2) };
+    return { x: 400, y: 236, w: 800, h: 400 };
+}
+/** A new slide laid out on a grid, every cell a glass block. th: the theme (null for Match my panels). */
+export function gridSlide(id, th) {
+    const g = GRIDS.find((x) => x[0] === id) || GRIDS[0], cells = gridCells(g[0]);
+    const s = cleanSlide({ id: newId("s"), bg: { t: "board" }, gd: g[0], th, els: cells.map((c, i) => Object.assign({}, GLASS, g[3][i] || {}, c)) });
+    return s;
+}
+/** Put a slide's glass blocks into a grid's cells, in reading order; cells left over get new blocks, extra blocks stay where they are. */
+export function snapToGrid(slide, id) {
+    const g = GRIDS.find((x) => x[0] === id) || GRIDS[0], cells = gridCells(g[0]);
+    const blocks = slide.els.filter((e) => e.gl).sort((a, b) => (Math.abs(a.y - b.y) > 60 ? a.y - b.y : a.x - b.x));
+    cells.forEach((c, i) => {
+        const b = blocks[i];
+        if (b) { b.x = c.x; b.y = c.y; b.w = c.w; b.h = c.h; delete b.r; }
+        else if (slide.els.length < MAX_ELS) slide.els.push(cleanEl(Object.assign({ id: newId("e") }, GLASS, g[3][i] || {}, c)));
+    });
+    slide.gd = g[0];
+    return slide;
+}
 export function newEl(kind, o) {
     const at = o || {};
     const base = (x) => cleanEl(Object.assign({ id: newId("e") }, x, at));
     switch (kind) {
         case "text": return base(Object.assign({}, TEXT, { x: 200, y: 330, w: 1200, h: 160, html: "" }));
         case "title": return base(Object.assign({}, TEXT, { x: 120, y: 60, w: 1360, h: 150, fs: 96, ff: "display", al: "c", va: "m", html: "<b>Title</b>" }));
+        case "block": return base(Object.assign({}, GLASS, { x: 400, y: 236, w: 800, h: 400, hd: at.hd != null ? at.hd : "Notes", html: "" }));
         case "card": return base(Object.assign({}, TEXT, { sh: "round", rd: 28, fill: "#ffffff", ln: "#dce7f5", lw: 2, sd: true, x: 420, y: 250, w: 760, h: 420, pad: 28, fs: 44, hd: "Card", hf: "#10358a" }));
         case "sticky": return base(Object.assign({}, TEXT, { sh: "rect", fill: "#fff3b0", sd: true, x: 600, y: 260, w: 400, h: 360, pad: 28, fs: 52, ff: "hand", al: "c", va: "m", r: -2 }));
         case "shape": return base(Object.assign({}, TEXT, { sh: at.sh || "rect", fill: "#7faedd", ln: "#10358a", lw: 5, x: 600, y: 270, w: 400, h: 360, al: "c", va: "m", fs: 48, pad: 12 }));
@@ -400,37 +516,20 @@ export function mathBox(it, geomFn) {
     return { x: r1(800 - w / 2), y: r1(450 - h / 2), w: r1(w), h: r1(h) };
 }
 
-/* ---------- slides to start from ---------- */
-const S1 = (els, bg) => cleanSlide({ id: newId("s"), bg: bg || { t: "board" }, els });
-const banner = (title, sub, extra) => [
-    Object.assign({ k: "bx", sh: "round", rd: 26, fill: "#ffffff", sd: true, x: 40, y: 30, w: 1520, h: 118, html: "", pad: 0 }, extra || {}),
-    { k: "lg", x: 62, y: 44, w: 90, h: 90 },
-    Object.assign({}, TEXT, { x: 170, y: 36, w: sub ? 900 : 1360, h: 106, fs: 58, ff: "display", va: "m", html: "<b>" + esc(title) + "</b>", fc: "#10358a" }),
-    sub ? Object.assign({}, TEXT, { x: 1080, y: 36, w: 460, h: 106, fs: 32, va: "m", al: "r", html: esc(sub), fc: "#5f6b7a" }) : null,
-].filter(Boolean);
-const card = (x, y, w, h, hd, html, extra) => Object.assign({}, TEXT, { sh: "round", rd: 26, fill: "#ffffff", ln: "#dce7f5", lw: 2, sd: true, x, y, w, h, pad: 26, fs: 38, hd, hf: "#10358a", html }, extra || {});
-export const LAYOUTS = [
-    ["blank", "Blank", () => S1([])],
-    ["title", "Title", () => S1([Object.assign({}, TEXT, { x: 120, y: 250, w: 1360, h: 220, fs: 120, ff: "display", al: "c", va: "m", html: "<b>Title</b>" }),
-        Object.assign({}, TEXT, { x: 220, y: 500, w: 1160, h: 120, fs: 52, al: "c", va: "t", html: "Subtitle" })])],
-    ["titletext", "Title and text", () => S1([Object.assign({}, TEXT, { x: 80, y: 40, w: 1440, h: 140, fs: 84, ff: "display", va: "m", html: "<b>Title</b>" }),
-        card(80, 200, 1440, 650, "", "<ul><li>First point</li><li>Second point</li><li>Third point</li></ul>", { fs: 48 })])],
-    ["two", "Two columns", () => S1([Object.assign({}, TEXT, { x: 80, y: 40, w: 1440, h: 140, fs: 84, ff: "display", va: "m", html: "<b>Title</b>" }),
-        card(80, 200, 705, 650, "Left", "Type here"), card(815, 200, 705, 650, "Right", "Type here")])],
-    ["three", "I do, we do, you do", () => S1([Object.assign({}, TEXT, { x: 80, y: 40, w: 1440, h: 140, fs: 84, ff: "display", va: "m", html: "<b>Today we practice</b>" }),
-        card(80, 200, 466, 650, "I do", "Watch me solve one."), card(567, 200, 466, 650, "We do", "Let's solve one together.", { ap: 1 }), card(1054, 200, 466, 650, "You do", "Your turn. Show every step.", { ap: 2 })])],
-    ["question", "Big question", () => S1([card(80, 60, 1440, 520, "Question", "<div style=\"text-align:center\">Type the question here</div>", { fs: 72, va: "m" }),
-        card(80, 610, 1440, 240, "Answer", "<div style=\"text-align:center\">The answer shows when you press Next</div>", { fs: 60, va: "m", fill: "#fff6dd", ln: "#f2b33d", hf: "#b77905", ap: 1 })])],
-    ["today", "Today (your own)", () => todaySlide()],
-    ["agenda", "Agenda and target", () => S1(banner("{{day}}'s agenda", "{{date}}").concat([card(40, 180, 940, 680, "Agenda", "{{agenda}}", { fs: 46 }),
-        card(1010, 180, 550, 680, "Learning target", "{{lt}}", { fs: 44, fill: "#fff6dd", ln: "#f2b33d", hf: "#b77905" })]))],
-    ["vocab", "Vocabulary", () => S1(banner("Vocabulary", "").concat([card(40, 180, 740, 330, "Word", "<div style=\"text-align:center\"><b>word</b></div>", { fs: 72, va: "m" }),
-        card(820, 180, 740, 330, "What it means", "Type the meaning", { ap: 1 }), card(40, 540, 1520, 320, "Example", "Type an example", { ap: 2 })]))],
-    ["graph", "Graph and notes", () => S1(banner("Graph it", "").concat([{ k: "mt", x: 60, y: 180, w: 680, h: 680, it: { k: "plane", s: 1, xmin: -10, xmax: 10, ymin: -10, ymax: 10, fx: ["", "", ""] } },
-        card(780, 180, 780, 680, "Notes", "Type here")]), { t: "color", c: "#f4f8fd" })],
-    ["exit", "Exit ticket", () => S1(banner("Exit ticket", "On your own. Show every step.").concat([card(40, 180, 1520, 210, "1", "Type a problem", { fs: 52, va: "m" }),
-        card(40, 415, 1520, 210, "2", "Type a problem", { fs: 52, va: "m" }), card(40, 650, 1520, 210, "3", "Type a problem", { fs: 52, va: "m" })]))],
-];
+/* ---------- slides to start from ----------
+   Nov 26 (Eddie: "get rid of those layouts... make it fit and look good on the spotlight view"): every starter is glass
+   blocks in the slide's theme, inside FRAME. They are written on the full slide (40-1560 across, 30-870 down) and
+   squeezed into the frame, so Spotlight's buttons never sit on them. */
+const S1 = (els, bg) => cleanSlide({ id: newId("s"), bg: bg || { t: "board" }, els: inFrame(els) });
+function inFrame(els) {
+    const k = FRAME.h / 840, fy = (y) => r1(FRAME.y + (y - 30) * k);
+    return els.map((e) => (e.k === "ln" ? e : Object.assign({}, e, { y: fy(e.y), h: r1(e.h * k) })));
+}
+const banner = (title, sub) => [Object.assign({}, GLASS, { x: 40, y: 30, w: 1520, h: 118, pad: 14, fs: 56, ff: "display", va: "m",
+    html: "<b>" + esc(title) + "</b>" + (sub ? '  <span style="font-size:0.6em">' + esc(sub) + "</span>" : "") })];
+const card = (x, y, w, h, hd, html, extra) => Object.assign({}, GLASS, { x, y, w, h, pad: 22, fs: 38, hd, html }, extra || {});
+/** The old Layout menu's names, kept for anything that still asks for one: a blank slide, then the grids. */
+export const LAYOUTS = [["blank", "Blank", () => cleanSlide({ id: newId("s"), bg: { t: "board" }, els: [] })]].concat(GRIDS.map((g) => [g[0], g[1], () => gridSlide(g[0])]));
 /** The built-in Today screen as pieces: the header, Bell Ringer, Agenda, Supplies, Reminders, This Week and the target, filled in live. */
 export function todaySlide() {
     return S1(banner("{{day}} · {{topic}}", "{{date}}").concat([
@@ -439,7 +538,7 @@ export function todaySlide() {
         card(1080, 180, 480, 330, "This Week", "{{week}}", { fs: 30 }),
         card(40, 530, 500, 330, "Supplies", "{{supplies}}", { fs: 40 }),
         card(560, 530, 500, 330, "Reminders", "{{reminders}}", { fs: 40 }),
-        card(1080, 530, 480, 330, "Learning Target", "{{lt}}", { fs: 38, fill: "#fff6dd", ln: "#f2b33d", hf: "#b77905" }),
+        card(1080, 530, 480, 330, "Learning Target", "{{lt}}", { fs: 38, gl: 2 }),
     ]));
 }
 /** The built-in Weekly Agenda screen as pieces. */
@@ -447,14 +546,14 @@ export function agendaSlide(L) {
     const DK = ["Mon", "Tue", "Wed", "Thu", "Fri"], days = (L && L.days) || [];
     const els = banner("Weekly Agenda", "{{class}}");
     days.slice(0, 5).forEach((d, i) => els.push(card(40, 172 + i * 118, 1520, 104, "", "<b>" + DK[i] + "</b>  " + esc((d && d.agendaLine) || ""), { fs: 40, va: "m", pad: 22 })));
-    els.push(Object.assign({}, TEXT, { x: 40, y: 772, w: 1520, h: 100, fs: 36, va: "m", al: "c", html: "<b>Learning target:</b> {{weeklt}}" }));
+    els.push(card(40, 772, 1520, 100, "", "<b>Learning target:</b> {{weeklt}}", { fs: 36, va: "m", al: "c", pad: 16, gl: 2 }));
     return S1(els);
 }
 /** One question with its answer one Next away (a bellringer problem). */
 export function problemSlide(title, sub, q, a) {
     const els = banner(title, sub);
     els.push(card(40, 180, 1520, a ? 440 : 680, "", "<div style=\"text-align:center\">" + esc(q) + "</div>", { fs: 76, va: "m" }));
-    if (a) els.push(card(40, 650, 1520, 210, "Answer", "<div style=\"text-align:center\">" + esc(a) + "</div>", { fs: 64, va: "m", fill: "#fff6dd", ln: "#f2b33d", hf: "#b77905", ap: 1 }));
+    if (a) els.push(card(40, 650, 1520, 210, "Answer", "<div style=\"text-align:center\">" + esc(a) + "</div>", { fs: 64, va: "m", gl: 2, ap: 1 }));
     return S1(els);
 }
 /** Bank problems use § for a dollar sign and $ for nothing (js/weekSheets.js rich); slides use $ as typed. */
@@ -479,12 +578,12 @@ export function frameSlide(f) {
     const top = 172 + qh + 18, room = 878 - top - (f.ans || blanks ? 160 : 0), each = lines.length ? Math.min(112, Math.floor(room / lines.length)) : 0;
     lines.forEach((ln, i) => {
         const m = typeof ln === "string" ? ln : (ln && ln.m) || "", why = ln && typeof ln === "object" && ln.why ? ln.why : "";
-        els.push(card(40, top + i * each, 1520, each - 12, "", esc(m) + (why ? '  <span style="color:#5f6b7a;font-size:0.7em">' + esc(why) + "</span>" : ""), { fs: Math.min(46, Math.round(each * 0.42)), va: "m", pad: 18, ap: f.open ? 0 : i + 1 }));
+        els.push(card(40, top + i * each, 1520, each - 12, "", esc(m) + (why ? '  <span style="font-size:0.7em">' + esc(why) + "</span>" : ""), { fs: Math.min(46, Math.round(each * 0.42)), va: "m", pad: 18, ap: f.open ? 0 : i + 1 }));
     });
     if (blanks) {
         const words = (q.match(/\[([^\]]+)\]/g) || []).map((w) => w.slice(1, -1)).join(", ");
-        if (words) els.push(card(40, 718, 1520, 150, "Missing words", "<div style=\"text-align:center\">" + esc(words) + "</div>", { fs: 52, va: "m", fill: "#fff6dd", ln: "#f2b33d", hf: "#b77905", ap: (f.open ? 0 : lines.length) + 1 }));
-    } else if (f.ans) els.push(card(40, 718, 1520, 150, "Answer", "<div style=\"text-align:center\">" + esc(f.ans) + "</div>", { fs: 52, va: "m", fill: "#fff6dd", ln: "#f2b33d", hf: "#b77905", ap: (f.open ? 0 : lines.length) + 1 }));
+        if (words) els.push(card(40, 718, 1520, 150, "Missing words", "<div style=\"text-align:center\">" + esc(words) + "</div>", { fs: 52, va: "m", gl: 2, ap: (f.open ? 0 : lines.length) + 1 }));
+    } else if (f.ans) els.push(card(40, 718, 1520, 150, "Answer", "<div style=\"text-align:center\">" + esc(f.ans) + "</div>", { fs: 52, va: "m", gl: 2, ap: (f.open ? 0 : lines.length) + 1 }));
     return S1(els);
 }
 /**
