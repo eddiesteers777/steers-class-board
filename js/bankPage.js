@@ -10,6 +10,7 @@ import { extract, norm, KINDS, saveBankWeek } from "./bank.js?v=2";
 import { rich } from "./weekSheets.js?v=60";
 import { STANDARDS } from "../data/standards.js?v=60";
 import { loadStdBank, inClass, coverage, LEVELS, WEEK_ID, WEEK_LABEL, KIND } from "./stdBank.js?v=6";
+import { byGrade } from "./courseOrder.js?v=1";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -17,6 +18,7 @@ const $ = (id) => document.getElementById(id);
 const el = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
 const status = (t, s) => { const n = $("status"); n.textContent = t; n.dataset.state = s || "wait"; };
 const LABEL = { "8th": "8th Grade", "7th": "7th Grade", "8th-acc": "8th Accelerated", "g2": "2nd Grade", "g3": "3rd Grade", "g4": "4th Grade", "g5": "5th Grade", "g6": "6th Grade", "geo": "Geometry", "alg2": "Algebra II", "precalc": "Precalculus", "mm": "Math Modeling", "afm": "Finite Math" };
+const IN_ORDER = byGrade(Object.entries(LABEL), ([, t]) => t);   // [key, label] in grade level order, for the class list and the coverage cards
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 const PAGE = 60;
 // Alabama standard wording by code (from data/standards.js, built from the curriculum docs), for the chip and filter labels.
@@ -44,7 +46,7 @@ function opts(sel, list, first) {
     if ([...sel.options].some((o) => o.value === keep)) sel.value = keep;
 }
 function fill() {
-    opts($("fCls"), Object.entries(LABEL).filter(([k]) => all.some((x) => inClass(x, k))), "All classes");
+    opts($("fCls"), IN_ORDER.filter(([k]) => all.some((x) => inClass(x, k))), "All classes");
     opts($("fKind"), KINDS.concat([KIND]).filter((k) => all.some((x) => x.kind === k)).map((k) => [k, k]), "Every kind");
     // Standards first (7th, 8th, then Algebra I), then prior skills.
     const tags = [...new Set(all.map(tagOf).filter(Boolean))].sort((a, b) => (STD_TEXT.has(b) - STD_TEXT.has(a)) || a.localeCompare(b, undefined, { numeric: true }));
@@ -104,7 +106,7 @@ function card(x) {
 /** Every standard for the chosen class (or all three) with how many questions carry it. Tap one to show them. */
 function drawCoverage() {
     const box = $("cover"); if (!box) return; box.textContent = "";
-    const cov = coverage(all), c = $("fCls").value, classes = c ? [c] : Object.keys(LABEL).filter((k) => cov[k]);
+    const cov = coverage(all), c = $("fCls").value, classes = c ? [c] : IN_ORDER.map(([k]) => k).filter((k) => cov[k]);
     classes.forEach((cls) => {
         const rows = cov[cls] || [], done = rows.filter((r) => r.bank + r.weeks).length;
         const d = el("details", "bk-cov"); d.open = openCov.has(cls); d.ontoggle = () => { if (d.open) openCov.add(cls); else openCov.delete(cls); }; const sm = el("summary", null, (LABEL[cls] || cls) + ": " + done + " of " + rows.length + " standards have questions"); d.appendChild(sm);
