@@ -4431,5 +4431,3255 @@
    "Cross-cancel {9/4} × {4/3} to get {9/3} = 3.",
    "Multiply 3 × 2 and label your answer in ft³."
   ]
+ },
+ {
+  "src": "6.1-L1-04",
+  "std": "6.1",
+  "q": "An aquarium tank has 7 goldfish and 4 tetras. Which fraction notation represents the ratio of tetras to goldfish?",
+  "a": "{4/7}",
+  "lvl": 1,
+  "choices": [
+   "{7/4}",
+   "{4/7}",
+   "{4/11}",
+   "{7/11}"
+  ]
+ },
+ {
+  "src": "6.1-L1-05",
+  "std": "6.1",
+  "q": "At a park bike rack, the ratio of skateboards to bicycles is 5 to 9. Which choice shows this same ratio in colon notation?",
+  "a": "5:9",
+  "lvl": 1,
+  "choices": [
+   "5:9",
+   "9:5",
+   "5:14",
+   "9:14"
+  ]
+ },
+ {
+  "src": "6.1-L1-06",
+  "std": "6.1",
+  "q": "A garden has 11 tomato plants and 6 pepper plants. What is the ratio of total plants to pepper plants?",
+  "a": "17 to 6",
+  "lvl": 1,
+  "choices": [
+   "11 to 6",
+   "6 to 17",
+   "17 to 6",
+   "17 to 11"
+  ]
+ },
+ {
+  "src": "6.1-L2-04",
+  "std": "6.1",
+  "q": "A bookshelf holds 16 fiction books and 24 nonfiction books. Which statement accurately describes this relationship in simplest ratio language?",
+  "a": "For every 2 fiction books, there are 3 nonfiction books.",
+  "lvl": 2,
+  "choices": [
+   "For every 3 fiction books, there are 2 nonfiction books.",
+   "For every 2 fiction books, there are 5 nonfiction books.",
+   "For every 4 fiction books, there are 3 nonfiction books.",
+   "For every 2 fiction books, there are 3 nonfiction books."
+  ]
+ },
+ {
+  "src": "6.1-L2-05",
+  "std": "6.1",
+  "q": "A parking lot has 18 sedans, 14 SUVs, and 10 trucks. What is the ratio of vehicles that are NOT sedans to sedans in simplest form?",
+  "a": "4:3",
+  "lvl": 2,
+  "choices": [
+   "3:4",
+   "4:3",
+   "4:7",
+   "7:3"
+  ]
+ },
+ {
+  "src": "6.1-L2-06",
+  "std": "6.1",
+  "q": "A lemonade recipe uses 4 lemons for every 10 cups of water. Which ratio does NOT represent the ratio of lemons to water?",
+  "a": "5:2",
+  "lvl": 2,
+  "choices": [
+   "4 to 10",
+   "2:5",
+   "5:2",
+   "{2/5}"
+  ]
+ },
+ {
+  "src": "6.1-L3-04",
+  "std": "6.1",
+  "q": "A library shelf originally had mystery books and biography books in the ratio 5:3. After 6 new biography books were added, there were 18 biography books on the shelf. How many mystery books are on the shelf?",
+  "a": "20",
+  "lvl": 3,
+  "choices": [
+   "12",
+   "20",
+   "26",
+   "30"
+  ]
+ },
+ {
+  "src": "6.1-L3-05",
+  "std": "6.1",
+  "q": "Recipe A uses 6 cups of cranberry juice and 9 cups of ginger ale. Recipe B uses 10 cups of cranberry juice and 15 cups of ginger ale. Which statement correctly compares the ratios of cranberry juice to ginger ale?",
+  "a": "Both recipes have the same ratio of 2:3, so they have the same cranberry flavor.",
+  "lvl": 3,
+  "choices": [
+   "Both recipes have the same ratio of 2:3, so they have the same cranberry flavor.",
+   "Recipe A has a stronger cranberry flavor because it uses less ginger ale.",
+   "Recipe B has a stronger cranberry flavor because it uses 4 more cups of cranberry juice.",
+   "Recipe A has a ratio of 3:2 while Recipe B has a ratio of 2:3."
+  ]
+ },
+ {
+  "src": "6.1-L3-06",
+  "std": "6.1",
+  "q": "A school art kit contains markers, colored pencils, and crayons in the ratio 2:7:4. If there are 12 crayons in the kit, how many more colored pencils than markers are in the kit?",
+  "a": "15",
+  "lvl": 3
+ },
+ {
+  "src": "6.2-L1-04",
+  "std": "6.2",
+  "q": "A baker decorates 72 cupcakes in 4 hours. What is the unit rate in cupcakes per hour?",
+  "a": "18 cupcakes per hour",
+  "lvl": 1,
+  "choices": [
+   "16 cupcakes per hour",
+   "24 cupcakes per hour",
+   "18 cupcakes per hour",
+   "288 cupcakes per hour"
+  ]
+ },
+ {
+  "src": "6.2-L1-05",
+  "std": "6.2",
+  "q": "A pack of 6 water bottles costs §4.80. What is the unit price per bottle?",
+  "a": "§0.80",
+  "lvl": 1,
+  "choices": [
+   "§0.60",
+   "§0.75",
+   "§1.25",
+   "§0.80"
+  ]
+ },
+ {
+  "src": "6.2-L1-06",
+  "std": "6.2",
+  "q": "A lawnmower uses 3 gallons of gas to mow 12 acres. What is the unit rate in acres per gallon?",
+  "a": "4 acres per gallon",
+  "lvl": 1,
+  "choices": [
+   "4 acres per gallon",
+   "0.25 acres per gallon",
+   "9 acres per gallon",
+   "36 acres per gallon"
+  ]
+ },
+ {
+  "src": "6.2-L2-04",
+  "std": "6.2",
+  "q": "A train travels 216 miles in 4 hours. At this constant speed, how many hours will it take the train to travel 378 miles?",
+  "a": "7 hours",
+  "lvl": 2,
+  "choices": [
+   "6 hours",
+   "7 hours",
+   "8 hours",
+   "9 hours"
+  ]
+ },
+ {
+  "src": "6.2-L2-05",
+  "std": "6.2",
+  "q": "A smoothie recipe uses 6 cups of berries to make 4 smoothies. What is the unit rate in cups of berries per smoothie?",
+  "a": "1.5 cups per smoothie",
+  "lvl": 2,
+  "choices": [
+   "0.67 cups per smoothie",
+   "2 cups per smoothie",
+   "1.5 cups per smoothie",
+   "2.5 cups per smoothie"
+  ]
+ },
+ {
+  "src": "6.2-L2-06",
+  "std": "6.2",
+  "q": "A worker earns §117 for a 6-hour shift. How much will the worker earn for a 9-hour shift at the same hourly rate?",
+  "a": "§175.50",
+  "lvl": 2,
+  "choices": [
+   "§156.00",
+   "§180.00",
+   "§195.00",
+   "§175.50"
+  ]
+ },
+ {
+  "src": "6.2-L3-04",
+  "std": "6.2",
+  "q": "Hose A fills a 45-gallon rain barrel in 7.5 minutes. Hose B fills a 52-gallon rain barrel in 8 minutes. Which hose fills faster, and by how much?",
+  "a": "Hose B by 0.5 gallons per minute",
+  "lvl": 3,
+  "choices": [
+   "Hose A by 0.5 gallons per minute",
+   "Hose B by 0.5 gallons per minute",
+   "Hose B by 1.5 gallons per minute",
+   "Both hoses fill at the same rate."
+  ]
+ },
+ {
+  "src": "6.2-L3-05",
+  "std": "6.2",
+  "q": "A store sells almonds in three bag sizes: a 10-ounce bag for §4.50, a 16-ounce bag for §6.88, and a 25-ounce bag for §11.00. Which bag has the lowest unit price per ounce?",
+  "a": "The 16-ounce bag at §0.43 per ounce",
+  "lvl": 3,
+  "choices": [
+   "The 10-ounce bag at §0.45 per ounce",
+   "The 25-ounce bag at §0.44 per ounce",
+   "The 16-ounce bag at §0.43 per ounce",
+   "The 10-ounce and 25-ounce bags tie at §0.44 per ounce"
+  ]
+ },
+ {
+  "src": "6.2-L3-06",
+  "std": "6.2",
+  "q": "On a road trip, a family drove 171 miles in the first 3 hours, then drove 234 miles in the next 4.5 hours. What was their overall unit rate in miles per hour for the entire trip?",
+  "a": "54 miles per hour",
+  "lvl": 3,
+  "also": [
+   "54"
+  ]
+ },
+ {
+  "src": "6.3-L1-04",
+  "std": "6.3",
+  "q": "A ratio table shows equivalent ratios of cups of sugar to cups of flour: (2, 5), (4, 10), (6, ?), and (8, 20). What is the missing value in the table?",
+  "a": "15",
+  "lvl": 1,
+  "choices": [
+   "15",
+   "12",
+   "14",
+   "16"
+  ]
+ },
+ {
+  "src": "6.3-L1-05",
+  "std": "6.3",
+  "q": "What percent of 50 is 18?",
+  "a": "36%",
+  "lvl": 1,
+  "choices": [
+   "18%",
+   "32%",
+   "64%",
+   "36%"
+  ]
+ },
+ {
+  "src": "6.3-L1-06",
+  "std": "6.3",
+  "q": "Convert 5 pounds to ounces. (1 pound = 16 ounces)",
+  "a": "80 ounces",
+  "lvl": 1,
+  "choices": [
+   "60 ounces",
+   "80 ounces",
+   "75 ounces",
+   "96 ounces"
+  ]
+ },
+ {
+  "src": "6.3-L2-04",
+  "std": "6.3",
+  "q": "A tape diagram shows the ratio of fiction to nonfiction books read by a class using 3 equal boxes for fiction and 5 equal boxes for nonfiction. All 8 boxes together represent 64 books. How many nonfiction books were read?",
+  "a": "40",
+  "lvl": 2,
+  "choices": [
+   "24",
+   "32",
+   "40",
+   "48"
+  ]
+ },
+ {
+  "src": "6.3-L2-05",
+  "std": "6.3",
+  "q": "A water cooler holds 10 quarts of water. How many gallons of water does it hold? (1 gallon = 4 quarts)",
+  "a": "2.5 gallons",
+  "lvl": 2,
+  "choices": [
+   "2.5 gallons",
+   "4 gallons",
+   "6 gallons",
+   "40 gallons"
+  ]
+ },
+ {
+  "src": "6.3-L2-06",
+  "std": "6.3",
+  "q": "On a math quiz, Priya answered 34 out of 40 questions correctly. What percent of the questions did she answer correctly?",
+  "a": "85%",
+  "lvl": 2,
+  "choices": [
+   "75%",
+   "80%",
+   "90%",
+   "85%"
+  ]
+ },
+ {
+  "src": "6.3-L3-04",
+  "std": "6.3",
+  "q": "A double number line aligns distance in yards with time in seconds. At 12 seconds, a sprinter has run 90 yards. At this constant rate, how many feet does the sprinter run in 8 seconds? (1 yard = 3 feet)",
+  "a": "180 feet",
+  "lvl": 3,
+  "choices": [
+   "60 feet",
+   "180 feet",
+   "225 feet",
+   "270 feet"
+  ]
+ },
+ {
+  "src": "6.3-L3-05",
+  "std": "6.3",
+  "q": "A bike shop marks a helmet 15% off, which saves a customer §9. What is the sale price of the helmet after the discount?",
+  "a": "§51",
+  "lvl": 3,
+  "choices": [
+   "§45",
+   "§60",
+   "§51",
+   "§69"
+  ]
+ },
+ {
+  "src": "6.3-L3-06",
+  "std": "6.3",
+  "q": "A recipe makes 12 muffins using 1.5 cups of oats. If you extend a ratio table to make 30 muffins at the same ratio, how many cups of oats do you need?",
+  "a": "3.75 cups",
+  "lvl": 3,
+  "also": [
+   "3.75",
+   "3{3/4}"
+  ]
+ },
+ {
+  "src": "6.4-L1-04",
+  "std": "6.4",
+  "q": "What is the quotient of {4/5} ÷ {2/5}?",
+  "a": "2",
+  "lvl": 1,
+  "choices": [
+   "{8/25}",
+   "{1/2}",
+   "4",
+   "2"
+  ]
+ },
+ {
+  "src": "6.4-L1-05",
+  "std": "6.4",
+  "q": "A fraction bar of length 1 is split into eighths, with 6 eighths shaded to show {6/8}. The shaded part is grouped into equal sections of size {3/8}. Which equation matches this visual model?",
+  "a": "{6/8} ÷ {3/8} = 2",
+  "lvl": 1,
+  "choices": [
+   "{6/8} ÷ {3/8} = 2",
+   "{6/8} × {3/8} = 2",
+   "{3/8} ÷ {6/8} = 2",
+   "{6/8} − {3/8} = 2"
+  ]
+ },
+ {
+  "src": "6.4a-L1-04",
+  "std": "6.4",
+  "part": "a",
+  "q": "A carpenter has a 4-foot wooden board and cuts it into shelves that are each {2/3} foot long. How many shelves can the carpenter cut?",
+  "a": "6",
+  "lvl": 1,
+  "choices": [
+   "2{2/3}",
+   "6",
+   "8",
+   "12"
+  ]
+ },
+ {
+  "src": "6.4-L2-04",
+  "std": "6.4",
+  "q": "Compute {7/10} ÷ {3/5}.",
+  "a": "1{1/6}",
+  "lvl": 2,
+  "choices": [
+   "{21/50}",
+   "{6/7}",
+   "1{1/6}",
+   "1{1/2}"
+  ]
+ },
+ {
+  "src": "6.4a-L2-04",
+  "std": "6.4",
+  "part": "a",
+  "q": "A hiker walked {5/6} mile in {1/3} hour. At this constant pace, how many miles does the hiker walk in 1 hour?",
+  "a": "2{1/2} miles",
+  "lvl": 2,
+  "choices": [
+   "{5/18} miles",
+   "1{1/6} miles",
+   "3 miles",
+   "2{1/2} miles"
+  ]
+ },
+ {
+  "src": "6.4a-L2-05",
+  "std": "6.4",
+  "part": "a",
+  "q": "A can holds {2/3} liter of paint, which covers {2/5} of a wall. How many liters of paint are needed to cover the entire wall?",
+  "a": "1{2/3} liters",
+  "lvl": 2,
+  "choices": [
+   "1{2/3} liters",
+   "{4/15} liters",
+   "{3/5} liters",
+   "2{1/3} liters"
+  ]
+ },
+ {
+  "src": "6.4-L3-04",
+  "std": "6.4",
+  "q": "Which real-world situation can be solved by computing 2{2/3} ÷ {4/9}?",
+  "a": "A chef has 2{2/3} cups of sauce and pours {4/9} cup onto each dish. How many dishes can the chef serve?",
+  "lvl": 3,
+  "choices": [
+   "A trail is 2{2/3} miles long, and a runner has completed {4/9} of it. How many miles has the runner completed?",
+   "A chef has 2{2/3} cups of sauce and pours {4/9} cup onto each dish. How many dishes can the chef serve?",
+   "A container holds 2{2/3} pounds of rice, and {4/9} pound is used for dinner. How much rice remains?",
+   "A gardener plants {4/9} row of beans on Monday and 2{2/3} rows on Tuesday. How many rows are planted in all?"
+  ]
+ },
+ {
+  "src": "6.4a-L3-04",
+  "std": "6.4",
+  "part": "a",
+  "q": "A rectangular tabletop has an area of 4{1/2} square feet and a length of 2{1/4} feet. What is the perimeter of the tabletop?",
+  "a": "8{1/2} feet",
+  "lvl": 3,
+  "choices": [
+   "2 feet",
+   "4{1/4} feet",
+   "8{1/2} feet",
+   "10{1/8} feet"
+  ]
+ },
+ {
+  "src": "6.4a-L3-05",
+  "std": "6.4",
+  "part": "a",
+  "q": "A wire is 4{7/8} meters long. A technician cuts off as many {3/4}-meter sections as possible. How much wire, in meters, is left over?",
+  "a": "{3/8} meter",
+  "lvl": 3,
+  "also": [
+   "{3/8}",
+   "0.375"
+  ]
+ },
+ {
+  "src": "6.5-L1-04",
+  "std": "6.5",
+  "q": "Compute 624 ÷ 16.",
+  "a": "39",
+  "lvl": 1,
+  "choices": [
+   "34",
+   "38",
+   "41",
+   "39"
+  ]
+ },
+ {
+  "src": "6.5-L1-05",
+  "std": "6.5",
+  "q": "A print shop bundles 936 flyers into stacks of 18. How many stacks does it make?",
+  "a": "52",
+  "lvl": 1,
+  "choices": [
+   "52",
+   "48",
+   "54",
+   "58"
+  ]
+ },
+ {
+  "src": "6.5-L1-06",
+  "std": "6.5",
+  "q": "A library buys 672 books and places an equal number on each of 21 shelves. How many books are on each shelf?",
+  "a": "32",
+  "lvl": 1,
+  "choices": [
+   "28",
+   "32",
+   "31",
+   "34"
+  ]
+ },
+ {
+  "src": "6.5-L2-04",
+  "std": "6.5",
+  "q": "Compute 3,914 ÷ 19.",
+  "a": "206",
+  "lvl": 2,
+  "choices": [
+   "26",
+   "204",
+   "206",
+   "216"
+  ]
+ },
+ {
+  "src": "6.5-L2-05",
+  "std": "6.5",
+  "q": "A school is taking 415 students on a field trip. Each bus holds 36 students. What is the least number of buses needed so every student has a seat?",
+  "a": "12",
+  "lvl": 2,
+  "choices": [
+   "11",
+   "13",
+   "19",
+   "12"
+  ]
+ },
+ {
+  "src": "6.5-L2-06",
+  "std": "6.5",
+  "q": "Compute 5,376 ÷ 32.",
+  "a": "168",
+  "lvl": 2,
+  "choices": [
+   "168",
+   "158",
+   "166",
+   "178"
+  ]
+ },
+ {
+  "src": "6.5-L3-04",
+  "std": "6.5",
+  "q": "A bakery made 1,350 muffins and packed them into full trays of 24 muffins each. All leftover muffins were donated to a shelter. How many muffins were donated?",
+  "a": "6",
+  "lvl": 3,
+  "choices": [
+   "12",
+   "6",
+   "18",
+   "56"
+  ]
+ },
+ {
+  "src": "6.5-L3-05",
+  "std": "6.5",
+  "q": "Farm A harvested 3,456 eggs and packed them into cartons of 18. Farm B harvested 4,032 eggs and packed them into cartons of 24. How many more cartons did Farm A fill than Farm B?",
+  "a": "24",
+  "lvl": 3,
+  "choices": [
+   "16",
+   "32",
+   "24",
+   "168"
+  ]
+ },
+ {
+  "src": "6.5-L3-06",
+  "std": "6.5",
+  "q": "An auditorium earns §9,180 in ticket sales for a concert. Each ticket costs §15, and the venue also gives 12 free tickets to staff. How many total people received tickets?",
+  "a": "624",
+  "lvl": 3
+ },
+ {
+  "src": "6.6-L1-04",
+  "std": "6.6",
+  "q": "Compute 27.08 + 9.45.",
+  "a": "36.53",
+  "lvl": 1,
+  "choices": [
+   "36.43",
+   "36.13",
+   "37.53",
+   "36.53"
+  ]
+ },
+ {
+  "src": "6.6-L1-05",
+  "std": "6.6",
+  "q": "Compute 15 − 6.38.",
+  "a": "8.62",
+  "lvl": 1,
+  "choices": [
+   "8.62",
+   "8.72",
+   "9.38",
+   "9.62"
+  ]
+ },
+ {
+  "src": "6.6-L1-06",
+  "std": "6.6",
+  "q": "Compute 19.2 ÷ 6.",
+  "a": "3.2",
+  "lvl": 1,
+  "choices": [
+   "0.32",
+   "3.2",
+   "3.02",
+   "3.4"
+  ]
+ },
+ {
+  "src": "6.6-L2-04",
+  "std": "6.6",
+  "q": "Compute 4.06 × 1.8.",
+  "a": "7.308",
+  "lvl": 2,
+  "choices": [
+   "7.208",
+   "7.38",
+   "7.308",
+   "73.08"
+  ]
+ },
+ {
+  "src": "6.6-L2-05",
+  "std": "6.6",
+  "q": "Compute 23.94 ÷ 3.8.",
+  "a": "6.3",
+  "lvl": 2,
+  "choices": [
+   "0.63",
+   "6.03",
+   "6.8",
+   "6.3"
+  ]
+ },
+ {
+  "src": "6.6-L2-06",
+  "std": "6.6",
+  "q": "A runner ran 3.75 miles on Monday and 5.4 miles on Tuesday. How many more miles did the runner run on Tuesday than on Monday?",
+  "a": "1.65 miles",
+  "lvl": 2,
+  "choices": [
+   "1.65 miles",
+   "1.35 miles",
+   "2.35 miles",
+   "9.15 miles"
+  ]
+ },
+ {
+  "src": "6.6-L3-04",
+  "std": "6.6",
+  "q": "Four friends split the cost of a §38.40 pizza order and a §6.80 delivery fee equally. How much does each friend pay?",
+  "a": "§11.30",
+  "lvl": 3,
+  "choices": [
+   "§9.60",
+   "§11.30",
+   "§11.80",
+   "§16.40"
+  ]
+ },
+ {
+  "src": "6.6-L3-05",
+  "std": "6.6",
+  "q": "A hardware store sells copper wire for §1.85 per foot. Jamal buys 4.6 feet of wire and a pack of clips for §3.49. What is his total cost before tax?",
+  "a": "§12.00",
+  "lvl": 3,
+  "choices": [
+   "§11.90",
+   "§12.10",
+   "§12.00",
+   "§13.00"
+  ]
+ },
+ {
+  "src": "6.6-L3-06",
+  "std": "6.6",
+  "q": "A bakery buys 25.5 pounds of flour. It uses 8.7 pounds on Monday and splits the remaining flour equally into 6 storage bins. How many pounds of flour are in each bin?",
+  "a": "2.8 pounds",
+  "lvl": 3,
+  "also": [
+   "2.8"
+  ]
+ },
+ {
+  "src": "6.7-L1-04",
+  "std": "6.7",
+  "q": "Use the distributive property to rewrite 14 + 21 using their greatest common factor.",
+  "a": "7(2 + 3)",
+  "lvl": 1,
+  "choices": [
+   "3(4 + 7)",
+   "7(2 + 21)",
+   "2(7 + 10)",
+   "7(2 + 3)"
+  ]
+ },
+ {
+  "src": "6.7-L1-05",
+  "std": "6.7",
+  "q": "Which sum is equivalent to 6(3 + 8)?",
+  "a": "18 + 48",
+  "lvl": 1,
+  "choices": [
+   "18 + 48",
+   "18 + 8",
+   "9 + 14",
+   "63 + 68"
+  ]
+ },
+ {
+  "src": "6.7-L1-06",
+  "std": "6.7",
+  "q": "Rewrite 16 + 24 as a multiple of a sum of two whole numbers with no common factor.",
+  "a": "8(2 + 3)",
+  "lvl": 1,
+  "choices": [
+   "2(8 + 12)",
+   "8(2 + 3)",
+   "4(4 + 6)",
+   "8(3 + 4)"
+  ]
+ },
+ {
+  "src": "6.7-L2-04",
+  "std": "6.7",
+  "q": "A coach has 27 basketballs and 45 cones to divide equally into identical practice stations. Which expression uses the GCF to show the greatest number of identical stations?",
+  "a": "9(3 + 5)",
+  "lvl": 2,
+  "choices": [
+   "3(9 + 15)",
+   "9(4 + 5)",
+   "9(3 + 5)",
+   "15(2 + 3)"
+  ]
+ },
+ {
+  "src": "6.7-L2-05",
+  "std": "6.7",
+  "q": "A teacher writes 30 + 50 = 10(3 + 5) to group 30 pencils and 50 erasers into identical supply bags. What does the 5 inside the parentheses represent?",
+  "a": "The number of erasers in each supply bag",
+  "lvl": 2,
+  "choices": [
+   "The greatest number of supply bags",
+   "The number of pencils in each supply bag",
+   "The total number of items in each supply bag",
+   "The number of erasers in each supply bag"
+  ]
+ },
+ {
+  "src": "6.7-L2-06",
+  "std": "6.7",
+  "q": "Find the missing number so the equation uses the greatest common factor: 32 + 56 = ?(4 + 7).",
+  "a": "8",
+  "lvl": 2,
+  "choices": [
+   "8",
+   "4",
+   "7",
+   "16"
+  ]
+ },
+ {
+  "src": "6.7-L3-04",
+  "std": "6.7",
+  "q": "Compare the expressions 12(4 + 6) and 24(2 + 3) as ways to rewrite 48 + 72. Which statement is true?",
+  "a": "Both expressions equal 48 + 72, but only 24(2 + 3) uses the greatest common factor.",
+  "lvl": 3,
+  "choices": [
+   "Only 24(2 + 3) equals 48 + 72 because 4 and 6 share a common factor.",
+   "Both expressions equal 48 + 72, but only 24(2 + 3) uses the greatest common factor.",
+   "Both expressions equal 48 + 72, and both use the greatest common factor.",
+   "Neither expression equals 48 + 72."
+  ]
+ },
+ {
+  "src": "6.7-L3-05",
+  "std": "6.7",
+  "q": "Which sum of two whole numbers CANNOT be rewritten as a multiple (greater than 1) of a sum of two smaller whole numbers?",
+  "a": "16 + 25",
+  "lvl": 3,
+  "choices": [
+   "18 + 27",
+   "20 + 35",
+   "16 + 25",
+   "22 + 33"
+  ]
+ },
+ {
+  "src": "6.7-L3-06",
+  "std": "6.7",
+  "q": "Rewrite 60 + 84 as a multiple of a sum of two whole numbers with no common factor.",
+  "a": "12(5 + 7)",
+  "lvl": 3,
+  "also": [
+   "12 × (5 + 7)"
+  ]
+ },
+ {
+  "src": "6.8-L1-04",
+  "std": "6.8",
+  "q": "What is the greatest common factor (GCF) of 20 and 35?",
+  "a": "5",
+  "lvl": 1,
+  "choices": [
+   "10",
+   "15",
+   "140",
+   "5"
+  ]
+ },
+ {
+  "src": "6.8-L1-05",
+  "std": "6.8",
+  "q": "What is the least common multiple (LCM) of 9 and 12?",
+  "a": "36",
+  "lvl": 1,
+  "choices": [
+   "36",
+   "3",
+   "24",
+   "108"
+  ]
+ },
+ {
+  "src": "6.8a-L1-04",
+  "std": "6.8",
+  "part": "a",
+  "q": "What is the prime factorization of 45?",
+  "a": "3² × 5",
+  "lvl": 1,
+  "choices": [
+   "3 × 15",
+   "3² × 5",
+   "3 × 5²",
+   "9 × 5"
+  ]
+ },
+ {
+  "src": "6.8-L2-04",
+  "std": "6.8",
+  "q": "A volunteer has 40 granola bars and 64 juice boxes to pack into identical snack kits with nothing left over. What is the greatest number of snack kits the volunteer can make?",
+  "a": "8",
+  "lvl": 2,
+  "choices": [
+   "4",
+   "16",
+   "8",
+   "320"
+  ]
+ },
+ {
+  "src": "6.8-L2-05",
+  "std": "6.8",
+  "q": "What is the least common multiple (LCM) of 4, 6, and 10?",
+  "a": "60",
+  "lvl": 2,
+  "choices": [
+   "2",
+   "30",
+   "120",
+   "60"
+  ]
+ },
+ {
+  "src": "6.8a-L2-04",
+  "std": "6.8",
+  "part": "a",
+  "q": "What whole number has the prime factorization 2³ × 3 × 5?",
+  "a": "120",
+  "lvl": 2,
+  "choices": [
+   "120",
+   "30",
+   "60",
+   "90"
+  ]
+ },
+ {
+  "src": "6.8-L3-04",
+  "std": "6.8",
+  "q": "Two lighthouses flash together at midnight. Lighthouse A flashes every 14 seconds, and Lighthouse B flashes every 21 seconds. How many times will they flash together again during the next 3 minutes?",
+  "a": "4 times",
+  "lvl": 3,
+  "choices": [
+   "3 times",
+   "4 times",
+   "5 times",
+   "6 times"
+  ]
+ },
+ {
+  "src": "6.8-L3-05",
+  "std": "6.8",
+  "q": "Two whole numbers have a GCF of 6 and an LCM of 36. Neither number is 6 or 36. What are the two numbers?",
+  "a": "12 and 18",
+  "lvl": 3,
+  "choices": [
+   "9 and 12",
+   "12 and 24",
+   "12 and 18",
+   "18 and 24"
+  ]
+ },
+ {
+  "src": "6.8a-L3-04",
+  "std": "6.8",
+  "part": "a",
+  "q": "Write the prime factorization of 252 using exponents.",
+  "a": "2² × 3² × 7",
+  "lvl": 3
+ },
+ {
+  "src": "6.9-L1-04",
+  "std": "6.9",
+  "q": "An elevator goes down 6 floors below the lobby. Which integer represents this position relative to the lobby?",
+  "a": "−6",
+  "lvl": 1,
+  "choices": [
+   "6",
+   "0",
+   "−16",
+   "−6"
+  ]
+ },
+ {
+  "src": "6.9-L1-05",
+  "std": "6.9",
+  "q": "A trivia game awards positive points for right answers and negative points for wrong answers. Which integer represents earning 14 points?",
+  "a": "14",
+  "lvl": 1,
+  "choices": [
+   "14",
+   "−14",
+   "0",
+   "−4"
+  ]
+ },
+ {
+  "src": "6.9-L1-06",
+  "std": "6.9",
+  "q": "A student owes a friend §18. Which signed number represents this debt?",
+  "a": "−18",
+  "lvl": 1,
+  "choices": [
+   "18",
+   "−18",
+   "0",
+   "−8"
+  ]
+ },
+ {
+  "src": "6.9-L2-04",
+  "std": "6.9",
+  "q": "On a road map, driving east from town is represented by positive miles and driving west is represented by negative miles. What does −14.5 miles represent?",
+  "a": "Driving 14.5 miles west from town",
+  "lvl": 2,
+  "choices": [
+   "Driving 14.5 miles east from town",
+   "Staying in town",
+   "Driving 14.5 miles west from town",
+   "Driving 14.5 miles north from town"
+  ]
+ },
+ {
+  "src": "6.9-L2-05",
+  "std": "6.9",
+  "q": "A glacier loses 3.2 meters of thickness in the summer and gains 1.8 meters of thickness in the winter. Which pair of signed numbers represents the summer and winter changes?",
+  "a": "−3.2 and 1.8",
+  "lvl": 2,
+  "choices": [
+   "3.2 and −1.8",
+   "−3.2 and −1.8",
+   "3.2 and 1.8",
+   "−3.2 and 1.8"
+  ]
+ },
+ {
+  "src": "6.9-L2-06",
+  "std": "6.9",
+  "q": "A store records daily changes in its inventory. On Wednesday, inventory changed by +120 items. On Thursday, it changed by −85 items. What happened on Thursday?",
+  "a": "The store's inventory decreased by 85 items.",
+  "lvl": 2,
+  "choices": [
+   "The store's inventory decreased by 85 items.",
+   "The store had 85 items left on the shelves.",
+   "The store received 85 new items.",
+   "The store lost §85 in sales."
+  ]
+ },
+ {
+  "src": "6.9-L3-04",
+  "std": "6.9",
+  "q": "In a lab experiment, the target temperature is 20°C. A reading of +3.5°C means 3.5°C above target, and −2.5°C means 2.5°C below target. What actual temperature corresponds to a reading of −4.5°C?",
+  "a": "15.5°C",
+  "lvl": 3,
+  "choices": [
+   "−4.5°C",
+   "15.5°C",
+   "16.5°C",
+   "24.5°C"
+  ]
+ },
+ {
+  "src": "6.9-L3-05",
+  "std": "6.9",
+  "q": "In a video game, a player's score changes across three rounds are: Round 1 is −15, Round 2 is +22, and Round 3 is −18. Which round had the greatest decrease, and which round had an increase?",
+  "a": "Round 3 had the greatest decrease; Round 2 had an increase.",
+  "lvl": 3,
+  "choices": [
+   "Round 1 had the greatest decrease; Round 2 had an increase.",
+   "Round 2 had the greatest decrease; Round 3 had an increase.",
+   "Round 3 had the greatest decrease; Round 2 had an increase.",
+   "Round 3 had the greatest decrease; Round 1 had an increase."
+  ]
+ },
+ {
+  "src": "6.9-L3-06",
+  "std": "6.9",
+  "q": "A reservoir's water level is measured relative to normal capacity. In April, the level is 12 feet above normal (+12). By August, it drops to 5 feet below normal (−5). How many feet did the water level drop from April to August?",
+  "a": "17 feet",
+  "lvl": 3,
+  "also": [
+   "17"
+  ]
+ },
+ {
+  "src": "6.10-L1-04",
+  "std": "6.10",
+  "q": "On a vertical number line, which number is located 6 units below 0?",
+  "a": "−6",
+  "lvl": 1,
+  "choices": [
+   "6",
+   "0",
+   "−0.6",
+   "−6"
+  ]
+ },
+ {
+  "src": "6.10a-L1-04",
+  "std": "6.10",
+  "part": "a",
+  "q": "Which statement correctly defines opposite numbers on a number line?",
+  "a": "Two numbers on opposite sides of 0 that are the same distance from 0",
+  "lvl": 1,
+  "choices": [
+   "Two numbers on opposite sides of 0 that are the same distance from 0",
+   "Two negative numbers that are 1 unit apart",
+   "Two numbers on the same side of 0 that add up to 10",
+   "Any positive number paired with any negative number"
+  ]
+ },
+ {
+  "src": "6.10b-L1-04",
+  "std": "6.10",
+  "part": "b",
+  "q": "On a Celsius thermometer, positive numbers represent temperatures above freezing and negative numbers represent temperatures below freezing. What does 0°C represent?",
+  "a": "The freezing point of water",
+  "lvl": 1,
+  "choices": [
+   "The boiling point of water",
+   "The freezing point of water",
+   "Room temperature",
+   "No temperature exists"
+  ]
+ },
+ {
+  "src": "6.10-L2-04",
+  "std": "6.10",
+  "q": "On a horizontal number line, the space between −2 and −1 is divided into 4 equal parts. A point is plotted 1 tick mark to the left of −1. What rational number does the point represent?",
+  "a": "−1{1/4}",
+  "lvl": 2,
+  "choices": [
+   "−{3/4}",
+   "−1{3/4}",
+   "−1{1/4}",
+   "−2{1/4}"
+  ]
+ },
+ {
+  "src": "6.10a-L2-04",
+  "std": "6.10",
+  "part": "a",
+  "q": "On a horizontal number line, Point M is located at −6.4. Point N is the opposite of Point M. Which statement about Point N is true?",
+  "a": "Point N is 6.4 units to the right of 0.",
+  "lvl": 2,
+  "choices": [
+   "Point N is 6.4 units to the left of 0.",
+   "Point N is 6.4 units to the right of Point M.",
+   "Point N is located at 0.",
+   "Point N is 6.4 units to the right of 0."
+  ]
+ },
+ {
+  "src": "6.10b-L2-04",
+  "std": "6.10",
+  "part": "b",
+  "q": "A football coach records positive numbers for yards gained and negative numbers for yards lost on each play. What does a play recorded as 0 represent?",
+  "a": "The team neither gained nor lost any yards on the play.",
+  "lvl": 2,
+  "choices": [
+   "The team neither gained nor lost any yards on the play.",
+   "The team scored a touchdown.",
+   "The team lost possession of the ball.",
+   "The game has not started yet."
+  ]
+ },
+ {
+  "src": "6.10-L3-04",
+  "std": "6.10",
+  "q": "On a vertical number line, Point K is at 1{3/4} and Point L is at −2{1/4}. How many units apart are Point K and Point L?",
+  "a": "4 units",
+  "lvl": 3,
+  "choices": [
+   "{1/2} unit",
+   "4 units",
+   "3{1/2} units",
+   "4{1/2} units"
+  ]
+ },
+ {
+  "src": "6.10a-L3-04",
+  "std": "6.10",
+  "part": "a",
+  "q": "Two opposite numbers on a horizontal number line are 15 units apart. What are the two numbers?",
+  "a": "−7.5 and 7.5",
+  "lvl": 3,
+  "choices": [
+   "−15 and 15",
+   "−7 and 8",
+   "−7.5 and 7.5",
+   "0 and 15"
+  ]
+ },
+ {
+  "src": "6.10b-L3-04",
+  "std": "6.10",
+  "part": "b",
+  "q": "A bottling plant labels juice bottles by how many ounces they are above or below the target weight of 16 ounces. A 16.3-ounce bottle is labeled +0.3, and a 15.8-ounce bottle is labeled −0.2. What is the actual weight, in ounces, of a bottle labeled 0?",
+  "a": "16 ounces",
+  "lvl": 3,
+  "also": [
+   "16"
+  ]
+ },
+ {
+  "src": "6.11a-L1-04",
+  "std": "6.11",
+  "part": "a",
+  "q": "Which of the following points is located in Quadrant IV of the coordinate plane?",
+  "a": "(8, −2)",
+  "lvl": 1,
+  "choices": [
+   "(−8, 2)",
+   "(−8, −2)",
+   "(8, 2)",
+   "(8, −2)"
+  ]
+ },
+ {
+  "src": "6.11b-L1-05",
+  "std": "6.11",
+  "part": "b",
+  "q": "Points J(−7, 4) and K(−7, −4) are graphed on a coordinate plane. How are Points J and K related?",
+  "a": "Point K is the reflection of Point J across the x-axis.",
+  "lvl": 1,
+  "choices": [
+   "Point K is the reflection of Point J across the x-axis.",
+   "Point K is the reflection of Point J across the y-axis.",
+   "Point K is 4 units to the right of Point J.",
+   "Point K and Point J are in the same quadrant."
+  ]
+ },
+ {
+  "src": "6.11c-L1-06",
+  "std": "6.11",
+  "part": "c",
+  "q": "Which pair of ordered pairs represents a reflection across the y-axis?",
+  "a": "(−4, −9) and (4, −9)",
+  "lvl": 1,
+  "choices": [
+   "(4, −9) and (4, 9)",
+   "(−4, −9) and (4, −9)",
+   "(4, −9) and (−9, 4)",
+   "(−4, −9) and (4, 9)"
+  ]
+ },
+ {
+  "src": "6.11a-L2-04",
+  "std": "6.11",
+  "part": "a",
+  "q": "Point T(−2{1/2}, 3{3/4}) is graphed on a coordinate plane. If the sign of its x-coordinate is changed to positive while its y-coordinate stays the same, in which quadrant will the new point be located?",
+  "a": "Quadrant I",
+  "lvl": 2,
+  "choices": [
+   "Quadrant II",
+   "Quadrant III",
+   "Quadrant I",
+   "Quadrant IV"
+  ]
+ },
+ {
+  "src": "6.11d-L2-05",
+  "std": "6.11",
+  "part": "d",
+  "q": "On a coordinate grid of a campground, the main gate is at (−4, −3). The lake pier is located 9 units directly east (to the right) of the main gate. What are the coordinates of the lake pier?",
+  "a": "(5, −3)",
+  "lvl": 2,
+  "choices": [
+   "(−4, 6)",
+   "(5, −3)",
+   "(−13, −3)",
+   "(5, 6)"
+  ]
+ },
+ {
+  "src": "6.11d-L2-06",
+  "std": "6.11",
+  "part": "d",
+  "q": "On a coordinate plane, Point G is at (−6.5, −2) and Point H is at (−1.5, −2). What is the distance between Point G and Point H?",
+  "a": "5 units",
+  "lvl": 2,
+  "choices": [
+   "8 units",
+   "4 units",
+   "7.5 units",
+   "5 units"
+  ]
+ },
+ {
+  "src": "6.11c-L3-04",
+  "std": "6.11",
+  "part": "c",
+  "q": "On a park blueprint plotted on a coordinate plane, a fountain is at (−4.5, 6) and a statue is placed at its reflection across the y-axis. If each grid unit represents 2 meters, how many meters apart are the fountain and the statue?",
+  "a": "18 meters",
+  "lvl": 3,
+  "choices": [
+   "9 meters",
+   "18 meters",
+   "24 meters",
+   "12 meters"
+  ]
+ },
+ {
+  "src": "6.11a-L3-05",
+  "std": "6.11",
+  "part": "a",
+  "q": "Point W(a, b) is located in Quadrant IV, where a > 0 and b < 0. In which quadrant is the point (−a, −b) located?",
+  "a": "Quadrant II",
+  "lvl": 3,
+  "choices": [
+   "Quadrant I",
+   "Quadrant III",
+   "Quadrant II",
+   "Quadrant IV"
+  ]
+ },
+ {
+  "src": "6.11d-L3-06",
+  "std": "6.11",
+  "part": "d",
+  "q": "On a coordinate plane, Station A is at (−7, 2), Station B is at (4, 2), and Station C is at (4, −6). How many units longer is the straight-line distance from Station A to Station B than the straight-line distance from Station B to Station C?",
+  "a": "3 units",
+  "lvl": 3,
+  "also": [
+   "3"
+  ]
+ },
+ {
+  "src": "6.12-L1-04",
+  "std": "6.12",
+  "q": "What is the value of |−{3/8}|?",
+  "a": "{3/8}",
+  "lvl": 1,
+  "choices": [
+   "−{3/8}",
+   "{3/8}",
+   "{8/3}",
+   "−{8/3}"
+  ]
+ },
+ {
+  "src": "6.12-L1-05",
+  "std": "6.12",
+  "q": "What is the absolute value of 0?",
+  "a": "0",
+  "lvl": 1,
+  "choices": [
+   "1",
+   "−1",
+   "0",
+   "It does not have an absolute value."
+  ]
+ },
+ {
+  "src": "6.12-L1-06",
+  "std": "6.12",
+  "q": "Which statement about the absolute value of a rational number is always true?",
+  "a": "It is always greater than or equal to 0.",
+  "lvl": 1,
+  "choices": [
+   "It is always greater than or equal to 0.",
+   "It is always less than the original number.",
+   "It is always the opposite of the original number.",
+   "It can be negative if the number is negative."
+  ]
+ },
+ {
+  "src": "6.12-L2-04",
+  "std": "6.12",
+  "q": "A rational number is located to the left of 0 on a number line and has an absolute value of 11.4. What is the number?",
+  "a": "−11.4",
+  "lvl": 2,
+  "choices": [
+   "11.4",
+   "0",
+   "−11.4",
+   "−22.8"
+  ]
+ },
+ {
+  "src": "6.12-L2-05",
+  "std": "6.12",
+  "q": "In a chemistry lab, a thermometer reading is −3.6°C off from the target temperature. What is the absolute value of this error, and what does it tell you?",
+  "a": "3.6°C; the reading is 3.6°C away from the target.",
+  "lvl": 2,
+  "choices": [
+   "−3.6°C; the reading is 3.6°C below the target.",
+   "3.6°C; the reading is 3.6°C away from the target.",
+   "7.2°C; the total range of temperatures measured.",
+   "0°C; there is no error in the reading."
+  ]
+ },
+ {
+  "src": "6.12-L2-06",
+  "std": "6.12",
+  "q": "The price of a share of stock changed by −§8.25 on Monday and by +§5.75 on Tuesday. On which day did the stock price have a greater change in value?",
+  "a": "Monday, because |−8.25| > |5.75|",
+  "lvl": 2,
+  "choices": [
+   "Tuesday, because 5.75 > −8.25",
+   "Tuesday, because +§5.75 is positive",
+   "Both days had the same size change.",
+   "Monday, because |−8.25| > |5.75|"
+  ]
+ },
+ {
+  "src": "6.12-L3-04",
+  "std": "6.12",
+  "q": "Tessa says that because −24 < −15, the absolute value of −24 must be less than the absolute value of −15. Which statement best explains Tessa's mistake?",
+  "a": "Absolute value measures distance from 0, and −24 is 24 units from 0 while −15 is only 15 units from 0, so |−24| > |−15|.",
+  "lvl": 3,
+  "choices": [
+   "Absolute value measures distance from 0, and −24 is 24 units from 0 while −15 is only 15 units from 0, so |−24| > |−15|.",
+   "She is correct because −24 is farther left on the number line.",
+   "Absolute value is always negative for negative numbers, so |−24| = −24.",
+   "Both −24 and −15 have the same absolute value because both are negative."
+  ]
+ },
+ {
+  "src": "6.12-L3-05",
+  "std": "6.12",
+  "q": "A scuba diver starts at sea level (0 feet), dives to −28 feet, rises to −10 feet, and then dives down to −42 feet. What is the total vertical distance the diver traveled?",
+  "a": "78 feet",
+  "lvl": 3,
+  "choices": [
+   "42 feet",
+   "60 feet",
+   "78 feet",
+   "80 feet"
+  ]
+ },
+ {
+  "src": "6.12-L3-06",
+  "std": "6.12",
+  "q": "Four bank transactions are recorded as −§22.50, +§15.00, −§8.75, and +§30.25. What is the sum of the absolute values of the two negative transactions?",
+  "a": "§31.25",
+  "lvl": 3,
+  "also": [
+   "31.25",
+   "§31.25"
+  ]
+ },
+ {
+  "src": "6.13-L1-04",
+  "std": "6.13",
+  "q": "Which inequality correctly compares −{5/6} and −{1/6}?",
+  "a": "−{5/6} < −{1/6}",
+  "lvl": 1,
+  "choices": [
+   "−{5/6} > −{1/6}",
+   "−{5/6} < −{1/6}",
+   "−{5/6} = −{1/6}",
+   "−{1/6} < −{5/6}"
+  ]
+ },
+ {
+  "src": "6.13-L1-05",
+  "std": "6.13",
+  "q": "Which list of integers is ordered from greatest to least?",
+  "a": "6, 1, −2, −8",
+  "lvl": 1,
+  "choices": [
+   "6, 1, −2, −8",
+   "−8, −2, 1, 6",
+   "−8, 6, −2, 1",
+   "6, 1, −8, −2"
+  ]
+ },
+ {
+  "src": "6.13-L1-06",
+  "std": "6.13",
+  "q": "Which symbol makes the statement true: |−6| ___ |6|?",
+  "a": "=",
+  "lvl": 1,
+  "choices": [
+   "<",
+   ">",
+   "=",
+   "≠"
+  ]
+ },
+ {
+  "src": "6.13-L2-04",
+  "std": "6.13",
+  "q": "Four geological sites have the following elevations: Site W: −18 feet, Site X: 12 feet, Site Y: −7 feet, Site Z: 25 feet. Which site is closest to sea level (0 feet)?",
+  "a": "Site Y",
+  "lvl": 2,
+  "choices": [
+   "Site W",
+   "Site X",
+   "Site Z",
+   "Site Y"
+  ]
+ },
+ {
+  "src": "6.13-L2-05",
+  "std": "6.13",
+  "q": "Which inequality correctly compares −{3/5} and −0.75?",
+  "a": "−{3/5} > −0.75",
+  "lvl": 2,
+  "choices": [
+   "−{3/5} < −0.75",
+   "−{3/5} > −0.75",
+   "−{3/5} = −0.75",
+   "|−{3/5}| > |−0.75|"
+  ]
+ },
+ {
+  "src": "6.13-L2-06",
+  "std": "6.13",
+  "q": "Which rational number is located between −3.4 and −2.8 on a number line?",
+  "a": "−3.15",
+  "lvl": 2,
+  "choices": [
+   "−3.6",
+   "−2.5",
+   "−3.15",
+   "3.1"
+  ]
+ },
+ {
+  "src": "6.13-L3-04",
+  "std": "6.13",
+  "q": "In a golf tournament, scores relative to par are: Devon: −3, Priya: +1, Luis: −5, Hannah: −2. The player with the lowest score wins first place, and the player with the highest score finishes fourth. Which list shows the players from first place to fourth place?",
+  "a": "Luis, Devon, Hannah, Priya",
+  "lvl": 3,
+  "choices": [
+   "Luis, Devon, Hannah, Priya",
+   "Priya, Hannah, Devon, Luis",
+   "Devon, Luis, Hannah, Priya",
+   "Priya, Devon, Hannah, Luis"
+  ]
+ },
+ {
+  "src": "6.13-L3-05",
+  "std": "6.13",
+  "q": "Which of the following statements is true?",
+  "a": "|−{7/2}| = 3.5",
+  "lvl": 3,
+  "choices": [
+   "|−3.2| < −3.2",
+   "−1{1/4} > |−1.2|",
+   "|−{7/2}| = 3.5",
+   "−0.4 < −{3/4}"
+  ]
+ },
+ {
+  "src": "6.13-L3-06",
+  "std": "6.13",
+  "q": "A scientist tests four liquids and records their freezing points: Liquid A: −11.4°C, Liquid B: −11{1/2}°C, Liquid C: −10.9°C, and Liquid D: −11.25°C. Which liquid has the lowest freezing point?",
+  "a": "Liquid B",
+  "lvl": 3,
+  "also": [
+   "B"
+  ]
+ },
+ {
+  "src": "6.14-L1-04",
+  "std": "6.14",
+  "q": "Which expanded expression is equivalent to 7³?",
+  "a": "7 × 7 × 7",
+  "lvl": 1,
+  "choices": [
+   "7 × 3",
+   "3 × 3 × 3 × 3 × 3 × 3 × 3",
+   "7 + 7 + 7",
+   "7 × 7 × 7"
+  ]
+ },
+ {
+  "src": "6.14-L1-05",
+  "std": "6.14",
+  "q": "Which exponential expression is equal to 125?",
+  "a": "5³",
+  "lvl": 1,
+  "choices": [
+   "3⁵",
+   "5³",
+   "5²",
+   "25⁵"
+  ]
+ },
+ {
+  "src": "6.14-L1-06",
+  "std": "6.14",
+  "q": "In the expression 6⁴, what do the numbers 6 and 4 represent?",
+  "a": "6 is the base and 4 is the exponent.",
+  "lvl": 1,
+  "choices": [
+   "6 is the base and 4 is the exponent.",
+   "4 is the base and 6 is the exponent.",
+   "6 is the sum and 4 is the factor.",
+   "6 is the exponent and 4 is the product."
+  ]
+ },
+ {
+  "src": "6.14-L2-04",
+  "std": "6.14",
+  "q": "Evaluate (0.4)³.",
+  "a": "0.064",
+  "lvl": 2,
+  "choices": [
+   "1.2",
+   "0.64",
+   "0.064",
+   "0.16"
+  ]
+ },
+ {
+  "src": "6.14-L2-05",
+  "std": "6.14",
+  "q": "Which symbol makes the comparison true: 2⁶ ___ 8²?",
+  "a": "=",
+  "lvl": 2,
+  "choices": [
+   "=",
+   ">",
+   "<",
+   "≠"
+  ]
+ },
+ {
+  "src": "6.14-L2-06",
+  "std": "6.14",
+  "q": "Evaluate (2 + 3)³ − 5².",
+  "a": "100",
+  "lvl": 2,
+  "choices": [
+   "4",
+   "15",
+   "150",
+   "100"
+  ]
+ },
+ {
+  "src": "6.14-L3-04",
+  "std": "6.14",
+  "q": "Which list orders the expressions from least to greatest: 1⁹, ({2/3})², 2³, 3²?",
+  "a": "({2/3})², 1⁹, 2³, 3²",
+  "lvl": 3,
+  "choices": [
+   "1⁹, ({2/3})², 2³, 3²",
+   "({2/3})², 1⁹, 2³, 3²",
+   "({2/3})², 2³, 3², 1⁹",
+   "({2/3})², 1⁹, 3², 2³"
+  ]
+ },
+ {
+  "src": "6.14-L3-05",
+  "std": "6.14",
+  "q": "A school starts an alert tree where 1 principal calls 3 teachers in Round 1. In Round 2, each of those 3 teachers calls 3 parents. In Round 3, each of those parents calls 3 neighbors. If this pattern continues, how many people are called during Round 4?",
+  "a": "81",
+  "lvl": 3,
+  "choices": [
+   "12",
+   "27",
+   "81",
+   "64"
+  ]
+ },
+ {
+  "src": "6.14-L3-06",
+  "std": "6.14",
+  "q": "What whole-number value of n makes the equation 2^n + 3² = 41 true?",
+  "a": "5",
+  "lvl": 3
+ },
+ {
+  "src": "6.15b-L1-04",
+  "std": "6.15",
+  "part": "b",
+  "q": "Which algebraic expression represents 'the quotient of a number p and 8'?",
+  "a": "{p/8}",
+  "lvl": 1,
+  "choices": [
+   "8p",
+   "p − 8",
+   "{p/8}",
+   "{8/p}"
+  ]
+ },
+ {
+  "src": "6.15c-L1-05",
+  "std": "6.15",
+  "part": "c",
+  "q": "How many terms are in the expression 5m + 2n − 9?",
+  "a": "3",
+  "lvl": 1,
+  "choices": [
+   "3",
+   "2",
+   "5",
+   "4"
+  ]
+ },
+ {
+  "src": "6.15d-L1-06",
+  "std": "6.15",
+  "part": "d",
+  "q": "Evaluate {w/4} + 9 when w = 24.",
+  "a": "15",
+  "lvl": 1,
+  "choices": [
+   "6",
+   "13",
+   "29",
+   "15"
+  ]
+ },
+ {
+  "src": "6.15a-L2-04",
+  "std": "6.15",
+  "part": "a",
+  "q": "A school bus holds up to 52 students. The expression 52 − s represents the number of empty seats when s students are on the bus. Which set best describes the possible values of s?",
+  "a": "Any whole number from 0 to 52",
+  "lvl": 2,
+  "choices": [
+   "Any whole number from 0 to 52",
+   "Any negative integer less than 52",
+   "Any decimal number greater than 52",
+   "Only the number 52"
+  ]
+ },
+ {
+  "src": "6.15c-L2-05",
+  "std": "6.15",
+  "part": "c",
+  "q": "In the expression 7x + 4y + 11, which term is a constant term and what is the coefficient of y?",
+  "a": "Constant term: 11; coefficient of y: 4",
+  "lvl": 2,
+  "choices": [
+   "Constant term: 7; coefficient of y: 4",
+   "Constant term: 11; coefficient of y: 4",
+   "Constant term: 11; coefficient of y: 7",
+   "Constant term: 4; coefficient of y: 11"
+  ]
+ },
+ {
+  "src": "6.15d-L2-06",
+  "std": "6.15",
+  "part": "d",
+  "q": "Evaluate 5|n − 9| − 4 when n = 3.",
+  "a": "26",
+  "lvl": 2,
+  "choices": [
+   "−34",
+   "6",
+   "26",
+   "56"
+  ]
+ },
+ {
+  "src": "6.15a-L3-04",
+  "std": "6.15",
+  "part": "a",
+  "q": "A bakery uses the expression 1.75c + 3.50m + 4 to calculate the total cost in dollars of a gift box containing c cupcakes and m muffins. What does the term 3.50m represent?",
+  "a": "The total cost in dollars of m muffins",
+  "lvl": 3,
+  "choices": [
+   "The price of one muffin",
+   "The total cost in dollars of m muffins",
+   "The number of muffins in the box",
+   "The cost of the gift box and one muffin"
+  ]
+ },
+ {
+  "src": "6.15b-L3-05",
+  "std": "6.15",
+  "part": "b",
+  "q": "Four friends share the cost of ordering p pizzas at §14 each plus a §6 delivery fee. Which expression represents the amount in dollars each friend pays?",
+  "a": "(14p + 6) ÷ 4",
+  "lvl": 3,
+  "choices": [
+   "14p + 6 ÷ 4",
+   "4(14p + 6)",
+   "(14 + 6)p ÷ 4",
+   "(14p + 6) ÷ 4"
+  ]
+ },
+ {
+  "src": "6.15d-L3-06",
+  "std": "6.15",
+  "part": "d",
+  "q": "To convert a temperature from degrees Fahrenheit F to degrees Celsius, scientists use the expression {5/9}(F − 32). What is the temperature in degrees Celsius when F = 77?",
+  "a": "25°C",
+  "lvl": 3,
+  "also": [
+   "25",
+   "25°"
+  ]
+ },
+ {
+  "src": "6.16-L1-04",
+  "std": "6.16",
+  "q": "Which property of operations shows that 1 × k = k?",
+  "a": "Multiplicative identity property",
+  "lvl": 1,
+  "choices": [
+   "Commutative property of multiplication",
+   "Associative property of multiplication",
+   "Multiplicative identity property",
+   "Distributive property"
+  ]
+ },
+ {
+  "src": "6.16-L1-05",
+  "std": "6.16",
+  "q": "Use the distributive property to write an equivalent expression for 6(w − 5).",
+  "a": "6w − 30",
+  "lvl": 1,
+  "choices": [
+   "6w − 30",
+   "6w − 5",
+   "6w + 30",
+   "w − 30"
+  ]
+ },
+ {
+  "src": "6.16-L1-06",
+  "std": "6.16",
+  "q": "Use the associative property of multiplication to write a simpler equivalent expression for 4(7d).",
+  "a": "28d",
+  "lvl": 1,
+  "choices": [
+   "11d",
+   "28d",
+   "47d",
+   "28 + d"
+  ]
+ },
+ {
+  "src": "6.16-L2-04",
+  "std": "6.16",
+  "q": "Use properties of operations to write an equivalent expression for 9t + 14 − 3t − 6.",
+  "a": "6t + 8",
+  "lvl": 2,
+  "choices": [
+   "12t + 20",
+   "6t + 20",
+   "12t + 8",
+   "6t + 8"
+  ]
+ },
+ {
+  "src": "6.16-L2-05",
+  "std": "6.16",
+  "q": "Factor 20r − 15 using the greatest common factor and the distributive property.",
+  "a": "5(4r − 3)",
+  "lvl": 2,
+  "choices": [
+   "5(4r − 15)",
+   "5(4r − 3)",
+   "4(5r − 3)",
+   "5(4r + 3)"
+  ]
+ },
+ {
+  "src": "6.16-L2-06",
+  "std": "6.16",
+  "q": "Which expression is equivalent to {1/5}(15h + 25) after applying the distributive property?",
+  "a": "3h + 5",
+  "lvl": 2,
+  "choices": [
+   "3h + 25",
+   "10h + 20",
+   "3h + 5",
+   "75h + 125"
+  ]
+ },
+ {
+  "src": "6.16-L3-04",
+  "std": "6.16",
+  "q": "A rectangular garden has a length of (3p + 4) feet and a width of (p + 2) feet. Which simplified expression represents the total perimeter of the garden?",
+  "a": "8p + 12",
+  "lvl": 3,
+  "choices": [
+   "8p + 12",
+   "4p + 6",
+   "8p + 6",
+   "6p + 12"
+  ]
+ },
+ {
+  "src": "6.16-L3-05",
+  "std": "6.16",
+  "q": "A store sells snack boxes containing 2 granola bars costing g dollars each and 1 bottle of water costing §1.50. If Coach Reed buys 4 snack boxes and uses a §2.00 coupon, which simplified expression represents the total cost in dollars?",
+  "a": "8g + 4",
+  "lvl": 3,
+  "choices": [
+   "8g − 0.50",
+   "6g + 4",
+   "8g + 8",
+   "8g + 4"
+  ]
+ },
+ {
+  "src": "6.16-L3-06",
+  "std": "6.16",
+  "q": "Simplify 7(2c + d) − 4c + 3d − 10c + 2d to an equivalent expression in simplest form.",
+  "a": "12d",
+  "lvl": 3
+ },
+ {
+  "src": "6.17-L1-04",
+  "std": "6.17",
+  "q": "Are the expressions m × m × m and 3m equivalent?",
+  "a": "No, because m × m × m equals m³, not 3m.",
+  "lvl": 1,
+  "choices": [
+   "Yes, because both have three m's.",
+   "No, because m × m × m equals m³, not 3m.",
+   "Yes, by the commutative property.",
+   "No, because 3m equals m + 3."
+  ]
+ },
+ {
+  "src": "6.17-L1-05",
+  "std": "6.17",
+  "q": "Are the expressions a − 8 and 8 − a equivalent?",
+  "a": "No, because subtraction is not commutative.",
+  "lvl": 1,
+  "choices": [
+   "Yes, by the commutative property.",
+   "Yes, because both contain a and 8.",
+   "No, because subtraction is not commutative.",
+   "No, because a − 8 cannot be evaluated."
+  ]
+ },
+ {
+  "src": "6.17-L1-06",
+  "std": "6.17",
+  "q": "Which expression is equivalent to 5 × (2b)?",
+  "a": "10b",
+  "lvl": 1,
+  "choices": [
+   "7b",
+   "5b + 2",
+   "10 + b",
+   "10b"
+  ]
+ },
+ {
+  "src": "6.17-L2-04",
+  "std": "6.17",
+  "q": "A student tests two expressions in a table: when v = 2, Expression A equals 11 and Expression B equals 11; when v = 5, Expression A equals 20 and Expression B equals 26. What can you conclude?",
+  "a": "The expressions are not equivalent because they give different values when v = 5.",
+  "lvl": 2,
+  "choices": [
+   "The expressions are not equivalent because they give different values when v = 5.",
+   "The expressions are equivalent because they matched when v = 2.",
+   "The expressions are equivalent only for even values of v.",
+   "You must test v = 0 before deciding whether they are equivalent."
+  ]
+ },
+ {
+  "src": "6.17-L2-05",
+  "std": "6.17",
+  "q": "Which pair of expressions is equivalent for all values of z?",
+  "a": "{1/2}(8z + 6) and 4z + 3",
+  "lvl": 2,
+  "choices": [
+   "6(z − 2) and 6z − 2",
+   "10 − 2z and 2z − 10",
+   "{1/2}(8z + 6) and 4z + 3",
+   "4z + 4 and 8z"
+  ]
+ },
+ {
+  "src": "6.17-L2-06",
+  "std": "6.17",
+  "q": "Devon claims that 3c + 4 and 7c are equivalent because both equal 7 when c = 1. Which statement best evaluates Devon's claim?",
+  "a": "Devon is incorrect; when c = 2, 3c + 4 = 10, but 7c = 14.",
+  "lvl": 2,
+  "choices": [
+   "Devon is correct because testing c = 1 proves equivalence.",
+   "Devon is incorrect; when c = 2, 3c + 4 = 10, but 7c = 14.",
+   "Devon is correct because 3c + 4 combines to 7c.",
+   "Devon is incorrect; when c = 2, 3c + 4 = 14, but 7c = 10."
+  ]
+ },
+ {
+  "src": "6.17-L3-04",
+  "std": "6.17",
+  "q": "A rectangular poster is split into two sections side by side. Both sections have a height of 6 inches. The left section is w inches wide and the right section is 9 inches wide. Priya writes the total area as 6(w + 9), and Tyler writes 6w + 54. Are their expressions equivalent?",
+  "a": "Yes, because applying the distributive property to 6(w + 9) gives 6w + 54.",
+  "lvl": 3,
+  "choices": [
+   "No, Priya's expression finds perimeter instead of area.",
+   "No, Tyler should have written 6w + 9.",
+   "Yes, both expressions equal 15w.",
+   "Yes, because applying the distributive property to 6(w + 9) gives 6w + 54."
+  ]
+ },
+ {
+  "src": "6.17-L3-05",
+  "std": "6.17",
+  "q": "Which expression is equivalent to 5(4q − 3) − 2q + 9?",
+  "a": "6(3q − 1)",
+  "lvl": 3,
+  "choices": [
+   "6(3q − 1)",
+   "6(3q + 1)",
+   "6(3q − 4)",
+   "2(9q + 3)"
+  ]
+ },
+ {
+  "src": "6.17-L3-06",
+  "std": "6.17",
+  "q": "Determine whether 3(5g − 2) + 4g and 19g − 2 are equivalent. Answer Yes or No.",
+  "a": "No",
+  "lvl": 3
+ },
+ {
+  "src": "6.18-L1-04",
+  "std": "6.18",
+  "q": "Which value of r makes the equation r − 11 = 15 true?",
+  "a": "26",
+  "lvl": 1,
+  "choices": [
+   "4",
+   "25",
+   "26",
+   "15"
+  ]
+ },
+ {
+  "src": "6.18-L1-05",
+  "std": "6.18",
+  "q": "Is p = 18 a solution to the equation {p/3} = 9?",
+  "a": "No, because 18 ÷ 3 = 6, not 9.",
+  "lvl": 1,
+  "choices": [
+   "Yes, because 18 − 9 = 9.",
+   "No, because 18 ÷ 3 = 6, not 9.",
+   "Yes, because 9 × 2 = 18.",
+   "No, because 18 × 3 = 54."
+  ]
+ },
+ {
+  "src": "6.18-L1-06",
+  "std": "6.18",
+  "q": "Which value of t is a solution to the inequality t < 9?",
+  "a": "7",
+  "lvl": 1,
+  "choices": [
+   "7",
+   "9",
+   "10",
+   "14"
+  ]
+ },
+ {
+  "src": "6.18-L2-04",
+  "std": "6.18",
+  "q": "Which value from the set {5, 7, 9, 11} makes the inequality 2w − 5 ≥ 17 true?",
+  "a": "11",
+  "lvl": 2,
+  "choices": [
+   "5",
+   "7",
+   "9",
+   "11"
+  ]
+ },
+ {
+  "src": "6.18-L2-05",
+  "std": "6.18",
+  "q": "Which value from the set {2, 4, 6, 8} is a solution to the equation 4(h − 1) = 20?",
+  "a": "6",
+  "lvl": 2,
+  "choices": [
+   "2",
+   "4",
+   "6",
+   "8"
+  ]
+ },
+ {
+  "src": "6.18-L2-06",
+  "std": "6.18",
+  "q": "Which value of s makes the equation s² + 6 = 31 true?",
+  "a": "5",
+  "lvl": 2,
+  "choices": [
+   "4",
+   "5",
+   "6",
+   "12.5"
+  ]
+ },
+ {
+  "src": "6.18-L3-04",
+  "std": "6.18",
+  "q": "Which values from the set {1.5, 2, 2.5, 3} are solutions to the inequality 6c + 1 ≤ 14?",
+  "a": "1.5 and 2",
+  "lvl": 3,
+  "choices": [
+   "1.5 and 2",
+   "1.5 only",
+   "1.5, 2, and 2.5",
+   "2.5 and 3"
+  ]
+ },
+ {
+  "src": "6.18-L3-05",
+  "std": "6.18",
+  "q": "A delivery drone can carry at most 18 pounds. It already holds a 5.5-pound package, and Jordan wants to add 3 identical boxes weighing b pounds each, modeled by 3b + 5.5 ≤ 18. Can each box weigh 4.5 pounds?",
+  "a": "No, because 3(4.5) + 5.5 = 19, which is greater than 18.",
+  "lvl": 3,
+  "choices": [
+   "Yes, because 3(4.5) = 13.5, which is less than 18.",
+   "Yes, because 4.5 + 5.5 = 10, which is less than 18.",
+   "No, because 3(4.5) + 5.5 = 18.5, which is greater than 18.",
+   "No, because 3(4.5) + 5.5 = 19, which is greater than 18."
+  ]
+ },
+ {
+  "src": "6.18-L3-06",
+  "std": "6.18",
+  "q": "Which value from the list {1/2}, {3/4}, 1, 1{1/2} is a solution to the equation 8d + 5 = 11?",
+  "a": "{3/4}",
+  "lvl": 3,
+  "also": [
+   "0.75"
+  ]
+ },
+ {
+  "src": "6.19-L1-04",
+  "std": "6.19",
+  "q": "A library shelf holds 42 books when full. There are currently 19 books on the shelf. Which equation can be used to find b, the number of additional books needed to fill the shelf?",
+  "a": "19 + b = 42",
+  "lvl": 1,
+  "choices": [
+   "19b = 42",
+   "b + 42 = 19",
+   "19 + b = 42",
+   "42 + 19 = b"
+  ]
+ },
+ {
+  "src": "6.19-L1-05",
+  "std": "6.19",
+  "q": "Solve for m: {1/4}m = 7.",
+  "a": "28",
+  "lvl": 1,
+  "choices": [
+   "3",
+   "11",
+   "21",
+   "28"
+  ]
+ },
+ {
+  "src": "6.19a-L1-06",
+  "std": "6.19",
+  "part": "a",
+  "q": "A baker packs muffins into boxes of 6. She models packing 48 muffins with the equation 6b = 48 and solves to get b = 8. What does b = 8 represent in this situation?",
+  "a": "The number of boxes of muffins she can pack",
+  "lvl": 1,
+  "choices": [
+   "The number of boxes of muffins she can pack",
+   "The number of muffins in each box",
+   "The total number of muffins baked",
+   "The number of muffins left over"
+  ]
+ },
+ {
+  "src": "6.19-L2-04",
+  "std": "6.19",
+  "q": "Solve for y: y + {2/3} = 3{1/6}.",
+  "a": "2{1/2}",
+  "lvl": 2,
+  "choices": [
+   "2{1/6}",
+   "2{1/2}",
+   "3{5/6}",
+   "2{5/6}"
+  ]
+ },
+ {
+  "src": "6.19-L2-05",
+  "std": "6.19",
+  "q": "A roll of ribbon costs §0.75 per yard. Maya spends §9.00 on ribbon. Which equation and solution give the number of yards y that Maya bought?",
+  "a": "0.75y = 9.00; y = 12",
+  "lvl": 2,
+  "choices": [
+   "y + 0.75 = 9.00; y = 8.25",
+   "0.75y = 9.00; y = 6.75",
+   "9.00y = 0.75; y = 12",
+   "0.75y = 9.00; y = 12"
+  ]
+ },
+ {
+  "src": "6.19a-L2-06",
+  "std": "6.19",
+  "part": "a",
+  "q": "A backpack weighs 2.8 pounds empty. After Carlos adds his textbooks, the total weight is 11.3 pounds. He writes 2.8 + t = 11.3 and finds t = 8.5. What does t = 8.5 mean?",
+  "a": "The textbooks weigh 8.5 pounds.",
+  "lvl": 2,
+  "choices": [
+   "The backpack and textbooks together weigh 8.5 pounds.",
+   "Carlos put 8.5 textbooks into his backpack.",
+   "The textbooks weigh 8.5 pounds.",
+   "Each textbook weighs 8.5 pounds."
+  ]
+ },
+ {
+  "src": "6.19-L3-04",
+  "std": "6.19",
+  "q": "A rectangular garden bed has an area of 7{1/2} square feet and a width of 2{1/4} feet. Use the equation 2{1/4}L = 7{1/2} to find the length L of the garden bed.",
+  "a": "3{1/3} feet",
+  "lvl": 3,
+  "choices": [
+   "3{1/3} feet",
+   "5{1/4} feet",
+   "3{1/2} feet",
+   "16{7/8} feet"
+  ]
+ },
+ {
+  "src": "6.19a-L3-05",
+  "std": "6.19",
+  "part": "a",
+  "q": "A rainwater barrel is {3/5} full and currently holds 24 gallons of water. The equation {3/5}c = 24 models this situation. Solve for c and interpret the solution.",
+  "a": "c = 40; the barrel holds 40 gallons when completely full.",
+  "lvl": 3,
+  "choices": [
+   "c = 14.4; the barrel holds 14.4 gallons when completely full.",
+   "c = 40; the barrel holds 40 gallons when completely full.",
+   "c = 40; the barrel needs 40 more gallons to be full.",
+   "c = 40; the barrel currently holds 40 gallons of water."
+  ]
+ },
+ {
+  "src": "6.19-L3-06",
+  "std": "6.19",
+  "q": "A swim team has raised §186.45 toward a goal of §325.00 for new gear. Write and solve an equation to find how much more money the team needs to raise.",
+  "a": "§138.55",
+  "lvl": 3,
+  "also": [
+   "138.55"
+  ]
+ },
+ {
+  "src": "6.20-L1-04",
+  "std": "6.20",
+  "q": "A museum requires a group to have at least 15 people to receive the group ticket discount. Which inequality represents the number of people p needed for the discount?",
+  "a": "p ≥ 15",
+  "lvl": 1,
+  "choices": [
+   "p > 15",
+   "p ≤ 15",
+   "p ≥ 15",
+   "p < 15"
+  ]
+ },
+ {
+  "src": "6.20b-L1-05",
+  "std": "6.20",
+  "part": "b",
+  "q": "When graphing the inequality y ≤ 12 on a number line, why is a closed (solid) circle placed at 12?",
+  "a": "Because 12 is included in the solution set.",
+  "lvl": 1,
+  "choices": [
+   "Because 12 is not included in the solution set.",
+   "Because 12 is included in the solution set.",
+   "Because 12 is the only solution to the inequality.",
+   "Because the arrow must always point to the right."
+  ]
+ },
+ {
+  "src": "6.20a-L1-06",
+  "std": "6.20",
+  "part": "a",
+  "q": "The inequality d < 20 represents the distance d (in miles) that a local courier will deliver without an extra fee. What does this inequality mean?",
+  "a": "The courier delivers without an extra fee for distances under 20 miles.",
+  "lvl": 1,
+  "choices": [
+   "The courier delivers without an extra fee for distances under 20 miles.",
+   "The courier delivers without an extra fee for distances of 20 miles or less.",
+   "The courier only delivers to places more than 20 miles away.",
+   "The courier charges §20 for every delivery."
+  ]
+ },
+ {
+  "src": "6.20-L2-04",
+  "std": "6.20",
+  "q": "A school bus has 48 seats, and 3 of those seats are reserved for chaperones. Which inequality represents the number of students s who can sit on the bus?",
+  "a": "s ≤ 45",
+  "lvl": 2,
+  "choices": [
+   "s < 45",
+   "s ≥ 45",
+   "s ≤ 48",
+   "s ≤ 45"
+  ]
+ },
+ {
+  "src": "6.20b-L2-05",
+  "std": "6.20",
+  "part": "b",
+  "q": "On a number line, a closed circle is placed at −2.5 and the line is shaded to the left. Which inequality matches this graph?",
+  "a": "n ≤ −2.5",
+  "lvl": 2,
+  "choices": [
+   "n < −2.5",
+   "n ≤ −2.5",
+   "n ≥ −2.5",
+   "n > −2.5"
+  ]
+ },
+ {
+  "src": "6.20a-L2-06",
+  "std": "6.20",
+  "part": "a",
+  "q": "A bakery sells bread only in whole loaves. The inequality b ≥ 6 represents the number of loaves b needed for a school breakfast. Which list contains only valid solutions in this context?",
+  "a": "6, 8, 11",
+  "lvl": 2,
+  "choices": [
+   "5, 6, 7",
+   "6, 6.5, 7",
+   "6, 8, 11",
+   "3, 4, 5"
+  ]
+ },
+ {
+  "src": "6.20b-L3-04",
+  "std": "6.20",
+  "part": "b",
+  "q": "Maya says the inequality x > 3 has infinitely many solutions, including numbers between 3 and 4. Which statement best supports Maya's claim?",
+  "a": "Values like 3.01, 3.5, and 3.999 are all greater than 3, and there is no smallest number greater than 3.",
+  "lvl": 3,
+  "choices": [
+   "Values like 3.01, 3.5, and 3.999 are all greater than 3, and there is no smallest number greater than 3.",
+   "Only whole numbers starting at 4 are solutions to x > 3.",
+   "3 is the smallest solution, and every whole number after it is also a solution.",
+   "There are only 9 solutions between 3 and 4, from 3.1 through 3.9."
+  ]
+ },
+ {
+  "src": "6.20a-L3-05",
+  "std": "6.20",
+  "part": "a",
+  "q": "A deep-sea robot can safely operate at elevations e (in meters relative to sea level) that satisfy e ≥ −250. A trench floor is at −265 meters and an underwater ridge is at −230 meters. Which location is safe for the robot, and why?",
+  "a": "The underwater ridge, because −230 is greater than −250.",
+  "lvl": 3,
+  "choices": [
+   "The trench floor, because −265 is greater than −250.",
+   "Both locations, because 265 and 230 are both less than 300.",
+   "Neither location, because both elevations are negative.",
+   "The underwater ridge, because −230 is greater than −250."
+  ]
+ },
+ {
+  "src": "6.20-L3-06",
+  "std": "6.20",
+  "q": "A water tank holds 120 gallons and currently has 35 gallons in it. Let g represent the number of additional gallons that can be poured into the tank without overflowing. Write an inequality in the form g ≤ c for this situation.",
+  "a": "g ≤ 85",
+  "lvl": 3,
+  "also": [
+   "g <= 85"
+  ]
+ },
+ {
+  "src": "6.21-L1-04",
+  "std": "6.21",
+  "q": "A babysitter earns §12 per hour. The total amount earned a depends on the number of hours worked h. Which quantity is the dependent variable?",
+  "a": "a (total amount earned)",
+  "lvl": 1,
+  "choices": [
+   "h (hours worked)",
+   "a (total amount earned)",
+   "12 (hourly rate)",
+   "Both h and 12"
+  ]
+ },
+ {
+  "src": "6.21a-L1-05",
+  "std": "6.21",
+  "part": "a",
+  "q": "A store coupon takes §5 off the regular price r of any jacket. Which equation gives the sale price s of the jacket?",
+  "a": "s = r − 5",
+  "lvl": 1,
+  "choices": [
+   "s = r − 5",
+   "s = r + 5",
+   "s = 5r",
+   "r = s − 5"
+  ]
+ },
+ {
+  "src": "6.21a-L1-06",
+  "std": "6.21",
+  "part": "a",
+  "q": "A table shows the relationship between packages p and total granola bars g: (1, 8), (2, 16), (3, 24), (5, ?). What is the missing value of g when p = 5?",
+  "a": "40",
+  "lvl": 1,
+  "choices": [
+   "32",
+   "35",
+   "40",
+   "48"
+  ]
+ },
+ {
+  "src": "6.21-L2-04",
+  "std": "6.21",
+  "q": "In a science experiment, the temperature T of water rises as the heating time m (in minutes) increases. On a coordinate graph of this relationship, which variable belongs on the horizontal (x) axis and which belongs on the vertical (y) axis?",
+  "a": "m on the horizontal axis and T on the vertical axis",
+  "lvl": 2,
+  "choices": [
+   "T on the horizontal axis and m on the vertical axis",
+   "Both m and T on the horizontal axis",
+   "Either variable can only be graphed on the vertical axis",
+   "m on the horizontal axis and T on the vertical axis"
+  ]
+ },
+ {
+  "src": "6.21a-L2-05",
+  "std": "6.21",
+  "part": "a",
+  "q": "A line on a coordinate grid passes through the points (2, 1.5), (4, 3), (6, 4.5), and (8, 6). Which equation represents the relationship between x and y?",
+  "a": "y = 0.75x",
+  "lvl": 2,
+  "choices": [
+   "y = x − 0.5",
+   "y = 1.5x",
+   "y = 0.75x",
+   "y = x + 0.75"
+  ]
+ },
+ {
+  "src": "6.21a-L2-06",
+  "std": "6.21",
+  "part": "a",
+  "q": "A square has side length s inches and perimeter p inches. Which set of ordered pairs (s, p) lies on the graph of this relationship?",
+  "a": "(2, 8), (3.5, 14), (5, 20)",
+  "lvl": 2,
+  "choices": [
+   "(2, 8), (3.5, 14), (5, 20)",
+   "(2, 4), (3.5, 12.25), (5, 25)",
+   "(2, 6), (3.5, 7.5), (5, 9)",
+   "(8, 2), (14, 3.5), (20, 5)"
+  ]
+ },
+ {
+  "src": "6.21a-L3-04",
+  "std": "6.21",
+  "part": "a",
+  "q": "Movie Plan A charges a §10 membership fee plus §2 per rental (c = 2m + 10). Movie Plan B's total cost is shown in a table of (rentals m, cost c): (1, §4), (2, §8), (3, §12), (4, §16). For how many movie rentals do both plans cost the same amount?",
+  "a": "5 rentals",
+  "lvl": 3,
+  "choices": [
+   "4 rentals",
+   "5 rentals",
+   "6 rentals",
+   "10 rentals"
+  ]
+ },
+ {
+  "src": "6.21-L3-05",
+  "std": "6.21",
+  "q": "Two hoses fill identical pools. Hose X's graph passes through (2, 14), (4, 28), and (6, 42), where x is minutes and y is gallons. Hose Y follows the equation y = 8x. After 15 minutes, how many more gallons has Hose Y pumped than Hose X?",
+  "a": "15 gallons",
+  "lvl": 3,
+  "choices": [
+   "1 gallon",
+   "30 gallons",
+   "225 gallons",
+   "15 gallons"
+  ]
+ },
+ {
+  "src": "6.21a-L3-06",
+  "std": "6.21",
+  "part": "a",
+  "q": "A table shows the relationship between hours worked h and wages earned w (in dollars): (2, 27), (4, 54), (6, 81), (8, 108). How much will the worker earn for working 11 hours?",
+  "a": "§148.50",
+  "lvl": 3,
+  "also": [
+   "148.50",
+   "148.5"
+  ]
+ },
+ {
+  "src": "6.22-L1-04",
+  "std": "6.22",
+  "q": "What key feature makes a question a statistical question?",
+  "a": "It anticipates a variety of different answers from a group.",
+  "lvl": 1,
+  "choices": [
+   "It always has a single exact number as the answer.",
+   "It can only be answered with Yes or No.",
+   "It anticipates a variety of different answers from a group.",
+   "It must be about scores on a math test."
+  ]
+ },
+ {
+  "src": "6.22-L1-05",
+  "std": "6.22",
+  "q": "A 6th-grade class is choosing a question for a survey project. Which of these is a statistical question?",
+  "a": "How much does each student's backpack weigh at Oak Middle School?",
+  "lvl": 1,
+  "choices": [
+   "How much does each student's backpack weigh at Oak Middle School?",
+   "How many states are in the United States?",
+   "What is the weight of Jordan's backpack today?",
+   "What time does the cafeteria open on Monday?"
+  ]
+ },
+ {
+  "src": "6.22-L1-06",
+  "std": "6.22",
+  "q": "A band director wrote four questions about the school band. Which question is NOT a statistical question?",
+  "a": "How many instruments are stored in the band room right now?",
+  "lvl": 1,
+  "choices": [
+   "How many minutes did each band member practice yesterday?",
+   "What instruments do students in the 6th-grade band play?",
+   "How many years have the band members played music?",
+   "How many instruments are stored in the band room right now?"
+  ]
+ },
+ {
+  "src": "6.22-L2-04",
+  "std": "6.22",
+  "q": "The question 'How many points did each player on the soccer team score this season?' is statistical. Which change makes it a NON-statistical question?",
+  "a": "Change 'each player on the soccer team' to 'the team captain, Sofia.'",
+  "lvl": 2,
+  "choices": [
+   "Change 'this season' to 'over the past three seasons.'",
+   "Change 'each player on the soccer team' to 'the team captain, Sofia.'",
+   "Change 'soccer team' to 'entire soccer league.'",
+   "Change 'points' to 'goals and assists.'"
+  ]
+ },
+ {
+  "src": "6.22-L2-05",
+  "std": "6.22",
+  "q": "A librarian asks every 6th grader, 'What is your favorite book genre?' Is this a statistical question, and why?",
+  "a": "Yes, because different students will give different answers.",
+  "lvl": 2,
+  "choices": [
+   "No, because the answers are words instead of numbers.",
+   "No, because every student reads books.",
+   "Yes, because different students will give different answers.",
+   "Yes, because the librarian is counting the total number of books in the library."
+  ]
+ },
+ {
+  "src": "6.22-L2-06",
+  "std": "6.22",
+  "q": "Which question about a local animal shelter is a statistical question?",
+  "a": "What are the ages of the dogs currently at the shelter?",
+  "lvl": 2,
+  "choices": [
+   "What are the ages of the dogs currently at the shelter?",
+   "How many dogs are currently at the shelter?",
+   "What year did the shelter first open?",
+   "What is the name of the shelter's oldest dog?"
+  ]
+ },
+ {
+  "src": "6.22-L3-04",
+  "std": "6.22",
+  "q": "Devon says, 'How many students attend Lincoln Middle School?' is a statistical question because it is about hundreds of students. Why is Devon's reasoning incorrect?",
+  "a": "Even though many students attend the school, the question has only one single number as its answer.",
+  "lvl": 3,
+  "choices": [
+   "The question cannot be answered without asking every parent.",
+   "Even though many students attend the school, the question has only one single number as its answer.",
+   "Statistical questions cannot be asked about schools.",
+   "A statistical question must have at least 1,000 different answers."
+  ]
+ },
+ {
+  "src": "6.22-L3-05",
+  "std": "6.22",
+  "q": "A park ranger wants to make a dot plot showing how busy a hiking trail is. Which question should the ranger ask to collect data with variability?",
+  "a": "How many hikers used the trail each day during the month of May?",
+  "lvl": 3,
+  "choices": [
+   "How many miles long is the hiking trail?",
+   "How many hikers used the trail on May 1?",
+   "What is the total number of hikers who used the trail in May?",
+   "How many hikers used the trail each day during the month of May?"
+  ]
+ },
+ {
+  "src": "6.22-L3-06",
+  "std": "6.22",
+  "q": "Is 'How many total bicycles are parked at the school bike rack right now?' a statistical question? Answer Yes or No.",
+  "a": "No",
+  "lvl": 3
+ },
+ {
+  "src": "6.23-L1-04",
+  "std": "6.23",
+  "q": "A shoe store sold the following sizes of running shoes in one hour: 7, 9, 8, 9, 6, 10, 9, 8. What is the mode of the data set?",
+  "a": "9",
+  "lvl": 1,
+  "choices": [
+   "4",
+   "8",
+   "9",
+   "8.25"
+  ]
+ },
+ {
+  "src": "6.23-L1-05",
+  "std": "6.23",
+  "q": "The daily rainfall (in millimeters) for 6 days was: 4, 0, 7, 5, 2, 6. What is the mean daily rainfall?",
+  "a": "4 mm",
+  "lvl": 1,
+  "choices": [
+   "4 mm",
+   "4.5 mm",
+   "4.8 mm",
+   "7 mm"
+  ]
+ },
+ {
+  "src": "6.23b-L1-06",
+  "std": "6.23",
+  "part": "b",
+  "q": "The heights of sunflowers in a school garden have a range of 14 inches. What does this tell you about the sunflowers?",
+  "a": "The difference between the tallest and shortest sunflower is 14 inches.",
+  "lvl": 1,
+  "choices": [
+   "Most sunflowers are 14 inches tall.",
+   "The average height of the sunflowers is 14 inches.",
+   "There are 14 sunflowers in the garden.",
+   "The difference between the tallest and shortest sunflower is 14 inches."
+  ]
+ },
+ {
+  "src": "6.23a-L2-04",
+  "std": "6.23",
+  "part": "a",
+  "q": "The daily high temperatures (in °F) for one week were 70, 71, 72, 73, 74, 75, and 76. Which statement best explains which measure of center should be used to represent this data set?",
+  "a": "Mean, because the data are symmetric with no outliers.",
+  "lvl": 2,
+  "choices": [
+   "Median, because 76 is an extreme outlier that skews the data.",
+   "Mean, because the data are symmetric with no outliers.",
+   "Mode, because 73 appears more often than any other value.",
+   "Range, because it measures the center of the data."
+  ]
+ },
+ {
+  "src": "6.23-L2-05",
+  "std": "6.23",
+  "q": "The points scored by a basketball player in 10 games are: 18, 11, 25, 14, 20, 10, 23, 16, 12, 21. What is the interquartile range (IQR) of the points scored?",
+  "a": "9",
+  "lvl": 2,
+  "choices": [
+   "6",
+   "15",
+   "9",
+   "17"
+  ]
+ },
+ {
+  "src": "6.23b-L2-06",
+  "std": "6.23",
+  "part": "b",
+  "q": "A teacher finds that the interquartile range (IQR) of minutes students spent on homework is 15 minutes. What does this tell you?",
+  "a": "The middle 50% of homework times are spread across a span of 15 minutes.",
+  "lvl": 2,
+  "choices": [
+   "The middle 50% of homework times are spread across a span of 15 minutes.",
+   "Every student spent at least 15 minutes on homework.",
+   "The difference between the longest and shortest times is 15 minutes.",
+   "Half of the students spent exactly 15 minutes on homework."
+  ]
+ },
+ {
+  "src": "6.23a-L3-04",
+  "std": "6.23",
+  "part": "a",
+  "q": "Five swimmers finished a 50-meter race in 32, 34, 35, 36, and 63 seconds. If the outlier of 63 seconds is removed from the data set, how do the mean and median change?",
+  "a": "The mean decreases by 5.75 seconds, while the median decreases by only 0.5 seconds.",
+  "lvl": 3,
+  "choices": [
+   "Both the mean and median stay the same.",
+   "The mean decreases by 5.75 seconds, while the median decreases by only 0.5 seconds.",
+   "The median decreases by 5.75 seconds, while the mean decreases by only 0.5 seconds.",
+   "The mean increases by 5.75 seconds, and the median increases by 0.5 seconds."
+  ]
+ },
+ {
+  "src": "6.23b-L3-05",
+  "std": "6.23",
+  "part": "b",
+  "q": "Pizza Shop A has a median delivery time of 26 minutes and an IQR of 4 minutes. Pizza Shop B has a median delivery time of 22 minutes and an IQR of 18 minutes. Which conclusion is best supported by this data?",
+  "a": "Pizza Shop B is typically faster, but Pizza Shop A's delivery times are more consistent.",
+  "lvl": 3,
+  "choices": [
+   "Pizza Shop A is typically faster and more consistent.",
+   "Pizza Shop B is typically faster and more consistent.",
+   "Pizza Shop A's delivery times vary more than Pizza Shop B's.",
+   "Pizza Shop B is typically faster, but Pizza Shop A's delivery times are more consistent."
+  ]
+ },
+ {
+  "src": "6.23-L3-06",
+  "std": "6.23",
+  "q": "Group A has 4 students with a mean quiz score of 80. Group B has 6 students with a mean quiz score of 90. What is the combined mean quiz score for all 10 students?",
+  "a": "86",
+  "lvl": 3
+ },
+ {
+  "src": "6.24-L1-04",
+  "std": "6.24",
+  "q": "A teacher wants a graph that uses X's above a number line to show each student's exact score on a 5-point quiz. Which graph should the teacher make?",
+  "a": "Line plot",
+  "lvl": 1,
+  "choices": [
+   "Histogram",
+   "Box plot",
+   "Line plot",
+   "Circle graph"
+  ]
+ },
+ {
+  "src": "6.24a-L1-05",
+  "std": "6.24",
+  "part": "a",
+  "q": "On a dot plot of daily bike rides (in miles), the dots are located at: 2 (1 dot), 3 (3 dots), 4 (5 dots), 5 (3 dots), and 6 (1 dot). How is the shape of this distribution best described?",
+  "a": "Symmetric",
+  "lvl": 1,
+  "choices": [
+   "Symmetric",
+   "Skewed left",
+   "Skewed right",
+   "Bimodal with a gap"
+  ]
+ },
+ {
+  "src": "6.24b-L1-06",
+  "std": "6.24",
+  "part": "b",
+  "q": "A line plot shows the number of books read by students in a book club: 2 books (3 X's), 3 books (4 X's), 4 books (2 X's), and 5 books (3 X's). How many students are in the book club?",
+  "a": "12 students",
+  "lvl": 1,
+  "choices": [
+   "4 students",
+   "12 students",
+   "14 students",
+   "41 students"
+  ]
+ },
+ {
+  "src": "6.24a-L2-04",
+  "std": "6.24",
+  "part": "a",
+  "q": "A dot plot of scores on a 20-point quiz has most dots piled up at 18, 19, and 20, with a few lower scores trailing down to 8. How is the shape of this distribution described?",
+  "a": "Skewed left",
+  "lvl": 2,
+  "choices": [
+   "Approximately symmetric",
+   "Skewed right",
+   "Uniform",
+   "Skewed left"
+  ]
+ },
+ {
+  "src": "6.24-L2-05",
+  "std": "6.24",
+  "q": "A stem-and-leaf plot shows the ages of visitors at an art exhibit (key: 2 | 4 means 24): Stem 1 has leaves 5, 8; Stem 2 has leaves 1, 3, 7; Stem 3 has leaves 0, 4, 6, 9. What is the median age of the visitors?",
+  "a": "27",
+  "lvl": 2,
+  "choices": [
+   "23",
+   "27",
+   "30",
+   "24"
+  ]
+ },
+ {
+  "src": "6.24b-L2-06",
+  "std": "6.24",
+  "part": "b",
+  "q": "A histogram of marathon finish times has bars for these intervals (in hours): 3.0–3.4 (6 runners), 3.5–3.9 (11 runners), 4.0–4.4 (8 runners), and 4.5–4.9 (5 runners). Which statement can be determined from this histogram?",
+  "a": "Exactly 17 runners finished in less than 4.0 hours.",
+  "lvl": 2,
+  "choices": [
+   "The fastest runner finished in exactly 3.0 hours.",
+   "Exactly 5 runners finished in 4.7 hours.",
+   "Exactly 17 runners finished in less than 4.0 hours.",
+   "The mean finish time was 3.9 hours."
+  ]
+ },
+ {
+  "src": "6.24b-L3-04",
+  "std": "6.24",
+  "part": "b",
+  "q": "A box plot summarizes the daily step counts (in thousands) of 40 walkers: minimum = 3, Q1 = 6, median = 8, Q3 = 11, maximum = 16. About how many walkers took 6,000 or more steps?",
+  "a": "30 walkers",
+  "lvl": 3,
+  "choices": [
+   "30 walkers",
+   "10 walkers",
+   "20 walkers",
+   "34 walkers"
+  ]
+ },
+ {
+  "src": "6.24a-L3-05",
+  "std": "6.24",
+  "part": "a",
+  "q": "Two box plots compare the lengths (in inches) of fish caught in two lakes. Lake Pine has min = 8, Q1 = 10, median = 12, Q3 = 14, max = 16. Lake Cedar has min = 6, Q1 = 11, median = 15, Q3 = 21, max = 26. Which statement correctly compares the two distributions?",
+  "a": "Lake Cedar has a greater median fish length and a wider spread of lengths than Lake Pine.",
+  "lvl": 3,
+  "choices": [
+   "Lake Pine has a greater median fish length and a wider spread than Lake Cedar.",
+   "Both lakes have the same spread, but Lake Cedar has a higher median.",
+   "Lake Pine has a greater IQR, while Lake Cedar has a greater range.",
+   "Lake Cedar has a greater median fish length and a wider spread of lengths than Lake Pine."
+  ]
+ },
+ {
+  "src": "6.24-L3-06",
+  "std": "6.24",
+  "q": "A dot plot shows the number of goals scored per game by a hockey team over 8 games: 1 goal (1 dot), 2 goals (2 dots), 3 goals (3 dots), and 5 goals (2 dots). What is the mean number of goals scored per game?",
+  "a": "3 goals",
+  "lvl": 3,
+  "also": [
+   "3"
+  ]
+ },
+ {
+  "src": "6.25-L1-04",
+  "std": "6.25",
+  "q": "The points A(−3, 1), B(2, 1), C(2, −4), and D(−3, −4) are plotted on a coordinate plane and connected in order from A to B to C to D and back to A. Which specific polygon is formed?",
+  "a": "Square",
+  "lvl": 1,
+  "choices": [
+   "Trapezoid",
+   "Square",
+   "Rectangle that is not a square",
+   "Right triangle"
+  ]
+ },
+ {
+  "src": "6.25b-L1-05",
+  "std": "6.25",
+  "part": "b",
+  "q": "On a park map plotted on a coordinate grid, the west fence of a playground runs straight from (−6, 4) to (−6, −5). Each grid unit equals 1 meter. How long is the west fence?",
+  "a": "9 meters",
+  "lvl": 1,
+  "choices": [
+   "1 meter",
+   "10 meters",
+   "12 meters",
+   "9 meters"
+  ]
+ },
+ {
+  "src": "6.25a-L1-06",
+  "std": "6.25",
+  "part": "a",
+  "q": "Three corners of a rectangular swimming pool on a coordinate plane are at (2, −1), (8, −1), and (8, −5). What are the coordinates of the fourth corner?",
+  "a": "(2, −5)",
+  "lvl": 1,
+  "choices": [
+   "(2, −5)",
+   "(−2, −5)",
+   "(−5, 2)",
+   "(6, −5)"
+  ]
+ },
+ {
+  "src": "6.25b-L2-04",
+  "std": "6.25",
+  "part": "b",
+  "q": "A horizontal side of a rectangular sign on a coordinate plane starts at (−5, 3) and extends 9 units to the right. What are the coordinates of the other endpoint of this side?",
+  "a": "(4, 3)",
+  "lvl": 2,
+  "choices": [
+   "(−14, 3)",
+   "(−5, 12)",
+   "(4, 3)",
+   "(14, 3)"
+  ]
+ },
+ {
+  "src": "6.25c-L2-05",
+  "std": "6.25",
+  "part": "c",
+  "q": "A rectangular dog run is graphed on a coordinate plane with vertices at (−4, 3), (5, 3), (5, −2), and (−4, −2), where each grid unit represents 1 yard. How many yards of fencing are needed to enclose the entire dog run?",
+  "a": "28 yards",
+  "lvl": 2,
+  "choices": [
+   "14 yards",
+   "28 yards",
+   "20 yards",
+   "45 yards"
+  ]
+ },
+ {
+  "src": "6.25a-L2-06",
+  "std": "6.25",
+  "part": "a",
+  "q": "Two opposite corners of a rectangle with horizontal and vertical sides are located at (−6, 2) and (3, −4). Which pair of coordinates gives the other two vertices of the rectangle?",
+  "a": "(−6, −4) and (3, 2)",
+  "lvl": 2,
+  "choices": [
+   "(−4, −6) and (2, 3)",
+   "(6, 2) and (−3, −4)",
+   "(−6, 4) and (3, −2)",
+   "(−6, −4) and (3, 2)"
+  ]
+ },
+ {
+  "src": "6.25c-L3-04",
+  "std": "6.25",
+  "part": "c",
+  "q": "An L-shaped courtyard is graphed on a coordinate plane with vertices connected in order at (−3, 4), (4, 4), (4, 0), (1, 0), (1, −3), and (−3, −3). What is the perimeter of the courtyard?",
+  "a": "28 units",
+  "lvl": 3,
+  "choices": [
+   "28 units",
+   "22 units",
+   "34 units",
+   "40 units"
+  ]
+ },
+ {
+  "src": "6.25c-L3-05",
+  "std": "6.25",
+  "part": "c",
+  "q": "A rectangle with horizontal and vertical sides has an area of 48 square units. Two of its vertices are at (−2, −3) and (6, −3), and the rectangle extends upward above the line y = −3. What are the coordinates of the vertex directly above (6, −3)?",
+  "a": "(6, 3)",
+  "lvl": 3,
+  "choices": [
+   "(6, 6)",
+   "(−2, 3)",
+   "(6, 3)",
+   "(6, 9)"
+  ]
+ },
+ {
+  "src": "6.25c-L3-06",
+  "std": "6.25",
+  "part": "c",
+  "q": "On a blueprint plotted on a coordinate plane, a rectangular community garden has vertices at (−3, 5), (2, 5), (2, −1), and (−3, −1). Each grid unit represents 3 meters. What is the actual area of the community garden?",
+  "a": "270 m²",
+  "lvl": 3,
+  "also": [
+   "270"
+  ]
+ },
+ {
+  "src": "6.26-L1-04",
+  "std": "6.26",
+  "q": "A parallelogram has a base of 12 m, a slanted side of 7 m, and a perpendicular height of 5 m. What is the area of the parallelogram?",
+  "a": "60 m²",
+  "lvl": 1,
+  "choices": [
+   "30 m²",
+   "38 m²",
+   "60 m²",
+   "84 m²"
+  ]
+ },
+ {
+  "src": "6.26-L1-05",
+  "std": "6.26",
+  "q": "A rhombus is divided along one diagonal into 2 congruent triangles. Each triangle has a base of 14 cm and a height of 4 cm. What is the total area of the rhombus?",
+  "a": "56 cm²",
+  "lvl": 1,
+  "choices": [
+   "56 cm²",
+   "28 cm²",
+   "36 cm²",
+   "112 cm²"
+  ]
+ },
+ {
+  "src": "6.26-L1-06",
+  "std": "6.26",
+  "q": "A triangular pennant has side lengths of 13 in, 13 in, and 10 in. Its height perpendicular to the 10-inch base is 12 in. What is the area of the pennant?",
+  "a": "60 in²",
+  "lvl": 1,
+  "choices": [
+   "36 in²",
+   "60 in²",
+   "65 in²",
+   "120 in²"
+  ]
+ },
+ {
+  "src": "6.26a-L2-04",
+  "std": "6.26",
+  "part": "a",
+  "q": "An L-shaped hallway floor has a bottom horizontal edge of 11 ft and a left vertical edge of 9 ft. Going clockwise from the top-left corner, the top horizontal edge is 4 ft, the inner vertical edge drops 5 ft, the inner horizontal edge goes right 7 ft, and the right vertical edge drops 4 ft to the bottom. What is the total area of the hallway floor?",
+  "a": "64 ft²",
+  "lvl": 2,
+  "choices": [
+   "40 ft²",
+   "79 ft²",
+   "99 ft²",
+   "64 ft²"
+  ]
+ },
+ {
+  "src": "6.26a-L2-05",
+  "std": "6.26",
+  "part": "a",
+  "q": "A craft tile is shaped like a regular hexagon. It can be decomposed into 6 congruent triangles, each with a base of 6 cm and a height of 5.2 cm. What is the total area of the hexagonal tile?",
+  "a": "93.6 cm²",
+  "lvl": 2,
+  "choices": [
+   "15.6 cm²",
+   "93.6 cm²",
+   "36 cm²",
+   "187.2 cm²"
+  ]
+ },
+ {
+  "src": "6.26-L2-06",
+  "std": "6.26",
+  "q": "A trapezoid has an area of 54 m², a height of 6 m, and one parallel base measuring 7 m. What is the length of the other parallel base?",
+  "a": "11 m",
+  "lvl": 2,
+  "choices": [
+   "2 m",
+   "9 m",
+   "11 m",
+   "18 m"
+  ]
+ },
+ {
+  "src": "6.26a-L3-04",
+  "std": "6.26",
+  "part": "a",
+  "q": "A rectangular fabric banner is 16 in long and 8 in tall. A designer cuts a V-shaped triangular notch out of the right end, with the triangle's base spanning the entire 8-inch height and its tip extending 5 in into the banner. What is the area of the remaining banner?",
+  "a": "108 in²",
+  "lvl": 3,
+  "choices": [
+   "88 in²",
+   "128 in²",
+   "148 in²",
+   "108 in²"
+  ]
+ },
+ {
+  "src": "6.26a-L3-05",
+  "std": "6.26",
+  "part": "a",
+  "q": "A stage floor is made of a rectangle attached to a trapezoid along its front edge. The rectangle is 18 ft wide and 10 ft deep. The front trapezoid has parallel bases of 18 ft and 12 ft and extends 8 ft forward. If each box of flooring covers 20 ft², how many boxes are needed to cover the entire stage?",
+  "a": "15 boxes",
+  "lvl": 3,
+  "choices": [
+   "15 boxes",
+   "9 boxes",
+   "12 boxes",
+   "21 boxes"
+  ]
+ },
+ {
+  "src": "6.26a-L3-06",
+  "std": "6.26",
+  "part": "a",
+  "q": "An octagonal tabletop is made by cutting a congruent right triangle off each of the four corners of a 14-inch by 14-inch square piece of wood. Each cut-off right triangle has legs measuring 4 inches and 4 inches. What is the area of the octagonal tabletop?",
+  "a": "164 in²",
+  "lvl": 3,
+  "also": [
+   "164"
+  ]
+ },
+ {
+  "src": "6.27-L1-04",
+  "std": "6.27",
+  "q": "A flat net is made of 4 identical triangles and no squares or rectangles. When folded along the edges, which three-dimensional figure does this net form?",
+  "a": "Triangular pyramid",
+  "lvl": 1,
+  "choices": [
+   "Triangular prism",
+   "Square pyramid",
+   "Rectangular prism",
+   "Triangular pyramid"
+  ]
+ },
+ {
+  "src": "6.27-L1-05",
+  "std": "6.27",
+  "q": "The net of a rectangular gift box consists of two rectangles each with an area of 24 in², two rectangles each with an area of 18 in², and two rectangles each with an area of 12 in². What is the total surface area of the gift box?",
+  "a": "108 in²",
+  "lvl": 1,
+  "choices": [
+   "54 in²",
+   "108 in²",
+   "96 in²",
+   "162 in²"
+  ]
+ },
+ {
+  "src": "6.27-L1-06",
+  "std": "6.27",
+  "q": "A paper ornament is shaped like a triangular pyramid. Its net consists of 4 congruent triangles, each with a base of 6 cm and a height of 5 cm. What is the total surface area of the ornament?",
+  "a": "60 cm²",
+  "lvl": 1,
+  "choices": [
+   "15 cm²",
+   "45 cm²",
+   "60 cm²",
+   "120 cm²"
+  ]
+ },
+ {
+  "src": "6.27-L2-04",
+  "std": "6.27",
+  "q": "A wooden storage cube has a total surface area of 150 in². What is the length of one edge of the cube?",
+  "a": "5 in",
+  "lvl": 2,
+  "choices": [
+   "5 in",
+   "6 in",
+   "12.5 in",
+   "25 in"
+  ]
+ },
+ {
+  "src": "6.27-L2-05",
+  "std": "6.27",
+  "q": "A camping tent with an attached floor is shaped like a triangular prism. Its net has 2 identical triangular ends, each with a base of 6 ft, two slanted sides of 5 ft, and a height of 4 ft. The tent is 8 ft long. What is the total surface area of the tent?",
+  "a": "152 ft²",
+  "lvl": 2,
+  "choices": [
+   "104 ft²",
+   "128 ft²",
+   "152 ft²",
+   "176 ft²"
+  ]
+ },
+ {
+  "src": "6.27-L2-06",
+  "std": "6.27",
+  "q": "Maya is wrapping a rectangular jewelry box that is 10 cm long, 4 cm wide, and 2.5 cm tall. What is the minimum amount of wrapping paper needed to cover the entire box with no overlap?",
+  "a": "150 cm²",
+  "lvl": 2,
+  "choices": [
+   "75 cm²",
+   "150 cm²",
+   "100 cm²",
+   "130 cm²"
+  ]
+ },
+ {
+  "src": "6.27-L3-04",
+  "std": "6.27",
+  "q": "Box A is a cube with an edge length of 6 in. Box B is a rectangular prism that is 9 in long, 6 in wide, and 4 in tall. Both boxes have the same volume of 216 in³. How do their surface areas compare?",
+  "a": "Box B has a greater surface area by 12 in².",
+  "lvl": 3,
+  "choices": [
+   "They have the same surface area because they have the same volume.",
+   "Box A has a greater surface area by 12 in².",
+   "Box B has a greater surface area by 24 in².",
+   "Box B has a greater surface area by 12 in²."
+  ]
+ },
+ {
+  "src": "6.27-L3-05",
+  "std": "6.27",
+  "q": "A solid decorative model is shaped like a rectangular pyramid. Its rectangular base is 18 ft long and 10 ft wide. The two triangular faces attached to the 18-foot edges each have a height of 13 ft, and the two triangular faces attached to the 10-foot edges each have a height of 15 ft. What is the total surface area of the pyramid?",
+  "a": "564 ft²",
+  "lvl": 3,
+  "choices": [
+   "372 ft²",
+   "564 ft²",
+   "384 ft²",
+   "948 ft²"
+  ]
+ },
+ {
+  "src": "6.27-L3-06",
+  "std": "6.27",
+  "q": "A garden shed has a roof shaped like a square pyramid with no bottom face. Each of the 4 identical triangular faces of the roof has a base of 10 ft and a height of 8 ft. If shingles cost §3 per square foot, how much will it cost to shingle the entire roof?",
+  "a": "§480",
+  "lvl": 3,
+  "also": [
+   "480"
+  ]
+ },
+ {
+  "src": "6.28a-L1-04",
+  "std": "6.28",
+  "part": "a",
+  "q": "A small rectangular prism is completely packed with 18 cubes, each with an edge length of {1/3} in and a volume of {1/27} in³. What is the volume of the prism?",
+  "a": "{2/3} in³",
+  "lvl": 1,
+  "choices": [
+   "{2/3} in³",
+   "6 in³",
+   "{1/27} in³",
+   "1{1/2} in³"
+  ]
+ },
+ {
+  "src": "6.28a-L1-05",
+  "std": "6.28",
+  "part": "a",
+  "q": "A rectangular block of cheese is 6 in long, {3/4} in wide, and {2/3} in tall. What is the volume of the block of cheese?",
+  "a": "3 in³",
+  "lvl": 1,
+  "choices": [
+   "4{1/2} in³",
+   "6 in³",
+   "3 in³",
+   "7{5/12} in³"
+  ]
+ },
+ {
+  "src": "6.28a-L1-06",
+  "std": "6.28",
+  "part": "a",
+  "q": "A rectangular prism has a base area B of 4{1/2} cm² and a height of 6 cm. Using V = Bh, what is its volume?",
+  "a": "27 cm³",
+  "lvl": 1,
+  "choices": [
+   "10{1/2} cm³",
+   "24 cm³",
+   "54 cm³",
+   "27 cm³"
+  ]
+ },
+ {
+  "src": "6.28a-L2-04",
+  "std": "6.28",
+  "part": "a",
+  "q": "How many cubes with an edge length of {1/3} ft are needed to completely fill a rectangular box that is 2 ft long, 1{1/3} ft wide, and {2/3} ft tall?",
+  "a": "48 cubes",
+  "lvl": 2,
+  "choices": [
+   "12 cubes",
+   "48 cubes",
+   "16 cubes",
+   "24 cubes"
+  ]
+ },
+ {
+  "src": "6.28-L2-05",
+  "std": "6.28",
+  "q": "A rectangular fish tank is 2{1/2} ft long, 1{1/5} ft wide, and 1{1/2} ft tall. Noah fills the tank with water to a depth of 1{1/4} ft. What is the volume of the water in the tank?",
+  "a": "3{3/4} ft³",
+  "lvl": 2,
+  "choices": [
+   "2{1/40} ft³",
+   "3 ft³",
+   "3{3/4} ft³",
+   "4{1/2} ft³"
+  ]
+ },
+ {
+  "src": "6.28a-L2-06",
+  "std": "6.28",
+  "part": "a",
+  "q": "Bin X has a base area of 6{1/2} ft² and a height of 2 ft. Bin Y is 3 ft long, 2{1/4} ft wide, and 2 ft tall. Which bin has the greater volume, and by how much?",
+  "a": "Bin Y, by {1/2} ft³",
+  "lvl": 2,
+  "choices": [
+   "Bin Y, by {1/2} ft³",
+   "Bin X, by {1/2} ft³",
+   "Bin Y, by {1/4} ft³",
+   "Both bins have the same volume."
+  ]
+ },
+ {
+  "src": "6.28-L3-04",
+  "std": "6.28",
+  "q": "A rectangular storage tray has a volume of 13{3/4} in³. Its length is 3{1/3} in and its height is 1{1/2} in. What is the width of the tray?",
+  "a": "2{3/4} in",
+  "lvl": 3,
+  "choices": [
+   "2{1/4} in",
+   "3{1/4} in",
+   "8{3/4} in",
+   "2{3/4} in"
+  ]
+ },
+ {
+  "src": "6.28-L3-05",
+  "std": "6.28",
+  "q": "A craft company ships rectangular soap bars that are 3 in long, 2 in wide, and 1{1/2} in tall inside a larger carton measuring 9 in long, 6 in wide, and 4{1/2} in tall. What is the maximum number of soap bars that can fit inside one carton?",
+  "a": "27 bars",
+  "lvl": 3,
+  "choices": [
+   "9 bars",
+   "27 bars",
+   "18 bars",
+   "36 bars"
+  ]
+ },
+ {
+  "src": "6.28-L3-06",
+  "std": "6.28",
+  "q": "A rectangular sandbox is 5{1/2} ft long, 4 ft wide, and 1{1/2} ft deep. A parks worker fills it with sand to a depth of 1 ft, then adds more sand until the sand is 1{1/4} ft deep. How many cubic feet of additional sand did the worker add?",
+  "a": "5{1/2} ft³",
+  "lvl": 3,
+  "also": [
+   "5{1/2}",
+   "5.5"
+  ]
  }
 ]
