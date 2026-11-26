@@ -128,7 +128,7 @@ body.tb-on.tbs-open .tb-bar{z-index:23}   /* the X stays sharp above the dimmed 
 .tbs-acc.open>.tbs-head .tbs-chev{transform:rotate(90deg)}
 .tbs-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.2,.8,.2,1)}
 .tbs-acc.open>.tbs-body{grid-template-rows:1fr}
-.tbs-bi{min-height:0;overflow:hidden;padding:0 12px}
+.tbs-bi{position:relative;min-height:0;overflow:hidden;padding:0 12px}
 .tbs-acc.open .tbs-bi{padding-bottom:14px}
 .tbs-link{min-height:52px;padding:6px 0}
 .tbs-link+.tbs-link{box-shadow:0 -1px 0 rgba(255,255,255,.08)}
