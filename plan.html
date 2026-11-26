@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="css/console.css?v=64">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
     <link rel="stylesheet" href="css/planner.css?v=59">
-    <link rel="stylesheet" href="css/plan.css?v=66">
+    <link rel="stylesheet" href="css/plan.css?v=67">
     <link rel="stylesheet" href="css/skin.css?v=3">
     <link rel="stylesheet" href="css/topbar.css?v=2">
     <meta name="theme-color" content="#081B45">
@@ -32,32 +32,30 @@
         <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
     </header>
     <script src="js/topbar.js?v=2"></script>
-    <main>
-        <h1>Plan the Week</h1>
-        <p class="pw-lead">Dates, days off, next standards and your usual week are filled in. Change what is different, then send it to Claude.</p>
-        <div class="pw-wkbar">
-            <button class="btn ghost" id="prevWk" type="button" aria-label="Previous school week">‹</button>
-            <h2 id="wkTitle">Loading…</h2>
-            <button class="btn ghost" id="nextWk" type="button" aria-label="Next school week">›</button>
+    <main class="wp">
+        <div class="wp-top">
+            <h1>Plan the Week</h1>
+            <span class="wp-pill" id="state">Loading…</span>
+            <div class="wp-wk wp-g">
+                <button id="prevWk" type="button" aria-label="Previous school week"><span data-icon="chevronLeft"></span></button>
+                <b id="wkTitle">Loading…</b><small id="wkDates"></small>
+                <button id="nextWk" type="button" aria-label="Next school week"><span data-icon="chevronRight"></span></button>
+            </div>
         </div>
         <div class="pw-skel" id="skel" aria-hidden="true"><div></div><div></div><div></div></div>
         <div id="view" hidden>
             <p class="pw-built" id="builtNote" hidden>This week is already on the board. Changes here only update the plan.</p>
-            <div class="pl-sum" id="summary" aria-live="polite"></div>
-            <section class="pw-week">
-                <h2>The week</h2>
-                <div class="pw-days" id="days"></div>
-                <div class="pw-two">
-                    <label class="pw-field"><span class="pw-lab">Schedule changes</span><input class="pw-in" id="schedule" type="text" placeholder="Example: Wednesday 2-hour delay, all periods meet"></label>
-                    <label class="pw-field"><span class="pw-lab">Anything all classes share</span><input class="pw-in" id="shared" type="text" placeholder="Example: first week back from break"></label>
-                </div>
-            </section>
-            <div class="pw-classes" id="classes"></div>
-            <section class="pw-send" id="sendCard" aria-live="polite"></section>
+            <section class="wp-sent wp-g" id="sendCard" aria-live="polite" hidden></section>
+            <div class="wp-days wp-g" id="days"></div>
+            <div class="wp-cls" id="classes"></div>
+        </div>
+        <div class="wp-bar wp-g" id="bar" hidden>
+            <div class="sum" id="barSum" aria-live="polite"></div>
+            <button class="btn ghost" id="noteBtn" type="button"><span data-icon="edit"></span><span>Add a note</span></button>
+            <button class="btn go" id="sendBtn" type="button"><span data-icon="send"></span><span>Send to Claude</span></button>
         </div>
     </main>
-    <datalist id="pwTemplates"><option value="Guided notes"><option value="Practice"><option value="Speed dating"><option value="Review game"><option value="Stations"><option value="Practice + study guide"><option value="Reteach + practice"><option value="Quiz"><option value="Test"><option value="Review"></datalist>
-    <script type="module" src="js/plan.js?v=67"></script>
+    <script type="module" src="js/plan.js?v=68"></script>
     <script type="module">import { mountPlanNav } from "./js/studentsNav.js?v=6"; mountPlanNav("plan.html");</script>
     <script src="js/offline.js?v=1" defer></script>
 </body>
