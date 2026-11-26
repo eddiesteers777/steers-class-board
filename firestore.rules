@@ -4,7 +4,21 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     // A teacher signs in with Google. Students playing a game get an anonymous guest sign-in
     // on their device (play.html), which can never reach a teacher's space.
-    function teacher() { return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous'; }
+    function google() { return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous'; }
+
+    // Approved teachers only (early access). A Google account can use Anchor Board when it is the site
+    // owner's, or when the owner approved its email on the Teacher access page (access.html), which
+    // writes access/{email}. Any other Google account can still sign in, but reads and writes nothing:
+    // the site sends it to waiting.html ("not on the list yet").
+    // The owner is matched by a SHA-256 of the lowercase email, so the address is not in this public file.
+    // Keep OWNER_HASHES in js/accessRules.js and functions/index.js the same.
+    function myEmail() { return request.auth.token.email.lower(); }
+    function verified() { return google() && request.auth.token.email_verified == true; }
+    function siteOwner() { return verified() && hashing.sha256(myEmail()).toHexString().lower() in [
+        'f7765647c872fc9185968a516a7f6cefb0d9cd969eafa480429a37b9f3243e08'
+    ]; }
+    function approved() { return siteOwner() || (verified() && exists(/databases/$(database)/documents/access/$(myEmail()))); }
+    function teacher() { return google() && approved(); }
 
     // Teacher-only school site. Each teacher account can read and write
     // ONLY its own documents under teacher/{uid}/...:
@@ -174,7 +188,7 @@ service cloud.firestore {
 
     // Early access sign-ups from the public site (site/join.html). Anyone can add one
     // well-formed entry; nobody can read, change or delete the list from the web.
-    // Eddie reads it in the Firebase console.
+    // The site owner reads it on the Teacher access page (access.html) and can clear an entry.
     match /waitlist/{id} {
       allow create: if request.resource.data.keys().hasOnly(['grades', 'subject', 'board', 'device', 'email', 'name', 'note', 'at'])
         && request.resource.data.keys().hasAll(['grades', 'board', 'device', 'email', 'at'])
@@ -187,7 +201,23 @@ service cloud.firestore {
         && (!('subject' in request.resource.data) || (request.resource.data.subject is string && request.resource.data.subject.size() <= 60))
         && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() <= 40))
         && (!('note' in request.resource.data) || (request.resource.data.note is string && request.resource.data.note.size() <= 500));
-      allow read, update, delete: if false;
+      allow read, delete: if siteOwner();
+      allow update: if false;
+    }
+
+    // The approved list (access.html). Only the owner reads or changes it. A signed-in teacher can check
+    // their own entry (that is how the site knows to show waiting.html), nobody else's.
+    //   access/{email}   { email, at, from: "added" | "waitlist", note? }   the id is the lowercase email
+    match /access/{email} {
+      allow get: if siteOwner() || (verified() && email == myEmail());
+      allow list, delete: if siteOwner();
+      allow create, update: if siteOwner()
+        && email.matches('^[^@ A-Z]+@[^@ A-Z]+[.][^@ A-Z]+$') && email.size() <= 120
+        && request.resource.data.keys().hasOnly(['email', 'at', 'from', 'note'])
+        && request.resource.data.email == email
+        && request.resource.data.at == request.time
+        && request.resource.data.from in ['added', 'waitlist']
+        && (!('note' in request.resource.data) || (request.resource.data.note is string && request.resource.data.note.size() <= 80));
     }
 
     match /{document=**} {

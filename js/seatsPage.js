@@ -491,7 +491,7 @@ function print() {
 /* ---------- start ---------- */
 async function start() {
     store = await import(DEMO ? "./localStore.js?v=57" : "./boardStore.js?v=58");
-    PERIODS = DEMO ? ["1st", "2nd", "4th", "5th", "6th"].map((p) => [p, ""]) : (await import("../data/weeks.js?v=63")).PERIODS;
+    PERIODS = DEMO ? ["1st", "2nd", "4th", "5th", "6th"].map((p) => [p, ""]) : (await import("../data/weeks.js?v=64")).PERIODS;
     const user = await store.ready();
     if (!user) { location.replace("login.html"); return; }
     $("who").textContent = DEMO ? "Sample names, nothing is saved" : "Signed in as " + user.name;

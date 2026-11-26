@@ -30,7 +30,7 @@
         <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
         <a class="btn" href="remote.html" style="text-decoration:none">Open Remote</a>
     </header>
-    <script src="js/topbar.js?v=1"></script>
+    <script src="js/topbar.js?v=2"></script>
     <main>
         <h1>Rosters</h1>
         <p class="sub">One name per line for each period. Names are saved only to your private account and are never part of the site's public code. The Name picker and Group maker use them. First name and last initial is all the board needs.</p>
@@ -54,7 +54,7 @@
     </main>
     <script type="module">
         import * as store from "./js/boardStore.js?v=58";
-        import { PERIODS } from "./data/weeks.js?v=63";
+        import { PERIODS } from "./data/weeks.js?v=64";
         import { parseCsv, rowsToRosters, shortNames } from "./js/rosterImport.js?v=1";
         const KEYS = PERIODS.map((p) => p[0]), $ = (id) => document.getElementById(id), boxes = {};
         const status = (t) => { const s = $("status"); s.textContent = t; s.dataset.state = /^(Live|Saved|Filled)/.test(t) ? "ok" : (/Could not|No period/.test(t) ? "bad" : "wait"); };

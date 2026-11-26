@@ -12,10 +12,11 @@
 ========================================== */
 import * as V from "./vaultCore.js?v=75";
 import * as F from "./acapFormats.js?v=1";
-import { WEEKS as PUBLISHED } from "../data/weeks.js?v=63";
+import { WEEKS as PUBLISHED } from "../data/weeks.js?v=64";
 import { watchPrivateWeeks } from "./weeksLive.js?v=58";
 import { extract, norm as bnorm, KINDS } from "./bank.js?v=2";
 import { loadStdBank, inClass, KIND as SB_KIND, WEEK_ID as SB_WEEK, WEEK_LABEL as SB_LABEL } from "./stdBank.js?v=6";
+import { byGrade } from "./courseOrder.js?v=1";
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
 const store = await import(demo ? "./localStore.js?v=58" : "./boardStore.js?v=58");
@@ -314,7 +315,7 @@ function bankItems() {
 function opts(sel, list, first) { const keep = sel.value; sel.textContent = ""; [["", first]].concat(list).forEach(([v, t]) => { const o = el("option", null, t); o.value = v; sel.appendChild(o); }); if ([...sel.options].some((o) => o.value === keep)) sel.value = keep; }
 function openBank() {
     BANK = bankItems(); picked = new Map();
-    opts($("bkCls"), Object.entries(CLS).filter(([k]) => BANK.some((x) => inClass(x, k))), "All classes");
+    opts($("bkCls"), byGrade(Object.entries(CLS), ([, t]) => t).filter(([k]) => BANK.some((x) => inClass(x, k))), "All classes");
     const want = set.per.length ? (PERIODS.find((p) => p[0] === set.per[0]) || [])[1] : ""; if (want && [...$("bkCls").options].some((o) => o.value === want)) $("bkCls").value = want;
     opts($("bkKind"), KINDS.concat([SB_KIND]).filter((k) => BANK.some((x) => x.kind === k)).map((k) => [k, k]), "Every kind");
     const wk = []; WEEKS.slice().reverse().forEach((w) => { if (BANK.some((x) => x.week === w.id)) wk.push([w.id, (w.label || w.id) + (w.dates ? " · " + w.dates : "")]); });

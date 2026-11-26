@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher access | Anchor Board</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&display=swap">
+    <script src="js/scheme.js?v=2"></script>
+    <link rel="stylesheet" href="css/board.css?v=57">
+    <link rel="stylesheet" href="css/console.css?v=64">
+    <link rel="stylesheet" href="css/theme-rings.css?v=2">
+    <link rel="stylesheet" href="css/skin.css?v=2">
+    <link rel="stylesheet" href="css/topbar.css?v=2">
+    <meta name="theme-color" content="#081B45">
+    <style>
+        /* Early access: the site owner's list of teachers who may use Anchor Board (js/access.js). */
+        .ta { max-width:760px; }
+        .ta .card { background:var(--c-surface,#fff); border:1px solid var(--k-line,#D5DCE9); border-radius:18px; padding:18px; margin:0 0 20px; box-shadow:var(--k-shadow); }
+        .ta .card h2 { margin:0 0 4px; font-size:19px; display:flex; align-items:center; gap:10px; }
+        .ta .card h2 .ct { font:600 13px/1 'Instrument Sans',sans-serif; color:var(--s-acc,#1B4FBF); background:var(--s-tint,#E6EEFA); border-radius:999px; padding:5px 10px; }
+        .ta .ic { width:36px; height:36px; flex:none; display:grid; place-items:center; border-radius:12px; background:var(--s-grad); box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 6px 14px -8px rgba(var(--s-rgb),.7); }
+        .ta .ic svg { width:19px; height:19px; fill:none; stroke:#fff; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+        .ta .add { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+        .ta .add textarea { flex:1 1 300px; min-height:50px; max-height:180px; resize:vertical; font:inherit; font-size:16px; padding:12px 14px; border:1px solid var(--k-line2,#C8D1E2); border-radius:14px; background:var(--c-surface,#fff); color:var(--c-ink); }
+        .ta .add .btn { flex:0 0 auto; min-height:50px; }
+        .ta .msg { min-height:1.2em; font-size:14px; margin:10px 0 0; color:var(--c-mute,#55627F); }
+        .ta .msg:empty { min-height:0; margin:0; }
+        .ta .msg[data-state="bad"] { color:var(--k-bad-ink,#8A1C14); }
+        .ta .msg[data-state="ok"] { color:var(--k-ok-ink,#1E6B3A); }
+        .ta ul { list-style:none; margin:12px 0 0; padding:0; }
+        .ta li { display:flex; align-items:center; gap:12px; padding:12px 0; border-top:1px solid var(--k-line,#D5DCE9); }
+        .ta li:first-child { border-top:0; }
+        .ta li .t { flex:1; min-width:0; }
+        .ta li .t b { display:block; font-weight:600; overflow-wrap:anywhere; }
+        .ta li .t small { display:block; color:var(--c-mute,#55627F); font-size:13px; margin-top:2px; overflow-wrap:anywhere; }
+        .ta li .t q { display:block; font-size:14px; color:var(--c-ink); margin-top:6px; quotes:none; }
+        .ta li .btn { flex:none; min-height:42px; padding:0 16px; }
+        .ta li .tag { flex:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--k-ok-ink,#1E6B3A); background:var(--k-ok-bg,#E6F4EA); border:1px solid var(--k-ok-line,#B7DCC3); border-radius:999px; padding:6px 12px; }
+        .ta li .tag svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+        .ta li.me .t b::after { content:" · you"; font-weight:500; color:var(--c-mute,#55627F); }
+        .ta .empty { color:var(--c-mute,#55627F); font-size:15px; margin:12px 0 0; }
+        .ta .gate { padding:28px 24px; }
+        .ta .gate .sub { margin:6px 0 18px; }
+        @media (max-width:640px) {
+            .ta .card { padding:16px 14px; border-radius:16px; }
+            .ta .add .btn { flex:1 1 100%; }
+            .ta li { flex-wrap:wrap; }
+            .ta li .t { flex:1 1 100%; }
+            .ta li .btn, .ta li .tag { margin-left:auto; }
+        }
+    </style>
+</head>
+<body class="console page">
+    <header class="cbar">
+        <a class="cbrand" href="index.html"><img src="brand/logo.svg" alt=""><span><b>Anchor Board</b><small id="who">For teachers</small></span></a>
+        <span class="live" id="status" role="status">Connecting…</span>
+        <a class="btn ghost" href="index.html" style="text-decoration:none">Home</a>
+    </header>
+    <script src="js/topbar.js?v=2"></script>
+    <main class="ta">
+        <h1>Teacher access</h1>
+        <p class="sub">Anchor Board is in early access. Only teachers on this list can use it. Anyone else who signs in sees "Not on the list yet" and can join early access from there.</p>
+        <div id="body"><p class="sub">Checking…</p></div>
+    </main>
+    <template id="tpl">
+        <section class="card" aria-labelledby="addH">
+            <h2 id="addH"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M16 11h6"/></svg></span>Let a teacher in</h2>
+            <p class="sub">Type the Google email they sign in with. Paste several at once if you like. Anchor Board doesn't email them, so tell them they're in.</p>
+            <div class="add">
+                <textarea id="addBox" rows="1" placeholder="teacher@school.org" aria-label="Teacher emails" autocomplete="off" spellcheck="false"></textarea>
+                <button class="btn go" id="addGo" type="button">Let in</button>
+            </div>
+            <p class="msg" id="addMsg" role="status" aria-live="polite"></p>
+        </section>
+        <section class="card" aria-labelledby="wlH">
+            <h2 id="wlH"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 13h6M9 16h4"/></svg></span>Early access sign-ups <span class="ct" id="wlCt">0</span></h2>
+            <p class="sub">Teachers who joined the list from the public site. Let one in with a tap.</p>
+            <ul id="wl"></ul>
+        </section>
+        <section class="card" aria-labelledby="inH">
+            <h2 id="inH"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span>Teachers let in <span class="ct" id="inCt">0</span></h2>
+            <p class="sub">Removing someone stops them at their next page. Their own classes and data stay saved in case you let them back in.</p>
+            <ul id="in"></ul>
+        </section>
+    </template>
+    <script type="module">
+        import { waitForUser } from "./js/auth.js";
+        import { checkAccess, listApproved, approve, removeApproved, listWaitlist } from "./js/access.js?v=1";
+        import { splitEmails, waitlistRows } from "./js/accessRules.js?v=1";
+        const $ = (id) => document.getElementById(id);
+        const status = (t, ok) => { const s = $("status"); s.textContent = t; s.dataset.state = ok ? "ok" : (/Could not/.test(t) ? "bad" : "wait"); };
+        const day = (ms) => ms ? new Date(ms).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+        const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
+        const WORDS = { elementary: "Elementary", middle: "Middle school", high: "High school", other: "Other grades", promethean: "Promethean", smart: "SMART Board", projector: "Projector", tv: "TV", chromebook: "Chromebook", laptop: "Laptop", ipad: "iPad", phone: "Phone" };
+        const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+        const say = (id, t, state) => { const m = $(id); m.textContent = t; m.dataset.state = state || ""; };
+
+        const user = await waitForUser().catch(() => null);
+        if (!user || user.isAnonymous) location.replace("login.html");
+        else {
+            $("who").textContent = "Signed in as " + (user.displayName || user.email || "you");
+            const a = await checkAccess(user);
+            if (a !== "owner") {
+                const g = el("section", "card gate"); g.append(el("h2", null, "Only the site owner can open this page"), el("p", "sub", "This is where the owner lets teachers into early access."));
+                const h = el("a", "btn ghost", "Back to Home"); h.href = "index.html"; h.style.textDecoration = "none"; g.append(h);
+                $("body").replaceChildren(g); status("Live", true);
+            } else {
+                $("body").replaceChildren($("tpl").content.cloneNode(true));
+                let approved = [], wait = [];
+                const draw = () => {
+                    const ul = $("in"); ul.textContent = "";
+                    const me = el("li", "me"), mt = el("span", "t"); mt.append(el("b", null, user.email), el("small", null, "Site owner. Always has access."));
+                    const mtag = el("span", "tag"); mtag.innerHTML = CHECK; mtag.append("Owner"); me.append(mt, mtag); ul.append(me);
+                    approved.forEach((r) => {
+                        const li = el("li"), t = el("span", "t"); t.append(el("b", null, r.email), el("small", null, (r.from === "waitlist" ? "From the sign-ups" : "Added by you") + (r.at ? " · " + day(r.at) : "")));
+                        const b = el("button", "btn ghost", "Remove"); b.type = "button";
+                        b.onclick = async () => {
+                            if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "Tap again to remove"; setTimeout(() => { if (b.isConnected) { b.dataset.sure = ""; b.textContent = "Remove"; } }, 4000); return; }
+                            b.disabled = true;
+                            try { await removeApproved(r.email); approved = approved.filter((x) => x.email !== r.email); say("addMsg", r.email + " was removed.", "ok"); draw(); }
+                            catch (e) { b.disabled = false; say("addMsg", "Could not remove " + r.email + " (" + ((e && e.code) || "connection") + "). Try again.", "bad"); }
+                        };
+                        li.append(t, b); ul.append(li);
+                    });
+                    $("inCt").textContent = String(approved.length + 1);
+                    const wl = $("wl"); wl.textContent = "";
+                    const rows = waitlistRows(wait, approved.map((r) => r.email));
+                    $("wlCt").textContent = String(rows.filter((r) => !r.approved).length);
+                    if (!rows.length) wl.append(el("p", "empty", "No sign-ups yet. They show here when a teacher joins from the public site."));
+                    rows.forEach((w) => {
+                        const li = el("li"), t = el("span", "t");
+                        t.append(el("b", null, w.name ? w.name + " · " + w.email : w.email));
+                        t.append(el("small", null, [WORDS[w.grades] || w.grades, w.subject, WORDS[w.board] || w.board, WORDS[w.device] || w.device, day(w.at)].filter(Boolean).join(" · ")));
+                        if (w.note) t.append(el("q", null, w.note));
+                        li.append(t);
+                        if (w.approved) { const tag = el("span", "tag"); tag.innerHTML = CHECK; tag.append("Let in"); li.append(tag); }
+                        else {
+                            const b = el("button", "btn go", "Let in"); b.type = "button";
+                            b.onclick = async () => {
+                                b.disabled = true;
+                                try { const e = await approve(w.email, "waitlist", w.name ? "Joined as " + w.name : ""); approved.unshift({ email: e, at: Date.now(), from: "waitlist" }); say("addMsg", e + " is in. Let them know they can sign in.", "ok"); draw(); }
+                                catch (e) { b.disabled = false; say("addMsg", "Could not let in " + w.email + " (" + ((e && e.code) || "connection") + "). Try again.", "bad"); }
+                            };
+                            li.append(b);
+                        }
+                        wl.append(li);
+                    });
+                };
+                $("addGo").onclick = async () => {
+                    const { good, bad } = splitEmails($("addBox").value);
+                    const fresh = good.filter((e) => e !== String(user.email || "").toLowerCase() && !approved.some((r) => r.email === e));
+                    if (!good.length) { say("addMsg", bad.length ? "That doesn't look like an email address." : "Type a teacher's email first.", "bad"); return; }
+                    $("addGo").disabled = true;
+                    const done = [], failed = [];
+                    for (const e of fresh) { try { await approve(e, "added"); done.push(e); approved.unshift({ email: e, at: Date.now(), from: "added" }); } catch { failed.push(e); } }
+                    $("addGo").disabled = false; draw();
+                    const parts = [];
+                    if (done.length) parts.push((done.length === 1 ? done[0] + " is" : done.length + " teachers are") + " in. Let them know they can sign in.");
+                    if (good.length > fresh.length) parts.push((good.length - fresh.length === 1 ? "One was" : (good.length - fresh.length) + " were") + " already on the list.");
+                    if (bad.length) parts.push("Skipped " + bad.join(", ") + ": not an email address.");
+                    if (failed.length) parts.push("Could not save " + failed.join(", ") + ". Try again.");
+                    say("addMsg", parts.join(" "), failed.length || (bad.length && !done.length) ? "bad" : "ok");
+                    if (!failed.length) $("addBox").value = bad.join(" ");
+                };
+                $("addBox").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("addGo").click(); } });
+                try {
+                    [approved, wait] = await Promise.all([listApproved(), listWaitlist()]);
+                    draw(); status("Live", true);
+                } catch (e) {
+                    draw(); status("Could not load the list (" + ((e && e.code) || "connection") + ")");
+                }
+            }
+        }
+    </script>
+</body>
+</html>

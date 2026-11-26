@@ -6,7 +6,7 @@
    saving (the week carries a "checked" stamp); the page shows that stamp and flags any answer edited after it.
    ?demo keeps everything on this device. ?week=week6 opens a given week.
 ========================================== */
-import { WEEKS as PUBLISHED } from "../data/weeks.js?v=63";
+import { WEEKS as PUBLISHED } from "../data/weeks.js?v=64";
 import { SCHOOL_YEAR, addDays, today, mondayOf, isSchoolDay, nineWeeksOf, parse } from "./schoolCal.js?v=59";
 import { weekIdFor } from "./weeksLive.js?v=58";
 import { publishWeek, unpublishWeek, classUrl, parentMessage } from "./publish.js?v=61";
