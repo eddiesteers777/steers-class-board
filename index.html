@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="css/board.css?v=57">
     <link rel="stylesheet" href="css/console.css?v=64">
     <link rel="stylesheet" href="css/theme-rings.css?v=2">
-    <link rel="stylesheet" href="css/home.css?v=66">
+    <link rel="stylesheet" href="css/home.css?v=67">
     <link rel="stylesheet" href="css/absences.css?v=5">
     <link rel="stylesheet" href="css/footer.css?v=2">
     <link rel="stylesheet" href="css/skin.css?v=2">
@@ -338,8 +338,9 @@
             const setMin = (m) => { document.body.classList.toggle("hm-min", m); setX(!m, m ? "Open Pages" : "Fold Pages"); keepSet(m ? "min" : "open"); };
             setMin(keepGet() === "min");
             // Phones and narrow windows: the three lines slide Pages in; the X in the same spot closes it.
-            const drawer = (open) => { document.body.classList.toggle("hm-drawer", open); scrim.hidden = !open; $("sideOpen").setAttribute("aria-expanded", String(open)); if (open) { setX(true, "Close Pages"); side.querySelector("a").focus(); } else if (wide.matches) setMin(document.body.classList.contains("hm-min")); };
-            $("sideOpen").onclick = () => drawer(true);
+            const drawer = (open) => { document.body.classList.toggle("hm-drawer", open); scrim.hidden = !open; const mb = $("sideOpen"); mb.setAttribute("aria-expanded", String(open)); mb.classList.toggle("hb-x", open); mb.setAttribute("aria-label", open ? "Close Pages" : "Pages"); mb.dataset.tip = open ? "Close" : "Pages"; if (open) { setX(true, "Close Pages"); side.querySelector("a").focus(); } else if (wide.matches) setMin(document.body.classList.contains("hm-min")); };
+            $("sideOpen").onclick = () => { const open = !document.body.classList.contains("hm-drawer"); drawer(open); if (!open) $("sideOpen").focus(); };   // phones: the lines open the card and, as an X, close it
+            side.querySelectorAll(".hm-sg,.hm-sl").forEach((el, i) => el.style.setProperty("--i", i));   // rows come in one after another
             X.onclick = () => { if (wide.matches) setMin(!document.body.classList.contains("hm-min")); else { drawer(false); $("sideOpen").focus(); } };
             scrim.onclick = () => drawer(false);
             document.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.body.classList.contains("hm-drawer")) { drawer(false); $("sideOpen").focus(); } });

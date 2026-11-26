@@ -71,10 +71,27 @@
   .hm-min .hm-snav{padding:4px 10px 20px}
   .hm-stitle,.hm-slt{transition:opacity .18s}
 }
-@media (max-width:999px){
-  .hm-side{transform:translateX(-102%);width:min(300px,86vw)}
-  .hm-drawer .hm-side{transform:none}
+@media (max-width:999px){   /* phones (Eddie, Nov 26): Pages drops from the three lines as a floating glass card; computers keep the docked panel */
+  body.hm-home .hm-side{top:74px;left:12px;bottom:auto;width:min(360px,calc(100vw - 24px));max-height:calc(100vh - 92px);max-height:calc(100dvh - 92px);border-radius:24px;overflow:visible;
+    background:linear-gradient(165deg,color-mix(in srgb,var(--s-hi,#173F86) 86%,transparent),color-mix(in srgb,var(--s-out,#081B45) 93%,transparent))!important;
+    -webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5);border:1px solid rgba(255,255,255,.14);
+    box-shadow:0 30px 80px -20px rgba(var(--s-rgb,8,27,69),.75),inset 0 1px 0 rgba(255,255,255,.14);
+    transform-origin:24px -14px;transform:scale(.55) translateY(-10px);opacity:0;visibility:hidden;
+    transition:transform .2s ease-in,opacity .16s ease-in,visibility 0s .2s}
+  body.hm-home.hm-drawer .hm-side{transform:none;opacity:1;visibility:visible;transition:transform .52s cubic-bezier(.2,1.25,.35,1),opacity .2s ease-out,visibility 0s}
+  body.hm-home .hm-side::before{content:"";position:absolute;top:-7px;left:17px;width:14px;height:14px;transform:rotate(45deg);border-radius:3px 0 0 0;
+    background:color-mix(in srgb,var(--s-hi,#173F86) 86%,transparent);border-left:1px solid rgba(255,255,255,.14);border-top:1px solid rgba(255,255,255,.14)}
+  body.hm-home .hm-side .hm-shead{display:none}   /* the three lines in the bar turn into the X */
+  .hm-side .hm-snav{padding:6px 12px 14px;border-radius:24px}
+  .hm-side .hm-sl{min-height:46px;padding:6px 10px}
+  .hm-side .hm-sl svg{width:32px;height:32px;padding:7px;border-radius:10px}
+  .hm-side .hm-slt small{display:none}
+  .hm-side .hm-sg{margin:12px 10px 4px}
+  .hm-drawer .hm-side .hm-sl,.hm-drawer .hm-side .hm-sg{animation:hmRow .35s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(110ms + var(--i,0)*18ms)}
+  .hm-scrim{background:rgba(var(--s-rgb,8,27,69),.18)}
+  body.hm-home.hm-drawer .cbar.hb-bar{z-index:21}   /* the X stays sharp above the dimmed page */
 }
+@keyframes hmRow{from{opacity:0;transform:translateY(-6px)}}
 /* ---------- the top bar (Eddie, Nov 25): Pages as three lines that become an X, the logo, a gear and a sign-out icon ---------- */
 body.hm-home .cbar.hb-bar{flex-wrap:nowrap;justify-content:flex-start;gap:10px;min-height:60px;padding:8px 14px}
 .hb-acts{display:flex;align-items:center;gap:8px;position:relative;flex:none;margin-left:auto}
@@ -124,11 +141,8 @@ html[data-mode="dark"] .hb-pop{background:rgba(20,26,40,.94);border-color:rgba(2
   .hm-min .hm-side .hb-menu{background:#F2B33D;border-color:#F2B33D;color:#081B45}
   .hm-min .hm-side .hb-menu:hover{background:#F6C561}
 }
-@media (max-width:999px){
-  .hm-side .hm-shead{padding:8px 14px}   /* the X lands where the three lines were */
-}
 
-@media (prefers-reduced-motion:reduce){.hm-side,body.hm-home,.hm-sl,.hm-sl svg,.hb-menu,.hb-lines i,.hb-ico{transition:none}.hm-wk{transition:none}.hm-wk:hover{transform:none}}
+@media (prefers-reduced-motion:reduce){body.hm-home .hm-side{transform:none!important}.hm-drawer .hm-side .hm-sl,.hm-drawer .hm-side .hm-sg{animation:none}.hm-side,body.hm-home,.hm-sl,.hm-sl svg,.hb-menu,.hb-lines i,.hb-ico{transition:none}.hm-wk{transition:none}.hm-wk:hover{transform:none}}
 
 /* Bell times: Plan ahead (a date that starts on another schedule) */
 .bpick2 input[type=date]{font:inherit;color:var(--c-ink);border:1.5px solid var(--c-line);border-radius:8px;padding:6px 8px;background:var(--c-surface,#fff);min-height:40px}
