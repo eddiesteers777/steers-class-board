@@ -13,6 +13,45 @@
 .slbx .slshape{position:absolute;left:0;top:0;overflow:visible}
 .sle.slsd .slshape,.slpc.slsd img{filter:drop-shadow(0 10px 22px rgba(4,12,34,.3))}
 .slhd{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;padding:0 .75em;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:inset 0 -.16em 0 #7faedd;box-sizing:border-box}
+/* Glass blocks (js/slideView.js drawGlass, Nov 26): the panel looks of css/panels.css, drawn inside a slide.
+   1em here is 30 slide units, about what a panel's em is on a projected Spotlight, so corners and edges match the panels.
+   .slth-def is "Match my panels", the frosted glass of Spotlight's own panels (css/wb.css). The rest follow js/panelStyle.js. */
+.sl .slgl{font-size:30px;border-radius:.9em;overflow:hidden;color:#14213d;--slh:#10358a}
+.sl .slgl.sldark{color:#f4f7fb;--slh:#f4f7fb}
+.sl .slgl .slglh{background:transparent;color:var(--slh);box-shadow:none;font-family:"Instrument Sans",system-ui,sans-serif;font-weight:700;padding:0 .7em 0 2.05em;letter-spacing:.005em}
+.sl .slgl .slglh::before{content:"";position:absolute;left:.62em;top:50%;width:1.05em;height:1.05em;margin-top:-.5em;background:var(--ring-mark-light,none) center/contain no-repeat}
+.sl .slgl.sldark .slglh::before{background-image:var(--ring-mark,none)}
+.sl .slgl .sltxi.slph{opacity:.5}
+.sl .slth-def{background:rgba(250,252,255,.78);-webkit-backdrop-filter:blur(.6em) saturate(160%);backdrop-filter:blur(.6em) saturate(160%);
+  border:.06em solid rgba(255,255,255,.75);box-shadow:inset 0 .06em 0 rgba(255,255,255,.9),0 1em 2.6em rgba(2,8,26,.42)}
+.sl .slth:not(.slth-def){background:rgb(var(--pbg) / var(--pa));border:.06em solid rgb(var(--pacc) / .3)}
+.sl .slth.slr-soft{border-radius:1em}
+.sl .slth.slr-round{border-radius:1.8em}
+.sl .slth.slr-round .slglh{padding-left:2.4em}
+.sl .slth.slr-round .slglh::before{left:.95em}
+.sl .slth.slr-square{border-radius:.25em}
+.sl .slth.slf-solid{box-shadow:0 .35em 1.2em rgba(4,12,32,.3)}
+.sl .slth.slf-glass{background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.05) 55%,rgba(255,255,255,0)),rgb(var(--pbg) / calc(var(--pa) * .7));
+  -webkit-backdrop-filter:blur(.9em) saturate(170%);backdrop-filter:blur(.9em) saturate(170%);border:.07em solid rgba(255,255,255,.45);
+  box-shadow:inset 0 .07em 0 rgba(255,255,255,.65),inset 0 -.05em 0 rgba(255,255,255,.08),0 .9em 2.2em rgba(2,8,26,.38)}
+.sl .slth.sldark.slf-glass{border-color:rgba(255,255,255,.22);box-shadow:inset 0 .07em 0 rgba(255,255,255,.3),0 .9em 2.2em rgba(0,0,0,.45)}
+.sl .slth.slf-glossy{background:linear-gradient(180deg,rgba(255,255,255,.6) 0%,rgba(255,255,255,.2) 2.2em,rgba(255,255,255,0) 2.3em),
+  linear-gradient(180deg,rgb(var(--pbg) / var(--pa)) 30%,rgb(var(--pbg2) / var(--pa)));
+  box-shadow:inset 0 .08em 0 rgba(255,255,255,.9),inset 0 -.25em .5em rgba(0,0,0,.1),0 .2em 0 rgb(var(--pbg2) / .9),0 .8em 1.6em rgba(2,8,26,.38)}
+.sl .slth.sldark.slf-glossy{background:linear-gradient(180deg,rgba(255,255,255,.26) 0%,rgba(255,255,255,.08) 2.2em,rgba(255,255,255,0) 2.3em),
+  linear-gradient(180deg,rgb(var(--pbg) / var(--pa)) 30%,rgb(var(--pbg2) / var(--pa)));box-shadow:inset 0 .08em 0 rgba(255,255,255,.4),0 .2em 0 rgba(0,0,0,.35),0 .8em 1.6em rgba(0,0,0,.45)}
+.sl .slth.slf-grad{background:radial-gradient(120% 90% at 0% 0%,rgba(255,255,255,.18),transparent 60%),linear-gradient(155deg,rgb(var(--pbg) / var(--pa)),rgb(var(--pbg2) / var(--pa)));box-shadow:0 .7em 1.8em rgba(2,8,26,.35)}
+.sl .slth.slf-glow{border:.12em solid rgb(var(--pacc));box-shadow:0 0 .7em rgb(var(--pacc) / .7),0 0 2.4em rgb(var(--pacc) / .35),inset 0 0 1em rgb(var(--pacc) / .22);overflow:visible}
+.sl .slth.slf-glow .slglh{text-shadow:0 0 .6em rgb(var(--pacc) / .8)}
+.sl .slth.slf-grain{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .25 0 0 0 0 .2 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"),
+  linear-gradient(180deg,rgba(255,255,255,.12),rgba(0,0,0,.04)),rgb(var(--pbg) / var(--pa));box-shadow:0 .1em .2em rgba(0,0,0,.18),0 .6em 1.4em rgba(2,8,26,.3)}
+.sl .slth.slf-frame{background:rgb(var(--pbg) / calc(var(--pa) * .4));-webkit-backdrop-filter:blur(.35em);backdrop-filter:blur(.35em);border:.16em solid rgb(var(--pacc));box-shadow:0 .5em 1.4em rgba(2,8,26,.3)}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){.sl .slth-def{background:rgba(250,252,255,.94)}.sl .slth.slf-glass,.sl .slth.slf-frame{background:rgb(var(--pbg) / max(var(--pa),.85))}}
+/* the amber-edged block (gl 2): answers, targets, missing words */
+.sl .slgl.slacc{border-color:rgba(242,179,61,.85);box-shadow:inset .16em 0 0 #f2b33d,0 .9em 2.2em rgba(2,8,26,.36);--slh:#8a5a00}
+.sl .slgl.slacc.sldark{--slh:#ffd98a}
+.sl .slgl.slacc.slf-glow{border-color:#f2b33d;box-shadow:0 0 .7em rgba(242,179,61,.7),0 0 2.4em rgba(242,179,61,.35),inset 0 0 1em rgba(242,179,61,.22)}
+.sl .slgl.slacc .slglh::before{background:none;border:.16em solid #f2b33d;border-radius:50%;box-sizing:border-box;width:.9em;height:.9em;margin-top:-.45em;left:.7em}
 .sltx{position:absolute;display:flex;flex-direction:column;min-width:0}
 .sltx.va-t{justify-content:flex-start}.sltx.va-m{justify-content:center}.sltx.va-b{justify-content:flex-end}
 .sltxi{overflow-wrap:break-word;word-break:normal;min-width:0;outline:none;white-space:pre-wrap}
@@ -44,6 +83,7 @@
 .slroot{display:inline-flex;align-items:flex-start;white-space:nowrap}
 .slrad{border-top:.07em solid currentColor;padding:0 .08em;margin-left:.02em}
 .slapb{position:absolute;top:-18px;right:-18px;width:40px;height:40px;border-radius:50%;background:#f2b33d;color:#2a1c00;font:800 22px/40px "Instrument Sans",sans-serif;text-align:center;box-shadow:0 2px 8px rgba(4,12,34,.35);pointer-events:none;z-index:3}
+.sl .slgl .slapb{top:12px;right:12px}
 .slin{animation:slIn .42s cubic-bezier(.2,.8,.2,1) both}
 @keyframes slIn{from{opacity:0;translate:0 22px}to{opacity:1;translate:0 0}}
 .slthumb{position:relative;overflow:hidden;border-radius:6px;flex:none;background:#0b2559}

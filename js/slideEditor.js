@@ -16,11 +16,12 @@
 ========================================== */
 import { SW, SH, MAX_SLIDES, MAX_DAILY, DAILY, INDEX, deckKey, newId, cleanDeck, cleanSlide, cleanEl, cleanIndex, newEl, mathBox, LAYOUTS, todaySlide, agendaSlide,
     fromPlan, liveContext, lessonDate, showList, revealSteps, countShown, sanitizeHtml, textOf, PALETTE, FONTS, SHAPES, GRADS, PATTERNS, LIVE, boxOf, shapePath, inkFor,
-    PANEL_MINS, cleanPanels, panelWords, bankSlide, walkSlide } from "./slides.js?v=2";
-import { renderSlide, renderEl, fitSlide, thumb, imageLoader } from "./slideView.js?v=2";
+    PANEL_MINS, cleanPanels, panelWords, bankSlide, walkSlide, FRAME, GRIDS, gridCells, gridSlide, snapToGrid, THEMES, themeId, cleanTheme, BLOCKS, newBlock, freeSpot } from "./slides.js?v=3";
+import { renderSlide, renderEl, fitSlide, thumb, imageLoader } from "./slideView.js?v=3";
+import { PANEL_COLORS, PANEL_FINISHES, PANEL_CORNERS, MIN_SOLID, swatchBg } from "./panelStyle.js?v=3";
 import { newItem, geom, MENU as MATH_MENU, parseStep, compileExpr, PLOT } from "./mathTools.js?v=1";
 import { STICKER_SETS, WORDS, WORD_COLORS, stickerFace } from "./stickers.js?v=1";
-import { gradOf, lookSeal } from "./panels.js?v=44";
+import { gradOf, lookSeal, themeCols } from "./panels.js?v=44";
 
 const PAGE = Math.random().toString(36).slice(2, 10);
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], DK = ["Mon", "Tue", "Wed", "Thu", "Fri"];
@@ -73,7 +74,11 @@ const IC = {
     keys: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>', settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
     notes: '<path d="M4 4h16v12H8l-4 4z"/><path d="M8 8h8M8 12h5"/>',
     panels: '<circle cx="12" cy="13" r="7"/><path d="M12 9v4l2.5 1.5M10 3h4"/>', bank: '<path d="M4 19V6a2 2 0 0 1 2-2h12v15H6a2 2 0 0 0-2 2z"/><path d="M8 8h6M8 11h4"/>',
-    steps: '<path d="M4 18h4v-4h4v-4h4V6h4"/>', every: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+    steps: '<path d="M4 18h4v-4h4v-4h4V6h4"/>',
+    theme: '<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.7-.8 1.7-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a5 5 0 0 0 5-5c0-4-4-7.2-9-7.2z"/><circle cx="7.5" cy="11" r="1" fill="currentColor"/><circle cx="10.5" cy="7" r="1" fill="currentColor"/><circle cx="15.5" cy="7.6" r="1" fill="currentColor"/>',
+    question: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3 2.4c-.6.2-1 .7-1 1.4v.4M12 17h.01"/>', answer: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".9" fill="currentColor"/>', titlebar: '<rect x="3" y="5" width="18" height="6" rx="2"/><path d="M3 15h18M3 19h12"/>',
+    every: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
 };
 const icon = (k) => svg(IC[k] || IC.more);
 
@@ -90,7 +95,7 @@ const canEdit = (key) => { const d = decks[key]; return !!d && d.ready && (d.fre
 const dateText = (w, i, d) => lessonDate(w, i, d);
 function liveCtx() { const w = weekObj(), L = classOf(w, lesson.cls), d = L && L.days ? L.days[lesson.day] : null; return liveContext(w, L, d, lesson.day, dateText(w, lesson.day, d)); }
 function boardStandIn() { const lk = (A && A.S && A.S.look) || {}; return { grad: gradOf(lk.theme || "navy"), cls: "stagebg pv-" + (lk.bg || "anchor") }; }
-function viewOpts(extra) { return Object.assign({ live: liveCtx(), mark: true, img: images ? images.src : null, logo: lookSeal(), board: boardStandIn() }, extra || {}); }
+function viewOpts(extra) { const lk = (A && A.S && A.S.look) || {}; return Object.assign({ live: liveCtx(), mark: true, img: images ? images.src : null, logo: lookSeal(), board: boardStandIn(), look: themeCols(lk.theme || "navy") }, extra || {}); }
 function slideName(s) {
     const t = (s.els || []).filter((e) => e.k === "bx" && e.html).sort((a, b) => b.fs - a.fs || a.y - b.y)[0];
     const words = t ? textOf(t.html).replace(/\{\{\s*(\w+)\s*\}\}/g, (m, k2) => (LIVE.find((x) => x[0] === k2) || [k2, k2])[1]).split("\n")[0] : "";
@@ -276,12 +281,12 @@ function drawFilm() {
         return list;
     };
     const dl = section(DAILY, daily, "Every day", "Shows first in every lesson" + ((own && own.nod) ? " (off for " + DAYS[lesson.day] + ")" : ""));
-    if (daily && daily.slides.length < MAX_DAILY) dl.appendChild(btn("sfadd small", icon("plus") + "<span>Every-day slide</span>", (e, b) => openPop(b, (p) => layoutMenu(p, DAILY)), "Add an every-day slide: your own board for the start of class, made once, filled in from each day's plan"));
+    if (daily && daily.slides.length < MAX_DAILY) dl.appendChild(btn("sfadd small", icon("plus") + "<span>Every-day slide</span>", (e, b) => openPop(b, (p) => gridMenu(p, DAILY)), "Add an every-day slide: your own board for the start of class, made once, filled in from each day's plan"));
     const w = weekObj(), L = classOf(w, lesson.cls);
     const ol = section(lk, own, DAYS[lesson.day] + "'s slides", [(L && L.label) || lesson.cls, (w && w.label) || ""].filter(Boolean).join(" · "));
     const row = el("div", "sfaddrow");
     row.appendChild(btn("sfadd", icon("plus") + "<span>New slide</span>", () => addSlide(lk, LAYOUTS.find((x) => x[0] === "blank")[2]()), "Add a blank slide"));
-    row.appendChild(btn("sfadd lay", icon("layout"), (e, b) => openPop(b, (p) => layoutMenu(p, lk)), "Add a slide from a layout"));
+    row.appendChild(btn("sfadd lay", icon("layout"), (e, b) => openPop(b, (p) => gridMenu(p, lk)), "Add a slide from a grid"));
     ol.appendChild(row);
     f.scrollTop = keepTop; f.scrollLeft = keepLeft;
     const back = anchor && [...f.querySelectorAll(".sfi")].find((it) => it.dataset.key === anchor.key && it.dataset.id === anchor.id);
@@ -355,14 +360,14 @@ function emptyLesson() {
     const box = el("div", "sempty"), d = dayOf(), lk = lessonKey(), ready = canEdit(lk);
     box.appendChild(el("h2", null, ready ? "Start " + DAYS[lesson.day] + "'s slides" : "Getting your slides…"));
     if (!ready) return box;
-    box.appendChild(el("p", null, "Start from your plan, a layout, or a blank slide. Everything you add can be moved, sized, changed or deleted."));
+    box.appendChild(el("p", null, "Start from your plan, a grid, or a blank slide. Glass blocks snap inside the part of the slide Spotlight keeps clear."));
     const row = el("div", "semrow");
     if (d) {
         const frames = A.framesFor(lesson.week, lesson.cls, lesson.day) || [], n = fromPlan(classOf(weekObj(), lesson.cls), lesson.day, frames).length;
         const p = btn("sembig", icon("plan") + "<b>From my plan</b><small>" + n + " slides: Today, " + ((d.problems || []).length) + " bellringer problems, " + frames.filter((f) => !f.pdf).length + " notes steps</small>", () => addPlan(), "Make slides from this day's plan");
         row.appendChild(p);
     }
-    row.appendChild(btn("sembig", icon("layout") + "<b>Pick a layout</b><small>Title, two columns, I do / we do / you do, exit ticket…</small>", (e, b) => openPop(b, (pp) => layoutMenu(pp, lk)), "Pick a layout"));
+    row.appendChild(btn("sembig", icon("layout") + "<b>Pick a grid</b><small>Glass blocks: two up, big + side, I do / we do / you do…</small>", (e, b) => openPop(b, (pp) => gridMenu(pp, lk)), "Pick a grid"));
     row.appendChild(btn("sembig", icon("plus") + "<b>Blank slide</b><small>Start from nothing</small>", () => addSlide(lk, LAYOUTS[0][2]()), "Add a blank slide"));
     box.appendChild(row);
     if (!d) box.appendChild(el("p", "semnote", "This day has no plan yet, so live fields like {{agenda}} stay empty until it does."));
@@ -373,7 +378,7 @@ function toSlide(ev) { const r = layoutPos(); if (!r) return { x: 0, y: 0 }; con
 function nodeOf(id) { return slideEl ? slideEl.querySelector('.sle[data-id="' + id + '"]') : null; }
 function redrawEl(e) {
     const n = nodeOf(e.id); if (!n || !slideEl) return;
-    const nn = renderEl(e, viewOpts({ edit: true, scale: k }), slideEl.dataset.ink || inkFor(S0() && S0().bg)); n.replaceWith(nn);
+    const nn = renderEl(e, viewOpts({ edit: true, scale: k, th: S0() && S0().th }), slideEl.dataset.ink || inkFor(S0() && S0().bg)); n.replaceWith(nn);
 }
 /* Selection frames, handles and snap guides, drawn over the slide in screen pixels. */
 function drawSel(guides) {
@@ -383,6 +388,10 @@ function drawSel(guides) {
     const st = stg.getBoundingClientRect(), r = slideEl.getBoundingClientRect(); k = r.width / SW;
     ov.style.left = (r.left - st.left) + "px"; ov.style.top = (r.top - st.top) + "px"; ov.style.width = r.width + "px"; ov.style.height = r.height + "px";
     const list = sel.map(byId).filter(Boolean), one = list.length === 1;
+    // the safe frame: what Spotlight's buttons never cover. Faint always, clear while a glass block moves.
+    const sf = el("div", "ssafe" + (drag && drag.moved && ((drag.items || [drag.e]).some((x) => x && x.gl)) ? " on" : ""));
+    sf.style.left = FRAME.x * k + "px"; sf.style.top = FRAME.y * k + "px"; sf.style.width = FRAME.w * k + "px"; sf.style.height = FRAME.h * k + "px";
+    sf.appendChild(el("span", null, "Spotlight keeps this clear")); ov.appendChild(sf);
     list.forEach((e) => {
         if (e.k === "ln") {
             const L = el("div", "sfline"), len = Math.hypot(e.x2 - e.x1, e.y2 - e.y1) * k, a = Math.atan2(e.y2 - e.y1, e.x2 - e.x1) * 180 / Math.PI;
@@ -451,6 +460,7 @@ function snapMove(dx, dy, orig, free) {
     if (free) return { dx, dy, g: [] };
     const T = 7 / k, ids = new Set(orig.map((o) => o.id)), others = (S0().els || []).filter((e) => !ids.has(e.id));
     const xs = [0, SW / 2, SW], ys = [0, SH / 2, SH];
+    snapLines(xs, ys);
     others.forEach((e) => { const b = boxOf(e); xs.push(b.x, b.x + b.w / 2, b.x + b.w); ys.push(b.y, b.y + b.h / 2, b.y + b.h); });
     const b = unionBox(orig), mx = [b.x, b.x + b.w / 2, b.x + b.w], my = [b.y, b.y + b.h / 2, b.y + b.h];
     let bx = null, by = null;
@@ -458,6 +468,17 @@ function snapMove(dx, dy, orig, free) {
     my.forEach((m) => ys.forEach((c) => { const d = c - (m + dy); if (Math.abs(d) < T && (!by || Math.abs(d) < Math.abs(by.d))) by = { d, at: c }; }));
     const g = []; if (bx) { dx += bx.d; g.push({ d: "v", at: bx.at }); } if (by) { dy += by.d; g.push({ d: "h", at: by.at }); }
     return { dx, dy, g };
+}
+/** The safe frame's edges and the slide's grid lines, for snapping glass blocks. */
+function snapLines(xs, ys) {
+    xs.push(FRAME.x, FRAME.x + FRAME.w); ys.push(FRAME.y, FRAME.y + FRAME.h);
+    const s = S0(); if (s && s.gd) gridCells(s.gd).forEach((c) => { xs.push(c.x, c.x + c.w); ys.push(c.y, c.y + c.h); });
+}
+/** Keep a glass block (or a group of them) inside the safe frame while it moves, when it fits there. */
+function keepIn(dx, dy, orig) {
+    if (!orig.every((o) => o.gl)) return [dx, dy];
+    const b = unionBox(orig); if (b.w > FRAME.w + 1 || b.h > FRAME.h + 1) return [dx, dy];
+    return [Math.min(FRAME.x + FRAME.w - b.x - b.w, Math.max(FRAME.x - b.x, dx)), Math.min(FRAME.y + FRAME.h - b.y - b.h, Math.max(FRAME.y - b.y, dy))];
 }
 const MIN = 16;
 function stageMove(ev) {
@@ -474,6 +495,7 @@ function stageMove(ev) {
     if (drag.kind === "move") {
         if (ev.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
         const sn = snapMove(dx, dy, drag.orig, ev.altKey || ev.shiftKey); dx = sn.dx; dy = sn.dy;
+        if (!ev.altKey) [dx, dy] = keepIn(dx, dy, drag.orig);
         drag.items.forEach((e, i) => { const o = drag.orig[i]; if (e.k === "ln") { e.x1 = o.x1 + dx; e.y1 = o.y1 + dy; e.x2 = o.x2 + dx; e.y2 = o.y2 + dy; } else { e.x = o.x + dx; e.y = o.y + dy; } const n = nodeOf(e.id); if (n) n.style.translate = dx + "px " + dy + "px"; });
         drawSel(sn.g); return;
     }
@@ -501,7 +523,21 @@ function stageMove(ev) {
     const ncx = sx ? ax + sx * w / 2 : 0, ncy = sy ? ay + sy * hh / 2 : 0;
     const gx = cx + ncx * cos - ncy * sin, gy = cy + ncx * sin + ncy * cos;
     e.w = Math.round(w * 10) / 10; e.h = Math.round(hh * 10) / 10; e.x = Math.round((gx - w / 2) * 10) / 10; e.y = Math.round((gy - hh / 2) * 10) / 10;
-    redrawEl(e); drawSel();
+    let guides = [];
+    if (e.gl && !e.r && !ev.altKey) guides = snapSize(e, sx, sy);
+    redrawEl(e); drawSel(guides);
+}
+/** A glass block being sized: the edges that move snap to the frame, the grid and other pieces, and stay in the frame. */
+function snapSize(e, sx, sy) {
+    const T = 7 / k, xs = [], ys = [], g = [];
+    snapLines(xs, ys); (S0().els || []).forEach((o) => { if (o.id === e.id) return; const b = boxOf(o); xs.push(b.x, b.x + b.w); ys.push(b.y, b.y + b.h); });
+    const near = (v, list) => { let best = null; list.forEach((c) => { if (Math.abs(c - v) < T && (best == null || Math.abs(c - v) < Math.abs(best - v))) best = c; }); return best; };
+    const F = FRAME, r1 = (n) => Math.round(n * 10) / 10;
+    if (sx > 0) { let R = e.x + e.w; const c = near(R, xs); if (c != null) { R = c; g.push({ d: "v", at: c }); } R = Math.min(R, F.x + F.w); e.w = r1(Math.max(MIN, R - e.x)); }
+    if (sx < 0) { const R = e.x + e.w; let L = e.x; const c = near(L, xs); if (c != null) { L = c; g.push({ d: "v", at: c }); } L = Math.max(L, F.x); e.x = r1(L); e.w = r1(Math.max(MIN, R - L)); }
+    if (sy > 0) { let B = e.y + e.h; const c = near(B, ys); if (c != null) { B = c; g.push({ d: "h", at: c }); } B = Math.min(B, F.y + F.h); e.h = r1(Math.max(MIN, B - e.y)); }
+    if (sy < 0) { const B = e.y + e.h; let Tp = e.y; const c = near(Tp, ys); if (c != null) { Tp = c; g.push({ d: "h", at: c }); } Tp = Math.max(Tp, F.y); e.y = r1(Tp); e.h = r1(Math.max(MIN, B - Tp)); }
+    return g;
 }
 function stageUp(ev) {
     if (!drag) return;
@@ -908,26 +944,115 @@ function addMany(key, make, n) {
     cur = { key, id: made[0].id }; sel = []; picks = new Set(made.map((x) => key + "|" + x.id)); selMode = true; draw();
     toast("Added " + made.length + " slides" + (made.length < n ? " (" + (n - made.length) + " did not fit)" : "") + ". They are ticked: set their panels or put them in Spotlight.");
 }
-function layoutMenu(p, key) {
-    p.classList.add("slay"); p.appendChild(el("p", "sph", key === DAILY ? "New every-day slide" : "New slide"));
-    // How many of the picked layout to add (Nov 24: "get a lot of layouts set up for class")
-    const many = key === DAILY ? [1, 2, 3] : [1, 3, 5, 10];
-    const cnt = el("div", "srow slaycnt"); cnt.appendChild(el("span", "spnote", "How many"));
-    many.forEach((m) => { const c = btn("spchip" + (layCount === m ? " on" : ""), String(m), () => { layCount = m; cnt.querySelectorAll(".spchip").forEach((x) => x.classList.toggle("on", x.textContent === String(m))); }, "Add " + m + " at once"); cnt.appendChild(c); });
-    if (!many.includes(layCount)) layCount = 1;
-    p.appendChild(cnt);
-    const g = el("div", "slaygrid");
-    LAYOUTS.forEach(([id, name, make]) => {
-        const s = make(), b = btn("slayb", "", () => { closePop(); addMany(key, make, layCount); }, name);
-        b.appendChild(thumb(s, viewOpts({ edit: false, mark: false }), 132)); b.appendChild(el("span", null, name)); g.appendChild(b);
+/** A small picture of a grid: its cells in the safe frame, on a navy slide. */
+function gridPic(id) {
+    const k = 64 / SW, cells = gridCells(id);
+    return '<svg viewBox="0 0 64 36" aria-hidden="true"><rect x=".5" y=".5" width="63" height="35" rx="4" fill="#0b2559"/>' +
+        cells.map((c) => '<rect x="' + (c.x * k).toFixed(1) + '" y="' + (c.y * k).toFixed(1) + '" width="' + (c.w * k).toFixed(1) + '" height="' + (c.h * k).toFixed(1) + '" rx="1.6" fill="rgba(255,255,255,.82)"/>').join("") + "</svg>";
+}
+let gridMode = "new";
+/** Grid (Nov 26, in place of Layout): a new slide of glass blocks on a grid, or this slide's blocks snapped into one. */
+function gridMenu(p, key) {
+    p.classList.add("slay"); p.appendChild(el("p", "sph", key === DAILY ? "New every-day slide" : "Grid"));
+    const s = S0(), here = !!s && cur.key === key && canEdit(key);
+    if (!here) gridMode = "new";
+    const redo = () => { p.textContent = ""; p.classList.remove("slay"); gridMenu(p, key); };
+    if (here) {
+        const m = el("div", "srow sgridmode");
+        [["new", "New slide"], ["this", "This slide"]].forEach(([id, name]) => m.appendChild(btn("spchip" + (gridMode === id ? " on" : ""), name, () => { gridMode = id; redo(); }, id === "new" ? "Add a new slide on the grid you pick" : "Snap this slide's glass blocks into the grid you pick")));
+        p.appendChild(m);
+    }
+    if (gridMode === "new") {
+        // How many to add (Nov 24: "get a lot of layouts set up for class")
+        const many = key === DAILY ? [1, 2, 3] : [1, 3, 5, 10];
+        const cnt = el("div", "srow slaycnt"); cnt.appendChild(el("span", "spnote", "How many"));
+        many.forEach((m) => { const c = btn("spchip" + (layCount === m ? " on" : ""), String(m), () => { layCount = m; cnt.querySelectorAll(".spchip").forEach((x) => x.classList.toggle("on", x.textContent === String(m))); }, "Add " + m + " at once"); cnt.appendChild(c); });
+        if (!many.includes(layCount)) layCount = 1;
+        p.appendChild(cnt);
+    }
+    const g = el("div", "sgrids"), th = s && s.th ? s.th : null;
+    GRIDS.forEach(([id, name]) => {
+        const on = gridMode === "this" && s && s.gd === id;
+        const b = btn("sgridb" + (on ? " on" : ""), gridPic(id) + "<span>" + name + "</span>", () => {
+            closePop();
+            if (gridMode === "this") { change((sl) => { snapToGrid(sl, id); }); sel = []; draw(); toast("Snapped into " + name + ". Blocks you add go in the empty cells."); }
+            else addMany(key, () => gridSlide(id, th), layCount);
+        }, gridMode === "this" ? "Snap this slide's blocks into " + name : "New slide: " + name);
+        g.appendChild(b);
     });
     p.appendChild(g);
-    if (key !== DAILY) {
+    p.appendChild(el("p", "spnote", gridMode === "this" ? "Your blocks keep their words. Empty cells get a new block." : "Each cell is a glass block in this slide's theme, clear of Spotlight's buttons."));
+    if (key !== DAILY && gridMode === "new") {
         const L = classOf(weekObj(), lesson.cls);
         if (L) p.appendChild(btn("spi", icon("plan") + "<span>The week's agenda, as a slide</span>", () => { closePop(); addSlide(key, agendaSlide(L)); }));
     }
 }
-
+/** Block (Nov 26, in place of Card): a glass block in the slide's theme, put in the first free cell of its grid. */
+function blockMenu(p) {
+    p.appendChild(el("p", "sph", "Add a glass block"));
+    const ICONS = { notes: "card", question: "question", answer: "answer", steps: "ol", target: "target", agenda: "plan", title: "titlebar" };
+    BLOCKS.forEach(([id, name, sub]) => p.appendChild(btn("spi smi", icon(ICONS[id] || "card") + "<span><b>" + name + "</b><small>" + sub + "</small></span>", () => { closePop(); addBlock(id); })));
+    p.appendChild(el("p", "spnote", "Blocks wear the slide's theme. Drag one near an edge and it snaps into the safe frame."));
+}
+function addBlock(kind) {
+    if (!S0()) addSlide(lessonKey(), LAYOUTS[0][2](), true);
+    const s = S0(); if (!s) return; if (s.els.length >= 80) return toast("A slide holds 80 pieces at most.");
+    const e = newBlock(kind, freeSpot(s, kind)); if (!e) return;
+    if (e.ap) e.ap = revealSteps(s) + 1;
+    change((sl) => { sl.els.push(e); }); sel = [e.id]; drawSel(); drawTools();
+    if (!e.html) startEdit(e.id);
+}
+/** Look: one place for a slide's theme and its background, as two tabs. */
+let lookTab = 0;
+function lookMenu(p) {
+    p.classList.add("sthemes");
+    const tabs = el("div", "stabs"), body = el("div", "slook");
+    const show = (i) => { lookTab = i; [...tabs.children].forEach((b, j) => { b.classList.toggle("on", i === j); b.setAttribute("aria-pressed", String(i === j)); }); body.textContent = ""; (i ? bgMenu : themeMenu)(body); };
+    ["Theme", "Background"].forEach((n, i) => tabs.appendChild(btn("stab", n, () => show(i))));
+    p.appendChild(tabs); p.appendChild(body); show(lookTab);
+}
+/** A sample slide for the theme pictures when this slide has no glass blocks yet. */
+let themeSample = null;
+/** Theme (Nov 26, Eddie: "a lot of premium options... easily changed to different themes and color schemes"). */
+function themeMenu(p) {
+    const s = S0(); if (!s) return;
+    const cur0 = cleanTheme(s.th), curId = themeId(s.th);
+    const stay = () => setTimeout(() => { const b = [...document.querySelectorAll("#slTools .tb")].find((x) => x.textContent.trim() === "Look"); if (b && !pop) openPop(b, lookMenu, "wide"); }, 0);
+    const setTh = (th, all) => {
+        const c = cleanTheme(th);
+        const put = (sl) => { if (c) sl.th = JSON.parse(JSON.stringify(c)); else delete sl.th; };
+        if (all) changeDeck(cur.key, (d) => { d.slides.forEach(put); }); else change(put);
+    };
+    p.classList.add("sthemes");
+    p.appendChild(el("p", "spnote spfirst", "The look of this slide's glass blocks. Tap one to try it."));
+    const hasGl = s.els.some((e) => e.gl);
+    if (!hasGl && !themeSample) themeSample = gridSlide("bigside");
+    const base = hasGl ? s : themeSample;
+    const g = el("div", "sthgrid");
+    THEMES.forEach(([id, name, th]) => {
+        const b = btn("sthb" + (curId === id ? " on" : ""), "", () => { closePop(); setTh(th); stay(); }, name);
+        b.appendChild(thumb(Object.assign({}, base, { th: th || undefined }), viewOpts({ edit: false, mark: false }), 118));
+        b.appendChild(el("span", null, name)); b.setAttribute("aria-pressed", String(curId === id)); g.appendChild(b);
+    });
+    p.appendChild(g);
+    // Make your own: any panel color, finish, corners and how solid
+    const mine = cur0 || { c: "night", f: "glass", o: 64, r: "soft" }, set = (x) => { closePop(); setTh(Object.assign({}, mine, x)); stay(); };
+    p.appendChild(el("p", "sph", "Make your own"));
+    const look = themeCols(((A && A.S && A.S.look) || {}).theme || "navy");
+    const cr = el("div", "sthsw");
+    PANEL_COLORS.forEach(([c, n]) => { const b = btn("sthc" + (cur0 && cur0.c === c ? " on" : ""), "", () => set({ c }), n); b.style.background = swatchBg(c, look); cr.appendChild(b); });
+    p.appendChild(cr);
+    const fr = el("div", "srow");
+    PANEL_FINISHES.forEach(([f, n, sub]) => fr.appendChild(btn("spchip" + (cur0 && cur0.f === f ? " on" : ""), n, () => set({ f }), sub)));
+    p.appendChild(fr);
+    const rr = el("div", "srow");
+    PANEL_CORNERS.forEach(([r, n]) => rr.appendChild(btn("spchip" + (cur0 && cur0.r === r ? " on" : ""), n + " corners", () => set({ r }))));
+    const lab = el("label", "sthsolid"); lab.appendChild(el("span", null, "How solid"));
+    const rg = el("input"); rg.type = "range"; rg.min = String(MIN_SOLID); rg.max = "100"; rg.step = "1"; rg.value = String(mine.o);
+    rg.onchange = () => set({ o: +rg.value }); lab.appendChild(rg); rr.appendChild(lab);
+    p.appendChild(rr);
+    p.appendChild(btn("spi", icon("every") + "<span>Use this theme on every slide of this day</span>", () => { closePop(); setTh((S0() || s).th, true); toast("Every slide here wears this theme now."); }));
+}
 /* ---------- panels per slide (Spotlight opens them when it reaches the slide) ---------- */
 function panelsMenu(p) {
     const s = S0(); if (!s) return;
@@ -1119,7 +1244,7 @@ function drawTools() {
     g = grp("ins");
     const dis = !canEdit(lessonKey());
     tb(g, "text", "Text box", () => addEl(newEl("text"), true), { text: "Text", dis });
-    tb(g, "card", "Card with a heading", () => addEl(newEl("card"), false), { text: "Card", dis });
+    tb(g, "card", "Glass blocks: notes, a question, an answer on Next, the target…", (e, b) => openPop(b, blockMenu), { text: "Block", menu: 1, dis });
     tb(g, "shape", "Shapes", (e, b) => openPop(b, shapeMenu), { text: "Shape", menu: 1, dis });
     tb(g, "line", "Lines and arrows", (e, b) => openPop(b, lineMenu), { text: "Line", menu: 1, dis });
     tb(g, "table", "Table", (e, b) => openPop(b, tableMenu), { text: "Table", menu: 1, dis });
@@ -1128,8 +1253,8 @@ function drawTools() {
     tb(g, "sticker", "Stickers", (e, b) => openPop(b, stickerMenu, "wide"), { text: "Sticker", menu: 1, dis });
     tb(g, "live", "Live fields: fill in from the day's plan", (e, b) => openPop(b, liveMenu), { text: "Live", menu: 1, dis });
     g = grp("slideg");
-    tb(g, "bg", "Background of this slide", (e, b) => openPop(b, bgMenu, "wide"), { text: "Background", menu: 1, dis: !ready });
-    tb(g, "layout", "New slide from a layout", (e, b) => openPop(b, (p) => layoutMenu(p, cur.key || lessonKey())), { text: "Layout", menu: 1, dis: !canEdit(cur.key || lessonKey()) });
+    tb(g, "theme", "Look: this slide's theme and background", (e, b) => openPop(b, lookMenu, "wide"), { text: "Look", menu: 1, dis: !ready });
+    tb(g, "layout", "Grid: a new slide of glass blocks, or snap this slide's blocks into one", (e, b) => openPop(b, (p) => gridMenu(p, cur.key || lessonKey())), { text: "Grid", menu: 1, dis: !canEdit(cur.key || lessonKey()) });
     tb(g, "panels", s && s.pn ? "Panels for this slide: " + panelWords(s.pn) : "Open a timer, learning target or agenda when Spotlight reaches this slide", (e, b) => openPop(b, panelsMenu), { text: "Panels", menu: 1, on: !!(s && s.pn), dis: !ready }).id = "slPanelsBtn";
     tb(g, "bank", "Slides from the standards bank: practice problems or a Show Steps walkthrough", (e, b) => openPop(b, bankMenu), { text: "Bank", menu: 1, dis });
     if (!ready) { bar.appendChild(el("span", "thint", s ? "Getting your slides…" : "Add a slide to start.")); return; }
@@ -1376,7 +1501,6 @@ function liveMenu(p) {
 function bgMenu(p) {
     const s = S0(); if (!s) return; const bg = s.bg || { t: "board" };
     const setBg = (nb, all) => { if (all) changeDeck(cur.key, (d) => { d.slides.forEach((x) => { x.bg = JSON.parse(JSON.stringify(nb)); }); }); else change((sl) => { sl.bg = nb; }); };
-    p.appendChild(el("p", "sph", "Background"));
     const row = el("div", "sbgrow");
     const tile = (label, on, paint, fn) => { const b = btn("sbgt" + (on ? " on" : ""), "", fn, label); const sw = el("span", "sbgsw"); paint(sw); b.appendChild(sw); b.appendChild(el("span", null, label)); row.appendChild(b); return b; };
     const st = boardStandIn();
