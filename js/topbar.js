@@ -96,6 +96,7 @@
                     link(I.users, "Your classes", "Classes and periods", "setup.html", "tbsSetup") +
                     link(I.year, "School year", "First and last day", "setup.html#year") +
                     link(I.shield, "Your data and backup", "See, download or delete", "account.html") +
+                    link(I.users, "Teacher access", "Who can use Anchor Board", "access.html", "tbsAccess") +
                 "</div></div></section>" +
         "</div></div>";
     old.insertAdjacentHTML("beforebegin", html);
@@ -106,6 +107,10 @@
     /* ---------- the page's own header on phones: keep only what is particular to this page ---------- */
     var setupRow = $("tbsSetup");
     setupRow.hidden = true;   // "Your classes" is for a new teacher's own setup; shown once the account is known to be one
+    // "Teacher access" (access.html) is the site owner's alone: shown once js/access.js has found this account is the owner.
+    var accessRow = $("tbsAccess");
+    accessRow.hidden = true;
+    try { var me = localStorage.getItem("school-account-storage-owner"); if (me && localStorage.getItem("anchor-access:" + me) === "owner") accessRow.hidden = false; } catch (e) { /* storage unavailable */ }
     if (old.classList.contains("cbar")) {
         old.querySelectorAll("a[href]").forEach(function (a) {
             var h = (a.getAttribute("href") || "").toLowerCase();
@@ -220,7 +225,7 @@
     if (phone.addEventListener) phone.addEventListener("change", function () { drawer(false); closeSettings(false); showOut(false); });
 
     /* ---------- a new teacher (starter pack) sees the same Pages and Settings rows as on Home ---------- */
-    import("./contentPack.js?v=4").then(function (m) { return m.myPack(); }).then(function (pack) {
+    import("./contentPack.js?v=5").then(function (m) { return m.myPack(); }).then(function (pack) {
         if (pack === "calera") return;
         setupRow.hidden = false;
         var pl = side.querySelector('a[href="plan.html"]');

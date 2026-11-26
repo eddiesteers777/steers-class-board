@@ -73,7 +73,7 @@ export function mountStudentsNav(here) { mountSectionNav("students", here); }
 export function mountPlanNav(here) {
     const nav = mountSectionNav("plan", here);
     if (!nav || CALERA_ONLY.includes(here)) return;
-    import("../data/weeks.js?v=63").then(({ PACK }) => {
+    import("../data/weeks.js?v=64").then(({ PACK }) => {
         if (PACK === "calera") return;
         nav.querySelectorAll("a").forEach((a) => { if (CALERA_ONLY.includes(a.getAttribute("href").split("?")[0])) a.remove(); });
     }).catch(() => {});

@@ -33,7 +33,7 @@ import { waitForUser } from "./auth.js";
 import { doc, getDoc, getDocFromServer, getDocsFromServer, collection, query, limit, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { trail } from "./signInTrail.js";
 import { okCourse } from "./courseRules.js?v=1";
-import { PACKS, EVIDENCE_DOCS, EVIDENCE_COLLECTIONS, trusted, inferPack } from "./packRules.js?v=1";
+import { PACKS, EVIDENCE_DOCS, EVIDENCE_COLLECTIONS, NEW_TEACHER_HOW, trusted, inferPack } from "./packRules.js?v=2";
 export { PACKS, EVIDENCE_DOCS, EVIDENCE_COLLECTIONS, trusted, inferPack };
 
 const FALLBACK = "calera";
@@ -87,8 +87,14 @@ async function decide(uid) {
         return want;
     }
     const { saved, found } = await readServer(uid);
-    const r = inferPack(saved, found);
-    if (r.save) await setDoc(ref, { pack: "calera", how: "existing account", at: serverTimestamp() });
+    let r = inferPack(saved, found);
+    if (!r.save && found && !trusted(saved)) {
+        // Nothing saved and nothing found: ask the approved list whether this is a new teacher the owner let in.
+        let access = "unknown";
+        try { const [{ checkAccess }, { auth }] = await Promise.all([import("./access.js?v=1"), import("./firebase.js")]); access = await checkAccess(auth.currentUser); } catch { /* unsure: nothing changes */ }
+        r = inferPack(saved, found, access);
+    }
+    if (r.save) await setDoc(ref, r.pack === "starter" ? { pack: "starter", how: NEW_TEACHER_HOW, at: serverTimestamp() } : { pack: "calera", how: "existing account", at: serverTimestamp() });
     log("decided", r.pack, r.why, found);
     return r.pack;
 }

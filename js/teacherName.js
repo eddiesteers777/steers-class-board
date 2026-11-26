@@ -8,7 +8,7 @@
    The last name and subject are remembered on this device (anchor-who) so the signed-out sign-in page
    (home.html) can greet the same teacher: "Mr. Steers · Math". It is a display name only, never sent anywhere.
 ========================================== */
-import { myPack, mySetup, packInfo } from "./contentPack.js?v=4";
+import { myPack, mySetup, packInfo } from "./contentPack.js?v=5";
 
 export const CALERA_NAME = "Mr. Steers";
 const KEY = "anchor-who";

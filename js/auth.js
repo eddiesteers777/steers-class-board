@@ -56,7 +56,7 @@ const ACCOUNT_LOCAL_STORAGE_PREFIXES = [
 // Which lessons an account sees, and a new teacher's setup (js/contentPack.js). Cleared on sign-out and account switch
 // so a stale "starter" can never carry into another session (Nov 23). Kept out of hasLegacyAccountState(): their
 // presence alone must not trigger the clear-and-reload that an account switch does.
-const ACCOUNT_CACHE_PREFIXES = ["focal-pack:", "focal-setup:", "anchor-cal:"];
+const ACCOUNT_CACHE_PREFIXES = ["focal-pack:", "focal-setup:", "anchor-cal:", "anchor-access:"];
 
 const ACCOUNT_SESSION_STORAGE_KEYS = [
     "school-role-reloaded",
@@ -236,7 +236,18 @@ onAuthStateChanged(auth, (user) => {
         // before an account-transition reload. This removes the race where
         // the old auth flow could reload before page bootstrap repaired an
         // existing active client account.
-        if (user) {
+        // Early access: a Google account that isn't on the approved list goes to waiting.html (js/access.js).
+        // Only a clear "not on the list" from the server sends anyone away; offline or unsure changes nothing.
+        let waiting = false;
+        if (user && !user.isAnonymous && typeof location !== "undefined") {
+            try {
+                const [{ checkAccess }, { pageIsOpen }] = await Promise.all([import("./access.js?v=1"), import("./accessRules.js?v=1")]);
+                waiting = (await checkAccess(user)) === "waiting";
+                trail("access", waiting ? "not on the list" : "ok or unsure");
+                if (waiting && !pageIsOpen(location.pathname) && !result.changed) { location.replace("waiting.html"); return; }
+            } catch { /* the check is a courtesy: the database rules decide */ }
+        }
+        if (user && !waiting) {
             try {
                 const { ensureProfile } = await import("./userProfile.js");
                 await ensureProfile();
