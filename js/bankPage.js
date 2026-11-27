@@ -56,11 +56,22 @@ function fill() {
 /** Standard or skill list. With a class picked, only the tags on that class's questions, in that course's standards
  *  order, then its below-grade skills. With All classes, every tag: standards first, then prior skills. */
 function fillStd() {
+    $("fStd").dataset.want = $("fStd").value;
     const c = $("fCls").value, pool = c ? all.filter((x) => inClass(x, c)) : all;
     const seq = new Map(c && STANDARDS[c] ? STANDARDS[c].standards.map((s, i) => [s.code, i]) : []);
     const rank = (t) => (seq.has(t) ? 0 : STD_TEXT.has(t) ? 1 : 2);
     const tags = [...new Set(pool.map(tagOf).filter(Boolean))].sort((a, b) => (rank(a) - rank(b)) || ((seq.get(a) ?? 0) - (seq.get(b) ?? 0)) || a.localeCompare(b, undefined, { numeric: true }));
-    opts($("fStd"), tags.map((s) => [s, STD_TEXT.has(s) ? s + " · " + short(STD_TEXT.get(s), 60) : s]), tags.length ? (c ? "Any for " + (LABEL[c] || c) : "Any") : "None tagged yet");
+    const row = (s) => [s, STD_TEXT.has(s) ? s + " · " + short(STD_TEXT.get(s), 60) : s];
+    const sel = $("fStd");
+    opts(sel, tags.filter((t) => !c || !rank(t)).map(row), tags.length ? (c ? "Any for " + (LABEL[c] || c) : "Any") : "None tagged yet");
+    // With a class picked, review problems tagged with an earlier grade's standard or a prior skill sit under their own heading.
+    const review = c ? tags.filter((t) => rank(t)) : [];
+    if (review.length) {
+        const keep = sel.dataset.want || "", g = el("optgroup"); g.label = "Review from earlier grades";
+        review.map(row).forEach(([v, t]) => { const o = el("option", null, t); o.value = v; g.appendChild(o); });
+        sel.appendChild(g);
+        if (keep && review.includes(keep)) sel.value = keep;
+    }
 }
 function matches() {
     const words = norm($("q").value).split(" ").filter(Boolean), c = $("fCls").value, k = $("fKind").value, s = $("fStd").value, w = $("fWeek").value, l = $("fLvl").value;
