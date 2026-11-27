@@ -114,6 +114,15 @@ for (const [w, h] of [[1366, 768], [1920, 1080], [1280, 800]]) {
     await check("empty day");
     await p.tap("text=From my plan"); await p.waitForTimeout(800);
     await check("with slides");
+    // the strip (Nov 27, take three): no section names, no every-day tile, the add tile whole at the end, Select slim,
+    // and the saved state only ever a dot (its words used to spread into the badge beside it)
+    assert.equal(await p.$$eval("#slFilm .sfh", (x) => x.filter((h) => h.getBoundingClientRect().width > 0).length), 0, "phone strip: no section names");
+    assert.equal(await p.$$eval("#slFilm .sflist[data-key='daily'] > .sfadd", (x) => x.filter((h) => h.getBoundingClientRect().width > 0).length), 0, "phone strip: no every-day tile");
+    assert.ok((await rect(p, ".sfpick")).w <= 56, "phone strip: Select is slim");
+    await p.$eval("#slFilm", (f) => { f.scrollLeft = f.scrollWidth; }); await p.waitForTimeout(150);
+    const add = await rect(p, ".sfaddrow"), film = await rect(p, "#slFilm"); assert.ok(add.r <= film.r && add.b <= film.b + 1, "phone strip: the add tile is whole at the end " + JSON.stringify({ add, film }));
+    await p.evaluate(() => { const s = document.getElementById("slSave"); s.dataset.state = "wait"; s.textContent = "Saving…"; });
+    const sv = await rect(p, ".slsave"), ls2 = await rect(p, "#liveStatusBtn"); assert.ok(sv.w <= 21 && !overlap(sv, ls2), "phone: Saving… stays a dot " + JSON.stringify(sv));
     await p.screenshot({ path: OUT + "/studio-phone-3classes.png" });
     await ctx.close();
 }

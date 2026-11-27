@@ -346,6 +346,7 @@ function filmItem(key, s, i) {
         c.setAttribute("role", "checkbox"); c.setAttribute("aria-checked", String(ticked)); it.appendChild(c);
     }
     const badges = el("span", "sfb");
+    if (key === DAILY) badges.appendChild(el("span", "sfed", "Every day"));   // on a phone the strip has no section names, so the slide says it
     const rv = revealSteps(s); if (rv) badges.appendChild(el("span", "sfrv", rv + " on Next"));
     if (s.hide) badges.appendChild(el("span", "sfhid", "Hidden"));
     if (s.nt) badges.appendChild(el("span", "sfnt", "Notes"));
