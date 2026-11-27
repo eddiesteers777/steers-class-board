@@ -518,3 +518,135 @@ body.phone.slidemode .cbar .slday small{display:none}
 }
 /* Menus come up from the bottom as a sheet, so the slide stays in view above (Look: tap a theme and see it) */
 body.phone .spop{left:8px!important;right:8px;top:auto!important;bottom:calc(8px + env(safe-area-inset-bottom));max-width:none!important;max-height:min(50vh,460px);border-radius:18px;box-shadow:0 -12px 40px rgba(14,27,58,.28)}
+
+/* ---------- Glass Studio (Nov 27, Eddie picked option A from the mockups, and said yes to Aurora glass) ----------
+   The Slides page wears Spotlight's dark glass (css/spotlight.css): the same navy glow behind, the same glass recipe on
+   everything that floats, amber for the one next step. The header is one glass bar, the slides sit on a glass rail, the
+   tools are one glass dock under the slide, and the picked block's tools float in a small glass bar beside it (#slCtx).
+   Only while Slides is up (body.slidemode): Board and Spotlight are unchanged, and menus (.spop) stay light to read. */
+:root body.console.slidemode{background:radial-gradient(120% 90% at 50% 0%,#18346d 0%,#0a1838 45%,#050c1f 100%) fixed,#050c1f!important;color:#F4F8FF}
+body.slidemode .cbar,body.slidemode .sapp{--c-bg:rgba(0,8,30,.32);--c-surface:rgba(255,255,255,.07);--c-ink:#F4F8FF;--c-mute:rgba(226,236,255,.66);--c-line:rgba(255,255,255,.16);
+  --k-sub:rgba(140,200,255,.18);--k-ink:#DCEBFF;--g-fill:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.06));--g-line:rgba(255,255,255,.24);
+  --g-on:linear-gradient(180deg,rgba(140,200,255,.5),rgba(86,150,230,.32));--g-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 18px 50px rgba(2,8,26,.5),0 2px 8px rgba(2,8,26,.25);color:#F4F8FF}
+/* one glass surface, as Spotlight's .spg */
+body.slidemode .sfilm,body.slidemode .snotes,body.slidemode .sbar2,body.slidemode .sctx,:root body.console.slidemode .cbar{background:var(--g-fill),rgba(12,28,66,.42);
+  -webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);border:1px solid var(--g-line);box-shadow:var(--g-shadow)}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){body.slidemode .sfilm,body.slidemode .snotes,body.slidemode .sbar2,body.slidemode .sctx,:root body.console.slidemode .cbar{background:rgba(12,28,66,.92)}}
+
+/* the header: one floating glass bar */
+:root body.console.slidemode .cbar{margin:12px 12px 0;border-radius:20px;padding:7px 10px;background:var(--g-fill),rgba(12,28,66,.42)!important;box-shadow:var(--g-shadow)!important}
+body.slidemode .cbar::after{display:none}
+body.slidemode .cbar .smode{background:var(--c-bg);border:0;box-shadow:inset 0 1px 3px rgba(0,0,0,.35)}
+body.slidemode .cbar .smode button{color:rgba(226,236,255,.75)}
+body.slidemode .cbar .smode button:hover{background:rgba(255,255,255,.1);color:#fff}
+body.slidemode .cbar .smode button[aria-pressed="true"]{background:var(--g-on);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
+body.slidemode .slwk,body.slidemode .sldays{border:0;box-shadow:inset 0 1px 3px rgba(0,0,0,.35)}
+body.slidemode .slwka:hover:not(:disabled),body.slidemode .slwkn:hover,body.slidemode .slday:hover{background:rgba(255,255,255,.1)}
+body.slidemode .slday.on{background:#fff;color:#0B2559}
+body.slidemode .slday.on small{color:#10358A}
+body.slidemode .slcls select{background-color:var(--c-bg);color:#F4F8FF;border-color:var(--c-line)}
+body.slidemode .cbar select option{color:#0E1B3A;background:#fff}
+body.slidemode .slrow .slmore{background:rgba(255,255,255,.08);border:1px solid var(--c-line);color:#F4F8FF;box-shadow:none}
+body.slidemode .slrow .slmore:hover,body.slidemode .slrow .slmore[aria-expanded="true"]{background:rgba(255,255,255,.16)}
+
+/* the page: rail on the left, the slide in the middle, notes and the dock under it */
+body.slidemode .sapp{background:transparent;padding:12px}
+body.slidemode .smain{gap:12px}
+body.slidemode .sfilm{border-radius:20px;padding:10px 10px 16px}
+body.slidemode .sfpick{background:#11244d;border-radius:14px 14px 0 0}
+body.slidemode .sfpick.sfpkon{border-bottom-color:var(--c-line)}
+body.slidemode .sft:hover{box-shadow:0 0 0 2px rgba(185,211,238,.6)}
+body.slidemode .sfadd{border-color:rgba(255,255,255,.3)}
+body.slidemode .sfadd:hover{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.08)}
+body.slidemode .sfm{color:#0E1B3A}
+body.slidemode .sfb span{background:rgba(255,255,255,.1);color:rgba(226,236,255,.85)}
+body.slidemode .sfb .sfrv{background:rgba(242,179,61,.22);color:#FFD271}
+body.slidemode .sfb .sfpn{background:rgba(127,174,221,.24);color:#CFE3FA}
+body.slidemode .sfb .sfhid{background:rgba(229,72,77,.24);color:#FFB3B6}
+body.slidemode .sfb .sfinsp{background:#F2B33D;color:#2A1C00}
+body.slidemode .sright{position:relative;gap:10px}
+body.slidemode .sstage{background:transparent;border-radius:18px}
+body.slidemode .scanvas .slcanvas{box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.1)}
+body.slidemode .sover .sfr{border-color:#8CC8FF}
+body.slidemode .sover .hd{border-color:#4F8FD8}
+body.slidemode .sover .hrot::after{background:#8CC8FF}
+body.slidemode .sempty h2{color:#F4F8FF}
+body.slidemode .sembig{background:var(--g-fill),rgba(12,28,66,.42);border-color:var(--g-line);color:#F4F8FF}
+body.slidemode .sembig:hover{border-color:rgba(255,255,255,.4);box-shadow:0 14px 30px rgba(0,0,0,.35)}
+body.slidemode .sembig:first-child{border-color:rgba(242,179,61,.85);background:linear-gradient(180deg,rgba(242,179,61,.2),rgba(242,179,61,.08)),rgba(12,28,66,.42)}
+body.slidemode .sembig .ic{color:#A9CDF2}
+body.slidemode .sembig:first-child .ic{color:#FFD271}
+/* notes: a one-line strip that opens while you type in it */
+body.slidemode .snotes{flex-direction:row;align-items:flex-start;gap:12px;padding:6px 8px 6px 14px;border-radius:16px}
+body.slidemode .snh{flex:none;flex-direction:column;gap:0;padding-top:9px}
+body.slidemode .snh small{display:none}
+body.slidemode .snotes textarea{flex:1;min-height:38px;max-height:30vh;resize:none;background:rgba(0,8,30,.28);border:1px solid rgba(255,255,255,.12);color:#F4F8FF;transition:min-height .24s}
+body.slidemode .snotes textarea::placeholder{color:rgba(226,236,255,.5)}
+body.slidemode .snotes textarea:focus{min-height:104px;outline:2px solid #8CC8FF;outline-offset:0;border-color:transparent}
+/* the dock: Spotlight's toolbar shape, every tool with its name under it */
+body.slidemode .sbar2{align-self:center;max-width:100%;flex-wrap:nowrap;gap:0;padding:5px 7px;min-height:0;border-radius:24px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+body.slidemode .sbar2::-webkit-scrollbar{display:none}
+body.slidemode .sbar2.fr{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
+body.slidemode .sbar2.fl{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}
+body.slidemode .sbar2.fl.fr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
+body.slidemode .sbar2 .tgrp,body.slidemode .sctx .tgrp{flex:none;border-right:0;padding:0 3px;position:relative}
+body.slidemode .sbar2 .tgrp+.tgrp::before,body.slidemode .sctx .tgrp+.tgrp::before{content:"";position:absolute;left:-1px;top:8px;bottom:8px;width:1px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.28),transparent)}
+body.slidemode .sbar2 .tb{flex-direction:column;gap:3px;height:54px;min-width:58px;padding:4px 6px 3px;border-radius:14px;color:rgba(226,236,255,.8);font:700 .72rem var(--ui);transition:background .18s,color .18s,transform .12s}
+body.slidemode .sbar2 .tb .ic{width:21px;height:21px}
+body.slidemode .sbar2 .tb .icc{display:none}
+body.slidemode .sbar2 .tb:hover:not(:disabled),body.slidemode .sctx .tb:hover:not(:disabled){background:rgba(255,255,255,.12);color:#fff}
+body.slidemode .sbar2 .tb:active:not(:disabled),body.slidemode .sctx .tb:active:not(:disabled){transform:scale(.95)}
+body.slidemode .sbar2 .tb.on,body.slidemode .sbar2 .tb[aria-expanded="true"],body.slidemode .sctx .tb.on,body.slidemode .sctx .tb[aria-expanded="true"]{background:var(--g-on);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
+body.slidemode .sbar2 .tb:disabled,body.slidemode .sctx .tb:disabled{opacity:.32}
+body.slidemode .sbar2 .thint{color:rgba(226,236,255,.7);padding:0 12px;align-self:center}
+/* Spotlight buttons: a small switch */
+.sapp .tb.tghost .tsw{position:relative;display:block;width:30px;height:18px;border-radius:99px;background:rgba(0,8,30,.45);box-shadow:inset 0 1px 3px rgba(0,0,0,.4);transition:background .2s}
+.sapp .tb.tghost .tsw::after{content:"";position:absolute;left:3px;top:3px;width:12px;height:12px;border-radius:50%;background:#fff;transition:transform .22s}
+body.slidemode .sbar2 .tb.tghost{min-width:76px}
+body.slidemode .sbar2 .tb.tghost.on{background:transparent;box-shadow:none;color:#FFD271}
+.sapp .tb.tghost.on .tsw{background:#F2B33D}
+.sapp .tb.tghost.on .tsw::after{transform:translateX(12px)}
+.sover .sghost{position:absolute;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:0 6px;border:1.5px dashed rgba(255,210,113,.95);border-radius:12px;background:rgba(255,210,113,.14);
+  color:#FFE3A6;font:700 .72rem var(--ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* the picked block's own glass bar */
+.sctx{position:absolute;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:2px 0;padding:4px;border-radius:16px;transition:opacity .2s,left .2s,top .2s}
+.sctx[hidden]{display:none}
+.sctx.away{opacity:0;pointer-events:none}
+body.slidemode .sctx .tb{height:38px;min-width:38px;border-radius:11px;color:#F4F8FF}
+body.slidemode .sctx .tb.danger{color:#FFB3B6}
+body.slidemode .sctx .tb.danger:hover:not(:disabled){background:rgba(229,72,77,.3);color:#fff}
+body.slidemode .sctx .tszv{border-color:rgba(255,255,255,.2);color:#fff}
+body.slidemode .sctx .tb.tcolor i{box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+@media (prefers-reduced-motion:reduce){.sctx,body.slidemode .sbar2 .tb,body.slidemode .snotes textarea,.sapp .tb.tghost .tsw::after{transition:none}}
+
+/* smaller screens: thinner dock buttons, then the phone */
+@media (max-width:1300px) and (min-width:861px){body.slidemode .sbar2 .tb{min-width:50px;padding:4px 4px 3px;font-size:.68rem}}
+@media (max-width:860px){
+  body.slidemode .sapp{padding:8px 8px 0}
+  :root body.console.slidemode .cbar{margin:8px 8px 0}
+  body.slidemode .smain{gap:8px}
+  body.slidemode .sfilm{border-radius:16px;border-top:1px solid var(--g-line)}
+  body.slidemode .sfpick{border-radius:12px 0 0 12px}
+  body.slidemode .sbar2 .tgrp.spotg{display:none}
+  body.slidemode .sbar2 .tgrp.hist .tb span{display:none}
+  body.slidemode .sbar2{order:4;position:sticky;bottom:calc(8px + env(safe-area-inset-bottom));z-index:6;margin:0 0 8px;align-self:stretch;border-radius:20px}
+  body.slidemode .sbar2 .tb{height:50px;min-width:52px}
+  body.slidemode .sbar2 .tb.tdoneb{background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00;flex-direction:row;height:40px;align-self:center}
+  body.slidemode .snotes{flex-direction:column;gap:4px;padding:8px 10px}
+  body.slidemode .snh{padding-top:0}
+  body.slidemode .snotes textarea{font-size:16px}
+  body.slidemode .sstage{border-radius:14px}
+}
+/* the block bar stays one row on a Chromebook: compact buttons, no menu carets (every button with a menu still opens it) */
+body.slidemode .sctx .tb{height:36px;min-width:30px;padding:0 4px;border-radius:10px}
+body.slidemode .sctx .tb .icc{display:none}
+body.slidemode .sctx .tb.tglyph{min-width:28px;padding:0 2px}
+body.slidemode .sctx .tszv{min-width:26px;padding:4px 1px;font-size:.8rem}
+body.slidemode .sctx .tgrp{padding:0 2px}
+/* notes from the editor sit above the dock, not on it */
+body.slidemode .stoast{bottom:104px}
+/* every dock tool keeps its name (the old top bar hid Look, Grid, Panels and Bank's names under 1300px) */
+body.slidemode .sbar2 .slideg .tb.txt span{display:inline}
+/* the slide rail scrolls, and Chrome draws a sticky bar's fill in the wrong place inside a blurred scroller (the ticked-slides
+   bar let thumbnails show through): the rail gets a near-solid glass fill instead, which looks the same over the navy behind */
+body.slidemode .sfilm{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--g-fill),rgba(14,30,68,.86)}

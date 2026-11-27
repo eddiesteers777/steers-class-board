@@ -3,7 +3,7 @@
    One drawing for every place a slide shows: the board, the Remote's picture, the Board Builder's
    canvas and its little slide pictures. A slide is drawn at 1600 x 900 and scaled to fit (fitSlide).
 ========================================== */
-import { SW, SH, shapePath, textInset, fontOf, fillLive, sanitizeHtml, inkFor, inkOn, GRADS, boxOf, walkStep, cleanTheme } from "./slides.js?v=4";
+import { SW, SH, shapePath, textInset, fontOf, fillLive, sanitizeHtml, inkFor, inkOn, gradCss, boxOf, walkStep, cleanTheme } from "./slides.js?v=5";
 import { PANEL_COLORS } from "./panelStyle.js?v=3";
 import { drawItem, geom } from "./mathTools.js?v=1";
 import { stickerFace } from "./stickers.js?v=1";
@@ -67,7 +67,7 @@ export function paintBg(host, bg, o) {
         }
         return;
     }
-    if (bg.t === "grad") { const g = (GRADS.find((x) => x[0] === bg.g) || GRADS[0])[2]; host.style.background = "linear-gradient(160deg," + g[0] + " 0%," + g[1] + " 100%)"; }
+    if (bg.t === "grad") host.style.background = gradCss(bg.g);
     else host.style.background = bg.c || "#ffffff";
     if (bg.p) { const p = div("slpat slpat-" + bg.p); p.style.setProperty("--pc", inkFor(bg) === "#14213d" ? PAT_LIGHT : PAT_DARK); host.appendChild(p); }
 }

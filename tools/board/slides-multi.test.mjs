@@ -11,7 +11,7 @@ for (const [w, h, tag] of [[1366, 900, "desktop"]]) {
     await p.goto("http://127.0.0.1:5000/studio.html?demo#slides"); await p.waitForSelector("#slFilm .sfsel", { timeout: 20000 });
     assert.equal(await count(p), 0);
     // a layout, five at once: added, ticked, the bar shows them
-    await p.click("#slFilm .sfadd.lay"); await p.click(".slaycnt .spchip:text-is('5')"); await p.click(".slaygrid .slayb >> nth=1");
+    await p.click("#slFilm .sfadd.lay"); await p.click(".slaycnt .spchip:text-is('5')"); await p.click(".sgrids .sgridb >> nth=1");
     await p.waitForFunction(() => document.querySelectorAll("#slFilm .sflist .sfi").length === 5);
     assert.equal(await p.textContent(".sfpkn"), "5 selected"); assert.equal(await p.$$eval("#slFilm .sfi.picked", (x) => x.length), 5);
     // panels for all five
@@ -49,7 +49,7 @@ for (const [w, h, tag] of [[1366, 900, "desktop"]]) {
     const p = await (await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true })).newPage();
     p.on("pageerror", (e) => errs.push("phone: " + e.message));
     await p.goto("http://127.0.0.1:5000/studio.html?demo#slides"); await p.waitForSelector("#slFilm .sfsel", { timeout: 20000 });
-    await p.click("#slFilm .sfadd.lay"); await p.click(".slaycnt .spchip:text-is('5')"); await p.click(".slaygrid .slayb >> nth=1");
+    await p.click("#slFilm .sfadd.lay"); await p.click(".slaycnt .spchip:text-is('5')"); await p.click(".sgrids .sgridb >> nth=1");
     await p.waitForFunction(() => document.querySelectorAll("#slFilm .sflist .sfi").length === 5);
     await p.$eval("#slFilm", (f) => { f.scrollLeft = f.scrollWidth; });   // scrolled to the far end
     await p.waitForTimeout(200);
