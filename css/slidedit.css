@@ -524,65 +524,80 @@ body.phone .spop{left:8px!important;right:8px;top:auto!important;bottom:calc(8px
    everything that floats, amber for the one next step. The header is one glass bar, the slides sit on a glass rail, the
    tools are one glass dock under the slide, and the picked block's tools float in a small glass bar beside it (#slCtx).
    Only while Slides is up (body.slidemode): Board and Spotlight are unchanged, and menus (.spop) stay light to read. */
-:root body.console.slidemode{background:radial-gradient(120% 90% at 50% 0%,#18346d 0%,#0a1838 45%,#050c1f 100%) fixed,#050c1f!important;color:#F4F8FF}
-body.slidemode .cbar,body.slidemode .sapp{--c-bg:rgba(0,8,30,.32);--c-surface:rgba(255,255,255,.07);--c-ink:#F4F8FF;--c-mute:rgba(226,236,255,.66);--c-line:rgba(255,255,255,.16);
-  --k-sub:rgba(140,200,255,.18);--k-ink:#DCEBFF;--g-fill:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.06));--g-line:rgba(255,255,255,.24);
-  --g-on:linear-gradient(180deg,rgba(140,200,255,.5),rgba(86,150,230,.32));--g-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 18px 50px rgba(2,8,26,.5),0 2px 8px rgba(2,8,26,.25);color:#F4F8FF}
+/* Glass Studio follows the teacher's site colors (Nov 27, Eddie: "I think it got disconnected to adjusting to the theme of the
+   website the user selected"). Every tint below comes from these names. Anchor navy keeps the exact colors Eddie approved;
+   the other eight schemes mix the same dark glass from their own --s-* colors (css/skin.css), so Plum is plum glass, Forest
+   is green glass. Amber, green and red keep their meanings. Light and Night both keep the dark glass Eddie picked. */
+body.slidemode{--gs-d0:#18346d;--gs-d1:#0a1838;--gs-d2:#050c1f;--gs-glass:#0C1C42;--gs-rail:#0E1E44;--gs-well:#00081E;--gs-ink:#F4F8FF;
+  --gs-ice:#E2ECFF;--gs-sky:#8CC8FF;--gs-sky2:#5696E6;--gs-pale:#B9D3EE;--gs-edge:#4F8FD8;--gs-pick:#11244d;--gs-pn:#7FAEDD;--gs-pnink:#CFE3FA;
+  --gs-ic:#A9CDF2;--gs-kink:#DCEBFF;--gs-dayon:#0B2559;--gs-dayon2:#10358A}
+html[data-scheme]:not([data-scheme="navy"]) body.slidemode{
+  --gs-d0:color-mix(in srgb,var(--s-hi) 84%,#000);--gs-d1:color-mix(in srgb,var(--s-out) 82%,#000);--gs-d2:color-mix(in srgb,var(--s-out) 44%,#000);
+  --gs-glass:color-mix(in srgb,var(--s-out) 72%,var(--s-mid));--gs-rail:color-mix(in srgb,var(--s-out) 64%,var(--s-mid));--gs-well:color-mix(in srgb,var(--s-out) 40%,#000);
+  --gs-ink:color-mix(in srgb,var(--s-light) 10%,#fff);--gs-ice:color-mix(in srgb,var(--s-light) 42%,#fff);
+  --gs-sky:color-mix(in srgb,var(--s-sky) 78%,#fff);--gs-sky2:color-mix(in srgb,var(--s-sky) 72%,var(--s-hi));--gs-pale:var(--s-light);
+  --gs-edge:color-mix(in srgb,var(--s-sky) 62%,var(--s-hi));--gs-pick:color-mix(in srgb,var(--s-hi) 34%,var(--s-out));--gs-pn:var(--s-sky);
+  --gs-pnink:color-mix(in srgb,var(--s-light) 62%,#fff);--gs-ic:color-mix(in srgb,var(--s-sky) 72%,#fff);--gs-kink:color-mix(in srgb,var(--s-light) 55%,#fff);
+  --gs-dayon:var(--s-mid);--gs-dayon2:var(--s-hi)}
+:root body.console.slidemode{background:radial-gradient(120% 90% at 50% 0%,var(--gs-d0) 0%,var(--gs-d1) 45%,var(--gs-d2) 100%) fixed,var(--gs-d2)!important;color:var(--gs-ink)}
+body.slidemode .cbar,body.slidemode .sapp{--c-bg:color-mix(in srgb,var(--gs-well) 32%,transparent);--c-surface:rgba(255,255,255,.07);--c-ink:var(--gs-ink);--c-mute:color-mix(in srgb,var(--gs-ice) 66%,transparent);--c-line:rgba(255,255,255,.16);
+  --k-sub:color-mix(in srgb,var(--gs-sky) 18%,transparent);--k-ink:var(--gs-kink);--g-fill:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.06));--g-line:rgba(255,255,255,.24);
+  --g-on:linear-gradient(180deg,color-mix(in srgb,var(--gs-sky) 50%,transparent),color-mix(in srgb,var(--gs-sky2) 32%,transparent));--g-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 18px 50px color-mix(in srgb,var(--gs-well) 50%,transparent),0 2px 8px color-mix(in srgb,var(--gs-well) 25%,transparent);color:var(--gs-ink)}
 /* one glass surface, as Spotlight's .spg */
-body.slidemode .sfilm,body.slidemode .snotes,body.slidemode .sbar2,body.slidemode .sctx,:root body.console.slidemode .cbar{background:var(--g-fill),rgba(12,28,66,.42);
+body.slidemode .sfilm,body.slidemode .snotes,body.slidemode .sbar2,body.slidemode .sctx,:root body.console.slidemode .cbar{background:var(--g-fill),color-mix(in srgb,var(--gs-glass) 42%,transparent);
   -webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);border:1px solid var(--g-line);box-shadow:var(--g-shadow)}
-@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){body.slidemode .sfilm,body.slidemode .snotes,body.slidemode .sbar2,body.slidemode .sctx,:root body.console.slidemode .cbar{background:rgba(12,28,66,.92)}}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){body.slidemode .sfilm,body.slidemode .snotes,body.slidemode .sbar2,body.slidemode .sctx,:root body.console.slidemode .cbar{background:color-mix(in srgb,var(--gs-glass) 92%,transparent)}}
 
 /* the header: one floating glass bar */
-:root body.console.slidemode .cbar{margin:12px 12px 0;border-radius:20px;padding:7px 10px;background:var(--g-fill),rgba(12,28,66,.42)!important;box-shadow:var(--g-shadow)!important}
+:root body.console.slidemode .cbar{margin:12px 12px 0;border-radius:20px;padding:7px 10px;background:var(--g-fill),color-mix(in srgb,var(--gs-glass) 42%,transparent)!important;box-shadow:var(--g-shadow)!important}
 body.slidemode .cbar::after{display:none}
 body.slidemode .cbar .smode{background:var(--c-bg);border:0;box-shadow:inset 0 1px 3px rgba(0,0,0,.35)}
-body.slidemode .cbar .smode button{color:rgba(226,236,255,.75)}
+body.slidemode .cbar .smode button{color:color-mix(in srgb,var(--gs-ice) 75%,transparent)}
 body.slidemode .cbar .smode button:hover{background:rgba(255,255,255,.1);color:#fff}
 body.slidemode .cbar .smode button[aria-pressed="true"]{background:var(--g-on);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
 body.slidemode .slwk,body.slidemode .sldays{border:0;box-shadow:inset 0 1px 3px rgba(0,0,0,.35)}
 body.slidemode .slwka:hover:not(:disabled),body.slidemode .slwkn:hover,body.slidemode .slday:hover{background:rgba(255,255,255,.1)}
-body.slidemode .slday.on{background:#fff;color:#0B2559}
-body.slidemode .slday.on small{color:#10358A}
-body.slidemode .slcls select{background-color:var(--c-bg);color:#F4F8FF;border-color:var(--c-line)}
+body.slidemode .slday.on{background:#fff;color:var(--gs-dayon)}
+body.slidemode .slday.on small{color:var(--gs-dayon2)}
+body.slidemode .slcls select{background-color:var(--c-bg);color:var(--gs-ink);border-color:var(--c-line)}
 body.slidemode .cbar select option{color:#0E1B3A;background:#fff}
-body.slidemode .slrow .slmore{background:rgba(255,255,255,.08);border:1px solid var(--c-line);color:#F4F8FF;box-shadow:none}
+body.slidemode .slrow .slmore{background:rgba(255,255,255,.08);border:1px solid var(--c-line);color:var(--gs-ink);box-shadow:none}
 body.slidemode .slrow .slmore:hover,body.slidemode .slrow .slmore[aria-expanded="true"]{background:rgba(255,255,255,.16)}
 
 /* the page: rail on the left, the slide in the middle, notes and the dock under it */
 body.slidemode .sapp{background:transparent;padding:12px}
 body.slidemode .smain{gap:12px}
 body.slidemode .sfilm{border-radius:20px;padding:10px 10px 16px}
-body.slidemode .sfpick{background:#11244d;border-radius:14px 14px 0 0}
+body.slidemode .sfpick{background:var(--gs-pick);border-radius:14px 14px 0 0}
 body.slidemode .sfpick.sfpkon{border-bottom-color:var(--c-line)}
-body.slidemode .sft:hover{box-shadow:0 0 0 2px rgba(185,211,238,.6)}
+body.slidemode .sft:hover{box-shadow:0 0 0 2px color-mix(in srgb,var(--gs-pale) 60%,transparent)}
 body.slidemode .sfadd{border-color:rgba(255,255,255,.3)}
 body.slidemode .sfadd:hover{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.08)}
 body.slidemode .sfm{color:#0E1B3A}
-body.slidemode .sfb span{background:rgba(255,255,255,.1);color:rgba(226,236,255,.85)}
+body.slidemode .sfb span{background:rgba(255,255,255,.1);color:color-mix(in srgb,var(--gs-ice) 85%,transparent)}
 body.slidemode .sfb .sfrv{background:rgba(242,179,61,.22);color:#FFD271}
-body.slidemode .sfb .sfpn{background:rgba(127,174,221,.24);color:#CFE3FA}
+body.slidemode .sfb .sfpn{background:color-mix(in srgb,var(--gs-pn) 24%,transparent);color:var(--gs-pnink)}
 body.slidemode .sfb .sfhid{background:rgba(229,72,77,.24);color:#FFB3B6}
 body.slidemode .sfb .sfinsp{background:#F2B33D;color:#2A1C00}
 body.slidemode .sright{position:relative;gap:10px}
-body.slidemode .sstage{background:transparent;border-radius:18px}
+:root body.slidemode .sstage{background:transparent;border-radius:18px}
 body.slidemode .scanvas .slcanvas{box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.1)}
-body.slidemode .sover .sfr{border-color:#8CC8FF}
-body.slidemode .sover .hd{border-color:#4F8FD8}
-body.slidemode .sover .hrot::after{background:#8CC8FF}
-body.slidemode .sempty h2{color:#F4F8FF}
-body.slidemode .sembig{background:var(--g-fill),rgba(12,28,66,.42);border-color:var(--g-line);color:#F4F8FF}
+body.slidemode .sover .sfr{border-color:var(--gs-sky)}
+body.slidemode .sover .hd{border-color:var(--gs-edge)}
+body.slidemode .sover .hrot::after{background:var(--gs-sky)}
+body.slidemode .sempty h2{color:var(--gs-ink)}
+body.slidemode .sembig{background:var(--g-fill),color-mix(in srgb,var(--gs-glass) 42%,transparent);border-color:var(--g-line);color:var(--gs-ink)}
 body.slidemode .sembig:hover{border-color:rgba(255,255,255,.4);box-shadow:0 14px 30px rgba(0,0,0,.35)}
-body.slidemode .sembig:first-child{border-color:rgba(242,179,61,.85);background:linear-gradient(180deg,rgba(242,179,61,.2),rgba(242,179,61,.08)),rgba(12,28,66,.42)}
-body.slidemode .sembig .ic{color:#A9CDF2}
+body.slidemode .sembig:first-child{border-color:rgba(242,179,61,.85);background:linear-gradient(180deg,rgba(242,179,61,.2),rgba(242,179,61,.08)),color-mix(in srgb,var(--gs-glass) 42%,transparent)}
+body.slidemode .sembig .ic{color:var(--gs-ic)}
 body.slidemode .sembig:first-child .ic{color:#FFD271}
 /* notes: a one-line strip that opens while you type in it */
 body.slidemode .snotes{flex-direction:row;align-items:flex-start;gap:12px;padding:6px 8px 6px 14px;border-radius:16px}
 body.slidemode .snh{flex:none;flex-direction:column;gap:0;padding-top:9px}
 body.slidemode .snh small{display:none}
-body.slidemode .snotes textarea{flex:1;min-height:38px;max-height:30vh;resize:none;background:rgba(0,8,30,.28);border:1px solid rgba(255,255,255,.12);color:#F4F8FF;transition:min-height .24s}
-body.slidemode .snotes textarea::placeholder{color:rgba(226,236,255,.5)}
-body.slidemode .snotes textarea:focus{min-height:104px;outline:2px solid #8CC8FF;outline-offset:0;border-color:transparent}
+body.slidemode .snotes textarea{flex:1;min-height:38px;max-height:30vh;resize:none;background:color-mix(in srgb,var(--gs-well) 28%,transparent);border:1px solid rgba(255,255,255,.12);color:var(--gs-ink);transition:min-height .24s}
+body.slidemode .snotes textarea::placeholder{color:color-mix(in srgb,var(--gs-ice) 50%,transparent)}
+body.slidemode .snotes textarea:focus{min-height:104px;outline:2px solid var(--gs-sky);outline-offset:0;border-color:transparent}
 /* the dock: Spotlight's toolbar shape, every tool with its name under it */
 body.slidemode .sbar2{align-self:center;max-width:100%;flex-wrap:nowrap;gap:0;padding:5px 7px;min-height:0;border-radius:24px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
 body.slidemode .sbar2::-webkit-scrollbar{display:none}
@@ -591,16 +606,16 @@ body.slidemode .sbar2.fl{-webkit-mask-image:linear-gradient(90deg,transparent,#0
 body.slidemode .sbar2.fl.fr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
 body.slidemode .sbar2 .tgrp,body.slidemode .sctx .tgrp{flex:none;border-right:0;padding:0 3px;position:relative}
 body.slidemode .sbar2 .tgrp+.tgrp::before,body.slidemode .sctx .tgrp+.tgrp::before{content:"";position:absolute;left:-1px;top:8px;bottom:8px;width:1px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.28),transparent)}
-body.slidemode .sbar2 .tb{flex-direction:column;gap:3px;height:54px;min-width:58px;padding:4px 6px 3px;border-radius:14px;color:rgba(226,236,255,.8);font:700 .72rem var(--ui);transition:background .18s,color .18s,transform .12s}
+body.slidemode .sbar2 .tb{flex-direction:column;gap:3px;height:54px;min-width:58px;padding:4px 6px 3px;border-radius:14px;color:color-mix(in srgb,var(--gs-ice) 80%,transparent);font:700 .72rem var(--ui);transition:background .18s,color .18s,transform .12s}
 body.slidemode .sbar2 .tb .ic{width:21px;height:21px}
 body.slidemode .sbar2 .tb .icc{display:none}
 body.slidemode .sbar2 .tb:hover:not(:disabled),body.slidemode .sctx .tb:hover:not(:disabled){background:rgba(255,255,255,.12);color:#fff}
 body.slidemode .sbar2 .tb:active:not(:disabled),body.slidemode .sctx .tb:active:not(:disabled){transform:scale(.95)}
 body.slidemode .sbar2 .tb.on,body.slidemode .sbar2 .tb[aria-expanded="true"],body.slidemode .sctx .tb.on,body.slidemode .sctx .tb[aria-expanded="true"]{background:var(--g-on);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
 body.slidemode .sbar2 .tb:disabled,body.slidemode .sctx .tb:disabled{opacity:.32}
-body.slidemode .sbar2 .thint{color:rgba(226,236,255,.7);padding:0 12px;align-self:center}
+body.slidemode .sbar2 .thint{color:color-mix(in srgb,var(--gs-ice) 70%,transparent);padding:0 12px;align-self:center}
 /* Spotlight buttons: a small switch */
-.sapp .tb.tghost .tsw{position:relative;display:block;width:30px;height:18px;border-radius:99px;background:rgba(0,8,30,.45);box-shadow:inset 0 1px 3px rgba(0,0,0,.4);transition:background .2s}
+.sapp .tb.tghost .tsw{position:relative;display:block;width:30px;height:18px;border-radius:99px;background:color-mix(in srgb,var(--gs-well) 45%,transparent);box-shadow:inset 0 1px 3px rgba(0,0,0,.4);transition:background .2s}
 .sapp .tb.tghost .tsw::after{content:"";position:absolute;left:3px;top:3px;width:12px;height:12px;border-radius:50%;background:#fff;transition:transform .22s}
 body.slidemode .sbar2 .tb.tghost{min-width:76px}
 body.slidemode .sbar2 .tb.tghost.on{background:transparent;box-shadow:none;color:#FFD271}
@@ -612,7 +627,7 @@ body.slidemode .sbar2 .tb.tghost.on{background:transparent;box-shadow:none;color
 .sctx{position:absolute;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:2px 0;padding:4px;border-radius:16px;transition:opacity .2s,left .2s,top .2s}
 .sctx[hidden]{display:none}
 .sctx.away{opacity:0;pointer-events:none}
-body.slidemode .sctx .tb{height:38px;min-width:38px;border-radius:11px;color:#F4F8FF}
+body.slidemode .sctx .tb{height:38px;min-width:38px;border-radius:11px;color:var(--gs-ink)}
 body.slidemode .sctx .tb.danger{color:#FFB3B6}
 body.slidemode .sctx .tb.danger:hover:not(:disabled){background:rgba(229,72,77,.3);color:#fff}
 body.slidemode .sctx .tszv{border-color:rgba(255,255,255,.2);color:#fff}
@@ -649,7 +664,7 @@ body.slidemode .stoast{bottom:104px}
 body.slidemode .sbar2 .slideg .tb.txt span{display:inline}
 /* the slide rail scrolls, and Chrome draws a sticky bar's fill in the wrong place inside a blurred scroller (the ticked-slides
    bar let thumbnails show through): the rail gets a near-solid glass fill instead, which looks the same over the navy behind */
-body.slidemode .sfilm{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--g-fill),rgba(14,30,68,.86)}
+body.slidemode .sfilm{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--g-fill),color-mix(in srgb,var(--gs-rail) 86%,transparent)}
 
 /* ---------- Slides on a real phone, take two (Nov 27, Eddie's iPhone screenshot: "The phone view is a disaster") ----------
    Signed in with three classes the header ran out of room (class cut to "8th G", Thu and Fri off the edge), the board status
@@ -687,7 +702,7 @@ body.phone.slidemode .sapp{flex:1 1 auto;min-height:0}
   body.phone.slidemode .stoast{bottom:calc(96px + env(safe-area-inset-bottom))}
 }
 /* the board status badge wears the glass too, not a white tile */
-body.slidemode .cbar #liveStatusBtn{background:rgba(255,255,255,.08);border:1px solid var(--c-line);box-shadow:none;color:#F4F8FF}
+body.slidemode .cbar #liveStatusBtn{background:rgba(255,255,255,.08);border:1px solid var(--c-line);box-shadow:none;color:var(--gs-ink)}
 body.slidemode .cbar #liveStatusBtn:hover{background:rgba(255,255,255,.16)}
 /* "Tap for sound" sits at the top middle while Slides is up (as in Spotlight), never on the dock */
 body.slidemode .sndtap{top:auto;bottom:auto;top:calc(env(safe-area-inset-top) + 86px);left:50%;right:auto;transform:translateX(-50%);z-index:41}

@@ -93,6 +93,10 @@ simpler, one less thing.
     Notes are a one-line strip that opens while typing. **Spotlight buttons** in the dock marks where Spotlight's corners,
     toolbar and Next/Back sit over the slide (`SPOT_GHOST` in js/slideEditor.js, about where; remembered on the device).
     Board mode, Spotlight and the menus keep their own look.
+    The glass follows the teacher's **Site colors** (Nov 27, Eddie: Slides "got disconnected" from the theme): every tint is a
+    `--gs-*` name at the top of the Glass Studio block in css/slidedit.css. Anchor navy keeps the exact approved colors; the
+    other schemes mix the same dark glass from their `--s-*` colors (Plum is plum glass, Forest green glass). Light and Night
+    both keep the dark glass. The slide itself keeps its own Look theme, since that is what students see.
   - **Aurora glass (Nov 27, Eddie: "yes on aurora glass").** The one approved new background: sky and blue glows with a touch of
     amber on deep navy (`gradCss("aurora")` in js/slides.js, a gradient id like the others), behind clear navy glass blocks. The
     theme sets the background too (`THEMES` entries may carry a bg); a new grid slide made from an Aurora slide keeps the glow, and
