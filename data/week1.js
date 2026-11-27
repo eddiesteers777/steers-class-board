@@ -292,11 +292,13 @@ export default {
       {
        "q": "Write 7.3 with two decimal places.",
        "a": "7.30",
+       "std": "5.4",
        "skill": "Prior skill: Decimal place value"
       },
       {
        "q": "25¢ + 50¢. Write the total in dollars.",
        "a": "$0.75",
+       "std": "4.22",
        "skill": "Prior skill: Money and decimals"
       }
      ]
@@ -322,6 +324,7 @@ export default {
       {
        "q": "Round 4.68 to the nearest tenth.",
        "a": "4.7",
+       "std": "5.5",
        "skill": "Prior skill: Rounding decimals"
       },
       {
@@ -332,11 +335,13 @@ export default {
       {
        "q": "6 × 7",
        "a": "42",
+       "std": "3.7",
        "skill": "Prior skill: Basic facts"
       },
       {
        "q": "36 ÷ 4",
        "a": "9",
+       "std": "3.7",
        "skill": "Prior skill: Basic facts"
       }
      ]
@@ -368,6 +373,7 @@ export default {
       {
        "q": "Order from least to greatest: 0.7, 0.07, 0.77",
        "a": "0.07, 0.7, 0.77",
+       "std": "5.4",
        "skill": "Prior skill: Comparing decimals"
       },
       {
@@ -378,6 +384,7 @@ export default {
       {
        "q": "20 ÷ 4",
        "a": "5",
+       "std": "3.7",
        "skill": "Prior skill: Basic facts"
       }
      ]
@@ -402,6 +409,7 @@ export default {
       {
        "q": "What is the value of the 7 in 3.472?",
        "a": "0.07",
+       "std": "5.4",
        "skill": "Prior skill: Decimal place value"
       },
       {
@@ -452,6 +460,7 @@ export default {
       {
        "q": "Round 2.35 to the nearest tenth.",
        "a": "2.4",
+       "std": "5.5",
        "skill": "Prior skill: Rounding decimals"
       },
       {

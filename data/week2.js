@@ -46,11 +46,13 @@ export default {
       {
        "q": "Solve: x + 9 = 20",
        "a": "x = 11",
+       "std": "6.19",
        "skill": "Prior skill: One-step equations"
       },
       {
        "q": "Solve: 4x = 36",
        "a": "x = 9",
+       "std": "6.19",
        "skill": "Prior skill: One-step equations"
       }
      ]
@@ -91,6 +93,7 @@ export default {
       {
        "q": "Solve: {x/4} = 6",
        "a": "x = 24",
+       "std": "6.19",
        "skill": "Prior skill: One-step equations"
       }
      ]
@@ -132,6 +135,7 @@ export default {
       {
        "q": "3(4 + 2)",
        "a": "18",
+       "std": "5.1",
        "skill": "Prior skill: Order of operations"
       }
      ]
@@ -206,11 +210,13 @@ export default {
       {
        "q": "Solve: x − 6 = 9",
        "a": "x = 15",
+       "std": "6.19",
        "skill": "Prior skill: One-step equations"
       },
       {
        "q": "Solve: 5x = 40",
        "a": "x = 8",
+       "std": "6.19",
        "skill": "Prior skill: One-step equations"
       }
      ]
@@ -283,6 +289,7 @@ export default {
       {
        "q": "8 × 7",
        "a": "56",
+       "std": "3.7",
        "skill": "Prior skill: Basic facts"
       },
       {
@@ -313,6 +320,7 @@ export default {
       {
        "q": "Round 5.46 to the nearest tenth.",
        "a": "5.5",
+       "std": "5.5",
        "skill": "Prior skill: Rounding decimals"
       },
       {
@@ -323,11 +331,13 @@ export default {
       {
        "q": "30 ÷ 5",
        "a": "6",
+       "std": "3.7",
        "skill": "Prior skill: Basic facts"
       },
       {
        "q": "63 ÷ 7",
        "a": "9",
+       "std": "3.7",
        "skill": "Prior skill: Basic facts"
       }
      ]
@@ -364,6 +374,7 @@ export default {
       {
        "q": "Which is greater, 0.5 or 0.45?",
        "a": "0.5",
+       "std": "5.4",
        "skill": "Prior skill: Comparing decimals"
       },
       {
@@ -408,6 +419,7 @@ export default {
       {
        "q": "Order from least to greatest: 0.3, 0.03, 0.33",
        "a": "0.03, 0.3, 0.33",
+       "std": "5.4",
        "skill": "Prior skill: Comparing decimals"
       }
      ]
@@ -443,6 +455,7 @@ export default {
       {
        "q": "Round 8.64 to the nearest tenth.",
        "a": "8.6",
+       "std": "5.5",
        "skill": "Prior skill: Rounding decimals"
       },
       {
@@ -520,11 +533,13 @@ export default {
       {
        "q": "Solve: x + 9 = 20",
        "a": "x = 11",
+       "std": "6.19",
        "skill": "Prior skill: One-step equations"
       },
       {
        "q": "Solve: 4x = 36",
        "a": "x = 9",
+       "std": "6.19",
        "skill": "Prior skill: One-step equations"
       }
      ]
@@ -565,6 +580,7 @@ export default {
       {
        "q": "Solve: {x/4} = 6",
        "a": "x = 24",
+       "std": "6.19",
        "skill": "Prior skill: One-step equations"
       }
      ]
@@ -606,6 +622,7 @@ export default {
       {
        "q": "3(4 + 2)",
        "a": "18",
+       "std": "5.1",
        "skill": "Prior skill: Order of operations"
       }
      ]
@@ -680,11 +697,13 @@ export default {
       {
        "q": "Solve: x − 6 = 9",
        "a": "x = 15",
+       "std": "6.19",
        "skill": "Prior skill: One-step equations"
       },
       {
        "q": "Solve: 5x = 40",
        "a": "x = 8",
+       "std": "6.19",
        "skill": "Prior skill: One-step equations"
       }
      ]

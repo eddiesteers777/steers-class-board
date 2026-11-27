@@ -102,8 +102,9 @@ function card(x) {
         .forEach((t) => meta.appendChild(el("span", t === "Checked" ? "bk-chip ok" : "bk-chip", t)));
     const tag = tagOf(x);
     if (tag) {   // the standard (or prior skill): tap it to show only questions with the same tag
-        const b = el("button", "bk-chip bk-std" + (x.std ? "" : " skill"), x.std ? "AL " + x.std + (x.part || "") : tag); b.type = "button";
-        b.title = x.std ? x.std + ": " + (STD_TEXT.get(x.std) || "") + "\nTap to show every question with this standard." : "Below grade level: no standard for this class. Tap to show every question like it.";
+        const prior = x.std && /^Prior skill/i.test(x.skill || "");   // a below-grade review problem tagged with the earlier grade's standard
+        const b = el("button", "bk-chip bk-std" + (x.std && !prior ? "" : " skill"), x.std ? "AL " + x.std + (x.part || "") + (prior ? " · Prior skill" : "") : tag); b.type = "button";
+        b.title = x.std ? x.std + ": " + (STD_TEXT.get(x.std) || "") + (prior ? "\n" + x.skill + " (below grade level)." : "") + "\nTap to show every question with this standard." : "Below grade level: no standard for this class. Tap to show every question like it.";
         b.onclick = () => { $("fStd").value = tag; shown = PAGE; draw(); window.scrollTo({ top: 0, behavior: "smooth" }); };
         meta.appendChild(b);
     }

@@ -904,6 +904,7 @@ export default {
       {
        "q": "Find |−7| + |3|.",
        "a": "10",
+       "std": "6.12",
        "skill": "Prior skill: Absolute value"
       },
       {
@@ -914,6 +915,7 @@ export default {
       {
        "q": "Compare −{3/4} and −0.8. Use < or >.",
        "a": "−{3/4} > −0.8",
+       "std": "6.13",
        "skill": "Prior skill: Comparing rational numbers"
       }
      ]
