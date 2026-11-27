@@ -13,6 +13,7 @@
 ========================================== */
 import * as C from "./assignCore.js?v=7";
 import { namesOnly, indexEntry } from "./acapAssign.js?v=4";
+import { sendToProgress, sigOf } from "./asgSync.js?v=2";
 import * as V from "./vaultCore.js?v=75";
 import { loadStdBank, inClass, LEVELS } from "./stdBank.js?v=6";
 import { STANDARDS } from "../data/standards.js?v=60";
@@ -478,25 +479,10 @@ export async function mountAssign() {
     function syncSoon(id, now) { clearTimeout(syncT.get(id)); syncT.set(id, setTimeout(() => syncNow(id), now ? 300 : 5000)); }
     async function syncNow(id) {
         const d = D.defs.get(id); if (!d || d.status === "draft" || demo && !d.code) return;
-        const rows = scored(d), sig = JSON.stringify(rows.map((r) => [r.key, r.grade, r.complete, r.lg.length, Object.keys(r.ans).length, r.withFix]));
+        const rows = scored(d), sig = sigOf(rows);
         if (D.synced.get(id + "|sig") === sig) return;
         try {
-            const pers = (d.periods || []).filter((p) => rows.some((r) => r.per === p && r.started));
-            const ixD = await getDoc("data/index"), ixP = await getDoc("progress/index");
-            let imports = ((ixD && ixD.imports) || []), games = ((ixP && ixP.games) || []);
-            for (const p of pers) {
-                const { imp, det } = C.toProgress(d, p, rows, (D.rosters[p] || []).filter(Boolean));
-                if (imp && imp.rows.length) { await store.save("data/i_" + imp.id, imp); imports = imports.filter((x) => x && x.id !== imp.id).concat([{ id: imp.id, title: imp.title, std: "", skill: "", date: imp.date, source: "Assignment", period: p, n: imp.rows.length, items: imp.items.length }]); }
-                if (det.st.length) { await store.save("progress/g_" + det.id, det); games = games.filter((x) => x && x.id !== det.id).concat([{ id: det.id, date: det.date, period: p, title: det.title, n: det.st.length }]).slice(-2000); }
-            }
-            await store.save("data/index", { imports, at: Date.now() });
-            await store.save("progress/index", { games, at: Date.now() });
-            // A small summary on the assignment itself, for the list and the grade table.
-            const started = rows.filter((r) => r.started);
-            d.res = { n: rows.length, started: started.length, done: C.isTest(d.type) ? rows.filter((r) => r.done).length : started.filter((r) => r.grade >= 1).length,
-                avg: started.length ? started.reduce((s, r) => s + r.grade, 0) / started.length : null, at: Date.now(),
-                rows: rows.map((r) => ({ key: r.key, per: r.per, ni: r.ni, nm: r.nm, g: Math.round(r.grade * 1e4) / 1e4, c: Math.round(r.complete * 1e4) / 1e4, s: r.started ? 1 : 0, after: r.after != null ? Math.round(r.after * 1e4) / 1e4 : null, fx: r.withFix != null ? Math.round(r.withFix * 1e4) / 1e4 : null })) };
-            await store.save("asg/a_" + d.id, JSON.parse(JSON.stringify(d)));
+            await sendToProgress({ save: (p, x) => store.save(p, x), get: getDoc }, d, rows, D.rosters);
             D.synced.set(id, Date.now()); D.synced.set(id + "|sig", sig);
             // Corrections raise the test: re-send the test so its Class Data score and released results go up too.
             if (d.type === "fix" && d.fixOf && D.defs.get(d.fixOf)) { const t = D.defs.get(d.fixOf); watchEntries(t); setTimeout(() => { syncNow(t.id); if (t.rel && t.rel !== "none") release(t, t.rel, true); }, 1500); }
