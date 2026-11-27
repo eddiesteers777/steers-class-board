@@ -86,6 +86,35 @@ for (const [w, h] of [[1366, 768], [1920, 1080], [1280, 800]]) {
     await p.screenshot({ path: OUT + "/studio-phone.png" });
     await ctx.close();
 }
+// Eddie's iPhone (Nov 27): signed in with three classes and the board status badge. Nothing on top of the ⋯, every day on
+// screen, the class name not cut short, and one screen like an app: the strip, notes and dock never overlap, no page scroll.
+{
+    const ctx = await browser.newContext({ ...devices["iPhone 13"] });
+    await ctx.route(/data\/demo-week\.js/, async (r) => { const res = await r.fetch(); let t = await res.text(); t = t.replace("export default", "const __w =") + "\nconst __c = Object.keys(__w.classes)[0]; __w.classes['7th'] = Object.assign({}, __w.classes[__c], { label: '7th Grade' }); __w.classes['8th-acc'] = Object.assign({}, __w.classes[__c], { label: '8th Grade Accelerated' }); export default __w;"; r.fulfill({ body: t, contentType: "text/javascript" }); });
+    const p = await ctx.newPage(); p.on("pageerror", (e) => errs.push("phone 3 classes: " + e.message));
+    await open(p);
+    // the signed-in page adds the board status badge just before #status (js/presence.js); the sample has none, so stand one in
+    await p.evaluate(() => { const s = document.getElementById("status"), b = document.createElement("button"); b.className = "lsbtn"; b.id = "liveStatusBtn"; b.dataset.s = "bad"; b.innerHTML = '<span class="lsscr"><i class="lsdot"></i></span><span id="lsBtnText">Live status</span>'; s.parentNode.insertBefore(b, s); });
+    await p.waitForTimeout(300);
+    const check = async (when) => {
+        const more = await rect(p, ".slmore"), teach = await rect(p, ".slteach"), ls = await rect(p, "#liveStatusBtn"), save = await rect(p, ".slsave");
+        assert.ok(!overlap(ls, more) && !overlap(ls, teach) && !overlap(save, ls), when + ": the header buttons each have their own spot " + JSON.stringify({ more, teach, ls, save }));
+        const fri = await rect(p, ".slday:last-child"), mon = await rect(p, ".slday:first-child");
+        assert.ok(mon.x >= 0 && fri.r <= 390, when + ": Mon to Fri all on screen " + JSON.stringify({ mon, fri }));
+        assert.ok((await rect(p, ".slcls select")).w >= 140, when + ": the class picker has room for a name");
+        const film = await rect(p, "#slFilm"), dock = await rect(p, "#slTools"), stage = await rect(p, "#slStage");
+        assert.ok(film.b <= dock.y + 1 && stage.b <= film.y + 1, when + ": slide, strip and dock in their own rows " + JSON.stringify({ stage, film, dock }));
+        if (await p.$eval("#slNotesBox", (e) => !e.hidden)) { const nb = await rect(p, "#slNotesBox"); assert.ok(nb.y >= film.b - 1 && nb.b <= dock.y + 1, when + ": notes between the strip and the dock"); }
+        assert.ok(dock.b <= 664 + 1, when + ": the dock is on screen");
+        assert.ok(await p.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1), when + ": one screen, no page scroll");
+        assert.ok(await pageX(p) <= 0, when + ": no sideways page scroll");
+    };
+    await check("empty day");
+    await p.tap("text=From my plan"); await p.waitForTimeout(800);
+    await check("with slides");
+    await p.screenshot({ path: OUT + "/studio-phone-3classes.png" });
+    await ctx.close();
+}
 // Board mode keeps its own light look
 {
     const p = await (await browser.newContext({ viewport: { width: 1366, height: 768 } })).newPage();

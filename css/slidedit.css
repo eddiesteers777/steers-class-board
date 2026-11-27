@@ -650,3 +650,50 @@ body.slidemode .sbar2 .slideg .tb.txt span{display:inline}
 /* the slide rail scrolls, and Chrome draws a sticky bar's fill in the wrong place inside a blurred scroller (the ticked-slides
    bar let thumbnails show through): the rail gets a near-solid glass fill instead, which looks the same over the navy behind */
 body.slidemode .sfilm{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--g-fill),rgba(14,30,68,.86)}
+
+/* ---------- Slides on a real phone, take two (Nov 27, Eddie's iPhone screenshot: "The phone view is a disaster") ----------
+   Signed in with three classes the header ran out of room (class cut to "8th G", Thu and Fri off the edge), the board status
+   badge sat on the ⋯, and the dock covered the slide strip. Now: the badge has its own spot beside Teach; with more than one
+   class, week and class share the second row and Mon-Fri get a full row of their own; and Slides on a phone is one screen
+   like an app: the slide takes the room that is left, the strip, notes and dock each keep their own row, and nothing scrolls
+   under anything (an empty day's three starts scroll inside the slide's space). */
+body.phone.slidemode .cbar #liveStatusBtn{position:absolute;top:max(11px,calc(env(safe-area-inset-top) + 1px));right:116px;width:38px;height:38px;margin:0}
+body.phone.slidemode .cbar .slsave{right:160px}
+body.phone.slidemode .cbar .slrow:has(.slcls:not([hidden])){flex-wrap:wrap;row-gap:6px}
+body.phone.slidemode .cbar .slrow:has(.slcls:not([hidden])) .slwk{flex:1 1 0;min-width:0}
+body.phone.slidemode .cbar .slrow:has(.slcls:not([hidden])) .slwkn{flex:1;min-width:0}
+body.phone.slidemode .cbar .slrow:has(.slcls:not([hidden])) .slwkt{max-width:none}
+body.phone.slidemode .cbar .slrow:has(.slcls:not([hidden])) .slcls{flex:1 1 0;min-width:0}
+body.phone.slidemode .cbar .slrow:has(.slcls:not([hidden])) .slcls select{width:100%;max-width:none;min-height:46px}
+body.phone.slidemode .cbar .slrow:has(.slcls:not([hidden])) .sldays{order:5;flex:1 1 100%;width:100%}
+body.phone.slidemode .cbar .slday{flex:1 1 0;min-width:0}
+/* one screen, like an app */
+:root body.phone.slidemode{display:flex;flex-direction:column;height:100vh;height:100dvh;min-height:0;overflow-x:clip;overflow-y:auto}
+body.phone.slidemode .cbar{flex:none}
+body.phone.slidemode .sapp{flex:1 1 auto;min-height:0}
+@media (max-width:860px){
+  body.slidemode .sbar2{position:static}
+  body.phone.slidemode .sapp{display:flex;flex-direction:column;padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+  body.phone.slidemode .smain{flex:1 1 auto;min-height:0;gap:8px}
+  body.phone.slidemode .sstage,body.phone.slidemode .sstage.blank{flex:1 1 auto;min-height:120px;max-height:none;aspect-ratio:auto}
+  body.phone.slidemode .sstage.blank{overflow-y:auto;overscroll-behavior:contain;border-radius:16px}
+  body.phone.slidemode .sstage.blank .sempty{padding:12px 4px 14px}
+  body.phone.slidemode .sfilm{flex:none;height:104px}
+  body.phone.slidemode .snotes{flex:none;flex-direction:row;align-items:center;gap:10px;padding:6px 8px 6px 12px}
+  body.phone.slidemode .snh label{white-space:nowrap}
+  body.phone.slidemode .snotes textarea{min-height:40px}
+  body.phone.slidemode .snotes textarea:focus{min-height:96px}
+  body.phone.slidemode .sbar2{flex:none;margin:0}
+  body.phone.slidemode .stoast{bottom:calc(96px + env(safe-area-inset-bottom))}
+}
+/* the board status badge wears the glass too, not a white tile */
+body.slidemode .cbar #liveStatusBtn{background:rgba(255,255,255,.08);border:1px solid var(--c-line);box-shadow:none;color:#F4F8FF}
+body.slidemode .cbar #liveStatusBtn:hover{background:rgba(255,255,255,.16)}
+/* "Tap for sound" sits at the top middle while Slides is up (as in Spotlight), never on the dock */
+body.slidemode .sndtap{top:auto;bottom:auto;top:calc(env(safe-area-inset-top) + 86px);left:50%;right:auto;transform:translateX(-50%);z-index:41}
+body.phone.slidemode .sndtap{top:calc(env(safe-area-inset-top) + 172px)}
+@media (max-width:860px){
+  /* notes on a phone: one line until you tap in, so the hint never shows half-cut */
+  body.phone.slidemode .snotes textarea:not(:focus){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.phone.slidemode .snotes textarea::placeholder{white-space:nowrap;text-overflow:ellipsis}
+}
