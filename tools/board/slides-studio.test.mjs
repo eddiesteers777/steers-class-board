@@ -97,8 +97,10 @@ for (const [w, h] of [[1366, 768], [1920, 1080], [1280, 800]]) {
     await p.evaluate(() => { const s = document.getElementById("status"), b = document.createElement("button"); b.className = "lsbtn"; b.id = "liveStatusBtn"; b.dataset.s = "bad"; b.innerHTML = '<span class="lsscr"><i class="lsdot"></i></span><span id="lsBtnText">Live status</span>'; s.parentNode.insertBefore(b, s); });
     await p.waitForTimeout(300);
     const check = async (when) => {
-        const more = await rect(p, ".slmore"), teach = await rect(p, ".slteach"), ls = await rect(p, "#liveStatusBtn"), save = await rect(p, ".slsave");
-        assert.ok(!overlap(ls, more) && !overlap(ls, teach) && !overlap(save, ls), when + ": the header buttons each have their own spot " + JSON.stringify({ more, teach, ls, save }));
+        const more = await rect(p, ".slmore"), ls = await rect(p, "#liveStatusBtn"), save = await rect(p, ".slsave");
+        assert.ok(!overlap(ls, more) && !overlap(save, ls), when + ": the header buttons each have their own spot " + JSON.stringify({ more, ls, save }));
+        assert.equal(await p.$eval(".slteach", (e) => getComputedStyle(e).display), "none", when + ": no yellow Spotlight button on a phone (the switch has Spotlight)");
+        const sm = await rect(p, ".cbar .smode"); assert.ok(save.x >= sm.r, when + ": the saved dot is clear of the switch");
         const fri = await rect(p, ".slday:last-child"), mon = await rect(p, ".slday:first-child");
         assert.ok(mon.x >= 0 && fri.r <= 390, when + ": Mon to Fri all on screen " + JSON.stringify({ mon, fri }));
         assert.ok((await rect(p, ".slcls select")).w >= 140, when + ": the class picker has room for a name");

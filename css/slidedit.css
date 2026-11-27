@@ -697,3 +697,8 @@ body.phone.slidemode .sndtap{top:calc(env(safe-area-inset-top) + 172px)}
   body.phone.slidemode .snotes textarea:not(:focus){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   body.phone.slidemode .snotes textarea::placeholder{white-space:nowrap;text-overflow:ellipsis}
 }
+/* No yellow Spotlight button on a phone (Nov 27, Eddie: "Get rid of the yellow spotlight view"): the switch at the top left
+   already has Spotlight. The Chromebook keeps Teach this slide. The status badge and saved dot move over into its place. */
+body.phone.slidemode .cbar .slteach{display:none!important}
+body.phone.slidemode .cbar #liveStatusBtn{right:64px}
+body.phone.slidemode .cbar .slsave{right:108px}
