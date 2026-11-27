@@ -86,6 +86,17 @@ simpler, one less thing.
     shown as a picture of the slide, plus Make your own (any panel color, finish, corners, how solid) and Use on every
     slide of this day. A slide's theme is `th` {c, f, o, r}; none means Match my panels (Spotlight's frosted glass),
     and "My board colors" follows the teacher's color scheme. Themes add no new colors, finishes or corners.
+  - **Glass Studio (Nov 27, Eddie picked option A from the mockups).** While Slides is up the page wears Spotlight's dark glass:
+    the navy glow behind, one glass header bar, the slides on a glass rail, and the tools in one glass dock under the slide (every
+    tool named under its icon, like Spotlight's toolbar). The picked block's own tools float in a one-row glass bar beside it
+    (`#slCtx`: above it, else under it, else in the top strip Spotlight keeps clear); a phone keeps them in the dock, Done first.
+    Notes are a one-line strip that opens while typing. **Spotlight buttons** in the dock marks where Spotlight's corners,
+    toolbar and Next/Back sit over the slide (`SPOT_GHOST` in js/slideEditor.js, about where; remembered on the device).
+    Board mode, Spotlight and the menus keep their own look.
+  - **Aurora glass (Nov 27, Eddie: "yes on aurora glass").** The one approved new background: sky and blue glows with a touch of
+    amber on deep navy (`gradCss("aurora")` in js/slides.js, a gradient id like the others), behind clear navy glass blocks. The
+    theme sets the background too (`THEMES` entries may carry a bg); a new grid slide made from an Aurora slide keeps the glow, and
+    picking another ready-made theme takes it off.
   - **Screens list (Nov 21, Eddie: "get rid of some of those tabs"; Slides is the main one).** Slides comes first as
     a card ("6 slides for Monday", "Slide 2 of 6 on the board"). Tapping it puts the slides on the board and opens a
     list of that day's slides as small pictures (every-day ones tagged); tapping one shows it. Then the screens used
@@ -123,7 +134,7 @@ simpler, one less thing.
   (`touch-action: manipulation` on every element, `css/console.css`), and fields at least 16px so Safari does not
   zoom in on a tap. Phone layout comes from the page's own width and the screen size, never `innerWidth`, which
   follows a zoom.
-- **Restraint.** No new fonts, colours, shadows, gradients or corner styles without asking Eddie (the Nov 23 skin is the approved set).
+- **Restraint.** No new fonts, colours, shadows, gradients or corner styles without asking Eddie (the Nov 23 skin is the approved set, plus the Aurora glow, Nov 27).
 - **Motion is quick and quiet.** About 240–260ms, never bouncy, and off for reduced-motion.
 - **Student privacy.** Nothing a student could be identified by goes on the board unless the
   teacher puts it there (name picker, groups, the Seating Chart screen). No student data in this public repo, ever.

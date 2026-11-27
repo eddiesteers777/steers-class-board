@@ -33,8 +33,8 @@ import { notesFrames } from "./notesFrames.js?v=1";
 import { cleanBplan, cleanPlan, planTick, mountPlanFold } from "./bellPlan.js?v=6";
 import { mountAttendance, syncAttendance } from "./attendanceRemote.js?v=18";
 import { cleanChart, cleanPeriod, cleanView, seatCount, drawRoom } from "./seats.js?v=7";
-import { DAILY as SL_DAILY, INDEX as SL_INDEX, MAX_DAILY as SL_MAX_DAILY, cleanDeck, cleanIndex, showList, revealSteps, indexHas, liveContext, lessonDate, textOf } from "./slides.js?v=4";
-import { renderSlide, fitSlide, imageLoader, thumb } from "./slideView.js?v=4";
+import { DAILY as SL_DAILY, INDEX as SL_INDEX, MAX_DAILY as SL_MAX_DAILY, cleanDeck, cleanIndex, showList, revealSteps, indexHas, liveContext, lessonDate, textOf } from "./slides.js?v=5";
+import { renderSlide, fitSlide, imageLoader, thumb } from "./slideView.js?v=5";
 import { markSvg, ensureCss } from "./anchorLoader.js?v=2";
 
 const $ = (id) => document.getElementById(id);

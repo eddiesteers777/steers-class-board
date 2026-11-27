@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { sanitizeHtml, textOf, plainHtml, cleanEl, cleanSlide, cleanDeck, cleanIndex, cleanBg, fillLive, liveContext, fromPlan, frameSlide, problemSlide,
     todaySlide, agendaSlide, LAYOUTS, newEl, showList, revealSteps, countShown, shapePath, SHAPES, inkFor, inkOn, MAX_SLIDES, MAX_ELS, DAILY, isLessonKey, boxOf,
-    cleanPanels, panelWords, bankSlide, bankText, walkSlide, walkStep, GRIDS, gridCells, gridSlide, FRAME } from "../../js/slides.js";
+    cleanPanels, panelWords, bankSlide, bankText, walkSlide, walkStep, GRIDS, gridCells, gridSlide, FRAME, GRADS, gradCss, isAurora, THEMES, cleanTheme, themeId } from "../../js/slides.js";
 import demoWeek from "../../data/demo-week.js";
 
 let n = 0; const t = (name, fn) => { fn(); n++; };
@@ -142,5 +142,19 @@ t("every grid fills the safe frame with cells that do not overlap, each with its
         assert.equal(s.els.length, cells.length, id); assert.equal(s.gd, id);
         assert.deepEqual(cleanSlide(JSON.parse(JSON.stringify(s))), s, id);
     }
+});
+t("Aurora glass (Nov 27): its own background glow, light ink, and a theme that brings the glow along", () => {
+    assert.ok(GRADS.some((g) => g[0] === "aurora"));
+    assert.match(gradCss("aurora"), /^radial-gradient/);
+    assert.match(gradCss("sky"), /^linear-gradient\(160deg,#bcd8f5/);
+    assert.match(gradCss("nope"), /^linear-gradient\(160deg,#bcd8f5/, "unknown ids fall back to the first fade");
+    const bg = cleanBg({ t: "grad", g: "aurora" });
+    assert.deepEqual(bg, { t: "grad", g: "aurora" }); assert.ok(isAurora(bg)); assert.ok(!isAurora({ t: "grad", g: "navy" })); assert.ok(!isAurora(null));
+    assert.equal(inkFor(bg), "#f6f9fd", "light words on the Aurora glow");
+    const th = THEMES.find((x) => x[0] === "aurora");
+    assert.ok(th && th[3] && isAurora(th[3]), "Aurora glass sets the background too");
+    assert.deepEqual(cleanTheme(th[2]), th[2]); assert.equal(themeId(th[2]), "aurora");
+    const ids = THEMES.map((x) => x[0]); assert.equal(new Set(ids).size, ids.length, "theme ids are unique");
+    THEMES.forEach(([id, , t2]) => { if (t2) assert.equal(themeId(t2), id, "every ready-made theme is found again: " + id); });
 });
 console.log("Lesson slides: " + n + " checks passed");

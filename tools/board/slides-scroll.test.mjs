@@ -8,7 +8,7 @@ for (const [w, h, tag, across] of [[1366, 900, "desktop", false], [390, 844, "ph
     const p = await (await browser.newContext({ viewport: { width: w, height: h }, hasTouch: across })).newPage();
     p.on("pageerror", (e) => errs.push(tag + ": " + e.message));
     await p.goto("http://127.0.0.1:5000/studio.html?demo#slides"); await p.waitForSelector("#slFilm .sfsel", { timeout: 20000 });
-    await p.click("#slFilm .sfadd.lay"); await p.click(".slaycnt .spchip:text-is('10')"); await p.click(".slaygrid .slayb >> nth=1");
+    await p.click("#slFilm .sfadd.lay"); await p.click(".slaycnt .spchip:text-is('10')"); await p.click(".sgrids .sgridb >> nth=1");
     await p.waitForFunction(() => document.querySelectorAll("#slFilm .sflist .sfi").length === 10);
     await p.click(".sfpkx:has-text('Done'), .sfpkmore"); if (across) { await p.click(".spi:has-text('Done selecting')"); }
     await p.waitForSelector("#slFilm .sfsel");

@@ -77,7 +77,18 @@ export const GRADS = [
     ["night", "Night", ["#2a3a6b", "#0b1020"]], ["sunset", "Sunset", ["#f9c74f", "#e8710a"]], ["peach", "Peach", ["#ffe0c2", "#f28da6"]],
     ["berry", "Berry", ["#7a2257", "#2a0a1f"]], ["mint", "Mint", ["#d4f5e6", "#7fcfc0"]], ["forest", "Forest", ["#1f5c47", "#0a251c"]],
     ["lemon", "Lemon", ["#fff9d6", "#ffe58a"]], ["grape", "Grape", ["#b9a4f0", "#5b3fa0"]], ["chalk", "Chalkboard", ["#33503f", "#16261d"]],
+    ["aurora", "Aurora", ["#1b4fbf", "#081b45"]],   // drawn as soft glows, not a straight fade (gradCss); the two colors pick the ink
 ];
+/* Aurora (Nov 27, Eddie approved the new background glow): sky and blue glows with a touch of amber on deep navy, behind clear glass blocks. */
+const AURORA = "radial-gradient(45% 60% at 18% 20%,rgba(127,174,221,.7),transparent 70%),radial-gradient(40% 55% at 88% 88%,rgba(242,179,61,.32),transparent 70%)," +
+    "radial-gradient(50% 60% at 70% 10%,rgba(27,79,191,.7),transparent 70%),#081b45";
+/** The CSS background for a gradient id: a straight fade, or Aurora's glows. */
+export function gradCss(id) {
+    if (id === "aurora") return AURORA;
+    const g = (GRADS.find((x) => x[0] === id) || GRADS[0])[2];
+    return "linear-gradient(160deg," + g[0] + " 0%," + g[1] + " 100%)";
+}
+export const isAurora = (bg) => !!bg && bg.t === "grad" && bg.g === "aurora";
 export const PATTERNS = [["", "None"], ["grid", "Graph paper"], ["dots", "Dots"], ["lines", "Lined paper"], ["axes", "x-y grid"]];
 export const ALIGN = ["l", "c", "r", "j"], VALIGN = ["t", "m", "b"], DASH = ["", "d", "o"], HEADS = ["", "arrow", "dot", "bar"];
 
@@ -302,9 +313,11 @@ export function gridCells(id) {
         return { x: r1(x0), y: r1(y0), w: r1(x1 - x0), h: r1(y1 - y0) };
     });
 }
-/* Ready-made themes: [id, name, { c, f, o, r }]. Built only from the panel colors and finishes Eddie already has. "panels" is the default (no th). */
+/* Ready-made themes: [id, name, { c, f, o, r }, bg?]. Built from the panel colors and finishes Eddie already has. "panels" is the default (no th).
+   A theme with a bg sets the slide's background too: Aurora glass (Nov 27) is clear navy glass on the Aurora glow. */
 export const THEMES = [
     ["panels", "Match my panels", null],
+    ["aurora", "Aurora glass", { c: "navy", f: "glass", o: 38, r: "soft" }, { t: "grad", g: "aurora" }],
     ["board", "My board colors", { c: "board", f: "glass", o: 82, r: "soft" }],
     ["frost", "Frosted glass", { c: "paper", f: "glass", o: 55, r: "soft" }],
     ["night", "Night glass", { c: "night", f: "glass", o: 62, r: "soft" }],
