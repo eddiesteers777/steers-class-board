@@ -26,6 +26,7 @@ import * as Buddy from "./buddy.js?v=2";
 import { loadKids, credit as creditProfiles } from "./profiles.js?v=2";
 import qrcode from "./vendor/qrcode.js?v=1";
 import { drawItems } from "./mathTools.js?v=1";
+import { setsFor, pickSet } from "./vaultPick.js?v=1";
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "button"; if (fn) b.onclick = fn; return b; };
@@ -63,6 +64,10 @@ const lkMe = (p) => { const s = livePf(p); return s ? { xp: s.xp, lv: s.lv, b: s
 const rosterShort = () => V.shortNames((A.rosters()[H.per] || []).filter(Boolean));
 let SETS = null, setsWatched = false, note = "", busy = "", tab = "players", dtab = "report", peek = "", endArm = 0, resetArm = 0;
 let saveTimer = 0, lastSave = 0, panelSig = "", panelAt = 0, padWatch = null, padFor = "", PAD = null;
+const setKey = (per) => "anchorboard-vset:" + per;
+/** The teacher's last pick for a period on this device ("" when none). */
+const recallSet = (per) => { try { return localStorage.getItem(setKey(per)) || ""; } catch (e) { return ""; } };
+const keepSet = (per, id) => { try { if (id) localStorage.setItem(setKey(per), id); } catch (e) { /* private window */ } };
 const choice = { set: (() => { try { return new URLSearchParams(location.search).get("vset") || ""; } catch (e) { return ""; } })(), mins: 10, names: "roster", board: true, save: false, live: false, work: true, retry: true, steps: true, slow: true, snd: true, comeback: true, sab: true, dj: true, goal: "auto", prof: true, game: (() => { try { return localStorage.getItem("anchorboard-live-game") === "fact" ? "fact" : "vault"; } catch (e) { return "vault"; } })() };
 
 export function mountLive(api) { A = api; }
@@ -840,6 +845,7 @@ async function openRoom() {
         let code = "";
         for (let i = 0; i < 6 && !code; i++) { const c = V.newRoomCode(); try { if (!(await A.store().rooms.get("rooms/" + c))) code = c; } catch (e) { code = c; } }
         if (!code) throw new Error("Could not find a free game code. Try again.");
+        keepSet(A.S.period, meta.id);   // the set a game was played with is this period's pick next time
         H = { v: 1, code, status: "lobby", title: set.title || meta.title || "Review", setId: meta.id, per: A.S.period, qs, mode: choice.names, names, taken: [],
             opts: { mins: choice.mins, board: choice.board, save: choice.save, live: choice.live, work: choice.work, retry: choice.retry, steps: choice.steps, slow: choice.slow, snd: choice.snd, comeback: choice.comeback, sab: choice.sab, dj: choice.dj, goal: choice.goal, prof: choice.prof }, paused: 0, exit: null, heat: { on: false, names: false }, redo: null, players: {}, qst: qs.map(() => ({ n: 0, ok: 0, w: [] })), review: null, feed: [], show: null, ends: 0, t0: 0, rid: "", saved: false,
             host: PAGE, hb: Date.now(), at: Date.now() };
@@ -1497,8 +1503,10 @@ function setupPanel(p) {
     p.append(sec("Set up the game"));
     if (!SETS) { p.append(el("p", "gpnote", "Getting your question sets…")); return; }
     if (!SETS.length) { p.append(el("p", "gpnote", "No question sets are saved yet.")); const a = el("a", "btn go gplink", "Make a question set"); a.href = "maker.html?per=" + encodeURIComponent(A.S.period); p.append(a); return; }
-    const mine = SETS.filter((s) => !Array.isArray(s.per) || !s.per.length || s.per.includes(A.S.period)), list = mine.length ? mine : SETS;
-    if (!list.some((s) => s.id === choice.set)) choice.set = list.slice().sort((a, b) => (b.at || 0) - (a.at || 0))[0].id;
+    // Nov 28: the pick is per period (remembered on this device) and the default prefers this period's class (js/vaultPick.js)
+    const list = setsFor(SETS, A.S.period);
+    if (choice.per !== A.S.period) { const first = choice.per === undefined && choice.set; choice.per = A.S.period; if (!first) choice.set = recallSet(A.S.period); }
+    choice.set = pickSet(SETS, A.S.period, A.S.cls, choice.set);
     const row = (label, ctl) => { const l = el("label", "gpchk vrfield"); l.append(el("span", null, label), ctl); return l; };
     const sel = el("select"); list.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).forEach((s) => { const o = el("option", null, (s.title || "Review game") + " (" + (s.clues || 0) + ")"); o.value = s.id; sel.append(o); }); // The last options open the Question Maker: edit the picked set, or start a new one.
     const per = "&per=" + encodeURIComponent(A.S.period), tools = el("optgroup"); tools.label = "Question Maker";
@@ -1507,7 +1515,7 @@ function setupPanel(p) {
     sel.value = choice.set; sel.onchange = () => {
         if (sel.value === "__edit") { location.href = "maker.html?set=" + encodeURIComponent(choice.set) + per; sel.value = choice.set; return; }
         if (sel.value === "__new") { location.href = "maker.html?" + per.slice(1); sel.value = choice.set; return; }
-        choice.set = sel.value; panelSig = "";
+        choice.set = sel.value; keepSet(A.S.period, choice.set); panelSig = "";
     };
     const len = el("select"); LENGTHS.forEach(([m, t]) => { const o = el("option", null, t); o.value = String(m); len.append(o); }); len.value = String(choice.mins); len.onchange = () => { choice.mins = +len.value; panelSig = ""; };
     const nm = el("select"); [["roster", "Pick from my class list"], ["typed", "Type their name"]].forEach(([v, t]) => { const o = el("option", null, t); o.value = v; nm.append(o); }); nm.value = choice.names; nm.onchange = () => { choice.names = nm.value; panelSig = ""; };
