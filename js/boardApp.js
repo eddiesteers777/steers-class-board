@@ -846,11 +846,23 @@ function phoneHeader() {
     pop.querySelectorAll("button,a").forEach((b) => b.addEventListener("click", () => { acct.open = false; }));
     const tm = $("toolsMenu"); if (tm) tm.open = false;   // the rail starts folded on a phone: open only what is needed
 }
+let soundArmed = false;
+/** The next tap, click or key anywhere on the page unlocks sound (browsers allow audio only after one). Once, then disarmed. */
+function armSoundUnlock() {
+    if (soundArmed) return; soundArmed = true;
+    const go = () => { ["click", "touchend", "keydown"].forEach((t) => document.removeEventListener(t, go, true)); soundArmed = false; snd.unlock(); if (yt) yt.unlock(); };
+    ["click", "touchend", "keydown"].forEach((t) => document.addEventListener(t, go, true));
+}
 function soundControls() {
     const box = $("soundMenu");
     let tap = $("sndTap");   // a screen that should play but has not been tapped yet (browsers need one tap first)
     if (!tap) { tap = el("button", "sndtap", "Tap for sound"); tap.id = "sndTap"; tap.type = "button"; tap.onclick = (e) => { e.stopPropagation(); snd.unlock(); if (yt) yt.unlock(); }; document.body.appendChild(tap); }
-    tap.hidden = !(synced && ((snd.wanted() && !snd.running()) || ytWantsTap()));
+    const wantsTap = !!(synced && ((snd.wanted() && !snd.running()) || ytWantsTap()));
+    // Nov 28 (audit: the pill sat on the Next button): on the teacher's own pages (Remote, Board Builder, demo, sub) the
+    // teacher taps all the time, so the first tap or key anywhere turns sound on and the pill never shows. Only the projected
+    // board, where nobody taps, keeps the pill (css/boardglass.css puts it at the top left there).
+    if (document.body.classList.contains("board")) tap.hidden = !wantsTap;
+    else { tap.hidden = true; if (wantsTap) armSoundUnlock(); }
     if (!box) return;
     const so = S.sound, here = playsHere();
     const on = (id, v) => { const x = $(id); x.setAttribute("aria-pressed", String(v)); x.querySelector("i").textContent = v ? "On" : "Off"; };

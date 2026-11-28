@@ -371,3 +371,12 @@ body.board .recpill{display:none}
 [aria-pressed="true"]:active > .swk::after,.sndtog[aria-pressed="true"]:active i::after{left:-2px}
 @media (prefers-reduced-motion:reduce){.swk::before,.swk::after,.sndtog i::before,.sndtog i::after{transition:none}}
 .sndtog span{text-align:left}
+
+/* 12px floor (Nov 28 audit): DESIGN.md says text is never under 12px on teacher pages. Same selectors, so only the size changes. */
+.field > span,.railh{font-size:max(12px,.75rem)}
+
+/* Fingertip-size buttons on a phone (Nov 28 audit): DESIGN.md says tap targets are at least 44px. Touch screens under 860px
+   only, never the board drawing (#stage): page tabs, period tabs, segmented choices, dropdowns, menu folds and buttons. */
+@media (pointer:coarse) and (max-width:860px){
+  :is(.sk-modes button,.tabs > button,.smode button,.seg > button,.field > select,details.menu > summary,.btn,.mk-chip,.mk-tool,.st-nstart,.m-none,.m-teaching,.m-taught,.m-reteach,.gbLink,.mirtog):not(#stage *){min-height:44px}
+}

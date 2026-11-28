@@ -219,3 +219,6 @@ main>.field select,#out>.field select{max-width:520px;width:100%}
 .rdSpList{margin:4px 0;padding-left:28px;display:grid;gap:4px;max-height:360px;overflow:auto;font-size:.92rem}
 .rdSpList li{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
 .rdSpList .rdRole{min-width:0}
+
+/* 12px floor (Nov 28 audit): DESIGN.md says text is never under 12px on teacher pages. Same selectors, so only the size changes. */
+.pgChip,.pgGNum{font-size:max(12px,.75rem)}

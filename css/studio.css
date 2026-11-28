@@ -238,3 +238,21 @@ body.studio.stkstep:not(.board) .stk.under .stkf{opacity:.5}
 .lprt.lsp b::before{content:"";display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:50%;background:#F2B33D;vertical-align:middle}
 .lprt.lsl b::before{content:"";display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:2px;background:#8CC8FF;vertical-align:middle}
 .lpres .lprall{margin-top:10px;width:100%;background:transparent;color:#FFD271;border-color:rgba(255,210,113,.45)}
+
+/* One header row on a Chromebook (Nov 28 audit: at 1366 "Menu" dropped to a row of its own, taking ~45px off every screen).
+   Board mode only, never a phone. As the room runs out: Open the board steps aside (it is in Menu too), then the
+   Board / Slides / Spotlight switch shows icons only, then the connection chip shows its dot only (the words stay for
+   screen readers and on hover), then the brand keeps its logo only. */
+@media (min-width:861px){
+  body.studio:not(.slidemode):not(.phone) .cbar{flex-wrap:nowrap;gap:10px}
+  body.studio:not(.slidemode):not(.phone) .cbar>.field{min-width:150px;flex:0 1 auto}
+}
+@media (min-width:861px) and (max-width:1600px){body.studio:not(.slidemode):not(.phone) #openBoard{display:none}}
+@media (min-width:861px) and (max-width:1320px){body.studio:not(.slidemode):not(.phone) .cbar .smode button span{display:none}}
+@media (min-width:861px) and (max-width:1200px){
+  body.studio:not(.slidemode):not(.phone) #status{font-size:0;gap:0;padding:7px}
+  body.studio:not(.slidemode):not(.phone) .cbrand span{display:none}
+}
+
+/* 12px floor (Nov 28 audit): DESIGN.md says text is never under 12px on teacher pages. Same selectors, so only the size changes. */
+.spane .lookh,.sstep .ssn,.sstep .sst small{font-size:max(12px,.75rem)}

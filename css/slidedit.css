@@ -410,7 +410,7 @@ dialog.spick::backdrop{background:rgba(8,27,69,.45)}
 .slrow .sldays{flex:0 1 auto;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
 .slrow .sldays::-webkit-scrollbar{display:none}
 .slrow .slday{flex:none}
-@container slbar (max-width:1040px){
+@container slbar (max-width:1080px){
   .slsave[data-state="ok"],.slsave[data-state="wait"]{font-size:0;gap:0;padding:6px}   /* the dot says it; "not saved" keeps its words */
   .slrow .slteach i{display:none}
   .slcls select{max-width:124px}
@@ -741,3 +741,6 @@ body.phone.slidemode .cbar #liveStatusBtn .lsscr{width:40px;height:40px;border-r
   body.slidemode .sfpick.sfidle{width:52px;margin:-8px 0 -8px -8px;padding:6px 4px}
   body.slidemode .sfpick.sfidle .sfsel{min-height:0;height:100%;font-size:.75rem;gap:4px;padding:0}
 }
+
+/* 12px floor (Nov 28 audit): DESIGN.md says text is never under 12px on teacher pages. Same selectors, so only the size changes. */
+.sfb span,.sfh small,.slwkt small,.sover .ssafe span,body.slidemode .sbar2 .tb{font-size:max(12px,.75rem)}

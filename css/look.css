@@ -450,3 +450,6 @@ body[data-bg="ph-ani-wolf"] #stageBg,.pv-ph-ani-wolf{background-image:var(--ph-v
 :is(.lpv,.sbpv) .pv-pd-spr{background-image:url(../photos/sm/lnd-flowers.webp),url(../photos/sm/spr-water.webp),url(../photos/sm/spr-mirror.webp),url(../photos/sm/spr-path.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
 :is(.lpv,.sbpv) .pv-pd-mth{background-image:url(../photos/sm/mth-hex.webp),url(../photos/sm/mth-honey.webp),url(../photos/sm/mth-nautilus.webp),url(../photos/sm/mth-sunflower.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
 :is(.lpv,.sbpv) .pv-pd-spt{background-image:url(../photos/sm/spt-field.webp),url(../photos/sm/spt-stadium.webp),url(../photos/sm/spt-ball.webp),url(../photos/sm/spt-goals.webp);background-size:50% 50%;background-position:0 0,100% 0,0 100%,100% 100%}
+
+/* 12px floor (Nov 28 audit): DESIGN.md says text is never under 12px on teacher pages. Same selectors, so only the size changes. */
+.lookpick.compact .lookbg .lnm,.lookpick.compact .lookbg .lpv .lpfx,.lookpick.compact .lookh{font-size:max(12px,.75rem)}

@@ -31,3 +31,6 @@
 .libdays .ltags{align-items:center}
 .libdays .ltag{flex:none;white-space:nowrap}
 .libwk .liblt{font-size:.93rem}
+
+/* 12px floor (Nov 28 audit): DESIGN.md says text is never under 12px on teacher pages. Same selectors, so only the size changes. */
+.ltag{font-size:max(12px,.75rem)}

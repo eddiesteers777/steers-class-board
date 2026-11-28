@@ -227,3 +227,6 @@ body.builder label.field select{max-width:100%;min-width:0}
     body[data-print="pack"] .sheet{width:auto;padding:0;box-shadow:none;border-radius:0;max-width:none}
     body[data-print="pack"] .sheet h2.newpage,body[data-print="pack"] .sheet .sh-btitle.newpage,body[data-print="pack"] .sheet .sh-ptitle.newpage{border-top:0!important;padding-top:0!important;margin-top:0!important}
 }
+
+/* 12px floor (Nov 28 audit): DESIGN.md says text is never under 12px on teacher pages. Same selectors, so only the size changes. */
+.bhead,.meta label{font-size:max(12px,.75rem)}

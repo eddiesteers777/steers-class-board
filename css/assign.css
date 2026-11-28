@@ -158,3 +158,6 @@
 }
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
 @media (max-width:560px){.pgTiles.small{grid-template-columns:1fr 1fr}}
+
+/* 12px floor (Nov 28 audit): DESIGN.md says text is never under 12px on teacher pages. Same selectors, so only the size changes. */
+.asChip{font-size:max(12px,.75rem)}
