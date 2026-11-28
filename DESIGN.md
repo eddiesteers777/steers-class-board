@@ -142,6 +142,10 @@ simpler, one less thing.
   the Tracker's Pick tab under "How it looks on the board", with a live preview drawn by the same code as the board
   (`js/callout.js` previewCallout), saved on the device and in `settings/callout`, and sent with every pick as { lk, sz, pos }.
   "Try it on the board" shows the words "Sample name", never a student.
+  **Celebrations (Nov 28):** "Got it right!" throws one of Confetti, Fireworks, Star burst, Balloons, Sparkle rain or Golden
+  glow (or Mix it up, a different one each time), each with its own sound made in the browser (`js/sound.js` ce_* cues;
+  confetti keeps the win fanfare). Picked on the same Tracker fold ("When they get it right"); a tap previews it and plays its
+  sound on that device; sent with every cheer as { ce }. Reduced motion keeps only the calm glow.
 - **Never show the wrong thing while loading.** Show the shape of the screen (a skeleton) until
   the real state arrives. No spinners, and never a flash of another day or period.
 - **Never claim what the site cannot know.** No "current period" without bell times. If the

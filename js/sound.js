@@ -153,6 +153,26 @@ const CUES = {
     box(t, d) { [93, 97, 100, 105].forEach((m, i) => bell(t + i * 0.05, hz(m), 0.1, d, 0.6)); },
     // The last 30 seconds: one tense low hit.
     rush(t, d) { kick(t, 0.55, d); bell(t, hz(57), 0.35, d, 2); pluck(t, hz(45), 0.8, 0.25, d); },
+    /* ---- "Got it right!" celebrations (Nov 28, Eddie: "have a noise for each"); confetti keeps the win fanfare ---- */
+    // Fireworks: a rising whoosh, then pops and a crackle, three times
+    ce_fireworks(t, d) {
+        [0, 0.55, 1.05].forEach((x, n) => {
+            const g = ctx.createGain(); g.connect(d); env(g, t + x, 0.02, 0.07, 0.32); const o = osc("sine", 300, t + x, t + x + 0.36, g); o.frequency.exponentialRampToValueAtTime(1500 + n * 200, t + x + 0.32);
+            kick(t + x + 0.36, 0.45, d); noiseHit(t + x + 0.36, 0.3, d, "highpass", 3200, 0.5, 0.7);
+            for (let i = 0; i < 5; i++) noiseHit(t + x + 0.45 + i * 0.05 + Math.random() * 0.03, 0.1, d, "bandpass", 5000 + Math.random() * 3000, 0.04, 4);
+        });
+    },
+    // Star burst: a bright rising run of chimes to a held top note
+    ce_stars(t, d) { [76, 79, 83, 86, 88, 91, 95].forEach((m, i) => bell(t + i * 0.06, hz(m), 0.2, d, 0.9)); bell(t + 0.48, hz(100), 0.24, d, 2); bell(t + 0.48, hz(95), 0.16, d, 2); },
+    // Balloons: a soft whistle up and gentle bloops as they rise
+    ce_balloons(t, d) {
+        const g = ctx.createGain(); g.connect(d); env(g, t, 0.08, 0.06, 0.9); const o = osc("sine", 420, t, t + 1, g); o.frequency.exponentialRampToValueAtTime(980, t + 0.9);
+        [72, 76, 79, 84, 79, 84].forEach((m, i) => { const x = t + 0.25 + i * 0.17; const g2 = ctx.createGain(); g2.connect(d); env(g2, x, 0.005, 0.2, 0.18); const b = osc("sine", hz(m) * 0.7, x, x + 0.2, g2); b.frequency.exponentialRampToValueAtTime(hz(m), x + 0.08); });
+    },
+    // Sparkle rain: a twinkling cascade of high bells, falling
+    ce_sparkles(t, d) { for (let i = 0; i < 14; i++) bell(t + i * 0.085 + Math.random() * 0.03, hz([100, 98, 95, 93, 91, 88, 86][i % 7] + (i > 6 ? -5 : 0)), 0.1 + Math.random() * 0.05, d, 0.8); },
+    // Golden glow: a warm chord that swells and fades, nothing sharp
+    ce_glow(t, d) { [60, 64, 67, 71, 76].forEach((m, i) => { pluck(t + i * 0.04, hz(m), 2.2, 0.12, d); bell(t + 0.1 + i * 0.05, hz(m + 12), 0.12, d, 2.6); }); },
     // Game over: a fanfare up to a held chord.
     win(t, d) { [57, 61, 64, 69, 73, 76].forEach((m, i) => pluck(t + i * 0.09, hz(m + 12), 0.25, 0.25, d)); [69, 73, 76, 81].forEach((m) => { pluck(t + 0.6, hz(m), 1.6, 0.18, d); bell(t + 0.6, hz(m + 12), 0.22, d, 2.4); }); kick(t + 0.6, 0.5, d); },
 };
@@ -163,7 +183,7 @@ export function cue(name) {
     recent.push([name, Date.now()]); if (recent.length > 30) recent.shift();
     try {
         if (name === "rotate" || name === "done") duck(name === "done" ? 2.6 : 2);
-        else if (name === "crack" || name === "bonus" || name === "win" || name === "block") duck(name === "win" ? 3 : 2);
+        else if (name === "crack" || name === "bonus" || name === "win" || name === "block" || name.startsWith("ce_")) duck(name === "win" ? 3 : 2);
         CUES[name](ctx.currentTime + 0.02, fxBus);
     } catch (e) { /* ignore */ }
 }

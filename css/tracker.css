@@ -286,3 +286,16 @@ html:not([data-mode="dark"]) .tkpage .tk-look{background:var(--tg-glass);border-
 .tk-lookmini{position:relative;align-self:stretch;height:58px;border-radius:10px;margin-bottom:4px;display:grid;place-items:center;overflow:hidden;
   background:linear-gradient(135deg,#173F86,#0B2559 55%,#081B45)}
 .tk-lookmini .callout{position:relative;left:auto;top:auto;transform:none!important;opacity:1;font-size:7.5px;min-width:0;transition:none;animation:none}
+/* When they get it right: the celebrations (Nov 28) */
+.tk-lookh{margin:14px 0 6px;font-size:14px;font-weight:700;color:var(--c-mute)}
+.tk-cegrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (min-width:640px){.tk-cegrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.tk-ceb{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;min-height:56px;padding:8px 10px;border-radius:14px;border:1px solid var(--c-line);
+  background:var(--c-surface,#fff);color:var(--c-ink);text-align:left;cursor:pointer;font:inherit}
+.tk-ceb .tk-cei{grid-row:1/3;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;color:#F2B33D;background:linear-gradient(135deg,#173F86,#081B45)}
+.tk-ceb .tk-cei svg{width:20px;height:20px}
+.tk-ceb b{font-size:14px}
+.tk-ceb small{font-size:12px;color:var(--c-mute);line-height:1.3}
+.tk-ceb.on{border-color:#F2B33D;box-shadow:0 0 0 2px #F2B33D}
+html:not([data-mode="dark"]) .tkpage :is(.tk-lookb,.tk-ceb){background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.7));border-color:var(--tg-edge);box-shadow:var(--tg-shadow)}
+html:not([data-mode="dark"]) .tkpage :is(.tk-lookb,.tk-ceb).on{border-color:#F2B33D;box-shadow:0 0 0 2px #F2B33D,var(--tg-shadow)}

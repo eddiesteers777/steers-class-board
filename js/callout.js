@@ -26,7 +26,7 @@ const CSS = `
 .callout.land .con{color:#fff}
 @keyframes coPulse{50%{box-shadow:0 0 0 .4em rgba(242,179,61,.5),0 .5em 1.6em rgba(0,0,0,.4)}}
 .callout.cheer{background:linear-gradient(135deg,#1F9D61,#127A48);border-color:#F2B33D}
-.callout.cheer .cok{color:#FFE3A3}
+.callout.cheer .cok{color:#FFE3A3!important}
 .callout.cheer.land{animation:coCheer .5s cubic-bezier(.2,.9,.3,1.4) 1}
 @keyframes coCheer{0%{transform:translate(-50%,0) scale(.85)}60%{transform:translate(-50%,0) scale(1.08)}100%{transform:translate(-50%,0) scale(1)}}
 .cofx{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:40}
@@ -68,7 +68,23 @@ const CSS = `
 .codim.show{opacity:1}
 .callout.cheer{background:linear-gradient(135deg,#1F9D61,#127A48)!important;color:#fff!important;-webkit-backdrop-filter:none;backdrop-filter:none}
 .callout.cheer .con{color:#fff!important;background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important}
-@media (prefers-reduced-motion:reduce){.callout.spin::after{animation:none}.codim{transition:none}}`;
+@media (prefers-reduced-motion:reduce){.callout.spin::after{animation:none}.codim{transition:none}}
+/* celebrations for "Got it right!" (Nov 28): each a few dozen pieces on the board, then gone; none under reduced motion */
+.cofx.co-fw i{top:auto;left:auto;width:.42em;height:.42em;border-radius:50%;animation:coBurst var(--d,1.3s) cubic-bezier(.15,.7,.3,1) var(--w,0s) forwards;opacity:0;box-shadow:0 0 .5em currentColor}
+@keyframes coBurst{0%{transform:translate(0,0) scale(.4);opacity:1}70%{opacity:1}100%{transform:translate(var(--x),var(--y)) scale(.9);opacity:0}}
+.cofx.co-st i{top:auto;left:auto;width:auto;height:auto;background:none!important;font-size:var(--s,1.8em);line-height:1;color:var(--c);text-shadow:0 0 .4em var(--c);animation:coStar var(--d,1.6s) cubic-bezier(.2,.8,.3,1) var(--w,0s) forwards;opacity:0}
+@keyframes coStar{0%{transform:translate(0,0) rotate(0) scale(.2);opacity:1}80%{opacity:1}100%{transform:translate(var(--x),var(--y)) rotate(var(--r)) scale(1);opacity:0}}
+.cofx.co-bl i{top:auto;bottom:-3.5em;width:2.4em;height:3em;border-radius:50% 50% 48% 48%/55% 55% 45% 45%;opacity:.95;
+  background:radial-gradient(35% 30% at 35% 30%,rgba(255,255,255,.75),transparent 60%),var(--c)!important;animation:coRise var(--d,4s) cubic-bezier(.3,.1,.5,1) var(--w,0s) forwards}
+.cofx.co-bl i::after{content:"";position:absolute;left:50%;top:100%;width:.06em;height:2.2em;background:rgba(255,255,255,.7)}
+@keyframes coRise{0%{transform:translate(0,0) rotate(-4deg)}50%{transform:translate(var(--x),-60vh) rotate(5deg)}100%{transform:translate(calc(var(--x) * -.5),-125vh) rotate(-3deg)}}
+.cofx.co-sp i{width:.9em;height:.9em;border-radius:0;background:none!important;animation:coTwinkle var(--d,3s) ease-in var(--w,0s) forwards;opacity:0}
+.cofx.co-sp i::before{content:"";position:absolute;inset:0;background:var(--c);clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%);filter:drop-shadow(0 0 .25em var(--c))}
+@keyframes coTwinkle{0%{transform:translateY(0) scale(.3);opacity:0}15%{opacity:1}50%{transform:translateY(45vh) scale(1);opacity:1}100%{transform:translateY(95vh) scale(.5);opacity:0}}
+.cofx.co-gl{background:radial-gradient(60% 55% at 50% 18%,rgba(255,210,113,.55),rgba(242,179,61,.18) 45%,transparent 75%);animation:coGlow 2.6s ease-out forwards;opacity:0}
+@keyframes coGlow{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
+.cofx.co-gl.co-mid{background:radial-gradient(55% 55% at 50% 50%,rgba(255,210,113,.55),rgba(242,179,61,.18) 45%,transparent 75%)}
+@media (prefers-reduced-motion:reduce){.cofx.co-gl{display:block;animation:none;opacity:.6}}`;
 
 const FRESH = 20000, SPIN = 2200, HOLD = 9000;
 /** The banner's looks: [id, name, one line]. "glass" is the default. */
@@ -81,11 +97,52 @@ export const LOOKS = [
     ["classic", "Classic", "The original navy banner"],
 ];
 /** A look choice, cleaned: { lk, sz: "reg"|"big", pos: "top"|"mid" }. Spotlight is always big and in the middle. */
+/** "Got it right!" celebrations (Nov 28, Eddie: "different celebrations ... and a way to edit which type"): [id, name, one line]. */
+export const CELEBRATIONS = [
+    ["confetti", "Confetti", "Colored paper falls across the board"],
+    ["fireworks", "Fireworks", "Bursts of light across the top"],
+    ["stars", "Star burst", "Stars fly out from the name"],
+    ["balloons", "Balloons", "Balloons float up from the bottom"],
+    ["sparkles", "Sparkle rain", "Gold and white sparkles drift down"],
+    ["glow", "Golden glow", "A calm warm glow, nothing flying"],
+    ["mix", "Mix it up", "A different one each time"],
+];
+const CE_IDS = CELEBRATIONS.map((c) => c[0]);
+/** A look choice, cleaned: { lk, sz: "reg"|"big", pos: "top"|"mid", ce }. Spotlight is always big and in the middle. */
 export function cleanLook(o) {
     const x = o && typeof o === "object" ? o : {};
-    const lk = LOOKS.some((l) => l[0] === x.lk) ? x.lk : "glass";
-    if (lk === "spot") return { lk, sz: "big", pos: "mid" };
-    return { lk, sz: x.sz === "big" ? "big" : "reg", pos: x.pos === "mid" ? "mid" : "top" };
+    const lk = LOOKS.some((l) => l[0] === x.lk) ? x.lk : "glass", ce = CE_IDS.includes(x.ce) ? x.ce : "confetti";
+    if (lk === "spot") return { lk, sz: "big", pos: "mid", ce };
+    return { lk, sz: x.sz === "big" ? "big" : "reg", pos: x.pos === "mid" ? "mid" : "top", ce };
+}
+const PAL = ["#F2B33D", "#7FAEDD", "#3FB37F", "#E5484D", "#F4F7FB", "#C9A3F5"];
+/** Throw a celebration onto a stage. kind: a CELEBRATIONS id ("mix" picks one); mid: the banner sits in the middle. Returns the layer. */
+/** The celebration to play: "mix" picks one of the others at random. */
+export function resolveCe(kind) { return kind === "mix" ? CE_IDS.filter((k) => k !== "mix")[Math.floor(Math.random() * (CE_IDS.length - 1))] : (CE_IDS.includes(kind) ? kind : "confetti"); }
+/** Each celebration's sound (js/sound.js CUES); confetti keeps the win fanfare. */
+export const ceSound = (kind) => (kind === "confetti" ? "win" : "ce_" + kind);
+export function celebrateFx(stage, kind, mid) {
+    const pick = resolveCe(kind);
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches && pick !== "glow") return null;
+    const fx = document.createElement("div"), R = Math.random, add = (n, f) => { for (let i = 0; i < n; i++) { const c = document.createElement("i"); f(c, i); fx.appendChild(c); } };
+    const set = (c, k, v) => c.style.setProperty(k, v);
+    fx.className = "cofx"; fx.dataset.kind = pick;
+    if (pick === "confetti") add(90, (c, i) => {
+        c.style.left = (20 + R() * 60) + "%"; c.style.background = PAL[i % PAL.length];
+        set(c, "--x", ((R() - 0.5) * 60) + "em"); set(c, "--r", (R() * 900 - 450) + "deg"); set(c, "--d", (2 + R() * 1.6) + "s"); set(c, "--w", (R() * 0.5) + "s");
+        if (i % 3 === 0) { c.style.borderRadius = "50%"; c.style.height = ".55em"; }
+    });
+    else if (pick === "fireworks") { fx.classList.add("co-fw"); const bursts = [[22, 24], [50, 14], [78, 26], [35, 42], [66, 40]];
+        bursts.forEach(([bx, by], b) => add(26, (c, i) => { const a = (i / 26) * Math.PI * 2, d = 6 + R() * 5; c.style.left = bx + "%"; c.style.top = by + "%"; c.style.color = c.style.background = PAL[(b + i) % 4];
+            set(c, "--x", (Math.cos(a) * d) + "em"); set(c, "--y", (Math.sin(a) * d) + "em"); set(c, "--w", (b * 0.32 + R() * 0.08) + "s"); set(c, "--d", (1.1 + R() * 0.5) + "s"); })); }
+    else if (pick === "stars") { fx.classList.add("co-st"); add(26, (c, i) => { const a = (i / 26) * Math.PI * 2 + R() * 0.3, d = 10 + R() * 14; c.textContent = "★";
+        c.style.left = "50%"; c.style.top = mid ? "50%" : "14%"; set(c, "--c", ["#F2B33D", "#FFD271", "#F4F7FB", "#7FAEDD"][i % 4]); set(c, "--s", (1.2 + R() * 1.6) + "em");
+        set(c, "--x", (Math.cos(a) * d) + "em"); set(c, "--y", (Math.sin(a) * d * 0.7) + "em"); set(c, "--r", (R() * 360 - 180) + "deg"); set(c, "--w", (R() * 0.25) + "s"); set(c, "--d", (1.3 + R() * 0.7) + "s"); }); }
+    else if (pick === "balloons") { fx.classList.add("co-bl"); add(16, (c, i) => { c.style.left = (4 + (i / 16) * 88 + R() * 4) + "%"; set(c, "--c", PAL[i % 5]); set(c, "--x", ((R() - 0.5) * 8) + "em"); set(c, "--w", (R() * 0.9) + "s"); set(c, "--d", (3.4 + R() * 1.4) + "s"); }); }
+    else if (pick === "sparkles") { fx.classList.add("co-sp"); add(70, (c, i) => { c.style.left = (R() * 98) + "%"; c.style.top = (-5 + R() * 20) + "%"; set(c, "--c", i % 3 ? "#FFD271" : "#F4F7FB"); const s = 0.5 + R() * 0.9; c.style.width = c.style.height = s + "em"; set(c, "--w", (R() * 1.2) + "s"); set(c, "--d", (2.2 + R() * 1.4) + "s"); }); }
+    else { fx.classList.add("co-gl"); if (mid) fx.classList.add("co-mid"); }
+    stage.appendChild(fx);
+    return fx;
 }
 /** The banner's CSS, once per page (the board, or the Tracker for its preview). */
 export function calloutCss() { if (!document.getElementById("calloutCss")) { const s = document.createElement("style"); s.id = "calloutCss"; s.textContent = CSS; document.head.appendChild(s); } }
@@ -125,8 +182,20 @@ function runPick(stage, d, cue, hold) {
 }
 /** The Class Tracker's preview: the same banner and animation in a small stage on the page (nothing goes to the board). */
 let previewTimers = [];
+/** The Tracker's preview of "Got it right!": the green banner and the chosen celebration in the small stage. */
+export function previewCheer(stage, look, name, sound) {
+    calloutCss(); previewTimers.forEach(clearTimeout); previewTimers = [];
+    stage.querySelectorAll(".cofx").forEach((x) => x.remove());
+    const b = bannerIn(stage), L = lookClasses(b, look);
+    dimIn(stage, false);
+    b.querySelector(".cok").textContent = "Got it right!"; b.querySelector(".con").textContent = String(name || "Sample name").slice(0, 60);
+    b.classList.add("cheer", "show"); void b.offsetWidth; b.classList.add("land");
+    const kind = resolveCe(L.ce), fx = celebrateFx(stage, kind, L.pos === "mid");
+    if (sound) sound(ceSound(kind));
+    previewTimers.push(setTimeout(() => { if (fx) fx.remove(); b.classList.remove("show", "land", "cheer"); }, 4500));
+}
 export function previewCallout(stage, look, names) {
-    calloutCss(); previewTimers.forEach(clearTimeout);
+    calloutCss(); previewTimers.forEach(clearTimeout); stage.querySelectorAll(".cofx").forEach((x) => x.remove());
     const list = (names && names.length ? names : ["Sample name"]).slice(0, 12), pick = list[Math.floor(Math.random() * list.length)];
     previewTimers = runPick(stage, Object.assign({ n: pick, pool: list }, cleanLook(look)), () => {}, 3500);
 }
@@ -144,19 +213,9 @@ export function mountCallout({ store, cue = () => {}, now = () => Date.now() }) 
         lookClasses(b, d); dimIn(stage, false);
         b.querySelector(".cok").textContent = "Got it right!"; b.querySelector(".con").textContent = name;
         b.classList.add("cheer", "show"); void b.offsetWidth; b.classList.add("land");
-        cue("win");
-        if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            const fx = document.createElement("div"); fx.className = "cofx"; const C = ["#F2B33D", "#7FAEDD", "#3FB37F", "#E5484D", "#F4F7FB", "#C9A3F5"];
-            for (let i = 0; i < 90; i++) {
-                const c = document.createElement("i"), left = 20 + Math.random() * 60;
-                c.style.left = left + "%"; c.style.background = C[i % C.length];
-                c.style.setProperty("--x", ((Math.random() - 0.5) * 60) + "em"); c.style.setProperty("--r", (Math.random() * 900 - 450) + "deg");
-                c.style.setProperty("--d", (2 + Math.random() * 1.6) + "s"); c.style.setProperty("--w", (Math.random() * 0.5) + "s");
-                if (i % 3 === 0) { c.style.borderRadius = "50%"; c.style.height = ".55em"; }
-                fx.appendChild(c);
-            }
-            stage.appendChild(fx); timers.push(setTimeout(() => fx.remove(), 4800));
-        }
+        const L = cleanLook(d), kind = resolveCe(L.ce), fx = celebrateFx(stage, kind, L.pos === "mid");
+        cue(ceSound(kind));
+        if (fx) timers.push(setTimeout(() => fx.remove(), 5600));
         timers.push(setTimeout(() => b.classList.remove("show", "land", "cheer"), 5500));
     }
     function play(d) {

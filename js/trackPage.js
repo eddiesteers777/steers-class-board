@@ -7,7 +7,7 @@
    ?demo: made-up names, a this-tab store, nothing is saved.
 ========================================== */
 import * as T from "./trackCore.js?v=2";
-import { LOOKS, cleanLook, calloutCss, previewCallout } from "./callout.js?v=3";
+import { LOOKS, CELEBRATIONS, cleanLook, calloutCss, previewCallout, previewCheer } from "./callout.js?v=5";
 import { perKey, kidKey, summary as profileSummary } from "./profileCore.js?v=2";
 
 const Q = new URLSearchParams(location.search), DEMO = Q.has("demo");
@@ -308,7 +308,7 @@ const onBoard = () => remember("onboard") !== "0";
 /** "How it looks on the board": a live preview, the looks, size and place, and a try on the board (sample words only). */
 function lookPanel(list) {
     calloutCss();
-    const d = el("details", "tk-look"); d.open = lookOpen; d.ontoggle = () => { lookOpen = d.open; if (d.open) play(); };
+    const d = el("details", "tk-look"); d.open = lookOpen; d.ontoggle = () => { const was = lookOpen; lookOpen = d.open; if (d.open && !was) play(); };   // only a real open plays: a redraw re-opens it too
     const name = (LOOKS.find((l) => l[0] === LOOK.lk) || LOOKS[0])[1];
     d.appendChild(el("summary", null, "How it looks on the board · " + name));
     const stage = el("div", "tk-costage"); stage.setAttribute("aria-label", "Preview of the board");
@@ -333,10 +333,38 @@ function lookPanel(list) {
     const acts = el("div", "tk-lookrow"); acts.append(again, tryb);
     d.append(stage, acts, grid, row("Size", [["reg", "Regular"], ["big", "Big"]], "sz"), row("Place", [["top", "Top"], ["mid", "Middle"]], "pos"));
     if (LOOK.lk === "spot") d.appendChild(el("p", "tk-hint", "Spotlight is always big, in the middle of the board, with the board dimmed behind the name."));
-    if (d.open) requestAnimationFrame(play);
+    // When they get it right (Nov 28): which celebration "Got it right!" throws on the board. Tap one to pick it and see it.
+    const ch = el("p", "tk-lookh", "When they get it right"); ch.appendChild(el("small", null, " · tap one to see and hear it")); d.appendChild(ch);
+    const cg = el("div", "tk-cegrid");
+    CELEBRATIONS.forEach(([id, nm, line]) => {
+        const b = el("button", "tk-ceb" + (LOOK.ce === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(LOOK.ce === id)); b.dataset.ce = id;
+        const ic = el("span", "tk-cei"); ic.innerHTML = CE_ICON[id] || ""; b.append(ic, el("b", null, nm), el("small", null, line));
+        b.onclick = () => { if (LOOK.ce !== id) setLook({ ce: id }, true); else previewCheer(stage, LOOK, sample[0], ceTone); };
+        cg.appendChild(b);
+    });
+    d.appendChild(cg);
+    if (cheerNext) { cheerNext = false; requestAnimationFrame(() => previewCheer(stage, LOOK, sample[0], ceTone)); }
+    if (d.open && !cheerShown) requestAnimationFrame(play);
+    cheerShown = false;
     return d;
 }
-function setLook(x) {
+const CE_SVG = (d) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+const CE_ICON = {
+    confetti: CE_SVG('<path d="M4 20l5-13 8 8z"/><path d="M14 4l1 2M19 7l2-1M18 3l-1 2M20 11h2M11 3v2"/>'),
+    fireworks: CE_SVG('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>'),
+    stars: CE_SVG('<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/>'),
+    balloons: CE_SVG('<path d="M12 3a6 6 0 0 0-6 6c0 4 4 7 6 8 2-1 6-4 6-8a6 6 0 0 0-6-6z"/><path d="M12 17l-1 2h2l-1-2M12 19c0 1-1 2 0 3"/>'),
+    sparkles: CE_SVG('<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>'),
+    glow: CE_SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+    mix: CE_SVG('<path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>'),
+};
+let cheerNext = false, cheerShown = false;
+/** Hear a celebration on this phone or Chromebook (js/sound.js, loaded on the first preview; the board plays it in class). */
+let soundMod = null; const SOUND_V = 63;
+function ceTone(name) { (soundMod || (soundMod = import("./sound.js?v=" + SOUND_V))).then((m) => m.preview(name)).catch(() => {}); }
+/** Change the look; cheer: show the new celebration in the preview instead of a pick. */
+function setLook(x, cheer) {
+    if (cheer) { cheerNext = true; cheerShown = true; }
     LOOK = cleanLook(Object.assign({}, LOOK, x)); lookOpen = true;
     remember("look", JSON.stringify(LOOK));
     if (!DEMO) readyP.then((st) => st.set("settings/callout", Object.assign({ at: Date.now() }, LOOK))).catch(() => {});

@@ -17,7 +17,7 @@ import { FIND_KEYS } from "./findCore.js?v=2";
 import { setPhotoStore } from "./myPhotos.js?v=1";
 import { setFloatDefault, buildPanel, tickPanels, chip, ordered, panelOn, panelOff, panelToggle, isOn, SCENES, sceneActive, applyScene, openSheet, refreshSheet, sheetOpen, icon as pIcon, labelOf, defaultLook, cleanLook, applyLook, lookPicker, lookSeal, gradOf, themeCols } from "./panels.js?v=44";
 import { cleanStickers, renderStickers } from "./stickers.js?v=1";
-import * as snd from "./sound.js?v=62";
+import * as snd from "./sound.js?v=63";
 import { mountYt, cleanYt, cleanRecent } from "./ytMusic.js?v=4";
 import { createMathPad } from "./mathPad.js?v=2";
 import { wbIcon } from "./wbIcons.js?v=1";
@@ -2195,7 +2195,7 @@ export async function startApp(opts) {
     if (!guest && !(opts && opts.store)) quickUid = user.uid;
     if (quickQ && quickQ.uid !== user.uid) { try { localStorage.removeItem(QUICK_KEY); } catch (e) { /* fine */ } location.reload(); return; }   // another account's copy: start clean
     if (!guest && !tvView && user.uid) { try { localStorage.setItem("anchor:subTeacher", user.uid); } catch (e) { /* storage off: the sub link needs ?t= */ } }   // so the guest sub page on this computer can show this teacher's approved weeks
-    if (!guest) import("./callout.js?v=3").then((m) => m.mountCallout({ store, cue: (n) => snd.cue(n) })).catch(() => {});   // "Called on" banner from the phone's Class Tracker
+    if (!guest) import("./callout.js?v=5").then((m) => m.mountCallout({ store, cue: (n) => snd.cue(n) })).catch(() => {});   // "Called on" banner from the phone's Class Tracker
     signedIn = true; inkKey = ""; slStart(); $("who").textContent = tvView ? "Linked screen" : guest ? ((opts && opts.who) || "Guest teacher view, no sign-in") : (user.name ? "Signed in as " + user.name : "Signed in");
     if (!guest && "BroadcastChannel" in window) {
         try {
