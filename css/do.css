@@ -81,3 +81,6 @@
 @media (prefers-reduced-motion:reduce){.dburst{display:none}.ddots i{transition:none}}
 @media (max-width:560px){.dqt{font-size:1.15rem}.dring{width:72px;height:72px}.dform>.pbtn{width:100%}}
 .pcard.dstill{animation:none}
+
+/* fingertip-size link on a phone (Nov 28) */
+@media (pointer:coarse){.dlink{display:inline-flex;align-items:center;min-height:44px;padding:0 4px}}

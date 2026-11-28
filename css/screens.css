@@ -105,3 +105,6 @@ b{font-weight:650}
   .lkbtn{width:100%}
   .lklist .lkbtn{width:auto}
 }
+
+/* fingertip-size links on a phone (Nov 28) */
+@media (pointer:coarse){.lkback,.lkbrand{display:inline-flex;align-items:center;min-height:44px}}

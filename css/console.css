@@ -379,4 +379,24 @@ body.board .recpill{display:none}
    only, never the board drawing (#stage): page tabs, period tabs, segmented choices, dropdowns, menu folds and buttons. */
 @media (pointer:coarse) and (max-width:860px){
   :is(.sk-modes button,.tabs > button,.smode button,.seg > button,.field > select,details.menu > summary,.btn,.mk-chip,.mk-tool,.st-nstart,.m-none,.m-teaching,.m-taught,.m-reteach,.gbLink,.mirtog):not(#stage *){min-height:44px}
+  /* the rest the Nov 28 re-check found: Look chips, slide strip tiles and days, text fields, the Question Maker's small buttons,
+     Standards' codes and Copy, Week Builder's remove buttons, fold headings, and the logo link */
+  :is(.schip,.sfadd,.slday,.slwka,.mk-segb,.st-code,.st-copy,.bx,summary,input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=hidden]),a.btn):not(#stage *):not(.sl *){min-height:44px}
+  :is(.mk-mini,a.cbrand):not(#stage *){min-height:44px;min-width:44px}
+  :is(.mk-mini,a.cbrand):not(#stage *){display:inline-flex;align-items:center;justify-content:center}
 }
+
+/* The sub page's header on one row (Nov 28: at 1366 it took two rows, 113px). It carries more than the other pages
+   (period AND week pickers), so as room runs out: the connection chip shows its dot only (its words stay for screen
+   readers and on hover), the gaps tighten, the brand keeps its logo only, then the pickers shrink with an ellipsis. */
+@media (min-width:861px){body.subpage:not(.phone) .cbar{flex-wrap:nowrap}}
+@media (min-width:861px) and (max-width:1500px){
+  body.subpage:not(.phone) .cbar{gap:10px}
+  body.subpage:not(.phone) #status{font-size:0;gap:0;padding:7px}
+}
+@media (min-width:861px) and (max-width:1200px){body.subpage:not(.phone) .cbrand span{display:none}}
+@media (min-width:861px) and (max-width:1100px){
+  body.subpage:not(.phone) .cbar>.field{flex:0 1 auto;min-width:150px}
+  body.subpage:not(.phone) .cbar>.field select{max-width:100%;text-overflow:ellipsis}
+}
+@media (min-width:861px) and (max-width:1100px){body.subpage:not(.phone) .cbar>.btn,body.subpage:not(.phone) .cbar>.ytpill{flex:none}}
