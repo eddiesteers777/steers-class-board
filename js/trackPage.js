@@ -7,12 +7,17 @@
    ?demo: made-up names, a this-tab store, nothing is saved.
 ========================================== */
 import * as T from "./trackCore.js?v=2";
+import { LOOKS, cleanLook, calloutCss, previewCallout } from "./callout.js?v=3";
 import { perKey, kidKey, summary as profileSummary } from "./profileCore.js?v=2";
 
 const Q = new URLSearchParams(location.search), DEMO = Q.has("demo");
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 const remember = (k, v) => { try { if (v === undefined) return localStorage.getItem("anchor:track:" + k); localStorage.setItem("anchor:track:" + k, v); } catch (e) { return null; } return v; };
+/* The board's "Called on" banner look (Nov 28): picked here, saved on this device and in settings/callout, and sent with
+   every pick so the board needs no setting of its own (js/callout.js). */
+let LOOK = cleanLook((() => { try { return JSON.parse(remember("look") || "null"); } catch (e) { return null; } })());
+let lookOpen = false;
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const buzz = () => { try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) { /* ok */ } };
 const time = (ms) => new Date(ms).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
@@ -262,6 +267,7 @@ function drawPick() {
     const sw = el("label", "tk-switch"); const cb = el("input"); cb.type = "checkbox"; cb.checked = onBoard(); cb.onchange = () => { remember("onboard", cb.checked ? "1" : "0"); };
     sw.append(cb, el("span", "tk-swk"), el("span", null, "Show the pick on the board"));
     host.appendChild(sw);
+    host.appendChild(lookPanel(list));
     const go = el("button", "tk-primary big", S.pickName ? "Pick again" : "Pick at random"); go.type = "button";
     go.onclick = () => roll();
     host.appendChild(go);
@@ -299,14 +305,51 @@ function drawPick() {
 }
 /* The board's "Called on" banner (js/callout.js). On by default; DEMO never writes. */
 const onBoard = () => remember("onboard") !== "0";
+/** "How it looks on the board": a live preview, the looks, size and place, and a try on the board (sample words only). */
+function lookPanel(list) {
+    calloutCss();
+    const d = el("details", "tk-look"); d.open = lookOpen; d.ontoggle = () => { lookOpen = d.open; if (d.open) play(); };
+    const name = (LOOKS.find((l) => l[0] === LOOK.lk) || LOOKS[0])[1];
+    d.appendChild(el("summary", null, "How it looks on the board · " + name));
+    const stage = el("div", "tk-costage"); stage.setAttribute("aria-label", "Preview of the board");
+    const sample = list.slice(0, 10).map((n) => n.split(" ")[0]);
+    const play = () => previewCallout(stage, LOOK, sample);
+    const again = el("button", "tk-chip", "Play the preview"); again.type = "button"; again.onclick = play;
+    const grid = el("div", "tk-lookgrid");
+    LOOKS.forEach(([id, nm, line]) => {
+        const b = el("button", "tk-lookb" + (LOOK.lk === id ? " on" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(LOOK.lk === id)); b.title = line;
+        const mini = el("span", "tk-lookmini"); const bn = el("span", "callout show lk-" + id); bn.append(el("span", "cok", "Called on"), el("span", "con", "Name")); mini.appendChild(bn);
+        b.append(mini, el("b", null, nm), el("small", null, line));
+        b.onclick = () => setLook({ lk: id }); grid.appendChild(b);
+    });
+    const row = (label, opts, key) => {
+        const r = el("div", "tk-lookrow"); r.appendChild(el("span", null, label));
+        opts.forEach(([v, t]) => { const c = el("button", "tk-chip" + (LOOK[key] === v ? " on" : ""), t); c.type = "button"; c.setAttribute("aria-pressed", String(LOOK[key] === v)); c.disabled = LOOK.lk === "spot"; c.onclick = () => setLook({ [key]: v }); r.appendChild(c); });
+        return r;
+    };
+    const tryb = el("button", "tk-chip", "Try it on the board"); tryb.type = "button"; tryb.disabled = DEMO || !onBoard();
+    tryb.title = "Shows \"Sample name\" on the board in this look, no student names";
+    tryb.onclick = () => readyP.then((st) => st.set("board/callout", Object.assign({ id: T.newId(), n: "Sample name", pool: ["Sample name", "Your class", "Called on", "Sample name"], at: Date.now() }, LOOK))).then(() => toast("Sent to the board.")).catch(() => toast("The board did not get it. Check the connection."));
+    const acts = el("div", "tk-lookrow"); acts.append(again, tryb);
+    d.append(stage, acts, grid, row("Size", [["reg", "Regular"], ["big", "Big"]], "sz"), row("Place", [["top", "Top"], ["mid", "Middle"]], "pos"));
+    if (LOOK.lk === "spot") d.appendChild(el("p", "tk-hint", "Spotlight is always big, in the middle of the board, with the board dimmed behind the name."));
+    if (d.open) requestAnimationFrame(play);
+    return d;
+}
+function setLook(x) {
+    LOOK = cleanLook(Object.assign({}, LOOK, x)); lookOpen = true;
+    remember("look", JSON.stringify(LOOK));
+    if (!DEMO) readyP.then((st) => st.set("settings/callout", Object.assign({ at: Date.now() }, LOOK))).catch(() => {});
+    draw();
+}
 function toBoard(name, pool) {
     if (DEMO || !onBoard()) return;
     const shuffled = pool.slice().sort(() => Math.random() - 0.5).slice(0, 30);
-    readyP.then((st) => st.set("board/callout", { id: T.newId(), n: name, pool: shuffled, at: Date.now() })).catch(() => toast("The board did not get the pick. Check the connection."));
+    readyP.then((st) => st.set("board/callout", Object.assign({ id: T.newId(), n: name, pool: shuffled, at: Date.now() }, LOOK))).catch(() => toast("The board did not get the pick. Check the connection."));
 }
 function cheer(name) {
     if (DEMO || !onBoard()) return;
-    readyP.then((st) => st.set("board/callout", { id: T.newId(), n: name, cheer: 1, at: Date.now() })).catch(() => toast("The board did not get it. Check the connection."));
+    readyP.then((st) => st.set("board/callout", Object.assign({ id: T.newId(), n: name, cheer: 1, at: Date.now() }, LOOK))).catch(() => toast("The board did not get it. Check the connection."));
 }
 function undoLastPick(n) {
     const last = evs().filter((e) => e.k === "pick" && e.n === n).pop();
@@ -642,6 +685,7 @@ async function start() {
         rosterIn = true; choosePeriod();
         draw(); quickSave();
     }, () => {});
+    store.watch("settings/callout", (snap) => { if (snap.pending || !snap.exists) return; const L = cleanLook(snap.data); if (JSON.stringify(L) !== JSON.stringify(LOOK)) { LOOK = L; remember("look", JSON.stringify(L)); if (S.view === "pick") draw(); } }, () => {});
     store.watch("settings/track", (snap) => { if (snap.pending || (snap.fromCache && !snap.exists)) return; TAGS = T.cleanTags(snap.exists ? snap.data : null); draw(); quickSave(); }, () => {});
     if (!DEMO) store.watch("board/state", (snap) => {   // follow the board's period when it changes (never claim a period on our own)
         const p = snap.exists && snap.data && snap.data.period;

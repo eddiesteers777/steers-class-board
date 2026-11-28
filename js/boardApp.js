@@ -2195,7 +2195,7 @@ export async function startApp(opts) {
     if (!guest && !(opts && opts.store)) quickUid = user.uid;
     if (quickQ && quickQ.uid !== user.uid) { try { localStorage.removeItem(QUICK_KEY); } catch (e) { /* fine */ } location.reload(); return; }   // another account's copy: start clean
     if (!guest && !tvView && user.uid) { try { localStorage.setItem("anchor:subTeacher", user.uid); } catch (e) { /* storage off: the sub link needs ?t= */ } }   // so the guest sub page on this computer can show this teacher's approved weeks
-    if (!guest) import("./callout.js?v=2").then((m) => m.mountCallout({ store, cue: (n) => snd.cue(n) })).catch(() => {});   // "Called on" banner from the phone's Class Tracker
+    if (!guest) import("./callout.js?v=3").then((m) => m.mountCallout({ store, cue: (n) => snd.cue(n) })).catch(() => {});   // "Called on" banner from the phone's Class Tracker
     signedIn = true; inkKey = ""; slStart(); $("who").textContent = tvView ? "Linked screen" : guest ? ((opts && opts.who) || "Guest teacher view, no sign-in") : (user.name ? "Signed in as " + user.name : "Signed in");
     if (!guest && "BroadcastChannel" in window) {
         try {

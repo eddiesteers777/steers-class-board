@@ -134,6 +134,14 @@ simpler, one less thing.
   empty whiteboard; tap again to go back) and Timer (the timer panel on or off) beside them (`css/console.css`, `js/boardApp.js`).
   A Chromebook keeps Back and Next under the board, with no Blank or Timer there. The phone stays awake while a teacher page is
   open (the wake lock, since Nov 16).
+- **Class Tracker in light glass (Nov 28, Eddie: "keep it light and not dark").** The Tracker gets the same premium finish
+  in light: a soft glow behind the page, frosted white glass for the header, tabs, cards and buttons (`css/tracker.css`, Light
+  mode only; Night keeps its colors).
+- **"Called on" banner looks (Nov 28).** The board's banner for a Tracker pick has looks (Frosted glass, the default; Night
+  glass; Aurora; Gold; Spotlight, big in the middle with the board dimmed; Classic), a size and a place. They are picked on
+  the Tracker's Pick tab under "How it looks on the board", with a live preview drawn by the same code as the board
+  (`js/callout.js` previewCallout), saved on the device and in `settings/callout`, and sent with every pick as { lk, sz, pos }.
+  "Try it on the board" shows the words "Sample name", never a student.
 - **Never show the wrong thing while loading.** Show the shape of the screen (a skeleton) until
   the real state arrives. No spinners, and never a flash of another day or period.
 - **Never claim what the site cannot know.** No "current period" without bell times. If the
