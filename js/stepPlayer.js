@@ -46,11 +46,34 @@ function draw(d) {
     return n;
 }
 
+// words with math in them: {a/b} becomes a stacked fraction and ^{n} an exponent (why lines and step titles)
+function richText(node, s) {
+    node.textContent = "";
+    String(s).split(/(\{[^{}/]+\/[^{}/]+\}|\^\{[^{}]+\})/).forEach((part) => {
+        let m;
+        if ((m = part.match(/^\{([^{}/]+)\/([^{}/]+)\}$/))) node.appendChild(draw({ f: [m[1], m[2]] }));
+        else if ((m = part.match(/^\^\{([^{}]+)\}$/))) node.appendChild(draw({ sup: m[1] }));
+        else if (part) node.appendChild(document.createTextNode(part));
+    });
+}
 /* ---------- pictures ---------- */
 const PEN = { ink: "#14213D", blue: "#1552D6", red: "#C62828", green: "#1B7F3B", amber: "#F2B33D", sky: "#7FAEDD", grid: "#DCE7F5", board: "#FBFCFE" };
 function arrowHead(svg, id, color) {
     const defs = sv("defs"), m = sv("marker", { id, viewBox: "0 0 10 10", refX: "7", refY: "5", markerWidth: "5", markerHeight: "5", orient: "auto-start-reverse" });
     m.appendChild(sv("path", { d: "M0 0L10 5L0 10z", fill: color })); defs.appendChild(m); svg.appendChild(defs);
+}
+// SVG text that can hold one stacked fraction written {a/b} (anything before or after it stays on the line)
+function svText(x, y, s, attrs) {
+    const g = sv("g"), m = String(s).match(/^(.*?)\{([^{}/]+)\/([^{}/]+)\}(.*)$/), fs = attrs["font-size"] || 20;
+    if (!m) { const t = sv("text", Object.assign({ x, y, "text-anchor": "middle" }, attrs)); t.textContent = s; g.appendChild(t); return g; }
+    const pre = m[1], post = m[4], cw = fs * 0.55, fw = Math.max(m[2].length, m[3].length) * cw + 6, pw = pre.length * cw, qw = post.length * cw;
+    const x0 = x - (pw + fw + qw) / 2, cx = x0 + pw + fw / 2, a = Object.assign({}, attrs, { "font-size": fs * 0.85 });
+    const T = (tx, ty, str, anc, at) => { const t = sv("text", Object.assign({ x: tx, y: ty, "text-anchor": anc }, at)); t.textContent = str; g.appendChild(t); };
+    if (pre) T(x0, y - fs * 0.3, pre, "start", attrs);
+    T(cx, y - fs * 0.62, m[2], "middle", a); T(cx, y + fs * 0.42, m[3], "middle", a);
+    g.appendChild(sv("line", { x1: cx - fw / 2 + 2, y1: y - fs * 0.38, x2: cx + fw / 2 - 2, y2: y - fs * 0.38, stroke: attrs.fill || PEN.ink, "stroke-width": 2 }));
+    if (post) T(x0 + pw + fw, y - fs * 0.3, post, "start", attrs);
+    return g;
 }
 let uid = 0;
 const pics = {
@@ -360,6 +383,7 @@ const pics = {
             }
             if (p.ends) pts.forEach((q) => svg.appendChild(sv("circle", { cx: X(q[0]), cy: Y(q[1]), r: 6, fill: PEN.blue })));
         }
+        if (p.line2) for (let i = 1; i < p.line2.length; i++) svg.appendChild(sv("line", { x1: X(p.line2[i - 1][0]), y1: Y(p.line2[i - 1][1]), x2: X(p.line2[i][0]), y2: Y(p.line2[i][1]), stroke: "#2E9E6A", "stroke-width": 5, "stroke-linecap": "round" }));
         (p.pts || []).forEach((q, i) => {
             const hi = (p.hlp || []).includes(i);
             const c = sv("circle", { cx: X(q[0]), cy: Y(q[1]), r: hi ? 13 : 9, fill: hi ? PEN.amber : PEN.blue, stroke: hi ? "#B7791F" : "none", "stroke-width": 3 });
@@ -371,6 +395,57 @@ const pics = {
             marks.forEach((m) => (m.style.opacity = 0)); await wait(400);
             marks.forEach((m) => (m.style.opacity = 1));
             await Promise.all(marks.map((m) => m.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450 }).finished.catch(() => {})));
+        } };
+    },
+    scale(p) {
+        // a number line from lo to hi (0 to 1 for probability) with labeled ticks, words under it, and marked values above;
+        // the values in hl are drawn in amber
+        const lo = p.lo != null ? p.lo : 0, hi = p.hi != null ? p.hi : 1, words = p.words || [], fr = (p.ticks || []).some((k) => /\{/.test(k[1])), W = 640, H = (words.length ? 172 : 140) + (fr ? 16 : 0), pad = 44, y = 86;
+        const X = (v) => pad + ((v - lo) / (hi - lo)) * (W - 2 * pad);
+        const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, class: "sp-pic sp-wide", width: W, role: "img", "aria-label": p.label || "A number line with " + (p.marks || []).map((m) => m[1]).join(", ") + " marked" });
+        svg.appendChild(sv("line", { x1: pad - 10, y1: y, x2: W - pad + 10, y2: y, stroke: PEN.ink, "stroke-width": 3, "stroke-linecap": "round" }));
+        (p.ticks || [[lo, String(lo)], [hi, String(hi)]]).forEach(([v, s]) => {
+            svg.appendChild(sv("line", { x1: X(v), y1: y - 9, x2: X(v), y2: y + 9, stroke: PEN.ink, "stroke-width": 2 }));
+            svg.appendChild(svText(X(v), y + 33 + (/\{/.test(s) ? 8 : 0), String(s).replace(/-/g, MINUS), { "font-size": 20 }));
+        });
+        words.forEach(([v, s]) => { const t = sv("text", { x: X(v), y: y + (fr ? 80 : 62), "text-anchor": "middle", "font-size": 17, fill: "#5A6B85" }); t.textContent = s; svg.appendChild(t); });
+        const marks = [];
+        (p.marks || []).forEach(([v, s], i) => {
+            const hi2 = (p.hl || []).includes(i), g = sv("g");
+            g.appendChild(sv("circle", { cx: X(v), cy: y, r: hi2 ? 12 : 9, fill: hi2 ? PEN.amber : PEN.blue, stroke: hi2 ? "#B7791F" : "none", "stroke-width": 3 }));
+            const up = (i % 2 && (p.marks || []).length > 1 ? 50 : 22) + (/\{/.test(s) ? 12 : 0);
+            g.appendChild(svText(X(v), y - up, s, { "font-size": 20, "font-weight": 700, fill: hi2 ? "#B7791F" : PEN.blue })); svg.appendChild(g); marks.push(g);
+        });
+        return { node: svg, async play(fast) {
+            if (fast || !marks.length) return;
+            marks.forEach((m) => (m.style.opacity = 0)); await wait(250);
+            for (const m of marks) { m.style.opacity = 1; m.animate([{ opacity: 0, transform: "translateY(-8px)" }, { opacity: 1, transform: "none" }], { duration: 320 }); await wait(260); }
+        } };
+    },
+    grid(p) {
+        // a coordinate grid with the axes through (0, 0); shapes (polygons, or one point) drawn in order, the last in amber
+        const xr = p.xr || [-(p.r || 8), p.r || 8], yr = p.yr || xr, W = 440, pad = 24, sc = (W - 2 * pad) / Math.max(xr[1] - xr[0], yr[1] - yr[0]);
+        const H = Math.round(2 * pad + (yr[1] - yr[0]) * sc), X = (v) => pad + (v - xr[0]) * sc, Y = (v) => H - pad - (v - yr[0]) * sc;
+        const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, class: "sp-pic sp-grid", width: W, role: "img", "aria-label": p.label || "A coordinate grid" });
+        for (let v = Math.ceil(xr[0]); v <= xr[1]; v++) svg.appendChild(sv("line", { x1: X(v), y1: Y(yr[0]), x2: X(v), y2: Y(yr[1]), stroke: v === 0 ? PEN.ink : PEN.grid, "stroke-width": v === 0 ? 2.5 : 1 }));
+        for (let v = Math.ceil(yr[0]); v <= yr[1]; v++) svg.appendChild(sv("line", { x1: X(xr[0]), y1: Y(v), x2: X(xr[1]), y2: Y(v), stroke: v === 0 ? PEN.ink : PEN.grid, "stroke-width": v === 0 ? 2.5 : 1 }));
+        const lab = (x, y, s, fill) => { const t = sv("text", { x, y, "text-anchor": "middle", "font-size": 16, "font-weight": 700, fill }); t.textContent = String(s).replace(/-(?=\d)/g, MINUS); return t; };
+        svg.append(lab(X(xr[1]) - 8, Y(0) - 8, "x", PEN.ink), lab(X(0) + 12, Y(yr[1]) + 14, "y", PEN.ink));
+        const cols = ["#9AA8BF", PEN.blue, "#D9901A"], fills = ["rgba(154,168,191,.18)", "rgba(21,82,214,.12)", "rgba(242,179,61,.35)"];
+        const groups = (p.shapes || []).map((s, i, all) => {
+            const k = s.c != null ? s.c : i === all.length - 1 ? 2 : all.length > 2 && i === 0 ? 0 : 1, g = sv("g"), pts = s.pts, mx = pts.reduce((a, q) => a + q[0], 0) / pts.length, my = pts.reduce((a, q) => a + q[1], 0) / pts.length;
+            if (pts.length > 1) g.appendChild(sv("polygon", { points: pts.map((q) => X(q[0]) + "," + Y(q[1])).join(" "), fill: fills[k], stroke: cols[k], "stroke-width": 3, "stroke-linejoin": "round" }));
+            pts.forEach((q, j) => {
+                g.appendChild(sv("circle", { cx: X(q[0]), cy: Y(q[1]), r: pts.length > 1 ? 4.5 : 7, fill: cols[k] }));
+                const nm = s.names ? s.names[j] : null; if (nm) { const dx = pts.length > 1 ? (q[0] >= mx ? 1 : -1) : 1, dy = pts.length > 1 ? (q[1] >= my ? -1 : 1) : -1; g.appendChild(lab(X(q[0]) + dx * 14, Y(q[1]) + dy * 12 + 5, nm, cols[k])); }
+            });
+            return g;
+        });
+        groups.forEach((g) => svg.appendChild(g));
+        return { node: svg, async play(fast) {
+            if (fast || groups.length < 2) return;
+            groups.slice(1).forEach((g) => (g.style.opacity = 0)); await wait(350);
+            for (const g of groups.slice(1)) { g.style.opacity = 1; g.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450 }); await wait(500); }
         } };
     },
     verdict(p) {
@@ -515,10 +590,10 @@ export function createStepPlayer(host, walk, opts) {
     }
     function header(i) {
         const s = steps[Math.max(0, i)];
-        mv.innerHTML = ""; mv.appendChild(document.createTextNode(i < 0 ? "Walkthrough" : s.title));
+        mv.innerHTML = ""; richText(mv, i < 0 ? "Walkthrough" : s.title);
         count.textContent = "Step " + (i + 1) + " of " + N;
         [...dots.children].forEach((d, j) => { d.className = j < i ? "done" : j === i ? "now" : ""; });
-        why.textContent = i < 0 ? "" : String(s.why).replace(/§/g, "$");
+        richText(why, i < 0 ? "" : String(s.why).replace(/§/g, "$"));
         bBack.disabled = i <= 0; bNext.disabled = i >= N - 1;
         bPlay.innerHTML = (playing ? ICON.pause : ICON.play) + '<span class="lbl">' + (playing ? "Pause" : i >= N - 1 ? "Play again" : "Play") + "</span>";
         bPlay.setAttribute("aria-label", playing ? "Pause" : "Play");

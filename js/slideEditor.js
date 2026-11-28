@@ -1153,7 +1153,7 @@ async function openBank(mode) {
     let mods;
     try {
         mods = await Promise.all([import("./stdBank.js?v=6"), import("./weekSheets.js?v=60"), import("../data/standards.js?v=60"),
-            walk ? import("./walkBank.js?v=14") : null, walk ? import("./stepPlayer.js?v=6") : null]);
+            walk ? import("./walkBank.js?v=16") : null, walk ? import("./stepPlayer.js?v=8") : null]);
     } catch (e) { body.textContent = ""; body.appendChild(el("p", "spk-wait", "The bank didn't load. Check the connection and try again.")); return; }
     const [sb, ws, st, wb, spm] = mods, rich = ws.rich;
     const every = walk ? await wb.loadWalkItems() : await sb.loadStdBank();

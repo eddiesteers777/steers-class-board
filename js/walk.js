@@ -2766,7 +2766,9 @@ function reasonSetup(W, item, o) {
             if ((m = String(r).match(/^fact:\s*(.+)$/))) return { a: "row", row: { t: "pic", pic: { kind: "fact", text: m[1] } } };
             if ((m = String(r).match(/^(yes|no):\s*(.+)$/))) return { a: "row", row: { t: "pic", pic: { kind: "verdict", ok: m[1] === "yes", text: m[2] } } };
             if ((m = String(r).match(/^(.+?)\s→\s(.+)$/))) return { a: "row", row: noteRow(keyDT(m[1]), keyDT(m[2])) };
-            const tr = relTruth(r); if (tr == null) throw new Error("row");
+            // "Group X: 18 − 10 = 8": a short label, then a line that is checked
+            const lb = String(r).match(/^([A-Za-z][^:=<>]{0,28}):\s+(.+)$/), body = lb ? lb[2] : r;
+            const tr = relTruth(body); if (tr == null) throw new Error("row");
             return { a: "row", row: rowT([chainDT(r)], tr) };
         });
         W.steps.push({ move: o.move || "verdict", title, why, seq });
