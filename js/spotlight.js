@@ -21,6 +21,13 @@ import { FIND_KEYS } from "./findCore.js?v=2";
 
 let A = null, host = null, onBack = null, tucked = false, sheet = "", picked = "", built = false, lastSig = "", musicHooked = false;
 const PREF = "anchorboard-spot-tucked";
+/* Teach mode, phase 2 (Nov 28): the toolbar shows a short class toolkit; "All tools" opens the rest, and "Pin tools" lets the
+   teacher choose the toolkit (saved on this device). Phase 3: Focus dims the board except a circle the teacher drags. */
+const FAV_KEY = "anchorboard-spot-fav", ALL_KEY = "anchorboard-spot-all", FAV_DEFAULT = ["ptimer", "pick", "target", "traffic"];
+const readJ = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || "null"); return v == null ? d : v; } catch (e) { return d; } };
+const saveJ = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* this visit only */ } };
+let FAV = readJ(FAV_KEY, FAV_DEFAULT), allTools = !!readJ(ALL_KEY, false), pinMode = false;
+if (!Array.isArray(FAV)) FAV = FAV_DEFAULT.slice();
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 const svg = (d, w) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (w || 1.9) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + "</svg>";
@@ -61,6 +68,8 @@ export function openSpot(api, hostEl, back) {
     A.spot.open(); A.spot.draw(false);
     window.addEventListener("keydown", keys, true);
     hookMusic(); { const m = A.music && A.music(); if (m) m.draw(); }   // the music panel moves above the toolbar
+    ["pointerdown", "pointermove", "keydown", "wheel"].forEach((t) => document.addEventListener(t, wake, true)); wake();
+    document.addEventListener("pointerdown", swipeDown, true); document.addEventListener("pointerup", swipeUp, true);
     document.addEventListener("fullscreenchange", paintFull);
     lastSig = ""; paint();
     setTimeout(() => { A.fit(); A.redraw(); }, 0);
@@ -72,6 +81,9 @@ export function closeSpot() {
     if (host) host.hidden = true;
     window.removeEventListener("keydown", keys, true);
     document.removeEventListener("fullscreenchange", paintFull);
+    ["pointerdown", "pointermove", "keydown", "wheel"].forEach((t) => document.removeEventListener(t, wake, true));
+    document.removeEventListener("pointerdown", swipeDown, true); document.removeEventListener("pointerup", swipeUp, true);
+    clearTimeout(idleT); document.body.classList.remove("spidle"); focusOn = false; pinMode = false;
     if (isFull()) toggleFull();
     { const m = A.music && A.music(); if (m) m.draw(); }   // the music panel goes back under the top bar
     setTimeout(() => { A.fit(); A.redraw(); }, 0);
@@ -102,9 +114,16 @@ function build() {
     // bottom right: the screens
     const scr = el("div", "spg spscr"); scr.id = "spScr"; scr.setAttribute("role", "group"); scr.setAttribute("aria-label", "Screens");
     // the count opens every screen of the lesson, with the lesson's slides ready to bring in
-    scr.append(button("spb sparrow", svg(IC.prev, 2.2), "Back a screen", () => go(-1)), button("spb spcount", "", "All screens and slides", () => openSheet(sheet === "screens" ? "" : "screens")), button("spb sparrow", svg(IC.next, 2.2), "Next screen", () => go(1)),
-        el("i", "spsep"), button("spb spadd", svg(IC.plus, 2.2) + "<span>Screen</span>", "Add a screen after this one", () => { if (A.spot.add()) flash("New screen"); }),
-        button("spb spdel", svg(IC.trash), "Remove this screen", removeScreen));
+    // Teach mode (Nov 28, Eddie: "make the spotlight view better for the board to use in class"): a big Back and a big amber
+    // Next you can reach standing at the board; building a lesson (+ Screen, Remove) lives in the ⋯ menu, out of reach mid-lesson.
+    const more = el("div", "spg spmore"); more.id = "spMore"; more.hidden = true; more.setAttribute("role", "menu");
+    more.append(button("spb spadd", svg(IC.plus, 2.2) + "<span>Add a screen after this one</span>", "Add a screen after this one", () => { more.hidden = true; if (A.spot.add()) flash("New screen"); }),
+        button("spb spdel", svg(IC.trash) + "<span>Remove this screen</span>", "Remove this screen", removeScreen));
+    const moreBtn = button("spb spmorebtn", svg(IC.more || '<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>', 2.2), "Add or remove a screen", () => { more.hidden = !more.hidden; moreBtn.setAttribute("aria-expanded", String(!more.hidden)); });
+    moreBtn.setAttribute("aria-expanded", "false");
+    scr.append(button("spb sparrow spback2", svg(IC.prev, 2.4), "Back a screen", () => go(-1)), button("spb spcount", "", "All screens and slides", () => openSheet(sheet === "screens" ? "" : "screens")),
+        button("spb sparrow spnext", "<span>Next</span>" + svg(IC.next, 2.4), "Next screen", () => go(1)), el("i", "spsep"), moreBtn, more);
+    document.addEventListener("pointerdown", (e) => { if (!more.hidden && !more.contains(e.target) && !moreBtn.contains(e.target)) { more.hidden = true; moreBtn.setAttribute("aria-expanded", "false"); } }, true);
     host.appendChild(scr);
     // the toolbar keeps clear of this pill whatever its width (the count grows with slides and steps): --scrw feeds .spdock's max-width (css/spotlight.css)
     const fitScr = () => { const w = scr.offsetWidth; if (w) host.style.setProperty("--scrw", w + "px"); };
@@ -115,6 +134,18 @@ function build() {
 
     // the pen row, over the toolbar while Draw is on
     const pen = el("div", "spg sppen"); pen.id = "spPen"; pen.setAttribute("role", "toolbar"); pen.setAttribute("aria-label", "Drawing tools"); host.appendChild(pen);
+
+    // Focus (phase 3): a dimmed board with one clear circle; drag to move it, the wheel or - / + to size it
+    const fo = el("div", "spfocus"); fo.id = "spFocus"; fo.hidden = true; fo.setAttribute("aria-hidden", "true");
+    fo.addEventListener("pointerdown", (e) => { e.preventDefault(); fo.setPointerCapture(e.pointerId); focusAt(e); fo.onpointermove = focusAt; fo.onpointerup = () => { fo.onpointermove = null; }; });
+    fo.addEventListener("wheel", (e) => { e.preventDefault(); focusSize(e.deltaY < 0 ? 1.1 : 0.9); }, { passive: false });
+    host.appendChild(fo);
+    const fbar = el("div", "spg spfbar"); fbar.id = "spFBar"; fbar.hidden = true;
+    fbar.append(button("spb", svg('<path d="M5 12h14"/>', 2.4), "Smaller circle", () => focusSize(0.85)), button("spb", svg(IC.plus, 2.4), "Bigger circle", () => focusSize(1.18)), el("i", "spsep"),
+        button("spb spfoff", "<span>Done</span>", "Turn Focus off", () => setFocus(false)));
+    host.appendChild(fbar);
+    // a quiet screen counter in the corner (phase 3): stays, faint, when the controls fade
+    const pg = el("p", "sppage"); pg.id = "spPage"; pg.setAttribute("aria-hidden", "true"); host.appendChild(pg);
 
     // the toolbar
     const dock = el("div", "spg spdock"); dock.id = "spDock"; dock.setAttribute("role", "toolbar"); dock.setAttribute("aria-label", "Spotlight toolbar");
@@ -138,11 +169,17 @@ function build() {
     [LESSON_PANELS, CALC_LIST, TOOL_LIST, MATH_LIST].forEach((list, li) => {
         if (li) rack.appendChild(el("i", "spsep thin"));
         list.filter(([k]) => k !== "slide").forEach(([k, label]) => {
-            const b = button("spt", icon(k) + "<span>" + shortName(k, label) + "</span>", (PANEL_INFO[k] || label), () => togglePanel(k));
+            const b = button("spt", icon(k) + "<span>" + shortName(k, label) + "</span>", (PANEL_INFO[k] || label), () => { if (pinMode) pinTool(k); else togglePanel(k); });
             b.dataset.k = k; rack.appendChild(b);
         });
     });
     full.appendChild(rack);
+    const allb = button("spt sptall", svg(IC.down, 2.2) + "<span>All tools</span>", "Show every tool", () => { allTools = !allTools; if (!allTools) pinMode = false; saveJ(ALL_KEY, allTools); lastSig = ""; paint(); });
+    const pinb = button("spt sptpin", svg('<path d="M12 17v5M9 3h6l-1 6 3 3v2H7v-2l3-3z"/>', 2) + "<span>Pin tools</span>", "Choose the tools that stay on the toolbar", () => { pinMode = !pinMode; lastSig = ""; paint(); flash(pinMode ? "Tap tools to pin or unpin them. Tap Pin tools again when done." : "Toolbar saved"); });
+    full.append(el("i", "spsep thin"), allb, pinb);
+    // Focus (phase 3): dims the board except a circle you drag; this screen only
+    const fob = button("spt sptfocus", svg('<circle cx="12" cy="12" r="4"/><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/>', 2) + "<span>Focus</span>", "Dim the board except a circle you move over what matters", () => setFocus(!focusOn));
+    full.insertBefore(fob, full.firstChild.nextSibling);
     dock.appendChild(full);
     dock.appendChild(el("i", "spsep"));
     dock.appendChild(button("spb sptuck", svg(IC.down, 2.2), "Make the toolbar small", () => setTucked(!tucked)));
@@ -214,11 +251,57 @@ function setTucked(on) {
 }
 /** The arrows and the arrow keys: a slide's pieces set to appear on Next come first (an answer, each step of a Show Steps), then the next screen. */
 function go(n) { if (A.spot.step) { A.spot.step(n); return; } const p = A.spot.pages(), i = p.n + n; if (i < 0 || i >= p.count) return; A.spot.go(i); }
+/* Teach mode (Nov 28): after 4 s with no touch, mouse or key, every Spotlight control fades and the slide is all the class
+   sees (the mouse pointer hides too); the next touch brings them back. Never while drawing, while a menu or sheet is open,
+   or while the pointer rests on a control. */
+const IDLE = 4000;
+let idleT = 0, overUi = false;
+function wake(e) {
+    if (e && e.type === "pointermove") overUi = !!(e.target && e.target.closest && e.target.closest(".spg,.spot button"));
+    document.body.classList.remove("spidle"); clearTimeout(idleT);
+    idleT = setTimeout(() => {
+        if (!A || !host || host.hidden) return;
+        const busy = A.spot.draw() || sheet || overUi || pinMode || !$("spMore").hidden || document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+        if (busy) { wake(); return; }
+        document.body.classList.add("spidle");
+    }, IDLE);
+}
+/* Swipe the board left for Next and right for Back, or tap its left or right edge, as on a phone. Only in Click mode, and
+   never on a panel, a control or anything that types. */
+let sw = null;
+const onUi = (t) => !!(t && t.closest && t.closest("button,a,input,select,textarea,[contenteditable],.float,.card,.toolshelf,.spg,.spsheet,.ytbar,.ytpanel"));
+function swipeDown(e) {
+    if (!A || !host || host.hidden || A.spot.draw() || focusOn || (e.pointerType === "mouse" && e.button !== 0)) { sw = null; return; }
+    const st = document.getElementById("stage"); if (!st || !st.contains(e.target) || onUi(e.target)) { sw = null; return; }
+    sw = { x: e.clientX, y: e.clientY, t: Date.now(), r: st.getBoundingClientRect() };
+}
+function swipeUp(e) {
+    const s0 = sw; sw = null; if (!s0 || !A || host.hidden || A.spot.draw()) return;
+    const dx = e.clientX - s0.x, dy = e.clientY - s0.y, dt = Date.now() - s0.t, r = s0.r;
+    if (Math.abs(dx) > Math.max(70, r.width * 0.06) && Math.abs(dy) < Math.abs(dx) * 0.6 && dt < 800) { go(dx < 0 ? 1 : -1); return; }
+    if (Math.abs(dx) < 12 && Math.abs(dy) < 12 && dt < 400) {
+        const fx = (s0.x - r.left) / r.width;
+        if (fx > 0.92) go(1); else if (fx < 0.08) go(-1);
+    }
+}
+function pinTool(k) {
+    FAV = FAV.includes(k) ? FAV.filter((x) => x !== k) : FAV.concat(k); saveJ(FAV_KEY, FAV); lastSig = ""; paint();
+}
+let focusOn = false, focusR = 0.16, focusX = 0.5, focusY = 0.45;
+function paintFocus() {
+    const fo = $("spFocus"), fb = $("spFBar"); if (!fo) return;
+    fo.hidden = !focusOn; fb.hidden = !focusOn;
+    fo.style.setProperty("--fx", (focusX * 100) + "%"); fo.style.setProperty("--fy", (focusY * 100) + "%"); fo.style.setProperty("--fr", Math.round(focusR * Math.min(innerWidth, innerHeight) * 1.6) + "px");
+    const b = host.querySelector(".sptfocus"); if (b) { b.classList.toggle("on", focusOn); b.setAttribute("aria-pressed", String(focusOn)); }
+}
+function setFocus(on) { focusOn = !!on; if (focusOn && A.spot.draw()) setDraw(false); paintFocus(); }
+function focusAt(e) { focusX = Math.min(1, Math.max(0, e.clientX / innerWidth)); focusY = Math.min(1, Math.max(0, e.clientY / innerHeight)); paintFocus(); }
+function focusSize(f) { focusR = Math.min(0.5, Math.max(0.06, focusR * f)); paintFocus(); }
 let delArm = 0;
 function removeScreen() {
     if (A.spot.pages().count < 2) { flash("This is the only screen"); return; }
     if (Date.now() - delArm > 3000) { delArm = Date.now(); flash("Tap the trash again to remove this screen"); lastSig = ""; paint(); setTimeout(() => { lastSig = ""; paint(); }, 3100); return; }
-    delArm = 0; A.spot.remove(); flash("Screen removed");
+    delArm = 0; A.spot.remove(); flash("Screen removed"); const m = $("spMore"); if (m) m.hidden = true;
 }
 function openSheet(which) { sheet = which; if (which !== "panel") picked = ""; if (which) music("close"); lastSig = ""; paint(); }
 /* The music panel and Spotlight's own sheets pop up in the same place, so one closes the other. */
@@ -254,7 +337,7 @@ function keys(e) {
 function paintFull() { const b = host && host.querySelector(".spfull"); if (!b) return; const f = isFull(); b.innerHTML = svg(f ? IC.unfull : IC.full); b.title = f ? "Leave full screen" : "Full screen"; b.setAttribute("aria-label", b.title); b.setAttribute("aria-pressed", String(f)); setTimeout(() => A && A.fit(), 80); }
 function paint() {
     const S = A.S, T = S.tools, drawing = A.spot.draw(), p = A.spot.pages();
-    const sig = JSON.stringify([S.screen, T.on, T.min, Object.keys(T.pos), drawing, tucked, sheet, picked, p, photoGroupNow(), sheet === "screens" || sheet === "slides" ? String(T.slp) + A.spot.slides().map((x) => x.id).join(",") + A.spot.slidesReady() + JSON.stringify(A.S.wb.spot) : "", A.spot.slideIdOf(p.n), A.spot.reveal ? A.spot.reveal() : 0, A.spot.tool(), A.spot.pen(), A.spot.size(), S.look, Date.now() - delArm < 3000, picked && T.pos[picked] ? T.pos[picked].s : 0]);
+    const sig = JSON.stringify([S.screen, T.on, T.min, Object.keys(T.pos), drawing, tucked, sheet, picked, p, allTools, pinMode, FAV.join(), photoGroupNow(), sheet === "screens" || sheet === "slides" ? String(T.slp) + A.spot.slides().map((x) => x.id).join(",") + A.spot.slidesReady() + JSON.stringify(A.S.wb.spot) : "", A.spot.slideIdOf(p.n), A.spot.reveal ? A.spot.reveal() : 0, A.spot.tool(), A.spot.pen(), A.spot.size(), S.look, Date.now() - delArm < 3000, picked && T.pos[picked] ? T.pos[picked].s : 0]);
     if (sig === lastSig) return; lastSig = sig;
     host.classList.toggle("tucked", tucked); document.body.classList.toggle("spotdraw", drawing);
     // a photo background runs edge to edge behind the board, with no frame around it
@@ -263,8 +346,12 @@ function paint() {
         if (ph) document.body.style.setProperty("--spph", 'url("' + new URL("photos/" + ph + ".webp", location.href).href + '")'); else document.body.style.removeProperty("--spph"); }
     // toolbar
     host.querySelectorAll(".spm").forEach((b) => { const on = (b.dataset.m === "draw") === drawing; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("on", on); });
+    host.classList.toggle("spall", allTools); host.classList.toggle("sppinning", pinMode);
+    { const ab = host.querySelector(".sptall"); ab.classList.toggle("on", allTools); ab.setAttribute("aria-pressed", String(allTools)); ab.querySelector("span").textContent = allTools ? "Fewer" : "All tools"; ab.title = allTools ? "Back to your toolkit" : "Show every tool";
+      const pb = host.querySelector(".sptpin"); pb.hidden = !allTools; pb.classList.toggle("on", pinMode); pb.setAttribute("aria-pressed", String(pinMode)); }
+    host.querySelector(".sptbg").hidden = !allTools; host.querySelector(".sptsl").hidden = !allTools;
     host.querySelectorAll(".sprack .spt").forEach((b) => {
-        const k = b.dataset.k, ok = A.panelOk(k); b.hidden = !ok;
+        const k = b.dataset.k, ok = A.panelOk(k); b.hidden = !ok || (!allTools && !FAV.includes(k)); b.classList.toggle("pinned", FAV.includes(k));
         const fk = k === "find" ? FIND_KEYS.filter((x) => T.on[x]) : null;   // the Find button stands for every Find panel
         const st = fk ? (!fk.length ? "off" : fk.every((x) => T.min[x]) ? "min" : "on") : !T.on[k] ? "off" : T.min[k] ? "min" : "on"; b.dataset.st = st; b.setAttribute("aria-pressed", String(st !== "off"));
         b.title = (st === "off" ? "Add " : st === "min" ? "Bring back " : "Take off ") + labelOf(k).toLowerCase();
@@ -276,14 +363,19 @@ function paint() {
     { const c = host.querySelector(".spcount"), isSl = !!A.spot.slideIdOf(p.n);
         const rv = A.spot.reveal ? A.spot.reveal() : { at: 0, steps: 0 }, more = rv.at < rv.steps;
         c.innerHTML = (isSl ? '<i class="spslb">' + svg(IC.slides) + "</i>" : "") + "<b>" + (p.n + 1) + " / " + p.count + "</b>" + (rv.steps ? '<small class="sprv">' + (more ? "more on Next" : "all shown") + "</small>" : ""); c.setAttribute("aria-pressed", String(sheet === "screens"));
+        if (rv.steps && rv.steps <= 12) { const sm = c.querySelector(".sprv"); if (sm) { sm.textContent = ""; sm.classList.add("spdots"); for (let i = 0; i < rv.steps; i++) sm.appendChild(el("i", i < rv.at ? "on" : "")); sm.title = rv.at + " of " + rv.steps + " shown"; } }
+        { const pgEl = $("spPage"); if (pgEl) pgEl.textContent = p.count > 1 ? (p.n + 1) + " of " + p.count : ""; }
         c.classList.toggle("on", sheet === "screens"); c.title = isSl ? "This screen shows a slide. Tap to see every screen and slide." : "All screens and slides";
         const ar = host.querySelectorAll(".sparrow"); ar[0].disabled = p.n <= 0 && rv.at <= 0; ar[1].disabled = p.n >= p.count - 1 && !more;
         ar[1].title = more ? "Show the next piece of this slide" : "Next screen"; ar[1].setAttribute("aria-label", ar[1].title);
+        { const t = ar[1].querySelector("span"), w = more ? "Next step" : "Next"; if (t && t.textContent !== w) t.textContent = w; }
         host.querySelector(".spadd").disabled = p.count >= p.max;
         const del = host.querySelector(".spdel"); del.hidden = p.count < 2; del.classList.toggle("armed", Date.now() - delArm < 3000); }
     { const b = host.querySelector(".splivebtn"), on = S.screen === "canvas"; b.classList.toggle("onair", on);
         const t = on ? "Live on the board" : "Show on board"; const sp = b.querySelector("span"); if (sp.textContent !== t) sp.textContent = t;
         b.title = on ? "The live board is showing Spotlight. Every change shows there right away." : "The live board moved to another screen. Tap to bring it back to Spotlight."; b.setAttribute("aria-label", b.title); }
+    if (drawing && focusOn) { focusOn = false; }
+    paintFocus();
     paintPen(drawing);
     paintSheet();
     paintFull();

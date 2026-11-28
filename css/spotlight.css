@@ -197,3 +197,59 @@ body.spotdraw #stage .spotink canvas{cursor:crosshair}
 .spotgone{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;padding:12px 18px;border-radius:14px;background:rgba(5,12,31,.55);color:#fff;font-size:1.1em}
 /* a slide with pieces still to show on Next (Nov 24) */
 .spot .spcount .sprv{font:600 11px/1.1 var(--ui,system-ui);opacity:.78;white-space:nowrap;letter-spacing:0}
+
+/* ---------- Teach mode, phase 1 (Nov 28, Eddie: "make the spotlight view better for the board to use in class") ----------
+   Idle: after 4 s with no touch, every control fades and the slide is all the class sees; the next touch brings them back
+   (js/spotlight.js wake). A big Back and a big amber Next, reachable standing at the board; building (+ Screen, Remove)
+   in the ⋯ menu. */
+body.spotmode .spot>.spg{transition:opacity .45s ease,transform .3s cubic-bezier(.2,.9,.25,1.2)}
+body.spotmode.spidle .spot>.spg:not(.spsheet):not(.sppen){opacity:0;pointer-events:none}
+body.spotmode.spidle,body.spotmode.spidle #stage,body.spotmode.spidle #stage *{cursor:none!important}
+.spot .sparrow{min-width:52px;height:52px;border-radius:15px}
+.spot .sparrow svg{width:24px;height:24px}
+.spot .sparrow.spnext{gap:6px;padding:0 14px 0 18px;font-size:16px;font-weight:800;background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 6px 16px rgba(242,179,61,.35)}
+.spot .sparrow.spnext:hover{background:linear-gradient(180deg,#FFDB8A,#F5BE55)}
+.spot .sparrow.spnext:disabled{opacity:.35}
+.spot .sparrow.spback2{background:rgba(255,255,255,.1)}
+.spot .spmorebtn{min-width:44px;height:44px}
+.spot .spmore{position:absolute;right:0;bottom:calc(100% + 10px);display:flex;flex-direction:column;gap:2px;padding:6px;min-width:250px}
+.spot .spmore[hidden]{display:none}
+.spot .spmore .spb{justify-content:flex-start;height:44px;padding:0 12px;width:100%;font-size:14px}
+.spot .spmore .spdel.armed{background:rgba(229,72,77,.85);color:#fff}
+@media (prefers-reduced-motion:reduce){body.spotmode .spot>.spg{transition:none}}
+
+/* ---------- Teach mode, phase 2: the class toolkit, bigger labels, Pin tools ---------- */
+.spot .spt{width:76px}
+.spot .spt span{font-size:12px;font-weight:700;max-width:72px}
+.spot.sppinning .sprack .spt{outline:1.5px dashed rgba(255,255,255,.35);outline-offset:-4px}
+.spot.sppinning .sprack .spt.pinned{outline:2px solid #F2B33D}
+.spot.sppinning .sprack .spt.pinned::before{content:"";position:absolute;top:4px;left:8px;width:10px;height:10px;border-radius:50%;background:#F2B33D;box-shadow:0 0 6px rgba(242,179,61,.7)}
+.spot .sptall svg{transition:transform .25s}
+.spot.spall .sptall svg{transform:rotate(180deg)}
+.spot .sptpin.on,.spot .sptfocus.on{background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00;box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+/* ---------- phase 3: Focus, reveal dots, the corner counter ---------- */
+.spfocus{position:fixed;inset:0;z-index:0;pointer-events:auto;cursor:grab;touch-action:none;
+  background:radial-gradient(circle var(--fr,200px) at var(--fx,50%) var(--fy,45%),transparent 0,transparent calc(var(--fr,200px) - 2px),rgba(3,8,24,.8) var(--fr,200px))}
+.spfocus::after{content:"";position:absolute;left:var(--fx,50%);top:var(--fy,45%);width:calc(var(--fr,200px) * 2);height:calc(var(--fr,200px) * 2);transform:translate(-50%,-50%);border-radius:50%;
+  box-shadow:0 0 0 2px rgba(255,210,113,.75),0 0 30px rgba(255,210,113,.35);pointer-events:none}
+.spfocus[hidden],.spfbar[hidden]{display:none}
+.spfbar{left:50%;top:var(--m);height:var(--top);transform:translateX(-50%);display:flex;align-items:center;gap:2px;padding:0 6px}
+.spfbar .spfoff{padding:0 16px;background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00}
+.spot .spcount .spdots{display:inline-flex;gap:3px;align-items:center}
+.spot .spcount .spdots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.28)}
+.spot .spcount .spdots i.on{background:#FFD271;box-shadow:0 0 6px rgba(255,210,113,.6)}
+.sppage{position:fixed;left:calc(var(--m) + 6px);bottom:calc(var(--m) + 4px);margin:0;z-index:1;pointer-events:none;font:700 13px var(--ui,system-ui);letter-spacing:.04em;color:rgba(226,236,255,.55);
+  font-variant-numeric:tabular-nums;transition:opacity .45s}
+.sppage:empty{display:none}
+body.spotmode:not(.spidle) .sppage{opacity:0}
+@media (max-width:860px){.sppage{display:none}.spot .spt{width:62px}.spot .spt span{font-size:11px}}
+/* Focus dims the board only: every Spotlight control stays above it */
+.spot>.spg{z-index:2}
+.spot>.spfocus{z-index:1}
+/* the toolkit never collapses: with few tools the rack keeps its size, and on a narrow screen the whole toolbar strip scrolls */
+.spot:not(.spall) .sprack{flex:0 0 auto;overflow:visible;-webkit-mask-image:none;mask-image:none}
+.spot .spfulltools{overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}
+.spot .spfulltools::-webkit-scrollbar{display:none}
+.spot .spfulltools>*{flex-shrink:0}
+.spot.spall .spfulltools>.sprack{flex:1 1 auto;flex-shrink:1}

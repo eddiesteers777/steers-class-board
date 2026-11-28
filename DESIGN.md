@@ -146,6 +146,13 @@ simpler, one less thing.
   glow (or Mix it up, a different one each time), each with its own sound made in the browser (`js/sound.js` ce_* cues;
   confetti keeps the win fanfare). Picked on the same Tracker fold ("When they get it right"); a tap previews it and plays its
   sound on that device; sent with every cheer as { ce }. Reduced motion keeps only the calm glow.
+- **Spotlight teach mode (Nov 28, Eddie: "make the spotlight view better for the board to use in class").** Spotlight is
+  for teaching in front of students. After 4 s with no touch every control fades and the slide is all the class sees (the
+  pointer hides too); the next touch brings them back, and a faint "3 of 8" stays in the corner. A big Back and a big amber
+  Next ("Next step" while a slide has pieces left, shown as dots in the counter); swipe the board or tap its left or right
+  edge to move. + Screen and Remove live in the ⋯ menu. The toolbar is a short class toolkit (Focus, Music, Timer, Name
+  picker, Target, Traffic light by default); All tools opens the rest and Pin tools sets the toolkit (saved on the device).
+  Focus dims the board except a circle the teacher drags (this screen only, not the projected board). `js/spotlight.js`.
 - **Never show the wrong thing while loading.** Show the shape of the screen (a skeleton) until
   the real state arrives. No spinners, and never a flash of another day or period.
 - **Never claim what the site cannot know.** No "current period" without bell times. If the
