@@ -18,6 +18,7 @@ import { openBankPicker, bankFor } from "./bankPick.js?v=2";
 import { rich } from "./weekSheets.js?v=60";
 import { loadStdBank } from "./stdBank.js?v=6";
 import { bellWeek } from "./acapFormats.js?v=2";
+import { icon } from "./icons.js";
 const bellMsg = {};   // the last "Fill every day" result, per class
 
 const qs = new URLSearchParams(location.search), demo = qs.has("demo");
@@ -51,7 +52,6 @@ function quickSave() {
         try { localStorage.setItem(QUICK, JSON.stringify({ uid: quickUid, progress, planner, rosters, plans: quickPlans })); } catch (e) { /* storage full or off: the next visit waits for the server */ }
     }, 800);
 }
-const openDays = new Set();   // which day drawers are open ("8th:2")
 const CUT = (() => { try { const v = parseFloat(localStorage.getItem("anchorboard-progress-cut")); return v > 0 && v < 1 ? v : 0.7; } catch (e) { return 0.7; } })();
 const TEMPLATES = ["Guided notes", "Practice", "Speed dating", "Review game", "Stations", "Practice + study guide", "Quiz", "Test", "Reteach + practice", "Review"];
 
@@ -120,7 +120,8 @@ function brief() {
             days: plan.days.map((d, i) => Object.assign({ day: DAYS[i], date: d.date, school: d.school, event: d.event || "", type: d.school ? (d.type || "regular") : "no school" },
                 d.school && d.type ? { periods: d.periods || ALLPERIODS, minutes: d.minutes || (d.type === "out" ? 55 : null) } : {})) },
         schedule: plan.schedule, shared: plan.shared, classes: {},
-        prompt: "Build " + plan.label + " (" + plan.dates + ") from Anchor: read plans/" + plan.id + "."
+        // Typed into Claude for the teacher by Send (claude.ai/new?q=…), so it names the connector's tools.
+        prompt: "Build " + plan.label + " (" + plan.dates + ") on Anchor Board. Use the Anchor Board connector: read_week_plan for " + plan.id + ", build the week from its brief, then save it with save_week_file so I can check it on Week Review."
     };
     CLASSES.forEach(([cls, label, periods]) => {
         const c = plan.classes[cls], lw = last && last.classes[cls], ev = evidenceOf(cls);
@@ -154,166 +155,277 @@ function dayPlansFor(c) {
 }
 /** The whole plan as text, for a Claude chat that cannot read Anchor Board directly. */
 function briefText() { return plan.brief.prompt + "\n\nIf you cannot open Anchor Board, here is the whole plan (JSON). Return the finished week as one week file (JSON) with id \"" + plan.id + "\" so it can be pasted into Week Review.\n\n" + JSON.stringify(plan.brief, null, 1); }
+/* Send (Nov 26): fills the bellringers left on auto, saves the brief and opens Claude in a new tab with the message
+   typed in. The tab opens on the tap itself (browsers block a tab opened after a wait) and goes to Claude once saved. */
 async function send() {
     const problems = CLASSES.filter(([cls]) => !plan.classes[cls].topic.trim() || !plan.classes[cls].standards.length).map(([, l]) => l);
-    if (problems.length) { status("Add a topic and at least one standard for " + problems.join(" and "), "bad"); return; }
+    if (problems.length) { const m = "Add a topic and at least one standard for " + problems.join(" and "); status(m, "bad"); const sum = $("barSum"); sum.textContent = m; sum.classList.add("warn"); return; }
+    let tab = null; try { tab = window.open("about:blank", "_blank"); } catch (e) { tab = null; }
+    const b = $("sendBtn"); b.disabled = true; b.lastChild.textContent = "Sending…";
+    try { for (const [cls] of CLASSES) if (plan.classes[cls].bellAuto !== false && plan.classes[cls].standards.length) await fillBells(cls); }
+    catch (e) { /* the bank did not load: Claude writes the bellringers */ }
+    CLASSES.forEach(([cls]) => normalize(plan.classes[cls]));
     const was = { brief: plan.brief, status: plan.status, sentAt: plan.sentAt };
     plan.brief = brief(); plan.status = "sent"; plan.sentAt = Date.now();
     clearTimeout(saveT);
-    if (!(await save())) { Object.assign(plan, was); if (!was.brief) delete plan.brief; draw(); status("Not sent: the plan could not be saved. Try again.", "bad"); return; }
+    const ok = await save(); b.disabled = false;
+    if (!ok) { if (tab) tab.close(); Object.assign(plan, was); if (!was.brief) delete plan.brief; draw(); status("Not sent: the plan could not be saved. Try again.", "bad"); return; }
+    if (tab) { try { tab.opener = null; tab.location.href = claudeUrl(); } catch (e) { tab = null; } }
     draw();
+    if (!tab) status("Sent. Tap Open Claude again to finish in Claude.", "ok");
     $("sendCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
-
-/* ---------- drawing ---------- */
-function seg(items, cur, onPick, label) {
-    const g = el("div", "pl-seg pw-seg"); g.setAttribute("role", "group"); if (label) g.setAttribute("aria-label", label);
-    items.forEach(([v, t]) => { const b = el("button", null, t); b.type = "button"; b.setAttribute("aria-pressed", String(v === cur)); b.onclick = () => onPick(v); g.appendChild(b); });
-    return g;
+/* ---------- drawing: one screen of taps (Nov 26) ----------
+   The week strip, three class cards and a bar with Send. Everything is a tap; typing is only in the sheets
+   ("Type my own", notes). Sheets are <dialog>s so they sit over the page and the bank picker can stack on top. */
+const IC = (n) => icon(n, "wp-ic");
+const DAYPLANS = ["Guided notes", "Practice", "Speed dating", "Review game", "Stations", "Gallery walk", "Partner challenge", "Practice + study guide", "Reteach + practice", "Review", "Quiz", "Test"];
+const TYPESHORT = { "": "Regular", out: "I'm out", half: "Half day", bells: "Different bells" };
+const TYPEICON = { out: "user", half: "clock", bells: "bell" };
+const SHORT = { "Guided notes": "Notes", "Practice + study guide": "Study guide", "Reteach + practice": "Reteach", "Partner challenge": "Partners" };
+function btn(cls, html, on, label) { const b = el("button", cls); b.type = "button"; b.innerHTML = html; if (label) b.setAttribute("aria-label", label); if (on) b.onclick = on; return b; }
+function chip(text, on, onClick, cls, ic) {
+    const b = btn("wp-chip" + (on ? " on" : "") + (cls ? " " + cls : ""), (ic ? IC(ic) : "") + "<span></span>", onClick);
+    b.lastChild.textContent = text; b.setAttribute("aria-pressed", String(!!on)); return b;
 }
 function field(label, ctrl, hint) { const f = el("label", "pw-field"); f.appendChild(el("span", "pw-lab", label)); f.appendChild(ctrl); if (hint) f.appendChild(el("small", "pw-hint", hint)); return f; }
 function input(v, on, ph) { const i = el("input", "pw-in"); i.type = "text"; i.value = v || ""; if (ph) i.placeholder = ph; i.oninput = () => { on(i.value); touch(); }; return i; }
 function select(opts, v, on) { const s = el("select", "pw-in"); opts.forEach(([val, t]) => { const o = el("option", null, t); o.value = val; s.appendChild(o); }); s.value = v; s.onchange = () => { on(s.value); touch(); }; return s; }
+const clip = (t, n) => (t && t.length > n ? t.slice(0, n - 1) + "…" : t || "");
+const schoolIdx = () => plan.days.map((d, i) => (d.school ? i : -1)).filter((i) => i >= 0);
 
-function summary() {
-    const box = $("summary"); box.textContent = "";
-    const tile = (big, small, accent) => { const t = el("div", "pl-tile" + (accent ? " accent" : "")); t.appendChild(el("b", null, big)); t.appendChild(el("span", null, small)); box.appendChild(t); };
-    const sd = plan.days.filter((d) => d.school).length, out = plan.days.filter((d) => d.school && d.type === "out").length;
-    tile(plan.label, plan.dates, true);
-    tile(String(sd), sd === 1 ? "school day" : "school days" + (out ? ", " + out + " with a sub" : ""));
-    const q = nineWeeksOf(plan.monday); if (q) tile(String(daysLeftInNineWeeks(plan.monday)), "school days left in the nine weeks from Monday");
-    tile(plan.status === "sent" ? "Sent" : built(plan.monday) ? "Built" : "Draft", plan.status === "sent" ? "Claude has the brief" : built(plan.monday) ? "This week is on the board" : "Not sent to Claude yet");
+/* ---------- sheets ---------- */
+let sheetRender = null;   // the open sheet redraws itself when the cards do
+function sheet(title, build) {
+    const d = el("dialog", "wp-sheet"); d.setAttribute("aria-label", title);
+    const h = el("div", "wp-sh"); h.appendChild(el("h2", null, title));
+    h.appendChild(btn("wp-x", IC("close"), () => d.close(), "Close"));
+    const body = el("div", "wp-sb"), foot = el("div", "wp-sf");
+    foot.appendChild(btn("btn", "Done", () => d.close()));
+    d.append(h, body, foot); document.body.appendChild(d);
+    const render = () => { const y = body.scrollTop; body.textContent = ""; build(body); body.scrollTop = y; };
+    sheetRender = render; render();
+    d.addEventListener("click", (e) => { if (e.target === d) d.close(); });   // tap outside closes
+    d.addEventListener("close", () => { if (sheetRender === render) sheetRender = null; d.remove(); draw(); });
+    d.showModal();
+}
+const busy = () => !!document.querySelector("dialog[open]") || !!(document.activeElement && $("view").contains(document.activeElement) && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName));
+
+/* ---------- one place for the quiz: the seg and the day tiles are the same setting ---------- */
+function setAssess(c, kind, i) {
+    const school = schoolIdx();
+    if (i == null) i = DK.indexOf(c.assess.day);
+    if (!school.includes(i)) i = school.includes(3) ? 3 : school[school.length - 1];
+    c.assess.kind = kind; if (i != null) c.assess.day = DK[i];
+    c.plans = c.plans.map((p, k) => {
+        if (!plan.days[k].school) return p;
+        if (kind !== "none" && k === i) return kind === "test" ? "Test" : "Quiz";
+        return /^(Quiz|Test)$/.test(p) ? pattern(k, { kind: "none" }, false) : p;
+    });
+}
+/** A saved plan can say "no quiz" while a day says "Quiz" (it had two places for one job). The day wins. */
+function normalize(c) {
+    const k = c.plans.findIndex((p, i) => plan.days[i].school && /^(Quiz|Test)$/.test(p));
+    if (k >= 0) { c.assess.kind = c.plans[k] === "Test" ? "test" : "quiz"; c.assess.day = DK[k]; }
+    else if (c.assess.kind !== "none") c.assess.kind = "none";
+    const a = c.plans.findIndex((p, i) => plan.days[i].school && ACTIVITIES.includes(p) && p !== "None");
+    c.activity = a >= 0 ? { day: DK[a], type: c.plans[a] } : { day: (c.activity && c.activity.day) || "Tue", type: "None" };
 }
 
+/* ---------- bellringers: every day up to 4 from the standards bank (2 this week + 2 review) ---------- */
+function reviewFor(cls, c) {
+    const ev = evidenceOf(cls), spiral = c.spiral || [];
+    const fromData = ev ? [...ev.reteach, ...ev.below.slice().sort((a, b) => b.low - a.low || a.avg - b.avg).map((x) => x.code)] : [];
+    return [...new Set(spiral.length ? spiral : fromData)].filter((x) => !c.standards.includes(x)).slice(0, 3);
+}
+async function fillBells(cls) {
+    const c = plan.classes[cls], review = reviewFor(cls, c);
+    const days = plan.days.map((pd, i) => ({ school: !!pd.school, bell: (dayOf(c, i).bell || []) }));
+    const add = bellWeek({ cls, bank: await loadStdBank(), now: c.standards, review, days });
+    let n = 0; add.forEach((list, i) => { if (!list.length) return; const d = dayOf(c, i); d.bell = [...(d.bell || []), ...list.map((x) => ({ id: x.id, q: x.q, a: x.a, std: x.std, lvl: x.lvl, also: x.also }))]; n += list.length; });
+    // The newest Vault Raid spiral for this class (Student Progress > Readiness) becomes the last school day's review game, if that day has none.
+    const sp = sets.filter((x) => x.sp && x.cls === cls).sort((x, y) => (y.at || 0) - (x.at || 0))[0], last = schoolIdx().pop();
+    let game = ""; if (sp && last != null && !dayOf(c, last).set) { dayOf(c, last).set = { id: sp.id, title: sp.title || "" }; game = " " + DAYS[last] + "'s review game: " + (sp.title || "your Vault Raid spiral") + "."; }
+    bellMsg[cls] = (n ? "Added " + n + " bellringers" + (review.length ? ", review " + review.join(", ") : "") + "." : "Every day already has 4.") + game;
+    if (n || game) touch();
+    return n;
+}
+const bellCount = (c) => (c.day || []).reduce((n, d, i) => n + (d && plan.days[i].school ? (d.bell || []).length : 0), 0);
+
+/* ---------- the bar: what Claude gets, and Send ---------- */
+function summary() {
+    if (!plan) return;
+    const sd = plan.days.filter((d) => d.school).length, out = plan.days.filter((d) => d.school && d.type === "out").length;
+    const qs = CLASSES.map(([cls]) => plan.classes[cls].assess).filter((a) => a.kind !== "none");
+    const quiz = qs.length ? CLASSES.filter(([cls]) => plan.classes[cls].assess.kind !== "none").map(([cls]) => { const a = plan.classes[cls].assess; return cls.replace("-acc", " Acc") + " " + a.kind + " " + a.day; }).join(", ") : "no quizzes";
+    const bells = CLASSES.some(([cls]) => plan.classes[cls].bellAuto !== false) ? " · bellringers from the bank" : "";
+    const long = CLASSES.length + " classes · " + sd + " school day" + (sd === 1 ? "" : "s") + (out ? ", " + out + " with a sub" : "") + " · " + quiz + bells;
+    const sum = $("barSum"); sum.textContent = ""; sum.classList.remove("warn");
+    const l = el("span", "long"); l.appendChild(el("b", null, "Claude gets: ")); l.appendChild(document.createTextNode(long));
+    sum.append(l, el("span", "short", sd + " school days · " + (qs.length ? [["quiz", "quiz", "quizzes"], ["test", "test", "tests"]].map(([k, one, many]) => { const n = qs.filter((x) => x.kind === k).length; return n ? n + " " + (n === 1 ? one : many) : ""; }).filter(Boolean).join(", ") : "no quizzes")));
+    const sent = plan.status === "sent", changed = sent && (plan.at || 0) > (plan.sentAt || 0) + 5000;
+    $("sendBtn").innerHTML = IC("send") + "<span>" + (!sent ? "Send to Claude" : changed ? "Send the changes" : "Send again") + "</span>";
+    const st = $("state"); st.textContent = sent ? (isBuilt() ? "Claude built it" : "Sent to Claude") : built(plan.monday) ? "On the board" : "Draft · filled in for you";
+    st.dataset.state = sent ? "sent" : "draft";
+}
+
+/* ---------- the week strip ---------- */
 function drawDays() {
     const box = $("days"); box.textContent = "";
+    box.appendChild(el("span", "wp-lab", "The week"));
     plan.days.forEach((d, i) => {
-        const r = el("div", "pw-day" + (d.school ? "" : " off"));
-        const h = el("div", "pw-dayh"); h.appendChild(el("b", null, DAYS[i])); h.appendChild(el("span", null, short(d.date, { month: "short", day: "numeric" }))); r.appendChild(h);
-        if (!d.school) r.appendChild(el("p", "pw-off", d.event || "No school"));
-        else {
-            if (d.event) r.appendChild(el("p", "pw-ev", d.event));
-            const s = select(DAYTYPES, d.type || "", (v) => { d.type = v; if (!v) { delete d.periods; delete d.minutes; } summary(); drawDays(); }); s.setAttribute("aria-label", DAYS[i] + " day type"); r.appendChild(s);
-            if (d.type) {   // which periods meet and how long, so Claude does not have to ask (sub plans use it)
-                const all = ALLPERIODS, on = d.periods || all;
-                const g = el("div", "pw-pers"); g.setAttribute("role", "group"); g.setAttribute("aria-label", DAYS[i] + " periods that meet");
-                all.forEach((p) => { const b = el("button", null, p); b.type = "button"; b.setAttribute("aria-pressed", String(on.includes(p))); b.title = "Tap if " + p + " period does not meet";
-                    b.onclick = () => { const cur = new Set(d.periods || all); cur.has(p) ? cur.delete(p) : cur.add(p); const list = all.filter((x) => cur.has(x)); if (list.length === all.length) delete d.periods; else d.periods = list; touch(); drawDays(); }; g.appendChild(b); });
-                r.appendChild(el("small", "pw-hint", "Periods that meet"));
-                r.appendChild(g);
-                const m = el("input", "pw-in pw-min"); m.type = "number"; m.min = "10"; m.max = "90"; m.inputMode = "numeric"; m.value = d.minutes || ""; m.placeholder = d.type === "out" ? "55" : "Minutes";
-                m.setAttribute("aria-label", DAYS[i] + " minutes per period"); m.oninput = () => { const v = parseInt(m.value, 10); if (v >= 10 && v <= 90) d.minutes = v; else delete d.minutes; touch(); };
-                const ml = el("label", "pw-minrow"); ml.appendChild(m); ml.appendChild(el("span", null, "minutes per period")); r.appendChild(ml);
-            }
-        }
-        box.appendChild(r);
+        const date = short(d.date, { month: "short", day: "numeric" });
+        const b = btn("wp-day" + (!d.school ? " is-off" : d.type === "out" ? " is-sub" : d.type ? " is-alt" : ""), "", d.school ? () => daySheet(i) : null);
+        const h = el("b", null, DK[i]); h.appendChild(el("span", null, date)); b.appendChild(h);
+        const em = el("em"); if (!d.school) em.textContent = clip(d.event || "No school", 28);
+        else { if (TYPEICON[d.type]) em.innerHTML = IC(TYPEICON[d.type]); em.appendChild(document.createTextNode(TYPESHORT[d.type || ""])); }
+        b.appendChild(em);
+        if (d.school && d.event) { b.appendChild(el("small", null, clip(d.event, 30))); b.title = d.event; }
+        if (!d.school) { b.disabled = true; b.setAttribute("aria-label", DAYS[i] + " " + date + ", " + (d.event || "no school")); }
+        else b.setAttribute("aria-label", DAYS[i] + " " + date + ", " + TYPESHORT[d.type || ""] + ". Change the day");
+        box.appendChild(b);
+    });
+}
+function daySheet(i) {
+    const d = plan.days[i];
+    sheet(DAYS[i] + ", " + short(d.date, { month: "short", day: "numeric" }), (body) => {
+        if (d.event) body.appendChild(el("p", "wp-evline", d.event));
+        const g = el("div", "wp-chips wp-big");
+        DAYTYPES.forEach(([v, t]) => g.appendChild(chip(t, (d.type || "") === v, () => { d.type = v; if (!v) { delete d.periods; delete d.minutes; } touch(); drawDays(); sheetRender(); }, "", TYPEICON[v])));
+        body.appendChild(g);
+        if (!d.type) { body.appendChild(el("p", "pw-hint", "A regular day: every period meets on the usual bells.")); return; }
+        // Which periods meet and how long, so Claude does not have to ask (sub plans use it).
+        const all = ALLPERIODS, on = d.periods || all;
+        body.appendChild(el("span", "wp-lab", "Periods that meet"));
+        const pg = el("div", "wp-chips");
+        all.forEach((p) => pg.appendChild(chip(p, on.includes(p), () => { const cur = new Set(d.periods || all); cur.has(p) ? cur.delete(p) : cur.add(p); const list = all.filter((x) => cur.has(x)); if (list.length === all.length) delete d.periods; else d.periods = list; touch(); sheetRender(); })));
+        body.appendChild(pg);
+        const m = el("input", "pw-in pw-min"); m.type = "number"; m.min = "10"; m.max = "90"; m.inputMode = "numeric"; m.value = d.minutes || ""; m.placeholder = d.type === "out" ? "55" : "Minutes";
+        m.setAttribute("aria-label", DAYS[i] + " minutes per period"); m.oninput = () => { const v = parseInt(m.value, 10); if (v >= 10 && v <= 90) d.minutes = v; else delete d.minutes; touch(); };
+        const ml = el("label", "pw-minrow"); ml.appendChild(m); ml.appendChild(el("span", null, "minutes per period")); body.appendChild(ml);
     });
 }
 
+/* ---------- a class card ---------- */
 function drawClass(cls, label, periods) {
-    const c = plan.classes[cls], card = el("section", "pw-class"), s = suggest(cls);
-    const head = el("div", "pw-chead"); head.appendChild(el("h2", null, label)); head.appendChild(el("span", "pw-per", periods.join(", ") + (periods.length === 1 ? " period" : " periods"))); card.appendChild(head);
-    const evBox = el("div", "pw-evd"); evBox.id = "ev-" + cls; card.appendChild(evBox); drawEvidence(cls, evBox);
-    card.appendChild(field("Topic this week", input(c.topic, (v) => { c.topic = v; }, "Unit or topic"), s.unit && s.unit !== c.topic ? "Next up on your Standards Timeline: " + s.unit : ""));
+    const c = plan.classes[cls], card = el("section", "pw-class wp-c"), s = suggest(cls);
+    const head = el("div", "wp-ch"); head.appendChild(el("h2", null, label)); head.appendChild(el("small", null, periods.join(", ") + (periods.length === 1 ? " period" : " periods"))); card.appendChild(head);
+    const tp = input(c.topic, (v) => { c.topic = v; }, "Topic this week"); tp.classList.add("wp-topic"); tp.setAttribute("aria-label", label + " topic this week");
+    if (s.unit && s.unit !== c.topic) tp.title = "Next up on your Standards Timeline: " + s.unit;
+    card.appendChild(tp);
 
-    // Standards: the suggestions as toggles, plus any other standard of the class.
-    const sw = el("div", "pw-field"); sw.appendChild(el("span", "pw-lab", "Standards"));
-    const chips = el("div", "pw-chips"); const all = [...new Set([...s.options, ...c.standards])];
-    all.forEach((code) => {
-        const st = stdOf(cls, code), b = el("button", "pw-chip", code + (st && st.critical ? " ★" : "")); b.type = "button";
-        b.setAttribute("aria-pressed", String(c.standards.includes(code))); if (st) b.title = st.text;
-        b.onclick = () => { c.standards = c.standards.includes(code) ? c.standards.filter((x) => x !== code) : [...c.standards, code]; touch(); drawClasses(); };
-        chips.appendChild(b);
+    // Standards: the Timeline's next ones as chips, everything else one tap away.
+    const sw = el("div", "wp-sec"); sw.appendChild(el("span", "wp-lab", "Standards"));
+    const chips = el("div", "wp-chips");
+    [...new Set([...s.options.slice(0, 5), ...c.standards])].forEach((code) => {
+        const st = stdOf(cls, code), b = chip(code, c.standards.includes(code), () => { c.standards = c.standards.includes(code) ? c.standards.filter((x) => x !== code) : [...c.standards, code]; touch(); drawClasses(); }, "", st && st.critical ? "star" : "");
+        if (st) b.title = st.text; chips.appendChild(b);
     });
-    const add = el("select", "pw-in pw-add"); add.setAttribute("aria-label", "Add another " + label + " standard");
-    const o0 = el("option", null, "Add another standard…"); o0.value = ""; add.appendChild(o0);
-    (STANDARDS[cls] || { standards: [] }).standards.filter((x) => !all.includes(x.code)).forEach((x) => { const o = el("option", null, x.code + (x.critical ? " ★ " : " · ") + (x.text.length > 60 ? x.text.slice(0, 57) + "…" : x.text)); o.value = x.code; add.appendChild(o); });
-    add.onchange = () => { if (add.value) { c.standards.push(add.value); touch(); drawClasses(); } };
-    sw.appendChild(chips); sw.appendChild(add);
+    chips.appendChild(chip("All standards", false, () => stdSheet(cls, label), "more", "plus"));
+    sw.appendChild(chips);
     const picked = c.standards.map((code) => stdOf(cls, code)).filter(Boolean);
-    if (picked.length) { const ul = el("ul", "pw-std"); picked.forEach((x) => { const li = el("li"); li.appendChild(el("b", null, x.code + " ")); li.appendChild(document.createTextNode(x.text)); ul.appendChild(li); }); sw.appendChild(ul); }
+    if (picked.length) { const p = el("p", "wp-std"); picked.slice(0, 3).forEach((x, k) => { if (k) p.appendChild(document.createTextNode(" · ")); p.appendChild(el("b", null, x.code + " ")); p.appendChild(document.createTextNode(clip(x.text, 46))); }); if (picked.length > 3) p.appendChild(document.createTextNode(" · +" + (picked.length - 3))); sw.appendChild(p); }
+    else sw.appendChild(el("p", "wp-std warn", "Pick at least one standard."));
     card.appendChild(sw);
 
-    // Review standards: what the bellringers spiral back to (reteach and below-cut standards land here).
-    const rv = el("div", "pw-field"); rv.appendChild(el("span", "pw-lab", "Bellringer review"));
-    const spiral = c.spiral || [];
-    const rchips = el("div", "pw-chips");
-    spiral.forEach((code) => { const st = stdOf(cls, code), b = el("button", "pw-chip", code + " ×"); b.type = "button"; b.setAttribute("aria-pressed", "true"); b.setAttribute("aria-label", "Remove " + code + " from review"); if (st) b.title = st.text; b.onclick = () => { c.spiral = spiral.filter((x) => x !== code); touch(); drawClasses(); }; rchips.appendChild(b); });
-    const radd = el("select", "pw-in pw-add"); radd.setAttribute("aria-label", "Add a " + label + " review standard");
-    const r0 = el("option", null, spiral.length ? "Add another review standard…" : "Add a standard to spiral back to…"); r0.value = ""; radd.appendChild(r0);
-    (STANDARDS[cls] || { standards: [] }).standards.filter((x) => !spiral.includes(x.code)).forEach((x) => { const o = el("option", null, x.code + (x.critical ? " ★ " : " · ") + (x.text.length > 60 ? x.text.slice(0, 57) + "…" : x.text)); o.value = x.code; radd.appendChild(o); });
-    radd.onchange = () => { if (radd.value) { c.spiral = [...spiral, radd.value]; touch(); drawClasses(); } };
-    if (spiral.length) rv.appendChild(rchips);
-    rv.appendChild(radd);
-    rv.appendChild(el("small", "pw-hint", "Claude mixes these into the bellringers. The day picker offers their bank problems too."));
-    card.appendChild(rv);
+    // Quiz or test: one setting. The day it falls on is the day tile that says Quiz or Test.
+    const qa = el("div", "wp-sec"); qa.appendChild(el("span", "wp-lab", "Quiz or test"));
+    const qr = el("div", "wp-qrow"), sg = el("div", "wp-seg"); sg.setAttribute("role", "group"); sg.setAttribute("aria-label", label + " quiz or test");
+    [["none", "No quiz"], ["quiz", "Quiz"], ["test", "Test"]].forEach(([v, t]) => { const b = btn(c.assess.kind === v ? "on" : "", "", () => { setAssess(c, v); touch(); drawClasses(); }); b.textContent = t; b.setAttribute("aria-pressed", String(c.assess.kind === v)); sg.appendChild(b); });
+    qr.appendChild(sg);
+    if (c.assess.kind !== "none") qr.appendChild(chip("I write it", !!c.assess.teacherWrites, () => { c.assess.teacherWrites = !c.assess.teacherWrites; touch(); drawClasses(); }, "sm", c.assess.teacherWrites ? "check" : "edit"));
+    qa.appendChild(qr); card.appendChild(qa);
 
-    // Every day's bellringers in one tap: 2 on this week's standards and 2 spiral review (ACAP readiness, js/acapFormats.js bellWeek).
-    const bf = el("div", "pw-field"); bf.appendChild(el("span", "pw-lab", "Bellringers for the week"));
-    const brow = el("div", "pw-brow"), bmsg = el("small", "pw-hint", bellMsg[cls] || "Fills each school day up to 4 from the standards bank: 2 on this week's standards, 2 review. Days keep what you already picked. Nothing goes to the board until you approve the week.");
-    bmsg.setAttribute("role", "status");
-    const fillAll = el("button", "btn", "Fill every day: 2 new + 2 review"); fillAll.type = "button";
-    fillAll.disabled = !c.standards.length && !spiral.length;
-    if (fillAll.disabled) fillAll.title = "Pick this week's standards first";
-    fillAll.onclick = async () => {
-        fillAll.disabled = true; bmsg.textContent = "Filling…";
-        try {
-            const ev = evidenceOf(cls), fromData = ev ? [...ev.reteach, ...ev.below.slice().sort((a, b) => b.low - a.low || a.avg - b.avg).map((x) => x.code)] : [];
-            const review = [...new Set(spiral.length ? spiral : fromData)].filter((x) => !c.standards.includes(x)).slice(0, 3);
-            const days = plan.days.map((pd, i) => ({ school: !!pd.school, bell: (dayOf(c, i).bell || []) }));
-            const add = bellWeek({ cls, bank: await loadStdBank(), now: c.standards, review, days });
-            let n = 0; add.forEach((list, i) => { if (!list.length) return; const d = dayOf(c, i); d.bell = [...(d.bell || []), ...list.map((x) => ({ id: x.id, q: x.q, a: x.a, std: x.std, lvl: x.lvl, also: x.also }))]; n += list.length; });
-            // The newest Vault Raid spiral for this class (Student Progress > Readiness) becomes the last school day's review game, if that day has none.
-            const sp = sets.filter((x) => x.sp && x.cls === cls).sort((x, y) => (y.at || 0) - (x.at || 0))[0], last = plan.days.map((pd, i) => (pd.school ? i : -1)).filter((i) => i >= 0).pop();
-            let game = ""; if (sp && last != null && !dayOf(c, last).set) { dayOf(c, last).set = { id: sp.id, title: sp.title || "" }; game = " " + DAYS[last] + "'s review game: " + (sp.title || "your Vault Raid spiral") + "."; touch(); }
-            bellMsg[cls] = (n ? "Added " + n + " bellringers. Review: " + (review.length ? review.join(", ") + (spiral.length ? " (your review standards)" : " (from What the data says)") : "none yet, so all on this week's standards") + ". Open a day to see them or remove one." : "Every day already has 4 bellringers, or the bank has no more for these standards.") + game;
-            if (n) touch(); drawClasses();
-        } catch (e) { bmsg.textContent = "Could not load the question bank. Try again."; fillAll.disabled = false; }
-    };
-    brow.appendChild(fillAll); bf.append(brow, bmsg); card.appendChild(bf);
-
-    // Quiz or test
-    const qa = el("div", "pw-row");
-    const kinds = seg([["none", "None"], ["quiz", "Quiz"], ["test", "Test"]], c.assess.kind, (v) => { c.assess.kind = v; c.plans = c.plans.map((p, i) => (/^(Quiz|Test)$/.test(p) || (v !== "none" && DK[i] === c.assess.day) ? pattern(i, c.assess, !plan.days[i].school) : p)); touch(); drawClasses(); }, label + " quiz or test");
-    qa.appendChild(field("Quiz or test", kinds));
-    if (c.assess.kind !== "none") {
-        qa.appendChild(field("Day", select(DK.map((d, i) => [d, DAYS[i]]).filter((x, i) => plan.days[i].school), c.assess.day, (v) => { c.assess.day = v; c.plans = c.plans.map((p, i) => (/^(Quiz|Test)$/.test(p) || DK[i] === v ? pattern(i, c.assess, !plan.days[i].school) : p)); drawClasses(); })));
-        const w = el("label", "pw-check"); const cb = el("input"); cb.type = "checkbox"; cb.checked = !!c.assess.teacherWrites; cb.onchange = () => { c.assess.teacherWrites = cb.checked; touch(); };
-        w.appendChild(cb); w.appendChild(document.createTextNode(" I write it myself")); qa.appendChild(w);
-    }
-    card.appendChild(qa);
-
-    // Activity
-    const ac = el("div", "pw-row");
-    ac.appendChild(field("Activity", select(ACTIVITIES.map((a) => [a, a]), c.activity.type, (v) => { c.activity.type = v; })));
-    if (c.activity.type !== "None") ac.appendChild(field("Activity day", select(DK.map((d, i) => [d, DAYS[i]]).filter((x, i) => plan.days[i].school), c.activity.day, (v) => { c.activity.day = v; })));
-    card.appendChild(ac);
-
-    // Day by day
-    const dd = el("div", "pw-field"); dd.appendChild(el("span", "pw-lab", "Day by day"));
-    const grid = el("div", "pw-plans");
+    // Day by day: tap a day to change it.
+    const dd = el("div", "wp-sec"); dd.appendChild(el("span", "wp-lab", "Day by day"));
+    const row = el("div", "wp-wkrow");
     c.plans.forEach((p, i) => {
-        const row = el("label", "pw-plan" + (plan.days[i].school ? "" : " off")); row.appendChild(el("span", null, DK[i]));
-        if (!plan.days[i].school) row.appendChild(el("em", null, plan.days[i].event || "No school"));
-        else {
-            const inp = input(p, (v) => { c.plans[i] = v; }); inp.setAttribute("aria-label", label + " " + DAYS[i] + " plan"); inp.setAttribute("list", "pwTemplates"); row.appendChild(inp);
-            const key = cls + ":" + i, d = (c.day || [])[i] || {}, n = (d.bell || []).length + (d.lt ? 1 : 0) + (d.set ? 1 : 0) + (d.asg ? 1 : 0) + (d.note ? 1 : 0);
-            const tg = el("button", "btn ghost pw-dayb" + (n ? " has" : ""), n ? "Day plan · " + n : "Plan day"); tg.type = "button"; tg.setAttribute("aria-expanded", String(openDays.has(key)));
-            tg.setAttribute("aria-label", "Plan " + label + " " + DAYS[i] + " in detail");
-            tg.onclick = (e) => { e.preventDefault(); openDays.has(key) ? openDays.delete(key) : openDays.add(key); drawClasses(); };
-            row.appendChild(tg);
-            if (plan.days[i].type === "out") row.appendChild(el("small", "pw-sub", "Sub"));
-        }
-        grid.appendChild(row);
-        if (plan.days[i].school && openDays.has(cls + ":" + i)) grid.appendChild(dayDrawer(cls, label, i));
+        const pd = plan.days[i], d = (c.day || [])[i] || {}, n = (d.bell || []).length;
+        const b = btn("wp-dp" + (!pd.school ? " is-off" : /^(Quiz|Test)$/.test(p) ? " is-qz" : pd.type === "out" ? " is-sub" : ""), "", pd.school ? () => planSheet(cls, label, i) : null);
+        b.appendChild(el("small", null, DK[i])); b.appendChild(el("span", null, pd.school ? SHORT[p] || p || "Pick" : "Off"));
+        if (pd.school && (n || d.lt || d.set || d.asg || d.note)) b.appendChild(el("i", null, n ? n + " bell" : "+"));
+        if (!pd.school) b.disabled = true; else b.setAttribute("aria-label", label + " " + DAYS[i] + ": " + (p || "nothing yet") + ". Change it");
+        row.appendChild(b);
     });
-    dd.appendChild(grid); card.appendChild(dd);
+    dd.appendChild(row); card.appendChild(dd);
 
-    card.appendChild(field("Homework", input(c.homework, (v) => { c.homework = v; })));
-    const ta = el("textarea", "pw-in pw-notes"); ta.rows = 2; ta.value = c.notes || ""; ta.placeholder = "Anything to reuse from last week, skip, or change"; ta.oninput = () => { c.notes = ta.value; touch(); };
-    card.appendChild(field("Notes for Claude", ta));
+    // Bellringers and review: on by default, filled from the bank when you send.
+    const tg = el("div", "wp-tg");
+    const bf = el("div", "pw-field wp-bell"), auto = c.bellAuto !== false, have = bellCount(c);
+    const top = el("div", "wp-t");
+    const sw2 = btn("sw" + (auto ? "" : " off"), "", () => { c.bellAuto = !auto; touch(); drawClasses(); }, label + " bellringers from the bank"); sw2.setAttribute("role", "switch"); sw2.setAttribute("aria-checked", String(auto));
+    top.append(sw2, el("span", "pw-lab", "Bellringers for the week"));
+    const fill = btn("wp-fill", "Fill now", null); fill.disabled = !c.standards.length;
+    fill.onclick = async () => { fill.disabled = true; fill.textContent = "Filling…"; try { await fillBells(cls); } catch (e) { bellMsg[cls] = "Could not load the question bank. Try again."; } drawClasses(); };
+    top.appendChild(fill); bf.appendChild(top);
+    bf.appendChild(el("small", "pw-hint", bellMsg[cls] || (have ? have + " picked from the bank." : auto ? "Filled from the bank when you send: 2 new, 2 review." : "Off: Claude writes them.")));
+    tg.appendChild(bf);
+    // Review standards (the spiral) and what the data flags.
+    const rv = el("div", "wp-t wp-rv"); rv.appendChild(el("span", "pw-lab", "Review"));
+    const rc = el("div", "wp-chips"), spiral = c.spiral || [], ev = evidenceOf(cls);
+    spiral.forEach((code) => { const b = chip(code, true, () => { c.spiral = spiral.filter((x) => x !== code); touch(); drawClasses(); }, "sm", "close"); b.setAttribute("aria-label", "Take " + code + " out of review"); rc.appendChild(b); });
+    const flagged = ev ? [...ev.reteach, ...ev.below.map((x) => x.code)].filter((x, k, a) => a.indexOf(x) === k && !spiral.includes(x) && !c.standards.includes(x)).slice(0, 3) : [];
+    flagged.forEach((code) => { const b = chip(code, false, () => { c.spiral = [...spiral, code]; touch(); drawClasses(); }, "sm re", "flag"); b.title = "Flagged in your scores. Tap to review it in bellringers"; rc.appendChild(b); });
+    if (!spiral.length && !flagged.length) rc.appendChild(el("small", "pw-hint", ev ? "Nothing flagged in your scores" : "Reading your scores…"));
+    rv.appendChild(rc); tg.appendChild(rv);
+    card.appendChild(tg);
+
+    const more = chip("Homework, notes and data", !!(c.notes || "").trim(), () => moreSheet(cls, label), "more wp-morebtn", "clipboard");
+    card.appendChild(more);
     return card;
 }
+
+/* ---------- sheets for a class ---------- */
+function stdSheet(cls, label) {
+    sheet(label + " standards", (body) => {
+        const c = plan.classes[cls];
+        body.appendChild(el("p", "pw-hint", "This week: what Claude teaches. Review: what the bellringers spiral back to."));
+        const ul = el("ul", "wp-stdl");
+        (STANDARDS[cls] || { standards: [] }).standards.forEach((x) => {
+            const li = el("li"), t = el("div"); t.appendChild(el("b", null, x.code + (x.critical ? " " : ""))); if (x.critical) t.firstChild.innerHTML += IC("star"); t.appendChild(el("span", null, x.text));
+            const a = el("div", "wp-chips");
+            a.appendChild(chip("This week", c.standards.includes(x.code), () => { c.standards = c.standards.includes(x.code) ? c.standards.filter((y) => y !== x.code) : [...c.standards, x.code]; touch(); drawClasses(); }, "sm"));
+            a.appendChild(chip("Review", (c.spiral || []).includes(x.code), () => { const sp = c.spiral || []; c.spiral = sp.includes(x.code) ? sp.filter((y) => y !== x.code) : [...sp, x.code]; touch(); drawClasses(); }, "sm"));
+            li.append(t, a); ul.appendChild(li);
+        });
+        body.appendChild(ul);
+    });
+}
+function planSheet(cls, label, i) {
+    sheet(label + " · " + DAYS[i], (body) => {
+        const c = plan.classes[cls], p = c.plans[i];
+        body.appendChild(el("span", "wp-lab", "The plan"));
+        const g = el("div", "wp-chips");
+        DAYPLANS.forEach((t) => g.appendChild(chip(t, p === t, () => {
+            if (/^(Quiz|Test)$/.test(t)) setAssess(c, t === "Test" ? "test" : "quiz", i);
+            else { c.plans[i] = t; if (/^(Quiz|Test)$/.test(p)) { c.assess.kind = "none"; } }
+            normalize(c); touch(); drawClasses();
+        })));
+        body.appendChild(g);
+        const own = input(DAYPLANS.includes(p) ? "" : p, (v) => { c.plans[i] = v.trim() ? v : pattern(i, { kind: "none" }, false); normalize(c); }, "Or type my own");
+        own.setAttribute("aria-label", label + " " + DAYS[i] + " plan in my own words"); body.appendChild(own);
+        if (plan.days[i].type === "out") body.appendChild(el("p", "wp-evline", "You are out this day: Claude writes it as a sub day."));
+        body.appendChild(dayDrawer(cls, label, i));
+    });
+}
+function moreSheet(cls, label) {
+    sheet(label + ": homework, notes and data", (body) => {
+        const c = plan.classes[cls];
+        body.appendChild(field("Homework", input(c.homework, (v) => { c.homework = v; })));
+        const ta = el("textarea", "pw-in pw-notes"); ta.rows = 3; ta.value = c.notes || ""; ta.placeholder = "Anything to reuse from last week, skip, or change"; ta.oninput = () => { c.notes = ta.value; touch(); };
+        body.appendChild(field("Notes for Claude", ta));
+        const ev = el("div", "pw-evd"); ev.id = "ev-" + cls; body.appendChild(ev); drawEvidence(cls, ev);
+    });
+}
+function noteSheet() {
+    sheet("A note for the whole week", (body) => {
+        const a = el("textarea", "pw-in"); a.rows = 2; a.value = plan.schedule || ""; a.placeholder = "Example: Wednesday 2-hour delay, all periods meet"; a.oninput = () => { plan.schedule = a.value; touch(); };
+        body.appendChild(field("Schedule changes", a));
+        const b = el("textarea", "pw-in"); b.rows = 2; b.value = plan.shared || ""; b.placeholder = "Example: first week back from break"; b.oninput = () => { plan.shared = b.value; touch(); };
+        body.appendChild(field("Anything all classes share", b));
+    });
+}
+
 /* ---------- one day, in detail: target, bellringers from the bank, and the day's materials ---------- */
 function dayOf(c, i) { if (!Array.isArray(c.day)) c.day = [{}, {}, {}, {}, {}]; if (!c.day[i]) c.day[i] = {}; return c.day[i]; }
 function pickCodes(cls, c) {
@@ -407,33 +519,44 @@ function drawEvidence(cls, box) {
 }
 function drawEvidenceAll() { CLASSES.forEach(([cls]) => { const b = $("ev-" + cls); if (b && !b.contains(document.activeElement)) drawEvidence(cls, b); }); }
 
-function drawClasses() { const box = $("classes"); box.textContent = ""; CLASSES.forEach(([cls, label, periods]) => box.appendChild(drawClass(cls, label, periods))); }
+function drawClasses() {
+    const box = $("classes"); box.textContent = "";
+    CLASSES.forEach(([cls, label, periods]) => box.appendChild(drawClass(cls, label, periods)));
+    summary();
+    if (sheetRender) sheetRender();
+}
 
+/* ---------- after Send: where the week is ---------- */
+let wfAt = 0;   // when Claude last saved this week's file
+const isBuilt = () => !!(plan && plan.status === "sent" && wfAt && wfAt >= (plan.sentAt || 0) - 60000);
+const claudeUrl = () => "https://claude.ai/new?q=" + encodeURIComponent(plan.brief.prompt);
 function drawSend() {
-    const box = $("sendCard"); box.textContent = "";
-    if (plan.status !== "sent") {
-        box.appendChild(el("p", "pw-sendp", "When this looks right, send it. Claude reads this one plan, so you never fill in the Sheet or answer setup questions."));
-        const b = el("button", "btn go big", "Send to Claude"); b.type = "button"; b.onclick = send; box.appendChild(b); return;
-    }
-    box.classList.add("sent");
-    box.appendChild(el("p", "pw-sendp", "Sent " + new Date(plan.sentAt).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) + ". Paste this to Claude:"));
-    const pr = el("div", "pw-prompt"); const code = el("code", null, plan.brief.prompt); pr.appendChild(code);
-    const cp = el("button", "btn", "Copy"); cp.type = "button";
-    cp.onclick = async () => { try { await navigator.clipboard.writeText(plan.brief.prompt); cp.textContent = "Copied"; setTimeout(() => (cp.textContent = "Copy"), 1600); } catch (e) { const r = document.createRange(); r.selectNodeContents(code); getSelection().removeAllRanges(); getSelection().addRange(r); } };
-    pr.appendChild(cp); box.appendChild(pr);
-    const all = el("button", "btn", "Copy the whole plan"); all.type = "button"; all.title = "For a Claude chat that cannot open Anchor Board: the prompt plus the full plan";
-    all.onclick = async () => { try { await navigator.clipboard.writeText(briefText()); all.textContent = "Copied"; setTimeout(() => (all.textContent = "Copy the whole plan"), 1600); } catch (e) { status("Copy did not work on this device", "bad"); } };
-    box.appendChild(all);
-    const again = el("button", "btn ghost", "Update the brief"); again.type = "button"; again.title = "Send again after a change"; again.onclick = send; box.appendChild(again);
-    const rv = el("a", "btn ghost", "Week Review"); rv.href = "review.html?week=" + plan.id + (demo ? "&demo" : ""); rv.style.textDecoration = "none"; box.appendChild(rv);
+    const box = $("sendCard"), weekBuilt = isBuilt(); box.textContent = "";
+    box.hidden = plan.status !== "sent"; if (box.hidden) return;
+    const h = el("div", "wp-sh2"); const ok = el("span", "wp-ok"); ok.innerHTML = IC("check"); h.appendChild(ok);
+    const t = el("div"); t.appendChild(el("h2", null, isBuilt() ? "Claude built " + plan.label : "Sent to Claude"));
+    t.appendChild(el("p", "pw-hint", isBuilt() ? "Check it on Week Review, then approve it to put it on the board." : "Claude opens in a new tab with the message typed in. Send it there and Claude builds the week."));
+    h.appendChild(t); box.appendChild(h);
+    const tr = el("div", "wp-track");
+    const step = (cls, ic, b, s) => { const d = el("div", cls); const bb = el("b"); bb.innerHTML = IC(ic); bb.appendChild(document.createTextNode(b)); d.append(bb, el("span", null, s)); tr.appendChild(d); };
+    step("done", "check", "Sent", new Date(plan.sentAt).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }));
+    step(isBuilt() ? "done" : "now", isBuilt() ? "check" : "clock", "Claude builds it", isBuilt() ? "Saved to Anchor Board" : "In your Claude tab");
+    step(isBuilt() ? "now" : "", "eye", "You approve", "On Week Review");
+    box.appendChild(tr);
+    const acts = el("div", "wp-acts");
+    const a = el("a", "btn" + (isBuilt() ? " ghost" : ""), ""); a.innerHTML = IC("send") + "<span>Open Claude again</span>"; a.href = claudeUrl(); a.target = "_blank"; a.rel = "noopener";
+    const rv = el("a", "btn" + (isBuilt() ? " go" : " ghost"), ""); rv.innerHTML = IC("eye") + "<span>Week Review</span>"; rv.href = "review.html?week=" + plan.id + (demo ? "&demo" : "");
+    const all = btn("btn ghost", IC("copy") + "<span>Copy the whole plan</span>", null); all.title = "For a Claude chat that cannot open Anchor Board: the message plus the full plan";
+    all.onclick = async () => { try { await navigator.clipboard.writeText(briefText()); all.lastChild.textContent = "Copied"; setTimeout(() => (all.lastChild.textContent = "Copy the whole plan"), 1600); } catch (e) { status("Copy did not work on this device", "bad"); } };
+    acts.append(isBuilt() ? rv : a, isBuilt() ? a : rv, all); box.appendChild(acts);
 }
 
 function draw() {
-    $("wkTitle").textContent = plan.label + " · " + plan.dates;
+    $("wkTitle").textContent = plan.label; $("wkDates").textContent = plan.dates;
     $("prevWk").disabled = false; $("nextWk").disabled = false;
-    const bi = built(plan.monday); $("builtNote").hidden = !bi;
-    summary(); drawDays(); drawClasses(); drawSend();
-    $("schedule").value = plan.schedule || ""; $("shared").value = plan.shared || "";
+    $("builtNote").hidden = !built(plan.monday); $("bar").hidden = false;
+    CLASSES.forEach(([cls]) => normalize(plan.classes[cls]));
+    drawDays(); drawSend(); drawClasses();
 }
 
 /* ---------- open a week ---------- */
@@ -449,15 +572,17 @@ function openWeek(m) {
         if (my !== unwatch || snap.pending || (plan && dirty)) return;
         const d = snap.exists && snap.data;
         if (plan && (!d || d.at === plan.at)) return;   // our own save coming back: keep the page as it is
-        if (plan && document.activeElement && $("view").contains(document.activeElement)) return;   // never redraw under the teacher's typing
+        if (plan && busy()) return;   // never redraw under the teacher's typing or an open sheet
         plan = merge(d);
         $("skel").hidden = true; $("view").hidden = false; draw(); quickSave();
     }, () => { if (my !== unwatch) return; plan = fresh; $("skel").hidden = true; $("view").hidden = false; draw(); status("Could not load a saved plan", "bad"); });
+    wfAt = 0;   // Claude saved the week (save_week_file): the sent card moves on to Week Review
+    store.watch("weekfiles/" + id, (s) => { if (my !== unwatch || s.pending) return; wfAt = (s.exists && s.data && s.data.json && s.data.at) || 0; if (plan && !busy()) { drawSend(); summary(); } }, () => {});
 }
 
 $("prevWk").onclick = () => stepWeek(-1); $("nextWk").onclick = () => stepWeek(1);
-$("schedule").oninput = () => { if (plan) { plan.schedule = $("schedule").value; touch(); } };
-$("shared").oninput = () => { if (plan) { plan.shared = $("shared").value; touch(); } };
+$("sendBtn").onclick = () => { if (plan) send(); };
+$("noteBtn").onclick = () => { if (plan) noteSheet(); };
 window.addEventListener("beforeunload", (e) => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 
 const user = await store.ready();
@@ -476,7 +601,7 @@ else {
         if (!demo) status("Live", "ok");
         if (!opened) return open();
         // Opened from the quick copy: a week not saved yet is filled again from what the server says (never under typing).
-        if (quickSig !== sig() && plan && !plan.at && !dirty && !(document.activeElement && $("view").contains(document.activeElement))) openWeek(mon);
+        if (quickSig !== sig() && plan && !plan.at && !dirty && !busy()) openWeek(mon);
     };
     const sig = () => JSON.stringify([progress, planner, rosters]);
     let quickSig = "";
@@ -495,7 +620,7 @@ else {
     store.watch("standards/timeline", (s) => {
         if (s.pending) return; const d = (s.exists && s.data) || {}, was = JSON.stringify(tlOrder); tlOrder = d && typeof d === "object" ? d : {};
         if (was === JSON.stringify(tlOrder) || !opened || !plan) return;
-        if (!plan.at && !dirty && !(document.activeElement && $("view").contains(document.activeElement))) openWeek(mon); else drawClasses();
+        if (!plan.at && !dirty && !busy()) openWeek(mon); else drawClasses();
     }, () => {});
     watchPrivateWeeks(store, PUBLISHED, (list) => { WEEKS = list; if (plan) summary(); });
     watchEvidence(store, (d) => { evDocs = d; if (plan) drawEvidenceAll(); });

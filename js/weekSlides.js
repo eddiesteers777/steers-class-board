@@ -7,7 +7,7 @@
    A lesson that already has slides is never touched, so the teacher's own work stays. Running it
    again only fills the lessons that have none.
 ========================================== */
-import { fromPlan, cleanDeck, cleanIndex, deckKey, countShown } from "./slides.js?v=3";
+import { fromPlan, cleanDeck, cleanIndex, deckKey, countShown } from "./slides.js?v=4";
 import { notesFrames } from "./notesFrames.js?v=1";
 
 /** Read a document once from the server (not an old offline copy). undefined when it could not be reached. */

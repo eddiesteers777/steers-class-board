@@ -307,6 +307,7 @@ export default {
       {
        "q": "|−9|",
        "a": "9",
+       "std": "6.12",
        "skill": "Prior skill: Absolute value"
       }
      ]

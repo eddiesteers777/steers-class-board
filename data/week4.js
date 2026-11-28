@@ -344,6 +344,7 @@ export default {
       {
        "q": "Simplify {12/18}.",
        "a": "{2/3}",
+       "std": "4.13",
        "skill": "Prior skill: Simplifying fractions"
       }
      ]

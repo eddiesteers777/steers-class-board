@@ -26,14 +26,14 @@ await t.goto(BASE + "/plan.html?emu&pack=calera");
 await t.waitForTimeout(6000);
 const card = t.locator(".pw-field:has(.pw-lab:text-is('Bellringers for the week'))").first();
 console.log("cards:", await t.locator(".pw-field:has(.pw-lab:text-is('Bellringers for the week'))").count());
-const btn = card.locator("button"); console.log("disabled:", await btn.isDisabled());
+const btn = card.locator("button.wp-fill"); console.log("disabled:", await btn.isDisabled());
 await btn.click(); await t.waitForTimeout(2500);
 const card2 = t.locator(".pw-field:has(.pw-lab:text-is('Bellringers for the week'))").first();
 console.log("msg:", await card2.locator("small").textContent());
 await card2.scrollIntoViewIfNeeded(); await t.waitForTimeout(300);
 const box = await card2.boundingBox(); await t.screenshot({ path: OUT + "/plan-fill.png", clip: { x: 0, y: Math.max(0, box.y - 420), width: 1280, height: 620 } });
-// open Monday's day plan for that class to see the bellringers
-const mon = t.locator("button.pw-dayb").first(); await mon.click(); await t.waitForTimeout(500);
+// open Monday for that class (tap sheet, Nov 26) to see the bellringers
+const mon = t.locator(".wp-c .wp-dp").first(); await mon.click(); await t.waitForTimeout(500);   // a day tile opens that day in a sheet
 const bells = await t.locator(".pw-drawer").first().locator(".pw-bells li").count(); assert.equal(bells, 4);
 assert.match(await card2.locator("small").textContent(), /Added 20 bellringers/);
 console.log("monday bells:", await t.locator(".pw-bells li").count(), (await t.locator(".pw-bells").first().textContent()).slice(0, 300));

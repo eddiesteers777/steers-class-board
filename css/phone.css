@@ -182,3 +182,6 @@ body.phone:not(.board) .quickbar{display:block;margin-bottom:6px}
 .qwork button{flex:1 1 45%}
 .qwho{font-family:var(--display);font-size:1.6rem;font-weight:800;text-align:center;margin:2px 0 10px}
 .qmsg{width:100%;font:16px var(--ui);border:1.5px solid var(--c-line);border-radius:12px;padding:10px;margin-bottom:8px;resize:vertical;color:var(--c-ink);background:var(--c-surface)}
+
+/* 12px floor (Nov 28 audit): DESIGN.md says text is never under 12px on teacher pages. Same selectors, so only the size changes. */
+body.phone .acct .pop .pophead{font-size:max(12px,.75rem)}

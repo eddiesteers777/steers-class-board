@@ -48,12 +48,19 @@ function opts(sel, list, first) {
 function fill() {
     opts($("fCls"), IN_ORDER.filter(([k]) => all.some((x) => inClass(x, k))), "All classes");
     opts($("fKind"), KINDS.concat([KIND]).filter((k) => all.some((x) => x.kind === k)).map((k) => [k, k]), "Every kind");
-    // Standards first (7th, 8th, then Algebra I), then prior skills.
-    const tags = [...new Set(all.map(tagOf).filter(Boolean))].sort((a, b) => (STD_TEXT.has(b) - STD_TEXT.has(a)) || a.localeCompare(b, undefined, { numeric: true }));
-    opts($("fStd"), tags.map((s) => [s, STD_TEXT.has(s) ? s + " · " + short(STD_TEXT.get(s), 60) : s]), tags.length ? "Any" : "None tagged yet");
+    fillStd();
     const wk = []; WEEKS.slice().reverse().forEach((w) => { if (all.some((x) => x.week === w.id)) wk.push([w.id, (w.label || w.id) + (w.dates ? " · " + w.dates : "")]); });
     if (SB.length) wk.unshift([WEEK_ID, WEEK_LABEL + " (every standard)"]);
     opts($("fWeek"), wk, "Every week");
+}
+/** Standard or skill list. With a class picked, only the tags on that class's questions, in that course's standards
+ *  order, then its below-grade skills. With All classes, every tag: standards first, then prior skills. */
+function fillStd() {
+    const c = $("fCls").value, pool = c ? all.filter((x) => inClass(x, c)) : all;
+    const seq = new Map(c && STANDARDS[c] ? STANDARDS[c].standards.map((s, i) => [s.code, i]) : []);
+    const rank = (t) => (seq.has(t) ? 0 : STD_TEXT.has(t) ? 1 : 2);
+    const tags = [...new Set(pool.map(tagOf).filter(Boolean))].sort((a, b) => (rank(a) - rank(b)) || ((seq.get(a) ?? 0) - (seq.get(b) ?? 0)) || a.localeCompare(b, undefined, { numeric: true }));
+    opts($("fStd"), tags.map((s) => [s, STD_TEXT.has(s) ? s + " · " + short(STD_TEXT.get(s), 60) : s]), tags.length ? (c ? "Any for " + (LABEL[c] || c) : "Any") : "None tagged yet");
 }
 function matches() {
     const words = norm($("q").value).split(" ").filter(Boolean), c = $("fCls").value, k = $("fKind").value, s = $("fStd").value, w = $("fWeek").value, l = $("fLvl").value;
@@ -95,8 +102,9 @@ function card(x) {
         .forEach((t) => meta.appendChild(el("span", t === "Checked" ? "bk-chip ok" : "bk-chip", t)));
     const tag = tagOf(x);
     if (tag) {   // the standard (or prior skill): tap it to show only questions with the same tag
-        const b = el("button", "bk-chip bk-std" + (x.std ? "" : " skill"), x.std ? "AL " + x.std + (x.part || "") : tag); b.type = "button";
-        b.title = x.std ? x.std + ": " + (STD_TEXT.get(x.std) || "") + "\nTap to show every question with this standard." : "Below grade level: no standard for this class. Tap to show every question like it.";
+        const prior = x.std && /^Prior skill/i.test(x.skill || "");   // a below-grade review problem tagged with the earlier grade's standard
+        const b = el("button", "bk-chip bk-std" + (x.std && !prior ? "" : " skill"), x.std ? "AL " + x.std + (x.part || "") + (prior ? " · Prior skill" : "") : tag); b.type = "button";
+        b.title = x.std ? x.std + ": " + (STD_TEXT.get(x.std) || "") + (prior ? "\n" + x.skill + " (below grade level)." : "") + "\nTap to show every question with this standard." : "Below grade level: no standard for this class. Tap to show every question like it.";
         b.onclick = () => { $("fStd").value = tag; shown = PAGE; draw(); window.scrollTo({ top: 0, behavior: "smooth" }); };
         meta.appendChild(b);
     }
@@ -116,7 +124,7 @@ function drawCoverage() {
             b.appendChild(el("b", null, r.code + (r.critical ? " *" : ""))); b.appendChild(el("span", null, short(r.text, 70)));
             b.appendChild(el("em", null, r.bank + r.weeks ? r.bank + " bank" + (r.weeks ? " · " + r.weeks + " from weeks" : "") : "None yet"));
             b.title = r.code + ": " + r.text; if (!(r.bank + r.weeks)) b.disabled = true;
-            b.onclick = () => { $("fCls").value = cls; $("fWeek").value = ""; $("fStd").value = [...$("fStd").options].some((o) => o.value === r.code) ? r.code : ""; shown = PAGE; draw(); $("count").scrollIntoView({ behavior: "smooth" }); };
+            b.onclick = () => { $("fCls").value = cls; fillStd(); $("fWeek").value = ""; $("fStd").value = [...$("fStd").options].some((o) => o.value === r.code) ? r.code : ""; shown = PAGE; draw(); $("count").scrollIntoView({ behavior: "smooth" }); };
             li.appendChild(b); ul.appendChild(li);
         });
         d.appendChild(ul); box.appendChild(d);
@@ -154,7 +162,8 @@ function drawClaude() {
 }
 
 ["q"].forEach((i) => { let t = 0; $(i).oninput = () => { clearTimeout(t); t = setTimeout(() => { shown = PAGE; draw(); }, 150); }; });
-["fCls", "fKind", "fStd", "fWeek", "fLvl", "once", "ans"].forEach((i) => { $(i).onchange = () => { shown = PAGE; draw(); }; });
+$("fCls").onchange = () => { fillStd(); shown = PAGE; draw(); };   // the standards list follows the class
+["fKind", "fStd", "fWeek", "fLvl", "once", "ans"].forEach((i) => { $(i).onchange = () => { shown = PAGE; draw(); }; });
 $("more").onclick = () => { shown += PAGE; draw(); };
 $("clearSel").onclick = () => { picked.clear(); draw(); };
 // Send the picked questions to the Question Maker as a new game set (Vault Raid and the review games).

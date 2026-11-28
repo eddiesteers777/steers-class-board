@@ -77,7 +77,18 @@ export const GRADS = [
     ["night", "Night", ["#2a3a6b", "#0b1020"]], ["sunset", "Sunset", ["#f9c74f", "#e8710a"]], ["peach", "Peach", ["#ffe0c2", "#f28da6"]],
     ["berry", "Berry", ["#7a2257", "#2a0a1f"]], ["mint", "Mint", ["#d4f5e6", "#7fcfc0"]], ["forest", "Forest", ["#1f5c47", "#0a251c"]],
     ["lemon", "Lemon", ["#fff9d6", "#ffe58a"]], ["grape", "Grape", ["#b9a4f0", "#5b3fa0"]], ["chalk", "Chalkboard", ["#33503f", "#16261d"]],
+    ["aurora", "Aurora", ["#1b4fbf", "#081b45"]],   // drawn as soft glows, not a straight fade (gradCss); the two colors pick the ink
 ];
+/* Aurora (Nov 27, Eddie approved the new background glow): sky and blue glows with a touch of amber on deep navy, behind clear glass blocks. */
+const AURORA = "radial-gradient(45% 60% at 18% 20%,rgba(127,174,221,.7),transparent 70%),radial-gradient(40% 55% at 88% 88%,rgba(242,179,61,.32),transparent 70%)," +
+    "radial-gradient(50% 60% at 70% 10%,rgba(27,79,191,.7),transparent 70%),#081b45";
+/** The CSS background for a gradient id: a straight fade, or Aurora's glows. */
+export function gradCss(id) {
+    if (id === "aurora") return AURORA;
+    const g = (GRADS.find((x) => x[0] === id) || GRADS[0])[2];
+    return "linear-gradient(160deg," + g[0] + " 0%," + g[1] + " 100%)";
+}
+export const isAurora = (bg) => !!bg && bg.t === "grad" && bg.g === "aurora";
 export const PATTERNS = [["", "None"], ["grid", "Graph paper"], ["dots", "Dots"], ["lines", "Lined paper"], ["axes", "x-y grid"]];
 export const ALIGN = ["l", "c", "r", "j"], VALIGN = ["t", "m", "b"], DASH = ["", "d", "o"], HEADS = ["", "arrow", "dot", "bar"];
 
@@ -281,12 +292,18 @@ export const GRIDS = [
     ["one", "One", [[0, 0, 1, 1]], [C("Notes", "<ul><li>First point</li><li>Second point</li><li>Third point</li></ul>", { fs: 48 })]],
     ["two", "Two", [[0, 0, 0.5, 1], [0.5, 0, 0.5, 1]], [C("Example", "Type here"), C("Try it", "Type here")]],
     ["three", "Three", [[0, 0, 1 / 3, 1], [1 / 3, 0, 1 / 3, 1], [2 / 3, 0, 1 / 3, 1]], [C("I do", "Watch me solve one."), C("We do", "Let's solve one together.", { ap: 1 }), C("You do", "Your turn. Show every step.", { ap: 2 })]],
+    ["four", "Four", [[0, 0, 0.5, 0.5], [0.5, 0, 0.5, 0.5], [0, 0.5, 0.5, 0.5], [0.5, 0.5, 0.5, 0.5]], [C("1", "Type a problem", { fs: 48, va: "m" }), C("2", "Type a problem", { fs: 48, va: "m" }), C("3", "Type a problem", { fs: 48, va: "m" }), C("4", "Type a problem", { fs: 48, va: "m" })]],
+    ["six", "Six", [[0, 0, 1 / 3, 0.5], [1 / 3, 0, 1 / 3, 0.5], [2 / 3, 0, 1 / 3, 0.5], [0, 0.5, 1 / 3, 0.5], [1 / 3, 0.5, 1 / 3, 0.5], [2 / 3, 0.5, 1 / 3, 0.5]], [1, 2, 3, 4, 5, 6].map((i) => C("Station " + i, "Type the task", { fs: 36 }))],
+    ["fouracross", "Four across", [[0, 0, 0.25, 1], [0.25, 0, 0.25, 1], [0.5, 0, 0.25, 1], [0.75, 0, 0.25, 1]], [1, 2, 3, 4].map((i) => C("Step " + i, "Type this step", i > 1 ? { fs: 36, ap: i - 1 } : { fs: 36 }))],
     ["bigside", "Big + side", [[0, 0, 0.63, 1], [0.63, 0, 0.37, 0.5], [0.63, 0.5, 0.37, 0.5]], [C("Warm-up", "Type the problem here", { fs: 52 }), C("Hint", "Type a hint"), C("Answer", CENTER("The answer shows on Next"), { gl: 2, ap: 1, va: "m", fs: 48 })]],
     ["sidebig", "Side + big", [[0, 0, 0.37, 1], [0.37, 0, 0.63, 1]], [C("Word", CENTER("<b>word</b>"), { fs: 64, va: "m" }), C("What it means", "Type the meaning, then an example", { ap: 1 })]],
+    ["bigthree", "Big + three", [[0, 0, 0.63, 1], [0.63, 0, 0.37, 1 / 3], [0.63, 1 / 3, 0.37, 1 / 3], [0.63, 2 / 3, 0.37, 1 / 3]], [C("Problem", "Type the problem here", { fs: 52 }), C("Step 1", "Type the first step", { fs: 32, ap: 1 }), C("Step 2", "Type the next step", { fs: 32, ap: 2 }), C("Answer", CENTER("The answer"), { gl: 2, ap: 3, va: "m", fs: 40 })]],
+    ["twoone", "Two over one", [[0, 0, 0.5, 0.5], [0.5, 0, 0.5, 0.5], [0, 0.5, 1, 0.5]], [C("Example", "Type here"), C("Try it", "Type here"), C("Exit ticket", "Type the exit question", { gl: 2, ap: 1 })]],
+    ["onetwo", "One over two", [[0, 0, 1, 0.5], [0, 0.5, 0.5, 0.5], [0.5, 0.5, 0.5, 0.5]], [C("Question", CENTER("Type the question here"), { fs: 56, va: "m" }), C("Work it out", "Show your work"), C("Answer", CENTER("The answer shows on Next"), { gl: 2, ap: 1, va: "m", fs: 48 })]],
+    ["qa", "Question + answer", [[0, 0, 1, 0.66], [0, 0.66, 1, 0.34]], [C("Question", CENTER("Type the question here"), { fs: 72, va: "m" }), C("Answer", CENTER("The answer shows when you press Next"), { gl: 2, ap: 1, fs: 56, va: "m" })]],
     ["titletwo", "Title + two", [[0, 0, 1, TS], [0, TS, 0.5, 1 - TS], [0.5, TS, 0.5, 1 - TS]], [TITLE("Title"), C("Left", "Type here"), C("Right", "Type here")]],
     ["titlethree", "Title + three", [[0, 0, 1, TS], [0, TS, 1 / 3, 1 - TS], [1 / 3, TS, 1 / 3, 1 - TS], [2 / 3, TS, 1 / 3, 1 - TS]], [TITLE("Today we practice"), C("I do", "Watch me solve one."), C("We do", "Let's solve one together.", { ap: 1 }), C("You do", "Your turn. Show every step.", { ap: 2 })]],
-    ["qa", "Question + answer", [[0, 0, 1, 0.66], [0, 0.66, 1, 0.34]], [C("Question", CENTER("Type the question here"), { fs: 72, va: "m" }), C("Answer", CENTER("The answer shows when you press Next"), { gl: 2, ap: 1, fs: 56, va: "m" })]],
-    ["four", "Four", [[0, 0, 0.5, 0.5], [0.5, 0, 0.5, 0.5], [0, 0.5, 0.5, 0.5], [0.5, 0.5, 0.5, 0.5]], [C("1", "Type a problem", { fs: 48, va: "m" }), C("2", "Type a problem", { fs: 48, va: "m" }), C("3", "Type a problem", { fs: 48, va: "m" }), C("4", "Type a problem", { fs: 48, va: "m" })]],
+    ["titlebig", "Title + big", [[0, 0, 1, TS], [0, TS, 0.63, 1 - TS], [0.63, TS, 0.37, 1 - TS]], [TITLE("Title"), C("Notes", "Type the main idea here", { fs: 44 }), C("Check", "A quick question", { gl: 2, ap: 1 })]],
 ];
 /** A grid's cells in slide units, with a gap between them and none at the frame's edge. */
 export function gridCells(id) {
@@ -296,9 +313,11 @@ export function gridCells(id) {
         return { x: r1(x0), y: r1(y0), w: r1(x1 - x0), h: r1(y1 - y0) };
     });
 }
-/* Ready-made themes: [id, name, { c, f, o, r }]. Built only from the panel colors and finishes Eddie already has. "panels" is the default (no th). */
+/* Ready-made themes: [id, name, { c, f, o, r }, bg?]. Built from the panel colors and finishes Eddie already has. "panels" is the default (no th).
+   A theme with a bg sets the slide's background too: Aurora glass (Nov 27) is clear navy glass on the Aurora glow. */
 export const THEMES = [
     ["panels", "Match my panels", null],
+    ["aurora", "Aurora glass", { c: "navy", f: "glass", o: 38, r: "soft" }, { t: "grad", g: "aurora" }],
     ["board", "My board colors", { c: "board", f: "glass", o: 82, r: "soft" }],
     ["frost", "Frosted glass", { c: "paper", f: "glass", o: 55, r: "soft" }],
     ["night", "Night glass", { c: "night", f: "glass", o: 62, r: "soft" }],

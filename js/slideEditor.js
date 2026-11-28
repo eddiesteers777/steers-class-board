@@ -12,12 +12,16 @@
    it puts the lesson on the board and opens this slide in Spotlight. (Nov 24: Present was cut, since Spotlight does it
    with ink and panels.) The lesson row (week, days, saved, Teach, more) sits in the Board Builder's own header
    (studio.html #slBarSlot), so the slide gets the room.
+   Nov 27 (Eddie picked "A, Glass Studio" from the mockups): the page wears Spotlight's dark glass. The tools sit in one glass
+   dock under the slide, like Spotlight's; the picked block's own tools float in a small glass bar beside it (#slCtx, on a
+   Chromebook or bigger; a phone keeps them in the dock); notes are a one-line strip that opens on a tap; and "Spotlight
+   buttons" in the dock shows where Spotlight's corners and toolbar will sit over the slide.
    Model: js/slides.js. Drawing: js/slideView.js. The board side: js/boardApp.js (the Slides screen).
 ========================================== */
 import { SW, SH, MAX_SLIDES, MAX_DAILY, DAILY, INDEX, deckKey, newId, cleanDeck, cleanSlide, cleanEl, cleanIndex, newEl, mathBox, LAYOUTS, todaySlide, agendaSlide,
     fromPlan, liveContext, lessonDate, showList, revealSteps, countShown, sanitizeHtml, textOf, PALETTE, FONTS, SHAPES, GRADS, PATTERNS, LIVE, boxOf, shapePath, inkFor,
-    PANEL_MINS, cleanPanels, panelWords, bankSlide, walkSlide, FRAME, GRIDS, gridCells, gridSlide, snapToGrid, THEMES, themeId, cleanTheme, BLOCKS, newBlock, freeSpot } from "./slides.js?v=3";
-import { renderSlide, renderEl, fitSlide, thumb, imageLoader } from "./slideView.js?v=3";
+    PANEL_MINS, cleanPanels, panelWords, bankSlide, walkSlide, FRAME, GRIDS, gridCells, gridSlide, snapToGrid, THEMES, themeId, cleanTheme, BLOCKS, newBlock, freeSpot, gradCss, isAurora } from "./slides.js?v=5";
+import { renderSlide, renderEl, fitSlide, thumb, imageLoader } from "./slideView.js?v=5";
 import { PANEL_COLORS, PANEL_FINISHES, PANEL_CORNERS, MIN_SOLID, swatchBg } from "./panelStyle.js?v=3";
 import { newItem, geom, MENU as MATH_MENU, parseStep, compileExpr, PLOT } from "./mathTools.js?v=1";
 import { STICKER_SETS, WORDS, WORD_COLORS, stickerFace } from "./stickers.js?v=1";
@@ -34,6 +38,13 @@ let sel = [], editing = "", hist = [], fut = [], lastTag = "", lastAt = 0, clip 
 let k = 0.5, slideEl = null, drag = null, pop = null, popFor = null, toastT = 0, notesOpen = false;
 const thumbs = new Map();
 let images = null;
+/* "Spotlight buttons" (Nov 27): where Spotlight's own controls sit over a slide, in slide units, from Spotlight at 1366 x 800
+   (css/spotlight.css: back at the top left, Live on the board at the top right, the toolbar and Next/Back along the bottom).
+   About where, since Spotlight's toolbar grows and shrinks with its tools. Remembered on this device. */
+const SPOT_GHOST = [[12, 4, 174, 58, "Back"], [1311, 4, 277, 58, "Live on the board"], [422, 826, 756, 68, "Spotlight's toolbar"], [1196, 826, 392, 68, "Next and Back"]];
+let ghostOn = false;
+try { ghostOn = localStorage.getItem("anchorboard-slghost") === "1"; } catch (e) { /* private window: off */ }
+function setGhost(on) { ghostOn = !!on; try { localStorage.setItem("anchorboard-slghost", ghostOn ? "1" : "0"); } catch (e) { /* fine */ } drawSel(); drawTools(); }
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -274,7 +285,9 @@ function drawFilm() {
     const own = deckOf(lessonKey()), daily = deckOf(DAILY), lk = lessonKey();
     prunePicks(); f.appendChild(pickBar());
     const section = (key, deck, title, sub) => {
-        const h = el("div", "sfh"); h.appendChild(el("b", null, title)); if (sub) h.appendChild(el("small", null, sub)); f.appendChild(h);
+        const h = el("div", "sfh"); h.appendChild(el("b", null, title)); if (sub) h.appendChild(el("small", null, sub));
+        h.appendChild(el("b", "sfhs", key === DAILY ? "Every day" : DK[lesson.day]));   // the strip on a phone has room for a word, not a phrase
+        f.appendChild(h);
         const list = el("div", "sflist"); list.dataset.key = key;
         ((deck && deck.slides) || []).forEach((s, i) => list.appendChild(filmItem(key, s, i)));
         f.appendChild(list);
@@ -307,7 +320,9 @@ function drawFilm() {
 }
 /** Narrower screens (css/slidedit.css): at 1180px the slide list is thinner; at 860px it runs across under the slide. */
 const narrow = window.matchMedia("(max-width:860px)"), midSize = window.matchMedia("(max-width:1180px)");
-[narrow, midSize].forEach((m) => m.addEventListener("change", () => { thumbs.clear(); if (active) drawFilm(); }));
+/** A finger, not a mouse (Nov 26, Slides on a phone): a second tap on the picked block types, since phones do not double-click. */
+const coarse = window.matchMedia("(pointer:coarse)");
+[narrow, midSize].forEach((m) => m.addEventListener("change", () => { thumbs.clear(); if (active) { drawFilm(); drawTools(); } }));
 /** The slides that already have a Spotlight screen, when the board is on this lesson (a badge on each, not a second list). */
 function inSpot() {
     if (!A.spotScreens || !A.isLesson || !A.isLesson(lesson.week, lesson.cls, lesson.day)) return new Set();
@@ -331,6 +346,7 @@ function filmItem(key, s, i) {
         c.setAttribute("role", "checkbox"); c.setAttribute("aria-checked", String(ticked)); it.appendChild(c);
     }
     const badges = el("span", "sfb");
+    if (key === DAILY) badges.appendChild(el("span", "sfed", "Every day"));   // on a phone the strip has no section names, so the slide says it
     const rv = revealSteps(s); if (rv) badges.appendChild(el("span", "sfrv", rv + " on Next"));
     if (s.hide) badges.appendChild(el("span", "sfhid", "Hidden"));
     if (s.nt) badges.appendChild(el("span", "sfnt", "Notes"));
@@ -392,6 +408,7 @@ function drawSel(guides) {
     const sf = el("div", "ssafe" + (drag && drag.moved && ((drag.items || [drag.e]).some((x) => x && x.gl)) ? " on" : ""));
     sf.style.left = FRAME.x * k + "px"; sf.style.top = FRAME.y * k + "px"; sf.style.width = FRAME.w * k + "px"; sf.style.height = FRAME.h * k + "px";
     sf.appendChild(el("span", null, "Spotlight keeps this clear")); ov.appendChild(sf);
+    if (ghostOn) SPOT_GHOST.forEach(([x, y, w, h, t]) => { const g = el("div", "sghost", t); g.style.left = x * k + "px"; g.style.top = y * k + "px"; g.style.width = w * k + "px"; g.style.height = h * k + "px"; ov.appendChild(g); });
     list.forEach((e) => {
         if (e.k === "ln") {
             const L = el("div", "sfline"), len = Math.hypot(e.x2 - e.x1, e.y2 - e.y1) * k, a = Math.atan2(e.y2 - e.y1, e.x2 - e.x1) * 180 / Math.PI;
@@ -413,6 +430,24 @@ function drawSel(guides) {
     if (list.length > 1) { const b = unionBox(list), g = el("div", "sfr grp"); g.style.left = b.x * k + "px"; g.style.top = b.y * k + "px"; g.style.width = b.w * k + "px"; g.style.height = b.h * k + "px"; ov.appendChild(g); }
     (guides || []).forEach((gd) => { const g = el("div", "sguide " + gd.d); if (gd.d === "v") g.style.left = gd.at * k + "px"; else g.style.top = gd.at * k + "px"; ov.appendChild(g); });
     if (drag && drag.kind === "box" && drag.rect) { const m = el("div", "smarq"), q = drag.rect; m.style.left = q.x * k + "px"; m.style.top = q.y * k + "px"; m.style.width = q.w * k + "px"; m.style.height = q.h * k + "px"; ov.appendChild(m); }
+    positionCtx();
+}
+/** The picked block's glass bar (Nov 27): above the block when there is room (clear of its turn handle), else under it,
+    else pinned to the top of the stage, which is the strip Spotlight keeps clear anyway. Never past the stage's sides. */
+function positionCtx() {
+    const cx = $("slCtx"), host = cx && cx.parentNode; if (!cx || !host) return;
+    const list = sel.map(byId).filter(Boolean);
+    if (!slideEl || !list.length || narrow.matches || !cx.childElementCount) { cx.hidden = true; return; }
+    cx.hidden = false; cx.classList.toggle("away", !!(drag && drag.moved));
+    const H0 = host.getBoundingClientRect(), r = slideEl.getBoundingClientRect(), st = $("slStage").getBoundingClientRect(), kk = r.width / SW, b = unionBox(list);
+    cx.style.maxWidth = Math.max(240, H0.width - 8) + "px";
+    const w = cx.offsetWidth, h = cx.offsetHeight;
+    const bx = r.left - H0.left + b.x * kk, by = r.top - H0.top + b.y * kk, bw = b.w * kk, bh = b.h * kk;
+    const top0 = st.top - H0.top + 6, bot0 = st.bottom - H0.top - 6, rot = list.length === 1 && !list[0].lk && list[0].k !== "ln" && !editing;
+    let top = by - h - (rot ? 44 : 14);
+    if (top < top0) top = by + bh + 14 + h <= bot0 ? by + bh + 14 : top0;
+    cx.style.left = Math.round(Math.max(4, Math.min(bx + bw / 2 - w / 2, H0.width - w - 4))) + "px";
+    cx.style.top = Math.round(top) + "px";
 }
 function unionBox(list) {
     let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
@@ -491,7 +526,8 @@ function stageMove(ev) {
         drawSel(); return;
     }
     let dx = p.x - drag.p0.x, dy = p.y - drag.p0.y;
-    if (!drag.moved) { if (Math.hypot(dx, dy) * k < 3) return; drag.moved = true; before(); document.body.classList.add("sldragging"); }
+    if (!drag.moved) { if (Math.hypot(dx, dy) * k < (ev.pointerType === "mouse" ? 3 : 8)) return;   // a finger wobbles more than a mouse
+        drag.moved = true; before(); document.body.classList.add("sldragging"); }
     if (drag.kind === "move") {
         if (ev.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
         const sn = snapMove(dx, dy, drag.orig, ev.altKey || ev.shiftKey); dx = sn.dx; dy = sn.dy;
@@ -545,6 +581,11 @@ function stageUp(ev) {
     if (d.kind === "box") { drawSel(); drawTools(); return; }
     if (!d.moved) {
         if (d.kind === "move" && d.wasSel && sel.length > 1 && !ev.shiftKey) { sel = [d.id]; drawSel(); drawTools(); }
+        // Phones (Nov 26): tap a block to pick it, tap it again to type. The stage holds the pointer, so find what is under the finger.
+        else if (d.kind === "move" && d.wasSel && sel.length === 1 && ev.pointerType !== "mouse" && !editing) {
+            const under = document.elementFromPoint(ev.clientX, ev.clientY);
+            if (under) stageDbl({ target: under, clientX: ev.clientX, clientY: ev.clientY });
+        }
         return;
     }
     const s = S0(); if (s) s.els.forEach((e) => { const c = cleanEl(e); if (c) Object.keys(c).forEach((key) => { e[key] = c[key]; }); });
@@ -561,9 +602,9 @@ function stageDbl(ev) {
 /* ---------- typing on a slide ---------- */
 function startEdit(what, ev) {
     const [id, a, b] = what.split(":"), e = byId(id); if (!e || e.lk || !canEdit(cur.key)) return;
-    if (e.k === "mt") { sel = [id]; drawTools(); const t = $("slTools").querySelector(".tmath"); if (t) t.click(); return; }
+    if (e.k === "mt") { sel = [id]; drawTools(); const t = R.querySelector(".tmath"); if (t) t.click(); return; }
     if (e.k === "pc") { sel = [id]; pickPicture(id); return; }
-    if (e.k === "st") { if (e.t === "w") { sel = [id]; drawTools(); const t = $("slTools").querySelector(".tword"); if (t) t.click(); } return; }
+    if (e.k === "st") { if (e.t === "w") { sel = [id]; drawTools(); const t = R.querySelector(".tword"); if (t) t.click(); } return; }
     if (e.k !== "bx" && e.k !== "tb") return;
     sel = [id]; editing = what; drawCanvas(); drawTools();
     const node = a === "hd" ? nodeOf(id).querySelector(".slhd") : e.k === "tb" ? nodeOf(id).querySelector('[data-r="' + a + '"][data-c="' + b + '"]') : nodeOf(id).querySelector(".sltxi");
@@ -635,7 +676,7 @@ function addPlan() {
     const room = MAX_SLIDES - d.slides.length; if (room <= 0) return toast("This lesson already has " + MAX_SLIDES + " slides.");
     if (!changeDeck(lessonKey(), (dd) => { dd.slides = dd.slides.concat(list.slice(0, room)); })) return;
     cur = { key: lessonKey(), id: list[0].id }; sel = []; draw();
-    toast("Added " + Math.min(room, list.length) + " slides from your plan. Change anything: double-click text to type.");
+    toast("Added " + Math.min(room, list.length) + " slides from your plan. Change anything: " + (coarse.matches ? "tap a block, then tap it again to type." : "double-click text to type."));
 }
 function addTable(nr, nc) { addEl(newEl("table", { nr, nc })); }
 function addMath(key) {
@@ -753,6 +794,7 @@ function pickBar() {
     const bar = el("div", "sfpick" + (picks.size ? " sfpkon" : "")); bar.setAttribute("role", "toolbar"); bar.setAttribute("aria-label", "Several slides at once");
     const all = [DAILY, lessonKey()].reduce((n, k) => n + (((deckOf(k) || {}).slides || []).length), 0);
     if (!selMode && !picks.size) {
+        bar.classList.add("sfidle");
         bar.appendChild(btn("sfsel", icon("check") + "<span>Select</span>", () => setSelMode(true), "Tick several slides to put in Spotlight, set panels, copy or delete at once"));
         return bar;
     }
@@ -976,7 +1018,7 @@ function gridMenu(p, key) {
         const b = btn("sgridb" + (on ? " on" : ""), gridPic(id) + "<span>" + name + "</span>", () => {
             closePop();
             if (gridMode === "this") { change((sl) => { snapToGrid(sl, id); }); sel = []; draw(); toast("Snapped into " + name + ". Blocks you add go in the empty cells."); }
-            else addMany(key, () => gridSlide(id, th), layCount);
+            else addMany(key, () => { const n = gridSlide(id, th); if (s && isAurora(s.bg)) n.bg = { t: "grad", g: "aurora" }; return n; }, layCount);
         }, gridMode === "this" ? "Snap this slide's blocks into " + name : "New slide: " + name);
         g.appendChild(b);
     });
@@ -1018,9 +1060,11 @@ function themeMenu(p) {
     const s = S0(); if (!s) return;
     const cur0 = cleanTheme(s.th), curId = themeId(s.th);
     const stay = () => setTimeout(() => { const b = [...document.querySelectorAll("#slTools .tb")].find((x) => x.textContent.trim() === "Look"); if (b && !pop) openPop(b, lookMenu, "wide"); }, 0);
-    const setTh = (th, all) => {
+    // bg: a ready-made theme's own background (Aurora), null to drop the Aurora glow when another theme is picked, or undefined to keep it
+    const setTh = (th, all, bg) => {
         const c = cleanTheme(th);
-        const put = (sl) => { if (c) sl.th = JSON.parse(JSON.stringify(c)); else delete sl.th; };
+        const put = (sl) => { if (c) sl.th = JSON.parse(JSON.stringify(c)); else delete sl.th;
+            if (bg) sl.bg = JSON.parse(JSON.stringify(bg)); else if (bg === null && isAurora(sl.bg)) sl.bg = { t: "board" }; };
         if (all) changeDeck(cur.key, (d) => { d.slides.forEach(put); }); else change(put);
     };
     p.classList.add("sthemes");
@@ -1029,9 +1073,10 @@ function themeMenu(p) {
     if (!hasGl && !themeSample) themeSample = gridSlide("bigside");
     const base = hasGl ? s : themeSample;
     const g = el("div", "sthgrid");
-    THEMES.forEach(([id, name, th]) => {
-        const b = btn("sthb" + (curId === id ? " on" : ""), "", () => { closePop(); setTh(th); stay(); }, name);
-        b.appendChild(thumb(Object.assign({}, base, { th: th || undefined }), viewOpts({ edit: false, mark: false }), 118));
+    THEMES.forEach(([id, name, th, tbg]) => {
+        const b = btn("sthb" + (curId === id ? " on" : ""), "", () => { closePop(); setTh(th, false, tbg || null); stay(); }, name);
+        const pic = Object.assign({}, base, { th: th || undefined }); if (tbg) pic.bg = tbg; else if (isAurora(base.bg)) pic.bg = { t: "board" };
+        b.appendChild(thumb(pic, viewOpts({ edit: false, mark: false }), 118));
         b.appendChild(el("span", null, name)); b.setAttribute("aria-pressed", String(curId === id)); g.appendChild(b);
     });
     p.appendChild(g);
@@ -1051,7 +1096,7 @@ function themeMenu(p) {
     const rg = el("input"); rg.type = "range"; rg.min = String(MIN_SOLID); rg.max = "100"; rg.step = "1"; rg.value = String(mine.o);
     rg.onchange = () => set({ o: +rg.value }); lab.appendChild(rg); rr.appendChild(lab);
     p.appendChild(rr);
-    p.appendChild(btn("spi", icon("every") + "<span>Use this theme on every slide of this day</span>", () => { closePop(); setTh((S0() || s).th, true); toast("Every slide here wears this theme now."); }));
+    p.appendChild(btn("spi", icon("every") + "<span>Use this theme on every slide of this day</span>", () => { closePop(); const s1 = S0() || s; setTh(s1.th, true, isAurora(s1.bg) ? s1.bg : null); toast("Every slide here wears this theme now."); }));
 }
 /* ---------- panels per slide (Spotlight opens them when it reaches the slide) ---------- */
 function panelsMenu(p) {
@@ -1234,13 +1279,18 @@ function insertSlides(key, slides) {
 const FS = [12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 44, 48, 54, 60, 66, 72, 80, 88, 96, 110, 120, 140, 160, 180, 200, 240, 280, 320];
 function drawTools() {
     const bar = $("slTools"); if (!bar) return;
-    closePop(); bar.textContent = "";
+    const cx = $("slCtx"), inCtx = !!cx && !narrow.matches;   // Chromebook and up: the picked block's tools float beside it
+    closePop(); bar.textContent = ""; if (cx) { cx.textContent = ""; cx.hidden = true; }
     const s = S0(), ready = !!s && canEdit(cur.key), list = sel.map(byId).filter(Boolean), one = list.length === 1 ? list[0] : null;
-    const grp = (cls) => { const g = el("div", "tgrp" + (cls ? " " + cls : "")); bar.appendChild(g); return g; };
+    // A phone (Nov 26): with a block picked, the bar shows that block's tools (the add tools step aside, css/slidedit.css) and starts at the left
+    bar.classList.toggle("hassel", !!list.length && ready);
+    const selSig = sel.join(","); if (selSig !== toolsSig) { toolsSig = selSig; bar.scrollLeft = 0; }
+    requestAnimationFrame(() => toolsFade(bar));
+    const grp = (cls, host) => { const g = el("div", "tgrp" + (cls ? " " + cls : "")); (host || bar).appendChild(g); return g; };
     const tb = (g, ic, label, fn, opts) => { const o = opts || {}; const b = btn("tb" + (o.cls ? " " + o.cls : "") + (o.on ? " on" : "") + (o.text ? " txt" : ""), (ic ? icon(ic) : "") + (o.text ? "<span>" + o.text + "</span>" : "") + (o.menu ? svg(IC.caret, "icc") : ""), fn, label); if (o.on != null) b.setAttribute("aria-pressed", String(!!o.on)); if (o.dis) b.disabled = true; g.appendChild(b); return b; };
-    let g = grp();
-    tb(g, "undo", "Undo (Ctrl+Z)", () => undo(), { dis: !hist.length });
-    tb(g, "redo", "Redo (Ctrl+Shift+Z)", () => redo(), { dis: !fut.length });
+    let g = grp("hist");
+    tb(g, "undo", "Undo (Ctrl+Z)", () => undo(), { dis: !hist.length, text: "Undo" });
+    tb(g, "redo", "Redo (Ctrl+Shift+Z)", () => redo(), { dis: !fut.length, text: "Redo" });
     g = grp("ins");
     const dis = !canEdit(lessonKey());
     tb(g, "text", "Text box", () => addEl(newEl("text"), true), { text: "Text", dis });
@@ -1257,16 +1307,20 @@ function drawTools() {
     tb(g, "layout", "Grid: a new slide of glass blocks, or snap this slide's blocks into one", (e, b) => openPop(b, (p) => gridMenu(p, cur.key || lessonKey())), { text: "Grid", menu: 1, dis: !canEdit(cur.key || lessonKey()) });
     tb(g, "panels", s && s.pn ? "Panels for this slide: " + panelWords(s.pn) : "Open a timer, learning target or agenda when Spotlight reaches this slide", (e, b) => openPop(b, panelsMenu), { text: "Panels", menu: 1, on: !!(s && s.pn), dis: !ready }).id = "slPanelsBtn";
     tb(g, "bank", "Slides from the standards bank: practice problems or a Show Steps walkthrough", (e, b) => openPop(b, bankMenu), { text: "Bank", menu: 1, dis });
+    const gb = btn("tb tghost" + (ghostOn ? " on" : ""), "<i class='tsw'></i><span>Spotlight buttons</span>", () => setGhost(!ghostOn), ghostOn ? "Hide where Spotlight's buttons sit" : "Show where Spotlight's buttons will sit over this slide");
+    gb.setAttribute("aria-pressed", String(ghostOn)); grp("spotg").appendChild(gb);
     if (!ready) { bar.appendChild(el("span", "thint", s ? "Getting your slides…" : "Add a slide to start.")); return; }
     if (!list.length) return;   // nothing picked: the tools alone (the old "click a piece…" hint cost a whole row on a Chromebook)
+    const H = inCtx ? cx : bar;
+    if (!inCtx) tb(grp("tdone"), "check", "Done with this block", () => { if (editing) finishEdit(); sel = []; drawSel(); drawTools(); }, { text: "Done", cls: "tdoneb" });
     const boxes = list.filter((e) => e.k === "bx");
-    if (boxes.length) formatText(grp("fmt"), boxes, tb);
-    if (one && one.k === "ln") formatLine(grp("fmt"), one, tb);
-    if (one && one.k === "tb") formatTable(grp("fmt"), one, tb);
-    if (one && one.k === "pc") formatPic(grp("fmt"), one, tb);
-    if (one && one.k === "mt") { const gg = grp("fmt"); tb(gg, "settings", "Change this math tool", (e, b) => openPop(b, (p) => mathSettings(p, one.id), "wide"), { text: "Change it", cls: "tmath" }); }
-    if (one && one.k === "st" && one.t === "w") { const gg = grp("fmt"); tb(gg, "sticker", "Change the words and color", (e, b) => openPop(b, (p) => wordSettings(p, one.id)), { text: "Words", cls: "tword" }); }
-    const c = grp("common");
+    if (boxes.length) formatText(grp("fmt", H), boxes, tb);
+    if (one && one.k === "ln") formatLine(grp("fmt", H), one, tb);
+    if (one && one.k === "tb") formatTable(grp("fmt", H), one, tb);
+    if (one && one.k === "pc") formatPic(grp("fmt", H), one, tb);
+    if (one && one.k === "mt") { const gg = grp("fmt", H); tb(gg, "settings", "Change this math tool", (e, b) => openPop(b, (p) => mathSettings(p, one.id), "wide"), { text: "Change it", cls: "tmath" }); }
+    if (one && one.k === "st" && one.t === "w") { const gg = grp("fmt", H); tb(gg, "sticker", "Change the words and color", (e, b) => openPop(b, (p) => wordSettings(p, one.id)), { text: "Words", cls: "tword" }); }
+    const c = grp("common", H);
     const rv = one ? (one.ap || 0) : 0;
     tb(c, "reveal", rv ? "Shows on Next press " + rv + " (click to change)" : "Show it on a Next press, not right away", (e, b) => openPop(b, (p) => revealMenu(p, list)), { text: rv ? "Next " + rv : (list.some((x) => x.ap) ? "Next…" : "Reveal"), on: list.some((x) => x.ap), menu: 1 });
     tb(c, "arrange", "Order and line up", (e, b) => openPop(b, (p) => arrangeMenu(p, list)), { text: "Arrange", menu: 1 });
@@ -1274,6 +1328,14 @@ function drawTools() {
     tb(c, list.some((x) => x.lk) ? "lock" : "unlock", list.some((x) => x.lk) ? "Unlock" : "Lock it in place", () => change((sl) => { const lk = !list.some((x) => x.lk); sl.els.forEach((e) => { if (sel.includes(e.id)) { if (lk) e.lk = true; else delete e.lk; } }); }), { on: list.some((x) => x.lk) });
     tb(c, "more", "See-through", (e, b) => openPop(b, (p) => opacityMenu(p, list)));
     tb(c, "trash", "Delete (Del)", () => delSel(), { cls: "danger" });
+    if (inCtx) positionCtx();
+}
+let toolsSig = "";
+/** The tool bar scrolls sideways on a phone: a soft edge shows there is more that way. */
+function toolsFade(bar) {
+    const more = bar.scrollWidth - bar.clientWidth > 2;
+    bar.classList.toggle("fl", more && bar.scrollLeft > 2);
+    bar.classList.toggle("fr", more && bar.scrollLeft < bar.scrollWidth - bar.clientWidth - 2);
 }
 function setEls(fn, tag) { change((s) => { s.els.forEach((e) => { if (sel.includes(e.id)) fn(e); }); }, tag); }
 function formatText(g, boxes, tb) {
@@ -1510,7 +1572,7 @@ function bgMenu(p) {
     swatches(p, bg.t === "color" ? bg.c : "", (c, live) => { if (live) return; setBg(Object.assign({ t: "color", c: c || "#ffffff" }, bg.p ? { p: bg.p } : {})); }, { stay: false });
     p.appendChild(el("p", "sph", "Gradient"));
     const gr = el("div", "sgrads");
-    GRADS.forEach(([id, name, c]) => { const b = btn("sgrad" + (bg.t === "grad" && bg.g === id ? " on" : ""), "", () => { closePop(); setBg(Object.assign({ t: "grad", g: id }, bg.p ? { p: bg.p } : {})); }, name); b.style.background = "linear-gradient(160deg," + c[0] + "," + c[1] + ")"; gr.appendChild(b); });
+    GRADS.forEach(([id, name, c]) => { const b = btn("sgrad" + (bg.t === "grad" && bg.g === id ? " on" : ""), "", () => { closePop(); setBg(Object.assign({ t: "grad", g: id }, bg.p ? { p: bg.p } : {})); }, name); b.style.background = gradCss(id); void c; gr.appendChild(b); });
     p.appendChild(gr);
     if (bg.t !== "board") {
         p.appendChild(el("p", "sph", "Paper"));
@@ -1749,13 +1811,15 @@ function build() {
     const slot = document.getElementById("slBarSlot");
     if (slot) { slot.textContent = ""; slot.appendChild(b1); } else { const bar = el("div", "sbar1"); bar.appendChild(b1); R.appendChild(bar); }
     const b2 = el("div", "sbar2"); b2.id = "slTools"; b2.setAttribute("role", "toolbar"); b2.setAttribute("aria-label", "Slide tools");
+    b2.addEventListener("scroll", () => toolsFade(b2), { passive: true });
     const main = el("div", "smain"), film = el("aside", "sfilm"); film.id = "slFilm"; film.setAttribute("aria-label", "Slides");
     const right = el("div", "sright"), stage = el("div", "sstage"); stage.id = "slStage";
     const canvas = el("div", "scanvas"); canvas.id = "slCanvas"; const over = el("div", "sover"); over.id = "slOver"; stage.append(canvas, over);
     const nb = el("div", "snotes"); nb.id = "slNotesBox"; const nl = el("label", null, "Notes for me"); nl.htmlFor = "slNotes"; const nh = el("small", null, "Only on the Remote and your phone, never on the board");
-    const ta = el("textarea"); ta.id = "slNotes"; ta.rows = 2; ta.maxLength = 3000; ta.placeholder = "What to say, questions to ask, where students get stuck…"; ta.oninput = notesInput; ta.onfocus = () => { if (editing) finishEdit(); };
+    const ta = el("textarea"); ta.id = "slNotes"; ta.rows = 1; ta.maxLength = 3000; ta.placeholder = "What to say, questions to ask, where students get stuck…"; ta.oninput = notesInput; ta.onfocus = () => { if (editing) finishEdit(); };
     const nhd = el("div", "snh"); nhd.append(nl, nh); nb.append(nhd, ta);
-    right.append(stage, nb); main.append(film, right); R.append(b2, main);
+    const cx = el("div", "sctx"); cx.id = "slCtx"; cx.hidden = true; cx.setAttribute("role", "toolbar"); cx.setAttribute("aria-label", "Tools for the picked block");
+    right.append(stage, cx, nb, b2); main.append(film, right); R.append(main);   // Nov 27: the dock sits under the slide, as in Spotlight
     stage.addEventListener("pointerdown", stageDown); stage.addEventListener("pointermove", stageMove); stage.addEventListener("pointerup", stageUp); stage.addEventListener("pointercancel", stageUp);
     stage.addEventListener("dblclick", stageDbl);
     stage.addEventListener("dragover", (e) => { if ([...(e.dataTransfer && e.dataTransfer.items || [])].some((x) => x.kind === "file")) { e.preventDefault(); stage.classList.add("drop"); } });

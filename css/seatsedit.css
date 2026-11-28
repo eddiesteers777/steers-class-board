@@ -165,3 +165,6 @@ body.se-locked .se-act,body.se-locked .se-tpl button,body.se-locked .se-pal butt
 .se-move{margin-top:6px;height:30px;border:1px solid var(--c-line);border-radius:8px;font:inherit;font-size:.78rem;padding:0 6px;background:var(--c-surface,#fff);max-width:100%}
 .se-empty{padding:18px 4px}
 @media (max-width:520px){.se-saverow{flex-wrap:wrap}.se-saverow select{max-width:none;flex:1}.se-crumbtools{margin-left:0;width:100%}}
+
+/* 12px floor (Nov 28 audit): DESIGN.md says text is never under 12px on teacher pages. Same selectors, so only the size changes. */
+.se-mode button small,.se-pal .pg,.se-tpl small{font-size:max(12px,.75rem)}

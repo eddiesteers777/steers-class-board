@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { sanitizeHtml, textOf, plainHtml, cleanEl, cleanSlide, cleanDeck, cleanIndex, cleanBg, fillLive, liveContext, fromPlan, frameSlide, problemSlide,
     todaySlide, agendaSlide, LAYOUTS, newEl, showList, revealSteps, countShown, shapePath, SHAPES, inkFor, inkOn, MAX_SLIDES, MAX_ELS, DAILY, isLessonKey, boxOf,
-    cleanPanels, panelWords, bankSlide, bankText, walkSlide, walkStep } from "../../js/slides.js";
+    cleanPanels, panelWords, bankSlide, bankText, walkSlide, walkStep, GRIDS, gridCells, gridSlide, FRAME, GRADS, gradCss, isAurora, THEMES, cleanTheme, themeId } from "../../js/slides.js";
 import demoWeek from "../../data/demo-week.js";
 
 let n = 0; const t = (name, fn) => { fn(); n++; };
@@ -126,5 +126,35 @@ t("a Show Steps slide plays one step per Next", () => {
     const wk = s.els.find((e) => e.k === "wk");
     assert.equal(walkStep(wk, 0), 0); assert.equal(walkStep(wk, 3), 3); assert.equal(walkStep(wk, 9), 4); assert.equal(walkStep(wk, Infinity), 4);
     assert.equal(cleanEl({ k: "wk", id: "a", x: 0, y: 0, w: 100, h: 100, wid: "bad id!", n: 3 }), null);
+});
+t("every grid fills the safe frame with cells that do not overlap, each with its own start", () => {
+    const ids = new Set();
+    for (const [id, name, fr, start] of GRIDS) {
+        assert.ok(!ids.has(id), id); ids.add(id); assert.ok(name.length <= 18, name);
+        assert.equal(fr.length, start.length, id);
+        const cells = gridCells(id);
+        cells.forEach((c, i) => {
+            assert.ok(c.x >= FRAME.x - 0.5 && c.y >= FRAME.y - 0.5 && c.x + c.w <= FRAME.x + FRAME.w + 0.5 && c.y + c.h <= FRAME.y + FRAME.h + 0.5, id + " cell " + i);
+            assert.ok(c.w >= 300 && c.h >= 100, id + " cell " + i + " is too small");
+            cells.slice(i + 1).forEach((d) => assert.ok(c.x + c.w <= d.x || d.x + d.w <= c.x || c.y + c.h <= d.y || d.y + d.h <= c.y, id + " overlaps"));
+        });
+        const s = gridSlide(id, null);
+        assert.equal(s.els.length, cells.length, id); assert.equal(s.gd, id);
+        assert.deepEqual(cleanSlide(JSON.parse(JSON.stringify(s))), s, id);
+    }
+});
+t("Aurora glass (Nov 27): its own background glow, light ink, and a theme that brings the glow along", () => {
+    assert.ok(GRADS.some((g) => g[0] === "aurora"));
+    assert.match(gradCss("aurora"), /^radial-gradient/);
+    assert.match(gradCss("sky"), /^linear-gradient\(160deg,#bcd8f5/);
+    assert.match(gradCss("nope"), /^linear-gradient\(160deg,#bcd8f5/, "unknown ids fall back to the first fade");
+    const bg = cleanBg({ t: "grad", g: "aurora" });
+    assert.deepEqual(bg, { t: "grad", g: "aurora" }); assert.ok(isAurora(bg)); assert.ok(!isAurora({ t: "grad", g: "navy" })); assert.ok(!isAurora(null));
+    assert.equal(inkFor(bg), "#f6f9fd", "light words on the Aurora glow");
+    const th = THEMES.find((x) => x[0] === "aurora");
+    assert.ok(th && th[3] && isAurora(th[3]), "Aurora glass sets the background too");
+    assert.deepEqual(cleanTheme(th[2]), th[2]); assert.equal(themeId(th[2]), "aurora");
+    const ids = THEMES.map((x) => x[0]); assert.equal(new Set(ids).size, ids.length, "theme ids are unique");
+    THEMES.forEach(([id, , t2]) => { if (t2) assert.equal(themeId(t2), id, "every ready-made theme is found again: " + id); });
 });
 console.log("Lesson slides: " + n + " checks passed");

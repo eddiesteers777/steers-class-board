@@ -98,3 +98,6 @@
 .st-ownbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 12px;color:var(--muted,#55617A);font-weight:600}
 .st-setup{display:flex;flex-direction:column;align-items:center;gap:12px}
 .st-setup p{margin:0}
+
+/* 12px floor (Nov 28 audit): DESIGN.md says text is never under 12px on teacher pages. Same selectors, so only the size changes. */
+.st-uno{font-size:max(12px,.75rem)}

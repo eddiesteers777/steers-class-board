@@ -393,3 +393,6 @@ body.board .docked .close.sendbtn,body.board .float .close.sendbtn{display:inlin
 .lntoast.on{opacity:1;transform:translate(-50%,0)}
 body.board .lntoast{font-size:1.4rem}
 @media (prefers-reduced-motion:reduce){.lntoast{transition:none}}
+
+/* 12px floor (Nov 28 audit): DESIGN.md says text is never under 12px on teacher pages. Same selectors, so only the size changes. */
+.console .rail .toolchips .dockh{font-size:max(12px,.75rem)}

@@ -410,7 +410,7 @@ dialog.spick::backdrop{background:rgba(8,27,69,.45)}
 .slrow .sldays{flex:0 1 auto;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
 .slrow .sldays::-webkit-scrollbar{display:none}
 .slrow .slday{flex:none}
-@container slbar (max-width:1040px){
+@container slbar (max-width:1080px){
   .slsave[data-state="ok"],.slsave[data-state="wait"]{font-size:0;gap:0;padding:6px}   /* the dot says it; "not saved" keeps its words */
   .slrow .slteach i{display:none}
   .slcls select{max-width:124px}
@@ -459,3 +459,288 @@ dialog.spick::backdrop{background:rgba(8,27,69,.45)}
 .spop .sthsolid{display:flex;align-items:center;gap:8px;margin-left:auto;font:600 .8rem var(--ui);color:var(--c-mute)}
 .spop .sthsolid input{width:110px}
 @media (max-width:700px){.spop .sthgrid{grid-template-columns:repeat(3,1fr)}.spop .sthsolid{margin-left:0}}
+
+/* ---------- Slides on a phone (Nov 26, Eddie: "make the slides page more phone friendly and easy to use") ----------
+   Phones only (body.phone, or under 860px for the parts that only exist there); Chromebook and Promethean are unchanged. */
+.sfh .sfhs,.sbar2 .tgrp.tdone{display:none}
+/* The header in two rows, not three: Teach, ⋯ and the saved dot go up beside the Board / Slides / Spotlight switch,
+   and the week sits beside the days. */
+body.phone.slidemode .cbar .slrow{flex-wrap:nowrap;gap:6px}
+body.phone.slidemode .cbar .slgap{display:none}
+body.phone.slidemode .cbar .slteach,body.phone.slidemode .cbar .slmore{position:absolute;top:max(10px,env(safe-area-inset-top));width:44px;min-width:44px;height:40px;min-height:40px;padding:0}
+body.phone.slidemode .cbar #slBarSlot{margin-top:6px}
+body.phone.slidemode .cbar .slmore{right:12px}
+body.phone.slidemode .cbar .slteach{right:64px}
+body.phone.slidemode .cbar .slsave{position:absolute;top:max(20px,calc(env(safe-area-inset-top) + 10px));right:118px}
+body.phone.slidemode .cbar .slwk{flex:0 1 auto;min-width:0}
+body.phone.slidemode .cbar .slwkn{min-width:0}
+body.phone.slidemode .cbar .slwkt{max-width:96px;padding:0 4px}
+body.phone.slidemode .cbar .slwkt small{display:none}
+body.phone.slidemode .cbar .sldays{order:0;flex:1 1 0;width:auto;min-width:0}
+body.phone.slidemode .cbar .slday{padding:3px 2px}
+body.phone.slidemode .cbar .slday small{display:none}
+@media (max-width:379px){body.phone.slidemode .cbar .slwka{width:22px}body.phone.slidemode .cbar .slwkt{max-width:72px}}
+@media (max-width:860px){
+  /* The tool bar: a picked block shows its own tools, with Done first; the add tools come back when nothing is picked */
+  .sbar2.hassel .tgrp.ins,.sbar2.hassel .tgrp.slideg{display:none}
+  .sbar2.hassel .tgrp.tdone{display:flex;order:-1}
+  .sbar2 .tb.tdoneb{background:var(--navy,#0B2559);color:#fff;padding:0 12px}
+  .sbar2 .tb.tdoneb:hover:not(:disabled){background:var(--navy,#0B2559)}
+  .sbar2.fr{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
+  .sbar2.fl{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}
+  .sbar2.fl.fr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
+  .sapp .sbar2 .tb{height:40px;min-width:40px}
+  /* The slide strip: a small Select, one-word headings, so the slides themselves show */
+  .sfpick.sfidle{width:60px}
+  .sfpick.sfidle .sfsel{min-height:60px;font-size:.74rem;padding:0}
+  .sfh{width:40px}
+  .sfh b{display:none}
+  .sfh .sfhs{display:block;font-size:.66rem;line-height:1.25;overflow-wrap:normal;word-break:normal}
+  .sfh:has(+ .sflist > .sfadd:first-child){display:none}   /* no every-day slides yet: the + tile says it alone */
+  .sfh:has(+ .sflist > .sfadd:first-child) + .sflist .sfadd.small{margin-left:0}
+  .sfadd.small{width:76px;font-size:.74rem}
+  /* An empty day: the three ways to start stack in a column the page can scroll, nothing cut off */
+  .sstage.blank{aspect-ratio:auto;max-height:none;min-height:0;overflow:visible}
+  .sstage.blank .scanvas{position:static}
+  .sstage.blank .sempty{position:static;padding:18px 12px 20px;gap:8px}
+  .sstage.blank .sempty h2{font-size:1.35rem}
+  .sstage.blank .sempty p{font-size:.86rem}
+  .sstage.blank .semrow{flex-direction:column;align-items:stretch;width:100%;gap:8px;margin-top:4px}
+  .sstage.blank .sembig{display:grid;grid-template-columns:28px 1fr;column-gap:12px;row-gap:2px;align-items:center;width:100%;min-height:64px;padding:12px 14px;box-sizing:border-box}
+  .sstage.blank .sembig .ic{grid-row:1/3;align-self:center}
+  .sstage.blank .sembig b{font-size:.98rem}
+  .sstage.blank .sembig small{font-size:.78rem}
+  /* Notes: label over its hint, and 16px so an iPhone does not zoom in on a tap */
+  .snh{flex-direction:column;gap:0}
+  .snotes textarea{font-size:16px}
+  /* The toast clears the sound pill at the bottom */
+  .stoast{bottom:calc(88px + env(safe-area-inset-bottom))}
+}
+/* Menus come up from the bottom as a sheet, so the slide stays in view above (Look: tap a theme and see it) */
+body.phone .spop{left:8px!important;right:8px;top:auto!important;bottom:calc(8px + env(safe-area-inset-bottom));max-width:none!important;max-height:min(50vh,460px);border-radius:18px;box-shadow:0 -12px 40px rgba(14,27,58,.28)}
+
+/* ---------- Glass Studio (Nov 27, Eddie picked option A from the mockups, and said yes to Aurora glass) ----------
+   The Slides page wears Spotlight's dark glass (css/spotlight.css): the same navy glow behind, the same glass recipe on
+   everything that floats, amber for the one next step. The header is one glass bar, the slides sit on a glass rail, the
+   tools are one glass dock under the slide, and the picked block's tools float in a small glass bar beside it (#slCtx).
+   Only while Slides is up (body.slidemode): Board and Spotlight are unchanged, and menus (.spop) stay light to read. */
+/* Glass Studio follows the teacher's site colors (Nov 27, Eddie: "I think it got disconnected to adjusting to the theme of the
+   website the user selected"). Every tint below comes from these names. Anchor navy keeps the exact colors Eddie approved;
+   the other eight schemes mix the same dark glass from their own --s-* colors (css/skin.css), so Plum is plum glass, Forest
+   is green glass. Amber, green and red keep their meanings. Light and Night both keep the dark glass Eddie picked. */
+body.slidemode{--gs-d0:#18346d;--gs-d1:#0a1838;--gs-d2:#050c1f;--gs-glass:#0C1C42;--gs-rail:#0E1E44;--gs-well:#00081E;--gs-ink:#F4F8FF;
+  --gs-ice:#E2ECFF;--gs-sky:#8CC8FF;--gs-sky2:#5696E6;--gs-pale:#B9D3EE;--gs-edge:#4F8FD8;--gs-pick:#11244d;--gs-pn:#7FAEDD;--gs-pnink:#CFE3FA;
+  --gs-ic:#A9CDF2;--gs-kink:#DCEBFF;--gs-dayon:#0B2559;--gs-dayon2:#10358A}
+html[data-scheme]:not([data-scheme="navy"]) body.slidemode{
+  --gs-d0:color-mix(in srgb,var(--s-hi) 84%,#000);--gs-d1:color-mix(in srgb,var(--s-out) 82%,#000);--gs-d2:color-mix(in srgb,var(--s-out) 44%,#000);
+  --gs-glass:color-mix(in srgb,var(--s-out) 72%,var(--s-mid));--gs-rail:color-mix(in srgb,var(--s-out) 64%,var(--s-mid));--gs-well:color-mix(in srgb,var(--s-out) 40%,#000);
+  --gs-ink:color-mix(in srgb,var(--s-light) 10%,#fff);--gs-ice:color-mix(in srgb,var(--s-light) 42%,#fff);
+  --gs-sky:color-mix(in srgb,var(--s-sky) 78%,#fff);--gs-sky2:color-mix(in srgb,var(--s-sky) 72%,var(--s-hi));--gs-pale:var(--s-light);
+  --gs-edge:color-mix(in srgb,var(--s-sky) 62%,var(--s-hi));--gs-pick:color-mix(in srgb,var(--s-hi) 34%,var(--s-out));--gs-pn:var(--s-sky);
+  --gs-pnink:color-mix(in srgb,var(--s-light) 62%,#fff);--gs-ic:color-mix(in srgb,var(--s-sky) 72%,#fff);--gs-kink:color-mix(in srgb,var(--s-light) 55%,#fff);
+  --gs-dayon:var(--s-mid);--gs-dayon2:var(--s-hi)}
+:root body.console.slidemode{background:radial-gradient(120% 90% at 50% 0%,var(--gs-d0) 0%,var(--gs-d1) 45%,var(--gs-d2) 100%) fixed,var(--gs-d2)!important;color:var(--gs-ink)}
+body.slidemode .cbar,body.slidemode .sapp{--c-bg:color-mix(in srgb,var(--gs-well) 32%,transparent);--c-surface:rgba(255,255,255,.07);--c-ink:var(--gs-ink);--c-mute:color-mix(in srgb,var(--gs-ice) 66%,transparent);--c-line:rgba(255,255,255,.16);
+  --k-sub:color-mix(in srgb,var(--gs-sky) 18%,transparent);--k-ink:var(--gs-kink);--g-fill:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.06));--g-line:rgba(255,255,255,.24);
+  --g-on:linear-gradient(180deg,color-mix(in srgb,var(--gs-sky) 50%,transparent),color-mix(in srgb,var(--gs-sky2) 32%,transparent));--g-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 18px 50px color-mix(in srgb,var(--gs-well) 50%,transparent),0 2px 8px color-mix(in srgb,var(--gs-well) 25%,transparent);color:var(--gs-ink)}
+/* one glass surface, as Spotlight's .spg */
+body.slidemode .sfilm,body.slidemode .snotes,body.slidemode .sbar2,body.slidemode .sctx,:root body.console.slidemode .cbar{background:var(--g-fill),color-mix(in srgb,var(--gs-glass) 42%,transparent);
+  -webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);border:1px solid var(--g-line);box-shadow:var(--g-shadow)}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){body.slidemode .sfilm,body.slidemode .snotes,body.slidemode .sbar2,body.slidemode .sctx,:root body.console.slidemode .cbar{background:color-mix(in srgb,var(--gs-glass) 92%,transparent)}}
+
+/* the header: one floating glass bar */
+:root body.console.slidemode .cbar{margin:12px 12px 0;border-radius:20px;padding:7px 10px;background:var(--g-fill),color-mix(in srgb,var(--gs-glass) 42%,transparent)!important;box-shadow:var(--g-shadow)!important}
+body.slidemode .cbar::after{display:none}
+body.slidemode .cbar .smode{background:var(--c-bg);border:0;box-shadow:inset 0 1px 3px rgba(0,0,0,.35)}
+body.slidemode .cbar .smode button{color:color-mix(in srgb,var(--gs-ice) 75%,transparent)}
+body.slidemode .cbar .smode button:hover{background:rgba(255,255,255,.1);color:#fff}
+body.slidemode .cbar .smode button[aria-pressed="true"]{background:var(--g-on);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
+body.slidemode .slwk,body.slidemode .sldays{border:0;box-shadow:inset 0 1px 3px rgba(0,0,0,.35)}
+body.slidemode .slwka:hover:not(:disabled),body.slidemode .slwkn:hover,body.slidemode .slday:hover{background:rgba(255,255,255,.1)}
+body.slidemode .slday.on{background:#fff;color:var(--gs-dayon)}
+body.slidemode .slday.on small{color:var(--gs-dayon2)}
+body.slidemode .slcls select{background-color:var(--c-bg);color:var(--gs-ink);border-color:var(--c-line)}
+body.slidemode .cbar select option{color:#0E1B3A;background:#fff}
+body.slidemode .slrow .slmore{background:rgba(255,255,255,.08);border:1px solid var(--c-line);color:var(--gs-ink);box-shadow:none}
+body.slidemode .slrow .slmore:hover,body.slidemode .slrow .slmore[aria-expanded="true"]{background:rgba(255,255,255,.16)}
+
+/* the page: rail on the left, the slide in the middle, notes and the dock under it */
+body.slidemode .sapp{background:transparent;padding:12px}
+body.slidemode .smain{gap:12px}
+body.slidemode .sfilm{border-radius:20px;padding:10px 10px 16px}
+body.slidemode .sfpick{background:var(--gs-pick);border-radius:14px 14px 0 0}
+body.slidemode .sfpick.sfpkon{border-bottom-color:var(--c-line)}
+body.slidemode .sft:hover{box-shadow:0 0 0 2px color-mix(in srgb,var(--gs-pale) 60%,transparent)}
+body.slidemode .sfadd{border-color:rgba(255,255,255,.3)}
+body.slidemode .sfadd:hover{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.08)}
+body.slidemode .sfm{color:#0E1B3A}
+body.slidemode .sfb span{background:rgba(255,255,255,.1);color:color-mix(in srgb,var(--gs-ice) 85%,transparent)}
+body.slidemode .sfb .sfrv{background:rgba(242,179,61,.22);color:#FFD271}
+body.slidemode .sfb .sfpn{background:color-mix(in srgb,var(--gs-pn) 24%,transparent);color:var(--gs-pnink)}
+body.slidemode .sfb .sfhid{background:rgba(229,72,77,.24);color:#FFB3B6}
+body.slidemode .sfb .sfinsp{background:#F2B33D;color:#2A1C00}
+body.slidemode .sright{position:relative;gap:10px}
+:root body.slidemode .sstage{background:transparent;border-radius:18px}
+body.slidemode .scanvas .slcanvas{box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.1)}
+body.slidemode .sover .sfr{border-color:var(--gs-sky)}
+body.slidemode .sover .hd{border-color:var(--gs-edge)}
+body.slidemode .sover .hrot::after{background:var(--gs-sky)}
+body.slidemode .sempty h2{color:var(--gs-ink)}
+body.slidemode .sembig{background:var(--g-fill),color-mix(in srgb,var(--gs-glass) 42%,transparent);border-color:var(--g-line);color:var(--gs-ink)}
+body.slidemode .sembig:hover{border-color:rgba(255,255,255,.4);box-shadow:0 14px 30px rgba(0,0,0,.35)}
+body.slidemode .sembig:first-child{border-color:rgba(242,179,61,.85);background:linear-gradient(180deg,rgba(242,179,61,.2),rgba(242,179,61,.08)),color-mix(in srgb,var(--gs-glass) 42%,transparent)}
+body.slidemode .sembig .ic{color:var(--gs-ic)}
+body.slidemode .sembig:first-child .ic{color:#FFD271}
+/* notes: a one-line strip that opens while you type in it */
+body.slidemode .snotes{flex-direction:row;align-items:flex-start;gap:12px;padding:6px 8px 6px 14px;border-radius:16px}
+body.slidemode .snh{flex:none;flex-direction:column;gap:0;padding-top:9px}
+body.slidemode .snh small{display:none}
+body.slidemode .snotes textarea{flex:1;min-height:38px;max-height:30vh;resize:none;background:color-mix(in srgb,var(--gs-well) 28%,transparent);border:1px solid rgba(255,255,255,.12);color:var(--gs-ink);transition:min-height .24s}
+body.slidemode .snotes textarea::placeholder{color:color-mix(in srgb,var(--gs-ice) 50%,transparent)}
+body.slidemode .snotes textarea:focus{min-height:104px;outline:2px solid var(--gs-sky);outline-offset:0;border-color:transparent}
+/* the dock: Spotlight's toolbar shape, every tool with its name under it */
+body.slidemode .sbar2{align-self:center;max-width:100%;flex-wrap:nowrap;gap:0;padding:5px 7px;min-height:0;border-radius:24px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+body.slidemode .sbar2::-webkit-scrollbar{display:none}
+body.slidemode .sbar2.fr{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
+body.slidemode .sbar2.fl{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}
+body.slidemode .sbar2.fl.fr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
+body.slidemode .sbar2 .tgrp,body.slidemode .sctx .tgrp{flex:none;border-right:0;padding:0 3px;position:relative}
+body.slidemode .sbar2 .tgrp+.tgrp::before,body.slidemode .sctx .tgrp+.tgrp::before{content:"";position:absolute;left:-1px;top:8px;bottom:8px;width:1px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.28),transparent)}
+body.slidemode .sbar2 .tb{flex-direction:column;gap:3px;height:54px;min-width:58px;padding:4px 6px 3px;border-radius:14px;color:color-mix(in srgb,var(--gs-ice) 80%,transparent);font:700 .72rem var(--ui);transition:background .18s,color .18s,transform .12s}
+body.slidemode .sbar2 .tb .ic{width:21px;height:21px}
+body.slidemode .sbar2 .tb .icc{display:none}
+body.slidemode .sbar2 .tb:hover:not(:disabled),body.slidemode .sctx .tb:hover:not(:disabled){background:rgba(255,255,255,.12);color:#fff}
+body.slidemode .sbar2 .tb:active:not(:disabled),body.slidemode .sctx .tb:active:not(:disabled){transform:scale(.95)}
+body.slidemode .sbar2 .tb.on,body.slidemode .sbar2 .tb[aria-expanded="true"],body.slidemode .sctx .tb.on,body.slidemode .sctx .tb[aria-expanded="true"]{background:var(--g-on);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
+body.slidemode .sbar2 .tb:disabled,body.slidemode .sctx .tb:disabled{opacity:.32}
+body.slidemode .sbar2 .thint{color:color-mix(in srgb,var(--gs-ice) 70%,transparent);padding:0 12px;align-self:center}
+/* Spotlight buttons: a small switch */
+.sapp .tb.tghost .tsw{position:relative;display:block;width:30px;height:18px;border-radius:99px;background:color-mix(in srgb,var(--gs-well) 45%,transparent);box-shadow:inset 0 1px 3px rgba(0,0,0,.4);transition:background .2s}
+.sapp .tb.tghost .tsw::after{content:"";position:absolute;left:3px;top:3px;width:12px;height:12px;border-radius:50%;background:#fff;transition:transform .22s}
+body.slidemode .sbar2 .tb.tghost{min-width:76px}
+body.slidemode .sbar2 .tb.tghost.on{background:transparent;box-shadow:none;color:#FFD271}
+.sapp .tb.tghost.on .tsw{background:#F2B33D}
+.sapp .tb.tghost.on .tsw::after{transform:translateX(12px)}
+.sover .sghost{position:absolute;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:0 6px;border:1.5px dashed rgba(255,210,113,.95);border-radius:12px;background:rgba(255,210,113,.14);
+  color:#FFE3A6;font:700 .72rem var(--ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* the picked block's own glass bar */
+.sctx{position:absolute;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:2px 0;padding:4px;border-radius:16px;transition:opacity .2s,left .2s,top .2s}
+.sctx[hidden]{display:none}
+.sctx.away{opacity:0;pointer-events:none}
+body.slidemode .sctx .tb{height:38px;min-width:38px;border-radius:11px;color:var(--gs-ink)}
+body.slidemode .sctx .tb.danger{color:#FFB3B6}
+body.slidemode .sctx .tb.danger:hover:not(:disabled){background:rgba(229,72,77,.3);color:#fff}
+body.slidemode .sctx .tszv{border-color:rgba(255,255,255,.2);color:#fff}
+body.slidemode .sctx .tb.tcolor i{box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+@media (prefers-reduced-motion:reduce){.sctx,body.slidemode .sbar2 .tb,body.slidemode .snotes textarea,.sapp .tb.tghost .tsw::after{transition:none}}
+
+/* smaller screens: thinner dock buttons, then the phone */
+@media (max-width:1300px) and (min-width:861px){body.slidemode .sbar2 .tb{min-width:50px;padding:4px 4px 3px;font-size:.68rem}}
+@media (max-width:860px){
+  body.slidemode .sapp{padding:8px 8px 0}
+  :root body.console.slidemode .cbar{margin:8px 8px 0}
+  body.slidemode .smain{gap:8px}
+  body.slidemode .sfilm{border-radius:16px;border-top:1px solid var(--g-line)}
+  body.slidemode .sfpick{border-radius:12px 0 0 12px}
+  body.slidemode .sbar2 .tgrp.spotg{display:none}
+  body.slidemode .sbar2 .tgrp.hist .tb span{display:none}
+  body.slidemode .sbar2{order:4;position:sticky;bottom:calc(8px + env(safe-area-inset-bottom));z-index:6;margin:0 0 8px;align-self:stretch;border-radius:20px}
+  body.slidemode .sbar2 .tb{height:50px;min-width:52px}
+  body.slidemode .sbar2 .tb.tdoneb{background:linear-gradient(180deg,#FFD271,#F2B33D);color:#2A1C00;flex-direction:row;height:40px;align-self:center}
+  body.slidemode .snotes{flex-direction:column;gap:4px;padding:8px 10px}
+  body.slidemode .snh{padding-top:0}
+  body.slidemode .snotes textarea{font-size:16px}
+  body.slidemode .sstage{border-radius:14px}
+}
+/* the block bar stays one row on a Chromebook: compact buttons, no menu carets (every button with a menu still opens it) */
+body.slidemode .sctx .tb{height:36px;min-width:30px;padding:0 4px;border-radius:10px}
+body.slidemode .sctx .tb .icc{display:none}
+body.slidemode .sctx .tb.tglyph{min-width:28px;padding:0 2px}
+body.slidemode .sctx .tszv{min-width:26px;padding:4px 1px;font-size:.8rem}
+body.slidemode .sctx .tgrp{padding:0 2px}
+/* notes from the editor sit above the dock, not on it */
+body.slidemode .stoast{bottom:104px}
+/* every dock tool keeps its name (the old top bar hid Look, Grid, Panels and Bank's names under 1300px) */
+body.slidemode .sbar2 .slideg .tb.txt span{display:inline}
+/* the slide rail scrolls, and Chrome draws a sticky bar's fill in the wrong place inside a blurred scroller (the ticked-slides
+   bar let thumbnails show through): the rail gets a near-solid glass fill instead, which looks the same over the navy behind */
+body.slidemode .sfilm{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--g-fill),color-mix(in srgb,var(--gs-rail) 86%,transparent)}
+
+/* ---------- Slides on a real phone, take two (Nov 27, Eddie's iPhone screenshot: "The phone view is a disaster") ----------
+   Signed in with three classes the header ran out of room (class cut to "8th G", Thu and Fri off the edge), the board status
+   badge sat on the ⋯, and the dock covered the slide strip. Now: the badge has its own spot beside Teach; with more than one
+   class, week and class share the second row and Mon-Fri get a full row of their own; and Slides on a phone is one screen
+   like an app: the slide takes the room that is left, the strip, notes and dock each keep their own row, and nothing scrolls
+   under anything (an empty day's three starts scroll inside the slide's space). */
+body.phone.slidemode .cbar #liveStatusBtn{position:absolute;top:max(11px,calc(env(safe-area-inset-top) + 1px));right:116px;width:38px;height:38px;margin:0}
+body.phone.slidemode .cbar .slsave{right:160px}
+body.phone.slidemode .cbar .slrow:has(.slcls:not([hidden])){flex-wrap:wrap;row-gap:6px}
+body.phone.slidemode .cbar .slrow:has(.slcls:not([hidden])) .slwk{flex:1 1 0;min-width:0}
+body.phone.slidemode .cbar .slrow:has(.slcls:not([hidden])) .slwkn{flex:1;min-width:0}
+body.phone.slidemode .cbar .slrow:has(.slcls:not([hidden])) .slwkt{max-width:none}
+body.phone.slidemode .cbar .slrow:has(.slcls:not([hidden])) .slcls{flex:1 1 0;min-width:0}
+body.phone.slidemode .cbar .slrow:has(.slcls:not([hidden])) .slcls select{width:100%;max-width:none;min-height:46px}
+body.phone.slidemode .cbar .slrow:has(.slcls:not([hidden])) .sldays{order:5;flex:1 1 100%;width:100%}
+body.phone.slidemode .cbar .slday{flex:1 1 0;min-width:0}
+/* one screen, like an app */
+:root body.phone.slidemode{display:flex;flex-direction:column;height:100vh;height:100dvh;min-height:0;overflow-x:clip;overflow-y:auto}
+body.phone.slidemode .cbar{flex:none}
+body.phone.slidemode .sapp{flex:1 1 auto;min-height:0}
+@media (max-width:860px){
+  body.slidemode .sbar2{position:static}
+  body.phone.slidemode .sapp{display:flex;flex-direction:column;padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+  body.phone.slidemode .smain{flex:1 1 auto;min-height:0;gap:8px}
+  body.phone.slidemode .sstage,body.phone.slidemode .sstage.blank{flex:1 1 auto;min-height:120px;max-height:none;aspect-ratio:auto}
+  body.phone.slidemode .sstage.blank{overflow-y:auto;overscroll-behavior:contain;border-radius:16px}
+  body.phone.slidemode .sstage.blank .sempty{padding:12px 4px 14px}
+  body.phone.slidemode .sfilm{flex:none;height:104px}
+  body.phone.slidemode .snotes{flex:none;flex-direction:row;align-items:center;gap:10px;padding:6px 8px 6px 12px}
+  body.phone.slidemode .snh label{white-space:nowrap}
+  body.phone.slidemode .snotes textarea{min-height:40px}
+  body.phone.slidemode .snotes textarea:focus{min-height:96px}
+  body.phone.slidemode .sbar2{flex:none;margin:0}
+  body.phone.slidemode .stoast{bottom:calc(96px + env(safe-area-inset-bottom))}
+}
+/* the board status badge wears the glass too, not a white tile */
+body.slidemode .cbar #liveStatusBtn{background:rgba(255,255,255,.08);border:1px solid var(--c-line);box-shadow:none;color:var(--gs-ink)}
+body.slidemode .cbar #liveStatusBtn:hover{background:rgba(255,255,255,.16)}
+/* "Tap for sound" sits at the top middle while Slides is up (as in Spotlight), never on the dock */
+body.slidemode .sndtap{top:auto;bottom:auto;top:calc(env(safe-area-inset-top) + 86px);left:50%;right:auto;transform:translateX(-50%);z-index:41}
+body.phone.slidemode .sndtap{top:calc(env(safe-area-inset-top) + 172px)}
+@media (max-width:860px){
+  /* notes on a phone: one line until you tap in, so the hint never shows half-cut */
+  body.phone.slidemode .snotes textarea:not(:focus){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.phone.slidemode .snotes textarea::placeholder{white-space:nowrap;text-overflow:ellipsis}
+}
+/* No yellow Spotlight button on a phone (Nov 27, Eddie: "Get rid of the yellow spotlight view"): the switch at the top left
+   already has Spotlight. The Chromebook keeps Teach this slide. The status badge and saved dot move over into its place. */
+body.phone.slidemode .cbar .slteach{display:none!important}
+body.phone.slidemode .cbar #liveStatusBtn{right:64px}
+body.phone.slidemode .cbar .slsave{right:108px}
+
+/* ---------- Phone, take three (Nov 27, Eddie's screenshot with circles: the top corner and the slide strip) ----------
+   The top corner: the saved state is only ever a dot on a phone (its words, like "Saving…", used to spread into its
+   neighbours; they stay for screen readers and on hover), the board badge is one button without a box around its box,
+   and the three sit evenly spaced. The strip: no section names ("FRI", "Every day"): an every-day slide says so on its
+   own picture, and a slide's ⋯ > Show every day makes one, so the every-day tile goes; New slide and Grid stack into one
+   small tile at the end; Select is a slim button; the slides get the room. */
+.sfb .sfed{display:none}
+body.phone.slidemode .cbar .slsave{right:112px;font-size:0!important;gap:0!important;padding:6px!important;max-width:20px;overflow:hidden}
+body.phone.slidemode .cbar #liveStatusBtn{right:62px;width:44px;height:40px;top:max(10px,env(safe-area-inset-top));background:transparent;border:0;padding:0}
+body.phone.slidemode .cbar #liveStatusBtn .lsscr{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px var(--c-line)}
+@media (max-width:860px){
+  body.slidemode .sfilm{gap:8px;padding:8px}
+  body.slidemode .sfh{display:none}
+  body.slidemode .sflist{gap:8px}
+  body.slidemode .sfb .sfed{display:inline;background:rgba(127,174,221,.24);color:#CFE3FA}
+  body.slidemode .sflist[data-key="daily"] > .sfadd{display:none}
+  body.slidemode .sfaddrow{flex-direction:column;gap:6px;flex:none;width:86px;margin:0}
+  body.slidemode .sfaddrow .sfadd,body.slidemode .sfaddrow .sfadd.lay{width:86px;min-height:0;height:38px;flex:none;flex-direction:row;gap:4px;font-size:.78rem;padding:0}
+  body.slidemode .sfaddrow .sfadd span{display:inline;white-space:nowrap}
+  body.slidemode .sfaddrow .sfadd.lay::after{content:"Grid"}
+  body.slidemode .sfpick.sfidle{width:52px;margin:-8px 0 -8px -8px;padding:6px 4px}
+  body.slidemode .sfpick.sfidle .sfsel{min-height:0;height:100%;font-size:.75rem;gap:4px;padding:0}
+}
+
+/* 12px floor (Nov 28 audit): DESIGN.md says text is never under 12px on teacher pages. Same selectors, so only the size changes. */
+.sfb span,.sfh small,.slwkt small,.sover .ssafe span,body.slidemode .sbar2 .tb{font-size:max(12px,.75rem)}
