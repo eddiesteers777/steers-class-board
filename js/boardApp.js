@@ -617,6 +617,9 @@ function buildControls() {
     WEEKS.forEach((x) => { const o = el("option", null, x.label + " · " + (isPhone() ? String(x.dates || "").replace(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*/g, "$1") : x.dates)); o.value = x.id; sel.appendChild(o); });
     sel.value = w.id; $("weekField").hidden = WEEKS.length < 2;
     const fn = $("flowNext"); if (fn) { fn.textContent = stepLabel(); fn.disabled = fn.textContent === "Next" && !nextScreen(1); $("flowBack").disabled = S.screen === screenOrder()[0]; }
+    const fbk = $("flowBlank"), ftm = $("flowTimer");
+    if (fbk) { const on = S.screen === "blank"; fbk.classList.toggle("on", on); fbk.setAttribute("aria-pressed", String(on)); }
+    if (ftm) { const on = !!S.tools.on.ptimer; ftm.hidden = !panelOk("ptimer"); ftm.classList.toggle("on", on); ftm.setAttribute("aria-pressed", String(on)); }
     quickBar();
     const bn = $("bnNext"), bb = $("bnBack");
     if (bn) { const nl = stepLabel(), bl = backLabel(); bn.title = nl; bn.setAttribute("aria-label", nl); bn.disabled = $("flowNext").disabled; bb.title = bl; bb.setAttribute("aria-label", bl); bb.disabled = $("flowBack").disabled; }
@@ -2077,6 +2080,22 @@ export async function startApp(opts) {
     if (mode === "remote" && !guest && !studio && !tvView && $("screens")) mountAttendance({ el, S, push: () => push(), mode: () => mode, signedIn: () => signedIn, store: () => store, rosters: () => ROSTERS, periods: () => PERIODS, today: () => localIso() }, $("screens"));   // Who's out (Remote only, Phase 2)
     if (!guest) planFold = mountPlanFold(planApi, $("planAnchor") || $("soundMenu") || $("toolsMenu"));
     $("flowNext").onclick = () => step(1); $("flowBack").onclick = () => step(-1);
+    // The phone dock (Nov 28, Eddie: "8, 9, and 10 now"): on a phone, Back and Next sit pinned at the bottom of the screen
+    // with Blank and Timer beside them (css/glass.css). Blank shows the empty whiteboard and a second tap goes back to
+    // where the board was; Timer puts the timer panel on or off. Hidden on a Chromebook, where the rail has both.
+    {
+        const fl = document.querySelector(".flowbar .flow");
+        if (fl && mode !== "board") {
+            const mk = (id, svg, label, fn) => { const b = el("button", "fx"); b.id = id; b.type = "button"; b.innerHTML = svg + "<span>" + label + "</span>"; b.title = label; b.onclick = fn; fl.appendChild(b); return b; };
+            const blankIc = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>';
+            let blankFrom = "";
+            mk("flowBlank", blankIc, "Blank", () => {
+                if (S.screen === "blank") { if (blankFrom && blankFrom !== "blank") pickScreen(blankFrom); else { backToToday(); push(); } blankFrom = ""; }
+                else { blankFrom = S.screen; pickScreen("blank"); }
+            });
+            mk("flowTimer", pIcon("ptimer"), "Timer", () => { panelToggle(S.tools, "ptimer"); push(); });
+        }
+    }
     {   // Phone: swipe the board picture left for Next, right for Back (the picture shows the result at once)
         const w = $("wrap"); let sx = 0, sy = 0, st = 0, on = false;
         w.addEventListener("pointerdown", (e) => { on = phoneMirror() && e.pointerType !== "mouse" && !e.target.closest("button,input,select,a,textarea,.stk,.float h3,.grip"); sx = e.clientX; sy = e.clientY; st = Date.now(); }, true);

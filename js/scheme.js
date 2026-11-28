@@ -27,7 +27,9 @@
         return { c: c, m: m, at: +o.at || 0 };
     }
     function read() { try { return clean(JSON.parse(localStorage.getItem(K) || "null")); } catch (e) { return clean(null); } }
-    function modeOf(o) { return o.m === "auto" ? (mq && mq.matches ? "dark" : "light") : o.m; }
+    /* Glass teaching screens (Nov 28): a page with <html data-glass> (the Remote, the Board Builder) is always Night,
+       whatever the site setting, so it matches Slides and Spotlight (css/glass.css). */
+    function modeOf(o) { if (document.documentElement.hasAttribute("data-glass")) return "dark"; return o.m === "auto" ? (mq && mq.matches ? "dark" : "light") : o.m; }
     function apply(o) {
         var h = document.documentElement, mode = modeOf(o);
         h.setAttribute("data-scheme", o.c);

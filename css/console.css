@@ -400,3 +400,23 @@ body.board .recpill{display:none}
   body.subpage:not(.phone) .cbar>.field select{max-width:100%;text-overflow:ellipsis}
 }
 @media (min-width:861px) and (max-width:1100px){body.subpage:not(.phone) .cbar>.btn,body.subpage:not(.phone) .cbar>.ytpill{flex:none}}
+
+/* The phone dock (Nov 28, Eddie: "8, 9, and 10 now"): on a phone, Back and Next sit pinned at the bottom of the screen in a
+   glass bar like Spotlight's, with Blank and Timer beside them (js/boardApp.js adds those two). The day strip stays under
+   the board picture. A Chromebook keeps Back and Next under the board as before, and never shows Blank / Timer there. */
+.flow .fx{display:none}
+@media screen{
+body.phone:not(.board):not(.spotmode) .flowbar .flow{position:fixed;left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:calc(8px + env(safe-area-inset-bottom));z-index:30;width:auto;box-sizing:border-box;
+  display:flex;align-items:stretch;gap:6px;padding:6px;border-radius:22px;border:1px solid rgba(255,255,255,.22);
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05)),rgba(12,28,66,.92);-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.36),0 18px 44px rgba(2,8,26,.45)}
+body.phone:not(.board):not(.spotmode) .flowbar .flow button{min-height:52px;margin:0;border-radius:16px}
+body.phone:not(.board):not(.spotmode) .flowbar .flow #flowBack{flex:1 1 0;min-width:0;background:rgba(255,255,255,.1);color:#F4F8FF;border:1px solid rgba(255,255,255,.18);box-shadow:none}
+body.phone:not(.board):not(.spotmode) .flowbar .flow #flowNext{flex:2.2 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.phone:not(.board):not(.spotmode) .flowbar .flow .fx{flex:none;width:58px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0;
+  background:transparent;border:0;color:rgba(226,236,255,.85);font:700 12px var(--ui);cursor:pointer}
+body.phone:not(.board):not(.spotmode) .flowbar .flow .fx[hidden]{display:none}
+body.phone:not(.board):not(.spotmode) .flowbar .flow .fx svg{width:22px;height:22px}
+body.phone:not(.board):not(.spotmode) .flowbar .flow .fx.on{background:linear-gradient(180deg,rgba(140,200,255,.5),rgba(86,150,230,.32));color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
+body.phone:not(.board):not(.spotmode) .cbody{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+}

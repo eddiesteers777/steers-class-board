@@ -1,0 +1,49 @@
+/* ==========================================
+   Anchor Board — glass teaching screens (Nov 28, Eddie: "8, 9, and 10 now (make them match slides)").
+   The Remote and the Board Builder wear the same dark glass as Slides and Spotlight: the navy glow behind (in the
+   teacher's site colors), a floating glass header, the controls on a glass rail, and the day strip and Back / Next on
+   a glass bar. Pages opt in with <html data-glass>; js/scheme.js then always uses the Night colors there, so every
+   card, menu and field is already readable on dark (css/skin.css). Loaded after css/skin.css.
+   The board drawing (#stage) keeps its own Board look; Slides and Spotlight keep their own rules.
+========================================== */
+/* the glass colors: the same values as Slides (css/slidedit.css), so the two can never drift apart in look */
+html[data-glass] body.console{--gs-d0:#18346d;--gs-d1:#0a1838;--gs-d2:#050c1f;--gs-glass:#0C1C42;--gs-rail:#0E1E44;--gs-well:#00081E;--gs-ink:#F4F8FF;
+  --gs-ice:#E2ECFF;--gs-sky:#8CC8FF;--gs-sky2:#5696E6;--gs-pale:#B9D3EE;--gs-edge:#4F8FD8;--gs-pick:#11244d;--gs-pn:#7FAEDD;--gs-pnink:#CFE3FA;
+  --gs-ic:#A9CDF2;--gs-kink:#DCEBFF;--gs-dayon:#0B2559;--gs-dayon2:#10358A}
+html[data-glass][data-scheme]:not([data-scheme="navy"]) body.console{
+  --gs-d0:color-mix(in srgb,var(--s-hi) 84%,#000);--gs-d1:color-mix(in srgb,var(--s-out) 82%,#000);--gs-d2:color-mix(in srgb,var(--s-out) 44%,#000);
+  --gs-glass:color-mix(in srgb,var(--s-out) 72%,var(--s-mid));--gs-rail:color-mix(in srgb,var(--s-out) 64%,var(--s-mid));--gs-well:color-mix(in srgb,var(--s-out) 40%,#000);
+  --gs-ink:color-mix(in srgb,var(--s-light) 10%,#fff);--gs-ice:color-mix(in srgb,var(--s-light) 42%,#fff);
+  --gs-sky:color-mix(in srgb,var(--s-sky) 78%,#fff);--gs-sky2:color-mix(in srgb,var(--s-sky) 72%,var(--s-hi));--gs-pale:var(--s-light);
+  --gs-edge:color-mix(in srgb,var(--s-sky) 62%,var(--s-hi));--gs-pick:color-mix(in srgb,var(--s-hi) 34%,var(--s-out));--gs-pn:var(--s-sky);
+  --gs-pnink:color-mix(in srgb,var(--s-light) 62%,#fff);--gs-ic:color-mix(in srgb,var(--s-sky) 72%,#fff);--gs-kink:color-mix(in srgb,var(--s-light) 55%,#fff);
+  --gs-dayon:var(--s-mid);--gs-dayon2:var(--s-hi)}
+@media screen{
+:root[data-glass] body.console:not(.board):not(.slidemode):not(.spotmode){background:radial-gradient(120% 90% at 50% 0%,var(--gs-d0) 0%,var(--gs-d1) 45%,var(--gs-d2) 100%) fixed,var(--gs-d2)!important;color:var(--gs-ink);
+  --g-fill:linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,.05));--g-line:rgba(255,255,255,.2);
+  --g-shadow:inset 0 1px 0 rgba(255,255,255,.36),0 18px 50px color-mix(in srgb,var(--gs-well) 50%,transparent),0 2px 8px color-mix(in srgb,var(--gs-well) 25%,transparent)}
+/* the header: one floating glass bar */
+:root[data-glass] body.console:not(.board):not(.slidemode):not(.spotmode) .cbar{margin:12px 12px 0;border-radius:20px;padding:7px 12px;border:1px solid var(--g-line);
+  background:var(--g-fill),color-mix(in srgb,var(--gs-glass) 42%,transparent)!important;-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);box-shadow:var(--g-shadow)!important}
+:root[data-glass] body.console:not(.board):not(.slidemode):not(.spotmode) .cbar::after{display:none}
+:root[data-glass] body.console:not(.board):not(.slidemode):not(.spotmode) .cbar .smode{background:color-mix(in srgb,var(--gs-well) 32%,transparent);border:0;box-shadow:inset 0 1px 3px rgba(0,0,0,.35)}
+:root[data-glass] body.console:not(.board):not(.slidemode):not(.spotmode) .cbar .smode button{color:color-mix(in srgb,var(--gs-ice) 75%,transparent)}
+:root[data-glass] body.console:not(.board):not(.slidemode):not(.spotmode) .cbar .smode button[aria-pressed="true"]{background:linear-gradient(180deg,color-mix(in srgb,var(--gs-sky) 50%,transparent),color-mix(in srgb,var(--gs-sky2) 32%,transparent));color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
+/* the page under it: the rail of controls as a glass card beside the board, the day strip and Back / Next on a glass bar */
+:root[data-glass] body.console:not(.board):not(.slidemode):not(.spotmode) .cbody{gap:12px;padding:12px}
+:root[data-glass] body.console:not(.board):not(.slidemode):not(.spotmode) :is(.rail,.srail){border:1px solid var(--g-line);border-radius:20px;background:var(--g-fill),color-mix(in srgb,var(--gs-rail) 86%,transparent);box-shadow:var(--g-shadow)}
+:root[data-glass] body.console:not(.board):not(.slidemode):not(.spotmode) .srail{overflow:hidden}
+:root[data-glass] body.console:not(.board):not(.slidemode):not(.spotmode) :is(.sfoot,.spick){background:color-mix(in srgb,var(--gs-rail) 92%,#000);box-shadow:none}
+:root[data-glass] body.console:not(.board):not(.slidemode):not(.spotmode) :is(.deck,.wrap){background:transparent}
+:root[data-glass] body.console:not(.board):not(.slidemode):not(.spotmode) #stage{border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.08)}
+:root[data-glass] body.console:not(.board):not(.slidemode):not(.spotmode) .flowbar{margin-top:10px;padding:8px 10px;border-radius:20px;border:1px solid var(--g-line);
+  background:var(--g-fill),color-mix(in srgb,var(--gs-glass) 42%,transparent);-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);box-shadow:var(--g-shadow)}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){:root[data-glass] body.console:not(.board):not(.slidemode):not(.spotmode) :is(.cbar,.flowbar){background:color-mix(in srgb,var(--gs-glass) 92%,#000)!important}}
+/* a phone: the same glass, edge to edge with an 8px margin; the board picture's band takes the glow's color */
+:root[data-glass] body.phone.console:not(.board):not(.slidemode):not(.spotmode) .cbar{margin:8px 8px 0}
+:root[data-glass] body.phone.console:not(.board):not(.slidemode):not(.spotmode) .cbody{padding:8px;gap:8px}
+:root[data-glass] body.phone.console:not(.board):not(.slidemode):not(.spotmode) .deck{background:var(--gs-d1);box-shadow:0 10px 24px color-mix(in srgb,var(--gs-well) 60%,transparent)}
+/* the board picture and day strip stay pinned at the top while the page scrolls under them: solid, so nothing shows through */
+:root[data-glass] body.phone.console:not(.board):not(.slidemode):not(.spotmode) .flowbar{margin-top:8px;-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--g-fill),color-mix(in srgb,var(--gs-glass) 70%,var(--gs-d1))}
+:root[data-glass] body.phone.console:not(.board):not(.slidemode):not(.spotmode) .rail{padding:12px 10px 16px}
+}

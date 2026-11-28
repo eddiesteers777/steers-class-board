@@ -126,12 +126,12 @@ for (const [w, h] of [[1366, 768], [1920, 1080], [1280, 800]]) {
     await p.screenshot({ path: OUT + "/studio-phone-3classes.png" });
     await ctx.close();
 }
-// Board mode keeps its own light look
+// Board mode wears the same glass as Slides (Nov 28, Eddie: "make them match slides"; tools/board/glass-remote.test.mjs checks the rest)
 {
     const p = await (await browser.newContext({ viewport: { width: 1366, height: 768 } })).newPage();
     p.on("pageerror", (e) => errs.push("board: " + e.message));
     await p.goto("http://127.0.0.1:5000/studio.html?demo"); await p.waitForSelector("#stage"); await p.waitForTimeout(800);
-    assert.doesNotMatch(await p.evaluate(() => getComputedStyle(document.body).backgroundImage), /radial-gradient\(120% 90%/, "Board mode is not dark");
+    assert.match(await p.evaluate(() => getComputedStyle(document.body).backgroundImage), /radial-gradient\(120% 90%/, "Board mode wears the same glass as Slides (Nov 28)");
 }
 await browser.close();
 assert.deepEqual(errs, [], "no page errors");

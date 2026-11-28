@@ -125,6 +125,15 @@ simpler, one less thing.
     color, so a page without the skin looks exactly as before. New page CSS should use these names, not raw hex.
   - Anything drawn as the board (`#stage`, the tool shelf, Spotlight, slide drawings, look previews) is pinned back to
     the board palette, so the scheme and Night never change what students see. Printing is always light.
+- **Glass teaching screens (Nov 28, Eddie: "make them match slides").** The Remote and the Board Builder wear the same dark
+  glass as Slides and Spotlight: the navy glow behind (in the teacher's site colors), a floating glass header, the controls on
+  a glass rail, the day strip and Back / Next on a glass bar (`css/glass.css`). A page opts in with `<html data-glass>`, and
+  `js/scheme.js` then always uses the Night colors there, so every card, menu and field reads on dark. Home, the planning and
+  student pages, and the projected board keep their own looks.
+- **Phone dock (Nov 28).** On a phone, Back and Next sit in a glass bar pinned to the bottom of the screen, with Blank (the
+  empty whiteboard; tap again to go back) and Timer (the timer panel on or off) beside them (`css/console.css`, `js/boardApp.js`).
+  A Chromebook keeps Back and Next under the board, with no Blank or Timer there. The phone stays awake while a teacher page is
+  open (the wake lock, since Nov 16).
 - **Never show the wrong thing while loading.** Show the shape of the screen (a skeleton) until
   the real state arrives. No spinners, and never a flash of another day or period.
 - **Never claim what the site cannot know.** No "current period" without bell times. If the
